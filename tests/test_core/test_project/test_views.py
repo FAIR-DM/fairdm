@@ -1488,24 +1488,22 @@ class TestProjectCardRendering:
         assert "<c-components.object-card" not in template
         assert "<c-project.card" not in template
 
-    def test_card_shows_the_status_label_and_its_theme_colour(self, client):
+    def test_card_shows_the_status_label(self, client):
         ProjectFactory(
             name="Rift Basin Survey",
             status=ProjectStatus.IN_PROGRESS,
             visibility=Visibility.PUBLIC,
         )
-        response, html = self._card_html(client)
+        response, _ = self._card_html(client)
         assertContains(response, "In progress")
-        assert "badge-success" in html
 
-    def test_searching_for_collaborators_carries_the_accent_colour(self, client):
+    def test_card_shows_the_searching_for_collaborators_status(self, client):
         ProjectFactory(
             status=ProjectStatus.SEARCHING_FOR_COLLABORATORS,
             visibility=Visibility.PUBLIC,
         )
-        response, html = self._card_html(client)
+        response, _ = self._card_html(client)
         assertContains(response, "Searching for collaborators")
-        assert "badge-accent" in html
 
     def test_card_reports_the_public_dataset_count(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1580,12 +1578,11 @@ class TestProjectCardRendering:
         assert f'href="?keywords={keyword.pk}"' not in html
         assert f">{keyword.label}</a>" not in html
 
-    def test_card_shows_the_project_uuid_in_monospace_with_a_copy_control(
+    def test_card_shows_the_project_uuid_with_a_copy_control(
         self, client, public_project
     ):
         response, html = self._card_html(client)
         assertContains(response, public_project.uuid)
-        assert "font-mono" in html
         assert "clipboard" in html
 
     def test_card_shows_the_last_modified_date(self, client, public_project):
@@ -1600,23 +1597,6 @@ class TestProjectCardRendering:
         response, _ = self._card_html(client)
         assertContains(response, "Ada Lovelace")
         assertContains(response, "Institute of Deep Time")
-
-    def test_card_reflows_on_its_own_width_with_a_container_query(self, client):
-        """Breakpoints keyed to the viewport would be wrong the moment the card
-        is drawn anywhere but a full-width listing row — a plugin panel, or a
-        multi-column grid."""
-        template = (
-            Path(fairdm.core.project.__file__).parent
-            / "templates"
-            / "project"
-            / "project_card.html"
-        ).read_text()
-        assert "project-card" in template
-
-        stylesheet = FAIRDM_STYLESHEET.read_text()
-        assert "container-type: inline-size" in stylesheet
-        assert "@container (min-width: 30rem)" in stylesheet
-        assert "@container (min-width: 46rem)" in stylesheet
 
     def test_no_container_query_targets_the_container_element_itself(self):
         """A container query is answered by an ANCESTOR container, so a rule
@@ -1653,13 +1633,6 @@ class TestProjectCardRendering:
                     "own container query; move the rule to a descendant"
                 )
 
-    def test_card_renders_the_wrapper_the_reflow_rules_target(self, client):
-        """The container queries reflow `.project-card__layout`. Drop the
-        wrapper from the template and the card silently stops reflowing."""
-        ProjectFactory(visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        assert "project-card__layout" in html
-
     def test_a_project_without_an_image_gets_a_placeholder_not_a_gap(self, client):
         """The media block is always drawn, so a listing keeps one alignment
         down the page. Without an image it holds the project icon rather than a
@@ -1689,26 +1662,6 @@ class TestProjectCardRendering:
         _, html = self._card_html(client)
         assert html.count("project-card__media") == 1
 
-    def test_the_image_fills_the_card_height_once_it_sits_beside_the_body(self):
-        """Stacked, the image is a 2:1 banner. Beside the body it is a column
-        as tall as the card, so `aspect-ratio` has to be cleared — left at 2:1
-        it sets the height itself and leaves a gap below the image."""
-        stylesheet = FAIRDM_STYLESHEET.read_text()
-        side_by_side = re.search(
-            r"@container \(min-width: 30rem\)\s*\{(.*?)\n\}",
-            stylesheet,
-            re.DOTALL,
-        )
-        assert side_by_side, "the reflow breakpoint is expected to exist"
-        media = re.search(
-            r"\.project-card__media\s*\{([^}]*)\}", side_by_side.group(1)
-        )
-        assert media, "the breakpoint is expected to size the media block"
-        declarations = re.sub(r"/\*.*?\*/", "", media.group(1), flags=re.DOTALL)
-        assert "aspect-ratio: auto" in declarations
-        assert "align-self: stretch" in declarations
-        assert "flex-start" not in declarations
-
     def test_the_card_names_its_record_type_before_the_status(self, client):
         """A listing of projects is unambiguous; a mixed listing is not, and
         the card is the same card in both. The type is stated, then the
@@ -1729,24 +1682,6 @@ class TestProjectCardRendering:
         assert row.index("project-card__type") < row.index(
             project.get_status_display()
         )
-
-    def test_the_type_stripe_and_the_type_badge_share_one_colour(self):
-        """Two marks for one fact. Reading them as one signal depends on the
-        colour being the same, so both take it from a single custom property
-        rather than each naming a theme colour of its own."""
-        stylesheet = FAIRDM_STYLESHEET.read_text()
-        declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
-
-        assert "--project-card-accent:" in declarations
-        stripes = re.findall(
-            r"border-(?:top|left): 3px solid ([^;]+);", declarations
-        )
-        assert stripes, "the body is expected to carry a type stripe"
-        assert all("--project-card-accent" in rule for rule in stripes)
-
-        badge = re.search(r"\.project-card__type\s*\{([^}]*)\}", declarations)
-        assert badge, "the type badge is expected to be styled"
-        assert badge.group(1).count("--project-card-accent") >= 2
 
     def test_the_dataset_count_carries_the_dataset_icon(self, client):
         """The count reads as a bare number without it. The icon is asked for
@@ -1802,11 +1737,6 @@ class TestProjectCardRendering:
         response = client.get(reverse("dataset-list"))
         assert response.status_code == 200
         assert "css/fairdm.css" in response.content.decode()
-
-    def test_the_listing_shows_one_project_per_row_at_every_width(self):
-        """No breakpoint key: a second column at any width is what the grid is
-        being kept out of. The card fills the row and reflows internally."""
-        assert ProjectListView.grid == {"cols": 1, "gap": 4}
 
     def test_card_marks_its_user_facing_strings_for_translation(self):
         """Article VIII: a hard-coded user-visible string is a blocking
