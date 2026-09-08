@@ -1269,11 +1269,13 @@ class TestNonCollectionPagesIgnorePublished:
     `published` is `True` or `False` - the listings this feature builds in
     later stories are the only readers of the flag.
 
-    The dataset listing is now one of those readers and is no longer covered
-    here: its card states whether the data beneath the dataset is published,
-    which is the whole point of the badge (issue #333). What that page draws for
-    each state is asserted in `TestDatasetCardRendering` instead. Every other
-    page below still ignores the flag.
+    The dataset listing is now one of those readers, so it is no longer
+    compared byte for byte: its card states whether the data beneath the
+    dataset is published, which is the whole point of the badge (issue #333).
+    What the card draws for each state is asserted in
+    `TestDatasetCardRendering`. The part of the original rule that still holds
+    on that page - the flag decides nothing about which datasets are listed -
+    is kept below. Every other page ignores the flag entirely.
 
     Toggled through `.update()`, not `.save()`, so the comparison is not
     confounded by `modified`'s `auto_now` (the same reason
@@ -1292,6 +1294,28 @@ class TestNonCollectionPagesIgnorePublished:
             b'name="csrfmiddlewaretoken" value=""',
             response.content,
         )
+
+    def test_the_listing_shows_the_same_datasets_whichever_way_published_is_set(
+        self, client
+    ):
+        """Visibility decides who may see a dataset's metadata; `published`
+        decides whether the data beneath it may be shown. The listing is a
+        metadata page, so the flag changes what a card says and never whether
+        the dataset appears at all."""
+        dataset = DatasetFactory(name="Listed Either Way", visibility=Visibility.PUBLIC)
+        url = reverse("dataset-list")
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
+        unpublished = client.get(url)
+
+        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
+        published = client.get(url)
+
+        assert unpublished.status_code == 200
+        assert published.status_code == 200
+        for response in (unpublished, published):
+            assertContains(response, "Listed Either Way")
+            assertContains(response, dataset.uuid)
 
     def test_dataset_overview_page_renders_identically_across_published_states(
         self, client
