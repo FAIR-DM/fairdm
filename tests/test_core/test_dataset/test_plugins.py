@@ -46,6 +46,7 @@ import warnings
 from urllib.parse import quote
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
@@ -739,8 +740,12 @@ class TestUpdatePageEmitsExactlyOneFormElement:
         response = client.get(url)
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert len(re.findall(r"<form[ >]", content)) == 1
+        # The page's own content, not the whole document: the shell puts a
+        # hidden log-out form in the sidebar for anyone who is signed in, and
+        # that form is not this page's to count.
+        main = BeautifulSoup(response.content, "html.parser").find("main")
+        assert main is not None
+        assert len(re.findall(r"<form[ >]", str(main))) == 1
 
 
 @pytest.mark.django_db

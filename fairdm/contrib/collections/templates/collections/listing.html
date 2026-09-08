@@ -1,35 +1,45 @@
 {% extends "table_view.html" %}
 {% load i18n %}
-{% block page.header %}
-  <div class="flex items-center gap-2">
-    {{ block.super }}
-    {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
-      {% if sample_count|add:measurement_count > 1 %}
-        <div id="listing-switcher">
-          <c-dropdown text="{% trans "Switch" %}" size="sm">
-            <c-menu>
-              {% if sample_listings %}
-                <c-menu.group label="{% trans "Samples" %}">
-                  {% for entry in sample_listings %}
-                    <c-menu.item label="{{ entry.name }}"
-                                  href="{{ entry.url }}"
-                                  :active="entry.is_current" />
-                  {% endfor %}
-                </c-menu.group>
-              {% endif %}
-              {% if measurement_listings %}
-                <c-menu.group label="{% trans "Measurements" %}">
-                  {% for entry in measurement_listings %}
-                    <c-menu.item label="{{ entry.name }}"
-                                  href="{{ entry.url }}"
-                                  :active="entry.is_current" />
-                  {% endfor %}
-                </c-menu.group>
-              {% endif %}
-            </c-menu>
-          </c-dropdown>
-        </div>
-      {% endif %}
-    {% endwith %}
-  </div>
-{% endblock page.header %}
+{% comment %}
+  The switcher sits with the page's other actions, at the trailing edge of the
+  title bar.
+
+  It used to sit in `page.header`, beside the breadcrumb trail, which shared
+  that bar with the heading. django-mvp 0.21 draws the trail in the app header
+  instead, and `page.header` renders above the heading rather than beside it —
+  so the switcher would have opened a row of its own above the title, which is
+  the shape the control was moved out of in the first place. The action cluster
+  keeps it on the title's row and beside the other things a reader can do to
+  this listing.
+{% endcomment %}
+{% block page.actions %}
+  {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
+    {% if sample_count|add:measurement_count > 1 %}
+      <div id="listing-switcher">
+        <c-dropdown text="{% trans "Switch" %}" size="sm">
+          <c-menu>
+            {% if sample_listings %}
+              <c-menu.group label="{% trans "Samples" %}">
+                {% for entry in sample_listings %}
+                  <c-menu.item label="{{ entry.name }}"
+                                href="{{ entry.url }}"
+                                :active="entry.is_current" />
+                {% endfor %}
+              </c-menu.group>
+            {% endif %}
+            {% if measurement_listings %}
+              <c-menu.group label="{% trans "Measurements" %}">
+                {% for entry in measurement_listings %}
+                  <c-menu.item label="{{ entry.name }}"
+                                href="{{ entry.url }}"
+                                :active="entry.is_current" />
+                {% endfor %}
+              </c-menu.group>
+            {% endif %}
+          </c-menu>
+        </c-dropdown>
+      </div>
+    {% endif %}
+  {% endwith %}
+  {{ block.super }}
+{% endblock page.actions %}

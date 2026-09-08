@@ -14,6 +14,7 @@ import re
 import time
 
 import pytest
+from bs4 import BeautifulSoup
 from django import forms
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
@@ -1188,7 +1189,12 @@ class TestDatasetDeleteView:
         # no instance names, no contributors, no dates, no identifiers.
         assertNotContains(response, "Granite Core 1")
         assertNotContains(response, "Spring Water 1")
-        assertNotContains(response, user.get_full_name())
+        # Scoped to the page's own content: the signed-in visitor's name is
+        # drawn in the shell's account menu on every page, which says nothing
+        # about what this preview lists.
+        main = BeautifulSoup(content, "html.parser").find("main")
+        assert main is not None
+        assert user.get_full_name() not in main.get_text()
         assert not _assert_cascade_preview_group(content, "Dates")
         assert not _assert_cascade_preview_group(content, "Identifiers")
         assert not _assert_cascade_preview_group(content, "Contributors")
