@@ -1660,15 +1660,29 @@ class TestProjectCardRendering:
         _, html = self._card_html(client)
         assert "project-card__layout" in html
 
-    def test_a_project_without_an_image_gets_no_media_block(self, client):
-        """Not a placeholder image, and not an empty one either: a blank 2:1
-        band spends half a phone screen carrying nothing. The old card pointed
-        at `fairdm/img/placeholder-3x2.png`, which is not in the repository, so
+    def test_a_project_without_an_image_gets_a_placeholder_not_a_gap(self, client):
+        """The media block is always drawn, so a listing keeps one alignment
+        down the page. Without an image it holds the project icon rather than a
+        placeholder file: the old card pointed at
+        `fairdm/img/placeholder-3x2.png`, which is not in the repository, so
         every imageless card there requested a file that 404s."""
         ProjectFactory(image=None, visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
-        assert "project-card__layout" in html
-        assert "project-card__media" not in html
+        assert "project-card__media" in html
+        assert "project-card__placeholder" in html
+        assert "placeholder-3x2" not in html
+        assert "<img" not in html.split("project-card__media")[1].split("</div>")[0]
+
+    def test_the_placeholder_is_hidden_from_assistive_technology(self, client):
+        """It stands in for an absent image and carries no information a
+        screen reader needs; the card's own label already names the project."""
+        ProjectFactory(image=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        placeholder = re.search(
+            r'<span class="project-card__placeholder"([^>]*)>', html
+        )
+        assert placeholder
+        assert 'aria-hidden="true"' in placeholder.group(1)
 
     def test_a_project_with_an_image_gets_a_media_block(self, client):
         ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1694,6 +1708,45 @@ class TestProjectCardRendering:
         assert "aspect-ratio: auto" in declarations
         assert "align-self: stretch" in declarations
         assert "flex-start" not in declarations
+
+    def test_the_card_names_its_record_type_before_the_status(self, client):
+        """A listing of projects is unambiguous; a mixed listing is not, and
+        the card is the same card in both. The type is stated, then the
+        lifecycle status — that order, so the reader gets the noun first."""
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC, status=ProjectStatus.IN_PROGRESS
+        )
+        _, html = self._card_html(client)
+        badges = re.search(
+            r'<span class="project-card__badges">(.*?)\n        </span>',
+            html,
+            re.DOTALL,
+        )
+        assert badges, "the card is expected to group its badges"
+        row = badges.group(1)
+        assert "project-card__type" in row
+        assert settings.EASY_ICONS["default"]["icons"]["project"] in row
+        assert row.index("project-card__type") < row.index(
+            project.get_status_display()
+        )
+
+    def test_the_type_stripe_and_the_type_badge_share_one_colour(self):
+        """Two marks for one fact. Reading them as one signal depends on the
+        colour being the same, so both take it from a single custom property
+        rather than each naming a theme colour of its own."""
+        stylesheet = FAIRDM_STYLESHEET.read_text()
+        declarations = re.sub(r"/\*.*?\*/", "", stylesheet, flags=re.DOTALL)
+
+        assert "--project-card-accent:" in declarations
+        stripes = re.findall(
+            r"border-(?:top|left): 3px solid ([^;]+);", declarations
+        )
+        assert stripes, "the body is expected to carry a type stripe"
+        assert all("--project-card-accent" in rule for rule in stripes)
+
+        badge = re.search(r"\.project-card__type\s*\{([^}]*)\}", declarations)
+        assert badge, "the type badge is expected to be styled"
+        assert badge.group(1).count("--project-card-accent") >= 2
 
     def test_the_dataset_count_carries_the_dataset_icon(self, client):
         """The count reads as a bare number without it. The icon is asked for

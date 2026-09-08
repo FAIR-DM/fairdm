@@ -30,25 +30,41 @@
   <div class="project-card__layout">
 
     {% comment %}
-      A project with no image gets no media block at all — not a placeholder
-      image, and not an empty one. `object_card.html` points at
-      `fairdm/img/placeholder-3x2.png`, which is not in the repository, so every
-      imageless card there requests a file that 404s; an empty block instead
-      spends half a phone screen on a blank grey band that carries nothing.
+      Every card carries a media block, image or not, so a listing keeps one
+      alignment the whole way down. A project without an image gets a tinted
+      panel holding the project icon, NOT a placeholder file:
+      `object_card.html` points at `fairdm/img/placeholder-3x2.png`, which is
+      not in the repository, so every imageless card there requests a file
+      that 404s.
     {% endcomment %}
-    {% if object.image %}
-      <div class="project-card__media">
+    <div class="project-card__media">
+      {% if object.image %}
         <img src="{{ object.image|thumbnail_url:'core_small' }}"
              alt=""
              loading="lazy" />
-      </div>
-    {% endif %}
+      {% else %}
+        <span class="project-card__placeholder" aria-hidden="true">
+          <c-icon name="project" />
+        </span>
+      {% endif %}
+    </div>
 
     <div class="project-card__body">
 
       <div class="project-card__meta">
-        <span class="badge badge-{{ object.status_badge_variant }} badge-sm">
-          {{ object.get_status_display }}
+        {% comment %}
+          The record type, then its lifecycle status. The type badge repeats
+          the colour of the stripe down the left of the body, so the two read
+          as one signal rather than two.
+        {% endcomment %}
+        <span class="project-card__badges">
+          <span class="badge badge-sm project-card__type">
+            <c-icon name="project" />
+            {% translate "Project" %}
+          </span>
+          <span class="badge badge-{{ object.status_badge_variant }} badge-sm">
+            {{ object.get_status_display }}
+          </span>
         </span>
         <span class="project-card__datasets">
           <c-icon name="dataset" />
