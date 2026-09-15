@@ -8,6 +8,7 @@ masked this; this file proves the closed state and guards against the predicate'
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
+from django.urls import reverse
 
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.sample.plugins import Descriptions, Edit, KeyDates, Keywords, Overview
@@ -76,3 +77,39 @@ class TestPermissionStillGatesEvenWithAnAlwaysTruePredicate:
         request = _request_for(AnonymousUser())
 
         assert can_open(always_open, request, rock_sample) is False
+
+
+@pytest.mark.django_db
+class TestDescriptionsAndKeyDatesRenderTheirOwnForm:
+    """Neither ``Descriptions`` nor ``KeyDates`` declares a ``template_name``, and
+    ``InlineFormSetView`` falls back to a ``_detail`` suffix when none is set, which resolves to
+    the sample's own detail template. Both pages returned 200 with that template silently
+    substituted, so status alone never caught it (issue #280)."""
+
+    def test_descriptions_page_renders_the_descriptions_form_not_the_detail_page(
+        self, client, rock_sample, user
+    ):
+        assign_perm("change_dataset", user, rock_sample.dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("sample:basic-information", kwargs={"uuid": rock_sample.uuid}))
+
+        template_names = [t.name for t in response.templates if t.name]
+        assert "plugins/descriptions.html" in template_names
+        assert "sample/sample_detail.html" not in template_names
+        assert 'id="descriptions-form"' in response.content.decode()
+
+    def test_key_dates_page_renders_the_key_dates_form_not_the_detail_page(
+        self, client, rock_sample, user
+    ):
+        assign_perm("change_dataset", user, rock_sample.dataset)
+        client.force_login(user)
+
+        response = client.get(reverse("sample:key-dates", kwargs={"uuid": rock_sample.uuid}))
+
+        template_names = [t.name for t in response.templates if t.name]
+        assert "plugins/key-dates.html" in template_names
+        assert "sample/sample_detail.html" not in template_names
+        content = response.content.decode()
+        assert "Coming soon" not in content
+        assert "key-dates-form" in content
