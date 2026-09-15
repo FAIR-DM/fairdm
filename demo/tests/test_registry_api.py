@@ -17,9 +17,8 @@ See: data-model.md for API specifications
 See: contracts/ for type definitions
 """
 
-from fairdm.registry import registry
-from fairdm_demo.config import DEMO_REGISTERED_MODELS
-from fairdm_demo.models import (
+from demo.config import DEMO_REGISTERED_MODELS
+from demo.models import (
     CustomParentSample,
     CustomSample,
     ExampleMeasurement,
@@ -27,6 +26,7 @@ from fairdm_demo.models import (
     SoilSample,
     WaterSample,
 )
+from fairdm.registry import registry
 
 
 class TestDemoRegistryIntrospection:
@@ -113,16 +113,16 @@ class TestDemoRegistryIntrospection:
         assert registry.is_registered(ExampleMeasurement) is True
 
         # Test with string references (using real apps)
-        assert registry.is_registered("fairdm_demo.rocksample") is True
-        assert registry.is_registered("fairdm_demo.watersample") is True
-        assert registry.is_registered("fairdm_demo.examplemeasurement") is True
+        assert registry.is_registered("demo.rocksample") is True
+        assert registry.is_registered("demo.watersample") is True
+        assert registry.is_registered("demo.examplemeasurement") is True
 
         # Test with unregistered model
         from fairdm.core.sample.models import Sample
 
         class UnregisteredSample(Sample):
             class Meta:
-                app_label = "fairdm_demo"
+                app_label = "demo"
 
         assert registry.is_registered(UnregisteredSample) is False
 

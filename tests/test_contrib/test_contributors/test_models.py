@@ -1166,7 +1166,7 @@ class TestContributionTargets:
 
     @pytest.mark.django_db
     def test_person_creditable_on_a_measurement(self, person):
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
@@ -1333,7 +1333,7 @@ class TestContributorCredits:
     @pytest.mark.django_db
     def test_reports_each_kind_of_credited_output(self, person):
         from fairdm.utils.choices import Visibility
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         project = ProjectFactory()
         # Dataset.objects (the manager Contributor.datasets reads) excludes PRIVATE
@@ -1371,7 +1371,7 @@ class TestContributorCredits:
     def test_counts_by_kind_resolved_in_a_bounded_number_of_queries(
         self, person, django_assert_max_num_queries
     ):
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         person.add_to(ProjectFactory())
         person.add_to(DatasetFactory())

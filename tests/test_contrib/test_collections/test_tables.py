@@ -9,8 +9,8 @@ from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, PointFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from fairdm_demo.models import ExampleMeasurement, RockSample
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.models import ExampleMeasurement, RockSample
 
 
 @pytest.mark.django_db

@@ -1,19 +1,11 @@
 <!--
 Sync Impact Report
-- Version change: 1.5.0 → 2.0.0
-- MAJOR: the document was restructured onto the organisation-wide constitution
-  template. Articles I-XI are now the shared core articles, materialized here so
-  that amendments to the org standard can be diffed against this repo rather than
-  going unnoticed. FairDM's seven original principles are preserved verbatim in
-  substance and renumbered as project articles XII-XVIII.
-- Moved: .specify/memory/constitution.md → memory/constitution.md, the path the
-  organisation's tooling reads. The vendored spec-kit toolchain that formerly read
-  the old path has been removed from the repository.
-- Content folded rather than duplicated: the test-first and URL smoke-test rules
-  from the former Principle V now sit in Article I; the documentation rules from
-  the former Principle VI sit in Article VI; the privacy and sensitive-data rules
-  sit in Article V. The project articles retain everything specific to FairDM.
-- Added quality bar and non-negotiables sections from the shared template.
+- Version change: 2.0.0 → 2.0.1
+- PATCH: the reference application moved from `fairdm_demo/` to `demo/`, so every
+  mention of it here names the new path. Articles I, XVI and XVIII, the workflow
+  quality checkpoints and the governance scope clause are affected.
+- No principle, obligation or piece of guidance changed. Only the name of the
+  directory the rules point at is different.
 -->
 
 # FairDM Constitution
@@ -36,7 +28,7 @@ never modified or deleted without a recorded decision.
 - Pull requests MUST NOT merge with failing tests, or without new or updated tests for a behaviour
   change. The only exception is a docs-only change with no runtime impact.
 
-**URL smoke coverage.** Any app registering new URL patterns (including `fairdm_demo` and any
+**URL smoke coverage.** Any app registering new URL patterns (including `demo` and any
 contrib app) MUST include at least one smoke test per new route, asserting the expected status
 code. Smoke tests need not assert page content; their purpose is to catch broken URL patterns,
 missing templates, template syntax errors, context exceptions, queryset errors, middleware and
@@ -229,7 +221,7 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 
 **URL Smoke Test Coverage**:
 
-- Any Django app within the FairDM project (including `fairdm_demo` and any contrib app) that registers new URL
+- Any Django app within the FairDM project (including `demo` and any contrib app) that registers new URL
   patterns MUST include at minimum one smoke test per new route.
 - A smoke test MUST assert that the HTTP response status code is as expected (e.g., `200` for public pages,
   `302` for auth redirects, `403` for permission-denied responses) — for example:
@@ -244,7 +236,7 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
   templates, template syntax errors, context variable exceptions, queryset errors, middleware/auth issues, and
   bad redirects.
 - Smoke tests MUST be co-located in the app's own test suite (e.g., `fairdm/contrib/my_app/tests/test_views.py`
-  or `fairdm_demo/tests/test_views.py`).
+  or `demo/tests/test_views.py`).
 - This requirement applies to all URL-registering apps regardless of size; even a single-view app MUST have its
   route covered by at least one smoke test.
 
@@ -279,7 +271,7 @@ Documentation is part of the framework surface area and MUST be treated with the
 
 ### Article XVIII — Living demo and reference implementation
 
-FairDM maintains a reference application (`fairdm_demo`) that serves as executable documentation, a testing ground for new features, and a model for portal developers.
+FairDM maintains a reference application (`demo`) that serves as executable documentation, a testing ground for new features, and a model for portal developers.
 
 - The demo app MUST remain functional and up-to-date with the current framework version at all times.
 - When core models, APIs, or recommended patterns change, the demo app MUST be updated in the same pull request to reflect those changes.
@@ -359,8 +351,8 @@ This section governs how new capabilities are proposed, designed, and implemente
 - **Implementation Validation & Quality Checkpoints**:
   - **Django System Checks**: `python manage.py check` MUST be run and pass between completing user stories or major implementation phases to catch configuration errors (model validation, admin field references, vocabulary collection references, etc.) before they surface as runtime errors.
   - **Demo App Testing**: When changes affect core models, admin classes, registry behavior, or recommended patterns, the demo app implementation MUST be tested after the changes:
-    - Create or update tests in `fairdm_demo/tests/` to verify the demo app's usage of new/changed features works correctly.
-    - Run demo app tests (e.g., `pytest fairdm_demo/tests/`) and ensure all tests pass before considering the feature complete.
+    - Create or update tests in `demo/tests/` to verify the demo app's usage of new/changed features works correctly.
+    - Run demo app tests (e.g., `pytest demo/tests/`) and ensure all tests pass before considering the feature complete.
     - Admin views SHOULD be tested by making HTTP requests to list, add, and change views to ensure they load without errors.
   - **Documentation Currency**: Documentation MUST be updated as features are implemented, not deferred to the end:
     - When implementing a user story that changes behavior visible to portal developers, admins, or contributors, update the relevant documentation section (developer-guide/, portal-administration/, or user-guide/) in the same pull request.
@@ -404,7 +396,7 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
 
 - **Governance & Scope**:
   - This constitution supersedes ad-hoc practices when they conflict.
-  - It applies to the core FairDM framework and any official demo or reference projects maintained in this repository (including `fairdm_demo`).
+  - It applies to the core FairDM framework and any official demo or reference projects maintained in this repository (including `demo`).
   - At present, final authority for constitutional changes and major core decisions rests with the original author as BDFL (Benevolent Dictator For Life), while explicitly preparing for a future, broader governance model.
 - **Amendments & Versioning**:
   - Amendments MUST be made via pull request that clearly states the intended change, rationale, and expected impact on existing portals and contributors.
@@ -423,4 +415,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 2.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-08-11
+**Version**: 2.0.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-09-15

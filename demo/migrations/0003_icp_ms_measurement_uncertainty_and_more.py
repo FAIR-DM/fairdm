@@ -7,7 +7,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fairdm_demo', '0002_alter_customparentsample_options'),
+        ('demo', '0002_alter_customparentsample_options'),
     ]
 
     operations = [

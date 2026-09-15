@@ -34,7 +34,7 @@ import fairdm
 
 # Setup FairDM with demo app for testing
 fairdm.setup(
-    apps=["fairdm_demo"],
+    apps=["demo"],
     addons=[],  # No addons needed for unit tests
 )
 
@@ -191,7 +191,7 @@ ROOT_URLCONF = "fairdm.conf.urls"
 # Factory boy configuration for test data generation
 
 FAIRDM_FACTORIES = {
-    "fairdm_demo.CustomSample": "fairdm_demo.factories.CustomSampleFactory",
-    "fairdm_demo.CustomParentSample": "fairdm_demo.factories.CustomParentSampleFactory",
-    "fairdm_demo.ExampleMeasurement": "fairdm_demo.factories.ExampleMeasurementFactory",
+    "demo.CustomSample": "demo.factories.CustomSampleFactory",
+    "demo.CustomParentSample": "demo.factories.CustomParentSampleFactory",
+    "demo.ExampleMeasurement": "demo.factories.ExampleMeasurementFactory",
 }

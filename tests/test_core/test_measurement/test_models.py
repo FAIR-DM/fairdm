@@ -28,7 +28,7 @@ from fairdm.factories import (
     MeasurementIdentifierFactory,
     PersonFactory,
 )
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -37,7 +37,7 @@ class TestMeasurementModelCreation:
 
     def test_xrf_measurement_creation_with_all_fields(self, sample):
         """Test creating an XRFMeasurement with all base fields populated."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         measurement = XRFMeasurement.objects.create(
             name="XRF Analysis",
@@ -60,7 +60,7 @@ class TestMeasurementModelCreation:
 
     def test_icp_ms_measurement_creation_with_minimal_fields(self, sample):
         """Test creating an ICP_MS_Measurement with only required fields."""
-        from fairdm_demo.models import ICP_MS_Measurement
+        from demo.models import ICP_MS_Measurement
 
         measurement = ICP_MS_Measurement.objects.create(
             name="ICP-MS Analysis",
@@ -99,7 +99,7 @@ class TestMeasurementFields:
     free-form tags are each optional."""
 
     def test_name_is_required(self, sample):
-        from fairdm_demo.models import ExampleMeasurement
+        from demo.models import ExampleMeasurement
 
         instance = ExampleMeasurement(sample=sample, dataset=sample.dataset)
 
@@ -211,7 +211,7 @@ class TestMeasurementPolymorphicInheritance:
 
     def test_polymorphic_measurement_subclass_creation(self, sample):
         """Test creating a polymorphic measurement subclass (XRFMeasurement)."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF Test",
@@ -229,7 +229,7 @@ class TestMeasurementPolymorphicInheritance:
 
     def test_polymorphic_query_returns_typed_instances(self, sample):
         """Test that querying Measurement returns correctly typed instances."""
-        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+        from demo.models import ICP_MS_Measurement, XRFMeasurement
 
         # Create different measurement types
         xrf = XRFMeasurement.objects.create(
@@ -463,7 +463,7 @@ class TestMeasurementCrossDatasetSampleLinking:
     def test_measurement_can_link_to_sample_in_different_dataset(self, sample):
         """Test that a measurement can belong to dataset A but measure sample from dataset B (FR-053)."""
         from fairdm.factories import DatasetFactory
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create a different dataset
         dataset_b = DatasetFactory(project=sample.dataset.project)
@@ -585,7 +585,7 @@ class TestMeasurementQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create measurements with related data
         measurements = []
@@ -633,7 +633,7 @@ class TestMeasurementQuerySetOptimizations:
             MeasurementDate,
             MeasurementDescription,
         )
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create measurement with metadata
         measurement = XRFMeasurement.objects.create(
@@ -683,7 +683,7 @@ class TestMeasurementQuerySetOptimizations:
     def test_polymorphic_queryset_returns_correct_typed_instances(self, sample):
         """Test that PolymorphicQuerySet automatically returns correctly typed instances."""
         from fairdm.core.measurement.models import Measurement
-        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+        from demo.models import ICP_MS_Measurement, XRFMeasurement
 
         # Create mixed measurement types
         XRFMeasurement.objects.create(
@@ -730,7 +730,7 @@ class TestMeasurementQuerySetOptimizations:
 
     def test_queryset_method_chaining_works_correctly(self, sample):
         """Test that QuerySet optimization methods can be chained together."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create test measurements
         for i in range(3):
@@ -766,7 +766,7 @@ class TestMeasurementQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create 100 measurements (1000 is too slow for regular test runs)
         measurements = []
@@ -801,7 +801,7 @@ class TestMeasurementQuerySetOptimizations:
         import time
 
         from fairdm.core.measurement.models import Measurement
-        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+        from demo.models import ICP_MS_Measurement, XRFMeasurement
 
         # Create 50 of each type (100 total - scaled down for test speed)
         for i in range(50):
@@ -1200,7 +1200,7 @@ class TestMeasurementValueWithUncertainty:
         """Test that polymorphic measurements with value fields return appropriate representations."""
         # Using the demo app's XRFMeasurement, which nominates no value of its own,
         # so the report falls back to the record's name.
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="Iron Analysis",
@@ -1222,7 +1222,7 @@ class TestMeasurementValueWithUncertainty:
 
         # A type that nominates a value and an uncertainty reports both, formatted
         # together - this is the convention this feature built (see test_value.py).
-        from fairdm_demo.models import ICP_MS_Measurement
+        from demo.models import ICP_MS_Measurement
 
         icp_ms = ICP_MS_Measurement.objects.create(
             name="Uranium Analysis",
@@ -1417,7 +1417,7 @@ class TestMeasurementQuerySetOptimization:
             ExampleMeasurementFactory(sample=RockSampleFactory()) for _ in range(2)
         ]
 
-        from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
+        from demo.models import ExampleMeasurement, XRFMeasurement
 
         polymorphic_measurements = [
             XRFMeasurement.objects.create(

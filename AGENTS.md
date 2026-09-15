@@ -5,7 +5,7 @@
 FairDM is a Django framework for building FAIR research data portals. Research teams declare
 domain-specific sample and measurement models, register them, and get a working portal without
 writing views, URL routing, or frontend code. The package ships the core backbone (projects,
-datasets, samples, measurements, contributors) plus a demo application in `fairdm_demo`.
+datasets, samples, measurements, contributors) plus a demo application in `demo`.
 
 ## Stack & commands
 

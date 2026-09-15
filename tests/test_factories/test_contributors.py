@@ -27,7 +27,7 @@ from fairdm.factories.contributors import (
     ContributorIdentifierFactory,
     UserFactory,
 )
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 class TestContributorFactories(TestCase):

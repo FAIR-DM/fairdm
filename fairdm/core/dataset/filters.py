@@ -63,7 +63,7 @@ filterset = DatasetFilter(
 
 - **Filter Guide**: `docs/portal-development/filters/creating-filters.md`
 - **Tests**: `tests/unit/core/dataset/test_filter.py`
-- **Demo Examples**: `fairdm_demo/filters.py`
+- **Demo Examples**: `demo/filters.py`
 """
 
 import django_filters
@@ -119,7 +119,7 @@ class DatasetFilter(BaseListFilter):
 
     See Also:
         - tests/unit/core/dataset/test_filter.py: Comprehensive test suite
-        - fairdm_demo/filters.py: Examples and best practices
+        - demo/filters.py: Examples and best practices
     """
 
     project = django_filters.ModelChoiceFilter(

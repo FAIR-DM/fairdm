@@ -21,9 +21,9 @@ repos:
       # these also rewrite the spec archive, fixtures and SVG assets, which is
       # churn unrelated to any change being committed.
       - id: trailing-whitespace
-        files: ^(fairdm|fairdm_demo|tests)/.*\.py$
+        files: ^(fairdm|demo|tests)/.*\.py$
       - id: end-of-file-fixer
-        files: ^(fairdm|fairdm_demo|tests)/.*\.py$
+        files: ^(fairdm|demo|tests)/.*\.py$
       - id: check-yaml
 
   - repo: https://github.com/python-poetry/poetry

@@ -25,7 +25,7 @@ from fairdm.registry.exceptions import (
     DuplicateRegistrationError,
     FieldValidationError,
 )
-from fairdm_demo.models import RockSample
+from demo.models import RockSample
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
@@ -617,7 +617,7 @@ class TestAdminInheritanceValidation:
             value = models.FloatField()
 
             class Meta:
-                app_label = "fairdm_demo"
+                app_label = "demo"
 
         class WrongMeasurementAdmin(admin.ModelAdmin):
             """Wrong admin class - doesn't inherit from MeasurementChildAdmin."""
@@ -653,7 +653,7 @@ class TestAdminInheritanceValidation:
             value = models.FloatField()
 
             class Meta:
-                app_label = "fairdm_demo"
+                app_label = "demo"
 
         class CorrectMeasurementAdmin(MeasurementChildAdmin):
             """Correct admin class - inherits from MeasurementChildAdmin."""
@@ -686,7 +686,7 @@ class TestAdminInheritanceValidation:
             value = models.FloatField()
 
             class Meta:
-                app_label = "fairdm_demo"
+                app_label = "demo"
 
         config = ModelConfiguration(
             model=TestMeasurement3,
@@ -708,16 +708,16 @@ class TestAdminInheritanceValidation:
 
     def test_admin_class_as_string_reference(self):
         """Admin class can be provided as string reference."""
-        from fairdm_demo.models import WaterSample
+        from demo.models import WaterSample
 
         config = ModelConfiguration(
             model=WaterSample,
-            admin_class="fairdm_demo.admin.WaterSampleAdmin",
+            admin_class="demo.admin.WaterSampleAdmin",
             fields=["name", "ph_level"],
         )
 
         # Should resolve string reference and validate
-        from fairdm_demo.admin import WaterSampleAdmin
+        from demo.admin import WaterSampleAdmin
 
         assert config.get_admin_class() == WaterSampleAdmin
 

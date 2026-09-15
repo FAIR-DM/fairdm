@@ -13,7 +13,7 @@ from fairdm.factories import (
     ProjectFactory,
 )
 from fairdm.registry import registry
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -86,7 +86,7 @@ def measurement(db, sample):
 @pytest.fixture
 def example_measurement(db, sample):
     """Create a test ExampleMeasurement (polymorphic subclass)."""
-    from fairdm_demo.models import ExampleMeasurement
+    from demo.models import ExampleMeasurement
 
     return ExampleMeasurement.objects.create(
         name="Test Measurement",
@@ -100,7 +100,7 @@ def example_measurement(db, sample):
 @pytest.fixture
 def xrf_measurement(db, sample):
     """Create a test XRFMeasurement (polymorphic subclass)."""
-    from fairdm_demo.models import XRFMeasurement
+    from demo.models import XRFMeasurement
 
     return XRFMeasurement.objects.create(
         name="XRF Analysis",
@@ -115,7 +115,7 @@ def xrf_measurement(db, sample):
 @pytest.fixture
 def icp_ms_measurement(db, sample):
     """Create a test ICP-MS Measurement (polymorphic subclass)."""
-    from fairdm_demo.models import ICP_MS_Measurement
+    from demo.models import ICP_MS_Measurement
 
     return ICP_MS_Measurement.objects.create(
         name="ICP-MS Analysis",

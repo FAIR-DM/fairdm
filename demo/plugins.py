@@ -56,7 +56,7 @@ These examples serve as living documentation for plugin development patterns.
 #     menu = {"label": _("Edit Project"), "icon": "pencil-square", "order": 10}
 
 #     # Set explicit permission (required for editing projects)
-#     permission = "fairdm_demo.change_project"
+#     permission = "demo.change_project"
 
 
 # @plugins.register(Project)
@@ -72,7 +72,7 @@ These examples serve as living documentation for plugin development patterns.
 #     # Menu inherited from DeletePlugin, but reposition it
 #     menu = {"label": _("Delete"), "icon": "trash", "order": 1000}
 
-#     permission = "fairdm_demo.delete_project"
+#     permission = "demo.delete_project"
 
 #     def get_success_url(self):
 #         """Redirect to project list after deletion."""
@@ -117,7 +117,7 @@ These examples serve as living documentation for plugin development patterns.
 
 #     form_class = SampleForm
 #     menu = {"label": _("Edit"), "icon": "pencil", "order": 10}
-#     permission = "fairdm_demo.change_sample"
+#     permission = "demo.change_sample"
 
 
 # # =============================================================================
@@ -146,7 +146,7 @@ These examples serve as living documentation for plugin development patterns.
 #         """Only visible for samples with assigned locations."""
 #         return obj and hasattr(obj, "location") and obj.location is not None
 
-#     template_name = "fairdm_demo/plugins/location_details.html"
+#     template_name = "demo/plugins/location_details.html"
 
 #     def get_context_data(self, **kwargs):
 #         """Add location and coordinates to context."""
@@ -182,7 +182,7 @@ These examples serve as living documentation for plugin development patterns.
 #
 #     check = is_instance_of(RockSample)  # Only visible for RockSample
 #     menu = {"label": _("Rock Analysis"), "icon": "gem", "order": 30}
-#     template_name = "fairdm_demo/plugins/rock_analysis.html"
+#     template_name = "demo/plugins/rock_analysis.html"
 
 
 # =============================================================================
@@ -219,7 +219,7 @@ These examples serve as living documentation for plugin development patterns.
 #
 #     form_class = LocationForm
 #     menu = {"label": _("Edit Location"), "icon": "pencil", "order": 10}
-#     permission = "fairdm_demo.change_location"
+#     permission = "demo.change_location"
 
 
 # =============================================================================

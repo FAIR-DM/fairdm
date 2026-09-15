@@ -87,7 +87,7 @@ class TestSampleDiscoveryEndpoint:
 
     def test_anon_count_only_shows_public(self, api_client, public_dataset, db):
         """Anonymous users should see count of public records only."""
-        from fairdm_demo.factories import CustomParentSampleFactory
+        from demo.factories import CustomParentSampleFactory
 
         # Create one public and one private sample
         public_sample = CustomParentSampleFactory(dataset=public_dataset)
@@ -158,7 +158,7 @@ class TestRegistryGeneratedEndpoints:
     def test_custom_parent_sample_list_accessible(self, api_client):
         """CustomParentSample is registered in the demo app; its endpoint must work."""
         from fairdm.api.viewsets import _model_to_slug
-        from fairdm_demo.models import CustomParentSample
+        from demo.models import CustomParentSample
 
         slug = _model_to_slug(CustomParentSample)
         response = api_client.get(f"/api/v1/samples/{slug}/")
@@ -167,7 +167,7 @@ class TestRegistryGeneratedEndpoints:
     def test_example_measurement_list_accessible(self, api_client):
         """ExampleMeasurement is registered in the demo app; its endpoint must work."""
         from fairdm.api.viewsets import _model_to_slug
-        from fairdm_demo.models import ExampleMeasurement
+        from demo.models import ExampleMeasurement
 
         slug = _model_to_slug(ExampleMeasurement)
         response = api_client.get(f"/api/v1/measurements/{slug}/")
@@ -175,7 +175,7 @@ class TestRegistryGeneratedEndpoints:
 
     def test_custom_parent_sample_list_has_pagination(self, api_client):
         from fairdm.api.viewsets import _model_to_slug
-        from fairdm_demo.models import CustomParentSample
+        from demo.models import CustomParentSample
 
         slug = _model_to_slug(CustomParentSample)
         data = api_client.get(f"/api/v1/samples/{slug}/").json()

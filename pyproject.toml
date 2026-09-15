@@ -122,7 +122,7 @@ Changelog = "https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md"
 [tool.poetry]
 version = "0.0.1"
 requires-poetry = '>=2.0,<3.0'
-packages = [{ include = "fairdm" }, { include = "fairdm_demo" }]
+packages = [{ include = "fairdm" }, { include = "demo" }]
 include = ["README.md", "LICENSE"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -270,7 +270,7 @@ exclude = ["fairdm/conf/*"]
     "E402",   # Allow module level imports not at top (pytest markers)
     "RUF043", # Allow unescaped regex patterns in pytest.raises
 ]
-"**/fairdm_demo/*" = [
+"**/demo/*" = [
     "F841", # Unused variables in demo/example code
     "E402", # Import ordering in admin (after register decorators)
 ]
@@ -415,14 +415,14 @@ extend_exclude = [
     "scripts",
     ".*tests",
     "tests/",
-    "fairdm_demo/tests/",
+    "demo/tests/",
     # Factories are test-support code and depend on factory_boy, which is a
     # dev/test dependency rather than a runtime one.
     "fairdm/factories/",
-    "fairdm_demo/factories.py",
+    "demo/factories.py",
 ]
 
-known_first_party = ["fairdm", "fairdm_demo"]
+known_first_party = ["fairdm", "demo"]
 
 # Django packages whose distribution name differs from the name they are
 # imported under. Without this, deptry reads every one of them as declared but

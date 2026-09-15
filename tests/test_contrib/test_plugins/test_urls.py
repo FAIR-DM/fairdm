@@ -10,7 +10,7 @@ from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.contrib.plugins.utils import slugify
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.models import Sample
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 
 class TestNaming:

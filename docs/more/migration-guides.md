@@ -1,7 +1,62 @@
 # Migration Guides
 
-Step-by-step instructions for upgrading past a breaking change. Each section covers one feature
-branch; read the one that matches what changed under you.
+Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
+read the one that matches what changed under you.
+
+## The demo application moved to `demo/`
+
+The reference application shipped with FairDM used to live in `fairdm_demo/` and was imported as
+`fairdm_demo`. It now lives in `demo/` and is imported as `demo`. Its Django app label changed
+with it, from `fairdm_demo` to `demo`.
+
+Nothing else about it changed. Every model, factory, filter, table, plugin and configuration class
+keeps the name it had.
+
+**If you install the demo application in your own portal**, update the name you pass to
+`fairdm.setup()`:
+
+```python
+# Before
+fairdm.setup(apps=["fairdm_demo"])
+
+# After
+fairdm.setup(apps=["demo"])
+```
+
+**If you import from it**, update the import path. The factories are the usual case, since the
+documentation points at them as reference implementations:
+
+```python
+# Before
+from fairdm_demo.factories import RockSampleFactory
+
+# After
+from demo.factories import RockSampleFactory
+```
+
+**If you refer to its models by label** in `ForeignKey` strings, `apps.get_model()` calls,
+permission codenames or content-type lookups, replace `fairdm_demo` with `demo` in each one.
+
+**If you have a database holding demo data**, the app label change moves every table the
+application owns: `fairdm_demo_rocksample` becomes `demo_rocksample`, and so on for each of its
+models. The demo application is a reference implementation rather than something a portal is
+expected to deploy with real data, so the simplest path is to drop and recreate the database.
+
+To keep the data instead, do all of this **before you start the application under the new name**,
+and before running `migrate`:
+
+1. Rename each of the application's tables from `fairdm_demo_<model>` to `demo_<model>`.
+2. Update its rows in `django_migrations`, setting `app` from `fairdm_demo` to `demo`.
+3. Update its rows in `django_content_type`, setting `app_label` from `fairdm_demo` to `demo`.
+
+Permissions need no separate step. Both Django's own permission rows and django-guardian's
+object-level grants reference a content type by id, so they follow the rows corrected in step 3.
+
+If the application has already started under the new name, step 3 fails on a uniqueness error:
+Django creates a content type per model the first time it needs one, so the database now holds a
+`demo` row and a `fairdm_demo` row for the same model. Delete the newly created `demo` rows first —
+they are the empty ones, and nothing has been granted against them yet — then run step 3, which
+carries the original rows and everything filed against them across.
 
 ## 005 — The sample record (status, identifiers, factories, permissions)
 
@@ -65,7 +120,7 @@ with the base factory.
 **What to do:**
 
 1. Write a concrete factory for each of your own specimen types, subclassing
-   `fairdm.factories.SampleFactory` the way `fairdm_demo.factories.RockSampleFactory` does:
+   `fairdm.factories.SampleFactory` the way `demo.factories.RockSampleFactory` does:
 
    ```python
    from fairdm.factories import SampleFactory

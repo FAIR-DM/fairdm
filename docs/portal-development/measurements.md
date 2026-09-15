@@ -75,7 +75,7 @@ quantity field - `get_value()` degrades gracefully for a plain number - but a ty
 that wants the formatted `"value ± uncertainty unit"` output needs both fields to
 be quantity fields sharing compatible units.
 
-`ICP_MS_Measurement` in `fairdm_demo/models.py` is the shipped example. It carries
+`ICP_MS_Measurement` in `demo/models.py` is the shipped example. It carries
 its historical `concentration_ppb`/`uncertainty_percent` fields unchanged, and adds
 the two the convention expects:
 
@@ -594,7 +594,7 @@ class TestXRFMeasurement:
 
         assert measurement.element == "Fe"
         # XRFMeasurement nominates no `value` field, so get_value() falls back
-        # to the record's name (the same behaviour proven for `fairdm_demo`'s
+        # to the record's name (the same behaviour proven for `demo`'s
         # ExampleMeasurement in tests/test_core/test_measurement/test_value.py).
         assert measurement.get_value() == "Iron Analysis"
 ```
@@ -659,4 +659,4 @@ measurements = XRFMeasurement.objects.with_related()
 
 - [Core Data Model Overview](../overview/data_model.md#understanding-the-measurement-model)
 - [Testing Guide](testing-portal-projects.md)
-- Demo app: `fairdm_demo/models.py` for working examples
+- Demo app: `demo/models.py` for working examples

@@ -104,8 +104,8 @@ class TestDemoSampleListEndpoints:
 
     def test_public_sample_visible_to_anonymous(self, api_client, db):
         """A public sample appears in the list for anonymous users."""
+        from demo.factories import CustomParentSampleFactory
         from fairdm.factories import DatasetFactory, ProjectFactory
-        from fairdm_demo.factories import CustomParentSampleFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
@@ -118,8 +118,8 @@ class TestDemoSampleListEndpoints:
 
     def test_sample_count_in_discovery_reflects_public_records(self, api_client, db):
         """Discovery catalog count for anonymous user matches public-only records."""
+        from demo.factories import CustomParentSampleFactory
         from fairdm.factories import DatasetFactory, ProjectFactory
-        from fairdm_demo.factories import CustomParentSampleFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)

@@ -17,7 +17,7 @@ import pint
 import pytest
 
 from fairdm.core.measurement.models import Measurement
-from fairdm_demo.factories import ExampleMeasurementFactory, ICP_MS_MeasurementFactory
+from demo.factories import ExampleMeasurementFactory, ICP_MS_MeasurementFactory
 
 
 @pytest.mark.django_db

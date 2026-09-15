@@ -391,7 +391,7 @@ class TestImproperlyConfiguredEnforcement:
 
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from fairdm_demo.models import CustomParentSample
+        from demo.models import CustomParentSample
 
         class NonConformingSampleSerializer(drf_serializers.ModelSerializer):
             class Meta:
@@ -413,7 +413,7 @@ class TestImproperlyConfiguredEnforcement:
 
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from fairdm_demo.models import ExampleMeasurement
+        from demo.models import ExampleMeasurement
 
         class NonConformingMeasurementSerializer(drf_serializers.ModelSerializer):
             class Meta:
@@ -433,7 +433,7 @@ class TestImproperlyConfiguredEnforcement:
         from fairdm.api.serializers import BaseSampleSerializer
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from fairdm_demo.models import CustomParentSample
+        from demo.models import CustomParentSample
 
         class ConformingSampleSerializer(BaseSampleSerializer):
             class Meta(BaseSampleSerializer.Meta):
@@ -454,7 +454,7 @@ class TestImproperlyConfiguredEnforcement:
         from fairdm.api.serializers import BaseMeasurementSerializer
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from fairdm_demo.models import ExampleMeasurement
+        from demo.models import ExampleMeasurement
 
         class ConformingMeasurementSerializer(BaseMeasurementSerializer):
             class Meta(BaseMeasurementSerializer.Meta):

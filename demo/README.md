@@ -15,7 +15,7 @@ The demo app serves multiple purposes:
 
 ## Plugin System Examples
 
-The demo app showcases the FairDM plugin system with working examples. See [`fairdm_demo/plugins.py`](plugins.py) for complete implementations.
+The demo app showcases the FairDM plugin system with working examples. See [`demo/plugins.py`](plugins.py) for complete implementations.
 
 ### Basic Plugin Registration
 
@@ -43,7 +43,7 @@ class SampleEdit(BaseEditPlugin):
     
     form_class = SampleForm
     menu = {"label": "Edit", "icon": "pencil", "order": 10}
-    permission = "fairdm_demo.change_sample"
+    permission = "demo.change_sample"
 ```
 
 ### Polymorphic Visibility (Conditional Plugins)
@@ -86,7 +86,7 @@ The demo app demonstrates custom Sample and Measurement types:
 
 ### Custom Sample Model
 
-See [`fairdm_demo/models/sample.py`](models/sample.py):
+See [`demo/models/sample.py`](models/sample.py):
 
 ```python
 class DemoSample(Sample):
@@ -100,7 +100,7 @@ class DemoSample(Sample):
 
 ### Custom Measurement Model
 
-See [`fairdm_demo/models/measurement.py`](models/measurement.py):
+See [`demo/models/measurement.py`](models/measurement.py):
 
 ```python
 class DemoMeasurement(Measurement):
@@ -117,7 +117,7 @@ class DemoMeasurement(Measurement):
 
 The demo shows how to configure model display using the registry system.
 
-See [`fairdm_demo/options.py`](options.py):
+See [`demo/options.py`](options.py):
 
 ```python
 from fairdm.core.registry import registry
@@ -136,7 +136,7 @@ class DemoSampleOptions:
 ### 1. Create Migrations
 
 ```bash
-poetry run python manage.py makemigrations fairdm_demo
+poetry run python manage.py makemigrations demo
 ```
 
 ### 2. Apply Migrations
@@ -150,7 +150,7 @@ poetry run python manage.py migrate
 ```bash
 poetry run python manage.py shell
 
-from fairdm_demo.factories import DemoSampleFactory, DemoMeasurementFactory
+from demo.factories import DemoSampleFactory, DemoMeasurementFactory
 
 # Create 10 demo samples
 samples = DemoSampleFactory.create_batch(10)
@@ -178,7 +178,7 @@ poetry run python manage.py runserver
 ## Project Structure
 
 ```
-fairdm_demo/
+demo/
 ├── README.md              ← This file
 ├── apps.py               ← App configuration
 ├── models.py             ← Polymorphic Sample/Measurement models
@@ -190,10 +190,10 @@ fairdm_demo/
 ├── filters.py            ← django-filter filterset definitions
 ├── tests/                ← Test suite
 ├── templates/            ← Demo-specific templates
-│   └── fairdm_demo/
+│   └── demo/
 │       └── plugins/      ← Plugin templates
 └── static/               ← Demo-specific static assets
-    └── fairdm_demo/
+    └── demo/
         ├── css/
         └── js/
 ```
@@ -269,13 +269,13 @@ Run demo app tests:
 
 ```bash
 # All tests
-poetry run pytest fairdm_demo/tests/
+poetry run pytest demo/tests/
 
 # Specific test module
-poetry run pytest fairdm_demo/tests/test_plugins.py
+poetry run pytest demo/tests/test_plugins.py
 
 # With coverage
-poetry run pytest fairdm_demo/tests/ --cov=fairdm_demo
+poetry run pytest demo/tests/ --cov=demo
 ```
 
 ---
@@ -287,7 +287,7 @@ The demo app code is designed to be copied and adapted:
 1. **Copy plugin patterns** from `plugins.py` to your app
 2. **Adapt model examples** from `models.py` to your domain
 3. **Reuse factory patterns** from `factories.py` for test data
-4. **Reference templates** in `templates/fairdm_demo/plugins/`
+4. **Reference templates** in `templates/demo/plugins/`
 
 ### Example: Adapting a Plugin
 

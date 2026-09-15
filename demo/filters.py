@@ -81,8 +81,8 @@ import django_filters
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from demo.models import RockSample, WaterSample
 from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
-from fairdm_demo.models import RockSample, WaterSample
 
 from .models import CustomSample
 

@@ -18,8 +18,8 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
-from fairdm_demo.factories import RockSampleFactory
-from fairdm_demo.models import ExampleMeasurement, XRFMeasurement
+from demo.factories import RockSampleFactory
+from demo.models import ExampleMeasurement, XRFMeasurement
 
 User = get_user_model()
 

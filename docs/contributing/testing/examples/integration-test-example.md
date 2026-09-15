@@ -166,7 +166,7 @@ def test_get_sample_count__with_multiple_samples__returns_correct_count():
     dataset = DatasetFactory()
     # fairdm.factories.SampleFactory is abstract - the base Sample record cannot be
     # created directly, so tests use a concrete specimen factory instead.
-    from fairdm_demo.factories import RockSampleFactory
+    from demo.factories import RockSampleFactory
     RockSampleFactory(dataset=dataset)
     RockSampleFactory(dataset=dataset)
     RockSampleFactory(dataset=dataset)

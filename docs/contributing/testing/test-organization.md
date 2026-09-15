@@ -26,7 +26,7 @@ tests/
 │   │   │       └── test_models.py
 │   │   └── plugins/
 │   │       └── test_registry.py
-│   └── fairdm_demo/
+│   └── demo/
 │       └── test_models.py
 ├── integration/                # Integration test layer
 │   ├── conftest.py            # Integration-specific fixtures
@@ -34,7 +34,7 @@ tests/
 │   │   └── core/
 │   │       ├── test_project_workflow.py
 │   │       └── test_dataset_workflow.py
-│   └── fairdm_demo/
+│   └── demo/
 │       └── test_demo_workflow.py
 ├── contract/                   # Contract test layer
 │   ├── conftest.py            # Contract-specific fixtures (API client)

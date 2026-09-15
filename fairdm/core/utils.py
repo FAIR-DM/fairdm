@@ -128,7 +128,7 @@ def get_objects_for_user(user, perm, klass, **kwargs):
 
     ``guardian.shortcuts.get_objects_for_user`` derives its content-type filter from ``perm``'s
     own app label and model name, so a naive permission built from a specimen subclass (e.g.
-    ``"fairdm_demo.view_rocksample"``) finds nothing when the grant is filed under the
+    ``"demo.view_rocksample"``) finds nothing when the grant is filed under the
     polymorphic base's content type (``sample.view_sample``) - and it raises
     ``MixedContentTypeError`` outright if handed that base-model permission alongside a subclass
     queryset, so the two cannot simply be passed through together. This recomputes ``perm``
