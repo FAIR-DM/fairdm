@@ -61,7 +61,11 @@ You should see the FairDM demo portal homepage. Take a moment to explore:
 - Click into detail pages to see the metadata structure
 
 ```{tip}
-The demo includes a test user account. Check the demo fixture or create a new superuser with: `poetry run python manage.py createsuperuser`
+To sign in as a curator, a community manager, a developer or an ordinary contributor without
+creating your own test data, run `poetry run python manage.py create_dev_accounts` - see
+[Development accounts](development_accounts.md) for the full list and the shared password. To
+sign in as the deployer instead, create a new superuser with:
+`poetry run python manage.py createsuperuser`
 ```
 
 ## Step 2: Define Your First Custom Sample Model
