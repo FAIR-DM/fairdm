@@ -109,3 +109,24 @@ Holding a rights-carrying role is enough. Nothing is stored on the person — no
 set — so removing somebody from their last rights-carrying role closes the interface to them again
 with no second step to remember. `PortalAdminAuthenticationForm` is what lets a role holder sign in
 at the administration login, which Django's own form refuses for anybody without `is_staff`.
+
+## The portal team page
+
+`fairdm.contrib.contributors.views.team.TeamView` renders **Community → Team**: each shipped role
+with the active people holding it, in declaration order, with roles nobody holds left out. It is
+public, and it shows portal roles only — a contribution's role is credit on a record and belongs
+nowhere near it.
+
+```python
+from fairdm.contrib.contributors.views.team import TeamView
+
+
+class MyPortalTeamView(TeamView):
+    """Same people, your own card template."""
+
+    list_item_template = "myportal/team_member.html"
+```
+
+Override the view if your portal wants a different presentation, and point your own route at it.
+What the page lists is not configurable by design: it reads `PortalRoles`, so the page and the
+rights always agree.

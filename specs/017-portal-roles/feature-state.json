@@ -404,23 +404,60 @@
       "tasks": [
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -x"
+            ]
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -v"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/views/team.py:11",
+              "fairdm/contrib/contributors/templates/contributors/team.html:1",
+              "fairdm/contrib/contributors/urls.py:25"
+            ]
+          }
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_menus/test_menus.py::TestTeamMenuItem::test_team_link_appears_in_the_community_group"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_menus/test_menus.py -v"
+            ],
+            "code": [
+              "fairdm/menus/menus.py:86"
+            ]
+          }
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-administration/roles.md:80"
+            ]
+          }
         }
       ]
     }

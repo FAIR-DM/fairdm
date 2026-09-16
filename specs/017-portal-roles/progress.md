@@ -443,3 +443,51 @@
   `createsuperuser` - now distinguishes the deployer's superuser from the four portal roles and
   points at this page. `docs/` is excluded from the lint gate (`.pre-commit-config.yaml`), so no
   lint scope applies. Commit `0e60bad`.
+
+## US-5 implementation begins on `017-portal-roles-us5`, cut from `fc82c8f`
+
+- **T031**: `tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView` added,
+  eight tests covering FR-030 to FR-035 - 200 for a signed-out visitor, roles in
+  `PortalRoles.ROLES` declaration order, a person holding two roles appearing under both, an
+  unheld role absent, a deactivated holder absent, no email address anywhere in the response, a
+  contribution-role holder with no portal role not appearing, and the page's own query count not
+  growing with the number of holders. Observed red for the right reason: `NoReverseMatch: Reverse
+  for 'team' not found`, since neither the view nor the route existed yet. Commit `8ec863c`.
+- **T032**: `fairdm/contrib/contributors/views/team.py` (`TeamView`), `fairdm/contrib/contributors/
+  templates/contributors/team.html` and the `team` route under `community/` in
+  `fairdm/contrib/contributors/urls.py`, beside `people-list` and `organization-list`. Reads
+  `PortalRoles.ROLES` for both the role set and its order rather than naming the four roles
+  anywhere in the view or template; one query for the matching `auth.Group` rows and one more via
+  `Prefetch` for their active holders, so the page's query count holds regardless of how many
+  roles or holders exist; a role resolving to zero active holders is left out of the context
+  entirely. Reuses `contributors/contributor_card.html`, the same card partial `people-list` and
+  `organization-list` already render, so the page looks like its neighbours rather than inventing
+  its own shape - the card never touches the `email` field, so FR-033's "no email address" holds
+  by construction, not by an added check. All eight T031 tests pass. Verified live against the
+  worktree's own dev server at `http://devserver:8000/community/team/`: 200, all four role
+  headings present with the five development accounts under their assigned roles, no `@` outside
+  markup, and each entry's profile link resolves to `/contributor/<uuid>/`. Commit `ea64575`.
+  - **Query-count test technique**: see D32 - `django-orbit`'s render-signal logging inflates raw
+    query counts in proportion to the number of cards on the page, unrelated to the view's own
+    query count, so the test filters `orbit_orbitentry` writes out of both captures rather than
+    asserting a fixed total.
+- **T033**: `MenuItem(name=_("Team"), view_name="team")` added to the `Community` group in
+  `fairdm/menus/menus.py`, after `Organizations`, with the `"member"` icon already registered in
+  `EASY_ICONS` (`fairdm/conf/settings/addons.py`) rather than a new one. `TestTeamMenuItem` added
+  to `tests/test_menus/test_menus.py`, asserting against the rendered team page's nav HTML - not
+  `AppMenu.children` in memory, per the brief's warning that this module extends `AppMenu` as an
+  import side effect and a reloaded dev server can hold the `Community` group declared twice.
+  Observed red for the right reason: `href="/community/team/"` absent from the rendered
+  `Community` section. Green after the menu edit; the file's seven pre-existing tests (which do
+  read `AppMenu.children` directly, predating this pattern) still pass unchanged, 8 passed total.
+  Verified live against the worktree's dev server: the "Team" entry appears in the sidebar's
+  Community group beside People and Organizations. Commit `b0219bb`.
+- **T034**: `docs/portal-administration/roles.md` — the page that already documents the four
+  roles and how membership is granted — gets a new "The portal team page" section: that the page
+  is public and reachable from Community beside People and Organizations, that granting or
+  removing a role on a person's `Groups` field is exactly what puts them on the page or takes them
+  off it (the same mechanism the rest of the page already describes for holding a role at all),
+  that a deactivated account drops off the page while the role stays recorded on their account,
+  that an unheld role and a person's contribution roles never appear, and that each entry is a
+  name linked to a public profile with no email address. `docs/` is excluded from the lint gate
+  (`.pre-commit-config.yaml`), matching T030's note. Commit `5f13189`.

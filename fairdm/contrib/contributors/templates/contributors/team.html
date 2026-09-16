@@ -1,0 +1,14 @@
+{% extends "page_view.html" %}
+{% load i18n mvp %}
+{% block page.content %}
+  {% for team_role in roles %}
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-3">{{ team_role.role.label }}</h2>
+      <c-grid :attrs="grid_config">
+        {% for holder in team_role.holders %}
+          {% render_list_item holder list_item_template %}
+        {% endfor %}
+      </c-grid>
+    </div>
+  {% endfor %}
+{% endblock page.content %}

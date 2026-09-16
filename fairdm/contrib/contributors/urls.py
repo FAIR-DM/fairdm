@@ -7,6 +7,7 @@ from .models import Contributor
 # from .views.claiming import ClaimProfileConfirmView, ClaimProfileView
 from .views.organization import OrganizationListView
 from .views.person import PersonListView
+from .views.team import TeamView
 
 urlpatterns = [
     # path("claim/<str:token>/", ClaimProfileView.as_view(), name="claim-profile"),
@@ -21,6 +22,7 @@ urlpatterns = [
                     OrganizationListView.as_view(),
                     name="organization-list",
                 ),
+                path("team/", TeamView.as_view(), name="team"),
             ]
         ),
     ),
