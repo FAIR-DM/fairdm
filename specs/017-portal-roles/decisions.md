@@ -618,3 +618,28 @@ command should refuse to touch - without needing a schema change to record prove
 different name (for example, importing test fixtures that reuse them) - if that turns out to
 happen, the identity check would need a real provenance marker instead of a name comparison, which
 is a model change outside this story's scope.
+
+## D30 — `check_dev_accounts_absent` resolves the environment itself, unlike
+`check_portal_roles_present` (T029)
+
+**Decision.** `check_portal_roles_present` (`fairdm.E500`) never looks at the resolved environment
+at all - it relies entirely on `FairDMConfig._check_production_configuration()` to skip every
+`production_critical` check during boot when the environment is in `NON_PRODUCTION_ENVIRONMENTS`,
+and lets `manage.py check --deploy` see it unconditionally otherwise, which is correct for that
+check because a missing role is worth reporting regardless of environment. `check_dev_accounts_absent`
+(`fairdm.E501`) cannot use the same shape: the whole point of the five accounts is to exist on a
+development portal, so the check itself calls
+`apps.get_app_config("fairdm").resolved_environment()` and returns `[]` immediately when it is in
+`NON_PRODUCTION_ENVIRONMENTS`, before any query. This means a development portal running
+`manage.py check --deploy` explicitly - which bypasses the boot-time stand-down entirely - still
+reports nothing.
+
+**Why:** the acceptance criterion (T028) requires "a development portal holding all five reports
+nothing" as a property of the check itself, not only of when it happens to run. Copying
+`check_portal_roles_present`'s shape verbatim would have reported `fairdm.E501` against a
+correctly-populated development portal the moment somebody ran `check --deploy` on it by hand,
+which is the opposite of what the check exists to catch.
+
+**Revisit if:** a future `production_critical` check needs the same self-contained environment
+awareness - if so, consider factoring the `resolved_environment() in NON_PRODUCTION_ENVIRONMENTS`
+guard into a shared decorator or helper rather than a third copy of the same three lines.

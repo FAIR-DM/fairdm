@@ -412,3 +412,26 @@
     unchanged) only when its `first_name`/`last_name` match the specification's table for that
     address exactly; any other existing holder of the address fails the whole run rather than
     being adopted. See D29.
+- **T028**: `TestDevAccountsAbsent` added to `tests/test_conf/test_checks.py`, ten tests covering
+  a production portal holding one or all five development addresses (named together in one
+  error), a development portal holding all five reporting nothing, the same database tolerance
+  `check_portal_roles_present` carries (an unreadable table across three exception classes, and a
+  database Django cannot resolve an engine for), registration under the portal-roles check's own
+  tags, and that `fairdm.E501` appears nowhere else in the file. Observed red for the right
+  reason: all ten fail on `ImportError: cannot import name 'check_dev_accounts_absent'`, since T029
+  had not been written yet. Commit `8f78868`.
+- **T029**: `check_dev_accounts_absent` added to `fairdm/conf/checks.py`, id `fairdm.E501`, tagged
+  `DeployTags.deploy`/`DeployTags.production_critical` with `deploy=True` - the same tags D26
+  reserved this id for. Unlike `check_portal_roles_present`, this check resolves the environment
+  itself rather than relying only on `FairDMConfig._check_production_configuration()`'s boot-time
+  stand-down, because `manage.py check --deploy` runs every `deploy=True` check regardless of
+  environment (FR-015) and a development portal running it explicitly must still see nothing.
+  Reuses `fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS` rather than
+  redeclaring the five addresses, imported inside the function body - a module-level import would
+  be circular the moment `fairdm.apps` (which imports this module at load time) is reached through
+  it. All ten T028 tests pass; `tests/test_conf/test_checks.py` is 66 passed and `tests/test_apps.py`
+  (production boot) is unaffected at 16 passed. Commit `26619e3`.
+  - **Probe, not just read**: temporarily removed the environment gate and re-ran
+    `test_a_development_portal_holding_all_five_reports_nothing` - it failed (all five accounts
+    reported present), confirming the gate is load-bearing and not redundant with the boot-time
+    stand-down. Reverted before continuing.
