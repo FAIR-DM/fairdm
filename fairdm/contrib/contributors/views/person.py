@@ -18,7 +18,7 @@ class PersonListView(FairDMListView):
     filterset_class = PersonFilter
     queryset = Person.objects.real()
     list_item_template = "contributors/contributor_card.html"
-    has_create_permission = False  # Creation is handled by a separate view
+    show_create_action = False  # Creation is handled by a separate view
 
     def get_queryset(self):
         # Step 1: Filter active non-superuser persons
