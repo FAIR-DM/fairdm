@@ -1,0 +1,255 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "017-portal-roles",
+  "branch": "017-portal-roles",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-09-16T00:00:00Z",
+      "note": "free-text request, grilled in session"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-16T00:10:00Z"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-16T00:20:00Z",
+      "note": "epic #338, stories #339-343, draft PR #344"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-16T00:30:00Z",
+      "note": "approved by Sam in session"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-16T00:40:00Z"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-16T00:30:00Z",
+      "self_resolved": [
+        "missing role answered four ways rather than one refusal, because a hard refusal alone blocks the first migrate of a new portal",
+        "stricter than #306's warn-and-name choice for missing vocabularies, deliberately",
+        "a curator's edit is not marked as a curator's",
+        "no right granted over announcements; the framework has none",
+        "development accounts ship with the package, not the demo",
+        "no reviewer role until the publication process exists (R22)",
+        "the Community Manager cannot delete a person record",
+        "spec number 017 rather than 016, which FS-016 holds on its own branch"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 339,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 340,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 341,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 342,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P3",
+      "issue": 343,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 344,
+    "draft": true
+  }
+}
