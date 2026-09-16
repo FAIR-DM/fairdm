@@ -310,6 +310,42 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
 
+    #: D12 - `contributors.change_person`, which FR-004 gives the Community Manager, would
+    #: otherwise be a three-click route to superuser: `UserAdmin`'s stock fieldsets put these
+    #: on the change form with no permission gate of their own.
+    _SUPERUSER_ONLY_FIELDS = ("is_superuser", "is_staff", "password")
+
+    def get_fieldsets(self, request, obj=None):
+        """Drop the account-escalation fields for a request whose user is not a superuser."""
+        fieldsets = super().get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            return fieldsets
+        narrowed = []
+        for name, options in fieldsets:
+            fields = tuple(
+                field
+                for field in options["fields"]
+                if field not in self._SUPERUSER_ONLY_FIELDS
+            )
+            if fields:
+                narrowed.append((name, {**options, "fields": fields}))
+        return narrowed
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Drop ``password`` from the built form for a non-superuser.
+
+        ``is_superuser`` and ``is_staff`` are excluded by ``get_fieldsets`` alone, which
+        ``ModelAdmin.get_form`` reads to build its field list. ``password`` is not a plain
+        model field on the base ``UserChangeForm`` - it is declared directly
+        (``ReadOnlyPasswordHashField``), and Django's ``ModelFormMetaclass`` always re-adds a
+        declared field to ``base_fields`` regardless of the fields list, so excluding it from
+        the fieldsets alone is not enough.
+        """
+        form = super().get_form(request, obj, **kwargs)
+        if not request.user.is_superuser:
+            form.base_fields.pop("password", None)
+        return form
+
     def get_actions(self, request):
         """Drop the merge/claim-link actions for a non-superuser (Route 2).
 
