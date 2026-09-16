@@ -320,3 +320,50 @@ alone) and no `change_person`, so the new permission question refuses them exact
 **Revisit if:** a future role other than Community Manager gains `contributors.change_person`
 without being intended to reach profile claims or merges - the gate would admit them too, since
 it asks the same permission `get_actions` and both views already share.
+
+## D22 — `PortalRolePermissionBackend` narrowed to a shipped role's membership, superseding D20 (FIX-1)
+
+**Decision.** `PortalRolePermissionBackend.has_perm` no longer derives an object-level answer
+from every model-level permission a person holds. It now answers only when the permission is
+held through membership of one of the four shipped portal roles (`fairdm/portal_roles.py`,
+matched by group name against `PortalRoles.shipped_names()`). A permission granted directly to
+a person through `user_permissions`, or held through a group the portal created itself, is
+refused by this backend exactly as it was before this feature existed - `ModelBackend` still
+answers `False` for every object-level question, so nothing else grants it either. A Data
+Curator still reaches any dataset, including a private one they hold no record-level grant on,
+because that right comes through the role.
+
+**Why.** D20 recorded the collision this decision resolves: T011's original acceptance read the
+widening as unqualified ("a permission granted directly to the person" answers the same way as
+one held through a role), which reopened a defect an earlier feature (its own D14, a different
+specification) deliberately closed - refusing Update, Delete and Descriptions on a private
+`Project` or `Dataset` to someone holding only a model-level `change_*` grant, because a page
+that relies on inheriting a visibility rule is not guarded at all. Registering the wide backend
+made four pre-existing tests fail for exactly that reason:
+
+- `tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused`
+- `tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused`
+
+All four are the evidence that settled this: with the backend narrowed to role membership and
+otherwise unchanged, all four pass again, unedited, alongside the rest of the suite. The
+specification's own requirements (FR-003, FR-018, FR-020) ask for a *role's* rights to reach
+records; they never asked for a direct grant to do the same, and the wider reading D20 traced
+back to the plan and to T011's own acceptance test - both authored before this collision was
+known - rather than to the requirements themselves.
+
+**What changed with it.** `fairdm/permissions.py`'s module and class docstrings now state the
+narrower rule and the reason for it. `tests/test_permissions.py`'s own acceptance test for the
+wide reading (`test_a_permission_granted_directly_to_the_person_answers_the_same_way`) is
+rewritten to assert the refusal the narrower rule requires
+(`test_a_permission_granted_directly_to_the_person_is_refused`), with a new
+`test_a_permission_held_through_a_group_the_portal_invented_is_refused` alongside it - neither
+is one of the four pre-existing tests D20 protects. `CHANGELOG.md` and
+`docs/portal-administration/roles.md` no longer tell an upgrading portal to audit permissions
+granted outside the four roles: that instruction was only ever true under the wide reading, and
+under the narrower one those grants behave exactly as they did before this feature shipped.
+
+**Revisit if:** Sam rules that the wide reading should stand after all - in which case the four
+tests above are what would need to flip (404→200), per D20's own note, and this entry's
+narrowing would need to be reverted alongside them.
