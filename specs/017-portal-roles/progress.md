@@ -244,3 +244,14 @@
   ADR and supersedes D20. All ten tests in `tests/test_permissions.py` pass; the four D20 tests
   pass unmodified; the full `test_dataset`/`test_project` plugin files (150 tests) stay green.
   Commits `fa8e0f2`, `766e570`.
+- **T011 (FIX-1) follow-up**: the full-suite run surfaced a regression the narrower
+  implementation introduced - `perm.split(".", 1)` raises `ValueError` for a bare codename with
+  no app label (e.g. `user.has_perm("change_project", project)`, the convention
+  `tests/test_core/test_project/conftest.py`'s guardian-backed fixtures use), where the prior
+  `user_obj.has_perm(perm)` call had silently answered `False` instead of raising. Reproduced
+  first with a new test asserting `False` rather than a raise
+  (`test_a_permission_string_with_no_app_label_answers_false_rather_than_raising`), watched it
+  fail with the same `ValueError`, then guarded: `if "." not in perm: return False` before the
+  split. `tests/test_core/test_project/test_factories.py`'s three previously-green tests (broken
+  by the unguarded split) pass again; `tests/test_permissions.py` (11 tests) and the
+  `test_dataset`/`test_project` plugin files (157 tests together) stay green. Commit `bc5732d`.
