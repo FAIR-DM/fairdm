@@ -11,7 +11,7 @@ class PersonFilter(df.FilterSet):
         initial=False,
     )
     is_staff = df.BooleanFilter(
-        label=_("Portal Administrators"),
+        label=_("Staff Only"),
         initial=False,
     )
     name = df.CharFilter(

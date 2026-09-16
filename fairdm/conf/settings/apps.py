@@ -264,7 +264,6 @@ DJANGO_SETUP_TOOLS = {
                 env("DJANGO_SUPERUSER_LASTNAME", default="User"),
             ),
             ("loaddata", "django-waffle"),
-            ("loaddata", "groups"),
         ],
         "always_run": [
             ("migrate", "--no-input"),
