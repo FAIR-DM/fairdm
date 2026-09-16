@@ -86,25 +86,26 @@ task below, not a manual step.
       terms, name the four roles, and define **rights-carrying role**, which FR-006 and FR-008 lean
       on. Covers FR-039.
 - [ ] T010 [P] [US1] Upgrade note, in the changelog and in `docs/portal-administration/`: a
-      model-level permission now applies to every instance of that model, so a portal should audit
-      the grants it made outside these four roles before upgrading. This is a breaking change for a
-      portal that granted a model permission merely to let somebody into the administration
-      interface.
+      permission held through one of the four shipped roles now applies to every instance of that
+      model. A permission granted any other way behaves exactly as it did before, so an upgrading
+      portal has nothing to audit. *(Rewritten after the narrowing — the first version described a
+      portal-wide widening that was reverted for reopening a disclosure guard.)*
 
 ## Phase 3: US2 — A role decides what its holder can actually do (P1)
 
 - [ ] T011 [P] [US2] `tests/test_permissions.py::TestPortalRoleBackend` — a person holding a model
       permission through a role answers `True` for `has_perm(perm, instance)` on every instance of
-      that model; a person without it answers `False`; a permission granted directly to the person
-      behaves the same way; an anonymous user and a deactivated account answer `False`; a
+      that model; a person without it answers `False`; a permission granted directly to the person,
+      or through a group the portal invented, is refused; an anonymous user and a deactivated
+      account answer `False`; a
       permission held for one model does not answer for another; `has_perm(perm)` with no object
       answers `False` from this backend, so the chain cannot recurse into it; and
       `contributors.manage_organization` is never answered by it, even for a person carrying the
       stale permission row. Covers FR-018, FR-020.
 - [ ] T012 [US2] `fairdm/permissions.py::PortalRolePermissionBackend`, registered in
       `AUTHENTICATION_BACKENDS` after the existing backends. It answers an object-level question
-      from the model-level permissions the person holds, never writes a row, returns `False`
-      when `obj is None`, and carries the same explicit exclusion for
+      from the model-level permissions the person holds **through one of the four shipped roles**,
+      and from no other source, never writes a row, returns `False` when `obj is None`, and carries the same explicit exclusion for
       `contributors.manage_organization` that `fairdm/core/permissions.py:44-53` already documents —
       that right comes from a current owner affiliation and from nothing else, and Django ORs
       backends so no later backend can veto a wrongly granted yes.

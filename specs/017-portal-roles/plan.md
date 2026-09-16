@@ -11,8 +11,9 @@ Four portal roles are declared once, in code, as a name plus the permissions tha
 legacy groups in place, so the people already in them carry across — receivers and an
 administration class on `Group` refuse to delete or rename a shipped role, and a
 production-critical system check refuses to boot a portal that is missing one, standing down for
-the command that repairs the condition. One extra authentication backend carries a model-level permission held through
-a role down to individual records, which is what makes the rights reach the pages that ask. The
+the command that repairs the condition. One extra authentication backend carries a permission held through one of those
+roles - and through nothing else - down to individual records, which is what makes the rights reach
+the pages that ask. The
 administration interface stops asking for `is_staff` alone and accepts a holder of a rights-carrying
 role. A management command creates five named development accounts and refuses to run outside
 development, and a second check reports any of those accounts found on a production portal. The
@@ -194,7 +195,7 @@ applies.
 
 | Risk | Mitigation |
 |---|---|
-| The object-level fallback widens rights beyond the roles: anybody holding a model permission directly now holds it on every instance. | That is the intended rule and it matches Django's own admin. The suite pins it for a direct grant as well as for a role holder, so the widening is stated rather than incidental. |
+| The object-level fallback widens rights beyond the roles. | It did, and it was narrowed: only a permission held through one of the four shipped roles reaches records. The wider rule reopened a disclosure guard an earlier feature had put in deliberately, which four of its tests caught. The suite now pins the refusal for a direct grant and for a portal's own group as well as the yes for a role holder. |
 | Third-party administration code calls `staff_member_required` rather than going through the admin site. | A smoke test signs in as each role and reaches the administration index and one changelist. Anything bypassing the site surfaces there. |
 | Removing `is_data_admin` and the template-tag branch narrows somebody's rights in a portal relying on them. | The Data Curator's permission list is built from exactly what those call sites reached, and the removal lands in the story that grants them. |
 | `fairdm.E300` fires during `migrate` on a fresh production database and blocks setup. | The check reports nothing when the group table is absent or unreadable, and a test covers a database with no tables. |

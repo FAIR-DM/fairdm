@@ -42,10 +42,16 @@ answers `True` for `user.has_perm("dataset.change_dataset")` and `False` for
 codebase that matters passes the object.
 
 **Settles:** the role's rights reach records through one more backend in the chain, which answers an
-object-level question with the model-level permission the person holds. The rule it implements is
-the one Django's own admin already follows — `ModelAdmin.has_change_permission` ignores its `obj`
-argument by default — so a model-level right meaning "every instance of this model" is the
-framework's existing semantics, not a new one. No permission row is written per record (FR-020).
+object-level question from the permissions the person holds **through one of the four shipped
+roles**. No permission row is written per record (FR-020).
+
+The first version of this backend honoured any model-level permission, on the reasoning that
+`ModelAdmin.has_change_permission` ignores its `obj` argument by default, so "every instance of this
+model" was already the framework's semantics. It is not the semantics of this codebase's *pages*: an
+earlier feature deliberately refuses Update, Delete and Descriptions on a private record to somebody
+holding only a model-level grant, because a page relying on an inherited visibility rule is not
+guarded at all. Four of its tests failed the moment the wide rule was registered. Narrowing the
+backend to role membership serves FR-003 and FR-018 exactly and leaves that guard standing.
 
 ## R3 — Reaching the administration interface is `is_staff`, and there is a custom admin site to hang the change on
 
