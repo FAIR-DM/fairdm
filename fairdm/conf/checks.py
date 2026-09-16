@@ -9,6 +9,7 @@ import logging
 from django.conf import settings
 from django.core.checks import Error, Tags, register
 from django.core.exceptions import ImproperlyConfigured
+from django.db.utils import OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -408,11 +409,24 @@ def check_celery_async(app_configs, **kwargs):
 # PORTAL ROLES CHECKS
 # =============================================================================
 
-#: The current management command's name, if there is one, read from ``sys.argv[1]``
-#: the way ``manage.py`` invokes it - this module import happens ahead of app-registry
-#: population, well before ``FairDMConfig.ready()`` calls this check, so ``sys.argv`` is
-#: already the real invocation by the time it is read (D11, design review finding).
-_MIGRATE_COMMAND_NAME = "migrate"
+#: The command that installs the portal roles, named here because the check for them
+#: stands down while it runs - ``sys.argv`` is already the real invocation by the time
+#: the check reads it, since this module is imported ahead of app-registry population.
+MIGRATE_COMMAND_NAME = "migrate"
+
+#: What "the database cannot be read" looks like, for a check that queries one. An
+#: unmigrated or absent table raises the first two, a database Django cannot resolve an
+#: engine for raises ``ImproperlyConfigured`` (the ``DATABASE_URL``-absent case
+#: ``fairdm.E100`` reports), and a test harness refusing database access outright raises
+#: ``RuntimeError``. None of them is a check's own fault to report, and telling them
+#: apart from a real finding is what keeps an unmigrated database from looking like a
+#: misconfigured portal.
+UNREADABLE_DATABASE = (
+    OperationalError,
+    ProgrammingError,
+    ImproperlyConfigured,
+    RuntimeError,
+)
 
 
 @register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
@@ -442,10 +456,8 @@ def check_portal_roles_present(app_configs, **kwargs):
     import sys
 
     from django.contrib.auth.models import Group
-    from django.core.exceptions import ImproperlyConfigured
-    from django.db.utils import OperationalError, ProgrammingError
 
-    if _MIGRATE_COMMAND_NAME in sys.argv:
+    if MIGRATE_COMMAND_NAME in sys.argv:
         return []
 
     from fairdm.portal_roles import PortalRoles
@@ -456,11 +468,7 @@ def check_portal_roles_present(app_configs, **kwargs):
                 "name", flat=True
             )
         )
-    except (OperationalError, ProgrammingError, ImproperlyConfigured, RuntimeError):
-        # RuntimeError also covers a test harness that refuses database
-        # access outright (pytest-django's own safeguard for a test with no
-        # `db` fixture) - genuinely unreadable, the same as the two
-        # django.db.utils cases above (D24, research R4).
+    except UNREADABLE_DATABASE:
         return []
 
     missing = [name for name in PortalRoles.shipped_names() if name not in existing]
@@ -507,7 +515,6 @@ def check_dev_accounts_absent(app_configs, **kwargs):
     """
     from django.apps import apps
     from django.contrib.auth import get_user_model
-    from django.db.utils import OperationalError, ProgrammingError
 
     from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
     from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_EMAILS
@@ -526,7 +533,7 @@ def check_dev_accounts_absent(app_configs, **kwargs):
                 "email", flat=True
             )
         )
-    except (OperationalError, ProgrammingError, ImproperlyConfigured, RuntimeError):
+    except UNREADABLE_DATABASE:
         return []
 
     if not found:

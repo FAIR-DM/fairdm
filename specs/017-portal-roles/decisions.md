@@ -5,6 +5,8 @@ maintainer. Fine-grained and run-scoped; the gate-level trail lives on the issue
 
 ## D1 — Three rights-carrying roles, not two, and a fourth that grants nothing
 
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md
+
 The obvious split of portal work is two jobs: run the portal, look after the data. The set ships
 with three rights-carrying roles because looking after *people* is a different job from looking
 after *records*. It touches personal data — email addresses, account states, profile claims,
@@ -18,14 +20,20 @@ portal team page is its consumer: a portal's developers are part of its team and
 alongside everyone else. A role is the framework's existing way to say "this person does this job
 here", and inventing a second, parallel way to record team membership for one case would be worse.
 
+
 ## D2 — No reviewer role yet
+
+**ADR:** none — a decision not to build something, revisited when the process that needs it exists. Nothing downstream inherits it.
 
 The retired documentation named a Reviewer, and R22 will need one when a dataset moves from working
 to visible through a checked process. Shipping it now would mean a role holding either nothing or a
 guess at what the publication process will require. Both teach an administrator something false
 about the set. It arrives with the process that needs it.
 
+
 ## D3 — Four defences against a missing role, in order of when they fire
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md
 
 The maintainer's first framing was that a portal should refuse to load without its roles. Taken
 literally and alone, that trades a recoverable condition for an outage, and it cannot be the only
@@ -46,7 +54,10 @@ both objections:
 Step 3 must never assess a database that has not been migrated, or the first `migrate` of a new
 portal would be blocked by the absence of rows that `migrate` is about to create.
 
+
 ## D4 — Consistency with the vocabularies decision, deliberately broken
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md — the comparison with the vocabularies decision is the reasoning, and it is recorded there.
 
 US-2 of the controlled-vocabularies work (issue #306) chose the softer answer for a comparable
 condition: a portal missing its vocabularies starts, and warns, naming the command that loads them.
@@ -56,7 +67,10 @@ missing a role silently stops enforcing part of its access rules and gives no vi
 until somebody notices they can no longer do their job, or that somebody else can. If the two should
 converge, the argument is that vocabularies should harden, not that roles should soften.
 
+
 ## D5 — Group-name matching is removed rather than extended
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — the group-name removal is why that record exists.
 
 `Person.is_data_admin`, the `has_perms` template tag and the plugin edit check each decide rights by
 testing whether a person is in a group called `"Data Administrators"`, and each grants broad edit
@@ -64,7 +78,10 @@ rights from that test. It is invisible to `has_perm`, so a portal author cannot 
 permission backend cannot participate in it, and an object-level rule cannot override it. Since this
 feature is what first gives the groups real permissions, the name tests have nothing left to do.
 
+
 ## D6 — Curator edits are not attributed to the curator
+
+**ADR:** none — a decision to add no visible mark. It is local to how a record renders and nothing downstream inherits it.
 
 Considered and rejected: marking a record that a data curator edited on a research team's behalf.
 The curator acts at the team's request and on their behalf, so the edit is the team's. A visible
@@ -72,7 +89,10 @@ mark tells a reader something they cannot act on, and it invites the reading tha
 somehow less the team's own. Whatever internal record of administrative actions the framework keeps
 is unaffected by this; the decision is about what a reader sees.
 
+
 ## D7 — The development accounts ship with the package
+
+**ADR:** docs/adr/0022-development-accounts-are-a-command-that-refuses.md
 
 They could have lived in `demo`, which is where the framework's other development conveniences sit.
 They ship with the package because their audience is wider than this repository: a research group
@@ -82,7 +102,10 @@ installed there. The demo becomes one consumer of them.
 The production refusal is not a policy nicety. These accounts have a published password. Loading
 them into a running portal would hand anybody who reads the documentation an administrator account.
 
+
 ## D8 — Rights are restored on update, membership never is
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — recorded there under consequences.
 
 A portal that edits the rights on a shipped role has them reset on the next update, and this is
 intended. The alternative — treat a local edit as authoritative — means FairDM can never correct or
@@ -91,7 +114,10 @@ curator is. A portal that wants a different split creates its own group, which n
 prevents. Membership is the opposite case: who is in a role is a fact about that portal's people and
 is never touched.
 
+
 ## D9 — What the roles are not
+
+**ADR:** none — a boundary statement for this feature, not a decision anything downstream builds on.
 
 - Not the contact form's recipient list. The form is broken for unrelated reasons and its routing is
   separate work.
@@ -108,7 +134,10 @@ is never touched.
 *Everything below was decided at the design review, 2026-09-16. Thirteen verified findings, applied
 in full; the reviewer's own report is `design-review-findings.json`.*
 
+
 ## D10 — The legacy groups are renamed, not replaced
+
+**ADR:** none — a one-time upgrade path for three groups that existed before this feature. It runs once per portal and is not a rule anything inherits.
 
 Three group rows already exist in every portal set up from the retired fixture, and volunteers are
 in them. Declaring four new roles beside them would have left those people holding nothing the day
@@ -118,7 +147,10 @@ Curator`, `Developers` to `Developer` — and a rename carries the membership ro
 data migration is needed and nobody's rights are reduced. The rename fires only when the target name
 is free, so a portal that somehow holds both is left alone rather than merged.
 
+
 ## D11 — The boot refusal stands down for the command that repairs it
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md
 
 `fairdm.E500` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
 `post_migrate` is the only thing that installs the roles. Left as first planned, a production portal
@@ -126,7 +158,10 @@ upgrading to this version would have refused to boot *and* refused to migrate, w
 from inside the portal. The refusal therefore stands down for the command that installs the roles.
 The requirement survives intact: a portal that is serving still refuses to serve without its roles.
 
+
 ## D12 — `contributors.change_person` needed the Person form narrowed
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — recorded there under consequences, because it is what the Community Manager role costs if the form is left alone.
 
 FR-004 gives the Community Manager the right to change a person, and Django's `UserAdmin` puts
 `is_superuser`, `is_staff` and `password` on that form with no permission gate of their own. The
@@ -134,7 +169,10 @@ role's ceiling was therefore the whole portal, reachable in three clicks. The fo
 three fields for any request whose user is not a superuser. This is not a narrowing of FR-004; it is
 what FR-004 has to mean if the role is to be what the specification says it is.
 
+
 ## D13 — Profile claims and merges become the Community Manager's
+
+**ADR:** docs/adr/0021-claims-and-merges-belong-to-a-named-role.md
 
 `claim_link_view` and `merge_view` are superuser-only today, by a decision recorded in their own
 docstrings: a claim token is a credential, and a merge destroys the discarded person's identity, so
@@ -147,7 +185,10 @@ to a named person is not that. The gates become permission questions that the Co
 role holds and that no other role and no ordinary contributor holds. The earlier decision is
 superseded rather than ignored, and the superseding ADR carries this reasoning.
 
+
 ## D14 — The object-level fallback excludes `manage_organization`
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — the exclusion is part of how narrow the derivation is.
 
 The framework already refuses to derive `contributors.manage_organization` from anything but a
 current owner affiliation, and documents why: a stale `Permission` row for it survives in databases
@@ -155,14 +196,20 @@ migrated forward from before it was dropped, and Django ORs backends, so no late
 an earlier yes. A general model-level-to-object-level fallback would have answered it. The new
 backend carries the same explicit exclusion the parent does.
 
+
 ## D15 — The Portal Administrator holds no right to edit a group
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — recorded there under consequences.
 
 The obvious reading of "assign and revoke roles" is `auth.change_group`, and Django's group form
 edits a group's permissions. That would let the role rewrite what every role may do, including its
 own. Membership is edited on the Person form's `groups` field instead, so the role holds
 `contributors.change_person` and `auth.view_group` and nothing that can change a role's rights.
 
+
 ## D16 — A second check, for development accounts found in production
+
+**ADR:** docs/adr/0022-development-accounts-are-a-command-that-refuses.md
 
 The command refuses to create the five accounts outside development. That guards the act and not the
 state: a database copied down from production, a dump restored the wrong way round, or an
@@ -170,20 +217,29 @@ environment variable changed under a live database all produce the condition the
 refused. `fairdm.E501` reports it, tagged exactly as `fairdm.E500` is. One of those accounts is a
 Portal Administrator whose password is published in the documentation.
 
+
 ## D17 — The module is `portal_roles`, not `roles`
+
+**ADR:** none — a naming choice, settled by the glossary entry it protects (CONTEXT.md).
 
 This codebase already spends the word "role" on contribution roles, and FR-039 exists to keep the
 two apart. A module called `roles.py` in the framework root would have undone that in the same
 release that documented it.
 
+
 ## D18 — The team page lists active holders only
+
+**ADR:** none — a rule about one page, pinned by its own test.
 
 The specification said the page lists the people holding each role, and its edge cases said a
 deactivated account holds nothing. Those two readings give different pages. The page lists active
 holders: naming a departed volunteer as the portal's administrator tells a visitor something untrue,
 and the page exists to tell them something true. FR-030 now says so.
 
+
 ## D19 — The portal's identity is `identity.Identity`, and the Data Curator's list is the full
+
+**ADR:** none — resolving two terms the specification left to the implementer. Local to this feature.
 attachment set
 
 **Decision.** "The portal's identity" (FR-002, spec.md AC3) is `fairdm.contrib.identity.models.Identity`
@@ -210,7 +266,10 @@ not exist yet") does not distinguish the two causes.
 codename than `dataset.can_publish` — the Data Curator's declaration would then need to follow it, or
 the role silently stops covering what `DatasetPublishConfirm.check()` asks for.
 
-## D19 — Two tamper flags approved, and the docs gate's finding fixed in place
+
+## D34 — Two tamper flags approved, and the docs gate's finding fixed in place
+
+**ADR:** none — a triage record for tamper flags raised and cleared in this run.
 
 US-1's returned work raised three `modified_preexisting_test` flags, on `tests/test_apps.py`,
 `tests/test_conf/test_settings/test_apps.py` and
@@ -227,7 +286,10 @@ nicety, because a portal author reading `rights_carrying()` has nothing else to 
 returned to the implementer: a page is not implementation, and a re-dispatch for one page costs
 more than the page.
 
+
 ## D20 — `PortalRolePermissionBackend` reopens a defect an earlier feature deliberately fixed, in
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md — superseded by D22 and recorded there as the reason the derivation is narrow.
 four pre-existing tests this story's own prohibitions forbid touching
 
 **The conflict.** T011's acceptance is unqualified: "a permission granted directly to the person"
@@ -287,7 +349,10 @@ needs a narrower condition than "any model-level grant" - at minimum, T017's own
 criterion asking a curator to reach a private dataset by role alone would need to be revisited
 too, since it is what makes the narrow reading impossible today.
 
+
 ## D21 — `claim_link_view`/`merge_view` supersede their own superuser-only reasoning (T019)
+
+**ADR:** docs/adr/0021-claims-and-merges-belong-to-a-named-role.md
 
 **Decision.** Both views' gates now ask `request.user.has_perm("contributors.change_person")`
 (via a new `UserAdmin._may_manage_persons` helper, shared with `get_actions`) instead of
@@ -321,7 +386,10 @@ alone) and no `change_person`, so the new permission question refuses them exact
 without being intended to reach profile claims or merges - the gate would admit them too, since
 it asks the same permission `get_actions` and both views already share.
 
+
 ## D22 — `PortalRolePermissionBackend` narrowed to a shipped role's membership, superseding D20 (FIX-1)
+
+**ADR:** docs/adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.md
 
 **Decision.** `PortalRolePermissionBackend.has_perm` no longer derives an object-level answer
 from every model-level permission a person holds. It now answers only when the permission is
@@ -368,7 +436,10 @@ under the narrower one those grants behave exactly as they did before this featu
 tests above are what would need to flip (404→200), per D20's own note, and this entry's
 narrowing would need to be reverted alongside them.
 
-## D22 — US-2's tamper flags approved, and what the narrowing cost
+
+## D35 — US-2's tamper flags approved, and what the narrowing cost
+
+**ADR:** none — a triage record for tamper flags raised and cleared in this run.
 
 Four `modified_preexisting_test` flags on US-2's diff, all additions: a new `Test*` class appended
 to the module Article X says owns that subject, in `test_admin.py`, `test_permissions.py`,
@@ -383,7 +454,10 @@ The full suite was read independently at 2767 passed, 8 skipped. Worth recording
 step's own test timing (98s) is not the full suite's (637s): the machine gate is evidence that the
 step ran green, never evidence of what it covered.
 
+
 ## D23 — T021's guard, implemented as specified, breaks seven US-1 tests left unmodified (US-3)
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md — the fixture that resolves it is recorded there under consequences.
 
 T020/T021 require `pre_delete`/`pre_save` receivers on `Group` that refuse a shipped role's
 deletion or rename "for every ORM writer" (research R6, this story's brief), not only through the
@@ -423,7 +497,10 @@ raw SQL (as `tests/test_portal_roles.py::TestProtection`'s own helper,
 `_delete_group_by_raw_sql`, already does) rather than through the ORM, preserving each test's
 original intent.
 
+
 ## D24 — `check_portal_roles_present`, the first deploy check to touch the database, breaks six
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md — the tolerance is part of telling an unmigrated database from a missing role.
 more pre-existing tests the same way (US-3)
 
 Every check FairDM registered before this story reads settings values only - `DATABASES`,
@@ -459,7 +536,10 @@ production-boot tests (`ImproperlyConfigured`, not caught until this fix).
 `@pytest.mark.django_db` (or the `db` fixture) added - a one-line addition per test, not a
 weakening of anything they assert.
 
+
 ## D25 — T024's two live-production-boot scenarios are covered by registration and unit tests,
+
+**ADR:** none — a statement of what a test does and does not cover, revisited if the suite ever gets a production-shaped database.
 not a subprocess against a real database (US-3)
 
 T024's given/when/then names two scenarios that need an actual production-shaped boot: "the
@@ -498,7 +578,10 @@ that CI runs a `postgres` service container) is available to add the literal sub
 of these two scenarios as a follow-up. It is not a correctness gap in the implementation, which
 every unit-level test already exercises - it is an environment gap in this coverage.
 
+
 ## D26 — `check_portal_roles_present` is renumbered `fairdm.E500`, superseding D11's and D16's
+
+**ADR:** none — a check id correction. The identifiers live in the administrator documentation, which is where a reader looks them up.
 `fairdm.E300`/`E301` (FIX-2)
 
 **Decision.** `fairdm/conf/checks.py` numbers by hundreds - E0xx security, E1xx database, E2xx
@@ -521,7 +604,10 @@ subsystems already own.
 **Revisit if:** the file's hundred-per-subsystem convention itself changes; nothing about this
 story's design motivates renumbering again on its own.
 
+
 ## D27 — `check_portal_roles_present`'s database tolerance is extended to cover a test harness
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md — recorded there as the unreadable-database tolerance.
 that refuses access outright, resolving D24 (FIX-2)
 
 **Decision.** D24 recorded that `check_portal_roles_present` is the first `production_critical`
@@ -548,7 +634,10 @@ group table can be unreadable.
 from "the group table cannot be read" - nothing in this feature's requirements needs that
 distinction, so it is not built.
 
+
 ## D28 — The seven tests that reset state with `Group.objects.all().delete()` disconnect T021's
+
+**ADR:** docs/adr/0020-a-missing-role-is-answered-four-ways.md — recorded there under consequences.
 guard through a named, shared fixture, resolving D23 (FIX-2)
 
 **Decision.** D23 recorded that `tests/test_portal_roles.py::TestReconcile` (5 tests) and
@@ -578,7 +667,10 @@ sit directly under `tests/` and both need the identical disconnect/reconnect pai
 this fixture's usage rather than writing a second one; do not add a flag or parameter to the guard
 itself to reach the same effect.
 
-## D25 — US-3's tamper flags approved, and the check that failed once under parallelism
+
+## D36 — US-3's tamper flags approved, and the check that failed once under parallelism
+
+**ADR:** none — a triage record for tamper flags raised and cleared in this run.
 
 Four `modified_preexisting_test` flags. `tests/conftest.py` gains the fixture that models a role
 vanishing from outside the ORM. `tests/test_portal_roles.py` and `tests/test_apps.py` have seven
@@ -595,7 +687,10 @@ the whole step passed on a re-run. `forge verify` runs its test step under xdist
 test-database setup race between workers surfaces as a red that reproduces nowhere else. The
 independent evidence for accepting this story is the serial run: 2792 passed, 8 skipped.
 
+
 ## D29 — `create_dev_accounts` tells "its own account, re-run" from "somebody else's account" by
+
+**ADR:** docs/adr/0022-development-accounts-are-a-command-that-refuses.md — recorded there under consequences.
 name, not by any stored marker (T027)
 
 **Decision.** FR-028 (re-running creates no duplicate) and FR-029 (an address that already belongs
@@ -619,7 +714,10 @@ different name (for example, importing test fixtures that reuse them) - if that 
 happen, the identity check would need a real provenance marker instead of a name comparison, which
 is a model change outside this story's scope.
 
+
 ## D30 — `check_dev_accounts_absent` resolves the environment itself, unlike
+
+**ADR:** docs/adr/0022-development-accounts-are-a-command-that-refuses.md — the environment rule is the record; where it is evaluated is an implementation detail of one check.
 `check_portal_roles_present` (T029)
 
 **Decision.** `check_portal_roles_present` (`fairdm.E500`) never looks at the resolved environment
@@ -644,7 +742,10 @@ which is the opposite of what the check exists to catch.
 awareness - if so, consider factoring the `resolved_environment() in NON_PRODUCTION_ENVIRONMENTS`
 guard into a shared decorator or helper rather than a third copy of the same three lines.
 
+
 ## D31 — A management command class is wiring, not documented surface
+
+**ADR:** none — a configuration entry for one gate, with its reasoning at the entry itself.
 
 The documentation gate flagged `Command` as a new public name no page documents. Every Django
 management command class is named `Command` — the convention is the framework's, nothing imports it,
@@ -660,7 +761,10 @@ rule mid-feature is how a gate stops being trustworthy.
 US-4's one tamper flag is `tests/test_conf/test_checks.py`, a new `Test*` class appended with no
 deletions. Approved.
 
+
 ## D32 — The team page's query-count test filters out `django-orbit`'s own writes
+
+**ADR:** none — a test-scoping detail, local to one assertion.
 
 **Decision.** `TestTeamView::test_page_holds_its_query_count_as_the_number_of_holders_grows`
 (T031) does not assert against pytest-django's `django_assert_num_queries` fixture, and does not
@@ -685,7 +789,10 @@ that would otherwise have appeared in only one of the two snapshots.
 **Revisit if:** a second view needs the same comparison - the filter and the warm-up-request
 pattern belong in a shared test helper at that point rather than a second copy of both.
 
+
 ## D33 — US-5's tamper flag approved, and the card template left alone
+
+**ADR:** none — a triage record for tamper flags raised and cleared in this run.
 
 One flag, `tests/test_menus/test_menus.py`, a new `Test*` class appended with no deletions.
 Approved.
@@ -697,3 +804,19 @@ model defines, so the photo silently resolves to nothing. Both predate this feat
 visible to a reader: Django strips the comment, and the missing attribute renders empty. Left alone
 rather than widened into, and worth its own issue rather than a quiet fix inside a feature about
 roles.
+
+## D37 — Convergence cleanup, inside the feature's own blast radius
+
+**ADR:** none — a tidy-up of code this feature wrote, with nothing downstream to inherit.
+
+Two duplications the two new checks had introduced between them:
+
+- The four exceptions that mean "the database cannot be read" were written out twice, with the
+  reasoning in a comment beside one of them and nowhere near the other. They are now
+  `UNREADABLE_DATABASE`, declared once with the reasoning once.
+- Both checks imported `OperationalError`, `ProgrammingError` and `ImproperlyConfigured` inside
+  their own bodies while the module already imported one of them at the top. The imports move to
+  the top, where the module keeps its others.
+
+`_MIGRATE_COMMAND_NAME` is renamed `MIGRATE_COMMAND_NAME`: a leading underscore marks something
+private, and this codebase does not use that convention.

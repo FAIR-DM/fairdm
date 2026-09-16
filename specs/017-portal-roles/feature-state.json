@@ -3,7 +3,7 @@
   "feature": "017-portal-roles",
   "branch": "017-portal-roles",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "INTAKE",
@@ -37,6 +37,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-16T09:52:13Z",
       "note": "US1 dispatched to an implementer on sonnet"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-16T15:40:46Z",
+      "note": "all five stories done"
     }
   ],
   "gates": {
@@ -399,7 +404,7 @@
       "id": "US5",
       "priority": "P3",
       "issue": 343,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -464,7 +469,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
