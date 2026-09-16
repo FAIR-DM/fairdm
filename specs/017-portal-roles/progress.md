@@ -123,3 +123,33 @@
   `TestPersonAdmin` tests pass; the full file (58 tests) stays green, and
   `makemigrations --check --dry-run` shows only the pre-existing `identity`/`orbit` drift.
   Commit `b081e31`.
+- **Concern (D20)**: registering `PortalRolePermissionBackend` (T012) makes four pre-existing
+  tests fail - `tests/test_core/test_dataset/test_plugins.py`'s
+  `TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused`
+  and `TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`,
+  and `tests/test_core/test_project/test_plugins.py`'s
+  `TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+  and `TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused`.
+  Found while running the wider dataset suite as a regression check after T012, not from a task
+  in this story's own scope. Confirmed mechanical (reverting only the `AUTHENTICATION_BACKENDS`
+  entry makes all four pass again) and confirmed unavoidable given both T011's unqualified
+  acceptance (a direct grant answers `True` on every instance) and T017's own requirement (a
+  curator reaches another team's *private* dataset by role alone). Not touched - the prohibition
+  against editing a test this story did not author names exactly this situation ("mark the task
+  blocked and say why"). Full write-up, evidence and the revisit condition in `decisions.md` D20.
+  `tests/test_core/test_sample/` and `tests/test_core/test_measurement/` carry no equivalent test
+  and are unaffected.
+- **T017a**: `TestDeclaredPermissionsExist` added to `tests/test_portal_roles.py` - one test
+  walking every declared permission on every role and asserting each resolves to a real
+  `Permission` row. Observed failing first with exactly one gap:
+  `['Data Curator: dataset.can_publish']` (`poetry run pytest
+  tests/test_portal_roles.py::TestDeclaredPermissionsExist -v`) - `dataset.import_data` already
+  resolved (declared in `Dataset.Meta.permissions` since migration `0010`, predating this
+  feature), narrowing T017b's actual gap to `can_publish` alone, contrary to this task's own
+  description ("nothing has ever declared either"). Commit (test) precedes T017b's below.
+- **T017b**: `Dataset.Meta.permissions` gains `("can_publish", "Can publish dataset")`
+  (`fairdm/core/dataset/models.py`); `poetry run python manage.py makemigrations dataset`
+  produced exactly one migration, `0013_alter_dataset_options.py`, an `AlterModelOptions` - the
+  only migration this story is permitted to produce. All fifteen `test_portal_roles.py` tests
+  pass, including T017a's; `makemigrations --check --dry-run` shows only the pre-existing
+  `identity`/`orbit` drift. Commit `946b666`.

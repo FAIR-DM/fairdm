@@ -232,13 +232,35 @@
         },
         {
           "id": "T017a",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestDeclaredPermissionsExist"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_portal_roles.py -v"
+            ]
+          }
         },
         {
           "id": "T017b",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestDeclaredPermissionsExist"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations dataset",
+              "poetry run pytest tests/test_portal_roles.py -v",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/core/dataset/models.py:378",
+              "fairdm/core/dataset/migrations/0013_alter_dataset_options.py:1"
+            ]
+          }
         },
         {
           "id": "T018",
