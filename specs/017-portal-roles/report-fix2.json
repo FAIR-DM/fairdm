@@ -1,0 +1,53 @@
+{
+  "story": "FIX-2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T025",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_an_absent_or_unreadable_group_table_returns_nothing[RuntimeError]"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_conf/test_checks.py::TestCheckCommandIntegration tests/test_conf/test_checks.py::TestDeployCommand tests/test_portal_roles.py::TestReconcile tests/test_apps.py::TestPortalRolesReconciliation -v  # RED: 13 failed, 1 passed",
+          "poetry run pytest tests/test_conf/test_checks.py::TestPortalRolesPresent tests/test_conf/test_checks.py::TestCeleryChecks -v  # GREEN after renumbering: 13 passed",
+          "poetry run pytest tests/test_conf/test_checks.py -q  # GREEN after RuntimeError tolerance: 56 passed",
+          "poetry run pytest tests/test_portal_roles.py::TestReconcile tests/test_apps.py::TestPortalRolesReconciliation -v  # GREEN after fixture: 8 passed",
+          "poetry run pytest tests/test_portal_roles.py::TestProtection -q  # GREEN, fixture never used: 8 passed",
+          "poetry run pytest -n auto --dist loadscope  # full suite: 2792 passed, 8 skipped",
+          "poetry run pre-commit run --all-files  # all hooks passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "3a0cc2f",
+        "4389712",
+        "4d3cf0f"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Renumbered D16's planned fairdm.E301 (check_dev_accounts_absent, T029, US-4, not yet built) to fairdm.E501 in tasks.md, plan.md and decisions.md, in addition to the T025 renumbering the brief itself specified.",
+      "why": "E301 is check_celery_async's id, the same category of collision the brief sent me to fix for E300 - leaving it would hand the next story's own check the identical bug on the first day it is built. No code for T029 exists yet; this only corrects unbuilt-task documentation to the corrected E5xx scheme.",
+      "decision_ref": "decisions.md#D26"
+    }
+  ],
+  "concerns": [
+    "docs/portal-administration/configuration-checks.md documents every other registered check (E001-E301) but was never updated to describe check_portal_roles_present at all, under either its old or new id - it looks like T025 shipped without a docs update. Not touched here: adding documentation for an existing check is outside this brief's three scoped items, and the brief's rituals only asked me to update existing wrong references, not to add a missing section.",
+    "specs/017-portal-roles/report-us3.json and design-review-findings.json still describe the fairdm.E300 collision as found at the time - left as written, as historical records of the previous story's and the design review's own findings, rather than edited to the current id."
+  ],
+  "blocked": []
+}
