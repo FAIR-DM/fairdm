@@ -16,6 +16,7 @@ fails. Every failure is reported together, in one error, rather than stopping at
 - `SECRET_KEY` is set and not an insecure or published value (`fairdm.E001`)
 - `ALLOWED_HOSTS` is non-empty and not wildcarded (`fairdm.E003`, `E004`)
 - `DEBUG` is `False` (`fairdm.E005`)
+- the portal's four roles are present in the database (`fairdm.E500`)
 
 Celery is deliberately **not** in this subset — a portal may legitimately run without a
 background worker, and blocking a boot on that would make the guard something operators route
@@ -197,6 +198,31 @@ CELERY_BROKER_URL=redis://localhost:6379/0
 ```bash
 CELERY_TASK_ALWAYS_EAGER=False
 ```
+
+### Portal role checks (fairdm.E500-E599)
+
+#### E500: portal roles missing from the database
+
+**Error:** one or more of the four roles FairDM ships — Portal Administrator, Data Curator,
+Community Manager, Developer — is not in the database. Everyone who was in a missing role has
+silently stopped being able to do their job.
+
+**Fix:** run the command that installs them.
+
+```bash
+python manage.py migrate
+```
+
+This check is part of the production-critical subset, so a production portal will not start while a
+role is missing, and the error names every role it could not find. It stands down for `migrate`
+itself — that command is what repairs the condition, so blocking it would leave a portal with no
+route back. A database that has never been migrated reports nothing: an absent or unreadable group
+table is not the same condition as a portal missing its roles.
+
+In development nothing is blocked, and `check --deploy` reports the same thing on demand.
+
+Deleting or renaming one of these four through the administration interface is refused outright, so
+reaching this check at all means a role was removed by some other route.
 
 ## Integration with CI/CD
 
