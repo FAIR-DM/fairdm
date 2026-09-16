@@ -4,6 +4,10 @@ See CONTEXT.md for how a *portal role* differs from a *contribution role* and
 what a *rights-carrying role* is.
 """
 
+import pytest
+from django.contrib.auth.models import Group, Permission
+
+from fairdm.factories import PersonFactory
 from fairdm.portal_roles import PortalRoles
 
 #: The Data Curator's declared rights: view/add/change/delete over Project,
@@ -136,3 +140,108 @@ class TestDeclarations:
                 assert permission.count(".") == 1, (
                     f"{role.name}'s {permission!r} is not an app_label.codename string"
                 )
+
+
+def _permission_strings(group):
+    """A group's permissions as ``app_label.codename`` strings, for comparison against a
+    ``PortalRole.permissions`` declaration."""
+    return {
+        f"{permission.content_type.app_label}.{permission.codename}"
+        for permission in group.permissions.all()
+    }
+
+
+def _resolvable_permissions(role):
+    """The subset of a role's declared permissions that exist as real ``Permission`` rows
+    right now. ``dataset.can_publish`` does not - no model declares it - and ``reconcile()``
+    must tolerate that rather than raise (D19, research R5)."""
+    resolvable = set()
+    for permission_name in role.permissions:
+        app_label, codename = permission_name.split(".", 1)
+        if Permission.objects.filter(
+            content_type__app_label=app_label, codename=codename
+        ).exists():
+            resolvable.add(permission_name)
+    return resolvable
+
+
+@pytest.mark.django_db
+class TestReconcile:
+    """FR-009 to FR-011, US-1 AC3, SC-002: installation and repair on every update."""
+
+    def test_installs_all_four_roles_with_their_declared_rights(self):
+        Group.objects.all().delete()
+
+        PortalRoles.reconcile()
+
+        for role in PortalRoles.ROLES:
+            group = Group.objects.get(name=role.name)
+            assert _permission_strings(group) == _resolvable_permissions(role)
+
+    def test_a_second_run_changes_nothing_and_duplicates_nothing(self):
+        Group.objects.all().delete()
+        PortalRoles.reconcile()
+
+        PortalRoles.reconcile()
+
+        assert Group.objects.filter(name__in=PortalRoles.shipped_names()).count() == 4
+        for role in PortalRoles.ROLES:
+            group = Group.objects.get(name=role.name)
+            assert _permission_strings(group) == _resolvable_permissions(role)
+
+    def test_permissions_edited_by_hand_are_restored(self):
+        Group.objects.all().delete()
+        PortalRoles.reconcile()
+        group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+        group.permissions.clear()
+        assert group.permissions.count() == 0
+
+        PortalRoles.reconcile()
+
+        group.refresh_from_db()
+        assert _permission_strings(group) == _resolvable_permissions(
+            PortalRoles.DATA_CURATOR
+        )
+
+    def test_the_people_in_a_role_are_untouched(self):
+        Group.objects.all().delete()
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+        curator = PersonFactory()
+        curator.groups.add(curator_group)
+
+        PortalRoles.reconcile()
+
+        assert curator in curator_group.user_set.all()
+
+    def test_a_group_the_portal_created_itself_is_left_alone(self):
+        custom_group = Group.objects.create(name="Project Alpha Team")
+        view_dataset = Permission.objects.get(
+            content_type__app_label="dataset", codename="view_dataset"
+        )
+        custom_group.permissions.add(view_dataset)
+
+        PortalRoles.reconcile()
+
+        custom_group.refresh_from_db()
+        assert custom_group.name == "Project Alpha Team"
+        assert list(custom_group.permissions.all()) == [view_dataset]
+
+    def test_legacy_groups_with_members_end_up_in_the_corresponding_new_roles(self):
+        """R10, D10: a rename carries the membership rows across; a fresh create does not."""
+        Group.objects.all().delete()
+        legacy = {}
+        for legacy_name in PortalRoles.LEGACY_NAMES:
+            group = Group.objects.create(name=legacy_name)
+            member = PersonFactory()
+            member.groups.add(group)
+            legacy[legacy_name] = (group.pk, member)
+
+        PortalRoles.reconcile()
+
+        for legacy_name, shipped_name in PortalRoles.LEGACY_NAMES.items():
+            assert not Group.objects.filter(name=legacy_name).exists()
+            renamed = Group.objects.get(name=shipped_name)
+            pk, member = legacy[legacy_name]
+            assert renamed.pk == pk
+            assert member in renamed.user_set.all()
