@@ -98,3 +98,51 @@ class TestTeamMenuItem:
         assert f'href="{reverse("team")}"' in community_section
         assert "People" in community_section
         assert "Organizations" in community_section
+
+
+@pytest.mark.django_db
+class TestAdminGuideLinkVisibility:
+    """COR-002: the Admin Guide link must be offered to anyone who can reach the
+    administration interface (`CustomAdminSite.has_permission`), not only to somebody
+    carrying `is_staff` - a role holder who reaches the interface through
+    `_holds_a_rights_carrying_role` could not previously see the link to its own docs."""
+
+    def test_a_role_holder_without_staff_sees_the_admin_guide_link(
+        self, documentation_menu_group, rf
+    ):
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        curator = PersonFactory(is_staff=False)
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = curator
+
+        assert child.check(request) is True
+
+    def test_a_person_with_neither_staff_nor_a_role_does_not_see_the_link(
+        self, documentation_menu_group, rf
+    ):
+        from fairdm.factories import PersonFactory
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = PersonFactory(is_staff=False)
+
+        assert child.check(request) is False
+
+    def test_a_staff_account_with_no_role_still_sees_the_link(
+        self, documentation_menu_group, rf
+    ):
+        from fairdm.factories import PersonFactory
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = PersonFactory(is_staff=True)
+
+        assert child.check(request) is True
