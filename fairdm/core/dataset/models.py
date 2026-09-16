@@ -375,6 +375,7 @@ class Dataset(BaseModel):
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import data into dataset"),
+            ("can_publish", "Can publish dataset"),
             ("change_dataset_metadata", "Can edit dataset metadata"),
             ("change_dataset_settings", "Can change dataset settings"),
         ]
