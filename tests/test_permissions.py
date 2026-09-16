@@ -12,7 +12,9 @@ four shipped roles use this, and ``fairdm/core/permissions.py:44-53`` for the
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.contenttypes.models import ContentType
 
+from fairdm.contrib.contributors.models import Organization
 from fairdm.factories import DatasetFactory, OrganizationFactory, PersonFactory
 from fairdm.permissions import PortalRolePermissionBackend
 
@@ -82,11 +84,18 @@ class TestPortalRoleBackend:
         assert backend.has_perm(person, "dataset.change_dataset", None) is False
 
     def test_manage_organization_is_never_answered_by_this_backend(self):
-        """D14: a stale ``Permission`` row for it survives in migrated databases,
-        and this right comes from a current owner affiliation and nothing else
-        (``fairdm/core/permissions.py:44-53``)."""
+        """D14: a stale ``Permission`` row for it survives in migrated databases -
+        the model no longer declares it (``fairdm/contrib/contributors/migrations/
+        0017_remove_manage_organization_permission.py``), but an upgraded portal's
+        row is never deleted - and this right comes from a current owner
+        affiliation and nothing else (``fairdm/core/permissions.py:44-53``)."""
         person = PersonFactory()
         organization = OrganizationFactory()
-        person.user_permissions.add(_permission("contributors", "manage_organization"))
+        stale_permission, _ = Permission.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(Organization),
+            codename="manage_organization",
+            defaults={"name": "Can manage organization"},
+        )
+        person.user_permissions.add(stale_permission)
 
         assert not person.has_perm("contributors.manage_organization", organization)
