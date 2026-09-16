@@ -289,3 +289,25 @@
     all seven fail with `ValidationError` naming a shipped role. Neither file is touched - this
     story's brief prohibits modifying a test authored elsewhere and instructs reporting the task
     blocked instead. See D23 and `report-us3.json`.
+- **T022**: `tests/test_contrib/test_admin/test_group_admin.py` written and observed failing for
+  the right reason before the admin class existed: no delete button on a shipped role's change
+  form (the default `GroupAdmin` offers one), the delete view itself not refusing (200 instead of
+  403), and the rename POST producing T021's uncaught `ValidationError` - a 500, with no
+  admin-side explanation yet. Two tests for a group the portal made itself, and one for
+  re-saving a shipped role with its name unchanged, already passed against the stock admin and
+  stayed green throughout, proving the new class doesn't over-reach. Commit `7482d7c`.
+- **T023**: `ShippedRoleGroupAdmin` and `ShippedRoleGroupForm` added to
+  `fairdm/contrib/admin/admin.py` (the file this repository already uses for a third-party app's
+  admin overrides, per its own docstring about Waffle). `admin.site.unregister(Group)` then
+  `@admin.register(Group)` replaces `django.contrib.auth.admin.GroupAdmin` on the same site
+  object `FairDMAdminSite`'s `default_site` substitution already made `CustomAdminSite` -
+  `django.contrib.auth`'s own `admin.py` registers first (it is listed earlier in
+  `INSTALLED_APPS`), so the unregister has something to remove.
+  `has_delete_permission` returns `False` for a shipped role's object, which Django's admin reads
+  for both the change-form delete button and the bulk `delete_selected` action - no extra action
+  handling was needed for either. `ShippedRoleGroupForm.clean_name` compares the stored name
+  (queried directly, not read off `self.instance` before validation) against the submitted one
+  and attaches a field error, so a rename never reaches T021's receiver through this route at
+  all - it stays the backstop for every other writer (research R6). `TestProtection` (T020) and
+  `TestShippedRoleDeleteProtection`/`TestShippedRoleRenameProtection` (T022) all green. Commit
+  `9d89ba2`.
