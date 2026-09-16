@@ -15,6 +15,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
+from django.test import RequestFactory
 from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
@@ -999,6 +1000,109 @@ class TestPersonAdminActionsHiddenFromNonSuperuser:
         content = response.content.decode()
         assert "merge_person_action" in content
         assert "generate_claim_link_action" in content
+
+
+# ── T015/T016: the Person change form stops being a route to superuser ──────
+
+
+def _community_manager(email="community-manager@example.com"):
+    """A person holding the Community Manager role (D12, FR-004)."""
+    from django.contrib.auth.models import Group
+
+    from fairdm.factories import PersonFactory
+    from fairdm.portal_roles import PortalRoles
+
+    PortalRoles.reconcile()
+    manager = PersonFactory(email=email, is_active=True)
+    manager.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+    return manager
+
+
+@pytest.mark.django_db
+class TestPersonAdminFields:
+    """D12: ``contributors.change_person`` - which FR-004 gives the Community Manager -
+    must not be a route to ``is_superuser`` through the Person change form."""
+
+    def test_a_community_manager_is_not_offered_the_account_escalation_fields(
+        self, person
+    ):
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = _community_manager()
+
+        fieldsets = model_admin.get_fieldsets(request, person)
+        form_class = model_admin.get_form(request, person)
+
+        field_names = _fieldset_field_names(fieldsets)
+        assert not {"is_superuser", "is_staff", "password"} & field_names
+        assert not {"is_superuser", "is_staff", "password"} & set(
+            form_class.base_fields
+        )
+
+    def test_a_superuser_is_still_offered_all_three(self, person, superuser):
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = superuser
+
+        fieldsets = model_admin.get_fieldsets(request, person)
+        form_class = model_admin.get_form(request, person)
+
+        field_names = _fieldset_field_names(fieldsets)
+        assert {"is_superuser", "is_staff", "password"} <= field_names
+        assert {"is_superuser", "is_staff"} <= set(form_class.base_fields)
+
+    def test_posting_is_superuser_on_leaves_the_flag_unchanged_for_the_actor(self):
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, manager)
+        form = form_class(
+            data={
+                "first_name": manager.first_name,
+                "last_name": manager.last_name,
+                "name": manager.name,
+                "email": manager.email,
+                "is_active": "on",
+                "is_superuser": "on",
+                "groups": [
+                    str(g.pk) for g in manager.groups.all()
+                ],
+            },
+            instance=manager,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert saved.is_superuser is False
+
+    def test_posting_is_superuser_on_leaves_the_flag_unchanged_for_somebody_else(
+        self, person
+    ):
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, person)
+        form = form_class(
+            data={
+                "first_name": person.first_name,
+                "last_name": person.last_name,
+                "name": person.name,
+                "email": person.email,
+                "is_active": "on",
+                "is_superuser": "on",
+            },
+            instance=person,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert saved.is_superuser is False
 
 
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────
