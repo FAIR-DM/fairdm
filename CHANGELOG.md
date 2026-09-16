@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   customised either need a small change — the settings and template changes involved, and
   the one piece of markdown syntax that renders differently afterwards, are covered in
   [Rich text and markdown](docs/portal-development/rich-text.md).
+- **The `groups` fixture and its three empty, ungoverned groups are gone**, replaced by the four
+  portal roles described below. A portal already using the three previous groups keeps every
+  member: they are renamed in place, not deleted, the next time the database is brought up to
+  date.
 
 ### Fixed
 
@@ -40,8 +44,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Migration guides](docs/more/migration-guides.md#the-demo-application-moved-to-demo).
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
+- **A model-level permission now applies to every instance of that model**, not only the record
+  it was granted for. This is the semantics the four portal roles below are built on, and it
+  matches how Django's own admin already treats a model-level right. Before upgrading, audit any
+  permission your portal granted outside the four roles: a grant that once reached one record now
+  reaches every record of that kind. See [Portal roles](docs/portal-administration/roles.md).
 
 ### Added
+
+#### Portal roles (Feature 017)
+
+- **Four portal roles replace the three ungoverned groups from before**: Portal Administrator,
+  Data Curator, Community Manager and Developer, each declared with an exact, named permission
+  set and installed into every portal automatically, every time its database is brought up to
+  date. Editing a role's permissions by hand no longer sticks — the next update restores the
+  declared set. See [Portal roles](docs/portal-administration/roles.md).
 
 #### Portal configuration via `fairdm.setup()` (Feature 001)
 
