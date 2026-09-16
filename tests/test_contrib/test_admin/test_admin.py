@@ -108,3 +108,48 @@ class TestShippedRoleRenameProtection:
         assert response.status_code == 302
         custom.refresh_from_db()
         assert custom.name == "Project Alpha Squad"
+
+
+@pytest.mark.django_db
+class TestShippedRoleDeleteMessage:
+    """SPC-001/FR-012: the refusal names the role rather than a bare 403 - the
+    naming message lives on the pre_delete receiver alone (T022/research R6), which the
+    administration interface's own delete route never reaches (has_delete_permission
+    returns False first, so Django raises PermissionDenied before it)."""
+
+    def test_the_delete_page_names_the_role_and_says_fairdm_requires_it(
+        self, admin_client, shipped_group
+    ):
+        url = reverse("admin:auth_group_delete", args=[shipped_group.pk])
+
+        response = admin_client.get(url)
+
+        assert response.status_code == 403
+        content = response.content.decode()
+        assert "FairDM requires" in content
+        assert PortalRoles.DATA_CURATOR.name in content
+
+    def test_posting_to_the_delete_page_also_names_the_role(
+        self, admin_client, shipped_group
+    ):
+        from django.contrib.auth.models import Group
+
+        url = reverse("admin:auth_group_delete", args=[shipped_group.pk])
+
+        response = admin_client.post(url)
+
+        assert response.status_code == 403
+        assert "FairDM requires" in response.content.decode()
+        assert Group.objects.filter(pk=shipped_group.pk).exists()
+
+    def test_a_group_the_portal_made_itself_still_gets_the_ordinary_confirmation_page(
+        self, admin_client
+    ):
+        from django.contrib.auth.models import Group
+
+        custom = Group.objects.create(name="Project Alpha Team")
+        url = reverse("admin:auth_group_delete", args=[custom.pk])
+
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
