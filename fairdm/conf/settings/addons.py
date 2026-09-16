@@ -74,19 +74,6 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header.
             "title": "FairDM",
             "collapse": "icons",
-            # The theme toggle and the log-in button are listed here, not only
-            # in the navbar. django-mvp 0.21 spends the header row below the
-            # sidebar breakpoint on the trail and ships an empty mobile action
-            # list, so anything reachable only from the navbar is reachable
-            # only on a wide screen. The drawer opens at every width, and
-            # `user.sidebar-menu` renders nothing for a visitor who is not
-            # signed in, so without `actions.login` a phone visitor has no way
-            # to log in at all.
-            "footer": [
-                "actions.theme-controller",
-                "actions.login",
-                "user.sidebar-menu",
-            ],
         },
     },
 }
