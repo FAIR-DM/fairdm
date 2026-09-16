@@ -171,7 +171,9 @@ def _resolvable_permissions(role):
 class TestReconcile:
     """FR-009 to FR-011, US-1 AC3, SC-002: installation and repair on every update."""
 
-    def test_installs_all_four_roles_with_their_declared_rights(self):
+    def test_installs_all_four_roles_with_their_declared_rights(
+        self, disconnect_shipped_role_guard
+    ):
         Group.objects.all().delete()
 
         PortalRoles.reconcile()
@@ -180,7 +182,9 @@ class TestReconcile:
             group = Group.objects.get(name=role.name)
             assert _permission_strings(group) == _resolvable_permissions(role)
 
-    def test_a_second_run_changes_nothing_and_duplicates_nothing(self):
+    def test_a_second_run_changes_nothing_and_duplicates_nothing(
+        self, disconnect_shipped_role_guard
+    ):
         Group.objects.all().delete()
         PortalRoles.reconcile()
 
@@ -191,7 +195,9 @@ class TestReconcile:
             group = Group.objects.get(name=role.name)
             assert _permission_strings(group) == _resolvable_permissions(role)
 
-    def test_permissions_edited_by_hand_are_restored(self):
+    def test_permissions_edited_by_hand_are_restored(
+        self, disconnect_shipped_role_guard
+    ):
         Group.objects.all().delete()
         PortalRoles.reconcile()
         group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
@@ -205,7 +211,7 @@ class TestReconcile:
             PortalRoles.DATA_CURATOR
         )
 
-    def test_the_people_in_a_role_are_untouched(self):
+    def test_the_people_in_a_role_are_untouched(self, disconnect_shipped_role_guard):
         Group.objects.all().delete()
         PortalRoles.reconcile()
         curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
@@ -229,7 +235,9 @@ class TestReconcile:
         assert custom_group.name == "Project Alpha Team"
         assert list(custom_group.permissions.all()) == [view_dataset]
 
-    def test_legacy_groups_with_members_end_up_in_the_corresponding_new_roles(self):
+    def test_legacy_groups_with_members_end_up_in_the_corresponding_new_roles(
+        self, disconnect_shipped_role_guard
+    ):
         """R10, D10: a rename carries the membership rows across; a fresh create does not."""
         Group.objects.all().delete()
         legacy = {}

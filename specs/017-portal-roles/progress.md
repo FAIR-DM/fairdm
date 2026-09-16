@@ -377,3 +377,13 @@
   `RuntimeError: no such table: auth_group`, from the mock, before the except clause changed).
   `TestCheckCommandIntegration` (2 tests) and `TestDeployCommand` (4 parametrised) - the six D24
   named - pass unchanged; `tests/test_conf/test_checks.py` is 56 passed. See D27.
+- **T021 guard fixture (D23)**: added `disconnect_shipped_role_guard` to `tests/conftest.py`, a
+  fixture that disconnects `refuse_shipped_role_deletion`/`refuse_shipped_role_rename` from
+  `Group`'s `pre_delete`/`pre_save` by `dispatch_uid` for a test's duration and reconnects them in
+  a `finally` block. The five `TestReconcile` tests (`tests/test_portal_roles.py`) and the two
+  `TestPortalRolesReconciliation` tests (`tests/test_apps.py`) D23 named now request it explicitly
+  as a fixture parameter; setup is otherwise unchanged and no assertion in any of the seven
+  changed. `TestProtection` does not request it and still passes on its own
+  (`tests/test_portal_roles.py::TestProtection`, 8 passed), proving a shipped role cannot be
+  deleted or renamed with the guard connected. `tests/test_portal_roles.py` (23 passed) and
+  `tests/test_apps.py` (24 passed) both green, run together and in isolation. See D28.

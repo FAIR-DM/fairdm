@@ -547,3 +547,33 @@ group table can be unreadable.
 **Revisit if:** a future check needs to distinguish "database access is disabled by the caller"
 from "the group table cannot be read" - nothing in this feature's requirements needs that
 distinction, so it is not built.
+
+## D28 — The seven tests that reset state with `Group.objects.all().delete()` disconnect T021's
+guard through a named, shared fixture, resolving D23 (FIX-2)
+
+**Decision.** D23 recorded that `tests/test_portal_roles.py::TestReconcile` (5 tests) and
+`tests/test_apps.py::TestPortalRolesReconciliation` (2 tests) reset state by deleting every
+`Group` row before proving `PortalRoles.reconcile()` / `migrate` installs or repairs them, and
+that T021's guard - correctly - refuses that bulk delete the moment it reaches a shipped role. The
+guard is not weakened, for these tests or any other caller: the module docstring already states it
+does not hold against raw SQL, and the specification's own account of how a role can actually go
+missing is exactly that route, repaired on the next `migrate`. A new fixture,
+`disconnect_shipped_role_guard` in `tests/conftest.py`, disconnects `refuse_shipped_role_deletion`
+and `refuse_shipped_role_rename` from `Group`'s `pre_delete`/`pre_save` by their `dispatch_uid` for
+the duration of a test, and reconnects them in a `finally` block so a failing assertion cannot
+leave the guard disconnected for a later test. Each of the seven tests requests it explicitly as a
+fixture parameter; nothing else does, and `TestProtection` does not and still proves, on its own,
+that a shipped role cannot be deleted or renamed.
+
+**Why:** `Group.objects.all().delete()` is not a caller these tests invented for convenience; it
+is how each proves `reconcile()` builds every role from an empty table, the same condition a raw
+SQL deletion or a restored backup produces. Disconnecting the two receivers by name, for exactly
+the tests that model that condition, keeps the guard's own tests honest about what it protects
+against while letting the seven keep asserting exactly what they asserted before D23 was written -
+none of their assertions changed, only their setup gained one fixture parameter each. A shared
+`tests/conftest.py` fixture, rather than one copied into each file, is used because both test files
+sit directly under `tests/` and both need the identical disconnect/reconnect pair.
+
+**Revisit if:** a caller other than these seven ever needs the same disconnection - if so, extend
+this fixture's usage rather than writing a second one; do not add a flag or parameter to the guard
+itself to reach the same effect.
