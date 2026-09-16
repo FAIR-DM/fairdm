@@ -48,6 +48,13 @@ class PortalRolePermissionBackend(BaseBackend):
             return False
         if perm in _EXCLUDED_PERMISSIONS:
             return False
+        # A role's permissions are declared as `app_label.codename` (`fairdm/portal_roles.py`),
+        # so a bare codename with no app label - some callers ask that way for an object-level
+        # check meant for a different backend entirely, e.g. guardian's own convention
+        # (`tests/test_core/test_project/conftest.py`) - can never match one and answers `False`
+        # rather than raising on the unpack below.
+        if "." not in perm:
+            return False
         app_label, codename = perm.split(".", 1)
         return user_obj.groups.filter(
             name__in=PortalRoles.shipped_names(),

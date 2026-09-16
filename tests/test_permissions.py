@@ -85,6 +85,19 @@ class TestPortalRoleBackend:
 
         assert not person.has_perm("contributors.change_organization", organization)
 
+    def test_a_permission_string_with_no_app_label_answers_false_rather_than_raising(
+        self,
+    ):
+        """Some callers (``guardian``-style object checks - see
+        ``tests/test_core/test_project/conftest.py``) ask with a bare codename and no
+        app label, e.g. ``user.has_perm("change_project", project)``. Every backend in
+        the chain is still consulted when an earlier one answers ``False``, so this
+        backend must answer ``False`` for that shape too, not raise."""
+        person = PersonFactory()
+        dataset = DatasetFactory()
+
+        assert person.has_perm("change_dataset", dataset) is False
+
     def test_has_perm_with_no_object_answers_false_from_this_backend_directly(self):
         """The chain cannot recurse into this backend: it must answer ``False``
         on its own before ever asking ``user.has_perm(perm)`` again."""
