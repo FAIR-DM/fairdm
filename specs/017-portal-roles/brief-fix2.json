@@ -1,0 +1,74 @@
+{
+  "story": "FIX-2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 341,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us3",
+  "tasks": [
+    "T025"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "US-3's implementation is correct and its own tests are green, and it left thirteen tests red that it was right not to touch. Three things have to be settled, and none of them is a defect in what it built. First, the new check was given the id fairdm.E300, which fairdm/conf/checks.py has used for check_celery_broker since long before this feature. That was my error in the plan, not the implementer's. Second, the check is the first production-critical check to query the database, and six pre-existing tests call `check --deploy` with no database available - the check's own contract says it reports nothing when the group table cannot be read, and a harness refusing database access is exactly that case. Third, seven tests from this feature's first story reset state with Group.objects.all().delete(), which the new guard refuses, correctly: nothing in a portal may bulk-delete a shipped role. Those seven need to simulate a role vanishing the way the specification says it can actually vanish - from outside the ORM - rather than by asking the ORM to do what it now forbids.",
+    "spec_sections": [
+      "Requirements / Installation and repair (FR-012 to FR-017)",
+      "Edge Cases"
+    ],
+    "plan_sections": [
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D23 and D24 in decisions.md are the previous implementer's account of both regressions. Read them. They are accurate; what they could not do on their own authority is decide the resolution.",
+      "The guard is not weakened for anybody, including tests. No flag, no context manager, no 'reconciliation in progress' state, no exemption for a particular caller. A shipped role cannot be deleted or renamed through the ORM, full stop.",
+      "The specification already says the guard does not hold against raw SQL, and that a role lost that way is restored on the next migrate. A test that needs a role to be missing is modelling exactly that, so it should disconnect the receivers explicitly for its own duration, in a named fixture, with a comment saying why - never by weakening the receiver.",
+      "The check's stated tolerance is that it reports nothing when the group table is absent or unreadable. Extend that to mean genuinely unreadable, including a test harness that refuses database access.",
+      "fairdm/conf/checks.py numbers checks by hundreds: E0xx security, E1xx database, E2xx cache, E3xx celery, E4xx translation. Portal roles take E5xx."
+    ],
+    "acceptance": [
+      {
+        "task": "T025",
+        "given_when_then": "Given fairdm/conf/checks.py, When the portal-roles check reports, Then its id is fairdm.E500 and no other check in the file shares it; the development-accounts check that the next story adds will take fairdm.E501, so leave that free. Given a harness or environment where the database cannot be read at all, When `check --deploy` runs, Then the portal-roles check reports nothing and the six pre-existing tests in tests/test_conf/test_checks.py::TestCheckCommandIntegration and ::TestDeployCommand pass unchanged. Given the seven tests that reset state by deleting every group - tests/test_portal_roles.py::TestReconcile and tests/test_apps.py::TestPortalRolesReconciliation - When they run, Then they pass by disconnecting the guard receivers explicitly for their own duration, asserting exactly what they asserted before, with the guard itself unchanged. Given the guard's own tests (TestProtection), Then they never use that fixture and still prove a shipped role cannot be deleted or renamed. And the full suite is green."
+      }
+    ],
+    "verified_base": {
+      "commit": "11620edfa85f52252b5ee7e9e317e722c82c6302",
+      "verified_at": "2026-09-16T13:05:00Z",
+      "steps": [
+        "poetry:test (2778 passed, 8 skipped, 13 failed - the thirteen named in D23 and D24 and no others)",
+        "pre-commit (green)"
+      ],
+      "note": "This is a fix dispatched onto a known-red tree and those thirteen failures are why you are here. Every other test passes and pre-commit is green. When you are done the whole suite is green."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us3, branch 017-portal-roles-us3, continuing on top of US-3's commits. Virtualenv synced and pinned to Python 3.13. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves this worktree on port 8000; leave it alone."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 120
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded.",
+    "Read this brief in full, then decisions.md D23 and D24.",
+    "Read fairdm/conf/checks.py in full before renumbering anything - the id you are replacing belongs to another check.",
+    "Run the thirteen failing tests first and watch them fail. That is your red."
+  ],
+  "prohibitions": [
+    "Do not weaken the deletion or rename guard in any way, for any caller, including tests.",
+    "Do not change what any role holds, the permission backend, the admin site, the Person form, the management command or the team page.",
+    "Do not modify what any of the thirteen tests asserts. Their setup may change; their assertions may not.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own task's status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}
