@@ -137,13 +137,33 @@
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_permissions.py::TestPortalRoleBackend"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_permissions.py -v"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_permissions.py::TestPortalRoleBackend"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_permissions.py -v"
+            ],
+            "code": [
+              "fairdm/permissions.py:26",
+              "fairdm/conf/settings/auth.py:61"
+            ]
+          }
         },
         {
           "id": "T013",

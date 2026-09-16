@@ -58,3 +58,26 @@
   names the pre-existing "Database Admin" group in a troubleshooting bullet. Out of T008's named
   file scope (`roles.md`, `managing_users_and_permissions.md`), so left alone and flagged here
   rather than fixed.
+
+## US2 implementation begins on `017-portal-roles-us2`, cut from `8735205`
+
+- **T011**: `tests/test_permissions.py::TestPortalRoleBackend` added, eight tests, importing
+  `fairdm.permissions.PortalRolePermissionBackend`. Observed failing with
+  `ModuleNotFoundError: No module named 'fairdm.permissions'` (`poetry run pytest
+  tests/test_permissions.py -x`) - the module does not exist yet, which is the right reason for
+  a new-file task. Commit `76c46b9`.
+- **T012**: `fairdm/permissions.py::PortalRolePermissionBackend` added and registered last in
+  `AUTHENTICATION_BACKENDS` (`fairdm/conf/settings/auth.py`). Answers `has_perm(perm, obj)` from
+  `user_obj.has_perm(perm)` (the model-level question), returns `False` outright when `obj is
+  None` (so the nested `has_perm(perm)` call cannot recurse into this backend a second time) and
+  when the permission is `contributors.manage_organization`/`manage_organization` (D14). All
+  eight `TestPortalRoleBackend` tests pass (`poetry run pytest tests/test_permissions.py -v`);
+  the manage_organization test manufactures the stale `Permission` row directly
+  (`ContentType.objects.get_for_model(Organization)` + `get_or_create`), since a fresh database
+  never creates it — `fairdm/contrib/contributors/migrations/
+  0017_remove_manage_organization_permission.py` deletes it as part of the same migration that
+  removed it from `Organization.Meta.permissions`, so the row only survives on a database that
+  ran migration `0013` before `0017` shipped. The adjacent permission-backend suites
+  (`test_contrib/test_contributors/test_permissions.py`, `test_core/test_sample/
+  test_permissions.py`, `test_core/test_measurement/test_permissions.py`, 61 tests) stay green.
+  Commit `00e2b14`.
