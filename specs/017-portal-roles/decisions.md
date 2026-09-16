@@ -382,3 +382,43 @@ being overridden, and the four tests that forced the narrowing pass unchanged.
 The full suite was read independently at 2767 passed, 8 skipped. Worth recording that the verify
 step's own test timing (98s) is not the full suite's (637s): the machine gate is evidence that the
 step ran green, never evidence of what it covered.
+
+## D23 — T021's guard, implemented as specified, breaks seven US-1 tests left unmodified (US-3)
+
+T020/T021 require `pre_delete`/`pre_save` receivers on `Group` that refuse a shipped role's
+deletion or rename "for every ORM writer" (research R6, this story's brief), not only through the
+administration interface FR-012/FR-013 name literally. Connecting a `pre_delete` receiver for
+`Group` disables Django's collector fast-delete path for that model, so a bulk
+`Group.objects.all().delete()` now sends `pre_delete` per row and is refused the moment it reaches
+a shipped role, the same as a single instance's own `delete()`.
+
+Two US-1 test classes reset state this way as their own setup, before this story existed:
+`tests/test_portal_roles.py::TestReconcile` (5 tests) and
+`tests/test_apps.py::TestPortalRolesReconciliation` (2 tests). Both call
+`Group.objects.all().delete()` to put the database into "no roles yet" before asserting that
+`PortalRoles.reconcile()` / `migrate` installs or repairs them. Once the guard is connected, that
+call raises on whichever shipped role the collector reaches, and every one of the seven fails.
+
+Confirmed empirically, not by inference: a throwaway probe test connecting an equivalent
+`pre_delete` receiver reproduced the raise before either receiver was written, and running the
+full `TestReconcile`/`TestPortalRolesReconciliation` classes afterward reproduced all seven
+failures, in each case for exactly this reason (`ValidationError` naming a shipped role).
+
+**Settles:** this brief prohibits modifying a test authored in a different story, and instructs
+marking the task blocked rather than doing so. The receivers are implemented and committed
+exactly to their own acceptance criteria - `TestProtection` in `tests/test_portal_roles.py`
+(T020) is green - but T021 is reported `blocked` in `report-us3.json` for this reason, with the
+seven test names as evidence, rather than silently landing a known regression in two files this
+story does not own.
+
+A one-line fix (`Group.objects.exclude(name__in=PortalRoles.shipped_names()).delete()`) would
+mechanically restore green but changes what each test proves: the shipped roles would no longer
+be deleted at all, so "migrate creates them from scratch" would collapse into "migrate leaves
+already-correct roles alone" - a real weakening of intent, not a formatting fix, and exactly the
+kind of pre-existing-test edit this story is not authorised to make on its own judgement.
+
+**Revisit if:** Forge or Sam decide the regression is an accepted, deliberate consequence of
+FR-012/FR-013 as designed - in which case the fix is to reset those seven tests' state through
+raw SQL (as `tests/test_portal_roles.py::TestProtection`'s own helper,
+`_delete_group_by_raw_sql`, already does) rather than through the ORM, preserving each test's
+original intent.

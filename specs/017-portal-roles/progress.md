@@ -255,3 +255,37 @@
   split. `tests/test_core/test_project/test_factories.py`'s three previously-green tests (broken
   by the unguarded split) pass again; `tests/test_permissions.py` (11 tests) and the
   `test_dataset`/`test_project` plugin files (157 tests together) stay green. Commit `bc5732d`.
+
+## US-3 implementation begins on `017-portal-roles-us3`, cut from `5c0ed51`
+
+- **T020**: `tests/test_portal_roles.py::TestProtection` (8 tests) written and observed failing
+  for the right reason (`Failed: DID NOT RAISE ValidationError`) before either receiver existed.
+  Covers: deleting a shipped role raises and it and its members survive; the message names the
+  role and says FairDM requires it, for both delete and rename; renaming one raises and the name
+  is unchanged; re-saving a shipped role with its name unchanged is unaffected; creating a group
+  is unaffected; `PortalRoles.reconcile()`'s own re-creation of a role removed by raw SQL is
+  unaffected by the receiver it just installed; a group a portal created for itself deletes and
+  renames normally. A `_delete_group_by_raw_sql` helper removes a group (and its
+  `auth_group_permissions` rows, or SQLite's foreign-key check fails at teardown) without going
+  through the ORM, per research R6. `delete()`/`save()` calls expected to raise are wrapped in
+  their own `transaction.atomic()` so the receiver's exception - raised inside the atomic block
+  `delete()`/`save()` already opens - doesn't mark the surrounding test's own transaction broken
+  for every query after it. Commit `2b34140`.
+- **T021**: `refuse_shipped_role_deletion` and `refuse_shipped_role_rename` added to
+  `fairdm/contrib/contributors/receivers.py`, connected as `pre_delete`/`pre_save` on `Group` in
+  `ContributorsConfig.ready()` with `dispatch_uid`s. The rename guard checks
+  `instance._state.adding` first (true only for a `Group` that has never been saved) and returns
+  without raising, so a portal's own new group and `PortalRoles.reconcile()`'s
+  `Group.objects.get_or_create()` creation branch are both unaffected; for an existing row it
+  compares the name **stored in the database** against `instance.name` (not the shipped-role list
+  against `instance.name` alone), so a rename *away* from a shipped name is still caught and an
+  unchanged re-save is not refused. `TestProtection` (T020) green. Commit `9ba8ff8`.
+  - **Known regression, not fixed**: connecting `pre_delete` for `Group` disables Django's
+    collector fast-delete path, so a bulk `Group.objects.all().delete()` now sends `pre_delete`
+    per row and is refused once it reaches a shipped role - exactly the setup step
+    `tests/test_portal_roles.py::TestReconcile` (5 tests, US-1) and
+    `tests/test_apps.py::TestPortalRolesReconciliation` (2 tests, US-1) both use to reset state
+    before testing `reconcile()`/`migrate`. Confirmed by running both classes after T021 landed:
+    all seven fail with `ValidationError` naming a shipped role. Neither file is touched - this
+    story's brief prohibits modifying a test authored elsewhere and instructs reporting the task
+    blocked instead. See D23 and `report-us3.json`.
