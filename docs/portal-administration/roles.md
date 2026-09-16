@@ -77,6 +77,24 @@ roles hold together. Reaching the administration interface requires holding at l
 carries rights — the Portal Administrator, Data Curator or Community Manager role. Holding only the
 Developer role does not.
 
+## The portal team page
+
+Every portal has a public page listing who holds each role, grouped by role, reachable from the
+**Community** section of the main navigation beside **People** and **Organizations**. Anyone can
+read it without signing in.
+
+Putting somebody in a role — on the **Groups** field of their record, as described above — is what
+puts them on this page; taking them out of a role takes them off it. Deactivating an account
+removes its holder from the page the same way, even though the role is still recorded on their
+record: a deactivated account holds nothing, so listing it as the portal's administrator would tell
+a visitor something untrue. A role nobody currently holds is left off the page entirely rather than
+shown with nobody under it, and a person holding more than one role appears once under each.
+
+Each person on the page is shown by their name, linked to their public profile — no email address
+appears anywhere on it. The page lists these four roles only: a contributor's credit on a project,
+dataset, sample or measurement is a different kind of role and never appears here, however many
+records they are credited on.
+
 ## The four roles cannot be deleted or renamed
 
 The **Groups** page in the administration interface lists these four roles alongside any group
