@@ -435,3 +435,11 @@
     `test_a_development_portal_holding_all_five_reports_nothing` - it failed (all five accounts
     reported present), confirming the gate is load-bearing and not redundant with the boot-time
     stand-down. Reverted before continuing.
+- **T030**: `docs/portal-development/development_accounts.md` added - the command, the five-account
+  table straight from the specification's *Key entities* table, the shared password, and a warning
+  covering both the command's own refusal and what `fairdm.E501` guards against. Added to the "How
+  to" toctree in `index.md` beside `portal_roles.md`. Cross-linked both ways: `portal_roles.md`
+  points here for signing in as each role, and `getting_started.md`'s tip - previously only
+  `createsuperuser` - now distinguishes the deployer's superuser from the four portal roles and
+  points at this page. `docs/` is excluded from the lint gate (`.pre-commit-config.yaml`), so no
+  lint scope applies. Commit `0e60bad`.
