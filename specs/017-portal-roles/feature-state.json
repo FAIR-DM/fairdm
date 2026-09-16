@@ -3,7 +3,7 @@
   "feature": "017-portal-roles",
   "branch": "017-portal-roles",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "INTAKE",
@@ -32,6 +32,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-09-16T09:21:58Z",
       "note": "S3 exited green; dispatching the design reviewer"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-16T09:52:13Z",
+      "note": "US1 dispatched to an implementer on sonnet"
     }
   ],
   "gates": {
@@ -50,8 +55,8 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "notified \u2014 veto window, not a gate",
+      "at": "2026-09-16T09:55:00Z"
     },
     "merge": {
       "approved_by": null,
@@ -72,7 +77,7 @@
       "id": "US1",
       "priority": "P1",
       "issue": 339,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
@@ -120,7 +125,8 @@
           "status": "todo",
           "attempts": 0
         }
-      ]
+      ],
+      "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us1"
     },
     {
       "id": "US2",
