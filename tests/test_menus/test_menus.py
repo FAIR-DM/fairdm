@@ -70,7 +70,7 @@ class TestDocumentationMenuGroupOtherChildren:
         assert child._url == "https://fairdm.org/user-guide/"
 
     def test_third_child_is_admin_guide(self, documentation_menu_group):
-        """Third child must be 'Admin Guide', gated behind the staff-only check."""
+        """Third child must be 'Admin Guide', offered to whoever can reach the admin."""
         child = documentation_menu_group.children[2]
         assert str(child.name) == "Admin Guide"
         assert child._url == "https://fairdm.org/admin-guide/"
