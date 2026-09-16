@@ -838,9 +838,7 @@ class TestDevAccountsAbsent:
         assert account["email"] in errors[0].msg
 
     @override_settings(DJANGO_ENV="production")
-    def test_all_five_dev_addresses_on_a_production_portal_are_named_together(
-        self, db
-    ):
+    def test_all_five_dev_addresses_on_a_production_portal_are_named_together(self, db):
         from fairdm.conf.checks import check_dev_accounts_absent
         from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNTS
 
@@ -923,7 +921,10 @@ class TestDevAccountsAbsent:
     def test_check_is_registered_with_the_same_tags_as_the_portal_roles_check(self):
         from django.core.checks.registry import registry
 
-        from fairdm.conf.checks import check_dev_accounts_absent, check_portal_roles_present
+        from fairdm.conf.checks import (
+            check_dev_accounts_absent,
+            check_portal_roles_present,
+        )
 
         assert check_dev_accounts_absent in registry.get_checks(
             include_deployment_checks=True
