@@ -31,3 +31,14 @@
   passed after it — a real, not probed, red-green cycle, exercised through `call_command
   ("migrate")` rather than a direct `reconcile()` call, so it proves the wiring and not just the
   method. Commit `43085b0`.
+- **T006**: `fairdm/fixtures/groups.json` deleted, `("loaddata", "groups")` removed from
+  `DJANGO_SETUP_TOOLS`'s `on_initial` list (`fairdm/conf/settings/apps.py`). New tests in
+  `tests/test_conf/test_settings/test_apps.py::TestGroupsFixtureRemoved`, observed failing
+  (file still present; step still listed) before the change. Full `test_settings/test_apps.py`
+  scope (9 tests) green. Commit `cb7e676`.
+- **T007**: `DefaultGroups` removed from `fairdm/contrib/contributors/choices.py` (it had no
+  call sites anywhere in the package — confirmed by grep before deleting); `PersonFilter.is_staff`
+  relabelled from "Portal Administrators" to "Staff Only", matching `is_active`'s "Active Only"
+  sibling. New tests in `test_choices.py::TestDefaultGroupsRemoved` and the new
+  `test_filters.py::TestPersonFilterIsStaffLabel`, both observed failing first. Full
+  `tests/test_contrib/test_contributors/` scope (386 tests) green. Commit `34ed2c9`.
