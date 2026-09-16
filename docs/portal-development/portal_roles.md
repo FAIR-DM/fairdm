@@ -14,7 +14,8 @@ work out which permissions each one needs.
 
 What each role can do is the administrator's reference, in
 [Roles and permissions](../portal-administration/roles.md). This page is about reading them from
-code.
+code. To sign in as each role in your own development environment, see
+[Development accounts](development_accounts.md).
 
 ## Reading the shipped roles
 

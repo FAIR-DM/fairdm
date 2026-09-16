@@ -387,3 +387,59 @@
   (`tests/test_portal_roles.py::TestProtection`, 8 passed), proving a shipped role cannot be
   deleted or renamed with the guard connected. `tests/test_portal_roles.py` (23 passed) and
   `tests/test_apps.py` (24 passed) both green, run together and in isolation. See D28.
+
+## US-4 implementation begins on `017-portal-roles-us4`, cut from `acf79bf`
+
+- **T026**: `tests/test_management/test_commands/test_create_dev_accounts.py` added, seven tests
+  covering FR-023 to FR-029 - the five accounts and their stated roles, signing in with the shared
+  password and no confirmation step, idempotent re-runs, refusing rather than adopting an address
+  that already belongs to somebody, and refusing on the production baseline without touching the
+  database. Observed red for the right reason: `ModuleNotFoundError:
+  fairdm.management.commands.create_dev_accounts` at collection, since T027 had not been written
+  yet. Commit `1c094dd`.
+- **T027**: `fairdm/management/commands/create_dev_accounts.py` added. Creates the five accounts
+  through the ORM (D7), hashing the shared password at run time, marking each address confirmed
+  via an `allauth.account.models.EmailAddress` row so mandatory verification lets the account
+  straight in, and refusing on any resolved environment outside
+  `fairdm.apps.NON_PRODUCTION_ENVIRONMENTS` before the transaction that creates anything even
+  opens. All seven T026 tests pass unchanged. Commit `0d4c5b8`.
+  - **Probe, not just read**: before trusting the production-refusal test, temporarily removed the
+    environment check and re-ran it. It failed with an uncaught `django.db.utils.OperationalError`
+    (`connection to server at "localhost" ... Connection refused`) from the command's own query,
+    confirming the assertion that stderr carries no `OperationalError` is a real guard against the
+    command reaching the database before refusing, not a tautology. Reverted before continuing.
+  - **Identity check for FR-029**: an existing account is treated as "ours" (safe to leave
+    unchanged) only when its `first_name`/`last_name` match the specification's table for that
+    address exactly; any other existing holder of the address fails the whole run rather than
+    being adopted. See D29.
+- **T028**: `TestDevAccountsAbsent` added to `tests/test_conf/test_checks.py`, ten tests covering
+  a production portal holding one or all five development addresses (named together in one
+  error), a development portal holding all five reporting nothing, the same database tolerance
+  `check_portal_roles_present` carries (an unreadable table across three exception classes, and a
+  database Django cannot resolve an engine for), registration under the portal-roles check's own
+  tags, and that `fairdm.E501` appears nowhere else in the file. Observed red for the right
+  reason: all ten fail on `ImportError: cannot import name 'check_dev_accounts_absent'`, since T029
+  had not been written yet. Commit `8f78868`.
+- **T029**: `check_dev_accounts_absent` added to `fairdm/conf/checks.py`, id `fairdm.E501`, tagged
+  `DeployTags.deploy`/`DeployTags.production_critical` with `deploy=True` - the same tags D26
+  reserved this id for. Unlike `check_portal_roles_present`, this check resolves the environment
+  itself rather than relying only on `FairDMConfig._check_production_configuration()`'s boot-time
+  stand-down, because `manage.py check --deploy` runs every `deploy=True` check regardless of
+  environment (FR-015) and a development portal running it explicitly must still see nothing.
+  Reuses `fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS` rather than
+  redeclaring the five addresses, imported inside the function body - a module-level import would
+  be circular the moment `fairdm.apps` (which imports this module at load time) is reached through
+  it. All ten T028 tests pass; `tests/test_conf/test_checks.py` is 66 passed and `tests/test_apps.py`
+  (production boot) is unaffected at 16 passed. Commit `26619e3`.
+  - **Probe, not just read**: temporarily removed the environment gate and re-ran
+    `test_a_development_portal_holding_all_five_reports_nothing` - it failed (all five accounts
+    reported present), confirming the gate is load-bearing and not redundant with the boot-time
+    stand-down. Reverted before continuing.
+- **T030**: `docs/portal-development/development_accounts.md` added - the command, the five-account
+  table straight from the specification's *Key entities* table, the shared password, and a warning
+  covering both the command's own refusal and what `fairdm.E501` guards against. Added to the "How
+  to" toctree in `index.md` beside `portal_roles.md`. Cross-linked both ways: `portal_roles.md`
+  points here for signing in as each role, and `getting_started.md`'s tip - previously only
+  `createsuperuser` - now distinguishes the deployer's superuser from the four portal roles and
+  points at this page. `docs/` is excluded from the lint gate (`.pre-commit-config.yaml`), so no
+  lint scope applies. Commit `0e60bad`.

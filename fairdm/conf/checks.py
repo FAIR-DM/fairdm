@@ -476,6 +476,76 @@ def check_portal_roles_present(app_configs, **kwargs):
     ]
 
 
+@register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_dev_accounts_absent(app_configs, **kwargs):
+    """
+    Check that none of the five development accounts
+    ``manage.py create_dev_accounts`` ships exist on a portal that is not in
+    development, naming every one found at once (FR-027, D16).
+
+    The command that creates these accounts already refuses outside
+    development (``fairdm.apps.NON_PRODUCTION_ENVIRONMENTS``), but that
+    refusal guards the *act* of loading, not the resulting state: a database
+    copied down from production, a dump restored the wrong way round, or an
+    environment variable changed under a live database all produce accounts
+    the command would have refused to create. Unlike
+    ``check_portal_roles_present``, which leaves its own environment gating
+    entirely to ``FairDMConfig._check_production_configuration()``, this
+    check reads the resolved environment itself: `manage.py check --deploy`
+    runs every ``deploy=True`` check regardless of environment (FR-015), and
+    a development portal running it must still see nothing, since the whole
+    point of the accounts is to exist there.
+
+    Tolerates a database that cannot be read the same way
+    ``check_portal_roles_present`` does - an absent or unreadable user table,
+    a database Django cannot even resolve an engine for
+    (``ImproperlyConfigured``), or a test harness that refuses database
+    access outright (``RuntimeError``) - which is not this check's job to
+    report (research R4, D24).
+
+    Error ID: fairdm.E501
+    """
+    from django.apps import apps
+    from django.contrib.auth import get_user_model
+    from django.db.utils import OperationalError, ProgrammingError
+
+    from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
+    from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_EMAILS
+
+    if (
+        apps.get_app_config("fairdm").resolved_environment()
+        in NON_PRODUCTION_ENVIRONMENTS
+    ):
+        return []
+
+    Person = get_user_model()
+
+    try:
+        found = sorted(
+            Person.objects.filter(email__in=DEV_ACCOUNT_EMAILS).values_list(
+                "email", flat=True
+            )
+        )
+    except (OperationalError, ProgrammingError, ImproperlyConfigured, RuntimeError):
+        return []
+
+    if not found:
+        return []
+
+    return [
+        Error(
+            f"Development account(s) present on a portal outside development: "
+            f"{', '.join(found)}.",
+            hint=(
+                "These accounts share a password published in the "
+                "documentation. Remove them, or confirm this portal really "
+                "is in development."
+            ),
+            id="fairdm.E501",
+        )
+    ]
+
+
 # =============================================================================
 # TRANSLATION CHECKS
 # =============================================================================

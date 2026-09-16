@@ -594,3 +594,68 @@ a measurement cascade test that this feature never touches. It passed serially i
 the whole step passed on a re-run. `forge verify` runs its test step under xdist with `-x`, so a
 test-database setup race between workers surfaces as a red that reproduces nowhere else. The
 independent evidence for accepting this story is the serial run: 2792 passed, 8 skipped.
+
+## D29 — `create_dev_accounts` tells "its own account, re-run" from "somebody else's account" by
+name, not by any stored marker (T027)
+
+**Decision.** FR-028 (re-running creates no duplicate) and FR-029 (an address that already belongs
+to somebody is refused, not adopted) both have to hold for the same situation: the command finds a
+`Person` row already sitting on one of the five addresses. Nothing is stored on a `Person` to say
+"this row was made by `create_dev_accounts`" - no flag, no marker field, and the prohibitions rule
+out adding a migration to create one. The command instead compares the existing row's
+`first_name`/`last_name` against the specification's *Key entities* table for that exact address:
+a match is treated as this command's own account from an earlier run (left unchanged beyond
+re-affirming its confirmed `EmailAddress` and role membership); anything else raises `CommandError`
+and the whole run - wrapped in one `transaction.atomic()` block - is rolled back, so a conflict on
+the third address does not leave the first two created.
+
+**Why:** the five addresses are on `fairdm.org`, a domain no genuine contributor or visitor account
+would organically hold, so a name mismatch on one of them is a strong, cheap signal that something
+other than this command put it there - test data, a name collision, or a database in a state this
+command should refuse to touch - without needing a schema change to record provenance explicitly.
+
+**Revisit if:** a portal's own data ever legitimately produces one of these five addresses under a
+different name (for example, importing test fixtures that reuse them) - if that turns out to
+happen, the identity check would need a real provenance marker instead of a name comparison, which
+is a model change outside this story's scope.
+
+## D30 — `check_dev_accounts_absent` resolves the environment itself, unlike
+`check_portal_roles_present` (T029)
+
+**Decision.** `check_portal_roles_present` (`fairdm.E500`) never looks at the resolved environment
+at all - it relies entirely on `FairDMConfig._check_production_configuration()` to skip every
+`production_critical` check during boot when the environment is in `NON_PRODUCTION_ENVIRONMENTS`,
+and lets `manage.py check --deploy` see it unconditionally otherwise, which is correct for that
+check because a missing role is worth reporting regardless of environment. `check_dev_accounts_absent`
+(`fairdm.E501`) cannot use the same shape: the whole point of the five accounts is to exist on a
+development portal, so the check itself calls
+`apps.get_app_config("fairdm").resolved_environment()` and returns `[]` immediately when it is in
+`NON_PRODUCTION_ENVIRONMENTS`, before any query. This means a development portal running
+`manage.py check --deploy` explicitly - which bypasses the boot-time stand-down entirely - still
+reports nothing.
+
+**Why:** the acceptance criterion (T028) requires "a development portal holding all five reports
+nothing" as a property of the check itself, not only of when it happens to run. Copying
+`check_portal_roles_present`'s shape verbatim would have reported `fairdm.E501` against a
+correctly-populated development portal the moment somebody ran `check --deploy` on it by hand,
+which is the opposite of what the check exists to catch.
+
+**Revisit if:** a future `production_critical` check needs the same self-contained environment
+awareness - if so, consider factoring the `resolved_environment() in NON_PRODUCTION_ENVIRONMENTS`
+guard into a shared decorator or helper rather than a third copy of the same three lines.
+
+## D31 — A management command class is wiring, not documented surface
+
+The documentation gate flagged `Command` as a new public name no page documents. Every Django
+management command class is named `Command` — the convention is the framework's, nothing imports it,
+and what a reader looks up is the command's name. The command has a page of its own under
+`docs/portal-development/`, so the gap the gate reports is not a real one.
+
+`fairdm/management/commands/` is added to `[tool.forge.docs] exempt-paths` in `pyproject.toml`,
+which is the per-repo extension the gate documents for exactly this. The same reasoning already
+exempts admin classes, app configs and factories as wiring, so the general fix probably belongs
+there rather than in one repo's configuration — raised rather than taken, since changing a shared
+rule mid-feature is how a gate stops being trustworthy.
+
+US-4's one tamper flag is `tests/test_conf/test_checks.py`, a new `Test*` class appended with no
+deletions. Approved.
