@@ -491,3 +491,23 @@
   that an unheld role and a person's contribution roles never appear, and that each entry is a
   name linked to a public profile with no email address. `docs/` is excluded from the lint gate
   (`.pre-commit-config.yaml`), matching T030's note. Commit `5f13189`.
+
+## FIX-3 — Review fixes (brief-fix3.json)
+
+- **SEC-001**: `UserAdmin.get_fieldsets` (`fairdm/contrib/contributors/admin.py`) now also drops
+  `groups` from the Person change form for a non-superuser who lacks `auth.view_group` — the
+  field that let a Community Manager grant themselves Data Curator or Portal Administrator rights
+  by proxy, since the earlier narrowing only closed `is_superuser`, `is_staff` and `password`.
+  `auth.view_group` is the discriminator FR-002/FR-004 already supply, so no new rule was
+  invented. Reproduced first: extended `test_a_community_manager_is_not_offered_the_account_
+  escalation_fields` and `test_a_superuser_is_still_offered_all_three` in
+  `tests/test_contrib/test_contributors/test_admin.py` to also check `groups` (both existing
+  guard tests, extended with the case the finding said they were missing, per the brief's
+  exception); the first failed for the right reason — `groups` present in both the narrowed
+  fieldsets and the built form's fields — before the fix. Added two new tests: POSTing a Data
+  Curator group id as a Community Manager leaves their membership unchanged (mirrors the existing
+  `is_superuser` POST guard), and a Portal Administrator still sees and can set `groups` per
+  FR-002. `groups` needed no separate `get_form` popping the way `password` did — unlike
+  `password`, it is not a form-declared field, so excluding it from the fieldsets alone removes it
+  from the built form's fields, the same way `is_staff`/`is_superuser` already worked. 6/6 in
+  `TestPersonAdminFields`, 64/64 in the file. Commit `720ff02`.
