@@ -577,3 +577,20 @@ sit directly under `tests/` and both need the identical disconnect/reconnect pai
 **Revisit if:** a caller other than these seven ever needs the same disconnection - if so, extend
 this fixture's usage rather than writing a second one; do not add a flag or parameter to the guard
 itself to reach the same effect.
+
+## D25 — US-3's tamper flags approved, and the check that failed once under parallelism
+
+Four `modified_preexisting_test` flags. `tests/conftest.py` gains the fixture that models a role
+vanishing from outside the ORM. `tests/test_portal_roles.py` and `tests/test_apps.py` have seven
+test signatures changed to request it, and not one assertion touched. `tests/test_conf/test_checks.py`
+gains a case and loses a decorator on a test whose subject moved. Approved.
+
+`tests/test_contrib/test_admin/test_group_admin.py` mirrored no source module, because the admin
+class lives in `fairdm/contrib/admin/admin.py`. Renamed to `test_admin.py`, which is what the
+conformance rule asks for and what Article X means by mirroring.
+
+The first full verify on this story reported one failure — `no such table: demo_testmeasurement` in
+a measurement cascade test that this feature never touches. It passed serially in 2.5 seconds and
+the whole step passed on a re-run. `forge verify` runs its test step under xdist with `-x`, so a
+test-database setup race between workers surfaces as a red that reproduces nowhere else. The
+independent evidence for accepting this story is the serial run: 2792 passed, 8 skipped.
