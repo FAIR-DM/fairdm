@@ -297,8 +297,22 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestMergeAndClaimLinkViewsAdmitACommunityManager"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:349",
+              "fairdm/contrib/contributors/admin.py:473",
+              "fairdm/contrib/contributors/admin.py:523"
+            ]
+          }
         }
       ],
       "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us2"

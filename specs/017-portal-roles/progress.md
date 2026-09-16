@@ -206,3 +206,22 @@
   story was not asked to change in a module I cannot even run. All eleven new/updated tests
   pass; `makemigrations --check --dry-run` shows only the pre-existing `identity`/`orbit` drift.
   Commit `ab46649`.
+- **T019**: `TestMergeAndClaimLinkViewsAdmitACommunityManager` added to
+  `tests/test_contrib/test_contributors/test_admin.py` (beside the pre-existing
+  `TestMergeAndClaimLinkViewsRequireSuperuser`, untouched) - a Community Manager reaches
+  `merge_view` (200) and `claim_link_view` (the same already-reported `NoReverseMatch` defect
+  the superuser case hits, proving the gate itself passed); a Data Curator, a rights-carrying
+  role that does not hold `contributors.change_person`, is refused (403) by the view's own gate,
+  not merely absent from the admin site; the action buttons are offered to a Community Manager
+  in the Person changelist. Observed failing first for the right reasons (403 instead of 200,
+  "did not raise NoReverseMatch", the action strings absent from the changelist). Implemented:
+  a new `UserAdmin._may_manage_persons(request)` helper
+  (`request.user.has_perm("contributors.change_person")`) replaces the `is_superuser` checks in
+  `claim_link_view`, `merge_view`, and `get_actions` - `get_actions` too, because leaving its
+  button-visibility check on `is_superuser` after the views changed would reopen the exact gap
+  its own docstring (Route 2) exists to close, one route later. Both views' docstrings keep
+  their original "superuser-only" reasoning and gain a line naming what supersedes it (D13's
+  instruction: supersede, never rewrite). D21 in `decisions.md` records the ADR. All ten tests
+  across the new and the two pre-existing classes pass unmodified; the full file (62 tests)
+  stays green; `makemigrations --check --dry-run` shows only the pre-existing drift. Commit
+  `455e4cf`.

@@ -286,3 +286,37 @@ D13. If the earlier feature's stricter rule should stand instead, `PortalRolePer
 needs a narrower condition than "any model-level grant" - at minimum, T017's own acceptance
 criterion asking a curator to reach a private dataset by role alone would need to be revisited
 too, since it is what makes the narrow reading impossible today.
+
+## D21 — `claim_link_view`/`merge_view` supersede their own superuser-only reasoning (T019)
+
+**Decision.** Both views' gates now ask `request.user.has_perm("contributors.change_person")`
+(via a new `UserAdmin._may_manage_persons` helper, shared with `get_actions`) instead of
+`request.user.is_superuser`. A superuser still passes - Django's own `has_perm` grants every
+permission to a superuser before any backend is consulted - and a Community Manager, who holds
+`contributors.change_person` through the role FR-004 already gives them, now passes too.
+
+**Why.** D13 named this exact change and its own justification: both views' docstrings recorded
+"superuser-only" as a deliberate decision, written "when the only alternative was 'anybody with
+`is_staff`'". A portal role granted deliberately is a third thing the earlier decision never
+had to weigh. Per D13's instruction, both docstrings keep their original reasoning and gain a
+line stating what supersedes it, rather than being rewritten as if the earlier reasoning never
+existed.
+
+`get_actions` (`UserAdmin`) changes with them, not only the two views: the merge/claim-link
+action buttons in the Person changelist were hidden for "a non-superuser" specifically so the
+interface never offers an action its own view refuses (its own docstring, Route 2). Leaving that
+check on `is_superuser` after the views changed would silently reintroduce exactly the gap the
+comment was written to close, one route later - a Community Manager could still reach the pages
+by a typed URL, but the story's own acceptance ("run a profile claim or a merge from the
+administration interface") means through the visible action, not around it.
+
+**Confirmed unaffected**: `tests/test_contrib/test_contributors/test_admin.py`'s pre-existing
+`TestMergeAndClaimLinkViewsRequireSuperuser` and `TestPersonAdminActionsHiddenFromNonSuperuser`
+both still pass unmodified - their "non-superuser" actors hold `is_staff=True` (or `view_person`
+alone) and no `change_person`, so the new permission question refuses them exactly as the old
+`is_superuser` check did. Verified by running both classes together with the new
+`TestMergeAndClaimLinkViewsAdmitACommunityManager` (10 tests) and the full file (62 tests).
+
+**Revisit if:** a future role other than Community Manager gains `contributors.change_person`
+without being intended to reach profile claims or merges - the gate would admit them too, since
+it asks the same permission `get_actions` and both views already share.
