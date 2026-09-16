@@ -482,3 +482,12 @@
   read `AppMenu.children` directly, predating this pattern) still pass unchanged, 8 passed total.
   Verified live against the worktree's dev server: the "Team" entry appears in the sidebar's
   Community group beside People and Organizations. Commit `b0219bb`.
+- **T034**: `docs/portal-administration/roles.md` — the page that already documents the four
+  roles and how membership is granted — gets a new "The portal team page" section: that the page
+  is public and reachable from Community beside People and Organizations, that granting or
+  removing a role on a person's `Groups` field is exactly what puts them on the page or takes them
+  off it (the same mechanism the rest of the page already describes for holding a role at all),
+  that a deactivated account drops off the page while the role stays recorded on their account,
+  that an unheld role and a person's contribution roles never appear, and that each entry is a
+  name linked to a public profile with no email address. `docs/` is excluded from the lint gate
+  (`.pre-commit-config.yaml`), matching T030's note. Commit `5f13189`.
