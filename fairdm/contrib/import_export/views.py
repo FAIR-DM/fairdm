@@ -154,7 +154,10 @@ class DataImportView(BaseImportExportView):
         user = request.user
         if not user.is_authenticated:
             return False
-        return user.has_perm("import_data", instance)
+        # COR-001: the object-level backend requires the app label
+        # (`PortalRolePermissionBackend.has_perm`, `fairdm/permissions.py`) - a bare
+        # codename always answers `False` there.
+        return user.has_perm(f"{instance._meta.app_label}.import_data", instance)
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
@@ -221,7 +224,8 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
         user = request.user
         if not user.is_authenticated:
             return False
-        return user.has_perm("can_publish", instance)
+        # COR-001: see DataImportView.check's identical note.
+        return user.has_perm(f"{instance._meta.app_label}.can_publish", instance)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -132,3 +132,61 @@ class TestPortalRoleBackend:
         person.user_permissions.add(stale_permission)
 
         assert not person.has_perm("contributors.manage_organization", organization)
+
+
+@pytest.mark.django_db
+class TestImportAndPublishGatePermissions:
+    """COR-001: the import and publish plugin gates in `fairdm/contrib/import_export/
+    views.py` ask `user.has_perm(f"{instance._meta.app_label}.import_data", instance)`
+    and the `can_publish` equivalent - the dotted spelling this backend requires
+    (`PortalRolePermissionBackend.has_perm` above refuses a bare codename by design).
+    `fairdm.contrib.import_export.views` cannot be imported directly to exercise
+    `DataImportView.check`/`DatasetPublishConfirm.check` themselves - a pre-existing,
+    unrelated defect predating this story (see `specs/017-portal-roles/progress.md`'s
+    T017/T018 concerns) - so this proves the exact permission strings those two call
+    sites now ask with, the same way `TestPortalRoleBackend` above proves
+    `dataset.change_dataset`."""
+
+    def test_a_data_curator_is_admitted_to_import_on_a_dataset_they_did_not_create(self):
+        curator = PersonFactory()
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        dataset = DatasetFactory()
+
+        assert curator.has_perm("dataset.import_data", dataset)
+
+    def test_a_person_holding_nothing_is_refused_import(self):
+        person = PersonFactory()
+        dataset = DatasetFactory()
+
+        assert not person.has_perm("dataset.import_data", dataset)
+
+    def test_a_contributor_holding_the_object_level_row_is_admitted_to_import(self):
+        from fairdm.core.utils import assign_perm
+
+        contributor = PersonFactory()
+        dataset = DatasetFactory()
+        assign_perm("import_data", contributor, dataset)
+
+        assert contributor.has_perm("dataset.import_data", dataset)
+
+    def test_a_data_curator_is_admitted_to_publish_on_a_dataset_they_did_not_create(self):
+        curator = PersonFactory()
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        dataset = DatasetFactory()
+
+        assert curator.has_perm("dataset.can_publish", dataset)
+
+    def test_a_person_holding_nothing_is_refused_publish(self):
+        person = PersonFactory()
+        dataset = DatasetFactory()
+
+        assert not person.has_perm("dataset.can_publish", dataset)
+
+    def test_a_contributor_holding_the_object_level_row_is_admitted_to_publish(self):
+        from fairdm.core.utils import assign_perm
+
+        contributor = PersonFactory()
+        dataset = DatasetFactory()
+        assign_perm("can_publish", contributor, dataset)
+
+        assert contributor.has_perm("dataset.can_publish", dataset)
