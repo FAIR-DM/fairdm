@@ -77,6 +77,23 @@ roles hold together. Reaching the administration interface requires holding at l
 carries rights — the Portal Administrator, Data Curator or Community Manager role. Holding only the
 Developer role does not.
 
+## The four roles cannot be deleted or renamed
+
+The **Groups** page in the administration interface lists these four roles alongside any group
+your portal has created for itself. The four are protected: there is no delete option for one of
+them, and changing its name is refused with a message rather than saved. Both refusals apply
+everywhere, not only in the administration interface, so a role cannot be removed by accident
+through a script or a management command either.
+
+A group your portal created for itself — for one project's team, say — has neither restriction:
+it deletes and renames like any other Django group.
+
+If a role is ever missing anyway (removed directly against the database, for instance), FairDM
+restores it, together with its rights, the next time the portal is brought up to date. Anyone the
+role had already been granted to keeps that role once it is restored — nobody needs to be
+re-added. A portal running in production also refuses to start while a role is missing, naming
+which one, so the condition is never silent.
+
 ## Upgrading from an earlier version
 
 Earlier versions of FairDM shipped three ungoverned group names with no permissions attached
