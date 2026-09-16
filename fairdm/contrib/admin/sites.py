@@ -3,10 +3,14 @@ import tempfile
 
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.forms import AdminAuthenticationForm
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.translation import gettext as _
+
+from fairdm.portal_roles import PortalRoles
 
 from .views import FixtureUploadView
 
@@ -15,10 +19,44 @@ class FixtureUploadForm(forms.Form):
     fixture_file = forms.FileField(label="Select a fixture file")
 
 
+def _holds_a_rights_carrying_role(user) -> bool:
+    """Whether ``user`` belongs to at least one role that carries permissions.
+
+    Access is derived from role membership, never stored on the person (research R3):
+    nothing here sets ``is_staff``.
+    """
+    return user.groups.filter(name__in=PortalRoles.rights_carrying()).exists()
+
+
+class PortalAdminAuthenticationForm(AdminAuthenticationForm):
+    """Accepts a holder of a rights-carrying role, not only an ``is_staff`` account.
+
+    ``AdminAuthenticationForm.confirm_login_allowed`` refuses a non-staff user before
+    ``CustomAdminSite.has_permission`` is ever consulted (research R3), so both must change
+    together or a role holder can only reach the interface while already signed in.
+    """
+
+    def confirm_login_allowed(self, user):
+        super(AdminAuthenticationForm, self).confirm_login_allowed(user)
+        if not (user.is_staff or _holds_a_rights_carrying_role(user)):
+            raise ValidationError(
+                self.error_messages["invalid_login"],
+                code="invalid_login",
+                params={"username": self.username_field.verbose_name},
+            )
+
+
 class CustomAdminSite(admin.AdminSite):
     site_header = _("Portal Administration")
     site_title = _("Portal Administration")
     index_title = _("Portal Administration")
+    login_form = PortalAdminAuthenticationForm
+
+    def has_permission(self, request):
+        """Accept a holder of a rights-carrying role, not only an ``is_staff`` account
+        (research R3). Nothing is stored on the person to grant this."""
+        user = request.user
+        return user.is_active and (user.is_staff or _holds_a_rights_carrying_role(user))
 
     def get_urls(self):
         urls = super().get_urls()

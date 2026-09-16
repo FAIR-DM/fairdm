@@ -88,9 +88,8 @@ existing member across automatically. Nobody needs to be re-added to a role beca
 upgrade.
 
 ```{important}
-A model-level permission granted directly to a person or group — one that is not part of the four
-roles above — now applies to every instance of that model across the whole portal, not only to
-the object it was originally intended for. Before upgrading, audit any permission your portal
-granted outside these four roles: a grant that once reached one record now reaches every record of
-that kind.
+A model-level permission held through one of the four roles above now applies to every instance
+of that model across the whole portal, not only to the object it was originally intended for. A
+permission granted any other way — directly to a person, or through a group the portal made up
+itself — is unchanged from before.
 ```

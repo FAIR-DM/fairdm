@@ -208,10 +208,7 @@ def has_permission(context, perms):
     user = context.get("user", None)
     if not user:
         return False
-    if user.is_superuser:
-        return True
-    if user.groups.filter(name="Data Administrators").exists():
-        return True
+    return any(user.has_perm(perm) for perm in perms.split(","))
 
 
 @register.simple_tag

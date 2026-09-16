@@ -43,9 +43,6 @@ def check_has_edit_permission(request, instance, **kwargs):
     if request.user == instance:
         return True
 
-    if request.user.groups.filter(name="Data Administrators").exists():
-        return True
-
     if instance:
         perm = f"{instance._meta.app_label}.change_{instance._meta.model_name}"
         has_perm = request.user.has_perm(perm, instance)

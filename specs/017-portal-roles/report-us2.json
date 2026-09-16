@@ -1,0 +1,180 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-08-24/0f180d36",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "tests_added": ["tests/test_permissions.py::TestPortalRoleBackend"],
+        "commands": ["poetry run pytest tests/test_permissions.py -v"],
+        "exit_code": 0
+      },
+      "commits": ["76c46b9"]
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_permissions.py::TestPortalRoleBackend::test_registering_the_backend_does_not_break_authenticate"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_permissions.py -v",
+          "poetry run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["00e2b14", "71d6588", "9ecb3d0", "a989fcf"]
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_admin/test_sites.py::TestAdministrationAccessForRoleHolders"
+        ],
+        "commands": ["poetry run pytest tests/test_contrib/test_admin/test_sites.py -v"],
+        "exit_code": 0
+      },
+      "commits": ["7fb8002"]
+    },
+    {
+      "id": "T014",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_admin/test_sites.py -v",
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["c3db8cd"]
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["8f213fa"]
+    },
+    {
+      "id": "T016",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q",
+          "poetry run python manage.py makemigrations --check --dry-run"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["b081e31"]
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_permissions.py::TestDataCuratorPortalPages",
+          "tests/test_contrib/test_contributors/test_permissions.py::TestCommunityManagerPortalRights",
+          "tests/test_contrib/test_contributors/test_permissions.py::TestAPersonHoldingTwoRolesHoldsBothSets"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["2caea17"]
+    },
+    {
+      "id": "T017a",
+      "status": "done",
+      "evidence": {
+        "tests_added": ["tests/test_portal_roles.py::TestDeclaredPermissionsExist"],
+        "commands": ["poetry run pytest tests/test_portal_roles.py -v"],
+        "exit_code": 0
+      },
+      "commits": ["759ddd6"]
+    },
+    {
+      "id": "T017b",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run python manage.py makemigrations dataset",
+          "poetry run pytest tests/test_portal_roles.py -v",
+          "poetry run python manage.py makemigrations --check --dry-run"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["946b666"]
+    },
+    {
+      "id": "T018",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_utils.py::TestCheckHasEditPermission",
+          "tests/test_templatetags/test_fairdm.py::TestHasPermissionTag"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_plugins/test_utils.py tests/test_templatetags/test_fairdm.py -v",
+          "poetry run pytest tests/test_contrib/test_contributors/test_models.py tests/test_contrib/test_plugins/ tests/test_templatetags/ -q"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["90a7ff6", "ab46649"]
+    },
+    {
+      "id": "T019",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_admin.py::TestMergeAndClaimLinkViewsAdmitACommunityManager"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["688e5a5", "455e4cf"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T017's execution order moved after T017a/T017b instead of before them, contrary to their listing order in tasks.md.",
+      "why": "T017's own acceptance requires a Data Curator to reach the import and publish plugin pages, which only resolve once `dataset.can_publish` exists as a real Permission row (T017b) — implementing T017's test in its listed slot would have committed a test red for a reason outside that task's own scope, violating the tree-stays-green-between-slices rule. Reordered to the dependency-correct sequence: T011, T012, T013, T014, T015, T016, T017a, T017b, T017, T018, T019.",
+      "decision_ref": "progress.md, T017a/T017b entries"
+    },
+    {
+      "what": "T017's acceptance clause \"can reach the import and publish plugin pages\" is not covered by any test.",
+      "why": "fairdm/contrib/import_export/views.py fails to import on its own (`ImportError: cannot import name 'FairDMModelFormMixin' from 'fairdm.views'`), confirmed by attempting the import directly. This is a pre-existing defect unrelated to this story and not named in any of my tasks — the module has no call site anywhere in the codebase, so nothing exercises it today. Fixing an unrelated ImportError to make a new test possible would be out of this story's scope.",
+      "decision_ref": "progress.md, T017 entry"
+    }
+  ],
+  "concerns": [
+    "D20 (decisions.md): registering PortalRolePermissionBackend (T012) — required verbatim by T011's acceptance criteria and by T017's own requirement that a Data Curator reach another team's private dataset by role alone — makes four pre-existing tests fail, none of which this story authored or may modify: tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused, tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record, tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record, and tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused. These four pin a defect an earlier feature (its own, differently-numbered D14) deliberately fixed: a user holding only a model-level change permission, with no per-record grant, used to be refused on a private Project/Dataset's Update/Delete/Descriptions pages ('a page that relies on inheriting a visibility rule is not guarded at all', per that test's own docstring). PortalRolePermissionBackend reopens exactly that, by design, because this story's own acceptance requires it. Confirmed mechanical: reverting only the AUTHENTICATION_BACKENDS entry (with fairdm/permissions.py otherwise unchanged) makes all four pass again. Not touched, per this story's own prohibition on editing a test it did not author when the fix is not a bug in the diff but an earlier assumption ceasing to hold on purpose — that is Sam's call to ratify, not mine. Full analysis, evidence and the revisit condition are in decisions.md D20. The full-suite final verify below runs 2761 passed, 8 skipped, 4 failed — these four and no others.",
+    "fairdm/contrib/import_export/views.py's two check() methods (DataImportView.check, DatasetPublishConfirm.check) call user.has_perm(\"import_data\", instance) and user.has_perm(\"can_publish\", instance) without the required \"dataset.\" app-label prefix, so neither call can ever resolve True through any backend — a distinct, pre-existing defect from the one this story addresses. Not named in T018 (which named only the is_data_admin removal) and not exercised by any test because the module fails to import on its own for the unrelated reason above. Left alone.",
+    "docs/portal-administration/adjusting_dataset_access.md:130 still names the pre-existing 'Database Admin' group in a troubleshooting bullet — a US-1 concern (progress.md), carried forward unresolved as it is outside every US-2 task's named file scope too.",
+    "The commented-out block inside fairdm/templatetags/fairdm.py's has_perms filter (a different function from the has_permission tag T018 changed) still references the group name 'Data Administrators' in dead, already-commented-out code. Not one of the five call sites T018 named, and already inert, so left alone rather than expanding scope."
+  ],
+  "blocked": []
+}

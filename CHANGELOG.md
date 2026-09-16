@@ -44,11 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Migration guides](docs/more/migration-guides.md#the-demo-application-moved-to-demo).
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
-- **A model-level permission now applies to every instance of that model**, not only the record
-  it was granted for. This is the semantics the four portal roles below are built on, and it
-  matches how Django's own admin already treats a model-level right. Before upgrading, audit any
-  permission your portal granted outside the four roles: a grant that once reached one record now
-  reaches every record of that kind. See [Portal roles](docs/portal-administration/roles.md).
+- **A model-level permission held through one of the four portal roles below now applies to
+  every instance of that model**, not only the record it was granted for. A permission granted
+  any other way — directly to a person, or through a group the portal made up itself — is
+  unchanged from before. See [Portal roles](docs/portal-administration/roles.md).
 
 ### Added
 

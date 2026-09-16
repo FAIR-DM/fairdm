@@ -226,3 +226,144 @@ nicety, because a portal author reading `rights_carrying()` has nothing else to 
 `docs/portal-development/portal_roles.md` and added to that guide's table of contents rather than
 returned to the implementer: a page is not implementation, and a re-dispatch for one page costs
 more than the page.
+
+## D20 — `PortalRolePermissionBackend` reopens a defect an earlier feature deliberately fixed, in
+four pre-existing tests this story's own prohibitions forbid touching
+
+**The conflict.** T011's acceptance is unqualified: "a permission granted directly to the person"
+answers `True` for `has_perm(perm, instance)` "on every instance of that model" - not only through
+a role, and not only for a publicly visible one. T017 requires the same widening through a role: a
+Data Curator must reach *another team's private dataset* by holding `dataset.change_dataset` at
+the model level alone, with no per-record grant. Both are load-bearing, not incidental - T017's
+given/when/then names the private case explicitly, and Research R2 in the brief states the rule
+generally: "the new backend answers the object-level question from the model-level permissions the
+person holds, which is the rule Django's own admin already follows."
+
+An earlier feature (its own decision, also numbered D14, in a different specification - collision
+only, not the same feature) fixed the opposite defect: it made `Update`/`Delete`/`Descriptions` on
+`Project` and `Dataset` refuse a user holding only a model-level `change_*` permission and no
+per-record grant on a *private* record, specifically because "a page that relies on inheriting a
+visibility rule is not guarded at all" (`tests/test_core/test_project/test_plugins.py:306`'s
+docstring, verbatim). Those pages gate on `visible_to_holder_of(permission)`
+(`fairdm/core/dataset/plugins.py`, `fairdm/core/project/plugins.py`), whose `check` calls
+`request.user.has_perm(permission, obj)` directly - the very call `PortalRolePermissionBackend` now
+answers `True` for, given only a model-level grant.
+
+Registering the backend (T012) makes four pre-existing tests fail, none of which this story
+authored and none of which its prohibitions permit editing:
+
+- `tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused`
+- `tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused`
+
+Confirmed mechanical, not incidental: reverting only `AUTHENTICATION_BACKENDS`
+(`fairdm/conf/settings/auth.py`) back to its pre-T012 state, with `fairdm/permissions.py`
+otherwise unchanged, makes all four pass again. `tests/test_core/test_sample/` and
+`tests/test_core/test_measurement/` carry no equivalent test and are unaffected (810 passed, 7
+skipped across project/sample/measurement together, beyond the two named above).
+
+**What this story does about it.** Nothing to the four tests themselves - the prohibition against
+touching a test this story did not author, for exactly this situation, says "mark the task blocked
+and say why" rather than resolve it unilaterally. This is not proposed as a `modified_preexisting_test`
+tamper flag for the same reason: the fix is not a bug in my diff, it is the earlier feature's
+assumption ceasing to hold, on purpose, which is Sam's call to ratify - the closest precedent in
+this story is D13's instruction to *supersede*, never silently rewrite, a docstring's superseded
+reasoning. Left red, reported in the completion report's `concerns`, not counted toward "the suite
+is green."
+
+**Why the widening stands as specified rather than being narrowed to fit.** Narrowing
+`PortalRolePermissionBackend` to answer only through a role, or only for a record the requester
+can already view, would fail T011's own acceptance test (`tests/test_permissions.py`,
+`test_a_permission_granted_directly_to_the_person_answers_the_same_way`) and would leave the Data
+Curator unable to do the one thing T017 exists to prove - open another team's *private* dataset by
+role alone. There is no narrower reading of both acceptance criteria at once.
+
+**Revisit if:** Sam rules on which regime is correct for `Update`/`Delete`/`Descriptions`-style
+pages going forward. If the model-level widening stands, the four tests' assertions should flip
+(404→200) with a docstring amendment describing this story as what superseded them, mirroring
+D13. If the earlier feature's stricter rule should stand instead, `PortalRolePermissionBackend`
+needs a narrower condition than "any model-level grant" - at minimum, T017's own acceptance
+criterion asking a curator to reach a private dataset by role alone would need to be revisited
+too, since it is what makes the narrow reading impossible today.
+
+## D21 — `claim_link_view`/`merge_view` supersede their own superuser-only reasoning (T019)
+
+**Decision.** Both views' gates now ask `request.user.has_perm("contributors.change_person")`
+(via a new `UserAdmin._may_manage_persons` helper, shared with `get_actions`) instead of
+`request.user.is_superuser`. A superuser still passes - Django's own `has_perm` grants every
+permission to a superuser before any backend is consulted - and a Community Manager, who holds
+`contributors.change_person` through the role FR-004 already gives them, now passes too.
+
+**Why.** D13 named this exact change and its own justification: both views' docstrings recorded
+"superuser-only" as a deliberate decision, written "when the only alternative was 'anybody with
+`is_staff`'". A portal role granted deliberately is a third thing the earlier decision never
+had to weigh. Per D13's instruction, both docstrings keep their original reasoning and gain a
+line stating what supersedes it, rather than being rewritten as if the earlier reasoning never
+existed.
+
+`get_actions` (`UserAdmin`) changes with them, not only the two views: the merge/claim-link
+action buttons in the Person changelist were hidden for "a non-superuser" specifically so the
+interface never offers an action its own view refuses (its own docstring, Route 2). Leaving that
+check on `is_superuser` after the views changed would silently reintroduce exactly the gap the
+comment was written to close, one route later - a Community Manager could still reach the pages
+by a typed URL, but the story's own acceptance ("run a profile claim or a merge from the
+administration interface") means through the visible action, not around it.
+
+**Confirmed unaffected**: `tests/test_contrib/test_contributors/test_admin.py`'s pre-existing
+`TestMergeAndClaimLinkViewsRequireSuperuser` and `TestPersonAdminActionsHiddenFromNonSuperuser`
+both still pass unmodified - their "non-superuser" actors hold `is_staff=True` (or `view_person`
+alone) and no `change_person`, so the new permission question refuses them exactly as the old
+`is_superuser` check did. Verified by running both classes together with the new
+`TestMergeAndClaimLinkViewsAdmitACommunityManager` (10 tests) and the full file (62 tests).
+
+**Revisit if:** a future role other than Community Manager gains `contributors.change_person`
+without being intended to reach profile claims or merges - the gate would admit them too, since
+it asks the same permission `get_actions` and both views already share.
+
+## D22 — `PortalRolePermissionBackend` narrowed to a shipped role's membership, superseding D20 (FIX-1)
+
+**Decision.** `PortalRolePermissionBackend.has_perm` no longer derives an object-level answer
+from every model-level permission a person holds. It now answers only when the permission is
+held through membership of one of the four shipped portal roles (`fairdm/portal_roles.py`,
+matched by group name against `PortalRoles.shipped_names()`). A permission granted directly to
+a person through `user_permissions`, or held through a group the portal created itself, is
+refused by this backend exactly as it was before this feature existed - `ModelBackend` still
+answers `False` for every object-level question, so nothing else grants it either. A Data
+Curator still reaches any dataset, including a private one they hold no record-level grant on,
+because that right comes through the role.
+
+**Why.** D20 recorded the collision this decision resolves: T011's original acceptance read the
+widening as unqualified ("a permission granted directly to the person" answers the same way as
+one held through a role), which reopened a defect an earlier feature (its own D14, a different
+specification) deliberately closed - refusing Update, Delete and Descriptions on a private
+`Project` or `Dataset` to someone holding only a model-level `change_*` grant, because a page
+that relies on inheriting a visibility rule is not guarded at all. Registering the wide backend
+made four pre-existing tests fail for exactly that reason:
+
+- `tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused`
+- `tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record`
+- `tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused`
+
+All four are the evidence that settled this: with the backend narrowed to role membership and
+otherwise unchanged, all four pass again, unedited, alongside the rest of the suite. The
+specification's own requirements (FR-003, FR-018, FR-020) ask for a *role's* rights to reach
+records; they never asked for a direct grant to do the same, and the wider reading D20 traced
+back to the plan and to T011's own acceptance test - both authored before this collision was
+known - rather than to the requirements themselves.
+
+**What changed with it.** `fairdm/permissions.py`'s module and class docstrings now state the
+narrower rule and the reason for it. `tests/test_permissions.py`'s own acceptance test for the
+wide reading (`test_a_permission_granted_directly_to_the_person_answers_the_same_way`) is
+rewritten to assert the refusal the narrower rule requires
+(`test_a_permission_granted_directly_to_the_person_is_refused`), with a new
+`test_a_permission_held_through_a_group_the_portal_invented_is_refused` alongside it - neither
+is one of the four pre-existing tests D20 protects. `CHANGELOG.md` and
+`docs/portal-administration/roles.md` no longer tell an upgrading portal to audit permissions
+granted outside the four roles: that instruction was only ever true under the wide reading, and
+under the narrower one those grants behave exactly as they did before this feature shipped.
+
+**Revisit if:** Sam rules that the wide reading should stand after all - in which case the four
+tests above are what would need to flip (404→200), per D20's own note, and this entry's
+narrowing would need to be reverted alongside them.
