@@ -227,7 +227,7 @@
 			{
 				"label": "Run Linting (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff check fairdm fairdm_demo tests",
+				"command": "poetry run ruff check fairdm demo tests",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -237,7 +237,7 @@
 			{
 				"label": "Format Code (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff format fairdm fairdm_demo tests",
+				"command": "poetry run ruff format fairdm demo tests",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",

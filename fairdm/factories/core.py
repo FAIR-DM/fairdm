@@ -34,11 +34,11 @@ Factories Available
 - ``DatasetFactory`` - Create Dataset instances with optional descriptions/dates
 - ``SampleFactory`` - **Abstract.** The base every specimen factory builds on; it cannot be
   instantiated directly because the ``Sample`` model it declares cannot be created directly
-  either. A reference implementation lives in ``fairdm_demo.factories`` (e.g.
+  either. A reference implementation lives in ``demo.factories`` (e.g.
   ``RockSampleFactory``); a portal defines its own alongside its own specimen types.
 - ``MeasurementFactory`` - **Abstract.** The base every measurement factory builds on; it cannot
   be instantiated directly because the ``Measurement`` model it declares cannot be created
-  directly either. A reference implementation lives in ``fairdm_demo.factories`` (e.g.
+  directly either. A reference implementation lives in ``demo.factories`` (e.g.
   ``ExampleMeasurementFactory``); a portal defines its own alongside its own measurement types.
 
 Metadata Factories
@@ -55,7 +55,7 @@ Basic creation::
 
     project = ProjectFactory()
     dataset = DatasetFactory(project=project)
-    from fairdm_demo.factories import RockSampleFactory
+    from demo.factories import RockSampleFactory
 
     sample = RockSampleFactory(dataset=dataset)
 
@@ -480,7 +480,7 @@ class SampleFactory(DjangoModelFactory):
     specimen type can be) - see ``fairdm.core.sample.models.Sample``'s ``pre_save`` guard. This
     factory declares the fields every specimen shares and is meant to be subclassed, never
     instantiated on its own. The framework's reference implementation supplies concrete
-    subclasses in ``fairdm_demo.factories`` (``RockSampleFactory``, ``WaterSampleFactory``,
+    subclasses in ``demo.factories`` (``RockSampleFactory``, ``WaterSampleFactory``,
     ``SoilSampleFactory``, ...); a portal defines its own alongside its own specimen types.
 
     To create descriptions/dates on a concrete subclass:
@@ -614,7 +614,7 @@ class MeasurementFactory(DjangoModelFactory):
     measurement type can be) - see ``fairdm.core.measurement.models.Measurement``'s ``clean``
     guard. This factory declares the fields every measurement shares and is meant to be
     subclassed, never instantiated on its own. The framework's reference implementation
-    supplies concrete subclasses in ``fairdm_demo.factories`` (``ExampleMeasurementFactory``,
+    supplies concrete subclasses in ``demo.factories`` (``ExampleMeasurementFactory``,
     ``XRFMeasurementFactory``, ``ICP_MS_MeasurementFactory``, ...); a portal defines its own
     alongside its own measurement types.
 

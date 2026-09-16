@@ -18,7 +18,7 @@ class TestRegistryAutoGenerateForms:
 
     def test_registry_generates_form_for_measurement(self, clean_registry):
         """Test that registry auto-generates ModelForm for registered measurement type."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Get configuration (XRFMeasurement should already be registered via @register decorator)
         config = registry.get_for_model(XRFMeasurement)
@@ -30,7 +30,7 @@ class TestRegistryAutoGenerateForms:
 
     def test_auto_generated_form_includes_configured_fields(self, clean_registry):
         """Test that auto-generated form includes fields from configuration."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -45,7 +45,7 @@ class TestRegistryAutoGenerateForms:
 
     def test_auto_generated_form_includes_the_type_s_own_fields(self, clean_registry):
         """T030: the form also carries fields declared only on XRFMeasurementConfig itself."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
         form = config.get_form_class()()
@@ -60,7 +60,7 @@ class TestRegistryAutoGenerateFilters:
 
     def test_registry_generates_filter_for_measurement(self, clean_registry):
         """Test that registry auto-generates FilterSet for registered measurement type."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -71,7 +71,7 @@ class TestRegistryAutoGenerateFilters:
 
     def test_auto_generated_filter_includes_configured_fields(self, clean_registry):
         """Test that auto-generated filter includes fields from configuration."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -84,7 +84,7 @@ class TestRegistryAutoGenerateFilters:
 
     def test_auto_generated_filter_includes_the_type_s_own_fields(self, clean_registry):
         """T030: the filterset also carries fields declared only on XRFMeasurementConfig."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
         filterset = config.get_filterset_class()()
@@ -99,7 +99,7 @@ class TestRegistryAutoGenerateTables:
 
     def test_registry_generates_table_for_measurement(self, clean_registry):
         """Test that registry auto-generates Table for registered measurement type."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -110,7 +110,7 @@ class TestRegistryAutoGenerateTables:
 
     def test_auto_generated_table_includes_configured_columns(self, clean_registry):
         """Test that auto-generated table includes columns from configuration."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -124,7 +124,7 @@ class TestRegistryAutoGenerateTables:
 
     def test_auto_generated_table_includes_the_type_s_own_fields(self, clean_registry):
         """T030: the table also carries columns for fields declared only on XRFMeasurementConfig."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
         table = config.get_table_class()(XRFMeasurement.objects.none())
@@ -140,7 +140,7 @@ class TestRegistryAutoGenerateAdmin:
 
     def test_registry_generates_admin_for_measurement(self, clean_registry):
         """Test that registry auto-generates ModelAdmin for registered measurement type."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -152,7 +152,7 @@ class TestRegistryAutoGenerateAdmin:
 
     def test_auto_generated_admin_has_basic_configuration(self, clean_registry):
         """Test that auto-generated admin has basic configuration."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -164,7 +164,7 @@ class TestRegistryAutoGenerateAdmin:
 
     def test_auto_generated_admin_includes_the_type_s_own_fields(self, clean_registry):
         """T030: the admin's list_display carries fields declared only on XRFMeasurementConfig."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
         admin_class = config.get_admin_class()
@@ -179,7 +179,7 @@ class TestPolymorphicMeasurementQueries:
     def test_polymorphic_query_returns_subclass_instance(self, xrf_measurement):
         """Test that querying Measurement returns the correct polymorphic subclass."""
         from fairdm.core.measurement.models import Measurement
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Query the base Measurement model
         measurement = Measurement.objects.get(pk=xrf_measurement.pk)
@@ -215,7 +215,7 @@ class TestBaseMeasurementConfigurationIntegration:
     def test_measurement_config_inherits_from_base(self, clean_registry):
         """Test that measurement configs inherit from BaseMeasurementConfiguration."""
         from fairdm.core.measurement.config import BaseMeasurementConfiguration
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 
@@ -226,7 +226,7 @@ class TestBaseMeasurementConfigurationIntegration:
         """T034: a type inheriting BaseMeasurementConfiguration receives the fields every
         measurement has, asserted by name rather than by ``hasattr`` - ``hasattr`` is true
         of an empty list too, and establishes nothing about what it contains."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         config = registry.get_for_model(XRFMeasurement)
 

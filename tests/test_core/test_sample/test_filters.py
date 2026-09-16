@@ -15,8 +15,8 @@ from django.contrib.auth import get_user_model
 
 from fairdm.core.models import Dataset
 from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
-from fairdm_demo.filters import RockSampleFilter
-from fairdm_demo.models import RockSample, WaterSample
+from demo.filters import RockSampleFilter
+from demo.models import RockSample, WaterSample
 
 User = get_user_model()
 

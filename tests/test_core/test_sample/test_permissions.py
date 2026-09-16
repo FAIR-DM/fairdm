@@ -87,7 +87,7 @@ class TestSamplePermissionInheritance:
         assert user.has_perm("sample.change_sample", rock_sample) is False
 
     def test_every_sample_in_the_dataset_inherits_the_same_grant(self, dataset, user):
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+        from demo.factories import RockSampleFactory, WaterSampleFactory
 
         sample1 = RockSampleFactory(dataset=dataset)
         sample2 = WaterSampleFactory(dataset=dataset)
@@ -200,14 +200,14 @@ class TestContributionRevocationIsNormalised:
 class TestGetObjectsForUserNormalisesPolymorphicContentType:
     """F4 - guardian's `get_objects_for_user` derives its content-type filter from the
     permission string's own app label and model name, so a naive
-    `"fairdm_demo.view_rocksample"` finds nothing when the grant is filed under
+    `"demo.view_rocksample"` finds nothing when the grant is filed under
     `sample.view_sample` (`get_permission_target`). `fairdm.core.utils.get_objects_for_user`
     normalises that the same way the other wrappers normalise `perm`'s content type."""
 
     def test_a_grant_filed_under_the_base_content_type_is_found(self, dataset, user):
         from fairdm.core.utils import get_objects_for_user
-        from fairdm_demo.factories import RockSampleFactory
-        from fairdm_demo.models import RockSample
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample
 
         granted = RockSampleFactory(dataset=dataset)
         ungranted = RockSampleFactory(dataset=dataset)

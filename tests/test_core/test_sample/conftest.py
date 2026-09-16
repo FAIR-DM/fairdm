@@ -49,7 +49,7 @@ def dataset(db, project):
 @pytest.fixture
 def rock_sample(db, dataset):
     """Create a test RockSample (polymorphic subclass)."""
-    from fairdm_demo.models import RockSample
+    from demo.models import RockSample
 
     return RockSample.objects.create(
         name="Test Rock",
@@ -62,7 +62,7 @@ def rock_sample(db, dataset):
 @pytest.fixture
 def water_sample(db, dataset):
     """Create a test WaterSample (polymorphic subclass)."""
-    from fairdm_demo.models import WaterSample
+    from demo.models import WaterSample
 
     return WaterSample.objects.create(
         name="Test Water",
@@ -80,7 +80,7 @@ def each_registered_sample_type(db, dataset):
     T008. Used by tests that must hold for every registered type rather than one hand-picked
     example - e.g. that querying the base model returns each row as its own type.
     """
-    from fairdm_demo.factories import (
+    from demo.factories import (
         CustomParentSampleFactory,
         CustomSampleFactory,
         RockSampleFactory,
@@ -119,7 +119,7 @@ def sample_hierarchy_chain(db, dataset):
 
     T008.
     """
-    from fairdm_demo.factories import RockSampleFactory
+    from demo.factories import RockSampleFactory
 
     grandparent = RockSampleFactory(dataset=dataset, name="Grandparent")
     parent = RockSampleFactory(dataset=dataset, name="Parent")

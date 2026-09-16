@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.registry import registry
-from fairdm_demo.models import RockSample, WaterSample
+from demo.models import RockSample, WaterSample
 
 
 @pytest.mark.django_db

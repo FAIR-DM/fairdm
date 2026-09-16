@@ -32,8 +32,8 @@ from fairdm.factories import (
     SampleIdentifierFactory,
     SampleRelationFactory,
 )
-from fairdm_demo.factories import RockSampleFactory
-from fairdm_demo.models import RockSample, WaterSample
+from demo.factories import RockSampleFactory
+from demo.models import RockSample, WaterSample
 
 
 @pytest.mark.django_db
@@ -42,7 +42,7 @@ class TestSampleModelCreation:
 
     def test_rock_sample_creation_with_all_fields(self, dataset):
         """Test creating a RockSample with all base fields populated."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         sample = RockSample.objects.create(
             name="Test Rock",
@@ -65,7 +65,7 @@ class TestSampleModelCreation:
 
     def test_water_sample_creation_with_minimal_fields(self, dataset):
         """Test creating a WaterSample with only required fields."""
-        from fairdm_demo.models import WaterSample
+        from demo.models import WaterSample
 
         sample = WaterSample.objects.create(
             name="Minimal Water",
@@ -93,7 +93,7 @@ class TestSamplePolymorphicInheritance:
 
     def test_polymorphic_sample_subclass_creation(self, dataset):
         """Test creating a polymorphic sample subclass (RockSample)."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         rock = RockSample.objects.create(
             name="Granite Rock",
@@ -109,7 +109,7 @@ class TestSamplePolymorphicInheritance:
 
     def test_polymorphic_query_returns_typed_instances(self, dataset):
         """Test that querying Sample returns correctly typed instances."""
-        from fairdm_demo.models import RockSample, WaterSample
+        from demo.models import RockSample, WaterSample
 
         # Create different sample types
         rock = RockSample.objects.create(
@@ -310,7 +310,7 @@ class TestStatusMigration:
         from django.apps import apps as django_apps
         from django.db import connection
 
-        from fairdm_demo.models import WaterSample
+        from demo.models import WaterSample
 
         rock = RockSample.objects.create(
             name="Legacy Rock",
@@ -469,7 +469,7 @@ class TestSampleIdentity:
 
     def test_uuid_is_generated_rather_than_supplied(self, dataset):
         """Two specimens created without naming a ``uuid`` each receive their own."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         one = RockSampleFactory(dataset=dataset)
         two = RockSampleFactory(dataset=dataset)
@@ -493,7 +493,7 @@ class TestSampleFields:
     optional."""
 
     def test_name_is_required(self, dataset):
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         sample = RockSample(
             dataset=dataset, rock_type="igneous", collection_date="2024-01-15"
@@ -505,21 +505,21 @@ class TestSampleFields:
         assert "name" in exc_info.value.message_dict
 
     def test_local_id_is_optional(self, dataset):
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         sample = RockSampleFactory(dataset=dataset, local_id=None)
 
         sample.full_clean()  # does not raise
 
     def test_image_is_optional(self, dataset):
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         sample = RockSampleFactory(dataset=dataset, image=None)
 
         sample.full_clean()  # does not raise
 
     def test_location_is_optional(self, dataset):
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         sample = RockSampleFactory(dataset=dataset, location=None)
 
@@ -534,7 +534,7 @@ class TestSampleLocalId:
 
     def test_the_same_local_id_is_valid_in_two_different_datasets(self):
         from fairdm.factories import DatasetFactory
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         dataset_a = DatasetFactory()
         dataset_b = DatasetFactory()
@@ -570,7 +570,7 @@ class TestSampleLocationRelation:
         from django.db.models.deletion import ProtectedError
 
         from fairdm.factories import PointFactory
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         location = PointFactory()
         RockSampleFactory(dataset=dataset, location=location)
@@ -667,7 +667,7 @@ class TestSamplePrefetch:
         from django.test.utils import CaptureQueriesContext
 
         from fairdm.factories import DatasetFactory
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         dataset = DatasetFactory()
         description_types = SampleDescription.VOCABULARY.values
@@ -719,7 +719,7 @@ class TestSampleQuerySetChaining:
     operations, in either order, and the result is correct rather than merely non-empty."""
 
     def test_methods_chain_in_either_order_and_return_the_right_rows(self, dataset):
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+        from demo.factories import RockSampleFactory, WaterSampleFactory
 
         target = RockSampleFactory(dataset=dataset, name="Target")
         WaterSampleFactory(dataset=dataset, name="Other")
@@ -770,7 +770,7 @@ class TestSampleQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         # Create samples with related data
         samples = []
@@ -815,7 +815,7 @@ class TestSampleQuerySetOptimizations:
         from django.test.utils import CaptureQueriesContext
 
         from fairdm.core.sample.models import SampleDate, SampleDescription
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         # Create sample with metadata
         sample = RockSample.objects.create(
@@ -859,7 +859,7 @@ class TestSampleQuerySetOptimizations:
         from datetime import date
 
         from fairdm.core.sample.models import Sample
-        from fairdm_demo.models import RockSample, WaterSample
+        from demo.models import RockSample, WaterSample
 
         # Create mixed sample types
         RockSample.objects.create(
@@ -897,7 +897,7 @@ class TestSampleQuerySetOptimizations:
         """Test that QuerySet optimization methods can be chained together."""
         from datetime import date
 
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         # Create test samples
         for i in range(3):
@@ -931,7 +931,7 @@ class TestSampleQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         # Create 100 samples (1000 is too slow for regular test runs)
         samples = []
@@ -965,7 +965,7 @@ class TestSampleQuerySetOptimizations:
         from datetime import date
 
         from fairdm.core.sample.models import Sample
-        from fairdm_demo.models import RockSample, WaterSample
+        from demo.models import RockSample, WaterSample
 
         # Create 50 of each type (100 total - scaled down for test speed)
         for i in range(50):
@@ -1351,7 +1351,7 @@ class TestSamplePolymorphicQueries:
 
     def test_all_returns_correct_subclass_for_single_type(self):
         """Test that querying all samples returns RockSample instances, not Sample."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         rock_sample = RockSampleFactory(name="Granite")
         results = list(Sample.objects.all())
@@ -1363,7 +1363,7 @@ class TestSamplePolymorphicQueries:
 
     def test_all_returns_mixed_polymorphic_types(self):
         """Test that querying all samples returns correct mix of subclass instances."""
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+        from demo.factories import RockSampleFactory, WaterSampleFactory
 
         rock1 = RockSampleFactory(name="Granite")
         water1 = WaterSampleFactory(name="River Water")
@@ -1382,7 +1382,7 @@ class TestSamplePolymorphicQueries:
 
     def test_get_returns_correct_subclass(self):
         """Test that Sample.objects.get() returns the correct subclass instance."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         rock_sample = RockSampleFactory(name="Quartz")
         result = Sample.objects.get(pk=rock_sample.pk)
@@ -1392,7 +1392,7 @@ class TestSamplePolymorphicQueries:
 
     def test_filter_returns_correct_subclass(self):
         """Test that Sample.objects.filter() returns correct subclass instances."""
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+        from demo.factories import RockSampleFactory, WaterSampleFactory
 
         rock1 = RockSampleFactory(name="Alpha Rock")
         _water1 = WaterSampleFactory(name="Beta Water")
@@ -1406,7 +1406,7 @@ class TestSamplePolymorphicQueries:
 
     def test_polymorphic_query_preserves_custom_fields(self):
         """Test that polymorphic queries allow access to subclass-specific fields."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         rock_sample = RockSampleFactory(
             name="Granite",
@@ -1428,7 +1428,7 @@ class TestSamplePolymorphicQueries:
         it proves the behaviour the removed test was reaching for - correct subclass
         typing without any explicit call - still holds.
         """
-        from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
+        from demo.factories import RockSampleFactory, WaterSampleFactory
 
         _rock1 = RockSampleFactory()
         _water1 = WaterSampleFactory()

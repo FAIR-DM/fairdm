@@ -130,7 +130,7 @@ class CustomSampleConfig(ModelConfiguration):
     # The table and the filter set are supplied outright, so neither declares a
     # field list: a component configured both ways is refused at registration,
     # because the field list could never take effect.
-    filterset_class = "fairdm_demo.filters.CustomSampleFilter"
+    filterset_class = "demo.filters.CustomSampleFilter"
     table_class = CustomSampleTable
 
     # The remaining components are generated, each from its own field list.

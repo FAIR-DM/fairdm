@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 User = get_user_model()
 

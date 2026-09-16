@@ -27,7 +27,7 @@ from fairdm.core.utils import get_permission_target
 from fairdm.core.utils import get_perms as fairdm_get_perms
 from fairdm.core.utils import remove_perm as fairdm_remove_perm
 from fairdm.factories import DatasetFactory, PersonFactory
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.fixture

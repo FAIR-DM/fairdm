@@ -1218,7 +1218,7 @@ class TestProjectDeleteView:
     ):
         """T082 — a project holding a dataset whose samples are measured by a dataset elsewhere
         cannot be deleted, and the page draws the refusal instead of raising."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         project = ProjectFactory(name="Holds The Samples")
         dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)

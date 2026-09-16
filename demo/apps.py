@@ -4,8 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.registry.config import Authority, Citation
 
 
-class FairDMDemoConfig(AppConfig):
-    name = "fairdm_demo"
+class DemoConfig(AppConfig):
+    name = "demo"
     authority = Authority(
         name=_("FairDM Core Development"),
         short_name="FairDM",

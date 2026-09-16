@@ -35,7 +35,7 @@ until DatasetFilter is properly implemented.
 
 - Implementation: `fairdm/core/dataset/filters.py`
 - Model: `fairdm/core/dataset/models.py`
-- Demo examples: `fairdm_demo/filters.py`
+- Demo examples: `demo/filters.py`
 """
 
 import pytest

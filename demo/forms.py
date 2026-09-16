@@ -98,12 +98,11 @@ from django.utils.translation import gettext_lazy as _
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from licensing.models import License
 
+# Import demo models for sample forms
+from demo.models import RockSample, WaterSample
 from fairdm.core.models import Project
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.forms import ModelForm
-
-# Import demo models for sample forms
-from fairdm_demo.models import RockSample, WaterSample
 
 # ============================================================================
 # Example 1: Form with Request-Based Queryset Filtering

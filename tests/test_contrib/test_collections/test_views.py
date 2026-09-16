@@ -21,14 +21,14 @@ from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import (
+from demo.factories import (
     CustomSampleFactory,
     ExampleMeasurementFactory,
     RockSampleFactory,
     SoilSampleFactory,
     WaterSampleFactory,
 )
-from fairdm_demo.models import (
+from demo.models import (
     CustomSample,
     ExampleMeasurement,
     RockSample,
@@ -724,11 +724,11 @@ class TestNothingUnreachable:
 
     def _external_importers(self):
         """Every module this package exposes that a `.py` file elsewhere in
-        `fairdm/` or `fairdm_demo/` production code imports directly - an
+        `fairdm/` or `demo/` production code imports directly - an
         import in `registry/factories.py` counts as a real entry point exactly
         as much as a route does."""
         found = set()
-        for top in ("fairdm", "fairdm_demo"):
+        for top in ("fairdm", "demo"):
             for path in (self.REPO_ROOT / top).rglob("*.py"):
                 if self.PACKAGE_DIR in path.parents:
                     continue

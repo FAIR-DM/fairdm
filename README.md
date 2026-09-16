@@ -249,7 +249,7 @@ Full documentation is available at: **<https://fairdm.github.io/fairdm/>**
 
 ## 🧪 Demo Application
 
-Explore a working example in the `fairdm_demo/` directory:
+Explore a working example in the `demo/` directory:
 
 ```bash
 # The demo app showcases:

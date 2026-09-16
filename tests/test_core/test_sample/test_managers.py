@@ -8,7 +8,7 @@ import pytest
 
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db

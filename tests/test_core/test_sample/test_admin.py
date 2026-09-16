@@ -35,8 +35,8 @@ from fairdm.core.sample.models import (
 from fairdm.factories.core import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import RockSampleFactory, WaterSampleFactory
-from fairdm_demo.models import RockSample, WaterSample
+from demo.factories import RockSampleFactory, WaterSampleFactory
+from demo.models import RockSample, WaterSample
 
 User = get_user_model()
 
@@ -262,7 +262,7 @@ class TestSampleAdminInlines:
         }
 
     def _change_url(self, sample):
-        return reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk])
+        return reverse("admin:demo_rocksample_change", args=[sample.pk])
 
     def test_description_can_be_added_from_the_specimens_own_page(self, admin_client):
         sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
@@ -468,7 +468,7 @@ class TestSampleContributionInlineRoleVocabulary:
         )
 
         response = admin_client.post(
-            reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk]),
+            reverse("admin:demo_rocksample_change", args=[sample.pk]),
             data=data,
         )
 
@@ -622,7 +622,7 @@ class TestSampleAdminReadonly:
         self, admin_client
     ):
         sample = RockSampleFactory()
-        url = reverse("admin:fairdm_demo_rocksample_change", args=[sample.pk])
+        url = reverse("admin:demo_rocksample_change", args=[sample.pk])
 
         response = admin_client.get(url)
 
@@ -717,7 +717,7 @@ class TestSampleAdminReachesPrivateDatasets:
     def test_the_dataset_field_offers_a_private_dataset(self, rf, admin_user):
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         private = DatasetFactory(visibility=Visibility.PRIVATE)
         sample = RockSampleFactory(dataset=private)
@@ -732,7 +732,7 @@ class TestSampleAdminReachesPrivateDatasets:
     def test_a_specimen_in_a_private_dataset_validates(self, rf, admin_user):
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         private = DatasetFactory(visibility=Visibility.PRIVATE)
         sample = RockSampleFactory(dataset=private)

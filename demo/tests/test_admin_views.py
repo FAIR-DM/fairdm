@@ -23,15 +23,15 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from fairdm.factories import DatasetFactory
-from fairdm_demo.factories import RockSampleFactory
-from fairdm_demo.models import (
+from demo.factories import RockSampleFactory
+from demo.models import (
     ExampleMeasurement,
     ICP_MS_Measurement,
     RockSample,
     WaterSample,
     XRFMeasurement,
 )
+from fairdm.factories import DatasetFactory
 
 User = get_user_model()
 
@@ -141,7 +141,7 @@ class TestRockSampleAdminViews:
     def test_list_view_loads(self, admin_user, client, rock_sample):
         """Test that RockSample list view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_rocksample_changelist")
+        url = reverse("admin:demo_rocksample_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -150,7 +150,7 @@ class TestRockSampleAdminViews:
     def test_add_view_loads(self, admin_user, client):
         """Test that RockSample add view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_rocksample_add")
+        url = reverse("admin:demo_rocksample_add")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -158,7 +158,7 @@ class TestRockSampleAdminViews:
     def test_change_view_loads(self, admin_user, client, rock_sample):
         """Test that RockSample change view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_rocksample_change", args=[rock_sample.pk])
+        url = reverse("admin:demo_rocksample_change", args=[rock_sample.pk])
         response = client.get(url)
 
         assert response.status_code == 200
@@ -168,7 +168,7 @@ class TestRockSampleAdminViews:
     def test_list_view_search_works(self, admin_user, client, rock_sample):
         """Test that RockSample search functionality works."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_rocksample_changelist")
+        url = reverse("admin:demo_rocksample_changelist")
         response = client.get(url, {"q": "Test Rock"})
 
         assert response.status_code == 200
@@ -177,7 +177,7 @@ class TestRockSampleAdminViews:
     def test_list_view_filter_works(self, admin_user, client, rock_sample):
         """Test that RockSample filtering works."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_rocksample_changelist")
+        url = reverse("admin:demo_rocksample_changelist")
         response = client.get(url, {"rock_type": "Igneous"})
 
         assert response.status_code == 200
@@ -190,7 +190,7 @@ class TestWaterSampleAdminViews:
     def test_list_view_loads(self, admin_user, client, water_sample):
         """Test that WaterSample list view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_watersample_changelist")
+        url = reverse("admin:demo_watersample_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -199,7 +199,7 @@ class TestWaterSampleAdminViews:
     def test_add_view_loads(self, admin_user, client):
         """Test that WaterSample add view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_watersample_add")
+        url = reverse("admin:demo_watersample_add")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -207,7 +207,7 @@ class TestWaterSampleAdminViews:
     def test_change_view_loads(self, admin_user, client, water_sample):
         """Test that WaterSample change view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_watersample_change", args=[water_sample.pk])
+        url = reverse("admin:demo_watersample_change", args=[water_sample.pk])
         response = client.get(url)
 
         assert response.status_code == 200
@@ -227,7 +227,7 @@ class TestExampleMeasurementAdminViews:
     def test_list_view_loads(self, admin_user, client, example_measurement):
         """Test that ExampleMeasurement list view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_examplemeasurement_changelist")
+        url = reverse("admin:demo_examplemeasurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -236,7 +236,7 @@ class TestExampleMeasurementAdminViews:
     def test_add_view_loads(self, admin_user, client):
         """Test that ExampleMeasurement add view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_examplemeasurement_add")
+        url = reverse("admin:demo_examplemeasurement_add")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -245,7 +245,7 @@ class TestExampleMeasurementAdminViews:
         """Test that ExampleMeasurement change view loads without errors."""
         client.force_login(admin_user)
         url = reverse(
-            "admin:fairdm_demo_examplemeasurement_change", args=[example_measurement.pk]
+            "admin:demo_examplemeasurement_change", args=[example_measurement.pk]
         )
         response = client.get(url)
 
@@ -258,7 +258,7 @@ class TestExampleMeasurementAdminViews:
     ):
         """Test that list view displays custom char_field and integer_field."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_examplemeasurement_changelist")
+        url = reverse("admin:demo_examplemeasurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -274,7 +274,7 @@ class TestXRFMeasurementAdminViews:
     def test_list_view_loads(self, admin_user, client, xrf_measurement):
         """Test that XRFMeasurement list view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_xrfmeasurement_changelist")
+        url = reverse("admin:demo_xrfmeasurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -283,7 +283,7 @@ class TestXRFMeasurementAdminViews:
     def test_add_view_loads(self, admin_user, client):
         """Test that XRFMeasurement add view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_xrfmeasurement_add")
+        url = reverse("admin:demo_xrfmeasurement_add")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -291,9 +291,7 @@ class TestXRFMeasurementAdminViews:
     def test_change_view_loads(self, admin_user, client, xrf_measurement):
         """Test that XRFMeasurement change view loads without errors."""
         client.force_login(admin_user)
-        url = reverse(
-            "admin:fairdm_demo_xrfmeasurement_change", args=[xrf_measurement.pk]
-        )
+        url = reverse("admin:demo_xrfmeasurement_change", args=[xrf_measurement.pk])
         response = client.get(url)
 
         assert response.status_code == 200
@@ -305,7 +303,7 @@ class TestXRFMeasurementAdminViews:
     ):
         """Test that list view displays element and concentration fields."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_xrfmeasurement_changelist")
+        url = reverse("admin:demo_xrfmeasurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -317,7 +315,7 @@ class TestXRFMeasurementAdminViews:
     ):
         """Test that filtering by element works."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_xrfmeasurement_changelist")
+        url = reverse("admin:demo_xrfmeasurement_changelist")
         response = client.get(url, {"element": "Si"})
 
         assert response.status_code == 200
@@ -335,7 +333,7 @@ class TestICPMSMeasurementAdminViews:
     def test_list_view_loads(self, admin_user, client, icp_ms_measurement):
         """Test that ICP_MS_Measurement list view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_icp_ms_measurement_changelist")
+        url = reverse("admin:demo_icp_ms_measurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -344,7 +342,7 @@ class TestICPMSMeasurementAdminViews:
     def test_add_view_loads(self, admin_user, client):
         """Test that ICP_MS_Measurement add view loads without errors."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_icp_ms_measurement_add")
+        url = reverse("admin:demo_icp_ms_measurement_add")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -361,7 +359,7 @@ class TestICPMSMeasurementAdminViews:
         """
         client.force_login(admin_user)
         url = reverse(
-            "admin:fairdm_demo_icp_ms_measurement_change", args=[icp_ms_measurement.pk]
+            "admin:demo_icp_ms_measurement_change", args=[icp_ms_measurement.pk]
         )
         response = client.get(url)
 
@@ -377,7 +375,7 @@ class TestICPMSMeasurementAdminViews:
         """Test that all fields in admin fieldsets are actually on the model."""
         client.force_login(admin_user)
         url = reverse(
-            "admin:fairdm_demo_icp_ms_measurement_change", args=[icp_ms_measurement.pk]
+            "admin:demo_icp_ms_measurement_change", args=[icp_ms_measurement.pk]
         )
         response = client.get(url)
 
@@ -402,7 +400,7 @@ class TestICPMSMeasurementAdminViews:
     ):
         """Test that list view displays isotope and concentration fields."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_icp_ms_measurement_changelist")
+        url = reverse("admin:demo_icp_ms_measurement_changelist")
         response = client.get(url)
 
         assert response.status_code == 200
@@ -414,7 +412,7 @@ class TestICPMSMeasurementAdminViews:
     ):
         """Test that filtering by isotope works."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_icp_ms_measurement_changelist")
+        url = reverse("admin:demo_icp_ms_measurement_changelist")
         response = client.get(url, {"isotope": "207Pb"})
 
         assert response.status_code == 200
@@ -422,7 +420,7 @@ class TestICPMSMeasurementAdminViews:
     def test_search_by_isotope_works(self, admin_user, client, icp_ms_measurement):
         """Test that searching by isotope works."""
         client.force_login(admin_user)
-        url = reverse("admin:fairdm_demo_icp_ms_measurement_changelist")
+        url = reverse("admin:demo_icp_ms_measurement_changelist")
         response = client.get(url, {"q": "207Pb"})
 
         assert response.status_code == 200
@@ -455,9 +453,9 @@ class TestAllMeasurementAdminViewsWork:
         client.force_login(admin_user)
 
         measurement_models = [
-            ("fairdm_demo_examplemeasurement", "Example Measurement"),
-            ("fairdm_demo_xrfmeasurement", "XRF Measurement"),
-            ("fairdm_demo_icp_ms_measurement", "ICP-MS Measurement"),
+            ("demo_examplemeasurement", "Example Measurement"),
+            ("demo_xrfmeasurement", "XRF Measurement"),
+            ("demo_icp_ms_measurement", "ICP-MS Measurement"),
         ]
 
         for model_name, display_name in measurement_models:
@@ -473,9 +471,9 @@ class TestAllMeasurementAdminViewsWork:
         client.force_login(admin_user)
 
         measurement_models = [
-            ("fairdm_demo_examplemeasurement", "Example Measurement"),
-            ("fairdm_demo_xrfmeasurement", "XRF Measurement"),
-            ("fairdm_demo_icp_ms_measurement", "ICP-MS Measurement"),
+            ("demo_examplemeasurement", "Example Measurement"),
+            ("demo_xrfmeasurement", "XRF Measurement"),
+            ("demo_icp_ms_measurement", "ICP-MS Measurement"),
         ]
 
         for model_name, display_name in measurement_models:
@@ -501,13 +499,13 @@ class TestAllMeasurementAdminViewsWork:
             (
                 example_measurement,
                 "Example Measurement",
-                "fairdm_demo_examplemeasurement",
+                "demo_examplemeasurement",
             ),
-            (xrf_measurement, "XRF Measurement", "fairdm_demo_xrfmeasurement"),
+            (xrf_measurement, "XRF Measurement", "demo_xrfmeasurement"),
             (
                 icp_ms_measurement,
                 "ICP-MS Measurement",
-                "fairdm_demo_icp_ms_measurement",
+                "demo_icp_ms_measurement",
             ),
         ]
 
@@ -532,8 +530,8 @@ class TestAllSampleAdminViewsWork:
         client.force_login(admin_user)
 
         sample_models = [
-            ("fairdm_demo_rocksample", "Rock Sample"),
-            ("fairdm_demo_watersample", "Water Sample"),
+            ("demo_rocksample", "Rock Sample"),
+            ("demo_watersample", "Water Sample"),
         ]
 
         for model_name, display_name in sample_models:
@@ -551,8 +549,8 @@ class TestAllSampleAdminViewsWork:
         client.force_login(admin_user)
 
         samples = [
-            (rock_sample, "Rock Sample", "fairdm_demo_rocksample"),
-            (water_sample, "Water Sample", "fairdm_demo_watersample"),
+            (rock_sample, "Rock Sample", "demo_rocksample"),
+            (water_sample, "Water Sample", "demo_watersample"),
         ]
 
         for sample, display_name, model_name in samples:

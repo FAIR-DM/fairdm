@@ -1,7 +1,7 @@
 import fairdm
 
 fairdm.setup(
-    apps=["fairdm_demo"],
+    apps=["demo"],
     # addons=["fairdm_discussions"],
 )
 

@@ -1,13 +1,13 @@
 """Shared fixtures for the collections listing tests.
 
-Thin wrappers over the factories in `fairdm.factories` / `fairdm_demo.factories`, per
+Thin wrappers over the factories in `fairdm.factories` / `demo.factories`, per
 constitution Article X.
 """
 
 import pytest
 
 from fairdm.factories import DatasetFactory, UserFactory
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 
 @pytest.fixture

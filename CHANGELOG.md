@@ -33,6 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The demo application moved from `fairdm_demo/` to `demo/`** and is imported as `demo`. Its
+  Django app label changed with it, which moves the database tables it owns. Nothing about how it
+  behaves changed. Portals that install it, import from it, or name its models by label need a
+  small change — the steps are in
+  [Migration guides](docs/more/migration-guides.md#the-demo-application-moved-to-demo).
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
 

@@ -1044,7 +1044,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_removes_its_samples(self, client):
         """T077 — the samples held beneath a deleted dataset are gone too, through the ORM's
         own cascade rather than anything this page does by hand."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Dataset With A Sample")
@@ -1063,7 +1063,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_removes_its_samples_and_their_measurements(self, client):
         """T077 — the ordinary shape of a dataset holding data: samples, and measurements made
         on those same samples. Both go with it."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Dataset With Data")
@@ -1084,7 +1084,7 @@ class TestDatasetDeleteView:
     def test_deletion_is_refused_while_another_dataset_measures_its_samples(self, client):
         """T077 — a dataset whose samples carry measurements recorded by another dataset cannot
         be deleted, and the page says so rather than raising."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Borrowed From")
@@ -1109,7 +1109,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_leaves_a_sample_it_borrowed_alone(self, client):
         """T077 — a measurement may refer to a sample belonging to another dataset. Deleting
         the measurement's dataset takes the measurement and leaves that sample standing."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         sample_dataset = DatasetFactory(name="Sample Dataset")
@@ -1159,7 +1159,7 @@ class TestDatasetDeleteView:
         sharing its dataset with the sample it references trips a pre-existing
         `Measurement.sample` PROTECT interaction unrelated to this page (`issues_found`), and
         this test's job is the preview's rendered content, not that interaction."""
-        from fairdm_demo.factories import (
+        from demo.factories import (
             ExampleMeasurementFactory,
             RockSampleFactory,
             WaterSampleFactory,
@@ -1234,7 +1234,7 @@ class TestDatasetDeleteView:
         remove: proven by counting the samples and measurements that exist before the
         confirmed delete and confirming every one of them is gone after it, not by
         re-deriving the same expression the view itself computes."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Countable Dataset")
@@ -1496,7 +1496,7 @@ class TestDatasetListingQueryCount:
 
     @staticmethod
     def _build_datasets(count):
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
         from research_vocabs.models import Concept
 
         keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
@@ -1541,7 +1541,7 @@ class TestDatasetListingCounts:
     per card, and each counts only its own relation (issue #333)."""
 
     def test_the_counts_are_annotated_onto_the_listing(self, client):
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         sample = RockSampleFactory(dataset=dataset)
@@ -1637,7 +1637,7 @@ class TestDatasetCardRendering:
         """A count is data about data that has not been released. "116 samples"
         on an unpublished dataset tells a visitor the size of a collection they
         have no right to see."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
         sample = RockSampleFactory(dataset=dataset)
@@ -1652,7 +1652,7 @@ class TestDatasetCardRendering:
         assert "record-card__counts" not in html
 
     def test_card_counts_samples_and_measurements(self, client):
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         first = RockSampleFactory(dataset=dataset)
@@ -1663,7 +1663,7 @@ class TestDatasetCardRendering:
         assertContains(response, "1 measurement")
 
     def test_card_counts_one_sample_in_the_singular(self, client):
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset)

@@ -382,6 +382,6 @@ When working on the registry system:
 2. **Update type hints** - maintain 100% mypy compliance
 3. **Document performance impact** - benchmark any changes affecting registration/generation
 4. **Follow naming conventions** - use consistent naming for new components/methods
-5. **Validate with demo app** - ensure changes work in fairdm_demo
+5. **Validate with demo app** - ensure changes work in demo
 
 The registry system is the foundation of FairDM's ease of use - changes here impact every user, so maintain high quality standards and thorough testing.

@@ -35,9 +35,9 @@ Core Models:
     - ProjectFactory - Create Project instances
     - DatasetFactory - Create Dataset instances
     - SampleFactory - Abstract. Subclass it to build a concrete specimen type, e.g.
-      ``fairdm_demo.factories.RockSampleFactory``.
+      ``demo.factories.RockSampleFactory``.
     - MeasurementFactory - Abstract. Subclass it to build a concrete measurement type, e.g.
-      ``fairdm_demo.factories.ExampleMeasurementFactory``. ``sample`` has no default; pass a
+      ``demo.factories.ExampleMeasurementFactory``. ``sample`` has no default; pass a
       concrete specimen instance.
 
 Contributors:
