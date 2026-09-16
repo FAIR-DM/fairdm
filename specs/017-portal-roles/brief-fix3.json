@@ -1,0 +1,79 @@
+{
+  "story": "FIX-3",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 340,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-fix3",
+  "tasks": [
+    "T016"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "The review of the finished branch found six things. Two are serious and both were reproduced against the real code. The first is a privilege escalation: the Person administration form still renders the groups field for a non-superuser, so a Community Manager can put themselves in the Data Curator or Portal Administrator role and take every right the specification says that role must not hold. Narrowing is_superuser, is_staff and password closed three doors and left the one that grants the same rights by proxy. The second is a regression this feature caused: both plugin gates ask has_perm with a bare codename and no app label, which the permission backend refuses by design, so a Data Curator can no longer import into or publish any dataset - a capability the role declares, the migration exists for, and the administrator documentation promises. Four smaller findings travel with them.",
+    "spec_sections": [
+      "Requirements / The role set (FR-002, FR-003, FR-004)",
+      "Requirements / Installation and repair (FR-012)",
+      "Success Criteria (SC-005, SC-009)"
+    ],
+    "plan_sections": [
+      "Risks"
+    ],
+    "prior_decisions": [
+      "The review's full text is specs/017-portal-roles/review-findings.json. Read SEC-001 and COR-001 in full, including their reproduction steps - both were probed against this tree and both give you the exact before and after.",
+      "auth.view_group is the discriminator the specification already supplies for who may change role membership: FR-002 gives it to the Portal Administrator and FR-004 withholds it from the Community Manager. Use it rather than inventing a new rule.",
+      "The backend refusing a bare codename is intended behaviour, pinned by tests/test_permissions.py. The call sites are what is wrong, not the backend - do not relax the backend to accommodate them.",
+      "A record's own contributors hold these rights as object-level rows and must keep working. The review verified that a contributor answers True for the dotted spelling too, because guardian splits the label and compares it against the object's."
+    ],
+    "acceptance": [
+      {
+        "task": "T016",
+        "given_when_then": "SEC-001. Given a Community Manager on the Person change form, When it renders, Then the groups field is absent as well as is_superuser, is_staff and password; When they POST a Data Curator group id for themselves or for anybody else, Then the membership is unchanged and they gain no rights. Given a Portal Administrator, Then groups is still offered and still saves, because FR-002 is their job. Given a superuser, Then everything is still offered. COR-001. Given a Data Curator and a dataset they did not create, When the import plugin and the publish plugin decide, Then both admit them - the gates ask with the app label. Given a person holding no portal role and no grant on that dataset, Then both refuse. Given a contributor who holds the object-level rows, Then both still admit them exactly as before. SPC-001. Given an administrator who reaches the delete page for a shipped role, Then they are told which role it is and that FairDM requires it, rather than meeting a bare refusal. EFF-001. Given reconciliation, When it resolves a role's declared permissions, Then it does so in one query per role rather than one per permission, with the same skip-what-is-missing behaviour. COR-002. Given the changelog, Then it records that the has_permission template tag no longer answers True for a member of a named group. And the navigation's administration-guide link is offered to somebody who can reach the administration interface, rather than only to somebody carrying the staff flag."
+      }
+    ],
+    "verified_base": {
+      "commit": "b92d44a5c9fb5406b226f21bdee2a6056066d819",
+      "verified_at": "2026-09-16T16:30:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "The full suite was read serially at 2818 passed, 8 skipped on this branch, and lint, types, build, conformance and the documentation check are green. Do not re-run the suite to check your starting point."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-fix3, branch 017-portal-roles-fix3, cut from the feature branch with all five stories merged. Virtualenv synced and pinned to Python 3.13. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves a different worktree on port 8000; leave it alone."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 150
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded.",
+    "Read this brief in full, then SEC-001, COR-001, SPC-001, EFF-001 and COR-002 in specs/017-portal-roles/review-findings.json.",
+    "Read fairdm/contrib/contributors/admin.py (get_fieldsets and the Permissions fieldset), fairdm/contrib/import_export/views.py (both check methods), fairdm/contrib/admin/admin.py, fairdm/portal_roles.py and fairdm/menus/menus.py.",
+    "Reproduce SEC-001 and COR-001 yourself before fixing either. Each finding gives you the probe.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story, except to extend an existing guard test with the case it missed - and say so in your report when you do.",
+    "Do not relax PortalRolePermissionBackend to accept a bare codename. The call sites are the defect.",
+    "Do not change what any role holds.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own task's status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}
