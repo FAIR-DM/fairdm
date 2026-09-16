@@ -245,3 +245,26 @@ class TestReconcile:
             pk, member = legacy[legacy_name]
             assert renamed.pk == pk
             assert member in renamed.user_set.all()
+
+
+@pytest.mark.django_db
+class TestDeclaredPermissionsExist:
+    """Every permission named in any role's declaration resolves to a real ``Permission``
+    row once the database is up to date.
+
+    ``reconcile()`` skips a permission with no matching row yet, which is right for the
+    ordering ``INSTALLED_APPS`` runs migrations in and wrong as a permanent state: without
+    this test, a typo, or a right nobody declares, is silently absent from the role forever
+    - exactly what happened to ``dataset.can_publish`` in US-1 (T017b).
+    """
+
+    def test_every_declared_permission_resolves_to_a_real_permission_row(self):
+        missing = []
+        for role in PortalRoles.ROLES:
+            resolvable = _resolvable_permissions(role)
+            missing.extend(
+                f"{role.name}: {permission_name}"
+                for permission_name in role.permissions
+                if permission_name not in resolvable
+            )
+        assert not missing, f"declared but not a real Permission row: {missing}"
