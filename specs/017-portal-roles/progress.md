@@ -561,3 +561,19 @@
   queries before the fix. `tests/test_portal_roles.py` (26 tests, including the pre-existing 23)
   and `tests/test_apps.py` (16 tests, exercises `reconcile()` through a real `migrate`) both
   green. Commit `44798f1`.
+
+- **COR-002**: two independent gaps from the same review finding.
+  - The Documentation menu's Admin Guide link (`fairdm/menus/menus.py`) was gated on
+    `user_is_staff` alone, so a role holder who reaches the administration interface through
+    `CustomAdminSite.has_permission`'s rights-carrying-role branch (`fairdm/contrib/admin/
+    sites.py`) could not see the link to its own documentation. New `_can_reach_administration`
+    check calls `admin.site.has_permission(request)` directly rather than re-deriving the rule a
+    second time, so the menu link and the interface itself can never disagree about who is let
+    in. Reproduced first: `TestAdminGuideLinkVisibility` in `tests/test_menus/test_menus.py`,
+    observed failing for the right reason - a Data Curator with `is_staff=False` got `check()
+    is False` - before the fix. A staff-with-no-role case added alongside for symmetry. 11/11 in
+    the file. Commit `b0df515`.
+  - `CHANGELOG.md`'s Changed section now records that the `has_permission` template tag no
+    longer treats membership in a named group as authorization on its own (T018 replaced that
+    branch with a plain `user.has_perm()` call per permission string) - a behaviour change that
+    landed with no changelog entry. Documentation only, no test. Commit `ee8d62f`.
