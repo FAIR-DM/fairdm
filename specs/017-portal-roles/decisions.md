@@ -458,3 +458,42 @@ production-boot tests (`ImproperlyConfigured`, not caught until this fix).
 **Revisit if:** Forge or Sam decide the fix belongs to the six tests, in which case each needs
 `@pytest.mark.django_db` (or the `db` fixture) added - a one-line addition per test, not a
 weakening of anything they assert.
+
+## D25 — T024's two live-production-boot scenarios are covered by registration and unit tests,
+not a subprocess against a real database (US-3)
+
+T024's given/when/then names two scenarios that need an actual production-shaped boot: "the
+production boot refusal raises... and names them" and "a production database holding data but
+none of the four roles still runs `migrate` to completion" (D11's critical finding). Every
+existing subprocess boot test in `tests/test_apps.py` reaches this by setting `DATABASE_URL` to a
+PostgreSQL connection string and calling `django.setup()` - but none of them ever open that
+connection, because every production_critical check before this story reads settings values
+only. `check_portal_roles_present` is the first to query live database state, so a genuine
+version of these two scenarios needs a reachable PostgreSQL server.
+
+None is reachable in this environment: no `docker` daemon, no `psql` client, and a direct TCP
+probe of `localhost:5432` returns connection refused. SQLite cannot substitute - confirmed by
+trying it first: `fairdm.E101` (SQLite not recommended for production) is itself
+`production_critical` with no stand-down, and `FairDMConfig._check_production_configuration`
+filters only on `issue.is_serious()`, never consulting `SILENCED_SYSTEM_CHECKS`, so a portal
+override silencing `fairdm.E101` has no effect on it - only on `manage.py check` proper. Any
+SQLite-backed "production" subprocess therefore refuses to boot (and to migrate) on E101 alone,
+regardless of what this story's check reports, which would prove nothing about the roles
+condition at all.
+
+**Settles:** the two scenarios are covered instead by three tests that are each fully
+deterministic and need no live database beyond this suite's own (SQLite):
+`test_stands_down_when_the_current_command_is_migrate` and
+`test_does_not_stand_down_for_an_unrelated_command` exercise D11's exact mechanism directly
+against the check function; `test_check_is_registered_with_the_production_critical_deploy_tags`
+proves the check is wired into the same tag-based gate every other production-critical check
+already uses (`FairDMConfig._check_production_configuration`, unmodified by this story).
+`tests/test_apps.py::TestPortalRolesReconciliation` (US-1, pre-existing) already proves `migrate`
+installs the roles against this suite's real database. Together these cover every moving part
+the two scenarios would exercise, without the one part - a live boot against a genuinely
+production-shaped database - this environment cannot run.
+
+**Revisit if:** a Postgres-backed environment (CI, matching `tests/settings.py`'s own comment
+that CI runs a `postgres` service container) is available to add the literal subprocess version
+of these two scenarios as a follow-up. It is not a correctness gap in the implementation, which
+every unit-level test already exercises - it is an environment gap in this coverage.
