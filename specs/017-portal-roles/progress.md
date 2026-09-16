@@ -443,3 +443,31 @@
   `createsuperuser` - now distinguishes the deployer's superuser from the four portal roles and
   points at this page. `docs/` is excluded from the lint gate (`.pre-commit-config.yaml`), so no
   lint scope applies. Commit `0e60bad`.
+
+## US-5 implementation begins on `017-portal-roles-us5`, cut from `fc82c8f`
+
+- **T031**: `tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView` added,
+  eight tests covering FR-030 to FR-035 - 200 for a signed-out visitor, roles in
+  `PortalRoles.ROLES` declaration order, a person holding two roles appearing under both, an
+  unheld role absent, a deactivated holder absent, no email address anywhere in the response, a
+  contribution-role holder with no portal role not appearing, and the page's own query count not
+  growing with the number of holders. Observed red for the right reason: `NoReverseMatch: Reverse
+  for 'team' not found`, since neither the view nor the route existed yet. Commit `8ec863c`.
+- **T032**: `fairdm/contrib/contributors/views/team.py` (`TeamView`), `fairdm/contrib/contributors/
+  templates/contributors/team.html` and the `team` route under `community/` in
+  `fairdm/contrib/contributors/urls.py`, beside `people-list` and `organization-list`. Reads
+  `PortalRoles.ROLES` for both the role set and its order rather than naming the four roles
+  anywhere in the view or template; one query for the matching `auth.Group` rows and one more via
+  `Prefetch` for their active holders, so the page's query count holds regardless of how many
+  roles or holders exist; a role resolving to zero active holders is left out of the context
+  entirely. Reuses `contributors/contributor_card.html`, the same card partial `people-list` and
+  `organization-list` already render, so the page looks like its neighbours rather than inventing
+  its own shape - the card never touches the `email` field, so FR-033's "no email address" holds
+  by construction, not by an added check. All eight T031 tests pass. Verified live against the
+  worktree's own dev server at `http://devserver:8000/community/team/`: 200, all four role
+  headings present with the five development accounts under their assigned roles, no `@` outside
+  markup, and each entry's profile link resolves to `/contributor/<uuid>/`. Commit `ea64575`.
+  - **Query-count test technique**: see D32 - `django-orbit`'s render-signal logging inflates raw
+    query counts in proportion to the number of cards on the page, unrelated to the view's own
+    query count, so the test filters `orbit_orbitentry` writes out of both captures rather than
+    asserting a fixed total.

@@ -659,3 +659,28 @@ rule mid-feature is how a gate stops being trustworthy.
 
 US-4's one tamper flag is `tests/test_conf/test_checks.py`, a new `Test*` class appended with no
 deletions. Approved.
+
+## D32 — The team page's query-count test filters out `django-orbit`'s own writes
+
+**Decision.** `TestTeamView::test_page_holds_its_query_count_as_the_number_of_holders_grows`
+(T031) does not assert against pytest-django's `django_assert_num_queries` fixture, and does not
+compare a raw total query count between a small and a large population. It takes two
+`CaptureQueriesContext` snapshots - one before, one after adding nine more holders across three
+roles - and compares the count of each with every query touching `orbit_orbitentry` removed
+first. A first, uncounted request to the page runs before either snapshot, so a request-scoped
+singleton created on first access (the identity branding row) does not land inside the "before"
+snapshot alone and manufacture a difference that has nothing to do with holders.
+
+**Why:** `ORBIT_CONFIG` (`fairdm/conf/settings/addons.py`) wires `django-orbit` to log the
+`django.dispatch` template-render signal Django and django-cotton fire during rendering, one
+`INSERT` per signal, and it runs in the test settings the same as anywhere else. A page built from
+person cards fires one batch of these signals per card, so raw query counts scale with the number
+of cards on the page by design - correct behaviour for the observability tool, but it swamps any
+attempt to compare a small render against a larger one to prove the view itself does not grow an
+extra query per holder. Measured directly: one holder produced 243 total queries, 231 of them
+`orbit_orbitentry` inserts and 8 the page's own; ten holders across four roles produced 402 total,
+5 non-`orbit_orbitentry` after the warm-up request removed the one-off identity-singleton queries
+that would otherwise have appeared in only one of the two snapshots.
+
+**Revisit if:** a second view needs the same comparison - the filter and the warm-up-request
+pattern belong in a shared test helper at that point rather than a second copy of both.
