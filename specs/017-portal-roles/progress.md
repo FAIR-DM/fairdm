@@ -225,3 +225,22 @@
   across the new and the two pre-existing classes pass unmodified; the full file (62 tests)
   stays green; `makemigrations --check --dry-run` shows only the pre-existing drift. Commit
   `455e4cf`.
+- **T011 (FIX-1)**: narrowed `PortalRolePermissionBackend.has_perm` from "any model-level
+  permission the person holds" to "a model-level permission held through membership of one of
+  the four shipped portal roles" (`fairdm/permissions.py`), resolving the D20 collision. Ran
+  the four D20-named tests first and watched them fail (red, for the reported reason - 200
+  instead of 404/403). `tests/test_permissions.py` updated: its own acceptance test for the wide
+  reading rewritten from "a direct grant answers the same way" (True) to "a direct grant is
+  refused" (False); a new test proves a group the portal invented itself is refused the same
+  way; the existing group-based test renamed onto an actual shipped role (`Data Curator`) rather
+  than an arbitrary group name, since the whole point of the narrowing is that the group's name
+  matters now. Implementation: `user_obj.groups.filter(name__in=PortalRoles.shipped_names(),
+  permissions__content_type__app_label=..., permissions__codename=...).exists()`, replacing the
+  `user_obj.has_perm(perm)` call - no query against `user_permissions` or non-shipped groups.
+  Module and class docstrings rewritten to state the narrower rule and D20's reasoning for it.
+  `CHANGELOG.md:47` and `docs/portal-administration/roles.md:90-95` rewritten: no longer tell an
+  upgrading portal to audit permissions granted outside the four roles, since under the narrower
+  rule those grants are unchanged from before this feature. D22 in `decisions.md` records the
+  ADR and supersedes D20. All ten tests in `tests/test_permissions.py` pass; the four D20 tests
+  pass unmodified; the full `test_dataset`/`test_project` plugin files (150 tests) stay green.
+  Commits `fa8e0f2`, `766e570`.
