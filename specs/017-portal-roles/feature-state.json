@@ -77,7 +77,7 @@
       "id": "US1",
       "priority": "P1",
       "issue": 339,
-      "status": "in_progress",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -132,7 +132,7 @@
       "id": "US2",
       "priority": "P1",
       "issue": 340,
-      "status": "todo",
+      "status": "in_progress",
       "replans": 0,
       "tasks": [
         {
@@ -171,6 +171,16 @@
           "attempts": 0
         },
         {
+          "id": "T017a",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017b",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T018",
           "status": "todo",
           "attempts": 0
@@ -180,7 +190,8 @@
           "status": "todo",
           "attempts": 0
         }
-      ]
+      ],
+      "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us2"
     },
     {
       "id": "US3",

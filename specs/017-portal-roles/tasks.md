@@ -129,6 +129,19 @@ task below, not a manual step.
       shows no mark saying a curator changed it; a community manager can change a person and an
       organisation and cannot change that dataset and cannot delete a person; a person holding two
       roles holds both sets. Covers FR-003, FR-004, FR-007, FR-021.
+- [ ] T017a [P] [US2] `tests/test_portal_roles.py::TestDeclaredPermissionsExist` — every permission
+      named in any role's declaration resolves to a real `Permission` row once the database is up to
+      date. Reconciliation skips a permission that does not exist, which is right for the ordering it
+      runs in and wrong as a permanent state: without this test a typo, or a right nobody declares,
+      is silently absent from the role forever. *(Added after US-1: `dataset.import_data` and
+      `dataset.can_publish` turned out to be declared by no model at all, so the Data Curator was
+      quietly not holding the two rights the import and publish plugins ask for.)*
+- [ ] T017b [US2] Declare `import_data` and `can_publish` in `Dataset.Meta.permissions`, with the
+      `AlterModelOptions` migration that follows. The framework's import and publish plugins have
+      always asked `has_perm("import_data", instance)` and `has_perm("can_publish", instance)`, and
+      nothing has ever declared either, so today only the group-name branch can answer them. T018
+      cannot replace that branch with a permission question until the permission exists.
+
 - [ ] T018 [US2] Remove the five group-name decisions, each one becoming an ordinary permission
       question: `Person.is_data_admin` (`contributors/models.py`), the `has_permission` tag's branch
       (`templatetags/fairdm.py`), `check_has_edit_permission`'s branch (`contrib/plugins/utils.py`),
@@ -218,8 +231,11 @@ task below, not a manual step.
 
 ## Phase 7: Polish
 
-- [ ] T035 [POLISH] Full suite, `pre-commit run --all-files`, and `makemigrations --check` clean —
-      this feature adds no model change, so a migration appearing is a defect, not an output.
+- [ ] T035 [POLISH] Full suite, `pre-commit run --all-files`, and `makemigrations --check` clean.
+      This feature's only migration is T017b's `AlterModelOptions` on `Dataset`, which declares two
+      permissions the framework has always asked for; any other migration appearing is a defect
+      rather than an output. Two pending migrations on `identity` and `orbit` are pre-existing drift
+      (#299, #325) and are not this feature's to fix.
 - [ ] T036 [POLISH] Simplification pass over the feature diff, inside its blast radius only.
 
 ## Watch items for implementers
@@ -246,7 +262,9 @@ rediscover.
 
 - T003 blocks everything after it: every later task reads the declarations.
 - T005 blocks T020, T022 and T024 — nothing can be protected or checked for until it is installed.
-- T012 and T014 block T018: the replacements must work before the group-name branches go.
+- T012 and T014 block T018: the replacements must work before the group-name branches go, and T017b
+  blocks it too — the import and publish branches cannot become permission questions until the
+  permissions exist.
 - T016 lands with or before T017, because T017 signs in as a Community Manager.
 - T027 blocks T028. T032 blocks T033.
 - T035 and T036 run last.
