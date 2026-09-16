@@ -48,6 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every instance of that model**, not only the record it was granted for. A permission granted
   any other way — directly to a person, or through a group the portal made up itself — is
   unchanged from before. See [Portal roles](docs/portal-administration/roles.md).
+- **The `has_permission` template tag no longer treats membership in a group named directly
+  in a template as authorization on its own.** It now asks Django's ordinary permission check
+  for each permission string passed to it, so a template using the bare codename spelling its
+  `user_permissions` context convention expects (for example `change_dataset`) no longer
+  matches for anyone — use the app-labelled form (`dataset.change_dataset`) instead.
 
 ### Added
 

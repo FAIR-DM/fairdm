@@ -1,0 +1,79 @@
+{
+  "story": "FIX-3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T016",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields::test_a_community_manager_is_not_offered_the_account_escalation_fields (extended: now also checks groups)",
+          "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields::test_a_superuser_is_still_offered_all_three (extended: now also checks groups)",
+          "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields::test_posting_a_data_curator_group_id_leaves_membership_unchanged",
+          "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields::test_a_portal_administrator_can_still_see_and_set_groups",
+          "tests/test_permissions.py::TestImportAndPublishGatePermissions (6 tests: Data Curator / nobody / contributor-object-row x import_data / can_publish)",
+          "tests/test_contrib/test_admin/test_admin.py::TestShippedRoleDeleteMessage (3 tests)",
+          "tests/test_portal_roles.py::TestPermissionsForQueryCount (3 tests)",
+          "tests/test_menus/test_menus.py::TestAdminGuideLinkVisibility (3 tests)"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields -x   # RED: AssertionError, groups present in narrowed fieldsets/form for a Community Manager; then GREEN, 6 passed",
+          "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q   # 64 passed",
+          "poetry run pytest tests/test_permissions.py tests/test_contrib/test_contributors/test_permissions.py -q   # 43 passed",
+          "poetry run pytest tests/test_contrib/test_admin/test_admin.py::TestShippedRoleDeleteMessage -x   # RED: 'FairDM requires' not in the generic 403 page; then GREEN",
+          "poetry run pytest tests/test_contrib/test_admin/test_admin.py tests/test_contrib/test_admin/test_sites.py -q   # 19 passed",
+          "poetry run pytest tests/test_portal_roles.py::TestPermissionsForQueryCount -x   # RED: Expected 1 query but 54 were done; then GREEN",
+          "poetry run pytest tests/test_portal_roles.py -q   # 26 passed",
+          "poetry run pytest tests/test_menus/test_menus.py::TestAdminGuideLinkVisibility -x   # RED: check(request) is False for a Data Curator with is_staff=False; then GREEN",
+          "poetry run pytest tests/test_menus/test_menus.py -q   # 11 passed",
+          "poetry run pre-commit run --files <each touched file>   # all hooks passed after each slice",
+          "poetry run pytest -n auto --dist loadscope   # 2835 passed, 8 skipped in 87.68s",
+          "poetry run pytest   # 2835 passed, 8 skipped in 577.26s (0:09:37), exit 0",
+          "poetry run pre-commit run --all-files   # trim trailing whitespace, fix end of files, check yaml, poetry-check, ruff (lint), ruff (format), mypy, deptry - all Passed, exit 0"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "720ff02668f88bec6811cdde99a66879d089032d",
+        "cc4b5848830624178a44ae8c7ae0256ea38b5c62",
+        "d80209ab333f3245efdcda4c86c731e0be76346e",
+        "15bd00a4603e6ec0dfbea9392dcd34af30cfe2bd",
+        "35ae998bbbdf67c0bc2098cb2d70e4a7ea79036d",
+        "ab79cf4fa604192604d29a992a85f586ff8ce58e",
+        "44798f1693ebaa200d4a2d531995194728cfa829",
+        "a15d7be95dd8d6eecd435da5a9bb1eb92053226f",
+        "b0df515d9e3f10eae8d6a8f6285d8681c9a04504",
+        "ee8d62f784372ea441214c5766076cce68c5f4fb",
+        "e2d78196756354985b24fde17588e6bf3cef990d"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "For SEC-001, extended two pre-existing guard tests (test_a_community_manager_is_not_offered_the_account_escalation_fields, test_a_superuser_is_still_offered_all_three) to also check `groups`, instead of leaving them untouched and adding only new tests.",
+      "why": "The finding's own evidence names these two tests as the ones that missed the `groups` case ('the existing guard tests assert only on is_superuser/is_staff/password'); the brief's prohibitions explicitly except 'extending an existing guard test with the case it missed'. The extension is additive (widens the asserted set, changes no existing assertion) and the first one was observed failing for the right reason before the fix.",
+      "decision_ref": "specs/017-portal-roles/progress.md#FIX-3 (SEC-001 entry)"
+    },
+    {
+      "what": "For COR-001, could not add a test that imports fairdm.contrib.import_export.views or calls DataImportView.check/DatasetPublishConfirm.check directly, as the brief's acceptance criteria literally ask. Coverage instead lands one level down, on the permission backend the two call sites depend on (TestImportAndPublishGatePermissions in tests/test_permissions.py), proving dataset.import_data/dataset.can_publish resolve correctly for a Data Curator, a person holding nothing, and a contributor with the object-level row.",
+      "why": "fairdm.contrib.import_export.views cannot be imported at all: `class DatasetPublishConfirm(FairDMModelFormMixin, FormView)` names a symbol fairdm.views has never defined (git blame: added 2025-11-13, predates this feature). Confirmed by direct import attempt (ImportError). This exact blocker is already flagged twice on this branch by earlier stories (T017's and T018's concerns in progress.md) and neither touched it, since fixing it is a separate, much larger piece of work than COR-001 asks for and the module is entirely unwired into any URL or plugin registry (confirmed by grep). The two-line fix itself was still applied, matching the review's suggested_fix exactly.",
+      "decision_ref": "specs/017-portal-roles/decisions.md#D38"
+    }
+  ],
+  "concerns": [
+    "fairdm/contrib/import_export/views.py is more broadly broken than the one COR-001 call-site defect: the module cannot be imported (fairdm.views.FairDMModelFormMixin does not exist), and even once that's fixed, BaseImportExportView/DataImportView call self.get_object() in several places without any SingleObjectMixin-equivalent providing it, and the module is not wired into any urls.py or plugin registry anywhere in the codebase (confirmed by grep for DataImportView/DatasetPublishConfirm/get-published). This is now flagged a third time on this branch (after T017 and T018's concerns) - worth its own issue to either fix and wire it up or remove it, rather than a fourth Implementer rediscovering the same blocker.",
+    "`poetry run python manage.py makemigrations --check --dry-run` reports pending migrations for 'identity' (unique_together -> constraint) and 'orbit' (a third-party package's own field alteration). Pre-existing and unrelated to this story or to 017-portal-roles - confirmed no model file in this story's diff. Not investigated further; flagged for triage."
+  ],
+  "blocked": []
+}

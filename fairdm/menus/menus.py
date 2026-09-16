@@ -1,8 +1,8 @@
 """Site navigation menu for FairDM."""
 
+from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from flex_menu import MenuItem
-from flex_menu.checks import user_is_staff
 from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 
@@ -26,6 +26,17 @@ def _has_registered(kind):
         return bool(getattr(registry, kind))
 
     return check
+
+
+def _can_reach_administration(request, **kwargs):
+    """COR-002: whoever can open the administration interface should see the link to its
+    documentation - not only somebody carrying `is_staff`, since `CustomAdminSite.
+    has_permission` (`fairdm/contrib/admin/sites.py`) also admits a rights-carrying role
+    holder. Calls the site's own method rather than re-deriving the rule a second time.
+    """
+    if not (hasattr(request, "user") and request.user):
+        return False
+    return admin.site.has_permission(request)
 
 
 AppMenu.extend(
@@ -106,7 +117,7 @@ AppMenu.extend(
                 MenuItem(
                     name=_("Admin Guide"),
                     url="https://faridm.org/admin-guide/",
-                    check=user_is_staff,
+                    check=_can_reach_administration,
                     extra_context={"icon": "literature"},
                 ),
             ],

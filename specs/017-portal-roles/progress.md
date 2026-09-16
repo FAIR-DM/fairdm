@@ -491,3 +491,89 @@
   that an unheld role and a person's contribution roles never appear, and that each entry is a
   name linked to a public profile with no email address. `docs/` is excluded from the lint gate
   (`.pre-commit-config.yaml`), matching T030's note. Commit `5f13189`.
+
+## FIX-3 — Review fixes (brief-fix3.json)
+
+- **SEC-001**: `UserAdmin.get_fieldsets` (`fairdm/contrib/contributors/admin.py`) now also drops
+  `groups` from the Person change form for a non-superuser who lacks `auth.view_group` — the
+  field that let a Community Manager grant themselves Data Curator or Portal Administrator rights
+  by proxy, since the earlier narrowing only closed `is_superuser`, `is_staff` and `password`.
+  `auth.view_group` is the discriminator FR-002/FR-004 already supply, so no new rule was
+  invented. Reproduced first: extended `test_a_community_manager_is_not_offered_the_account_
+  escalation_fields` and `test_a_superuser_is_still_offered_all_three` in
+  `tests/test_contrib/test_contributors/test_admin.py` to also check `groups` (both existing
+  guard tests, extended with the case the finding said they were missing, per the brief's
+  exception); the first failed for the right reason — `groups` present in both the narrowed
+  fieldsets and the built form's fields — before the fix. Added two new tests: POSTing a Data
+  Curator group id as a Community Manager leaves their membership unchanged (mirrors the existing
+  `is_superuser` POST guard), and a Portal Administrator still sees and can set `groups` per
+  FR-002. `groups` needed no separate `get_form` popping the way `password` did — unlike
+  `password`, it is not a form-declared field, so excluding it from the fieldsets alone removes it
+  from the built form's fields, the same way `is_staff`/`is_superuser` already worked. 6/6 in
+  `TestPersonAdminFields`, 64/64 in the file. Commit `720ff02`.
+
+- **COR-001**: both plugin gates in `fairdm/contrib/import_export/views.py`
+  (`DataImportView.check` and `DatasetPublishConfirm.check`) now ask
+  `user.has_perm(f"{instance._meta.app_label}.import_data", instance)` and the `can_publish`
+  equivalent, instead of the bare codename `PortalRolePermissionBackend` refuses by design
+  (`fairdm/permissions.py`) - the regression that narrowed a Data Curator's reach to only
+  superusers and a dataset's own contributors. See D38: `fairdm.contrib.import_export.views`
+  cannot be imported at all (a pre-existing, unrelated defect already flagged twice on this
+  branch — T017, T018 — confirmed again here), so the test coverage lands one level down, on the
+  permission backend the two call sites depend on: `TestImportAndPublishGatePermissions`
+  (`tests/test_permissions.py`) proves `dataset.import_data`/`dataset.can_publish` resolve `True`
+  for a Data Curator on a dataset they did not create, `False` for a person holding nothing, and
+  `True` for a contributor holding the object-level row — the exact strings and cases the brief
+  asked for, against the mechanism rather than the unreachable call site. `tests/test_permissions.py`
+  (17 tests) and `tests/test_contrib/test_contributors/test_permissions.py` (26 tests) both green,
+  43 total. Commit `d80209a`.
+
+- **SPC-001**: `ShippedRoleGroupAdmin.delete_view` (`fairdm/contrib/admin/admin.py`) now names
+  the role and says FairDM requires it, for both `GET` (the confirmation attempt) and `POST`
+  (the actual delete attempt) to `admin:auth_group_delete` - `has_delete_permission` already
+  removes the button and Django's own `PermissionDenied` handling already refuses the direct
+  URL with a 403, but that refusal was the generic `mvp/403.html` template ("Access Denied.
+  You do not have permission...") with no mention of which role or why, since the naming
+  message on the `pre_delete` receiver (`refuse_shipped_role_deletion`,
+  `fairdm/contrib/contributors/receivers.py`) is unreachable from the admin route - Django
+  raises `PermissionDenied` before this feature's code runs. Returns a plain
+  `HttpResponseForbidden` naming the role rather than routing through `django.views.defaults.
+  permission_denied`, since the project's own `403.html` (from `django-mvp`) renders no
+  exception text at all. Reproduced first: three new tests in `TestShippedRoleDeleteMessage`
+  (`tests/test_contrib/test_admin/test_admin.py`), the first observed failing for the right
+  reason - `'FairDM requires' in content` false against the generic "Access Denied" page -
+  before the fix. Kept the existing `test_the_delete_view_itself_refuses`'s 403 status intact
+  (only its content changed, not asserted there) and added a companion test that a group the
+  portal made itself still gets the ordinary confirmation page (200), not the 403 path. 19/19
+  in the file. Commit `35ae998`.
+
+- **EFF-001**: `PortalRoles._permissions_for` (`fairdm/portal_roles.py`) now resolves a role's
+  whole declaration in one `Permission.objects.filter(query)` call, `query` built by OR-ing a
+  `Q(content_type__app_label=..., codename=...)` per declared permission together, instead of
+  one `.filter(...).first()` per permission string (54 queries for the Data Curator alone).
+  Keeps the skip-what-is-missing tolerance research R5 established exactly: a declared pair with
+  no matching row is simply absent from the result, nothing raises. Guarded the trap the
+  single-query shape opens: an empty declaration (the Developer role, `permissions=()`) now
+  returns `[]` before building the query, since an unconstrained `Q()` matches every `Permission`
+  row in the database rather than none - `TestPermissionsForQueryCount.
+  test_a_role_with_no_declared_permissions_resolves_to_none` pins it. Reproduced first:
+  `django_assert_num_queries(1)` around `_permissions_for(DATA_CURATOR)` observed failing at 54
+  queries before the fix. `tests/test_portal_roles.py` (26 tests, including the pre-existing 23)
+  and `tests/test_apps.py` (16 tests, exercises `reconcile()` through a real `migrate`) both
+  green. Commit `44798f1`.
+
+- **COR-002**: two independent gaps from the same review finding.
+  - The Documentation menu's Admin Guide link (`fairdm/menus/menus.py`) was gated on
+    `user_is_staff` alone, so a role holder who reaches the administration interface through
+    `CustomAdminSite.has_permission`'s rights-carrying-role branch (`fairdm/contrib/admin/
+    sites.py`) could not see the link to its own documentation. New `_can_reach_administration`
+    check calls `admin.site.has_permission(request)` directly rather than re-deriving the rule a
+    second time, so the menu link and the interface itself can never disagree about who is let
+    in. Reproduced first: `TestAdminGuideLinkVisibility` in `tests/test_menus/test_menus.py`,
+    observed failing for the right reason - a Data Curator with `is_staff=False` got `check()
+    is False` - before the fix. A staff-with-no-role case added alongside for symmetry. 11/11 in
+    the file. Commit `b0df515`.
+  - `CHANGELOG.md`'s Changed section now records that the `has_permission` template tag no
+    longer treats membership in a named group as authorization on its own (T018 replaced that
+    branch with a plain `user.has_perm()` call per permission string) - a behaviour change that
+    landed with no changelog entry. Documentation only, no test. Commit `ee8d62f`.
