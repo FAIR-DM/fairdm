@@ -471,3 +471,14 @@
     query counts in proportion to the number of cards on the page, unrelated to the view's own
     query count, so the test filters `orbit_orbitentry` writes out of both captures rather than
     asserting a fixed total.
+- **T033**: `MenuItem(name=_("Team"), view_name="team")` added to the `Community` group in
+  `fairdm/menus/menus.py`, after `Organizations`, with the `"member"` icon already registered in
+  `EASY_ICONS` (`fairdm/conf/settings/addons.py`) rather than a new one. `TestTeamMenuItem` added
+  to `tests/test_menus/test_menus.py`, asserting against the rendered team page's nav HTML - not
+  `AppMenu.children` in memory, per the brief's warning that this module extends `AppMenu` as an
+  import side effect and a reloaded dev server can hold the `Community` group declared twice.
+  Observed red for the right reason: `href="/community/team/"` absent from the rendered
+  `Community` section. Green after the menu edit; the file's seven pre-existing tests (which do
+  read `AppMenu.children` directly, predating this pattern) still pass unchanged, 8 passed total.
+  Verified live against the worktree's dev server: the "Team" entry appears in the sidebar's
+  Community group beside People and Organizations. Commit `b0219bb`.
