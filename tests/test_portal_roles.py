@@ -6,6 +6,8 @@ what a *rights-carrying role* is.
 
 import pytest
 from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ValidationError
+from django.db import connection, transaction
 
 from fairdm.factories import PersonFactory
 from fairdm.portal_roles import PortalRoles
@@ -268,3 +270,121 @@ class TestDeclaredPermissionsExist:
                 if permission_name not in resolvable
             )
         assert not missing, f"declared but not a real Permission row: {missing}"
+
+
+def _delete_group_by_raw_sql(name: str) -> None:
+    """Remove a group row, and its permission associations, without going
+    through the ORM (research R6): the guard under test holds for every ORM
+    writer and deliberately does not hold against raw SQL, which is the only
+    way a test can put a shipped role's row into "does not exist yet"
+    without the guard refusing the removal itself."""
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id FROM auth_group WHERE name = %s", [name])
+        row = cursor.fetchone()
+        if row is None:
+            return
+        cursor.execute(
+            "DELETE FROM auth_group_permissions WHERE group_id = %s", [row[0]]
+        )
+        cursor.execute("DELETE FROM auth_group WHERE id = %s", [row[0]])
+
+
+@pytest.mark.django_db
+class TestProtection:
+    """FR-012 to FR-014: a shipped role cannot be deleted or renamed through the
+    ORM, by any writer, and a group a portal created for itself is untouched by
+    the guard (research R6, T020)."""
+
+    def test_deleting_a_shipped_role_is_refused_and_it_and_its_members_survive(self):
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+        member = PersonFactory()
+        member.groups.add(curator_group)
+
+        # Each raising receiver runs inside the atomic block delete()/save()
+        # itself opens, which Django marks for rollback on any exception - a
+        # bare `pytest.raises` here would leave the surrounding test
+        # transaction broken for every query after it, so the block under
+        # test is scoped to its own nested atomic (a savepoint).
+        with pytest.raises(ValidationError), transaction.atomic():
+            curator_group.delete()
+
+        assert Group.objects.filter(pk=curator_group.pk).exists()
+        assert member in curator_group.user_set.all()
+
+    def test_the_deletion_refusal_names_the_role_and_says_fairdm_requires_it(self):
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        with pytest.raises(ValidationError) as exc_info, transaction.atomic():
+            curator_group.delete()
+
+        message = str(exc_info.value)
+        assert PortalRoles.DATA_CURATOR.name in message
+        assert "FairDM requires" in message
+
+    def test_renaming_a_shipped_role_is_refused_and_the_name_is_unchanged(self):
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        curator_group.name = "Data Custodian"
+        with pytest.raises(ValidationError), transaction.atomic():
+            curator_group.save()
+
+        curator_group.refresh_from_db()
+        assert curator_group.name == PortalRoles.DATA_CURATOR.name
+
+    def test_the_rename_refusal_names_the_role_and_says_fairdm_requires_it(self):
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        curator_group.name = "Data Custodian"
+        with pytest.raises(ValidationError) as exc_info, transaction.atomic():
+            curator_group.save()
+
+        message = str(exc_info.value)
+        assert PortalRoles.DATA_CURATOR.name in message
+        assert "FairDM requires" in message
+
+    def test_saving_a_shipped_role_with_its_name_unchanged_is_unaffected(self):
+        """Re-saving an existing shipped row without renaming it is not a
+        rename, and must not be refused."""
+        PortalRoles.reconcile()
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        curator_group.save()  # must not raise
+
+        curator_group.refresh_from_db()
+        assert curator_group.name == PortalRoles.DATA_CURATOR.name
+
+    def test_creating_a_group_is_unaffected_by_the_guard(self):
+        group = Group.objects.create(name="Field Team")  # must not raise
+
+        assert Group.objects.filter(pk=group.pk).exists()
+
+    def test_reconciles_own_creation_of_a_missing_role_is_unaffected_by_the_guard(
+        self,
+    ):
+        """R6: the pre_save guard must fire only for an existing row, or
+        ``reconcile()``'s own ``get_or_create()`` would be refused by the
+        receiver it just installed."""
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        assert not Group.objects.filter(name=PortalRoles.DATA_CURATOR.name).exists()
+
+        PortalRoles.reconcile()  # must not raise
+
+        assert Group.objects.filter(name=PortalRoles.DATA_CURATOR.name).exists()
+
+    def test_a_group_the_portal_created_for_itself_deletes_and_renames_normally(
+        self,
+    ):
+        custom = Group.objects.create(name="Project Alpha Team")
+
+        custom.name = "Project Alpha Squad"
+        custom.save()  # must not raise
+        custom.refresh_from_db()
+        assert custom.name == "Project Alpha Squad"
+
+        custom.delete()  # must not raise
+        assert not Group.objects.filter(pk=custom.pk).exists()
