@@ -470,3 +470,11 @@ port = 8010                   # Live server port (default: 5000)
 verbosity = "quiet"           # Options: "full", "quiet", "errors-only"
 django = true                 # Enable Django integration (default: false)
 theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
+
+[tool.forge.docs]
+# A Django management command class is always named `Command` — the convention
+# is the framework's, nothing imports it, and what a reader looks up is the
+# command's name, not its class. `fairdm/management/commands/create_dev_accounts.py`
+# has a page of its own under `docs/portal-development/`; the class behind it is
+# wiring, like an app config or an admin class.
+exempt-paths = ["fairdm/management/commands/"]

@@ -643,3 +643,19 @@ which is the opposite of what the check exists to catch.
 **Revisit if:** a future `production_critical` check needs the same self-contained environment
 awareness - if so, consider factoring the `resolved_environment() in NON_PRODUCTION_ENVIRONMENTS`
 guard into a shared decorator or helper rather than a third copy of the same three lines.
+
+## D31 — A management command class is wiring, not documented surface
+
+The documentation gate flagged `Command` as a new public name no page documents. Every Django
+management command class is named `Command` — the convention is the framework's, nothing imports it,
+and what a reader looks up is the command's name. The command has a page of its own under
+`docs/portal-development/`, so the gap the gate reports is not a real one.
+
+`fairdm/management/commands/` is added to `[tool.forge.docs] exempt-paths` in `pyproject.toml`,
+which is the per-repo extension the gate documents for exactly this. The same reasoning already
+exempts admin classes, app configs and factories as wiring, so the general fix probably belongs
+there rather than in one repo's configuration — raised rather than taken, since changing a shared
+rule mid-feature is how a gate stops being trustworthy.
+
+US-4's one tamper flag is `tests/test_conf/test_checks.py`, a new `Test*` class appended with no
+deletions. Approved.
