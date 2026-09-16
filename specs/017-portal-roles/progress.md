@@ -167,3 +167,42 @@
   (`ImportError: cannot import name 'FairDMModelFormMixin' from 'fairdm.views'`), confirmed by
   attempting the import directly; unrelated to this story and not named in any task, so left
   alone rather than fixed. Commit `2caea17`.
+- **Bug found and fixed under T012** (surfaced while running T018's wider regression check):
+  `PortalRolePermissionBackend` had no `authenticate` method, and
+  `django.contrib.auth.authenticate()` inspects every configured backend's `authenticate`
+  signature before calling any of them (`_get_compatible_backends`,
+  `django/contrib/auth/__init__.py`), so registering the backend broke sign-in for every
+  account, not only the ones this story cares about - caught by the pre-existing
+  `tests/test_contrib/test_contributors/test_models.py::TestAttributionOnlyPerson::
+  test_authenticate_fails_for_attribution_only_person` going red for the wrong reason
+  (`AttributeError`, not the asserted refusal). Reproduced first with a new test,
+  `tests/test_permissions.py::TestPortalRoleBackend::
+  test_registering_the_backend_does_not_break_authenticate`, observed failing with the same
+  `AttributeError`. Fixed by extending `django.contrib.auth.backends.BaseBackend`
+  (`fairdm/permissions.py`), which supplies the no-op `authenticate`/`get_user` pair. All nine
+  `test_permissions.py` tests pass, the previously-broken pre-existing test passes again, and
+  the wider check (`test_contrib/test_contributors/test_models.py`,
+  `test_contrib/test_plugins/`, `test_templatetags/`, 317 tests) is green. Commit `71d6588`.
+- **T018**: five group-name decisions replaced by permission questions - `Person.is_data_admin`
+  deleted (`fairdm/contrib/contributors/models.py`, `cached_property` import dropped alongside
+  its only use); `check_has_edit_permission`'s `Data Administrators` branch removed
+  (`fairdm/contrib/plugins/utils.py`) - the ordinary `has_perm(perm, instance)` question two
+  lines below is now the only path beyond superuser/self; the `has_permission` template tag's
+  branch (`fairdm/templatetags/fairdm.py`) replaced with `any(user.has_perm(perm) for perm in
+  perms.split(","))`, which also subsumes the redundant explicit `is_superuser` check Django's
+  own `has_perm` already grants; both `or user.is_data_admin` clauses in
+  `fairdm/contrib/import_export/views.py` (lines 157, 224) removed. New tests first, observed
+  failing for the right reason: `tests/test_contrib/test_plugins/test_utils.py` (new file,
+  mirrors `fairdm/contrib/plugins/utils.py`) proved a group literally named
+  `Data Administrators` with no real permissions granted nothing on its own (1 of 5 failed
+  before the fix); `tests/test_templatetags/test_fairdm.py` gained the same proof plus a
+  positive case for an actual permission holder (2 of 4 new cases failed before the fix).
+  **Concern**: `import_export/views.py`'s two `check()` methods call `user.has_perm("import_data",
+  instance)`/`user.has_perm("can_publish", instance)` without the `dataset.` app-label prefix
+  Django's permission strings require, so neither call can ever resolve `True` through any
+  backend - a pre-existing defect, not named in T018 (which named only the `is_data_admin`
+  removal) and not exercised by any test because the module fails to import on its own (see the
+  T017 concern above); left alone rather than fixed, since fixing it would touch behaviour this
+  story was not asked to change in a module I cannot even run. All eleven new/updated tests
+  pass; `makemigrations --check --dry-run` shows only the pre-existing `identity`/`orbit` drift.
+  Commit `ab46649`.

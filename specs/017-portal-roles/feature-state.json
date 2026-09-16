@@ -274,8 +274,26 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_utils.py::TestCheckHasEditPermission",
+              "tests/test_templatetags/test_fairdm.py::TestHasPermissionTag"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_plugins/test_utils.py tests/test_templatetags/test_fairdm.py -v",
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py tests/test_contrib/test_plugins/ tests/test_templatetags/ -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/models.py:779",
+              "fairdm/contrib/plugins/utils.py:38",
+              "fairdm/templatetags/fairdm.py:200",
+              "fairdm/contrib/import_export/views.py:157",
+              "fairdm/contrib/import_export/views.py:224"
+            ]
+          }
         },
         {
           "id": "T019",
