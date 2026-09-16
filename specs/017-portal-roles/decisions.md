@@ -745,18 +745,19 @@ guard into a shared decorator or helper rather than a third copy of the same thr
 
 ## D31 — A management command class is wiring, not documented surface
 
-**ADR:** none — a configuration entry for one gate, with its reasoning at the entry itself.
+**ADR:** none — a rule about a documentation gate, fixed where the gate lives.
 
 The documentation gate flagged `Command` as a new public name no page documents. Every Django
 management command class is named `Command` — the convention is the framework's, nothing imports it,
 and what a reader looks up is the command's name. The command has a page of its own under
 `docs/portal-development/`, so the gap the gate reports is not a real one.
 
-`fairdm/management/commands/` is added to `[tool.forge.docs] exempt-paths` in `pyproject.toml`,
-which is the per-repo extension the gate documents for exactly this. The same reasoning already
-exempts admin classes, app configs and factories as wiring, so the general fix probably belongs
-there rather than in one repo's configuration — raised rather than taken, since changing a shared
-rule mid-feature is how a gate stops being trustworthy.
+This was first fixed with a per-repo exemption in `pyproject.toml`, and the review was right that
+it did not belong there: the entry named a tool this package does not ship and nothing in the
+repository reads, in a file its consumers read. Django names every management command class
+`Command`, so the rule is universal rather than this repository's, and it now lives with the gate
+that applies it, beside the same treatment of admin classes, app configs and factories. The
+`pyproject.toml` entry is gone.
 
 US-4's one tamper flag is `tests/test_conf/test_checks.py`, a new `Test*` class appended with no
 deletions. Approved.

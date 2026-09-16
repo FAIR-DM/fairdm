@@ -3,7 +3,7 @@
   "feature": "017-portal-roles",
   "branch": "017-portal-roles",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "INTAKE",
@@ -42,6 +42,11 @@
       "state": "CONVERGE",
       "at": "2026-09-16T15:40:46Z",
       "note": "all five stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-16T15:55:30Z",
+      "note": "converge green; dispatching the review"
     }
   ],
   "gates": {
@@ -473,7 +478,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {

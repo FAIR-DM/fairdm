@@ -1,0 +1,92 @@
+{
+  "lens": "security",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "Feature branch 017-portal-roles vs origin/main (git diff origin/main...HEAD, 84 files). Both required lenses run: correctness/specification against specs/017-portal-roles/spec.md, and security (access-control diff). Full suite run on this tree: 2818 passed, 8 skipped, exit 0. `makemigrations --check --dry-run` reports no changes. Every finding below was reproduced against the real code with a throwaway probe under tests/settings, outside the repository.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-07/817f8514",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "The Person change form still renders `groups` for a non-superuser, so a Community Manager can add themselves to the Data Curator or Portal Administrator role and acquire every right FR-004 says that role must not hold. The D12 narrowing closed `is_superuser`/`is_staff`/`password` and left the field that grants those same flags' worth of rights by proxy.",
+      "evidence": "fairdm/contrib/contributors/admin.py:316 declares `_SUPERUSER_ONLY_FIELDS = (\"is_superuser\", \"is_staff\", \"password\")`; the `Permissions` fieldset at fairdm/contrib/contributors/admin.py:284-291 is `(\"groups\",)` and survives `get_fieldsets`' narrowing untouched. Observed for a Community Manager request: narrowed fieldsets `[('Basic info', ...), ('Account', {'fields': ('is_active',)}), ('Permissions', {'fields': ('groups',)})]`, built form fields `['email', 'first_name', 'groups', 'image', 'is_active', 'last_name', 'name', 'profile']`. `readonly_fields` (fairdm/contrib/contributors/admin.py:252) does not list `groups`, and the field's queryset is `Group.objects.all()`, so the autocomplete widget not populating for a user without `auth.view_group` does not stop a direct POST. The existing guard tests (tests/test_contrib/test_contributors/test_admin.py:1098-1177) assert only on `is_superuser`/`is_staff`/`password` — `test_posting_is_superuser_on_leaves_the_flag_unchanged_for_the_actor` posts `groups` back verbatim and never varies it.",
+      "reproduction": "A person holding only the Community Manager role (so: `contributors.view_person` + `contributors.change_person`, which FR-004 requires) reaches `admin:contributors_person_changelist` via `CustomAdminSite.has_permission`, opens their own record, and POSTs `groups=[<Community Manager pk>, <Data Curator pk>]`. Probe run against this tree: before, `person.has_perm(\"dataset.change_dataset\", dataset)` -> False; the form validates (`form.is_valid()` True, no errors) and saves; after, groups are `['Community Manager', 'Data Curator']`, `has_perm(\"dataset.change_dataset\", dataset)` -> True and `has_perm(\"dataset.delete_dataset\", dataset)` -> True. Adding the Portal Administrator pk instead yields `identity.change_identity`. This breaks FR-004 (\"It MUST NOT hold rights over projects, datasets, samples or measurements\"), US-2 acceptance scenario 2, and docs/portal-administration/roles.md:65-66.",
+      "suggested_fix": "In `UserAdmin.get_fieldsets`, drop `groups` as well unless the requesting user may manage role membership. `auth.view_group` is the discriminator the spec already supplies: FR-002 gives it to the Portal Administrator and FR-004 withholds it from the Community Manager, and it is already in `PortalRoles.PORTAL_ADMINISTRATOR.permissions` (fairdm/portal_roles.py:31). Smallest change: keep `_SUPERUSER_ONLY_FIELDS` as is, add a second narrowing that removes `\"groups\"` when `not (request.user.is_superuser or request.user.has_perm(\"auth.view_group\"))`. Guard it with a test mirroring `test_posting_is_superuser_on_leaves_the_flag_unchanged_for_the_actor`: post a Data Curator group pk as a Community Manager and assert the saved membership is unchanged; assert a Portal Administrator still sees and can set `groups` (FR-002)."
+    },
+    {
+      "id": "COR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "A Data Curator cannot import into or publish any dataset. Both plugin gates ask with a bare codename, which `PortalRolePermissionBackend` refuses by design, so removing the `or user.is_data_admin` clauses narrowed those two surfaces to superusers and the dataset's own contributors — while the role declares `dataset.import_data` and `dataset.can_publish` and the administrator documentation states the capability outright.",
+      "evidence": "fairdm/contrib/import_export/views.py:157 `return user.has_perm(\"import_data\", instance)` and fairdm/contrib/import_export/views.py:224 `return user.has_perm(\"can_publish\", instance)`. fairdm/permissions.py:56-57 returns False for any permission string with no `.`, and tests/test_permissions.py:88-99 fixes that as intended behaviour. `ModelBackend` contributes nothing once an object is passed, so no backend in the chain can answer these two. The role declares both rights (fairdm/portal_roles.py:68-69) and this branch adds a migration (fairdm/core/dataset/migrations/0013_alter_dataset_options.py) purely so `dataset.can_publish` exists as a `Permission` row for it. docs/portal-administration/roles.md:54 says a Data Curator can \"Import data into a dataset and publish it\", which SC-009 requires to be true. `check` is the load-bearing gate: `fairdm/contrib/plugins/access.py:99-127` `can_open` calls it for both the navigation entry and dispatch. Nothing in the framework assigns `import_data`/`can_publish` as object-level rows except `assign_all_model_perms` (fairdm/utils/permissions.py:24-30) for a record's own contributors. No test covers either call site after the change.",
+      "reproduction": "Probe against this tree, a person holding only the Data Curator role and a dataset they did not create: `has_perm(\"import_data\", dataset)` -> False, `has_perm(\"dataset.import_data\", dataset)` -> True, `has_perm(\"can_publish\", dataset)` -> False, `has_perm(\"dataset.can_publish\", dataset)` -> True. Before this branch the same person (as a member of `Data Administrators`) reached both surfaces through `user.is_data_admin`. The Import and Publish plugin entries are now hidden and their views refused for every curator.",
+      "suggested_fix": "Ask with the app label at both call sites: `user.has_perm(f\"{instance._meta.app_label}.import_data\", instance)` and `...can_publish`. Verified safe for the existing path: a contributor holding the guardian row answers True for the dotted form too (probe: owner True for all four spellings), because guardian splits the label and compares it against the object's. Add a test per call site — a Data Curator and a non-curator, each against a dataset they did not create."
+    },
+    {
+      "id": "SPC-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "FR-012's refusal message is never shown at the administration interface. Deleting a shipped role there produces an absent button and a bare 403, not a message naming the role and saying FairDM requires it — the message exists only on the ORM receiver, which the admin path never reaches.",
+      "evidence": "fairdm/contrib/admin/admin.py:44-48 `has_delete_permission` returns False for a shipped role, which removes the button and makes Django raise `PermissionDenied` before any of this feature's code runs; the naming message lives in `refuse_shipped_role_deletion` (fairdm/contrib/contributors/receivers.py:110-123) and is unreachable from the admin. Probe as a superuser against the Data Curator role: change page 200 with no `deletelink`, `admin:auth_group_delete` GET -> 403, `delete_selected` POST -> 403, role survives. The rename half does satisfy FR-013 — `ShippedRoleGroupForm.clean_name` (fairdm/contrib/admin/admin.py:22-31) raises a field error naming the role.",
+      "reproduction": "Sign in as a superuser (no shipped role holds `auth.delete_group`, so nobody else reaches this page), open the Data Curator group, and look for the refusal. US-3 acceptance scenario 1 asks for \"refused with an explanation\"; what appears is nothing, then a generic 403 on the direct URL. The protection itself holds — this is the explanation, not the guard.",
+      "suggested_fix": "Either surface the message — in `ShippedRoleGroupAdmin`, override `delete_view` to `self.message_user(request, <the receiver's text>, level=messages.ERROR)` and redirect to the change page before the permission check bites — or, if the absent button is judged to satisfy FR-012 on its own, correct docs/adr/0020-a-missing-role-is-answered-four-ways.md:10, which currently claims \"an administration class that explains the refusal to whoever clicked\" for both deletion and renaming."
+    },
+    {
+      "id": "EFF-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "`PortalRoles.reconcile()` runs once per application config on every `migrate` and issues 83 queries each time, because `_permissions_for` resolves one `Permission` row per declared permission string.",
+      "evidence": "fairdm/apps.py:111-114 connects the receiver with no `sender`, which is deliberate (the last emission is the one that sees every permission) but makes it fire for every app config, not only the last. fairdm/portal_roles.py:179-185 loops the 76 declared permission strings issuing a separate `Permission.objects.filter(...).first()` for each. Measured on this tree: 83 queries per `reconcile()` call, 86 app configs registered — so roughly 5,000 queries per `migrate`, and the same on every test-session database setup.",
+      "reproduction": "`CaptureQueriesContext` around a single `PortalRoles.reconcile()` under tests/settings: 83 captured queries. Multiply by the app configs `emit_post_migrate_signal` iterates. Correctness is unaffected — this is migrate-time cost only.",
+      "suggested_fix": "Resolve the whole declaration in one query. Build the set of `(app_label, codename)` pairs for a role and fetch them with a single `Permission.objects.filter(...)` over `content_type__app_label` and `codename`, keeping the existing skip-what-is-missing behaviour. That takes `reconcile()` from 83 queries to roughly 15 without changing when or how often it runs."
+    },
+    {
+      "id": "COR-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "The public `has_permission` template tag's contract changed shape without a CHANGELOG entry: it no longer answers True for a group-named administrator, and its new model-level fallback cannot match the bare codenames the tag's own `user_permissions` convention uses.",
+      "evidence": "fairdm/templatetags/fairdm.py:211 is now `return any(user.has_perm(perm) for perm in perms.split(\",\"))`. The first branch (line 206) reads `context[\"user_permissions\"]`, which nothing in the framework ever sets and which by convention holds bare codenames; `user.has_perm(\"change_dataset\")` with no app label never matches a `ModelBackend` permission, so for a non-superuser the fallback answers False for exactly the spelling the tag's other branch expects. No template in this repository calls the tag, so nothing here regresses — but it is a published package's template tag and the CHANGELOG's \"Changed\" section does not mention it.",
+      "reproduction": "A consuming portal's template doing `{% has_permission \"change_dataset\" %}` for a Data Curator: True before this branch if the person was in `Data Administrators`, False after. The dotted spelling `{% has_permission \"dataset.change_dataset\" %}` does work.",
+      "suggested_fix": "Either accept both spellings — fall back to the object-less check on `f\"{app_label}.{codename}\"` where the caller passed a bare codename, the way `fairdm/contrib/plugins/access.py:43-73` handles the same split — or, if the tag is considered dead, say so in the CHANGELOG's \"Changed\" section alongside the other behaviour notes this branch already added."
+    },
+    {
+      "id": "CFG-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "`[tool.forge.docs]` lands a configuration table for a tool that does not exist in this repository and that nothing here reads.",
+      "evidence": "pyproject.toml:474-478 adds `[tool.forge.docs]` with `exempt-paths`. `git show origin/main:pyproject.toml` has no `tool.forge` table, and a repository-wide grep for `exempt-paths`/`exempt_paths`/`tool.forge` finds no consumer in any `.py`, `.sh` or `.yml` file. A FairDM contributor reading pyproject.toml has no way to find out what reads it.",
+      "reproduction": "Open pyproject.toml:474 and try to locate the tool that consumes the key. There is none in the tree.",
+      "suggested_fix": "Drop the table from the committed file and hold the exemption wherever the tool that reads it is configured. If it genuinely has to live here, name it after something a FairDM consumer can find and document it in CONTRIBUTING.md."
+    }
+  ],
+  "notes": [
+    "docs/adr/0020-a-missing-role-is-answered-four-ways.md:10 says the refusal is explained \"to whoever clicked\" for both deletion and renaming; only the rename is (see SPC-001).",
+    "fairdm/contrib/contributors/admin.py:483-488 and :530-535 keep the superseded rationale for `claim_link_view`/`merge_view` in place and annotate it with \"Superseded by D13/D21\", leaving a reader to parse two versions of the same claim. The house rule is to edit the docstring to read as current state and let git hold the history.",
+    "create_dev_accounts reuses an existing account by name match only (fairdm/management/commands/create_dev_accounts.py:119-127) and never re-applies the password or `is_active` on that path, so a development account that was deactivated or had its password changed stays that way across re-runs. FR-025 and FR-026 read as state rather than as one-time acts.",
+    "check_dev_accounts_absent matches `email__in=DEV_ACCOUNT_EMAILS` (fairdm/conf/checks.py:532), which is case-sensitive, while the command itself matches `email__iexact` (create_dev_accounts.py:107). An address stored with different case evades fairdm.E501.",
+    "PortalRolePermissionBackend.has_perm (fairdm/permissions.py:59-63) never compares `obj`'s content type against the permission's, so `has_perm(\"dataset.view_dataset\", some_project)` would answer True for a Data Curator. No caller in the tree asks that way, but the check is one `ContentType` comparison if defence in depth is wanted.",
+    "PortalRoles._rename_legacy_groups (fairdm/portal_roles.py:161-166) leaves a legacy row alone when its target name is already taken, which is right for the uniqueness constraint but leaves e.g. a stranded `Data Administrators` group whose members hold nothing. Worth a line in the upgrade section of docs/portal-administration/roles.md.",
+    "fairdm/menus/menus.py:109 still gates the Admin Guide link on `user_is_staff`, so a role holder who reaches the administration interface does not see the link to its documentation. The interface itself is unaffected.",
+    "contributors/contributor_card.html carries placeholder prose (\"Senior Researcher · University of Example\", a bare `{{ object.get_absolute_url }}` rendered as text). Pre-existing and already public on the person list, but the team page is now a second public surface showing it.",
+    "PersonFilter publishes `is_staff` and `is_active` filters on the public person list (fairdm/contrib/contributors/filters.py:13-35). Pre-existing and out of this diff's scope; the relabel to \"Staff Only\" makes it easier to notice.",
+    "Change shape: the source half of the diff is about 950 lines across 25 files with roughly 2,100 lines of tests behind it, which reads in one sitting per story. The 3,900 lines under specs/017-portal-roles/ are run records, not reviewable code."
+  ]
+}
