@@ -387,3 +387,28 @@
   (`tests/test_portal_roles.py::TestProtection`, 8 passed), proving a shipped role cannot be
   deleted or renamed with the guard connected. `tests/test_portal_roles.py` (23 passed) and
   `tests/test_apps.py` (24 passed) both green, run together and in isolation. See D28.
+
+## US-4 implementation begins on `017-portal-roles-us4`, cut from `acf79bf`
+
+- **T026**: `tests/test_management/test_commands/test_create_dev_accounts.py` added, seven tests
+  covering FR-023 to FR-029 - the five accounts and their stated roles, signing in with the shared
+  password and no confirmation step, idempotent re-runs, refusing rather than adopting an address
+  that already belongs to somebody, and refusing on the production baseline without touching the
+  database. Observed red for the right reason: `ModuleNotFoundError:
+  fairdm.management.commands.create_dev_accounts` at collection, since T027 had not been written
+  yet. Commit `1c094dd`.
+- **T027**: `fairdm/management/commands/create_dev_accounts.py` added. Creates the five accounts
+  through the ORM (D7), hashing the shared password at run time, marking each address confirmed
+  via an `allauth.account.models.EmailAddress` row so mandatory verification lets the account
+  straight in, and refusing on any resolved environment outside
+  `fairdm.apps.NON_PRODUCTION_ENVIRONMENTS` before the transaction that creates anything even
+  opens. All seven T026 tests pass unchanged. Commit `0d4c5b8`.
+  - **Probe, not just read**: before trusting the production-refusal test, temporarily removed the
+    environment check and re-ran it. It failed with an uncaught `django.db.utils.OperationalError`
+    (`connection to server at "localhost" ... Connection refused`) from the command's own query,
+    confirming the assertion that stderr carries no `OperationalError` is a real guard against the
+    command reaching the database before refusing, not a tautology. Reverted before continuing.
+  - **Identity check for FR-029**: an existing account is treated as "ours" (safe to leave
+    unchanged) only when its `first_name`/`last_name` match the specification's table for that
+    address exactly; any other existing holder of the address fails the whole run rather than
+    being adopted. See D29.

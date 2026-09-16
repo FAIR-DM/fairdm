@@ -594,3 +594,27 @@ a measurement cascade test that this feature never touches. It passed serially i
 the whole step passed on a re-run. `forge verify` runs its test step under xdist with `-x`, so a
 test-database setup race between workers surfaces as a red that reproduces nowhere else. The
 independent evidence for accepting this story is the serial run: 2792 passed, 8 skipped.
+
+## D29 — `create_dev_accounts` tells "its own account, re-run" from "somebody else's account" by
+name, not by any stored marker (T027)
+
+**Decision.** FR-028 (re-running creates no duplicate) and FR-029 (an address that already belongs
+to somebody is refused, not adopted) both have to hold for the same situation: the command finds a
+`Person` row already sitting on one of the five addresses. Nothing is stored on a `Person` to say
+"this row was made by `create_dev_accounts`" - no flag, no marker field, and the prohibitions rule
+out adding a migration to create one. The command instead compares the existing row's
+`first_name`/`last_name` against the specification's *Key entities* table for that exact address:
+a match is treated as this command's own account from an earlier run (left unchanged beyond
+re-affirming its confirmed `EmailAddress` and role membership); anything else raises `CommandError`
+and the whole run - wrapped in one `transaction.atomic()` block - is rolled back, so a conflict on
+the third address does not leave the first two created.
+
+**Why:** the five addresses are on `fairdm.org`, a domain no genuine contributor or visitor account
+would organically hold, so a name mismatch on one of them is a strong, cheap signal that something
+other than this command put it there - test data, a name collision, or a database in a state this
+command should refuse to touch - without needing a schema change to record provenance explicitly.
+
+**Revisit if:** a portal's own data ever legitimately produces one of these five addresses under a
+different name (for example, importing test fixtures that reuse them) - if that turns out to
+happen, the identity check would need a real provenance marker instead of a name comparison, which
+is a model change outside this story's scope.
