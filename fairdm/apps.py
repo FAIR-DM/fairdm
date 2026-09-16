@@ -75,6 +75,8 @@ class FairDMConfig(AppConfig):
 
         self._install_quantity_formatter()
 
+        self._connect_portal_roles_reconciliation()
+
         self._check_production_configuration()
 
         return super().ready()
@@ -94,6 +96,28 @@ class FairDMConfig(AppConfig):
         from fairdm.templatetags.fairdm import MyFormatter, ureg
 
         ureg.formatter = MyFormatter(registry=ureg)
+
+    def _connect_portal_roles_reconciliation(self) -> None:
+        """Install the four portal roles on every ``migrate`` run (FR-009 to FR-011).
+
+        Connected with no ``sender``: ``INSTALLED_APPS`` lists ``fairdm`` before the apps
+        whose permissions the roles need, so a receiver bound to this app's own
+        ``post_migrate`` signal would run before those permissions exist. Connected without a
+        sender it instead fires once per application config's own ``post_migrate`` signal, and
+        the last of those sees every permission that migrate created (research R5).
+        """
+        from django.db.models.signals import post_migrate
+
+        post_migrate.connect(
+            self._reconcile_portal_roles,
+            dispatch_uid="fairdm.reconcile_portal_roles",
+        )
+
+    @staticmethod
+    def _reconcile_portal_roles(**kwargs) -> None:
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
 
     def _check_production_configuration(self) -> None:
         """

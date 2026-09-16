@@ -343,3 +343,42 @@ class TestNonProductionBoot:
         )
 
         assert result.stdout.strip() == "True", result.stdout + result.stderr
+
+
+@pytest.mark.django_db
+class TestPortalRolesReconciliation:
+    """T005: a `post_migrate` receiver installs and repairs the four roles on every
+    `migrate` run, not only when `PortalRoles.reconcile()` is called directly
+    (FR-009 to FR-011, research R5)."""
+
+    def test_migrate_installs_the_four_roles(self):
+        from django.contrib.auth.models import Group
+        from django.core.management import call_command
+
+        from fairdm.portal_roles import PortalRoles
+
+        Group.objects.all().delete()
+
+        call_command("migrate", verbosity=0)
+
+        assert set(
+            Group.objects.filter(name__in=PortalRoles.shipped_names()).values_list(
+                "name", flat=True
+            )
+        ) == set(PortalRoles.shipped_names())
+
+    def test_migrate_restores_a_permission_removed_by_hand(self):
+        from django.contrib.auth.models import Group
+        from django.core.management import call_command
+
+        from fairdm.portal_roles import PortalRoles
+
+        Group.objects.all().delete()
+        call_command("migrate", verbosity=0)
+        curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+        curator_group.permissions.clear()
+
+        call_command("migrate", verbosity=0)
+
+        curator_group.refresh_from_db()
+        assert curator_group.permissions.filter(codename="view_dataset").exists()
