@@ -3,7 +3,7 @@
   "feature": "017-portal-roles",
   "branch": "017-portal-roles",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "INTAKE",
@@ -27,6 +27,11 @@
     {
       "state": "PLAN",
       "at": "2026-09-16T00:40:00Z"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-16T09:21:58Z",
+      "note": "S3 exited green; dispatching the design reviewer"
     }
   ],
   "gates": {
@@ -51,6 +56,15 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-16T01:20:00Z",
+      "self_resolved": [
+        "13 verified findings applied in full as plan and task edits; 2 critical, 4 high, 5 medium, 2 low",
+        "SPEC-004 resolved in favour of the approved FR-004: the superuser gates on profile claims and merges become permission questions the Community Manager holds, superseding an earlier recorded decision by ADR",
+        "SPEC-007 resolved by amending FR-030: the team page lists active holders only"
+      ]
     }
   },
   "stories": [
@@ -100,6 +114,11 @@
           "id": "T009",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -110,11 +129,6 @@
       "status": "todo",
       "replans": 0,
       "tasks": [
-        {
-          "id": "T010",
-          "status": "todo",
-          "attempts": 0
-        },
         {
           "id": "T011",
           "status": "todo",
@@ -144,16 +158,7 @@
           "id": "T016",
           "status": "todo",
           "attempts": 0
-        }
-      ]
-    },
-    {
-      "id": "US3",
-      "priority": "P2",
-      "issue": 341,
-      "status": "todo",
-      "replans": 0,
-      "tasks": [
+        },
         {
           "id": "T017",
           "status": "todo",
@@ -168,21 +173,21 @@
           "id": "T019",
           "status": "todo",
           "attempts": 0
-        },
-        {
-          "id": "T020",
-          "status": "todo",
-          "attempts": 0
         }
       ]
     },
     {
-      "id": "US4",
+      "id": "US3",
       "priority": "P2",
-      "issue": 342,
+      "issue": 341,
       "status": "todo",
       "replans": 0,
       "tasks": [
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
         {
           "id": "T021",
           "status": "todo",
@@ -197,6 +202,50 @@
           "id": "T023",
           "status": "todo",
           "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 342,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -208,22 +257,22 @@
       "replans": 0,
       "tasks": [
         {
-          "id": "T024",
+          "id": "T031",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T025",
+          "id": "T032",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T026",
+          "id": "T033",
           "status": "todo",
           "attempts": 0
         },
         {
-          "id": "T027",
+          "id": "T034",
           "status": "todo",
           "attempts": 0
         }
@@ -240,7 +289,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

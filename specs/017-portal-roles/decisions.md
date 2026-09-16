@@ -102,3 +102,83 @@ is never touched.
   when the framework offers nothing else.
 - Not per-record rights. The creator-gets-rights and membership-grants-rights half of R15 is a
   separate feature and is filed as its own issue.
+
+---
+
+*Everything below was decided at the design review, 2026-09-16. Thirteen verified findings, applied
+in full; the reviewer's own report is `design-review-findings.json`.*
+
+## D10 — The legacy groups are renamed, not replaced
+
+Three group rows already exist in every portal set up from the retired fixture, and volunteers are
+in them. Declaring four new roles beside them would have left those people holding nothing the day
+the portal upgraded, with `is_data_admin` deleted in the same release. Reconciliation renames the
+rows in place — `Portal Administrators` to `Portal Administrator`, `Data Administrators` to `Data
+Curator`, `Developers` to `Developer` — and a rename carries the membership rows untouched, so no
+data migration is needed and nobody's rights are reduced. The rename fires only when the target name
+is free, so a portal that somehow holds both is left alone rather than merged.
+
+## D11 — The boot refusal stands down for the command that repairs it
+
+`fairdm.E300` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
+`post_migrate` is the only thing that installs the roles. Left as first planned, a production portal
+upgrading to this version would have refused to boot *and* refused to migrate, with no route back
+from inside the portal. The refusal therefore stands down for the command that installs the roles.
+The requirement survives intact: a portal that is serving still refuses to serve without its roles.
+
+## D12 — `contributors.change_person` needed the Person form narrowed
+
+FR-004 gives the Community Manager the right to change a person, and Django's `UserAdmin` puts
+`is_superuser`, `is_staff` and `password` on that form with no permission gate of their own. The
+role's ceiling was therefore the whole portal, reachable in three clicks. The form now drops those
+three fields for any request whose user is not a superuser. This is not a narrowing of FR-004; it is
+what FR-004 has to mean if the role is to be what the specification says it is.
+
+## D13 — Profile claims and merges become the Community Manager's
+
+`claim_link_view` and `merge_view` are superuser-only today, by a decision recorded in their own
+docstrings: a claim token is a credential, and a merge destroys the discarded person's identity, so
+neither is "an ordinary staff operation". FR-004 requires the Community Manager to act on both.
+
+Both statements are right, and they stop conflicting once the alternative is named. The recorded
+decision was written when the only thing standing between an account and those views was
+`is_staff` — a flag every administrative helper carried. A portal role a portal administrator grants
+to a named person is not that. The gates become permission questions that the Community Manager
+role holds and that no other role and no ordinary contributor holds. The earlier decision is
+superseded rather than ignored, and the superseding ADR carries this reasoning.
+
+## D14 — The object-level fallback excludes `manage_organization`
+
+The framework already refuses to derive `contributors.manage_organization` from anything but a
+current owner affiliation, and documents why: a stale `Permission` row for it survives in databases
+migrated forward from before it was dropped, and Django ORs backends, so no later backend can veto
+an earlier yes. A general model-level-to-object-level fallback would have answered it. The new
+backend carries the same explicit exclusion the parent does.
+
+## D15 — The Portal Administrator holds no right to edit a group
+
+The obvious reading of "assign and revoke roles" is `auth.change_group`, and Django's group form
+edits a group's permissions. That would let the role rewrite what every role may do, including its
+own. Membership is edited on the Person form's `groups` field instead, so the role holds
+`contributors.change_person` and `auth.view_group` and nothing that can change a role's rights.
+
+## D16 — A second check, for development accounts found in production
+
+The command refuses to create the five accounts outside development. That guards the act and not the
+state: a database copied down from production, a dump restored the wrong way round, or an
+environment variable changed under a live database all produce the condition the command would have
+refused. `fairdm.E301` reports it, tagged exactly as `fairdm.E300` is. One of those accounts is a
+Portal Administrator whose password is published in the documentation.
+
+## D17 — The module is `portal_roles`, not `roles`
+
+This codebase already spends the word "role" on contribution roles, and FR-039 exists to keep the
+two apart. A module called `roles.py` in the framework root would have undone that in the same
+release that documented it.
+
+## D18 — The team page lists active holders only
+
+The specification said the page lists the people holding each role, and its edge cases said a
+deactivated account holds nothing. Those two readings give different pages. The page lists active
+holders: naming a departed volunteer as the portal's administrator tells a visitor something untrue,
+and the page exists to tell them something true. FR-030 now says so.

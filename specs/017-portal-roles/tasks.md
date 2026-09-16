@@ -4,19 +4,27 @@
 
 **Prerequisites**: spec.md, plan.md, research.md, decisions.md
 
+**Revised 2026-09-16** after the design review. Thirteen findings, all verified: two critical, four
+high, five medium, two low. Every one is applied below. What changed in substance: the legacy
+groups are renamed rather than abandoned, the boot refusal stands down for the command that repairs
+it, the Person administration form stops offering `is_superuser` to a non-superuser, two more
+group-name call sites were found, the object-level fallback gains the exclusion the framework
+already carries, and the Portal Administrator's permissions are named rather than left to the
+implementer.
+
 **Requirements satisfied without a dedicated task**: FR-007 (rights accumulate) and FR-008 (losing
 the last rights-carrying role closes the administration interface) fall out of Django's own group
 permission union and of deriving administration access rather than storing it — both are asserted
-by test tasks named against them, neither needs code of its own. FR-010 and FR-011 are properties
-of the reconcile function written in T005 and pinned by T004.
+by test tasks named against them. FR-010 and FR-011 are properties of the reconcile method written
+in T005 and pinned by T004.
 
 **Requirements satisfied by adding nothing**: FR-021 forbids a visible mark on a record a curator
-edited. It is met by writing no such mark, and T014 is the standing proof. FR-005 is met by the
+edited; it is met by writing no such mark, and T017 is the standing proof. FR-005 is met by the
 Developer role's permission list being empty and T002 pinning it that way.
 
-**Tests**: included. Article I requires red before green, and Article I's URL rule requires a
-status-code smoke test for the one new route. Each story's Independent Test from the specification
-is a test task below, not a manual step.
+**Tests**: included. Article I requires red before green, and its URL rule requires a status-code
+smoke test for the one new route. Each story's Independent Test from the specification is a test
+task below, not a manual step.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -31,23 +39,39 @@ is a test task below, not a manual step.
 
 ## Phase 2: US1 — The roles a portal needs arrive with the framework (P1)
 
-- [ ] T002 [P] [US1] `tests/test_roles.py::TestDeclarations` — exactly four roles, named Portal
-      Administrator, Data Curator, Community Manager and Developer; each one's permission set
-      asserted exactly, not by subset; Developer's is empty. Covers FR-001 to FR-005.
-- [ ] T003 [US1] `fairdm/roles.py` — declare the four roles: stored name, translated display label,
-      and an explicit list of `app_label.codename` permissions per role. The Data Curator's list
-      covers `Project`, `Dataset`, `Sample`, `Measurement` and their attached description, date and
-      contribution records (research R9). The Community Manager's covers `Person`, `Organization`,
-      `Affiliation` and `Contribution`, with no delete on `Person` (FR-004). Expose the shipped
-      names and the rights-carrying subset as module-level helpers.
-- [ ] T004 [P] [US1] `tests/test_roles.py::TestReconcile` — from an empty database all four appear
-      with their rights; a second run changes nothing and duplicates nothing; permissions edited by
-      hand are restored; the people in a role are untouched; a group the portal created itself is
-      left alone. Covers FR-009 to FR-011.
-- [ ] T005 [US1] `reconcile_portal_roles()` in `fairdm/roles.py`, plus a `post_migrate` receiver
-      connected in `fairdm/apps.py` with no sender and a `dispatch_uid`. It tolerates a permission
-      that does not exist yet — `INSTALLED_APPS` lists `fairdm` before the apps whose permissions
-      the roles need, so early passes are incomplete and the last pass converges (research R5).
+- [ ] T002 [P] [US1] `tests/test_portal_roles.py::TestDeclarations` — exactly four roles, named
+      Portal Administrator, Data Curator, Community Manager and Developer; each one's permission set
+      asserted exactly, not by subset; Developer's is empty; the Portal Administrator's holds
+      neither `auth.add_group` nor `auth.change_group` nor `auth.delete_group`, so the role cannot
+      edit what any role may do. Covers FR-001 to FR-005.
+- [ ] T003 [US1] `fairdm/portal_roles.py` — one class, `PortalRoles`, holding the four declarations
+      as class-level data with `shipped_names()`, `rights_carrying()` and `reconcile()` as its
+      methods (Article XI). The module is named `portal_roles`, not `roles`, because this codebase
+      already spends the bare word on contribution roles. Each declaration is a stored name, a
+      translated display label, and an explicit list of `app_label.codename` permissions:
+      - **Portal Administrator** — `auth.view_group`, `contributors.view_person`,
+        `contributors.change_person`, and change rights over the portal's identity records.
+        Membership is edited on the Person form's `groups` field, so no `auth.change_group` is
+        needed and none is granted: a role that can edit groups can rewrite its own rights.
+      - **Data Curator** — view/add/change/delete over `Project`, `Dataset`, `Sample`,
+        `Measurement` and their attached description, date and contribution records, plus
+        `import_data` and `can_publish` (research R1, five call sites).
+      - **Community Manager** — view/change over `Person`, `Organization`, `Affiliation` and
+        `Contribution`; no delete on `Person` (FR-004).
+      - **Developer** — nothing.
+- [ ] T004 [P] [US1] `tests/test_portal_roles.py::TestReconcile` — from an empty database all four
+      appear with their rights; a second run changes nothing and duplicates nothing; permissions
+      edited by hand are restored; the people in a role are untouched; a group the portal created
+      itself is left alone; **and a database holding the three legacy groups with members ends with
+      those same people in the corresponding new roles**. Covers FR-009 to FR-011, US-1 AC3, SC-002.
+- [ ] T005 [US1] `PortalRoles.reconcile()`, plus a `post_migrate` receiver connected in
+      `fairdm/apps.py` with no sender and a `dispatch_uid`. Before creating anything it renames the
+      legacy rows in place — `Portal Administrators` → `Portal Administrator`, `Data
+      Administrators` → `Data Curator`, `Developers` → `Developer` — which carries their membership
+      across without a data migration, and only when the target name is not already taken. It
+      tolerates a permission that does not exist yet: `INSTALLED_APPS` lists `fairdm` before the
+      apps whose permissions the roles need, so early passes are incomplete and the last pass
+      converges (research R5).
 - [ ] T006 [US1] Delete `fairdm/fixtures/groups.json` and remove `("loaddata", "groups")` from
       `DJANGO_SETUP_TOOLS` in `fairdm/conf/settings/apps.py`. Covers FR-036.
 - [ ] T007 [US1] Remove `DefaultGroups` from `fairdm/contrib/contributors/choices.py`. Relabel
@@ -59,101 +83,173 @@ is a test task below, not a manual step.
       superuser is the deployer's account while the Portal Administrator role is the portal job.
       Covers FR-037, FR-038.
 - [ ] T009 [P] [US1] `CONTEXT.md` — define **portal role** and **contribution role** as distinct
-      terms and name the four roles. Covers FR-039.
+      terms, name the four roles, and define **rights-carrying role**, which FR-006 and FR-008 lean
+      on. Covers FR-039.
+- [ ] T010 [P] [US1] Upgrade note, in the changelog and in `docs/portal-administration/`: a
+      model-level permission now applies to every instance of that model, so a portal should audit
+      the grants it made outside these four roles before upgrading. This is a breaking change for a
+      portal that granted a model permission merely to let somebody into the administration
+      interface.
 
 ## Phase 3: US2 — A role decides what its holder can actually do (P1)
 
-- [ ] T010 [P] [US2] `tests/test_permissions.py::TestPortalRoleBackend` — a person holding a model
+- [ ] T011 [P] [US2] `tests/test_permissions.py::TestPortalRoleBackend` — a person holding a model
       permission through a role answers `True` for `has_perm(perm, instance)` on every instance of
       that model; a person without it answers `False`; a permission granted directly to the person
       behaves the same way; an anonymous user and a deactivated account answer `False`; a
-      permission the person holds for one model does not answer for another. Covers FR-018, FR-020.
-- [ ] T011 [US2] `fairdm/permissions.py::PortalRolePermissionBackend`, registered in
+      permission held for one model does not answer for another; `has_perm(perm)` with no object
+      answers `False` from this backend, so the chain cannot recurse into it; and
+      `contributors.manage_organization` is never answered by it, even for a person carrying the
+      stale permission row. Covers FR-018, FR-020.
+- [ ] T012 [US2] `fairdm/permissions.py::PortalRolePermissionBackend`, registered in
       `AUTHENTICATION_BACKENDS` after the existing backends. It answers an object-level question
-      from the model-level permissions the person holds and never writes a row (research R2).
-- [ ] T012 [P] [US2] `tests/test_contrib/test_admin/test_sites.py` — a holder of each
-      rights-carrying role reaches the administration index and one changelist, signing in through
-      the administration login as well as with an existing session; a Developer-only holder is
-      refused; an ordinary contributor is refused; a deactivated holder is refused. Covers FR-006,
-      FR-008.
-- [ ] T013 [US2] `CustomAdminSite.has_permission` and its login form accept a holder of a
+      from the model-level permissions the person holds, never writes a row, returns `False`
+      when `obj is None`, and carries the same explicit exclusion for
+      `contributors.manage_organization` that `fairdm/core/permissions.py:44-53` already documents —
+      that right comes from a current owner affiliation and from nothing else, and Django ORs
+      backends so no later backend can veto a wrongly granted yes.
+- [ ] T013 [P] [US2] `tests/test_contrib/test_admin/test_sites.py` — a holder of each
+      rights-carrying role reaches the administration index and one changelist, both with an
+      existing session and by signing in through the administration login form; a Developer-only
+      holder is refused; an ordinary contributor is refused; a deactivated holder is refused.
+      Covers FR-006, FR-008.
+- [ ] T014 [US2] `CustomAdminSite.has_permission` and its login form accept a holder of a
       rights-carrying role (research R3). Nothing is stored on the person.
-- [ ] T014 [P] [US2] `tests/test_contrib/test_contributors/test_permissions.py` — a data curator
+- [ ] T015 [P] [US2] `tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields` —
+      a Community Manager opening the Person change form is offered neither `is_superuser` nor
+      `is_staff` nor `password`, and a POST setting `is_superuser` on their own account or on
+      anybody else's leaves the flag unchanged; a superuser still sees and can set all three.
+- [ ] T016 [US2] Narrow the Person administration form: `get_fieldsets`/`get_form` on the `Person`
+      admin drop `is_superuser`, `is_staff` and `password` for a request whose user is not a
+      superuser. Without this, `contributors.change_person` — which FR-004 requires the Community
+      Manager to hold — is a route to superuser for anyone in that role.
+- [ ] T017 [P] [US2] `tests/test_contrib/test_contributors/test_permissions.py` — a data curator
       can open and change another team's dataset and its samples through the portal's own pages,
-      including a private one; the record page shows no mark saying a curator changed it; a
-      community manager cannot change that dataset; a person holding two roles holds both sets.
-      Covers FR-003, FR-007, FR-021.
-- [ ] T015 [US2] Remove the three group-name decisions: `Person.is_data_admin`
-      (`contributors/models.py`), the `has_permission` tag's branch
-      (`templatetags/fairdm.py`), and `check_has_edit_permission`'s branch
-      (`contrib/plugins/utils.py`). Each becomes an ordinary permission question. Covers FR-019.
-- [ ] T016 [P] [US2] `tests/test_contrib/test_contributors/test_permissions.py::TestCommunityManager`
-      — can change a person and an organisation and act on a profile claim and a merge; cannot
-      delete a person; cannot change a project, dataset, sample or measurement. Covers FR-004.
+      including a private one, and can reach the import and publish plugin pages; the record page
+      shows no mark saying a curator changed it; a community manager can change a person and an
+      organisation and cannot change that dataset and cannot delete a person; a person holding two
+      roles holds both sets. Covers FR-003, FR-004, FR-007, FR-021.
+- [ ] T018 [US2] Remove the five group-name decisions, each one becoming an ordinary permission
+      question: `Person.is_data_admin` (`contributors/models.py`), the `has_permission` tag's branch
+      (`templatetags/fairdm.py`), `check_has_edit_permission`'s branch (`contrib/plugins/utils.py`),
+      and **both** `or user.is_data_admin` clauses in `contrib/import_export/views.py` (lines 157
+      and 224), which the first plan missed and which would have raised `AttributeError` on every
+      import and publish page once the property was deleted. Covers FR-019.
+- [ ] T019 [US2] Replace the `is_superuser` gates on `claim_link_view` and `merge_view`
+      (`contrib/contributors/admin.py:440`, `:482`) with permission checks the Community Manager
+      role holds. FR-004 requires the role to act on profile claims and merges, and today both are
+      superuser-only by a decision recorded in those docstrings. That decision was written when the
+      only alternative was "any staff member"; a named role a portal administrator grants
+      deliberately is a different thing, which is the argument the superseding record must make.
+      Record it in `decisions.md` for an ADR at convergence, and keep both actions out of reach of
+      a person who holds no portal role.
 
 ## Phase 4: US3 — The roles cannot be lost by accident (P2)
 
-- [ ] T017 [P] [US3] `tests/test_roles.py::TestProtection` — deleting a shipped role raises and the
-      role and its members survive; renaming one raises and the name is unchanged; the same attempt
-      through the administration interface's own delete view is refused; a group the portal created
-      itself deletes and renames normally. Covers FR-012 to FR-014.
-- [ ] T018 [US3] `pre_delete` and `pre_save` receivers on `Group` in
+- [ ] T020 [P] [US3] `tests/test_portal_roles.py::TestProtection` — deleting a shipped role raises
+      and the role and its members survive; renaming one raises and the name is unchanged; creating
+      a group is unaffected, including the creation `reconcile()` itself performs; a group the
+      portal created itself deletes and renames normally. Covers FR-012 to FR-014.
+- [ ] T021 [US3] `pre_delete` and `pre_save` receivers on `Group` in
       `fairdm/contrib/contributors/receivers.py`, connected in that app's `ready()` with
-      `dispatch_uid`s, raising with a message that names the role and says FairDM requires it
-      (research R6).
-- [ ] T019 [P] [US3] `tests/test_conf/test_checks.py::TestPortalRolesPresent` — on a migrated
+      `dispatch_uid`s, raising with a message that names the role and says FairDM requires it. The
+      `pre_save` guard fires only for an existing row, or `reconcile()`'s own creation is refused by
+      the receiver it just installed (research R6).
+- [ ] T022 [P] [US3] `tests/test_contrib/test_admin/test_group_admin.py` — the delete action and
+      the delete button are absent for a shipped role in the administration interface, and renaming
+      one through the change form comes back as a field error naming the role rather than a 500.
+- [ ] T023 [US3] A `Group` administration class registered on `CustomAdminSite` whose
+      `has_delete_permission` is `False` for a shipped role and whose form rejects a change to the
+      name of one, with a message. FR-012 and FR-013 require the person who clicked to be told why;
+      a raising receiver alone gives them a server error. The receivers stay as the enforcement that
+      holds for every other writer.
+- [ ] T024 [P] [US3] `tests/test_conf/test_checks.py::TestPortalRolesPresent` — on a migrated
       database missing two roles the check returns an error naming both; with all four present it
       returns nothing; with no group table at all it returns nothing; the production boot refusal
       raises for the first case and development does not; `check --deploy` reports it in
-      development. Covers FR-015 to FR-017.
-- [ ] T020 [US3] `check_portal_roles_present` in `fairdm/conf/checks.py`, id `fairdm.E300`, tagged
+      development; **and a production database holding data but none of the four roles still runs
+      `migrate` to completion**, which is the upgrade path of every portal already running.
+      Covers FR-015 to FR-017.
+- [ ] T025 [US3] `check_portal_roles_present` in `fairdm/conf/checks.py`, id `fairdm.E300`, tagged
       `DeployTags.deploy` and `DeployTags.production_critical` with `deploy=True`, returning no
-      error when the group table is absent or unreadable (research R4).
+      error when the group table is absent or unreadable — **and standing down for the commands
+      that repair the condition**. The boot refusal runs in `AppConfig.ready()`, which fires before
+      `migrate` does anything, and `post_migrate` is the only thing that installs the roles: without
+      the stand-down, a production portal upgrading to this version can neither start nor migrate,
+      and nothing inside it can repair that (research R4).
 
 ## Phase 5: US4 — Anyone building on the framework can sign in as each role (P2)
 
-- [ ] T021 [P] [US4] `tests/test_management/test_create_dev_accounts.py` — creates exactly the five
-      accounts of the specification's table, each in its stated role and the last in none; each
-      signs in through the portal with the password `password` and meets no confirmation step;
-      running it twice creates no duplicate; on the production baseline it fails and creates
-      nothing; when one of the addresses already belongs to somebody it fails rather than adopting
-      the account. Covers FR-023 to FR-029.
-- [ ] T022 [US4] `fairdm/management/commands/create_dev_accounts.py` — creates the accounts through
-      the ORM, hashing the password at run time, marking each address confirmed, and refusing on
-      any resolved environment other than `development` (research R7). It ships with the package,
-      not the demo. Covers FR-022.
-- [ ] T023 [P] [US4] Document the accounts and the command where a portal developer will look for
-      them (`docs/portal-development/`), including the warning that they exist only outside
-      production, and point the demo's own getting-started page at it.
+- [ ] T026 [P] [US4] `tests/test_management/test_commands/test_create_dev_accounts.py` — creates
+      exactly the five accounts of the specification's table, each in its stated role and the last
+      in none; each signs in through the portal with the password `password` and meets no
+      confirmation step; running it twice creates no duplicate; on the production baseline it fails
+      and creates nothing; when one of the addresses already belongs to somebody it fails rather
+      than adopting the account. Covers FR-023 to FR-029.
+- [ ] T027 [US4] `fairdm/management/commands/create_dev_accounts.py` — creates the accounts through
+      the ORM, hashing the password at run time, marking each address confirmed, and refusing on any
+      resolved environment other than `development` (research R7). It ships with the package, not
+      the demo. Covers FR-022.
+- [ ] T028 [P] [US4] `tests/test_conf/test_checks.py::TestDevAccountsAbsent` — a production portal
+      holding any of the five development addresses reports `fairdm.E301` naming them; a
+      development portal holding all five reports nothing; a database with no user table reports
+      nothing.
+- [ ] T029 [US4] `check_dev_accounts_absent` in `fairdm/conf/checks.py`, id `fairdm.E301`, tagged
+      as `fairdm.E300` is. The command's refusal guards the act of loading and not the resulting
+      state: an account with a published password that reached production by a database copy, a
+      dump restore or an environment variable changing under a live database is exactly the
+      condition this feature already built a check for.
+- [ ] T030 [P] [US4] Document the accounts and the command in `docs/portal-development/`, including
+      that they exist only outside production, and point the demo's getting-started page at it.
 
 ## Phase 6: US5 — A visitor can see who runs the portal (P3)
 
-- [ ] T024 [P] [US5] `tests/test_contrib/test_contributors/test_views/test_team.py` — a visitor who
+- [ ] T031 [P] [US5] `tests/test_contrib/test_contributors/test_views/test_team.py` — a visitor who
       is not signed in gets 200; roles appear in declaration order; a person holding two roles
-      appears under both; a role nobody holds is absent from the response; no email address appears
-      anywhere in it; contribution roles do not appear; the page holds its query count as the
-      number of holders grows. Covers FR-030 to FR-035.
-- [ ] T025 [US5] The view, template and route in `fairdm/contrib/contributors` beside
-      `people-list` and `organization-list`. Each person is their name and a link to their public
-      profile.
-- [ ] T026 [US5] Add the page to the `Community` group in `fairdm/menus/menus.py`, beside People
+      appears under both; a role nobody holds is absent from the response; a deactivated holder is
+      absent; no email address appears anywhere in it; contribution roles do not appear; the page
+      holds its query count as the number of holders grows. Covers FR-030 to FR-035.
+- [ ] T032 [US5] The view, template and route in `fairdm/contrib/contributors` beside `people-list`
+      and `organization-list`. Each person is their name and a link to their public profile.
+- [ ] T033 [US5] Add the page to the `Community` group in `fairdm/menus/menus.py`, beside People
       and Organizations, with an icon from the existing set. Covers FR-032.
-- [ ] T027 [P] [US5] Document the page in the administrator guide: what it shows, and that putting
+- [ ] T034 [P] [US5] Document the page in the administrator guide: what it shows, and that putting
       somebody in a role is what puts them on it.
 
 ## Phase 7: Polish
 
-- [ ] T028 [POLISH] Full suite, `pre-commit run --all-files`, and `makemigrations --check` clean —
+- [ ] T035 [POLISH] Full suite, `pre-commit run --all-files`, and `makemigrations --check` clean —
       this feature adds no model change, so a migration appearing is a defect, not an output.
-- [ ] T029 [POLISH] Simplification pass over the feature diff, inside its blast radius only.
+- [ ] T036 [POLISH] Simplification pass over the feature diff, inside its blast radius only.
+
+## Watch items for implementers
+
+Recorded from the design review; none of them forces a task, and each is cheaper to know than to
+rediscover.
+
+- `fairdm/menus/menus.py:104` gates the Admin Guide link on `user_is_staff`, so a role holder who is
+  not staff loses that link once administration access is derived. There is no in-portal link to the
+  administration interface at all today; if T033 is touching this file anyway, that is the moment.
+- The `has_permission` template tag has no call site in this repository and reads a `user_permissions`
+  context key nothing sets. It is still public template surface for consuming portals, so T018
+  changes it rather than deleting it.
+- The Data Curator's `Sample` and `Measurement` permissions are largely redundant:
+  `SamplePermissionBackend` and `MeasurementPermissionBackend` already derive those from
+  `change_dataset`/`delete_dataset`. Granting them anyway is the honest declaration of what the role
+  holds and does not depend on that derivation staying as it is.
+- The administration fixture-upload view carries its own `superuser_required`, and django-hijack
+  defaults to superusers only, so widening `has_permission` opens neither.
+- `fairdm/contrib/contributors/views/` and `templates/` already exist; the plan's structure diagram
+  marked them new.
 
 ## Dependencies
 
 - T003 blocks everything after it: every later task reads the declarations.
-- T005 blocks T017 and T019 — nothing can be protected or checked for until it is installed.
-- T011 and T013 block T015: the replacements must work before the group-name branches go.
-- T025 blocks T026.
-- T028 and T029 run last.
+- T005 blocks T020, T022 and T024 — nothing can be protected or checked for until it is installed.
+- T012 and T014 block T018: the replacements must work before the group-name branches go.
+- T016 lands with or before T017, because T017 signs in as a Community Manager.
+- T027 blocks T028. T032 blocks T033.
+- T035 and T036 run last.
 
 ## Boundary
 

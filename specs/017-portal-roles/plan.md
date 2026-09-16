@@ -7,13 +7,18 @@
 ## Summary
 
 Four portal roles are declared once, in code, as a name plus the permissions that name holds. A
-`post_migrate` receiver reconciles them into every portal on every update, receivers on `Group`
-refuse to delete or rename them, and a production-critical system check refuses to boot a portal
-that is missing one. One extra authentication backend carries a model-level permission held through
+`post_migrate` receiver reconciles them into every portal on every update — renaming the three
+legacy groups in place, so the people already in them carry across — receivers and an
+administration class on `Group` refuse to delete or rename a shipped role, and a
+production-critical system check refuses to boot a portal that is missing one, standing down for
+the command that repairs the condition. One extra authentication backend carries a model-level permission held through
 a role down to individual records, which is what makes the rights reach the pages that ask. The
 administration interface stops asking for `is_staff` alone and accepts a holder of a rights-carrying
 role. A management command creates five named development accounts and refuses to run outside
-development. A public page lists who holds which role, reachable from the Community menu.
+development, and a second check reports any of those accounts found on a production portal. The
+Person administration form stops offering `is_superuser`, `is_staff` and `password` to anyone who
+is not a superuser, because the Community Manager's `change_person` right would otherwise be a
+route to superuser. A public page lists who holds which role, reachable from the Community menu.
 
 No new models. No new dependencies. The four roles are `auth.Group` rows; what is new is that
 FairDM owns their definition.
@@ -42,7 +47,8 @@ object-level question.
 anything, so it must distinguish an unmigrated database from a portal missing its roles. The
 development accounts must be impossible to create on the production baseline.
 
-**Scale/Scope**: Four roles, five development accounts, one new page, three call sites removed.
+**Scale/Scope**: Four roles, five development accounts, one new page, five group-name call sites
+removed, two superuser gates replaced.
 
 ## Constitution check
 
@@ -52,14 +58,14 @@ development accounts must be impossible to create on the production baseline.
 |---|---|---|
 | I — Test-First | Every behaviour here is testable without a browser: reconciliation, refusal, the check, the backend, the command, the page. A smoke test per new route is required, and there is one new route. | Pass — each task names its failing test first. |
 | II — Simplicity | The alternative designs (a stored `is_staff` flag, a JSON fixture, a data migration) were each rejected in `research.md` for being more machinery, not less. | Pass — nothing in Complexity Tracking. |
-| III — Anti-Abstraction | One new backend class, one new module of declarations, no base classes, no registry, no hooks. The role definitions are data in a module, not a plugin point. | Pass. |
+| III — Anti-Abstraction | One new backend class, one declarations class, no base classes, no registry, no hooks. The roles are data on a class, not a plugin point. | Pass. |
 | IV — Integration-First | The acceptance scenarios read "sign in as X, open Y", and the tests follow them: client-level tests against the admin, the pages and the command, rather than unit tests of a receiver in isolation. | Pass. |
 | V — Security & data-safety | This feature *is* an access-control change. Every permission granted is enumerated in one module and asserted in a test that pins the exact set, so a widened role cannot pass unnoticed. The development accounts carry a published password and are refused outside development. | Pass, and the security lens at the design review covers it. |
 | VI / XVII — Documentation | `docs/portal-administration/roles.md` is rewritten, `managing_users_and_permissions.md` is reconciled against it, and `CONTEXT.md` gains the two terms. Documentation ships in the story that changes the behaviour it describes. | Pass. |
 | VIII — Internationalization | Role names and every message a person reads are wrapped in `gettext_lazy`. A role's name is stored in English and translated for display. | Pass. |
 | IX — Data-model conventions | No new models, so no new fields needing `help_text` and `verbose_name`. | Not applicable. |
-| X — Test structure | New test modules mirror the source: `tests/test_roles.py`, `tests/test_permissions.py`, `tests/test_conf/test_checks.py` (exists), `tests/test_contrib/test_contributors/test_views/test_team.py`, `tests/test_management/test_create_dev_accounts.py`. | Pass. |
-| XI — Cohesion | The declarations and the one function that reads them stay in a single module; the receivers live with the app that owns the models they guard. | Pass. |
+| X — Test structure | New test modules mirror the source, including `tests/test_management/test_commands/` for a management command, which is where this suite already mirrors that package. | Pass, after the design review corrected the command's test path. |
+| XI — Cohesion | The declarations and the three functions that read them are one class, `PortalRoles`, not a module of loose functions — they share a subject, which is the article's own test. The receivers live with the app that owns the models they guard. | Pass, after the design review corrected an earlier reading of this row. |
 | XVIII — Living demo | The development accounts ship with the package rather than the demo, and the demo's documentation points at the command that creates them. | Pass. |
 
 ## Project structure
@@ -81,11 +87,11 @@ specs/017-portal-roles/
 
 ```text
 fairdm/
-├── roles.py                      # NEW - the four roles and the permissions each holds
+├── portal_roles.py               # NEW - PortalRoles: the four roles and what each holds
 ├── permissions.py                # NEW - PortalRolePermissionBackend (model level reaches records)
 ├── apps.py                       # connect the post_migrate receiver
 ├── conf/
-│   ├── checks.py                 # NEW check fairdm.E300 - the portal roles are present
+│   ├── checks.py                 # NEW checks: fairdm.E300 roles present, E301 dev accounts absent
 │   └── settings/
 │       ├── auth.py               # register the backend
 │       └── apps.py               # drop the groups fixture from the setup pipeline
@@ -94,27 +100,35 @@ fairdm/
 ├── menus/menus.py                # the Community group gains the team page
 ├── fixtures/groups.json          # DELETED - replaced by the declarations
 └── contrib/
-    ├── admin/sites.py            # administration access for role holders
+    ├── admin/sites.py            # administration access for role holders; the Group admin class
     ├── contributors/
     │   ├── choices.py            # DefaultGroups removed
     │   ├── models.py             # Person.is_data_admin removed
     │   ├── receivers.py          # refuse deletion and renaming of a shipped role
+    │   ├── admin.py              # narrow the Person form; permission-gate claims and merges
     │   ├── urls.py               # the team page route
-    │   ├── views/                # NEW - the team page view
-    │   └── templates/            # NEW - the team page template
+    │   ├── views/                # the team page view (directory exists)
+    │   └── templates/            # the team page template (directory exists)
     ├── plugins/utils.py          # the group-name branch removed
+    ├── import_export/views.py    # two more group-name branches removed
     └── templatetags/fairdm.py    # the group-name branch removed
 
 tests/
-├── test_roles.py
+├── test_portal_roles.py
 ├── test_permissions.py
 ├── test_conf/test_checks.py
-├── test_management/test_create_dev_accounts.py
+├── test_management/test_commands/test_create_dev_accounts.py
+├── test_contrib/test_admin/test_sites.py
+├── test_contrib/test_admin/test_group_admin.py
+├── test_contrib/test_contributors/test_admin.py
+├── test_contrib/test_contributors/test_permissions.py
 └── test_contrib/test_contributors/test_views/test_team.py
 ```
 
 **Structure decision**: the framework package as it stands. The role declarations sit at
-`fairdm/roles.py` because a portal role spans the whole framework — it grants rights over core
+`fairdm/portal_roles.py` — the qualified name, because this codebase already spends the bare word
+"roles" on contribution roles and FR-039 exists to keep the two apart — because a portal role spans
+the whole framework — it grants rights over core
 records *and* over contributor records — so it belongs to neither app alone. The receivers guarding
 `Group` live in `fairdm/contrib/contributors/receivers.py`, where this codebase already keeps
 receivers over auth-adjacent models.
@@ -128,10 +142,12 @@ first and alone.
 
 ### Phase 1 — US-1, the roles arrive with the framework (P1)
 
-`fairdm/roles.py` declares the four roles, each a name and an explicit list of permissions. A
-reconcile function creates missing roles, sets each one's permission set to the declaration, and
-leaves membership untouched. A `post_migrate` receiver with no sender and a `dispatch_uid` calls
-it. `fairdm/fixtures/groups.json` and its `loaddata` line go, along with `DefaultGroups` and the
+`fairdm/portal_roles.py` declares the four roles on one class, each a name and an explicit list of
+permissions — including the Portal Administrator's, which holds no right to edit a group, because a
+role that can edit groups can rewrite its own rights. `reconcile()` renames the three legacy groups
+in place first, so their members carry across, then creates what is missing, sets each role's
+permission set to the declaration, and leaves membership untouched. A `post_migrate` receiver with
+no sender and a `dispatch_uid` calls it. `fairdm/fixtures/groups.json` and its `loaddata` line go, along with `DefaultGroups` and the
 administrator documentation describing five roles that never existed.
 
 The Data Curator's permission list is derived from what the three group-name call sites could reach
@@ -140,21 +156,28 @@ The Data Curator's permission list is derived from what the three group-name cal
 ### Phase 2 — US-2, a role decides what its holder can do (P1)
 
 `PortalRolePermissionBackend` answers an object-level question with the model-level permission the
-person holds, registered after the existing backends. `CustomAdminSite.has_permission` and its
-login form accept a holder of a rights-carrying role. The three group-name call sites go, each in
-the same commit as the test pinning the behaviour that replaces it.
+person holds, registered after the existing backends, carrying the exclusion for
+`contributors.manage_organization` that the framework already documents. `CustomAdminSite`
+and its login form accept a holder of a rights-carrying role, and the Person administration form
+stops offering `is_superuser`, `is_staff` and `password` to a non-superuser. The five group-name
+call sites go, each in the same commit as the test pinning the behaviour that replaces it, and the
+superuser gates on profile claims and merges become permission questions the Community Manager
+role can answer.
 
 ### Phase 3 — US-3, the roles cannot be lost by accident (P2)
 
-`pre_delete` and `pre_save` receivers on `Group` refuse to remove or rename a shipped role and say
-why. `fairdm.E300` joins the production-critical check subset, tolerating an unmigrated database
-and naming every missing role at once.
+`pre_delete` and `pre_save` receivers on `Group` refuse to remove or rename a shipped role, and a
+`Group` administration class turns that refusal into something the person who clicked can read.
+`fairdm.E300` joins the production-critical check subset, tolerating an unmigrated database, naming
+every missing role at once, and standing down for the command that installs them.
 
 ### Phase 4 — US-4, signing in as each role (P2)
 
 `create_dev_accounts` creates the five accounts, idempotently, each with a confirmed email address,
 and refuses to run when the resolved environment is not `development`. It refuses rather than
-adopts when an address already belongs to somebody.
+adopts when an address already belongs to somebody. `fairdm.E301` reports any of those five
+addresses found on a production portal, because the command's refusal guards the act of loading
+and not the state a database copy can produce.
 
 ### Phase 5 — US-5, the portal team page (P3)
 
@@ -175,7 +198,11 @@ applies.
 | Third-party administration code calls `staff_member_required` rather than going through the admin site. | A smoke test signs in as each role and reaches the administration index and one changelist. Anything bypassing the site surfaces there. |
 | Removing `is_data_admin` and the template-tag branch narrows somebody's rights in a portal relying on them. | The Data Curator's permission list is built from exactly what those call sites reached, and the removal lands in the story that grants them. |
 | `fairdm.E300` fires during `migrate` on a fresh production database and blocks setup. | The check reports nothing when the group table is absent or unreadable, and a test covers a database with no tables. |
-| The development accounts reach a production portal. | The command refuses on any resolved environment other than `development`, the same rule the production boot guard uses, and a test asserts nothing is created. |
+| The development accounts reach a production portal. | The command refuses on any resolved environment other than `development`, the same rule the production boot guard uses, and a test asserts nothing is created. `fairdm.E301` then reports any that arrived by some route the command never saw, such as a database copy. |
+| An upgraded production portal cannot start and cannot migrate, because the boot refusal fires before the thing that installs the roles. | The refusal stands down for the command that repairs the condition, and T024 covers exactly that upgrade path. This was a critical design-review finding, and it is the reason `migrate` is named in T025. |
+| The people already in the legacy groups lose their rights silently. | Reconciliation renames the legacy rows rather than leaving them, which carries the membership rows across untouched. T004 covers it. |
+| `contributors.change_person` becomes a route to superuser through the Person administration form. | The form drops `is_superuser`, `is_staff` and `password` for a request whose user is not a superuser, and T015 asserts a Community Manager cannot set the flag on anybody. |
+| The object-level fallback answers a permission the framework deliberately refuses to derive. | The backend carries the same explicit exclusion for `contributors.manage_organization` that `fairdm/core/permissions.py` already documents, and T011 covers it. |
 
 ## Complexity tracking
 

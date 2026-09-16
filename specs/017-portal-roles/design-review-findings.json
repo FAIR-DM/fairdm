@@ -1,0 +1,155 @@
+{
+  "lens": "security",
+  "stage": "design",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "Design review of specs/017-portal-roles/{spec,plan,research,decisions,tasks}.md against the live codebase on branch 017-portal-roles. No diff exists. Code read: fairdm/apps.py, fairdm/conf/checks.py, fairdm/conf/settings/auth.py, fairdm/conf/settings/apps.py, fairdm/contrib/admin/sites.py, fairdm/contrib/admin/views.py, fairdm/contrib/admin/apps.py, fairdm/contrib/contributors/{models,choices,permissions,admin,apps,resources,filters}.py, fairdm/contrib/contributors/receivers.py (listing), fairdm/core/permissions.py, fairdm/core/{sample,measurement}/permissions.py (grep), fairdm/contrib/plugins/utils.py, fairdm/contrib/import_export/views.py, fairdm/templatetags/fairdm.py, fairdm/menus/menus.py, fairdm/fixtures/groups.json, fairdm/management/commands/ (listing), tests/ tree, CONSTITUTION.md, CONTEXT.md. Django premises re-read in .venv/lib/python3.13/site-packages/django/.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-07/817f8514",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "critical",
+      "confidence": "verified",
+      "claim": "[security] Every Community Manager can make themselves a superuser. FR-004 requires the role to hold `contributors.change_person`, and the Person change form in the administration interface exposes `is_superuser`, `is_staff` and `password` as editable fields. The plan grants the permission and never touches the form, so the role's ceiling is not 'the people side' but the whole portal.",
+      "evidence": "spec.md FR-004 ('view and change person ... records', 'deactivate and reactivate accounts') and US-2 AC2, which places that on the administration interface. fairdm/contrib/contributors/admin.py:213 registers `UserAdmin(BaseUserAdmin, ...)` for `Person`; its explicit `fieldsets` put `password` (line 276), `is_staff` (278), `is_superuser` (279) and `groups` (287) on the change form. `BaseUserAdmin` is `django.contrib.auth.admin.UserAdmin` (import at admin.py:6), which applies no permission gate to those fields. tasks.md T003 and T013 never mention the form; T016's assertions for the role stop at 'cannot delete a person'. The import route is not affected — `PersonResource.Meta.fields` (fairdm/contrib/contributors/resources.py:50-57) is an explicit allowlist without those fields — so the change form is the whole of the exposure.",
+      "reproduction": "Put an account in Community Manager. Sign in to /admin/, open /admin/contributors/person/<own pk>/change/, tick `is_superuser`, save. The same form also sets any other account's password.",
+      "suggested_fix": "Add a task before T016: subclass the Person `UserAdmin` so that `get_fieldsets`/`get_form` drop `is_superuser`, `is_staff` and `password` for a request whose user is not a superuser, and extend T016 to assert a Community Manager cannot set `is_superuser` on themselves or on another account. This is the narrowest edit that keeps FR-004 as written."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "critical",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The boot refusal makes the roles uninstallable on every existing production portal. `fairdm.E300` fires in `ready()`, which runs before any management command, so a production portal upgrading to this version — auth tables long since migrated, the four roles not yet created — raises `SystemCheckError` and `migrate` never runs. The only thing that installs the roles is the `post_migrate` receiver, so the condition cannot be repaired from inside the portal. FR-016 and SC-002 are both unmet.",
+      "evidence": "fairdm/apps.py:110-135 — `FairDMConfig.ready()` calls `_check_production_configuration()` unconditionally for any resolved environment outside `NON_PRODUCTION_ENVIRONMENTS` (apps.py:24), and it raises `SystemCheckError` on any serious `production_critical` result. tasks.md T020 tags `fairdm.E300` `production_critical` and narrows its tolerance to 'the group table is absent or unreadable'; plan.md Risks row 4 states the same tolerance. An upgraded portal has `auth_group` present and populated with the three legacy rows from fairdm/fixtures/groups.json, so the tolerance never applies. plan.md also notes this feature adds no migration (tasks.md T028: 'a migration appearing is a defect'), so there is no unapplied-migration signal to distinguish 'up to date' — the predicate FR-015 is written against — from 'roles deleted'. quickstart.md states the impossible recovery in as many words: 'a production portal will refuse to start and name it. Running `migrate` puts it back.'",
+      "reproduction": "Take a portal running the previous release against PostgreSQL with `DJANGO_ENV=production`. Install this version and run `python manage.py migrate`. `django.setup()` runs `ready()`, E300 reports four missing roles, `SystemCheckError` is raised, the command exits, and the portal cannot be started or repaired. `DJANGO_SETUP_TOOLS['']['always_run']` (fairdm/conf/settings/apps.py:269-275) hits the same wall.",
+      "suggested_fix": "Amend T020 and plan.md Phase 3 so the production boot refusal stands down for the commands that repair the condition — check `sys.argv` for `migrate` (and `check`) in `_check_production_configuration` before running E300, or register E300 with `DeployTags.deploy` only and raise the refusal from a serving-process hook rather than `ready()`. Add a test task for 'an upgraded production database with none of the four roles still runs `migrate` to completion'. If neither shape is acceptable, FR-015's 'database is up to date' has no computable definition in a release that ships no migration and the requirement needs re-gating with the maintainer against spec.md."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] research.md R1 says there are three group-name call sites and that 'nothing else in the framework reads a group'. There are five. `Person.is_data_admin` is also read twice in `fairdm/contrib/import_export/views.py`, and T015 deletes the property, so the import and publish plugin checks will raise `AttributeError` on every request. The two permissions those checks guard, `import_data` and `can_publish`, appear in no role's permission list.",
+      "evidence": "fairdm/contrib/import_export/views.py:157 `return user.has_perm(\"import_data\", instance) or user.is_data_admin` and :224 `return user.has_perm(\"can_publish\", instance) or user.is_data_admin`, both inside `check()` staticmethods on plugin views. `fairdm/contrib/contributors/models.py:783-788` defines the property; tasks.md T015 removes it and names only `templatetags/fairdm.py`, `contrib/plugins/utils.py` and `models.py`. research.md R1's table and its 'Settles' paragraph assert the call-site set is closed. research.md R9 derives the Data Curator's permission list from 'the models the three call sites could reach' and never mentions `import_data` or `can_publish`, so the derivation is short by two permissions even before the AttributeError.",
+      "reproduction": "After T015, sign in as anyone and open a dataset's import or publish plugin page: `user.is_data_admin` no longer exists on `Person`, so `check()` raises `AttributeError` for every user including superusers.",
+      "suggested_fix": "Correct R1's table to five call sites, extend T015 to replace both `or user.is_data_admin` clauses in `fairdm/contrib/import_export/views.py` with the ordinary permission question, and add `import_data` and `can_publish` to the Data Curator's list in T003 so FR-003 is not narrower than what `Data Administrators` reaches today."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Nothing carries the members of the legacy groups into the new roles. Every upgraded portal ends with `Data Administrators` still holding its people, `is_data_admin` deleted, and none of those people in `Data Curator` — so their rights are silently revoked. US-1 AC3 ('no existing person's rights are reduced') and SC-002 ('no change to who is in any group') both fail, and the mitigation plan.md offers for this exact risk does not address it.",
+      "evidence": "fairdm/fixtures/groups.json creates `Portal Administrators`, `Data Administrators` and `Developers`; fairdm/contrib/contributors/choices.py:37-42 names the same three. tasks.md T006 deletes the fixture and its `loaddata` line, T007 deletes `DefaultGroups`, T015 deletes `is_data_admin` — no task reads, renames or drains the existing rows. T004's reconcile assertions cover an empty database, a repeat run, hand-edited permissions, membership of a shipped role, and a portal's own group; the pre-existing-legacy-group case is absent. plan.md Risks row 3 claims the removal 'lands in the story that grants them', but granting the permissions to a role nobody has been moved into grants them to nobody.",
+      "reproduction": "Portal with four volunteers in `Data Administrators`. Upgrade and run `migrate`. The four new roles appear empty; the four volunteers hold nothing; every plugin edit page and the import/publish flow they used yesterday refuses them.",
+      "suggested_fix": "Add a US-1 task that renames the legacy rows in place inside `reconcile_portal_roles()` before the get-or-create step — `Portal Administrators` to `Portal Administrator`, `Data Administrators` to `Data Curator`, `Developers` to `Developer` — which preserves the M2M membership rows without a data migration, and guard it so it only fires when the target name does not already exist. Add the matching case to T004: a database holding the three legacy groups with members ends with those people in the corresponding new roles."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The object-level fallback is unscoped, so it overrides a deliberate denial the codebase already carries. `contributors.manage_organization` is decided exclusively by a current OWNER affiliation and must never come from a stored grant; the new backend answers it True on every `Organization` for anyone holding the model-level permission, and Django ORs backends so nothing can veto it.",
+      "evidence": "fairdm/core/permissions.py:44-53 hard-codes a refusal for `contributors.manage_organization` on an `Organization`, with the comment that Django's `has_perm` 'ORs every backend's answer together, and cannot let one backend veto another's yes'. fairdm/contrib/contributors/permissions.py documents why (Defect B) and records that the `Permission` row survives in any database migrated forward from before the permission was dropped from `Organization.Meta.permissions` — so it is still selectable in the Group and Person admin. fairdm/contrib/contributors/admin.py:627-631 cites a prior review's SEC-001 for the same class of bug. tasks.md T011 describes the new backend as answering 'an object-level question from the model-level permissions the person holds', with no exclusion; T010's cases do not include a permission the framework deliberately refuses to derive.",
+      "reproduction": "Add the stale `manage_organization` permission to any group or to a person's `user_permissions` in the admin. `user.has_perm('contributors.manage_organization', any_org)` now returns True through the new backend, and `transfer_ownership_action` (admin.py:655) admits them to any organisation they do not own.",
+      "suggested_fix": "Give `PortalRolePermissionBackend` the same explicit exclusion the parent already carries: return False without answering for `contributors.manage_organization` / `manage_organization`, mirroring fairdm/core/permissions.py:44-53. Add the case to T010."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] FR-004's 'act on profile claims and merges' cannot be delivered by any permission grant. Both surfaces are superuser-only by a recorded decision, and no task changes them — so T016's assertion that a Community Manager 'can act on a profile claim and a merge' is unsatisfiable, and SC-005 fails for that role.",
+      "evidence": "fairdm/contrib/contributors/admin.py:440-441 `claim_link_view` raises `PermissionDenied` unless `request.user.is_superuser`, docstring: 'Superuser-only (Route 2): a claim token is a credential, and minting one is not an ordinary staff operation.' admin.py:482-483 the same for `merge_view`: 'merging destroys the discarded person's identity ... That is not an ordinary staff operation.' Both admin actions (admin.py:336-370) only redirect to those views. tasks.md T013 changes `CustomAdminSite.has_permission` and the login form; T015 removes the three group-name branches; nothing else touches contributor admin. spec.md FR-004 and US-2 AC2 nonetheless require the role to act on claims and merges.",
+      "reproduction": "Grant a Community Manager every contributors permission, sign in, select a Person and run 'Merge selected Person into another'. The redirect lands on `contributors_person_merge`, which raises `PermissionDenied` — 403.",
+      "suggested_fix": "This is a conflict between spec.md FR-004 and a recorded security decision in the code, so it is a re-gate with the maintainer rather than a plan edit. Either narrow FR-004 to drop claims and merges (leaving them superuser-only) and drop them from T016, or add an explicit task replacing both `is_superuser` gates with object-level permission checks — which is a 'grant a new permission or role' change and needs the maintainer's sign-off on record before any implementer touches it."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] FR-002's permissions are never named, and every candidate makes the Portal Administrator a superuser in all but name. T003 enumerates the Data Curator's and Community Manager's lists and skips the Portal Administrator's; the obvious implementation of 'add a person to, or remove a person from, any portal role' is `auth.change_group`, and Django's `GroupAdmin` edits a group's permission set with a `filter_horizontal` widget.",
+      "evidence": "spec.md FR-002; tasks.md T003 names the Data Curator's and the Community Manager's lists and says nothing about the Portal Administrator's, while T002 requires 'each one's permission set asserted exactly'. .venv/lib/python3.13/site-packages/django/contrib/auth/admin.py:28-32 registers `GroupAdmin` with `filter_horizontal = (\"permissions\",)`; fairdm/conf/settings/apps.py:34 installs `FairDMAdminSite` with `default_site` = `CustomAdminSite` (fairdm/contrib/admin/apps.py:11-12), so that registration lands on the portal's admin. decisions.md D9 states the roles are 'Not a replacement for the superuser'; spec.md Assumptions says a superuser 'continues to hold everything', which the escalation makes meaningless. The T018 rename guard blocks a rename, not a permission edit, and D8's reset-on-update only lands at the next `migrate`.",
+      "reproduction": "Portal Administrator with `auth.change_group` and `auth.add_group` creates a group holding every permission — a portal-defined group, so FR-014 leaves it untouched by the reconcile — adds themselves to it through the Person change form, and now holds every model permission on every instance via the new backend.",
+      "suggested_fix": "Name the Portal Administrator's permissions in T003 explicitly, and implement FR-002 as `auth.view_group` plus `contributors.change_person` (membership is edited on the Person form's `groups` field) rather than `auth.add_group`/`auth.change_group`. Add a case to T002 asserting the role holds no `auth.add_group` and no `auth.change_group`. If the maintainer wants group authoring in the role, record the escalation in decisions.md as accepted rather than leaving it unstated."
+    },
+    {
+      "id": "SPEC-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] FR-012 and FR-013 require the refusal to carry a message naming the role, in the administration interface. The plan's only mechanism is a raising `pre_delete`/`pre_save` receiver, which in the admin produces an unhandled 500 (or a bare 403 for `PermissionDenied`) — the role survives, but no explanation reaches the person who clicked.",
+      "evidence": "spec.md FR-012 ('MUST be refused, with a message naming the role and saying that FairDM requires it'), FR-013 and US-3 AC1 ('refused with an explanation'). tasks.md T018 provides only the two receivers; T017 asks that the admin delete view 'is refused', which a 500 satisfies. Django's admin `delete_view` has no handler for an arbitrary exception raised from a `pre_delete` receiver, and `GroupAdmin` (.venv/.../django/contrib/auth/admin.py:28) is the stock one with no override. The precedent research.md R6 cites, `refuse_off_vocabulary_role` (connected at fairdm/contrib/contributors/apps.py:29-33), is an ORM-level guard and was never the seam that produces an admin message.",
+      "reproduction": "Sign in as a superuser, open /admin/auth/group/<shipped role pk>/delete/, confirm. With DEBUG=False the response is 'Server Error (500)'; the role survives, and nothing names it.",
+      "suggested_fix": "Keep the receivers for ORM-level enforcement and add one task registering a `GroupAdmin` subclass on `CustomAdminSite` whose `has_delete_permission` returns False for a shipped role and whose form raises a field-level `ValidationError` naming the role when `name` changes. Extend T017 to assert the admin response carries the role's name."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The widening is a breaking access-control change for existing portals and ships with no migration guidance. After this feature any account already holding a model-level permission — granted directly or through a portal's own group, commonly just to let someone use the admin — holds it on every instance in the portal. plan.md records the widening as intended and no task tells an upgrading portal to audit for it.",
+      "evidence": "plan.md Risks row 1: 'anybody holding a model permission directly now holds it on every instance', mitigated only by 'the suite pins it'. tasks.md T011 registers the backend globally in `AUTHENTICATION_BACKENDS` (fairdm/conf/settings/auth.py:49-61), the widest seam in the framework. CONSTITUTION.md Article VI and Article XVII both require a migration guide with step-by-step instructions for a breaking change; T008 rewrites the role reference and T023 documents the dev accounts, neither is an upgrade note. The same story silently narrows the public `has_permission` template tag (fairdm/templatetags/fairdm.py:200-215), whose group branch T015 removes, leaving it falsy for every non-superuser in any portal template that loads it.",
+      "reproduction": "A portal granted a volunteer `dataset.change_dataset` at model level so they could add datasets in the admin. Before: object-level checks refused them another team's dataset. After: they can change every dataset in the portal, with no announcement.",
+      "suggested_fix": "Add a US-1 documentation task: an upgrade note in the changelog and in `docs/portal-administration/` stating that model-level permissions now apply to every instance, that portals should audit `auth_permission` grants made outside the four roles before upgrading, and that the `has_permission` template tag no longer grants on group name."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[architecture] `fairdm/roles.py` is planned as a module of functions sharing one subject, which Article XI puts on a class — and in a published framework that class is the only extension point a portal has. The Constitution Check claims compliance on the strength of 'the one function that reads them', but the tasks name three.",
+      "evidence": "tasks.md T003: 'Expose the shipped names and the rights-carrying subset as module-level helpers'; T005 adds `reconcile_portal_roles()` in the same module. That is at least three module-level callables sharing the subject 'the shipped portal roles', which is exactly Article XI's test (CONSTITUTION.md:140-165: 'two or more module-level functions that share a subject belong on a class ... In a published framework, a class is the extension point'). plan.md's Constitution Check row for XI reads 'The declarations and the one function that reads them stay in a single module', which does not describe T003. No Article XI exception applies — this is not `conftest.py`, a migration, `urls.py`, `apps.py`, a registered tag, a receiver or a command entry point.",
+      "suggested_fix": "Amend T003 to declare one class holding today's behaviour — the four declarations as class-level data, with `shipped_names()`, `rights_carrying()` and `reconcile()` as its methods — and correct the plan's Article XI row to match. Article III still applies: one class, no base class and no registry for a second implementation that does not exist."
+    },
+    {
+      "id": "SEC-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The development-account refusal guards the act of loading, never the resulting state. Nothing detects five accounts with the published password `password` — one of them a Portal Administrator — already present on a portal running the production baseline, which is the shape this feature already built a check for in FR-015.",
+      "evidence": "tasks.md T022 refuses 'on any resolved environment other than `development`'; T021's production case asserts only that the load fails and creates nothing. `resolved_environment()` (fairdm/apps.py:30-38) reads the `DJANGO_ENV` setting, so the refusal binds the command's environment, not the database's history. decisions.md D7 states the stakes plainly: 'Loading them into a running portal would hand anybody who reads the documentation an administrator account.' No task adds a check, and E300's own registration pattern (T020) shows the mechanism is already available and cheap.",
+      "reproduction": "A developer runs `create_dev_accounts` against a database that is later promoted to production, or restores a development dump into a staging portal that is then given `DJANGO_ENV=production`. Five accounts with the password `password` are live, one holding Portal Administrator, and neither the boot refusal nor `check --deploy` says a word.",
+      "suggested_fix": "Add one US-4 task: a `fairdm.E301` check tagged the same way as E300 that reports any of the five development addresses present on a non-development environment, tolerating an absent or unreadable user table exactly as E300 does. Add the case to T021."
+    },
+    {
+      "id": "SPEC-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] `fairdm/roles.py` takes the bare word this codebase already spends on contribution roles, in the same feature whose FR-039 exists to keep the two apart.",
+      "evidence": "spec.md FR-039 requires CONTEXT.md to 'define portal role and contribution role as distinct terms'. In the code today, 'roles' means contribution roles: `FairDMRoles` at fairdm/core/vocabularies.py:572 with its Project/Dataset/Sample/Measurement role collections, `Contribution.roles` in CONTEXT.md's Contribution entry, and `refuse_off_vocabulary_role` at fairdm/contrib/contributors/apps.py:29. plan.md's Project structure puts the new module at `fairdm/roles.py`, so `from fairdm.roles import ...` reads as the wrong one.",
+      "suggested_fix": "Name it `fairdm/portal_roles.py` in plan.md's Project structure and in T003/T005, and mirror the test module to `tests/test_portal_roles.py`."
+    },
+    {
+      "id": "SPEC-007",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The fault here is in spec.md, not the plan: a deactivated account stays in its group, so the public team page will go on naming a departed volunteer as the portal's administrator. FR-030 says the page lists 'the people holding each portal role' while the Edge Cases say a deactivated account 'holds nothing', and the two readings give different pages.",
+      "evidence": "spec.md FR-030 and FR-034 against spec.md Edge Cases ('A person in a rights-carrying role has their account deactivated. A deactivated account holds nothing, whatever role it is in.'). Deactivation is `is_active`, which does not touch `Person.groups` — `ModelBackend._get_permissions` at .venv/lib/python3.13/site-packages/django/contrib/auth/backends.py:110 refuses a deactivated user's permissions without altering membership. tasks.md T024 and T025 say nothing about `is_active`, so the page will list them.",
+      "suggested_fix": "Re-gate the wording with the maintainer against spec.md: either add to FR-030 that the page lists active holders only, or add to the Edge Cases that a deactivated holder is still listed. Whichever is chosen, add the case to T024."
+    }
+  ],
+  "notes": [
+    "Each finding's lens is carried in its id prefix (SPEC / SEC / ARCH) and repeated at the head of its claim, because the schema's finding object sets additionalProperties to false and has no lens field.",
+    "research.md's four load-bearing Django premises were re-read against the resolved package and all hold: ModelBackend returns an empty permission set when obj is not None (django/contrib/auth/backends.py:110), AdminSite.has_permission is `is_active and is_staff` (django/contrib/admin/sites.py:207), AdminAuthenticationForm.confirm_login_allowed refuses a non-staff user (django/contrib/admin/forms.py:20-27), and post_migrate is sent once per app config that has a models module (django/core/management/sql.py:44-59). R5's ordering claim also holds: django.contrib.auth sits at INSTALLED_APPS line 37 and fairdm at line 53, so create_permissions is connected first and runs first within each send.",
+    "quickstart.md's 'a production portal will refuse to start and name it. Running `migrate` puts it back' is the same defect as SPEC-001, stated in the administrator's own words.",
+    "tasks.md T021 puts the command's tests at tests/test_management/test_create_dev_accounts.py; the existing mirror for fairdm/management/commands/ is tests/test_management/test_commands/ (Article X).",
+    "plan.md's Project structure marks fairdm/contrib/contributors/views/ and templates/ as NEW; both already exist.",
+    "fairdm/menus/menus.py:104 still gates the Admin Guide link on user_is_staff, so a role holder who is not staff loses that link once admin access is derived rather than stored. There is no in-portal link to /admin/ at all today.",
+    "'rights-carrying role' is load-bearing in FR-006, FR-008, T012 and T013 but is not among the terms FR-039 adds to CONTEXT.md.",
+    "The has_permission tag at fairdm/templatetags/fairdm.py:200 has no call site in this repository and reads a user_permissions context key nothing ever sets; T015 should record that before editing it, since it is still public template-tag surface for consuming portals.",
+    "T018's pre_save guard must allow a create (pk is None), or reconcile's own get_or_create will be refused by the receiver it just installed.",
+    "PortalRolePermissionBackend must return False when obj is None, or asking user.has_perm(perm) inside it will recurse through the backend chain back into itself.",
+    "T003's Sample and Measurement entries for the Data Curator are largely redundant: SamplePermissionBackend and MeasurementPermissionBackend already derive those from dataset.change_dataset / dataset.delete_dataset (fairdm/core/sample/permissions.py:93, fairdm/core/measurement/permissions.py:101).",
+    "The admin fixture-upload view is not exposed by widening CustomAdminSite.has_permission — FixtureUploadView carries its own superuser_required decorator (fairdm/contrib/admin/views.py:16, :33) — and django-hijack defaults to superusers_only, so neither is a route for a role holder.",
+    "Story ordering, red-before-green pairing and the one new route's smoke test all check out: T002<T003, T004<T005, T010<T011, T012<T013, T017<T018, T019<T020, T021<T022, T024<T025, and T024 asserts the team page's status code."
+  ]
+}

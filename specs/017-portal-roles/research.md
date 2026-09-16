@@ -3,7 +3,7 @@
 What the framework already does, and what each of those findings settles. Every claim here was
 read from the code on the branch's base commit (`1a03eec`).
 
-## R1 — There are already three group names, and they carry no permissions
+## R1 — There are already three group names, they carry no permissions, and five places read them
 
 `DefaultGroups` in `fairdm/contrib/contributors/choices.py` names `Portal Administrators`,
 `Data Administrators` and `Developers`. `fairdm/fixtures/groups.json` creates those three groups
@@ -11,17 +11,23 @@ with no permissions attached, and `DJANGO_SETUP_TOOLS` in `fairdm/conf/settings/
 under `on_initial` only — so a portal that was set up before the fixture existed, or set up without
 django-setup-tools, has never had it, and one that has it holds three empty groups.
 
-Three places then decide rights by matching the name of one of them:
+Five places then decide rights from one of those names, three directly and two through the property:
 
 | Where | What it grants |
 |---|---|
 | `Person.is_data_admin` (`contributors/models.py:786`) | `True` for a superuser or any member of `Data Administrators` |
-| `has_perms` template tag (`templatetags/fairdm.py:213`) | any permission the template asks about |
+| `has_permission` template tag (`templatetags/fairdm.py:213`) | any permission the template asks about |
 | `check_has_edit_permission` (`contrib/plugins/utils.py:46`) | edit rights on the plugin's instance |
+| import plugin `check()` (`contrib/import_export/views.py:157`) | `import_data` on the instance |
+| publish plugin `check()` (`contrib/import_export/views.py:224`) | `can_publish` on the instance |
 
-**Settles:** the role set replaces these rather than joining them (FR-019, FR-036). Nothing else in
-the framework reads a group, so the replacement is confined to those three call sites and their
-tests.
+*The last two were missed on the first pass of this research and found by the design review. They
+read `user.is_data_admin`, so deleting the property without replacing them raises `AttributeError`
+on every import and publish page.*
+
+**Settles:** the role set replaces these rather than joining them (FR-019, FR-036), and the Data
+Curator's permission list has to include `import_data` and `can_publish` or the role is narrower
+than the group it replaces. Nothing else in the framework reads a group.
 
 ## R2 — Object-level permissions already have a backend chain, and model-level rights do not reach it
 
@@ -102,9 +108,14 @@ a rule the model layer could not, and the reason is written down at the call sit
 never runs on a plain `save()`, so the signal is the only place the rule holds for every writer.
 
 **Settles:** `pre_delete` and `pre_save` receivers on `Group`, raising, are the framework's own
-idiom for this (FR-012, FR-013). They hold for the administration interface, which is what the
-specification asks for, and they hold for any other ORM writer as a side effect. They do not hold
-against raw SQL, which the specification already accepts.
+idiom for this (FR-012, FR-013), and they hold for every ORM writer. They do not hold against raw
+SQL, which the specification already accepts.
+
+What a raising receiver cannot do is explain itself: in the administration interface it surfaces as
+a server error, and FR-012 and FR-013 both require a message naming the role. So the receivers are
+the enforcement and a `Group` administration class is the explanation — it hides the delete action
+for a shipped role and turns a rename into a field error. The `pre_save` guard has to fire only for
+an existing row, or `reconcile()`'s own creation is refused by the receiver it just installed.
 
 ## R7 — The demo's development accounts have no home yet, and a fixture is the wrong shape for them
 
@@ -145,6 +156,42 @@ permissions for `Project`, `Dataset`, `Sample` and `Measurement` and their attac
 descriptions, dates, contributions — and the object-level fallback from R2 carries them to
 instances.
 
-**Settles:** the role's permission list is derived from the models the three call sites could reach,
-and the story that removes them is the same story that grants them, so no window exists where a
-curator can do less than a data administrator could.
+**Settles:** the role's permission list is derived from the models all five call sites could reach —
+the core records and their attached rows, plus `import_data` and `can_publish` — and the story that
+removes them is the same story that grants them, so no window exists where a curator can do less
+than a data administrator could.
+
+## R10 — The legacy groups hold people, and nothing in the first plan moved them
+
+`fairdm/fixtures/groups.json` created `Portal Administrators`, `Data Administrators` and
+`Developers`, and any portal set up from it has been putting volunteers in them ever since. Deleting
+the fixture and declaring four new roles leaves those rows in place with their members, and the new
+roles empty.
+
+**Settles:** reconciliation renames the legacy rows in place before it creates anything —
+`Portal Administrators` → `Portal Administrator`, `Data Administrators` → `Data Curator`,
+`Developers` → `Developer` — and only when the target name is free. A rename preserves the
+membership rows, so nobody's rights are reduced (US-1 AC3, SC-002) and no data migration is needed.
+
+## R11 — The Person administration form is a route to superuser
+
+`fairdm/contrib/contributors/admin.py:213` registers a `UserAdmin` for `Person` whose fieldsets
+carry `password`, `is_staff`, `is_superuser` and `groups`. Django applies no permission gate to
+those fields: anybody who may change a person may change them.
+
+**Settles:** `contributors.change_person`, which FR-004 requires the Community Manager to hold, is a
+superuser escalation unless the form itself narrows. The form drops those three fields for a
+request whose user is not a superuser. The import route is unaffected — `PersonResource.Meta.fields`
+is an explicit allowlist that omits them.
+
+## R12 — Profile claims and merges are superuser-only by a recorded decision
+
+`claim_link_view` and `merge_view` (`contributors/admin.py:440`, `:482`) raise `PermissionDenied`
+for anyone who is not a superuser, and their docstrings give the reason: a claim token is a
+credential, and a merge destroys the discarded person's identity, so neither is "an ordinary staff
+operation".
+
+**Settles:** FR-004 requires the Community Manager to act on both, so the gates become permission
+questions that the role holds. The recorded reasoning stands for the world it was written in, where
+the only alternative to "superuser" was "anybody with `is_staff`". A role a portal administrator
+grants deliberately is a third thing, and that is what the superseding record has to say.

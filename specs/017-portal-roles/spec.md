@@ -218,8 +218,8 @@ confirm the right names appear under the right roles.
 **Acceptance Scenarios**:
 
 1. **Given** people holding portal roles, **When** a visitor who is not signed in opens the portal
-   team page, **Then** they see each role with the people holding it, in the role order this
-   specification gives.
+   team page, **Then** they see each role with the active people holding it, in the role order this
+   specification gives, and a deactivated holder is not among them.
 2. **Given** that page, **When** a visitor looks for it, **Then** it is reachable from the Community
    group of the main navigation, beside People and Organizations.
 3. **Given** a person holding two portal roles, **When** the page is rendered, **Then** they appear
@@ -304,7 +304,9 @@ confirm the right names appear under the right roles.
 - **FR-018**: Every decision about what a person may see or change MUST be made through the
   permission system.
 - **FR-019**: No portal surface may decide a person's rights by matching the name of a group. The
-  three places that do so today MUST be replaced.
+  five places that do so today MUST be replaced — three that read the group directly and two that
+  read it through `Person.is_data_admin`. *(Corrected 2026-09-16 from "three": the design review
+  found two more in the import and publish plugins.)*
 - **FR-020**: A portal-wide role's rights MUST be assessed alongside the per-record rights the
   framework already holds, without a right being recorded against every individual record.
 - **FR-021**: A change made to a record by a data curator MUST be indistinguishable to a reader from
@@ -329,7 +331,8 @@ confirm the right names appear under the right roles.
 **The portal team page**
 
 - **FR-030**: The portal MUST have a page listing the people holding each portal role, grouped by
-  role, in the order given in FR-001.
+  role, in the order given in FR-001. It lists **active** holders: a deactivated account holds
+  nothing, so naming it as the portal's administrator would tell a visitor something untrue.
 - **FR-031**: The page MUST be readable by a visitor who is not signed in.
 - **FR-032**: The page MUST be reachable from the Community group of the main navigation.
 - **FR-033**: Each person on the page MUST be shown by name with a way to reach their public
