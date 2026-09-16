@@ -346,15 +346,23 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
             form.base_fields.pop("password", None)
         return form
 
+    def _may_manage_persons(self, request):
+        """D13/D21: profile claims and merges are the Community Manager's, through the
+        same ``contributors.change_person`` right FR-004 already gives that role - not
+        "any staff member", which is what the superseded reasoning on ``claim_link_view``
+        and ``merge_view`` was written against."""
+        return request.user.has_perm("contributors.change_person")
+
     def get_actions(self, request):
-        """Drop the merge/claim-link actions for a non-superuser (Route 2).
+        """Drop the merge/claim-link actions for anyone the views themselves would
+        refuse (Route 2).
 
         ``merge_view`` and ``claim_link_view`` themselves are the load-bearing
         gate -- this only keeps the interface from offering an action that
-        would redirect a non-superuser into a page that refuses them.
+        would redirect somebody into a page that refuses them.
         """
         actions = super().get_actions(request)
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             actions.pop("merge_person_action", None)
             actions.pop("generate_claim_link_action", None)
         return actions
@@ -472,8 +480,13 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         for an unrelated, already-reported reason (that URL is commented out
         in ``urls.py``). Refusing here first keeps this permission check
         observable on its own.
+
+        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
+        only alternative to "superuser" was "any staff member". A portal role granted
+        deliberately -- the Community Manager, through ``contributors.change_person``,
+        which FR-004 already gives it -- is a third thing, and now gates this instead.
         """
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             raise PermissionDenied
 
         from django.shortcuts import get_object_or_404
@@ -514,8 +527,13 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         identity and moves their affiliations (including any OWNER one),
         object-level permissions, confirmed emails and social account onto
         the surviving record. That is not an ordinary staff operation.
+
+        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
+        only alternative to "superuser" was "any staff member". A portal role granted
+        deliberately -- the Community Manager, through ``contributors.change_person``,
+        which FR-004 already gives it -- is a third thing, and now gates this instead.
         """
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             raise PermissionDenied
 
         from django.contrib import messages
