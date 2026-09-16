@@ -111,12 +111,12 @@ AppMenu.extend(
                 ),
                 MenuItem(
                     name=_("User Guide"),
-                    url="https://faridm.org/user-guide/",
+                    url="https://fairdm.org/user-guide/",
                     extra_context={"icon": "literature"},
                 ),
                 MenuItem(
                     name=_("Admin Guide"),
-                    url="https://faridm.org/admin-guide/",
+                    url="https://fairdm.org/admin-guide/",
                     check=_can_reach_administration,
                     extra_context={"icon": "literature"},
                 ),

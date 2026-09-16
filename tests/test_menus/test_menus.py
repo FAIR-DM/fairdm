@@ -67,13 +67,13 @@ class TestDocumentationMenuGroupOtherChildren:
         """Second child must be 'User Guide', an external link."""
         child = documentation_menu_group.children[1]
         assert str(child.name) == "User Guide"
-        assert child._url == "https://faridm.org/user-guide/"
+        assert child._url == "https://fairdm.org/user-guide/"
 
     def test_third_child_is_admin_guide(self, documentation_menu_group):
         """Third child must be 'Admin Guide', gated behind the staff-only check."""
         child = documentation_menu_group.children[2]
         assert str(child.name) == "Admin Guide"
-        assert child._url == "https://faridm.org/admin-guide/"
+        assert child._url == "https://fairdm.org/admin-guide/"
 
 
 @pytest.mark.django_db
