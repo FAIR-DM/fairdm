@@ -25,15 +25,10 @@ Users can create their own accounts if self-registration is enabled in your port
 
 ### User Roles
 
-FairDM includes pre-configured user groups that define common roles for research portals:
-
-- **Portal Admin**: Full control over portal configuration and user management
-- **Database Admin**: Can view, edit, create, or delete any research data objects
-- **Site Content**: Can modify general site content and pages
-- **Literature Manager**: Can add, edit, or delete literature entries
-- **Reviewer**: Can review datasets for quality control purposes
-
-You can assign users to groups through the Django admin interface.
+FairDM ships four portal roles — Portal Administrator, Data Curator, Community Manager and
+Developer — declared in code and installed into your portal automatically. See
+[Portal roles](roles.md) for what each one holds. You assign a role to a person on their own
+record's **Groups** field, through the Django admin interface.
 
 ## Object-Level Permissions
 
@@ -125,7 +120,8 @@ For a complete walkthrough of adjusting dataset access, see [Adjusting Dataset A
 **User can edit data they shouldn't have access to:**
 
 - Review object-level permissions for the dataset or project
-- Check if the user is in a group with overly broad permissions (e.g., Database Admin)
+- Check if the user holds the Data Curator role, which reaches every project, dataset, sample
+  and measurement in the portal by design (see [Portal roles](roles.md))
 - Remove unnecessary permissions and document the access policy
 
 ```{note}

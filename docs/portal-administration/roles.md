@@ -1,27 +1,96 @@
-# Roles and Permissions
+# Portal roles
 
-A set of defined roles within the community is essential to maintaing the integrity and
-upkeep of the database. Django itself has a [permissions system](https://docs.djangoproject.com/en/4.1/topics/auth/default/#permissions-and-authorization) built in whereby permission to modify the database can be granted to specific individuals or groups of trusted users.
+FairDM ships four portal roles, declared in code and installed into every portal automatically
+every time its database is brought up to date. Assign one or more of them to a person to decide
+what they can do in your portal, beyond what any signed-in contributor can already do.
 
-Normally, the developer must define particular roles suitable for a given application; however, as FairDM powered applications share a common motive (administering a research database), we provide some pre-packaged roles that will help you get started.
+```{admonition} You are here
+:class: tip
+**Admin Guide** → Portal Roles
 
-## Groups
+If you landed here from a search, start with the [Admin Guide overview](index.md) to understand
+the admin role and core entities.
+```
 
-The built-in roles are defined as Groups within the admin section of your site. Groups are modifiable by database Custodian(s) who can add or remove users from groups as they wish. The available Groups by default are:
+## Superuser vs. Portal Administrator
 
-Portal Admin
-: Controls configuration and overall administration of the site. This includes the ability to add or remove users from groups, and to modify the permissions of groups. 
+These are two different things, and conflating them is the most common source of confusion:
 
-Database Admin
-: Users that are part of this group have permission to view, edit, create or delete any objects associated with the database (by database here we mean the part that was designed to fulfil the needs of the research community).
+Superuser
+: A Django account flag (`is_superuser`), set from the command line or the deployment tooling.
+  It belongs to whoever deploys and maintains the portal's infrastructure, holds every
+  permission unconditionally, and is not a portal role.
 
-Site Content
-: Has permission to modify  content on the site
+Portal Administrator
+: A role a portal administrator grants to a person through the ordinary admin interface, for
+  the day-to-day job of running the portal: its identity and who holds which role. It holds no
+  more than the rights listed below.
 
-Literature Manager
-: Has permission to add, edit, or delete literature entries
+A portal's superuser account is the deployer's; the Portal Administrator role is the portal's own
+job, and can be held by anyone the deployer chooses to trust with it.
 
-Reviewer
-: Has permission to review pre-existing datasets for quality control
+## The four roles
 
-    
+### Portal Administrator
+
+Runs the portal itself: its identity, and who holds which role.
+
+- Change the portal's identity — its name, branding and metadata.
+- View any group, and add a person to or remove a person from a role by editing that person's
+  record.
+
+The role deliberately holds no right to edit a group's own permissions. Membership is granted and
+revoked on the **Groups** field of a person's own record, not by editing a `Group` object — a role
+that could edit groups could rewrite what every role, including its own, is allowed to do.
+
+### Data Curator
+
+Runs the research records: every project, dataset, sample and measurement in the portal, and
+their attached descriptions, dates and credits — regardless of who created them or whether they
+are private.
+
+- View, add, change and delete any project, dataset, sample or measurement, and the description,
+  date and contribution records attached to them.
+- Import data into a dataset and publish it.
+
+### Community Manager
+
+Runs the people side: accounts, organisations, and the profile-claim and merge workflows that go
+with them.
+
+- View and change person and organisation records, including affiliations, and act on profile
+  claims and merges.
+- Deactivate and reactivate accounts.
+
+The role cannot delete a person record, and it holds nothing over projects, datasets, samples or
+measurements.
+
+### Developer
+
+Names a person as part of the portal's team with no further rights. A person holding only the
+Developer role has exactly the access of any other signed-in contributor.
+
+## Holding more than one role
+
+A person can hold more than one of these roles at once, and their rights are everything those
+roles hold together. Reaching the administration interface requires holding at least one role that
+carries rights — the Portal Administrator, Data Curator or Community Manager role. Holding only the
+Developer role does not.
+
+## Upgrading from an earlier version
+
+Earlier versions of FairDM shipped three ungoverned group names with no permissions attached
+(`Portal Administrators`, `Data Administrators`, `Developers`), which portal code matched by name
+rather than asking the permission system. Upgrading a portal that already used them renames those
+groups in place to the roles above — `Portal Administrators` becomes `Portal Administrator`,
+`Data Administrators` becomes `Data Curator`, and `Developers` becomes `Developer` — carrying every
+existing member across automatically. Nobody needs to be re-added to a role because of this
+upgrade.
+
+```{important}
+A model-level permission granted directly to a person or group — one that is not part of the four
+roles above — now applies to every instance of that model across the whole portal, not only to
+the object it was originally intended for. Before upgrading, audit any permission your portal
+granted outside these four roles: a grant that once reached one record now reaches every record of
+that kind.
+```
