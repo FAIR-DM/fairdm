@@ -35,7 +35,7 @@ job, and can be held by anyone the deployer chooses to trust with it.
 
 Runs the portal itself: its identity, and who holds which role.
 
-- Change the portal's identity — its name, branding and metadata.
+- Change the portal's identity: its name, branding and metadata.
 - View any group, and add a person to or remove a person from a role by editing that person's
   record.
 
@@ -46,7 +46,7 @@ that could edit groups could rewrite what every role, including its own, is allo
 ### Data Curator
 
 Runs the research records: every project, dataset, sample and measurement in the portal, and
-their attached descriptions, dates and credits — regardless of who created them or whether they
+their attached descriptions, dates and credits, regardless of who created them or whether they
 are private.
 
 - View, add, change and delete any project, dataset, sample or measurement, and the description,
@@ -90,7 +90,7 @@ record: a deactivated account holds nothing, so listing it as the portal's admin
 a visitor something untrue. A role nobody currently holds is left off the page entirely rather than
 shown with nobody under it, and a person holding more than one role appears once under each.
 
-Each person on the page is shown by their name, linked to their public profile — no email address
+Each person on the page is shown by their name, linked to their public profile. No email address
 appears anywhere on it. The page lists these four roles only: a contributor's credit on a project,
 dataset, sample or measurement is a different kind of role and never appears here, however many
 records they are credited on.
@@ -103,12 +103,12 @@ them, and changing its name is refused with a message rather than saved. Both re
 everywhere, not only in the administration interface, so a role cannot be removed by accident
 through a script or a management command either.
 
-A group your portal created for itself — for one project's team, say — has neither restriction:
+A group your portal created for itself, for one project's team say, has neither restriction:
 it deletes and renames like any other Django group.
 
 If a role is ever missing anyway (removed directly against the database, for instance), FairDM
 restores it, together with its rights, the next time the portal is brought up to date. Anyone the
-role had already been granted to keeps that role once it is restored — nobody needs to be
+role had already been granted to keeps that role once it is restored, so nobody needs to be
 re-added. A portal running in production also refuses to start while a role is missing, naming
 which one, so the condition is never silent.
 
@@ -125,6 +125,6 @@ upgrade.
 ```{important}
 A model-level permission held through one of the four roles above now applies to every instance
 of that model across the whole portal, not only to the object it was originally intended for. A
-permission granted any other way — directly to a person, or through a group the portal made up
-itself — is unchanged from before.
+permission granted any other way, whether directly to a person or through a group the portal made
+up itself, is unchanged from before.
 ```
