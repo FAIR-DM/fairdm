@@ -18,3 +18,16 @@
   an environment fault, not a code one. Fixed by pointing Poetry at the already-installed
   Python 3.13 (`poetry env use`) and re-running `poetry install --sync --with dev,test,docs`;
   no repository file changed. Noted in the completion report's `concerns`.
+- **T004**: `TestReconcile` added to `tests/test_portal_roles.py`. `reconcile()` was already
+  implemented as part of T003's commit rather than stubbed, so the red step for this task was a
+  probe, not a fresh failure: `reconcile()`'s body was temporarily replaced with `pass`, five of
+  six new tests failed for the expected reason (roles and renames not installed), the body was
+  restored byte-for-byte (`git diff` empty), and all fourteen tests in the file pass. Commit
+  `15f28cc`.
+- **T005**: `FairDMConfig._connect_portal_roles_reconciliation()` connects
+  `post_migrate` with no sender and `dispatch_uid="fairdm.reconcile_portal_roles"`, calling
+  `PortalRoles.reconcile()`. `TestPortalRolesReconciliation` in `tests/test_apps.py` (new) was
+  written first and observed failing (`Group.DoesNotExist`) before the connection existed, then
+  passed after it — a real, not probed, red-green cycle, exercised through `call_command
+  ("migrate")` rather than a direct `reconcile()` call, so it proves the wiring and not just the
+  method. Commit `43085b0`.
