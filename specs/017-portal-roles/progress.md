@@ -42,3 +42,19 @@
   sibling. New tests in `test_choices.py::TestDefaultGroupsRemoved` and the new
   `test_filters.py::TestPersonFilterIsStaffLabel`, both observed failing first. Full
   `tests/test_contrib/test_contributors/` scope (386 tests) green. Commit `34ed2c9`.
+- **T008**: `docs/portal-administration/roles.md` rewritten for the four shipped roles, the
+  superuser-vs-Portal-Administrator distinction, the legacy-group rename on upgrade, and the
+  model-level-permission upgrade note. `managing_users_and_permissions.md`'s "User Roles" section
+  and one stale "Database Admin" troubleshooting reference reconciled against it. No automated
+  test — this codebase has no doc-content test convention (checked: no existing test opens a
+  `docs/*.md` file) — so this was proofread by hand rather than red-green. Commit `c522b7a`.
+- **T009**: `CONTEXT.md` gains a "Roles" section defining *portal role*, *contribution role* and
+  *rights-carrying role*, and naming the four roles. Prose-reviewed by hand, same as T008.
+  Commit `b11867f`.
+- **T010**: `CHANGELOG.md` gains the `groups` fixture removal under Removed, the model-level-
+  permission upgrade note under Changed, and a new "Portal roles (Feature 017)" entry under
+  Added. Commit `98aaf26`.
+- **Concern for triage**: `docs/portal-administration/adjusting_dataset_access.md:130` still
+  names the pre-existing "Database Admin" group in a troubleshooting bullet. Out of T008's named
+  file scope (`roles.md`, `managing_users_and_permissions.md`), so left alone and flagged here
+  rather than fixed.
