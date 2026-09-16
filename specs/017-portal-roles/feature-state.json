@@ -138,13 +138,18 @@
         {
           "id": "T011",
           "status": "done",
-          "attempts": 1,
+          "attempts": 2,
           "evidence": {
             "tests": [
-              "tests/test_permissions.py::TestPortalRoleBackend"
+              "tests/test_permissions.py::TestPortalRoleBackend",
+              "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused",
+              "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record",
+              "tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record",
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused"
             ],
             "commands": [
-              "poetry run pytest tests/test_permissions.py -v"
+              "poetry run pytest tests/test_permissions.py -v",
+              "poetry run pytest tests/test_core/test_dataset/test_plugins.py tests/test_core/test_project/test_plugins.py -q"
             ]
           }
         },
