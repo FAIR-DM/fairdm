@@ -68,3 +68,43 @@ Nothing here limits a portal to four groups. If your community needs a different
 create a group of your own and give it the permissions you want. Do not edit the permissions on a
 shipped role: `reconcile()` will put them back on the next `migrate`, because those rights belong to
 the framework's definition of what the role is.
+
+## How a role's rights reach a record
+
+A role's permissions are declared at the model level: the Data Curator holds
+`dataset.change_dataset`, not a grant on any particular dataset. Django answers `False` to every
+object-level question asked of a model-level permission, so on its own that declaration would let a
+curator change nothing.
+
+`fairdm.permissions.PortalRolePermissionBackend` closes that gap. It sits last in
+`AUTHENTICATION_BACKENDS` and answers one question: does this person hold this permission through
+one of the four shipped roles? If they do, the answer applies to every instance of that model.
+
+```python
+# A person in the Data Curator role
+person.has_perm("dataset.change_dataset", any_dataset)   # True, including a private one
+```
+
+It is deliberately narrow. A permission granted straight to a person, or through a group your portal
+invented, is **not** carried to individual records:
+
+```python
+# A person holding dataset.change_dataset directly, in no portal role
+person.user_permissions.add(change_dataset)
+person.has_perm("dataset.change_dataset", private_dataset)   # False
+```
+
+That distinction matters. Several of the framework's pages rely on an object-level check to keep a
+private record from being disclosed, and treating every model-level grant as portal-wide would
+reopen that. Portal-wide rights are what a portal role is for; a group of your own still works the
+way Django groups have always worked.
+
+One permission is never answered here at all: `contributors.manage_organization` comes from a
+current owner affiliation and from nothing else.
+
+## Reaching the administration interface
+
+Holding a rights-carrying role is enough. Nothing is stored on the person — no `is_staff` flag is
+set — so removing somebody from their last rights-carrying role closes the interface to them again
+with no second step to remember. `PortalAdminAuthenticationForm` is what lets a role holder sign in
+at the administration login, which Django's own form refuses for anybody without `is_staff`.
