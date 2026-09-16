@@ -80,9 +80,7 @@ class TestContributorsAppRegistration:
 
         module = settings_module()
 
-        contributors_index = module.INSTALLED_APPS.index(
-            "fairdm.contrib.contributors"
-        )
+        contributors_index = module.INSTALLED_APPS.index("fairdm.contrib.contributors")
         auth_index = module.INSTALLED_APPS.index("django.contrib.auth")
 
         assert contributors_index > auth_index
@@ -164,3 +162,25 @@ class TestTemplateAndStaticPrecedence:
 
         assert result.returncode == 0, result.stderr[-3000:]
         assert "a_shadowing_portal_app" in result.stdout
+
+
+class TestGroupsFixtureRemoved:
+    """FR-036: the three empty legacy groups a portal used to get from a fixture are
+    replaced by `PortalRoles.reconcile()` (`fairdm/portal_roles.py`), so a first-time
+    setup must no longer load one."""
+
+    def test_the_groups_fixture_file_is_gone(self):
+        repo_root = Path(__file__).resolve().parents[3]
+
+        assert not (repo_root / "fairdm" / "fixtures" / "groups.json").exists()
+
+    def test_on_initial_no_longer_loads_the_groups_fixture(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module()
+
+        on_initial = module.DJANGO_SETUP_TOOLS[""]["on_initial"]
+
+        assert ("loaddata", "groups") not in on_initial
