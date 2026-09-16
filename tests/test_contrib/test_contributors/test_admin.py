@@ -1106,8 +1106,10 @@ class TestPersonAdminFields:
         form_class = model_admin.get_form(request, person)
 
         field_names = _fieldset_field_names(fieldsets)
-        assert not {"is_superuser", "is_staff", "password"} & field_names
-        assert not {"is_superuser", "is_staff", "password"} & set(
+        # SEC-001: `groups` grants the same rights by proxy - narrowing the other
+        # three and leaving this one open is the escalation route the finding used.
+        assert not {"is_superuser", "is_staff", "password", "groups"} & field_names
+        assert not {"is_superuser", "is_staff", "password", "groups"} & set(
             form_class.base_fields
         )
 
@@ -1120,8 +1122,8 @@ class TestPersonAdminFields:
         form_class = model_admin.get_form(request, person)
 
         field_names = _fieldset_field_names(fieldsets)
-        assert {"is_superuser", "is_staff", "password"} <= field_names
-        assert {"is_superuser", "is_staff"} <= set(form_class.base_fields)
+        assert {"is_superuser", "is_staff", "password", "groups"} <= field_names
+        assert {"is_superuser", "is_staff", "groups"} <= set(form_class.base_fields)
 
     def test_posting_is_superuser_on_leaves_the_flag_unchanged_for_the_actor(self):
         model_admin = admin.site._registry[Person]
@@ -1175,6 +1177,86 @@ class TestPersonAdminFields:
         saved = form.save()
 
         assert saved.is_superuser is False
+
+    def test_posting_a_data_curator_group_id_leaves_membership_unchanged(self):
+        """SEC-001: `groups` is the field that grants the other three's worth of
+        rights by proxy - mirrors `test_posting_is_superuser_on_leaves_the_flag_
+        unchanged_for_the_actor` above for that field."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.portal_roles import PortalRoles
+
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        original_group_ids = set(manager.groups.values_list("pk", flat=True))
+        data_curator = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, manager)
+        form = form_class(
+            data={
+                "first_name": manager.first_name,
+                "last_name": manager.last_name,
+                "name": manager.name,
+                "email": manager.email,
+                "is_active": "on",
+                "groups": [str(data_curator.pk)],
+            },
+            instance=manager,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert set(saved.groups.values_list("pk", flat=True)) == original_group_ids
+
+    def test_a_portal_administrator_can_still_see_and_set_groups(self):
+        """FR-002: assigning roles is the Portal Administrator's job, so the
+        `auth.view_group` right the role already carries must keep offering and
+        saving `groups`, unlike the Community Manager above."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        portal_admin = PersonFactory(email="portal-admin@example.com", is_active=True)
+        portal_admin.groups.add(
+            Group.objects.get(name=PortalRoles.PORTAL_ADMINISTRATOR.name)
+        )
+        data_curator = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = portal_admin
+
+        fieldsets = model_admin.get_fieldsets(request, portal_admin)
+        assert "groups" in _fieldset_field_names(fieldsets)
+
+        form_class = model_admin.get_form(request, portal_admin)
+        assert "groups" in form_class.base_fields
+
+        form = form_class(
+            data={
+                "first_name": portal_admin.first_name,
+                "last_name": portal_admin.last_name,
+                "name": portal_admin.name,
+                "email": portal_admin.email,
+                "is_active": "on",
+                "groups": [
+                    str(g.pk) for g in portal_admin.groups.all()
+                ]
+                + [str(data_curator.pk)],
+            },
+            instance=portal_admin,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert data_curator in saved.groups.all()
 
 
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────

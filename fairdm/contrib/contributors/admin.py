@@ -316,16 +316,24 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     _SUPERUSER_ONLY_FIELDS = ("is_superuser", "is_staff", "password")
 
     def get_fieldsets(self, request, obj=None):
-        """Drop the account-escalation fields for a request whose user is not a superuser."""
+        """Drop the account-escalation fields for a request whose user is not a superuser.
+
+        SEC-001: `groups` grants the same rights as `is_superuser`/`is_staff` by proxy -
+        setting a person's membership in Data Curator or Portal Administrator hands them
+        that role's rights. `auth.view_group` is the discriminator FR-002/FR-004 already
+        supply: the Portal Administrator holds it (assigning roles is their job) and the
+        Community Manager does not.
+        """
         fieldsets = super().get_fieldsets(request, obj)
         if request.user.is_superuser:
             return fieldsets
+        excluded = set(self._SUPERUSER_ONLY_FIELDS)
+        if not request.user.has_perm("auth.view_group"):
+            excluded.add("groups")
         narrowed = []
         for name, options in fieldsets:
             fields = tuple(
-                field
-                for field in options["fields"]
-                if field not in self._SUPERUSER_ONLY_FIELDS
+                field for field in options["fields"] if field not in excluded
             )
             if fields:
                 narrowed.append((name, {**options, "fields": fields}))
