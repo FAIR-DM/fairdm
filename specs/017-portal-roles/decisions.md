@@ -684,3 +684,16 @@ that would otherwise have appeared in only one of the two snapshots.
 
 **Revisit if:** a second view needs the same comparison - the filter and the warm-up-request
 pattern belong in a shared test helper at that point rather than a second copy of both.
+
+## D33 — US-5's tamper flag approved, and the card template left alone
+
+One flag, `tests/test_menus/test_menus.py`, a new `Test*` class appended with no deletions.
+Approved.
+
+The team page reuses `contributors/contributor_card.html` rather than introducing a second card,
+which is right — a portal's people should look the same wherever they appear. That template carries
+a `{% comment %}` asking for a design rework and reads `object.get_photo_url`, which no contributor
+model defines, so the photo silently resolves to nothing. Both predate this feature and neither is
+visible to a reader: Django strips the comment, and the missing attribute renders empty. Left alone
+rather than widened into, and worth its own issue rather than a quiet fix inside a feature about
+roles.
