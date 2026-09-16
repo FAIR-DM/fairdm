@@ -546,3 +546,18 @@
   (only its content changed, not asserted there) and added a companion test that a group the
   portal made itself still gets the ordinary confirmation page (200), not the 403 path. 19/19
   in the file. Commit `35ae998`.
+
+- **EFF-001**: `PortalRoles._permissions_for` (`fairdm/portal_roles.py`) now resolves a role's
+  whole declaration in one `Permission.objects.filter(query)` call, `query` built by OR-ing a
+  `Q(content_type__app_label=..., codename=...)` per declared permission together, instead of
+  one `.filter(...).first()` per permission string (54 queries for the Data Curator alone).
+  Keeps the skip-what-is-missing tolerance research R5 established exactly: a declared pair with
+  no matching row is simply absent from the result, nothing raises. Guarded the trap the
+  single-query shape opens: an empty declaration (the Developer role, `permissions=()`) now
+  returns `[]` before building the query, since an unconstrained `Q()` matches every `Permission`
+  row in the database rather than none - `TestPermissionsForQueryCount.
+  test_a_role_with_no_declared_permissions_resolves_to_none` pins it. Reproduced first:
+  `django_assert_num_queries(1)` around `_permissions_for(DATA_CURATOR)` observed failing at 54
+  queries before the fix. `tests/test_portal_roles.py` (26 tests, including the pre-existing 23)
+  and `tests/test_apps.py` (16 tests, exercises `reconcile()` through a real `migrate`) both
+  green. Commit `44798f1`.
