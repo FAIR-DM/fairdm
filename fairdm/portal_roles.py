@@ -8,6 +8,7 @@ are distinct terms (see CONTEXT.md).
 from typing import NamedTuple
 
 from django.contrib.auth.models import Group, Permission
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 
@@ -16,7 +17,7 @@ class PortalRole(NamedTuple):
     permissions it holds, each an explicit ``app_label.codename``."""
 
     name: str
-    label: str
+    label: str | Promise
     permissions: tuple[str, ...] = ()
 
 
