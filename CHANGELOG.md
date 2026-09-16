@@ -53,6 +53,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for each permission string passed to it, so a template using the bare codename spelling its
   `user_permissions` context convention expects (for example `change_dataset`) no longer
   matches for anyone — use the app-labelled form (`dataset.change_dataset`) instead.
+- **django-mvp moves to 0.23 and django-accounts-center to 0.8.** django-mvp took over the
+  Account Center that django-accounts-center used to provide, and django-accounts-center
+  dropped its own copy in the same release cycle, so the two versions move together. A portal
+  with a view of its own still setting the pre-0.16 `has_<action>_permission` attributes
+  renames them to `show_<action>_action` — django-mvp now raises `ImproperlyConfigured` rather
+  than reading them. A portal setting `MVP_CONFIG["layout"]["sidebar"]["footer"]` drops the
+  key — the sidebar footer is now a fixed composition that already draws a superset of what
+  that list configured, and django-mvp only warns and discards the setting. A portal including
+  `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
+  above it, since the landing page and its `account-center` URL name now come from django-mvp.
 
 ### Added
 
