@@ -153,3 +153,17 @@
   only migration this story is permitted to produce. All fifteen `test_portal_roles.py` tests
   pass, including T017a's; `makemigrations --check --dry-run` shows only the pre-existing
   `identity`/`orbit` drift. Commit `946b666`.
+- **T017**: `TestDataCuratorPortalPages`, `TestCommunityManagerPortalRights` and
+  `TestAPersonHoldingTwoRolesHoldsBothSets` added to `tests/test_contrib/test_contributors/
+  test_permissions.py`. A Data Curator reaches `dataset:overview-update` (HTTP 200) on another
+  team's *private* dataset - the same route D20's four conflicting tests gate, confirming that
+  conflict is this story's own deliverable, not a side effect - and `can_open(Edit, request,
+  sample)` on its sample; the record's own model carries no `last_edited_by`/`edited_by`/
+  `modified_by`/`changed_by` field. A Community Manager changes a person and an organisation,
+  cannot change a dataset, cannot delete a person. A person in both roles holds both sets. All
+  26 tests in the file pass (`poetry run pytest tests/test_contrib/test_contributors/
+  test_permissions.py -v`). **Concern**: no test exercises "reach the import and publish plugin
+  pages" - `fairdm.contrib.import_export.views` fails to import on its own
+  (`ImportError: cannot import name 'FairDMModelFormMixin' from 'fairdm.views'`), confirmed by
+  attempting the import directly; unrelated to this story and not named in any task, so left
+  alone rather than fixed. Commit `2caea17`.

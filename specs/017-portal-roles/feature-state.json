@@ -227,8 +227,18 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py::TestDataCuratorPortalPages",
+              "tests/test_contrib/test_contributors/test_permissions.py::TestCommunityManagerPortalRights",
+              "tests/test_contrib/test_contributors/test_permissions.py::TestAPersonHoldingTwoRolesHoldsBothSets"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v"
+            ]
+          }
         },
         {
           "id": "T017a",
