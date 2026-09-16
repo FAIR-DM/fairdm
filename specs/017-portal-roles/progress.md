@@ -81,3 +81,23 @@
   (`test_contrib/test_contributors/test_permissions.py`, `test_core/test_sample/
   test_permissions.py`, `test_core/test_measurement/test_permissions.py`, 61 tests) stay green.
   Commit `00e2b14`.
+- **T013**: `tests/test_contrib/test_admin/` created (new package, mirrors `fairdm/contrib/
+  admin/`) with `test_sites.py::TestAdministrationAccessForRoleHolders` - nine tests: each of
+  the three rights-carrying roles reaches `admin:index` and one changelist both with an existing
+  session and by signing in through `admin:login`; a Developer-only holder, an ordinary
+  contributor and a deactivated role holder are each refused (302, unauthenticated). Observed
+  failing first: the six "reaches" tests failed (302/anonymous) because `CustomAdminSite` still
+  asked for `is_staff` alone; the three "refused" tests already passed, which is expected since
+  nothing yet grants them anything (`poetry run pytest tests/test_contrib/test_admin/
+  test_sites.py -v`). Commit `7fb8002`.
+- **T014**: `CustomAdminSite.has_permission` (`fairdm/contrib/admin/sites.py`) now accepts
+  `user.is_active and (user.is_staff or` membership in a rights-carrying role`)`, and a new
+  `PortalAdminAuthenticationForm(AdminAuthenticationForm)` carries the same rule into
+  `confirm_login_allowed` (calling straight through to `AuthenticationForm`'s own
+  `is_active`-only check, skipping `AdminAuthenticationForm`'s `is_staff` requirement), set as
+  `CustomAdminSite.login_form` - both were named in T014 because changing one without the other
+  (research R3) leaves a role holder able to reach the interface only while already signed in.
+  Nothing is stored on the person. All nine `test_sites.py` tests pass; the wider admin suites
+  stay green (`test_contrib/test_contributors/test_admin.py`, 54 tests; `test_core/test_dataset/`
+  admin/login/staff-marked tests, 92 tests) and `makemigrations --check --dry-run` shows only the
+  pre-existing `identity`/`orbit` drift (#299, #325), nothing from this change. Commit `c3db8cd`.
