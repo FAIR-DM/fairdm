@@ -1,0 +1,117 @@
+{
+  "story": "US4",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T026",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsCreatesTheFive::test_creates_exactly_five_accounts",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsCreatesTheFive::test_each_account_holds_its_stated_role_and_the_last_holds_none",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsSignIn::test_each_account_signs_in_with_no_confirmation_step",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsSignIn::test_each_address_is_already_confirmed",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsIsIdempotent::test_running_twice_creates_no_duplicate",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsRefusesToAdopt::test_refuses_when_an_address_already_belongs_to_somebody_else",
+          "tests/test_management/test_commands/test_create_dev_accounts.py::TestCreateDevAccountsRefusesOutsideDevelopment::test_refuses_on_the_production_baseline_and_touches_no_database"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_management/test_commands/test_create_dev_accounts.py -x  # RED before T027: ModuleNotFoundError, exit 2",
+          "poetry run pytest tests/test_management/test_commands/test_create_dev_accounts.py -v  # GREEN after T027: 7 passed, exit 0"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["1c094dd", "037831b"]
+    },
+    {
+      "id": "T027",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_management/test_commands/test_create_dev_accounts.py -v  # 7 passed, exit 0",
+          "poetry run ruff check fairdm/management/commands/create_dev_accounts.py  # exit 0",
+          "poetry run ruff format --check fairdm/management/commands/create_dev_accounts.py  # exit 0 (after one reformat)",
+          "poetry run mypy fairdm/management/commands/create_dev_accounts.py  # Success: no issues found in 1 source file, exit 0"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["0d4c5b8", "037831b"]
+    },
+    {
+      "id": "T028",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_one_dev_address_on_a_production_portal_is_named",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_all_five_dev_addresses_on_a_production_portal_are_named_together",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_no_dev_addresses_on_a_production_portal_reports_nothing",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_a_development_portal_holding_all_five_reports_nothing",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_an_unreadable_user_table_returns_nothing[ProgrammingError]",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_an_unreadable_user_table_returns_nothing[OperationalError]",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_an_unreadable_user_table_returns_nothing[RuntimeError]",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_check_is_registered_with_the_same_tags_as_the_portal_roles_check",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsent::test_no_other_check_in_the_file_shares_fairdm_e501"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_conf/test_checks.py::TestDevAccountsAbsent -v  # RED before T029: 10 failed, ImportError, exit 1",
+          "poetry run pytest tests/test_conf/test_checks.py::TestDevAccountsAbsent -v  # GREEN after T029: 10 passed, exit 0",
+          "poetry run pytest tests/test_conf/test_checks.py -q  # 66 passed, exit 0"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["8f78868", "b9cf1b3", "f27d5e8"]
+    },
+    {
+      "id": "T029",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_conf/test_checks.py::TestDevAccountsAbsent -v  # 10 passed, exit 0",
+          "poetry run pytest tests/test_conf/test_checks.py -q  # 66 passed, exit 0",
+          "poetry run pytest tests/test_apps.py -q  # 16 passed, exit 0 (production boot unaffected)",
+          "poetry run ruff check fairdm/conf/checks.py  # exit 0",
+          "poetry run ruff format --check fairdm/conf/checks.py  # exit 0"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["26619e3", "f27d5e8"]
+    },
+    {
+      "id": "T030",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest -q  # full suite, 2809 passed, 8 skipped, exit 0 (docs-only task; run as part of the final verify)"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["0e60bad", "d25737b"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "check_dev_accounts_absent (fairdm.E501) resolves the resolved environment itself inside the check function, unlike check_portal_roles_present (fairdm.E500), which leaves all environment gating to FairDMConfig._check_production_configuration()'s boot-time stand-down.",
+      "why": "T028's acceptance criterion requires a development portal to report nothing even when `manage.py check --deploy` is run explicitly, which bypasses the boot-time stand-down entirely. Copying check_portal_roles_present's shape verbatim would report fairdm.E501 against a correctly-populated development portal the moment `check --deploy` runs on it by hand - the opposite of what the check exists to catch.",
+      "decision_ref": "D30"
+    },
+    {
+      "what": "An existing Person on one of the five addresses is treated as create_dev_accounts' own account from a prior run (safe, idempotent no-op) only when its first_name/last_name match the specification's table for that address exactly; any other existing holder fails the whole run (wrapped in one transaction.atomic()) rather than being adopted.",
+      "why": "Nothing is stored on Person to record which command created it, and adding a marker field would need a migration, which is prohibited for this story. The five addresses are on fairdm.org, a domain no genuine account would organically hold, so a name mismatch is a strong, cheap signal that something other than this command put the row there.",
+      "decision_ref": "D29"
+    }
+  ],
+  "concerns": [],
+  "blocked": []
+}
