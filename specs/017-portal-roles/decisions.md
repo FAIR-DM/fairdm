@@ -209,3 +209,20 @@ not exist yet") does not distinguish the two causes.
 **Revisit if:** a future story adds a `can_publish` model permission under a different app label or
 codename than `dataset.can_publish` — the Data Curator's declaration would then need to follow it, or
 the role silently stops covering what `DatasetPublishConfirm.check()` asks for.
+
+## D19 — Two tamper flags approved, and the docs gate's finding fixed in place
+
+US-1's returned work raised three `modified_preexisting_test` flags, on `tests/test_apps.py`,
+`tests/test_conf/test_settings/test_apps.py` and
+`tests/test_contrib/test_contributors/test_choices.py`. All three are additions — a new `Test*`
+class appended to the module that Article X says owns that subject — plus one formatter reflow of a
+line the implementer did not otherwise touch. Nothing was weakened, skipped or deleted. Approved.
+
+The independent verify that followed was green on lint, types, the full suite, build and
+conformance, and red on the documentation step: `PortalRole` and `PortalRoles` are public names no
+page documented. The story's documentation tasks covered the administrator's view of the roles and
+the upgrade note, and missed the developer-facing API — which is Article XVII's requirement, not a
+nicety, because a portal author reading `rights_carrying()` has nothing else to read. Written as
+`docs/portal-development/portal_roles.md` and added to that guide's table of contents rather than
+returned to the implementer: a page is not implementation, and a re-dispatch for one page costs
+more than the page.
