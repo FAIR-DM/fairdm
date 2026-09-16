@@ -154,7 +154,7 @@ class DataImportView(BaseImportExportView):
         user = request.user
         if not user.is_authenticated:
             return False
-        return user.has_perm("import_data", instance) or user.is_data_admin
+        return user.has_perm("import_data", instance)
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
@@ -221,7 +221,7 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
         user = request.user
         if not user.is_authenticated:
             return False
-        return user.has_perm("can_publish", instance) or user.is_data_admin
+        return user.has_perm("can_publish", instance)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
