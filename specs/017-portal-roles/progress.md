@@ -101,3 +101,25 @@
   stay green (`test_contrib/test_contributors/test_admin.py`, 54 tests; `test_core/test_dataset/`
   admin/login/staff-marked tests, 92 tests) and `makemigrations --check --dry-run` shows only the
   pre-existing `identity`/`orbit` drift (#299, #325), nothing from this change. Commit `c3db8cd`.
+- **T015**: `TestPersonAdminFields` added to `tests/test_contrib/test_contributors/test_admin.py`
+  (beside the existing `TestPersonAdmin`, T126): a Community Manager's `get_fieldsets`/`get_form`
+  omit `is_superuser`, `is_staff` and `password`; a superuser still gets all three; POSTing
+  `is_superuser=on` through the form built for a Community Manager leaves the flag unchanged, for
+  both the acting person and somebody else. Observed failing first (`poetry run pytest
+  tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields -v`): the two POST
+  tests failed with the flag flipping to `True`, and the fieldset/form test failed on all three
+  names still present - the "superuser still sees all three" test already passed, which is
+  expected since nothing yet narrows anything. Commit `8f213fa`.
+- **T016**: `UserAdmin.get_fieldsets` (`fairdm/contrib/contributors/admin.py`) drops
+  `is_superuser`, `is_staff` and `password` from every fieldset for a request whose user is not
+  a superuser. `get_form` additionally pops `password` from the built form's `base_fields` for a
+  non-superuser: `is_superuser`/`is_staff` are plain model fields, so excluding them from
+  `get_fieldsets` alone is enough - `ModelAdmin.get_form` derives its `fields` list from
+  `get_fieldsets` - but `UserChangeForm.password` is a *declared* field
+  (`ReadOnlyPasswordHashField`), and Django's `ModelFormMetaclass` re-adds every declared field
+  to `base_fields` regardless of the fields list (`django/forms/models.py`, confirmed by reading
+  the installed Django 5.2 source before writing this), so the fieldset exclusion alone would
+  not have stopped it appearing in the form object. All nine `TestPersonAdminFields`/
+  `TestPersonAdmin` tests pass; the full file (58 tests) stays green, and
+  `makemigrations --check --dry-run` shows only the pre-existing `identity`/`orbit` drift.
+  Commit `b081e31`.

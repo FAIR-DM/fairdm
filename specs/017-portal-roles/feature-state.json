@@ -197,13 +197,33 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields -v"
+            ]
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:313"
+            ]
+          }
         },
         {
           "id": "T017",
