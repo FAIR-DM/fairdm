@@ -17,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from fairdm.contrib.contributors.models import Organization
 from fairdm.factories import DatasetFactory, OrganizationFactory, PersonFactory
 from fairdm.permissions import PortalRolePermissionBackend
+from fairdm.portal_roles import PortalRoles
 
 
 def _permission(app_label, codename):
@@ -25,14 +26,14 @@ def _permission(app_label, codename):
 
 @pytest.mark.django_db
 class TestPortalRoleBackend:
-    """FR-018, FR-020: an object-level question answered from model-level rights."""
+    """FR-018, FR-020: an object-level question answered from model-level rights held
+    through one of the four shipped portal roles, and only those (D20)."""
 
-    def test_a_model_level_permission_held_through_a_group_answers_for_any_instance(
+    def test_a_model_level_permission_held_through_a_shipped_role_answers_for_any_instance(
         self,
     ):
         person = PersonFactory()
-        group = Group.objects.create(name="Some Role")
-        group.permissions.add(_permission("dataset", "change_dataset"))
+        group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
         person.groups.add(group)
         dataset = DatasetFactory()
 
@@ -44,12 +45,21 @@ class TestPortalRoleBackend:
 
         assert not person.has_perm("dataset.change_dataset", dataset)
 
-    def test_a_permission_granted_directly_to_the_person_answers_the_same_way(self):
+    def test_a_permission_granted_directly_to_the_person_is_refused(self):
         person = PersonFactory()
         person.user_permissions.add(_permission("dataset", "change_dataset"))
         dataset = DatasetFactory()
 
-        assert person.has_perm("dataset.change_dataset", dataset)
+        assert not person.has_perm("dataset.change_dataset", dataset)
+
+    def test_a_permission_held_through_a_group_the_portal_invented_is_refused(self):
+        person = PersonFactory()
+        group = Group.objects.create(name="A Group The Portal Made Up")
+        group.permissions.add(_permission("dataset", "change_dataset"))
+        person.groups.add(group)
+        dataset = DatasetFactory()
+
+        assert not person.has_perm("dataset.change_dataset", dataset)
 
     def test_an_anonymous_user_answers_false(self):
         dataset = DatasetFactory()
@@ -69,7 +79,8 @@ class TestPortalRoleBackend:
 
     def test_a_permission_held_for_one_model_does_not_answer_for_another(self):
         person = PersonFactory()
-        person.user_permissions.add(_permission("dataset", "change_dataset"))
+        group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+        person.groups.add(group)
         organization = OrganizationFactory()
 
         assert not person.has_perm("contributors.change_organization", organization)
