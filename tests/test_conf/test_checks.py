@@ -696,7 +696,15 @@ class TestPortalRolesPresent:
 
     @pytest.mark.parametrize(
         "exception_class",
-        [django_db_utils.ProgrammingError, django_db_utils.OperationalError],
+        [
+            django_db_utils.ProgrammingError,
+            django_db_utils.OperationalError,
+            # A test harness that refuses database access outright (e.g.
+            # pytest-django's own safeguard for a test with no `db` fixture)
+            # raises this, not a django.db.utils error - "unreadable" covers
+            # it too (D24, research R4).
+            RuntimeError,
+        ],
     )
     def test_an_absent_or_unreadable_group_table_returns_nothing(
         self, db, exception_class

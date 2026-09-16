@@ -422,11 +422,13 @@ def check_portal_roles_present(app_configs, **kwargs):
     database, naming every one missing at once (FR-015, research R4).
 
     Tolerates a database that has not been migrated yet, or is not configured at
-    all: querying a group table that does not exist, cannot be read, or belongs to
+    all: querying a group table that does not exist, cannot be read, belongs to
     a database Django cannot even resolve an engine for (``ImproperlyConfigured`` -
-    the ``DATABASE_URL``-absent case ``fairdm.E100`` reports) is not this check's
-    job to report, and is how an unmigrated or unconfigured database is told apart
-    from a portal actually missing its roles (research R4).
+    the ``DATABASE_URL``-absent case ``fairdm.E100`` reports), or that database
+    access itself is refused outright (``RuntimeError`` - a test harness with no
+    database enabled raises this the same way) is not this check's job to report,
+    and is how an unmigrated, unconfigured or genuinely unreadable database is told
+    apart from a portal actually missing its roles (research R4, D24).
 
     Stands down for ``migrate`` (D11): ``post_migrate`` is the only thing that
     installs the roles, and this check runs in ``FairDMConfig.ready()``, which fires
@@ -454,7 +456,11 @@ def check_portal_roles_present(app_configs, **kwargs):
                 "name", flat=True
             )
         )
-    except (OperationalError, ProgrammingError, ImproperlyConfigured):
+    except (OperationalError, ProgrammingError, ImproperlyConfigured, RuntimeError):
+        # RuntimeError also covers a test harness that refuses database
+        # access outright (pytest-django's own safeguard for a test with no
+        # `db` fixture) - genuinely unreadable, the same as the two
+        # django.db.utils cases above (D24, research R4).
         return []
 
     missing = [name for name in PortalRoles.shipped_names() if name not in existing]

@@ -520,3 +520,30 @@ subsystems already own.
 
 **Revisit if:** the file's hundred-per-subsystem convention itself changes; nothing about this
 story's design motivates renumbering again on its own.
+
+## D27 — `check_portal_roles_present`'s database tolerance is extended to cover a test harness
+that refuses access outright, resolving D24 (FIX-2)
+
+**Decision.** D24 recorded that `check_portal_roles_present` is the first `production_critical`
+check to query live database state, and that six pre-existing tests
+(`TestCheckCommandIntegration` x2, `TestDeployCommand` x4 parametrised) call `check --deploy`
+with no `db` fixture enabled, tripping pytest-django's own safeguard - `RuntimeError: Database
+access not allowed` - the moment the check runs, and that fixing it was outside T020-T025's
+authority since none of the six were authored in that story. The check's own contract already
+tolerates a group table that is absent or unreadable, so it can no more distinguish "no database
+configured yet" from "a role is actually missing" than a raw `OperationalError` or
+`ProgrammingError` could. A test harness refusing access outright is the same case: the table is
+not absent, but it is just as unreadable to this check. `RuntimeError` joins the except clause
+that already catches `OperationalError`, `ProgrammingError` and `ImproperlyConfigured`. None of
+the six tests are touched; each passes unchanged once the check tolerates the condition they were
+already creating.
+
+**Why:** the alternative - adding `@pytest.mark.django_db` to six tests this story did not author
+- is a smaller-looking edit that changes what each of those tests proves (whether the command
+enables database access), while widening this check's own tolerance changes nothing about what it
+proves (a role is missing) and matches the tolerance it already declares for every other way a
+group table can be unreadable.
+
+**Revisit if:** a future check needs to distinguish "database access is disabled by the caller"
+from "the group table cannot be read" - nothing in this feature's requirements needs that
+distinction, so it is not built.

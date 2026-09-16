@@ -367,3 +367,13 @@
   are historical records of the collision as found and are left as written. Verified: narrow scope
   (`TestPortalRolesPresent` and `TestCeleryChecks`) green, 13 passed, ids no longer collide. See
   D26.
+- **T025 database tolerance (D24)**: extended `check_portal_roles_present`'s except clause to
+  also catch `RuntimeError`, so a test harness that refuses database access outright (raised by
+  pytest-django's own safeguard for a test with no `db` fixture) is tolerated exactly like an
+  absent or unreadable group table. Added `RuntimeError` to
+  `test_an_absent_or_unreadable_group_table_returns_nothing`'s existing parametrisation rather
+  than writing a new test, since it already asserts this same tolerance for two sibling
+  `django.db.utils` exceptions - observed red for the right reason (the harness's own
+  `RuntimeError: no such table: auth_group`, from the mock, before the except clause changed).
+  `TestCheckCommandIntegration` (2 tests) and `TestDeployCommand` (4 parametrised) - the six D24
+  named - pass unchanged; `tests/test_conf/test_checks.py` is 56 passed. See D27.
