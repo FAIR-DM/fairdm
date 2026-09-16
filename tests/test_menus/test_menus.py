@@ -6,6 +6,7 @@ reads ``FAIRDM_API_DOCS_URL``. These tests pin the resulting group structure.
 """
 
 import pytest
+from django.urls import reverse
 
 
 @pytest.fixture()
@@ -73,3 +74,27 @@ class TestDocumentationMenuGroupOtherChildren:
         child = documentation_menu_group.children[2]
         assert str(child.name) == "Admin Guide"
         assert child._url == "https://faridm.org/admin-guide/"
+
+
+@pytest.mark.django_db
+class TestTeamMenuItem:
+    """The Community group links to the portal team page (T033, FR-032).
+
+    Asserted against a rendered page rather than ``AppMenu.children`` in
+    memory: this module is imported for its side effect of extending
+    ``AppMenu``, and a reloaded dev server can hold a `Community` group
+    declared twice - the rendered nav is what a visitor actually sees either
+    way.
+    """
+
+    def test_team_link_appears_in_the_community_group(self, client):
+        response = client.get(reverse("team"))
+        content = response.content.decode()
+
+        community_start = content.index("Community")
+        documentation_start = content.index("Documentation", community_start)
+        community_section = content[community_start:documentation_start]
+
+        assert f'href="{reverse("team")}"' in community_section
+        assert "People" in community_section
+        assert "Organizations" in community_section
