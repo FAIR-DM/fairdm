@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils.html import escape
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.factories import ContributionFactory, PersonFactory
@@ -132,19 +133,21 @@ class TestTeamView:
 
         assert response.context["page"]["title"] == "Portal Team"
 
-    def test_lead_paragraph_explains_who_runs_the_portal(self, client):
+    def test_lead_paragraph_introduces_the_people_listed(self, client):
         response = client.get(reverse("team"))
 
         subtitle = response.context["page"]["subtitle"]
         assert subtitle
-        assertContains(response, subtitle, html=False)
+        assertContains(response, escape(subtitle), html=False)
 
-    def test_info_dialog_explains_a_portal_role_and_links_to_the_docs(self, client):
+    def test_info_dialog_carries_its_text_and_links_to_the_docs(self, client):
         response = client.get(reverse("team"))
 
         page = response.context["page"]
         assert page["info"]
-        assertContains(response, page["info"])
+        # The dialog renders `{{ text }}`, so the copy reaches the page escaped -
+        # an apostrophe in it arrives as `&#x27;`.
+        assertContains(response, escape(page["info"]))
         assert page["info_actions"] == [
             {
                 "text": "About portal roles",

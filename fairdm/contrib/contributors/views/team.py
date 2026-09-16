@@ -19,12 +19,13 @@ class TeamView(FairDMTemplateView):
     template_name = "contributors/team.html"
     page_title = _("Portal Team")
     page_subtitle = _(
-        "The people who run this portal, grouped by the portal role each one holds."
+        "Meet the individuals helping to maintain this portal and keep the "
+        "community thriving."
     )
     page_info = _(
-        "A portal role is granted by an administrator and governs what someone can "
-        "do across the whole portal. It is distinct from a contribution role, which "
-        "is set per dataset and only applies there."
+        "Data portals don't just run themselves! Behind every portal is a team of "
+        "active contributors helping to maintain this space for the benefit of the "
+        "wider community. Be sure to say thanks next time you see them!"
     )
     page_info_actions = [
         {
