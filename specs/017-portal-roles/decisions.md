@@ -367,3 +367,18 @@ under the narrower one those grants behave exactly as they did before this featu
 **Revisit if:** Sam rules that the wide reading should stand after all - in which case the four
 tests above are what would need to flip (404→200), per D20's own note, and this entry's
 narrowing would need to be reverted alongside them.
+
+## D22 — US-2's tamper flags approved, and what the narrowing cost
+
+Four `modified_preexisting_test` flags on US-2's diff, all additions: a new `Test*` class appended
+to the module Article X says owns that subject, in `test_admin.py`, `test_permissions.py`,
+`test_portal_roles.py` and `test_templatetags/test_fairdm.py`, plus one import line reflowed.
+Nothing weakened, skipped or deleted. Approved.
+
+The narrowing (D21) also rewrote two tests US-2 itself had written, which encoded the wide rule the
+fix removed. That is the story correcting its own work inside its own files, not a pre-existing test
+being overridden, and the four tests that forced the narrowing pass unchanged.
+
+The full suite was read independently at 2767 passed, 8 skipped. Worth recording that the verify
+step's own test timing (98s) is not the full suite's (637s): the machine gate is evidence that the
+step ran green, never evidence of what it covered.
