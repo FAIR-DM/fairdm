@@ -104,11 +104,14 @@ EASY_ICONS = {
         },
         "packs": [
             "mvp.utils.BS5_ICONS",
-            # django-accounts-center draws the account menu, and every portal
-            # gets it: FairDM depends on the package and routes `account-center`.
-            # Its icon names live in its own pack, so without this line the
-            # account menu raises `IconNotFoundError` on `account_center` the
-            # moment a signed-in visitor loads any page.
+            # django-accounts-center's allauth management pages (password,
+            # MFA, sessions, social connections, passkeys) draw their own
+            # icons from this pack. `account_center` and `overview` moved to
+            # django-mvp's own pack above when django-mvp took over the
+            # Account Center, so this line is no longer what keeps those two
+            # names resolving - but without it the management pages still
+            # raise `IconNotFoundError` the moment a signed-in visitor opens
+            # one.
             "dac.icons.DAC_ICONS",
         ],
         "icons": {
