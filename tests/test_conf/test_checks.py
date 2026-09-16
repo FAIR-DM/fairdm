@@ -682,7 +682,7 @@ class TestPortalRolesPresent:
 
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
-        assert errors[0].id == "fairdm.E300"
+        assert errors[0].id == "fairdm.E500"
         assert PortalRoles.DATA_CURATOR.name in errors[0].msg
         assert PortalRoles.COMMUNITY_MANAGER.name in errors[0].msg
 
@@ -765,7 +765,7 @@ class TestPortalRolesPresent:
         with pytest.raises(SystemCheckError) as exc_info:
             call_command("check", deploy=True)
 
-        assert "fairdm.E300" in str(exc_info.value)
+        assert "fairdm.E500" in str(exc_info.value)
         assert PortalRoles.DATA_CURATOR.name in str(exc_info.value)
 
     def test_check_is_registered_with_the_production_critical_deploy_tags(self):

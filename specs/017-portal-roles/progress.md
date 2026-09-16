@@ -352,3 +352,18 @@
     reasonable when nothing registered under `deploy=True` ever needed one. Confirmed by running
     both classes in isolation: all six fail with `RuntimeError: Database access not allowed`.
     Neither file is touched, per this story's prohibition. See D24 and `report-us3.json`.
+
+## FIX-2 (T025 renumbering and regression settlement)
+
+- **T025 renumbering**: `check_portal_roles_present`'s id changed from `fairdm.E300` to
+  `fairdm.E500` - `fairdm/conf/checks.py` numbers by hundreds (E0xx security, E1xx database, E2xx
+  cache, E3xx celery, E4xx translation) and `E300` was already `check_celery_broker`'s, held since
+  Spec 003, long before this feature. Updated `fairdm/conf/checks.py` (both the docstring and the
+  registered `id=`), the two `TestPortalRolesPresent` assertions in `tests/test_conf/test_checks.py`
+  that named the old id, and every reference in `tasks.md`, `plan.md` and `decisions.md` (D11, D16)
+  - including D16's `fairdm.E301` for the not-yet-built `check_dev_accounts_absent` (T029), which
+  collides with `check_celery_async`'s id the same way and is renumbered to `fairdm.E501` so the
+  next story does not inherit the same bug. `report-us3.json` and `design-review-findings.json`
+  are historical records of the collision as found and are left as written. Verified: narrow scope
+  (`TestPortalRolesPresent` and `TestCeleryChecks`) green, 13 passed, ids no longer collide. See
+  D26.

@@ -435,7 +435,7 @@ def check_portal_roles_present(app_configs, **kwargs):
     created - could neither start nor migrate, with nothing inside it able to repair
     that (a critical design-review finding).
 
-    Error ID: fairdm.E300
+    Error ID: fairdm.E500
     """
     import sys
 
@@ -465,7 +465,7 @@ def check_portal_roles_present(app_configs, **kwargs):
         Error(
             f"FairDM role(s) missing from the database: {', '.join(missing)}.",
             hint="Run `manage.py migrate` to install them.",
-            id="fairdm.E300",
+            id="fairdm.E500",
         )
     ]
 

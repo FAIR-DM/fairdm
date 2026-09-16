@@ -120,7 +120,7 @@ is free, so a portal that somehow holds both is left alone rather than merged.
 
 ## D11 — The boot refusal stands down for the command that repairs it
 
-`fairdm.E300` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
+`fairdm.E500` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
 `post_migrate` is the only thing that installs the roles. Left as first planned, a production portal
 upgrading to this version would have refused to boot *and* refused to migrate, with no route back
 from inside the portal. The refusal therefore stands down for the command that installs the roles.
@@ -167,7 +167,7 @@ own. Membership is edited on the Person form's `groups` field instead, so the ro
 The command refuses to create the five accounts outside development. That guards the act and not the
 state: a database copied down from production, a dump restored the wrong way round, or an
 environment variable changed under a live database all produce the condition the command would have
-refused. `fairdm.E301` reports it, tagged exactly as `fairdm.E300` is. One of those accounts is a
+refused. `fairdm.E501` reports it, tagged exactly as `fairdm.E500` is. One of those accounts is a
 Portal Administrator whose password is published in the documentation.
 
 ## D17 — The module is `portal_roles`, not `roles`
@@ -497,3 +497,26 @@ production-shaped database - this environment cannot run.
 that CI runs a `postgres` service container) is available to add the literal subprocess version
 of these two scenarios as a follow-up. It is not a correctness gap in the implementation, which
 every unit-level test already exercises - it is an environment gap in this coverage.
+
+## D26 — `check_portal_roles_present` is renumbered `fairdm.E500`, superseding D11's and D16's
+`fairdm.E300`/`E301` (FIX-2)
+
+**Decision.** `fairdm/conf/checks.py` numbers by hundreds - E0xx security, E1xx database, E2xx
+cache, E3xx celery, E4xx translation - a convention every check but this story's follows.
+`check_portal_roles_present` was assigned `fairdm.E300` at design review (D11) and implemented
+against it (T025); `fairdm.E300` is `check_celery_broker`'s id, held since long before this
+feature (`fairdm/conf/checks.py`, Spec 003). That was an error in the plan, not in T025's
+implementation, and it was never exercised: nothing in the suite calls both checks in the same
+`check --deploy` run in a way that would have surfaced two errors sharing one id. The check now
+takes `fairdm.E500`, the first free hundred after translation's E4xx. `E501` is left free for
+`check_dev_accounts_absent` (T029, US-4, not yet built), which D16 assigned `fairdm.E301` -
+`check_celery_async`'s id, the same category of error. Every reference to either wrong id in
+`fairdm/conf/checks.py`, its own tests, and this spec's `tasks.md`/`plan.md`/`decisions.md` (D11,
+D16) is updated to match; D23, D24 and D25 name no id and are unaffected.
+
+**Why:** a shipped id has to be unique for `SILENCED_SYSTEM_CHECKS` and `check --deploy` output to
+mean anything, and E5xx keeps every future portal-roles-family check out of a range four other
+subsystems already own.
+
+**Revisit if:** the file's hundred-per-subsystem convention itself changes; nothing about this
+story's design motivates renumbering again on its own.
