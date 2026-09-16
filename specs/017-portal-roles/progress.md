@@ -311,3 +311,44 @@
   all - it stays the backstop for every other writer (research R6). `TestProtection` (T020) and
   `TestShippedRoleDeleteProtection`/`TestShippedRoleRenameProtection` (T022) all green. Commit
   `9d89ba2`.
+- **T024**: `tests/test_conf/test_checks.py::TestPortalRolesPresent` written and observed failing
+  for the right reason (`ImportError: cannot import name 'check_portal_roles_present'`) before
+  T025 existed. Covers the check function directly (two missing roles named in one error, all
+  four present returns nothing, an absent or unreadable group table returns nothing for
+  `ProgrammingError`/`OperationalError`, stands down when `sys.argv` contains `migrate` and does
+  not for an unrelated command), `check --deploy` reporting the condition regardless of
+  environment (`call_command("check", deploy=True)`, in-process, `db` fixture), and the check's
+  own registration carrying exactly the `deploy`/`production_critical` tags and only being
+  visible with `include_deployment_checks=True`. The two live-production-boot scenarios in the
+  brief's given/when/then (refuses and names them; `migrate` still completes) are not covered by
+  a subprocess test: doing that for real needs a PostgreSQL connection (confirmed unreachable in
+  this environment - no docker, no `psql`, port 5432 closed), and SQLite cannot stand in because
+  `fairdm.E101` fires unconditionally for any non-development environment and
+  `_check_production_configuration` does not consult `SILENCED_SYSTEM_CHECKS` (confirmed by
+  trying exactly that and reading the raised error). The registration test plus
+  `TestPortalRolesReconciliation` (`tests/test_apps.py`, proves `migrate` installs the roles
+  against this suite's real database) together cover the wiring without one. Commit `1a2ca33`.
+- **T025**: `check_portal_roles_present` added to `fairdm/conf/checks.py`, id `fairdm.E300`,
+  tagged `DeployTags.deploy`/`DeployTags.production_critical` with `deploy=True`. Stands down by
+  checking `_MIGRATE_COMMAND_NAME in sys.argv` before querying anything (D11). First version
+  caught only `OperationalError`/`ProgrammingError`; running the wider suite surfaced four
+  pre-existing `tests/test_apps.py` production-boot tests newly crashing with an uncaught
+  `ImproperlyConfigured` traceback instead of their expected clean `SystemCheckError` - a
+  `DATABASE_URL`-absent portal (`fairdm.E100`'s own case) composes a `DATABASES` entry with no
+  resolvable engine, which raises that instead of a `django.db.utils` error the moment any query
+  runs. Added to the except clause, and to `TestPortalRolesPresent` as its own test. `TestPortalRolesPresent`
+  (T024) all green. Commit `3a08819`.
+  - **Known ID collision, not resolved**: `fairdm.E300` is already `check_celery_broker`'s id
+    (`fairdm/conf/checks.py`, pre-existing, not tagged `production_critical` so it never reaches
+    the same boot-refusal aggregation) - every design doc in this spec (plan.md, decisions.md,
+    tasks.md) assigns `E300` to the portal-roles check with no apparent awareness two checks
+    would then share one id. `manage.py check --deploy` output and any future
+    `SILENCED_SYSTEM_CHECKS` entry naming `fairdm.E300` cannot distinguish the two. Not fixed -
+    renumbering either check is outside T020-T025's scope. See `report-us3.json`.
+  - **Known regression, not fixed**: this is the first `production_critical` check that queries
+    the database rather than reading settings, and six pre-existing tests in
+    `tests/test_conf/test_checks.py` (`TestCheckCommandIntegration` x2, `TestDeployCommand` x4
+    parametrised) run the full `check --deploy` pipeline with no database fixture enabled -
+    reasonable when nothing registered under `deploy=True` ever needed one. Confirmed by running
+    both classes in isolation: all six fail with `RuntimeError: Database access not allowed`.
+    Neither file is touched, per this story's prohibition. See D24 and `report-us3.json`.

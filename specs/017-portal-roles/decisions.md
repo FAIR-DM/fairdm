@@ -422,3 +422,39 @@ FR-012/FR-013 as designed - in which case the fix is to reset those seven tests'
 raw SQL (as `tests/test_portal_roles.py::TestProtection`'s own helper,
 `_delete_group_by_raw_sql`, already does) rather than through the ORM, preserving each test's
 original intent.
+
+## D24 — `check_portal_roles_present`, the first deploy check to touch the database, breaks six
+more pre-existing tests the same way (US-3)
+
+Every check FairDM registered before this story reads settings values only - `DATABASES`,
+`CACHES`, `SECRET_KEY`, `ALLOWED_HOSTS`, and so on. `check_portal_roles_present` (T025) is the
+first that queries live database state (`Group.objects.filter(...)`), because FR-015 is a claim
+about installed rows, not configuration. Any test that runs the full `check --deploy` pipeline
+without enabling database access - `@pytest.mark.django_db`, the `db` fixture, or
+`transactional_db` - now trips pytest-django's own safeguard
+(`RuntimeError: Database access not allowed`) the moment my check runs, regardless of what that
+test is actually asserting.
+
+Six pre-existing tests do exactly this, none of them written in this story:
+`tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors`,
+`::test_check_deploy_passes_with_valid_config`, and
+`TestDeployCommand::test_deploy_check_reports_the_same_failure_regardless_of_django_env` (all four
+parametrised cases). Each calls `call_command("check", deploy=True)` with no database fixture,
+because until now nothing registered under `deploy=True` ever needed one. Confirmed by running
+`TestCheckCommandIntegration`/`TestDeployCommand` alone, isolated from every other change in this
+story: all six fail, in each case with the same `RuntimeError`, not a `SystemCheckError` naming
+the wrong thing.
+
+**Settles:** the same rule as D23 applies - these are not authored in this story, and this
+brief's prohibition instructs reporting the task blocked rather than adding a database fixture to
+a test I did not write, however small that edit would be. `check_portal_roles_present` itself is
+implemented exactly to its own acceptance criteria and is correctly guarded against every
+database condition its own tests exercise (missing table, unreadable table, an unconfigured
+engine, `migrate` in progress) - see the tolerance test added alongside this decision,
+`TestPortalRolesPresent::test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing`,
+which was itself added after this same category of failure surfaced in `tests/test_apps.py`'s
+production-boot tests (`ImproperlyConfigured`, not caught until this fix).
+
+**Revisit if:** Forge or Sam decide the fix belongs to the six tests, in which case each needs
+`@pytest.mark.django_db` (or the `db` fixture) added - a one-line addition per test, not a
+weakening of anything they assert.
