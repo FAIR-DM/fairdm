@@ -17,9 +17,25 @@ class TeamView(FairDMTemplateView):
     """
 
     template_name = "contributors/team.html"
-    page_title = _("Team")
+    page_title = _("Portal Team")
+    page_subtitle = _(
+        "The people who run this portal, grouped by the portal role each one holds."
+    )
+    page_info = _(
+        "A portal role is granted by an administrator and governs what someone can "
+        "do across the whole portal. It is distinct from a contribution role, which "
+        "is set per dataset and only applies there."
+    )
+    page_info_actions = [
+        {
+            "text": _("About portal roles"),
+            "href": "https://fairdm.org/portal-administration/roles/",
+            "icon": "external-link",
+            "target": "_blank",
+        }
+    ]
     list_item_template = "contributors/contributor_card.html"
-    grid_config = {"cols": 1, "gap": 2}
+    grid_config = {"cols": 1, "md": 2, "lg": 4, "gap": 4}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

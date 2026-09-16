@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from pytest_django.asserts import assertNotContains
+from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.factories import ContributionFactory, PersonFactory
 from fairdm.portal_roles import PortalRoles
@@ -126,3 +126,41 @@ class TestTeamView:
         assert len(_non_instrumentation_queries(after.captured_queries)) == len(
             _non_instrumentation_queries(before.captured_queries)
         )
+
+    def test_page_title_is_portal_team(self, client):
+        response = client.get(reverse("team"))
+
+        assert response.context["page"]["title"] == "Portal Team"
+
+    def test_lead_paragraph_explains_who_runs_the_portal(self, client):
+        response = client.get(reverse("team"))
+
+        subtitle = response.context["page"]["subtitle"]
+        assert subtitle
+        assertContains(response, subtitle, html=False)
+
+    def test_info_dialog_explains_a_portal_role_and_links_to_the_docs(self, client):
+        response = client.get(reverse("team"))
+
+        page = response.context["page"]
+        assert page["info"]
+        assertContains(response, page["info"])
+        assert page["info_actions"] == [
+            {
+                "text": "About portal roles",
+                "href": "https://fairdm.org/portal-administration/roles/",
+                "icon": "external-link",
+                "target": "_blank",
+            }
+        ]
+        assertContains(response, 'href="https://fairdm.org/portal-administration/roles/"')
+
+    def test_holders_grid_is_responsive_across_breakpoints(self, client):
+        _group(PortalRoles.PORTAL_ADMINISTRATOR).user_set.add(PersonFactory())
+
+        response = client.get(reverse("team"))
+
+        content = response.content.decode()
+        assert "grid-cols-1" in content
+        assert "md:grid-cols-2" in content
+        assert "lg:grid-cols-4" in content
