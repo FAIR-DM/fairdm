@@ -527,3 +527,22 @@
   asked for, against the mechanism rather than the unreachable call site. `tests/test_permissions.py`
   (17 tests) and `tests/test_contrib/test_contributors/test_permissions.py` (26 tests) both green,
   43 total. Commit `d80209a`.
+
+- **SPC-001**: `ShippedRoleGroupAdmin.delete_view` (`fairdm/contrib/admin/admin.py`) now names
+  the role and says FairDM requires it, for both `GET` (the confirmation attempt) and `POST`
+  (the actual delete attempt) to `admin:auth_group_delete` - `has_delete_permission` already
+  removes the button and Django's own `PermissionDenied` handling already refuses the direct
+  URL with a 403, but that refusal was the generic `mvp/403.html` template ("Access Denied.
+  You do not have permission...") with no mention of which role or why, since the naming
+  message on the `pre_delete` receiver (`refuse_shipped_role_deletion`,
+  `fairdm/contrib/contributors/receivers.py`) is unreachable from the admin route - Django
+  raises `PermissionDenied` before this feature's code runs. Returns a plain
+  `HttpResponseForbidden` naming the role rather than routing through `django.views.defaults.
+  permission_denied`, since the project's own `403.html` (from `django-mvp`) renders no
+  exception text at all. Reproduced first: three new tests in `TestShippedRoleDeleteMessage`
+  (`tests/test_contrib/test_admin/test_admin.py`), the first observed failing for the right
+  reason - `'FairDM requires' in content` false against the generic "Access Denied" page -
+  before the fix. Kept the existing `test_the_delete_view_itself_refuses`'s 403 status intact
+  (only its content changed, not asserted there) and added a companion test that a group the
+  portal made itself still gets the ordinary confirmation page (200), not the 403 path. 19/19
+  in the file. Commit `35ae998`.
