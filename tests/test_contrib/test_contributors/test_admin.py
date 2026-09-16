@@ -965,6 +965,78 @@ class TestMergeAndClaimLinkViewsRequireSuperuser:
             admin_client.get(url)
 
 
+# ── T019: merge and claim-link become the Community Manager's (D13, D21) ────
+
+
+@pytest.mark.django_db
+class TestMergeAndClaimLinkViewsAdmitACommunityManager:
+    """FR-004: a portal role granted deliberately is a different thing from "any staff
+    member", which is the argument that supersedes the superuser-only reasoning in
+    ``claim_link_view``/``merge_view``'s own docstrings (D13, D21)."""
+
+    def test_merge_view_proceeds_for_a_community_manager(self, client, unclaimed_person):
+        manager = _community_manager("merge-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+    def test_claim_link_view_proceeds_for_a_community_manager(
+        self, client, unclaimed_person
+    ):
+        """Mirrors ``test_claim_link_view_is_not_refused_for_a_superuser``: the gate lets a
+        Community Manager through, then the view hits the same already-reported
+        ``NoReverseMatch`` defect (commented-out ``contributors:claim-profile`` URL) rather
+        than the permission gate refusing them."""
+        from django.urls import NoReverseMatch
+
+        manager = _community_manager("claim-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse(
+            "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
+        )
+        with pytest.raises(NoReverseMatch):
+            client.get(url)
+
+    def test_a_person_holding_a_role_without_change_person_is_still_refused(
+        self, client, unclaimed_person
+    ):
+        """A Data Curator reaches the administration interface (a rights-carrying role,
+        T014) but holds no right this gate asks for - refused by this view's own gate,
+        not merely absent from the site altogether."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        curator = PersonFactory(email="curator-only@example.com", is_active=True)
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        client.force_login(curator)
+
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_the_actions_are_offered_to_a_community_manager_in_the_changelist(
+        self, client
+    ):
+        manager = _community_manager("actions-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_person_changelist")
+        response = client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "merge_person_action" in content
+        assert "generate_claim_link_action" in content
+
+
 @pytest.mark.django_db
 class TestPersonAdminActionsHiddenFromNonSuperuser:
     """The merge/claim-link changelist actions do not appear for a
