@@ -255,3 +255,135 @@
   split. `tests/test_core/test_project/test_factories.py`'s three previously-green tests (broken
   by the unguarded split) pass again; `tests/test_permissions.py` (11 tests) and the
   `test_dataset`/`test_project` plugin files (157 tests together) stay green. Commit `bc5732d`.
+
+## US-3 implementation begins on `017-portal-roles-us3`, cut from `5c0ed51`
+
+- **T020**: `tests/test_portal_roles.py::TestProtection` (8 tests) written and observed failing
+  for the right reason (`Failed: DID NOT RAISE ValidationError`) before either receiver existed.
+  Covers: deleting a shipped role raises and it and its members survive; the message names the
+  role and says FairDM requires it, for both delete and rename; renaming one raises and the name
+  is unchanged; re-saving a shipped role with its name unchanged is unaffected; creating a group
+  is unaffected; `PortalRoles.reconcile()`'s own re-creation of a role removed by raw SQL is
+  unaffected by the receiver it just installed; a group a portal created for itself deletes and
+  renames normally. A `_delete_group_by_raw_sql` helper removes a group (and its
+  `auth_group_permissions` rows, or SQLite's foreign-key check fails at teardown) without going
+  through the ORM, per research R6. `delete()`/`save()` calls expected to raise are wrapped in
+  their own `transaction.atomic()` so the receiver's exception - raised inside the atomic block
+  `delete()`/`save()` already opens - doesn't mark the surrounding test's own transaction broken
+  for every query after it. Commit `2b34140`.
+- **T021**: `refuse_shipped_role_deletion` and `refuse_shipped_role_rename` added to
+  `fairdm/contrib/contributors/receivers.py`, connected as `pre_delete`/`pre_save` on `Group` in
+  `ContributorsConfig.ready()` with `dispatch_uid`s. The rename guard checks
+  `instance._state.adding` first (true only for a `Group` that has never been saved) and returns
+  without raising, so a portal's own new group and `PortalRoles.reconcile()`'s
+  `Group.objects.get_or_create()` creation branch are both unaffected; for an existing row it
+  compares the name **stored in the database** against `instance.name` (not the shipped-role list
+  against `instance.name` alone), so a rename *away* from a shipped name is still caught and an
+  unchanged re-save is not refused. `TestProtection` (T020) green. Commit `9ba8ff8`.
+  - **Known regression, not fixed**: connecting `pre_delete` for `Group` disables Django's
+    collector fast-delete path, so a bulk `Group.objects.all().delete()` now sends `pre_delete`
+    per row and is refused once it reaches a shipped role - exactly the setup step
+    `tests/test_portal_roles.py::TestReconcile` (5 tests, US-1) and
+    `tests/test_apps.py::TestPortalRolesReconciliation` (2 tests, US-1) both use to reset state
+    before testing `reconcile()`/`migrate`. Confirmed by running both classes after T021 landed:
+    all seven fail with `ValidationError` naming a shipped role. Neither file is touched - this
+    story's brief prohibits modifying a test authored elsewhere and instructs reporting the task
+    blocked instead. See D23 and `report-us3.json`.
+- **T022**: `tests/test_contrib/test_admin/test_group_admin.py` written and observed failing for
+  the right reason before the admin class existed: no delete button on a shipped role's change
+  form (the default `GroupAdmin` offers one), the delete view itself not refusing (200 instead of
+  403), and the rename POST producing T021's uncaught `ValidationError` - a 500, with no
+  admin-side explanation yet. Two tests for a group the portal made itself, and one for
+  re-saving a shipped role with its name unchanged, already passed against the stock admin and
+  stayed green throughout, proving the new class doesn't over-reach. Commit `7482d7c`.
+- **T023**: `ShippedRoleGroupAdmin` and `ShippedRoleGroupForm` added to
+  `fairdm/contrib/admin/admin.py` (the file this repository already uses for a third-party app's
+  admin overrides, per its own docstring about Waffle). `admin.site.unregister(Group)` then
+  `@admin.register(Group)` replaces `django.contrib.auth.admin.GroupAdmin` on the same site
+  object `FairDMAdminSite`'s `default_site` substitution already made `CustomAdminSite` -
+  `django.contrib.auth`'s own `admin.py` registers first (it is listed earlier in
+  `INSTALLED_APPS`), so the unregister has something to remove.
+  `has_delete_permission` returns `False` for a shipped role's object, which Django's admin reads
+  for both the change-form delete button and the bulk `delete_selected` action - no extra action
+  handling was needed for either. `ShippedRoleGroupForm.clean_name` compares the stored name
+  (queried directly, not read off `self.instance` before validation) against the submitted one
+  and attaches a field error, so a rename never reaches T021's receiver through this route at
+  all - it stays the backstop for every other writer (research R6). `TestProtection` (T020) and
+  `TestShippedRoleDeleteProtection`/`TestShippedRoleRenameProtection` (T022) all green. Commit
+  `9d89ba2`.
+- **T024**: `tests/test_conf/test_checks.py::TestPortalRolesPresent` written and observed failing
+  for the right reason (`ImportError: cannot import name 'check_portal_roles_present'`) before
+  T025 existed. Covers the check function directly (two missing roles named in one error, all
+  four present returns nothing, an absent or unreadable group table returns nothing for
+  `ProgrammingError`/`OperationalError`, stands down when `sys.argv` contains `migrate` and does
+  not for an unrelated command), `check --deploy` reporting the condition regardless of
+  environment (`call_command("check", deploy=True)`, in-process, `db` fixture), and the check's
+  own registration carrying exactly the `deploy`/`production_critical` tags and only being
+  visible with `include_deployment_checks=True`. The two live-production-boot scenarios in the
+  brief's given/when/then (refuses and names them; `migrate` still completes) are not covered by
+  a subprocess test: doing that for real needs a PostgreSQL connection (confirmed unreachable in
+  this environment - no docker, no `psql`, port 5432 closed), and SQLite cannot stand in because
+  `fairdm.E101` fires unconditionally for any non-development environment and
+  `_check_production_configuration` does not consult `SILENCED_SYSTEM_CHECKS` (confirmed by
+  trying exactly that and reading the raised error). The registration test plus
+  `TestPortalRolesReconciliation` (`tests/test_apps.py`, proves `migrate` installs the roles
+  against this suite's real database) together cover the wiring without one. Commit `1a2ca33`.
+- **T025**: `check_portal_roles_present` added to `fairdm/conf/checks.py`, id `fairdm.E300`,
+  tagged `DeployTags.deploy`/`DeployTags.production_critical` with `deploy=True`. Stands down by
+  checking `_MIGRATE_COMMAND_NAME in sys.argv` before querying anything (D11). First version
+  caught only `OperationalError`/`ProgrammingError`; running the wider suite surfaced four
+  pre-existing `tests/test_apps.py` production-boot tests newly crashing with an uncaught
+  `ImproperlyConfigured` traceback instead of their expected clean `SystemCheckError` - a
+  `DATABASE_URL`-absent portal (`fairdm.E100`'s own case) composes a `DATABASES` entry with no
+  resolvable engine, which raises that instead of a `django.db.utils` error the moment any query
+  runs. Added to the except clause, and to `TestPortalRolesPresent` as its own test. `TestPortalRolesPresent`
+  (T024) all green. Commit `3a08819`.
+  - **Known ID collision, not resolved**: `fairdm.E300` is already `check_celery_broker`'s id
+    (`fairdm/conf/checks.py`, pre-existing, not tagged `production_critical` so it never reaches
+    the same boot-refusal aggregation) - every design doc in this spec (plan.md, decisions.md,
+    tasks.md) assigns `E300` to the portal-roles check with no apparent awareness two checks
+    would then share one id. `manage.py check --deploy` output and any future
+    `SILENCED_SYSTEM_CHECKS` entry naming `fairdm.E300` cannot distinguish the two. Not fixed -
+    renumbering either check is outside T020-T025's scope. See `report-us3.json`.
+  - **Known regression, not fixed**: this is the first `production_critical` check that queries
+    the database rather than reading settings, and six pre-existing tests in
+    `tests/test_conf/test_checks.py` (`TestCheckCommandIntegration` x2, `TestDeployCommand` x4
+    parametrised) run the full `check --deploy` pipeline with no database fixture enabled -
+    reasonable when nothing registered under `deploy=True` ever needed one. Confirmed by running
+    both classes in isolation: all six fail with `RuntimeError: Database access not allowed`.
+    Neither file is touched, per this story's prohibition. See D24 and `report-us3.json`.
+
+## FIX-2 (T025 renumbering and regression settlement)
+
+- **T025 renumbering**: `check_portal_roles_present`'s id changed from `fairdm.E300` to
+  `fairdm.E500` - `fairdm/conf/checks.py` numbers by hundreds (E0xx security, E1xx database, E2xx
+  cache, E3xx celery, E4xx translation) and `E300` was already `check_celery_broker`'s, held since
+  Spec 003, long before this feature. Updated `fairdm/conf/checks.py` (both the docstring and the
+  registered `id=`), the two `TestPortalRolesPresent` assertions in `tests/test_conf/test_checks.py`
+  that named the old id, and every reference in `tasks.md`, `plan.md` and `decisions.md` (D11, D16)
+  - including D16's `fairdm.E301` for the not-yet-built `check_dev_accounts_absent` (T029), which
+  collides with `check_celery_async`'s id the same way and is renumbered to `fairdm.E501` so the
+  next story does not inherit the same bug. `report-us3.json` and `design-review-findings.json`
+  are historical records of the collision as found and are left as written. Verified: narrow scope
+  (`TestPortalRolesPresent` and `TestCeleryChecks`) green, 13 passed, ids no longer collide. See
+  D26.
+- **T025 database tolerance (D24)**: extended `check_portal_roles_present`'s except clause to
+  also catch `RuntimeError`, so a test harness that refuses database access outright (raised by
+  pytest-django's own safeguard for a test with no `db` fixture) is tolerated exactly like an
+  absent or unreadable group table. Added `RuntimeError` to
+  `test_an_absent_or_unreadable_group_table_returns_nothing`'s existing parametrisation rather
+  than writing a new test, since it already asserts this same tolerance for two sibling
+  `django.db.utils` exceptions - observed red for the right reason (the harness's own
+  `RuntimeError: no such table: auth_group`, from the mock, before the except clause changed).
+  `TestCheckCommandIntegration` (2 tests) and `TestDeployCommand` (4 parametrised) - the six D24
+  named - pass unchanged; `tests/test_conf/test_checks.py` is 56 passed. See D27.
+- **T021 guard fixture (D23)**: added `disconnect_shipped_role_guard` to `tests/conftest.py`, a
+  fixture that disconnects `refuse_shipped_role_deletion`/`refuse_shipped_role_rename` from
+  `Group`'s `pre_delete`/`pre_save` by `dispatch_uid` for a test's duration and reconnects them in
+  a `finally` block. The five `TestReconcile` tests (`tests/test_portal_roles.py`) and the two
+  `TestPortalRolesReconciliation` tests (`tests/test_apps.py`) D23 named now request it explicitly
+  as a fixture parameter; setup is otherwise unchanged and no assertion in any of the seven
+  changed. `TestProtection` does not request it and still passes on its own
+  (`tests/test_portal_roles.py::TestProtection`, 8 passed), proving a shipped role cannot be
+  deleted or renamed with the guard connected. `tests/test_portal_roles.py` (23 passed) and
+  `tests/test_apps.py` (24 passed) both green, run together and in isolation. See D28.

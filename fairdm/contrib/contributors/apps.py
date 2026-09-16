@@ -10,11 +10,19 @@ class ContributorsConfig(AppConfig):
 
     def ready(self):
         from allauth.account.signals import email_confirmed
-        from django.db.models.signals import m2m_changed, post_delete
+        from django.contrib.auth.models import Group
+        from django.db.models.signals import (
+            m2m_changed,
+            post_delete,
+            pre_delete,
+            pre_save,
+        )
 
         from .models import Contribution
         from .receivers import (
             refuse_off_vocabulary_role,
+            refuse_shipped_role_deletion,
+            refuse_shipped_role_rename,
             withdraw_rights_on_credit_deletion,
         )
         from .signals import handle_email_confirmed
@@ -29,4 +37,14 @@ class ContributorsConfig(AppConfig):
             refuse_off_vocabulary_role,
             sender=Contribution.roles.through,
             dispatch_uid="contributors.refuse_off_vocabulary_role",
+        )
+        pre_delete.connect(
+            refuse_shipped_role_deletion,
+            sender=Group,
+            dispatch_uid="contributors.refuse_shipped_role_deletion",
+        )
+        pre_save.connect(
+            refuse_shipped_role_rename,
+            sender=Group,
+            dispatch_uid="contributors.refuse_shipped_role_rename",
         )

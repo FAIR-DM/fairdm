@@ -22,9 +22,21 @@ stored rather than what a caller is about to write, and no production write path
 through ``roles.add()`` or ``roles.set()`` (``set()`` decomposes into ``remove()`` +
 ``add()`` internally - see Django's ``ManyRelatedManager.set()``), so an ``m2m_changed``
 receiver on ``pre_add`` is the one place that sees every write before it commits.
+
+``refuse_shipped_role_deletion`` and ``refuse_shipped_role_rename`` protect the four
+roles ``fairdm.portal_roles.PortalRoles`` ships (FR-012, FR-013, research R6). A raising
+``pre_delete``/``pre_save`` receiver on ``Group`` is this codebase's own idiom for a rule
+the model layer cannot hold on its own, and - as with ``refuse_off_vocabulary_role`` above
+- it holds for every ORM writer, not only the administration interface. It does not hold
+against raw SQL, which the specification already accepts. ``refuse_shipped_role_rename``
+fires only for an existing row: a brand new ``Group`` instance has no name to compare
+against yet, and ``PortalRoles.reconcile()`` itself writes through
+``Group.objects.get_or_create()``, whose creation branch this receiver is installed
+against and must not refuse.
 """
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.utils.permissions import remove_all_model_perms
 
@@ -93,3 +105,52 @@ def refuse_off_vocabulary_role(sender, action, reverse, model, pk_set, **kwargs)
         .exists()
     ):
         raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
+
+
+def refuse_shipped_role_deletion(sender, instance, **kwargs):
+    """Refuse to delete a shipped portal role through the ORM (FR-012, research R6).
+
+    Connected to ``pre_delete`` for ``Group``, with no distinction between an
+    instance's own ``delete()`` and a bulk ``QuerySet.delete()`` - both send
+    ``pre_delete`` for every row once a receiver is connected for the model, which
+    also disables the collector's fast-delete path (see the module docstring's
+    ``withdraw_rights_on_credit_deletion`` note for the same mechanism).
+    """
+    from fairdm.portal_roles import PortalRoles
+
+    if instance.name in PortalRoles.shipped_names():
+        raise ValidationError(
+            _('FairDM requires the "%(name)s" role and refuses to delete it.')
+            % {"name": instance.name}
+        )
+
+
+def refuse_shipped_role_rename(sender, instance, **kwargs):
+    """Refuse to rename a shipped portal role through the ORM (FR-013, research R6).
+
+    Fires only for an existing row: ``instance._state.adding`` is ``True`` for a
+    ``Group`` that has never been saved, which is the case for both a portal's own
+    new group and the row ``PortalRoles.reconcile()`` creates through
+    ``Group.objects.get_or_create()`` - this receiver must not refuse either. For an
+    existing row, the name stored in the database, not the value ``instance`` is
+    about to write, is what identifies a shipped role: comparing ``instance.name``
+    against the declared names would miss a rename *away* from a shipped name and
+    would refuse one that merely resaves it unchanged.
+    """
+    if instance._state.adding:
+        return
+
+    from django.contrib.auth.models import Group
+
+    from fairdm.portal_roles import PortalRoles
+
+    try:
+        stored_name = Group.objects.get(pk=instance.pk).name
+    except Group.DoesNotExist:
+        return
+
+    if stored_name in PortalRoles.shipped_names() and instance.name != stored_name:
+        raise ValidationError(
+            _('FairDM requires the "%(name)s" role and refuses to rename it.')
+            % {"name": stored_name}
+        )

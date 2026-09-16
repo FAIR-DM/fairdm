@@ -120,7 +120,7 @@ is free, so a portal that somehow holds both is left alone rather than merged.
 
 ## D11 — The boot refusal stands down for the command that repairs it
 
-`fairdm.E300` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
+`fairdm.E500` runs in `AppConfig.ready()`, which fires before `migrate` does any work, and
 `post_migrate` is the only thing that installs the roles. Left as first planned, a production portal
 upgrading to this version would have refused to boot *and* refused to migrate, with no route back
 from inside the portal. The refusal therefore stands down for the command that installs the roles.
@@ -167,7 +167,7 @@ own. Membership is edited on the Person form's `groups` field instead, so the ro
 The command refuses to create the five accounts outside development. That guards the act and not the
 state: a database copied down from production, a dump restored the wrong way round, or an
 environment variable changed under a live database all produce the condition the command would have
-refused. `fairdm.E301` reports it, tagged exactly as `fairdm.E300` is. One of those accounts is a
+refused. `fairdm.E501` reports it, tagged exactly as `fairdm.E500` is. One of those accounts is a
 Portal Administrator whose password is published in the documentation.
 
 ## D17 — The module is `portal_roles`, not `roles`
@@ -382,3 +382,198 @@ being overridden, and the four tests that forced the narrowing pass unchanged.
 The full suite was read independently at 2767 passed, 8 skipped. Worth recording that the verify
 step's own test timing (98s) is not the full suite's (637s): the machine gate is evidence that the
 step ran green, never evidence of what it covered.
+
+## D23 — T021's guard, implemented as specified, breaks seven US-1 tests left unmodified (US-3)
+
+T020/T021 require `pre_delete`/`pre_save` receivers on `Group` that refuse a shipped role's
+deletion or rename "for every ORM writer" (research R6, this story's brief), not only through the
+administration interface FR-012/FR-013 name literally. Connecting a `pre_delete` receiver for
+`Group` disables Django's collector fast-delete path for that model, so a bulk
+`Group.objects.all().delete()` now sends `pre_delete` per row and is refused the moment it reaches
+a shipped role, the same as a single instance's own `delete()`.
+
+Two US-1 test classes reset state this way as their own setup, before this story existed:
+`tests/test_portal_roles.py::TestReconcile` (5 tests) and
+`tests/test_apps.py::TestPortalRolesReconciliation` (2 tests). Both call
+`Group.objects.all().delete()` to put the database into "no roles yet" before asserting that
+`PortalRoles.reconcile()` / `migrate` installs or repairs them. Once the guard is connected, that
+call raises on whichever shipped role the collector reaches, and every one of the seven fails.
+
+Confirmed empirically, not by inference: a throwaway probe test connecting an equivalent
+`pre_delete` receiver reproduced the raise before either receiver was written, and running the
+full `TestReconcile`/`TestPortalRolesReconciliation` classes afterward reproduced all seven
+failures, in each case for exactly this reason (`ValidationError` naming a shipped role).
+
+**Settles:** this brief prohibits modifying a test authored in a different story, and instructs
+marking the task blocked rather than doing so. The receivers are implemented and committed
+exactly to their own acceptance criteria - `TestProtection` in `tests/test_portal_roles.py`
+(T020) is green - but T021 is reported `blocked` in `report-us3.json` for this reason, with the
+seven test names as evidence, rather than silently landing a known regression in two files this
+story does not own.
+
+A one-line fix (`Group.objects.exclude(name__in=PortalRoles.shipped_names()).delete()`) would
+mechanically restore green but changes what each test proves: the shipped roles would no longer
+be deleted at all, so "migrate creates them from scratch" would collapse into "migrate leaves
+already-correct roles alone" - a real weakening of intent, not a formatting fix, and exactly the
+kind of pre-existing-test edit this story is not authorised to make on its own judgement.
+
+**Revisit if:** Forge or Sam decide the regression is an accepted, deliberate consequence of
+FR-012/FR-013 as designed - in which case the fix is to reset those seven tests' state through
+raw SQL (as `tests/test_portal_roles.py::TestProtection`'s own helper,
+`_delete_group_by_raw_sql`, already does) rather than through the ORM, preserving each test's
+original intent.
+
+## D24 — `check_portal_roles_present`, the first deploy check to touch the database, breaks six
+more pre-existing tests the same way (US-3)
+
+Every check FairDM registered before this story reads settings values only - `DATABASES`,
+`CACHES`, `SECRET_KEY`, `ALLOWED_HOSTS`, and so on. `check_portal_roles_present` (T025) is the
+first that queries live database state (`Group.objects.filter(...)`), because FR-015 is a claim
+about installed rows, not configuration. Any test that runs the full `check --deploy` pipeline
+without enabling database access - `@pytest.mark.django_db`, the `db` fixture, or
+`transactional_db` - now trips pytest-django's own safeguard
+(`RuntimeError: Database access not allowed`) the moment my check runs, regardless of what that
+test is actually asserting.
+
+Six pre-existing tests do exactly this, none of them written in this story:
+`tests/test_conf/test_checks.py::TestCheckCommandIntegration::test_check_deploy_fails_with_errors`,
+`::test_check_deploy_passes_with_valid_config`, and
+`TestDeployCommand::test_deploy_check_reports_the_same_failure_regardless_of_django_env` (all four
+parametrised cases). Each calls `call_command("check", deploy=True)` with no database fixture,
+because until now nothing registered under `deploy=True` ever needed one. Confirmed by running
+`TestCheckCommandIntegration`/`TestDeployCommand` alone, isolated from every other change in this
+story: all six fail, in each case with the same `RuntimeError`, not a `SystemCheckError` naming
+the wrong thing.
+
+**Settles:** the same rule as D23 applies - these are not authored in this story, and this
+brief's prohibition instructs reporting the task blocked rather than adding a database fixture to
+a test I did not write, however small that edit would be. `check_portal_roles_present` itself is
+implemented exactly to its own acceptance criteria and is correctly guarded against every
+database condition its own tests exercise (missing table, unreadable table, an unconfigured
+engine, `migrate` in progress) - see the tolerance test added alongside this decision,
+`TestPortalRolesPresent::test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing`,
+which was itself added after this same category of failure surfaced in `tests/test_apps.py`'s
+production-boot tests (`ImproperlyConfigured`, not caught until this fix).
+
+**Revisit if:** Forge or Sam decide the fix belongs to the six tests, in which case each needs
+`@pytest.mark.django_db` (or the `db` fixture) added - a one-line addition per test, not a
+weakening of anything they assert.
+
+## D25 — T024's two live-production-boot scenarios are covered by registration and unit tests,
+not a subprocess against a real database (US-3)
+
+T024's given/when/then names two scenarios that need an actual production-shaped boot: "the
+production boot refusal raises... and names them" and "a production database holding data but
+none of the four roles still runs `migrate` to completion" (D11's critical finding). Every
+existing subprocess boot test in `tests/test_apps.py` reaches this by setting `DATABASE_URL` to a
+PostgreSQL connection string and calling `django.setup()` - but none of them ever open that
+connection, because every production_critical check before this story reads settings values
+only. `check_portal_roles_present` is the first to query live database state, so a genuine
+version of these two scenarios needs a reachable PostgreSQL server.
+
+None is reachable in this environment: no `docker` daemon, no `psql` client, and a direct TCP
+probe of `localhost:5432` returns connection refused. SQLite cannot substitute - confirmed by
+trying it first: `fairdm.E101` (SQLite not recommended for production) is itself
+`production_critical` with no stand-down, and `FairDMConfig._check_production_configuration`
+filters only on `issue.is_serious()`, never consulting `SILENCED_SYSTEM_CHECKS`, so a portal
+override silencing `fairdm.E101` has no effect on it - only on `manage.py check` proper. Any
+SQLite-backed "production" subprocess therefore refuses to boot (and to migrate) on E101 alone,
+regardless of what this story's check reports, which would prove nothing about the roles
+condition at all.
+
+**Settles:** the two scenarios are covered instead by three tests that are each fully
+deterministic and need no live database beyond this suite's own (SQLite):
+`test_stands_down_when_the_current_command_is_migrate` and
+`test_does_not_stand_down_for_an_unrelated_command` exercise D11's exact mechanism directly
+against the check function; `test_check_is_registered_with_the_production_critical_deploy_tags`
+proves the check is wired into the same tag-based gate every other production-critical check
+already uses (`FairDMConfig._check_production_configuration`, unmodified by this story).
+`tests/test_apps.py::TestPortalRolesReconciliation` (US-1, pre-existing) already proves `migrate`
+installs the roles against this suite's real database. Together these cover every moving part
+the two scenarios would exercise, without the one part - a live boot against a genuinely
+production-shaped database - this environment cannot run.
+
+**Revisit if:** a Postgres-backed environment (CI, matching `tests/settings.py`'s own comment
+that CI runs a `postgres` service container) is available to add the literal subprocess version
+of these two scenarios as a follow-up. It is not a correctness gap in the implementation, which
+every unit-level test already exercises - it is an environment gap in this coverage.
+
+## D26 — `check_portal_roles_present` is renumbered `fairdm.E500`, superseding D11's and D16's
+`fairdm.E300`/`E301` (FIX-2)
+
+**Decision.** `fairdm/conf/checks.py` numbers by hundreds - E0xx security, E1xx database, E2xx
+cache, E3xx celery, E4xx translation - a convention every check but this story's follows.
+`check_portal_roles_present` was assigned `fairdm.E300` at design review (D11) and implemented
+against it (T025); `fairdm.E300` is `check_celery_broker`'s id, held since long before this
+feature (`fairdm/conf/checks.py`, Spec 003). That was an error in the plan, not in T025's
+implementation, and it was never exercised: nothing in the suite calls both checks in the same
+`check --deploy` run in a way that would have surfaced two errors sharing one id. The check now
+takes `fairdm.E500`, the first free hundred after translation's E4xx. `E501` is left free for
+`check_dev_accounts_absent` (T029, US-4, not yet built), which D16 assigned `fairdm.E301` -
+`check_celery_async`'s id, the same category of error. Every reference to either wrong id in
+`fairdm/conf/checks.py`, its own tests, and this spec's `tasks.md`/`plan.md`/`decisions.md` (D11,
+D16) is updated to match; D23, D24 and D25 name no id and are unaffected.
+
+**Why:** a shipped id has to be unique for `SILENCED_SYSTEM_CHECKS` and `check --deploy` output to
+mean anything, and E5xx keeps every future portal-roles-family check out of a range four other
+subsystems already own.
+
+**Revisit if:** the file's hundred-per-subsystem convention itself changes; nothing about this
+story's design motivates renumbering again on its own.
+
+## D27 — `check_portal_roles_present`'s database tolerance is extended to cover a test harness
+that refuses access outright, resolving D24 (FIX-2)
+
+**Decision.** D24 recorded that `check_portal_roles_present` is the first `production_critical`
+check to query live database state, and that six pre-existing tests
+(`TestCheckCommandIntegration` x2, `TestDeployCommand` x4 parametrised) call `check --deploy`
+with no `db` fixture enabled, tripping pytest-django's own safeguard - `RuntimeError: Database
+access not allowed` - the moment the check runs, and that fixing it was outside T020-T025's
+authority since none of the six were authored in that story. The check's own contract already
+tolerates a group table that is absent or unreadable, so it can no more distinguish "no database
+configured yet" from "a role is actually missing" than a raw `OperationalError` or
+`ProgrammingError` could. A test harness refusing access outright is the same case: the table is
+not absent, but it is just as unreadable to this check. `RuntimeError` joins the except clause
+that already catches `OperationalError`, `ProgrammingError` and `ImproperlyConfigured`. None of
+the six tests are touched; each passes unchanged once the check tolerates the condition they were
+already creating.
+
+**Why:** the alternative - adding `@pytest.mark.django_db` to six tests this story did not author
+- is a smaller-looking edit that changes what each of those tests proves (whether the command
+enables database access), while widening this check's own tolerance changes nothing about what it
+proves (a role is missing) and matches the tolerance it already declares for every other way a
+group table can be unreadable.
+
+**Revisit if:** a future check needs to distinguish "database access is disabled by the caller"
+from "the group table cannot be read" - nothing in this feature's requirements needs that
+distinction, so it is not built.
+
+## D28 — The seven tests that reset state with `Group.objects.all().delete()` disconnect T021's
+guard through a named, shared fixture, resolving D23 (FIX-2)
+
+**Decision.** D23 recorded that `tests/test_portal_roles.py::TestReconcile` (5 tests) and
+`tests/test_apps.py::TestPortalRolesReconciliation` (2 tests) reset state by deleting every
+`Group` row before proving `PortalRoles.reconcile()` / `migrate` installs or repairs them, and
+that T021's guard - correctly - refuses that bulk delete the moment it reaches a shipped role. The
+guard is not weakened, for these tests or any other caller: the module docstring already states it
+does not hold against raw SQL, and the specification's own account of how a role can actually go
+missing is exactly that route, repaired on the next `migrate`. A new fixture,
+`disconnect_shipped_role_guard` in `tests/conftest.py`, disconnects `refuse_shipped_role_deletion`
+and `refuse_shipped_role_rename` from `Group`'s `pre_delete`/`pre_save` by their `dispatch_uid` for
+the duration of a test, and reconnects them in a `finally` block so a failing assertion cannot
+leave the guard disconnected for a later test. Each of the seven tests requests it explicitly as a
+fixture parameter; nothing else does, and `TestProtection` does not and still proves, on its own,
+that a shipped role cannot be deleted or renamed.
+
+**Why:** `Group.objects.all().delete()` is not a caller these tests invented for convenience; it
+is how each proves `reconcile()` builds every role from an empty table, the same condition a raw
+SQL deletion or a restored backup produces. Disconnecting the two receivers by name, for exactly
+the tests that model that condition, keeps the guard's own tests honest about what it protects
+against while letting the seven keep asserting exactly what they asserted before D23 was written -
+none of their assertions changed, only their setup gained one fixture parameter each. A shared
+`tests/conftest.py` fixture, rather than one copied into each file, is used because both test files
+sit directly under `tests/` and both need the identical disconnect/reconnect pair.
+
+**Revisit if:** a caller other than these seven ever needs the same disconnection - if so, extend
+this fixture's usage rather than writing a second one; do not add a flag or parameter to the guard
+itself to reach the same effect.

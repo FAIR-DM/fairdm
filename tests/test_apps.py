@@ -351,7 +351,7 @@ class TestPortalRolesReconciliation:
     `migrate` run, not only when `PortalRoles.reconcile()` is called directly
     (FR-009 to FR-011, research R5)."""
 
-    def test_migrate_installs_the_four_roles(self):
+    def test_migrate_installs_the_four_roles(self, disconnect_shipped_role_guard):
         from django.contrib.auth.models import Group
         from django.core.management import call_command
 
@@ -367,7 +367,9 @@ class TestPortalRolesReconciliation:
             )
         ) == set(PortalRoles.shipped_names())
 
-    def test_migrate_restores_a_permission_removed_by_hand(self):
+    def test_migrate_restores_a_permission_removed_by_hand(
+        self, disconnect_shipped_role_guard
+    ):
         from django.contrib.auth.models import Group
         from django.core.management import call_command
 

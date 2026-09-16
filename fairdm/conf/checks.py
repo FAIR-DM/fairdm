@@ -405,6 +405,78 @@ def check_celery_async(app_configs, **kwargs):
 
 
 # =============================================================================
+# PORTAL ROLES CHECKS
+# =============================================================================
+
+#: The current management command's name, if there is one, read from ``sys.argv[1]``
+#: the way ``manage.py`` invokes it - this module import happens ahead of app-registry
+#: population, well before ``FairDMConfig.ready()`` calls this check, so ``sys.argv`` is
+#: already the real invocation by the time it is read (D11, design review finding).
+_MIGRATE_COMMAND_NAME = "migrate"
+
+
+@register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_portal_roles_present(app_configs, **kwargs):
+    """
+    Check that every role ``fairdm.portal_roles.PortalRoles`` ships exists in the
+    database, naming every one missing at once (FR-015, research R4).
+
+    Tolerates a database that has not been migrated yet, or is not configured at
+    all: querying a group table that does not exist, cannot be read, belongs to
+    a database Django cannot even resolve an engine for (``ImproperlyConfigured`` -
+    the ``DATABASE_URL``-absent case ``fairdm.E100`` reports), or that database
+    access itself is refused outright (``RuntimeError`` - a test harness with no
+    database enabled raises this the same way) is not this check's job to report,
+    and is how an unmigrated, unconfigured or genuinely unreadable database is told
+    apart from a portal actually missing its roles (research R4, D24).
+
+    Stands down for ``migrate`` (D11): ``post_migrate`` is the only thing that
+    installs the roles, and this check runs in ``FairDMConfig.ready()``, which fires
+    before ``migrate`` does any work. Without the stand-down, a production portal
+    upgrading to this version - auth tables long since migrated, its roles not yet
+    created - could neither start nor migrate, with nothing inside it able to repair
+    that (a critical design-review finding).
+
+    Error ID: fairdm.E500
+    """
+    import sys
+
+    from django.contrib.auth.models import Group
+    from django.core.exceptions import ImproperlyConfigured
+    from django.db.utils import OperationalError, ProgrammingError
+
+    if _MIGRATE_COMMAND_NAME in sys.argv:
+        return []
+
+    from fairdm.portal_roles import PortalRoles
+
+    try:
+        existing = set(
+            Group.objects.filter(name__in=PortalRoles.shipped_names()).values_list(
+                "name", flat=True
+            )
+        )
+    except (OperationalError, ProgrammingError, ImproperlyConfigured, RuntimeError):
+        # RuntimeError also covers a test harness that refuses database
+        # access outright (pytest-django's own safeguard for a test with no
+        # `db` fixture) - genuinely unreadable, the same as the two
+        # django.db.utils cases above (D24, research R4).
+        return []
+
+    missing = [name for name in PortalRoles.shipped_names() if name not in existing]
+    if not missing:
+        return []
+
+    return [
+        Error(
+            f"FairDM role(s) missing from the database: {', '.join(missing)}.",
+            hint="Run `manage.py migrate` to install them.",
+            id="fairdm.E500",
+        )
+    ]
+
+
+# =============================================================================
 # TRANSLATION CHECKS
 # =============================================================================
 

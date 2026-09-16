@@ -92,7 +92,7 @@ fairdm/
 ├── permissions.py                # NEW - PortalRolePermissionBackend (model level reaches records)
 ├── apps.py                       # connect the post_migrate receiver
 ├── conf/
-│   ├── checks.py                 # NEW checks: fairdm.E300 roles present, E301 dev accounts absent
+│   ├── checks.py                 # NEW checks: fairdm.E500 roles present, E501 dev accounts absent
 │   └── settings/
 │       ├── auth.py               # register the backend
 │       └── apps.py               # drop the groups fixture from the setup pipeline
@@ -169,14 +169,14 @@ role can answer.
 
 `pre_delete` and `pre_save` receivers on `Group` refuse to remove or rename a shipped role, and a
 `Group` administration class turns that refusal into something the person who clicked can read.
-`fairdm.E300` joins the production-critical check subset, tolerating an unmigrated database, naming
+`fairdm.E500` joins the production-critical check subset, tolerating an unmigrated database, naming
 every missing role at once, and standing down for the command that installs them.
 
 ### Phase 4 — US-4, signing in as each role (P2)
 
 `create_dev_accounts` creates the five accounts, idempotently, each with a confirmed email address,
 and refuses to run when the resolved environment is not `development`. It refuses rather than
-adopts when an address already belongs to somebody. `fairdm.E301` reports any of those five
+adopts when an address already belongs to somebody. `fairdm.E501` reports any of those five
 addresses found on a production portal, because the command's refusal guards the act of loading
 and not the state a database copy can produce.
 
@@ -198,8 +198,8 @@ applies.
 | The object-level fallback widens rights beyond the roles. | It did, and it was narrowed: only a permission held through one of the four shipped roles reaches records. The wider rule reopened a disclosure guard an earlier feature had put in deliberately, which four of its tests caught. The suite now pins the refusal for a direct grant and for a portal's own group as well as the yes for a role holder. |
 | Third-party administration code calls `staff_member_required` rather than going through the admin site. | A smoke test signs in as each role and reaches the administration index and one changelist. Anything bypassing the site surfaces there. |
 | Removing `is_data_admin` and the template-tag branch narrows somebody's rights in a portal relying on them. | The Data Curator's permission list is built from exactly what those call sites reached, and the removal lands in the story that grants them. |
-| `fairdm.E300` fires during `migrate` on a fresh production database and blocks setup. | The check reports nothing when the group table is absent or unreadable, and a test covers a database with no tables. |
-| The development accounts reach a production portal. | The command refuses on any resolved environment other than `development`, the same rule the production boot guard uses, and a test asserts nothing is created. `fairdm.E301` then reports any that arrived by some route the command never saw, such as a database copy. |
+| `fairdm.E500` fires during `migrate` on a fresh production database and blocks setup. | The check reports nothing when the group table is absent or unreadable, and a test covers a database with no tables. |
+| The development accounts reach a production portal. | The command refuses on any resolved environment other than `development`, the same rule the production boot guard uses, and a test asserts nothing is created. `fairdm.E501` then reports any that arrived by some route the command never saw, such as a database copy. |
 | An upgraded production portal cannot start and cannot migrate, because the boot refusal fires before the thing that installs the roles. | The refusal stands down for the command that repairs the condition, and T024 covers exactly that upgrade path. This was a critical design-review finding, and it is the reason `migrate` is named in T025. |
 | The people already in the legacy groups lose their rights silently. | Reconciliation renames the legacy rows rather than leaving them, which carries the membership rows across untouched. T004 covers it. |
 | `contributors.change_person` becomes a route to superuser through the Person administration form. | The form drops `is_superuser`, `is_staff` and `password` for a request whose user is not a superuser, and T015 asserts a Community Manager cannot set the flag on anybody. |

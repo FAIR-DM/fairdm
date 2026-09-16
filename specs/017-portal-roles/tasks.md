@@ -184,7 +184,7 @@ task below, not a manual step.
       development; **and a production database holding data but none of the four roles still runs
       `migrate` to completion**, which is the upgrade path of every portal already running.
       Covers FR-015 to FR-017.
-- [ ] T025 [US3] `check_portal_roles_present` in `fairdm/conf/checks.py`, id `fairdm.E300`, tagged
+- [ ] T025 [US3] `check_portal_roles_present` in `fairdm/conf/checks.py`, id `fairdm.E500`, tagged
       `DeployTags.deploy` and `DeployTags.production_critical` with `deploy=True`, returning no
       error when the group table is absent or unreadable — **and standing down for the commands
       that repair the condition**. The boot refusal runs in `AppConfig.ready()`, which fires before
@@ -205,11 +205,11 @@ task below, not a manual step.
       resolved environment other than `development` (research R7). It ships with the package, not
       the demo. Covers FR-022.
 - [ ] T028 [P] [US4] `tests/test_conf/test_checks.py::TestDevAccountsAbsent` — a production portal
-      holding any of the five development addresses reports `fairdm.E301` naming them; a
+      holding any of the five development addresses reports `fairdm.E501` naming them; a
       development portal holding all five reports nothing; a database with no user table reports
       nothing.
-- [ ] T029 [US4] `check_dev_accounts_absent` in `fairdm/conf/checks.py`, id `fairdm.E301`, tagged
-      as `fairdm.E300` is. The command's refusal guards the act of loading and not the resulting
+- [ ] T029 [US4] `check_dev_accounts_absent` in `fairdm/conf/checks.py`, id `fairdm.E501`, tagged
+      as `fairdm.E500` is. The command's refusal guards the act of loading and not the resulting
       state: an account with a published password that reached production by a database copy, a
       dump restore or an environment variable changing under a live database is exactly the
       condition this feature already built a check for.

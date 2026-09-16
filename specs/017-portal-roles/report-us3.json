@@ -1,0 +1,143 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T020",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_portal_roles.py::TestProtection::test_deleting_a_shipped_role_is_refused_and_it_and_its_members_survive",
+          "tests/test_portal_roles.py::TestProtection::test_the_deletion_refusal_names_the_role_and_says_fairdm_requires_it",
+          "tests/test_portal_roles.py::TestProtection::test_renaming_a_shipped_role_is_refused_and_the_name_is_unchanged",
+          "tests/test_portal_roles.py::TestProtection::test_the_rename_refusal_names_the_role_and_says_fairdm_requires_it",
+          "tests/test_portal_roles.py::TestProtection::test_saving_a_shipped_role_with_its_name_unchanged_is_unaffected",
+          "tests/test_portal_roles.py::TestProtection::test_creating_a_group_is_unaffected_by_the_guard",
+          "tests/test_portal_roles.py::TestProtection::test_reconciles_own_creation_of_a_missing_role_is_unaffected_by_the_guard",
+          "tests/test_portal_roles.py::TestProtection::test_a_group_the_portal_created_for_itself_deletes_and_renames_normally"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_portal_roles.py::TestProtection -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["2b34140", "4a404d1"]
+    },
+    {
+      "id": "T021",
+      "status": "blocked",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_portal_roles.py::TestProtection -v",
+          "poetry run pytest tests/test_portal_roles.py::TestReconcile tests/test_apps.py::TestPortalRolesReconciliation -v"
+        ],
+        "exit_code": 1
+      },
+      "commits": ["9ba8ff8", "4a404d1"]
+    },
+    {
+      "id": "T022",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleDeleteProtection::test_no_delete_button_on_the_change_form",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleDeleteProtection::test_the_delete_view_itself_refuses",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleDeleteProtection::test_bulk_delete_action_does_not_remove_a_shipped_role",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleDeleteProtection::test_delete_button_present_for_a_group_the_portal_made_itself",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleRenameProtection::test_renaming_through_the_change_form_is_a_field_error_not_a_500",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleRenameProtection::test_resaving_a_shipped_role_with_its_name_unchanged_succeeds",
+          "tests/test_contrib/test_admin/test_group_admin.py::TestShippedRoleRenameProtection::test_a_group_the_portal_made_itself_renames_normally"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_admin/test_group_admin.py -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["7482d7c", "4bad59b"]
+    },
+    {
+      "id": "T023",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_admin/test_group_admin.py -v",
+          "poetry run pytest tests/test_contrib/test_admin/ tests/test_contrib/test_contributors/test_admin.py -q"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["9d89ba2", "4bad59b"]
+    },
+    {
+      "id": "T024",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_two_missing_roles_are_named_in_one_error",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_all_four_present_returns_nothing",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_an_absent_or_unreadable_group_table_returns_nothing[ProgrammingError]",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_an_absent_or_unreadable_group_table_returns_nothing[OperationalError]",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_stands_down_when_the_current_command_is_migrate",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_does_not_stand_down_for_an_unrelated_command",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_check_deploy_reports_a_missing_role_regardless_of_environment",
+          "tests/test_conf/test_checks.py::TestPortalRolesPresent::test_check_is_registered_with_the_production_critical_deploy_tags"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_conf/test_checks.py::TestPortalRolesPresent -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["1a2ca33", "518444e"]
+    },
+    {
+      "id": "T025",
+      "status": "blocked",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_conf/test_checks.py::TestPortalRolesPresent -v",
+          "poetry run pytest tests/test_conf/test_checks.py::TestCheckCommandIntegration tests/test_conf/test_checks.py::TestDeployCommand -v"
+        ],
+        "exit_code": 1
+      },
+      "commits": ["3a08819", "518444e"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T024's two live-production-boot scenarios (boot refuses and names every missing role; migrate still completes on a production database missing every role) are covered by an in-process check-registration test plus the check function's own unit tests, not a subprocess against a real production-shaped database.",
+      "why": "check_portal_roles_present is the first production_critical check to query the database rather than read settings. A genuine version of these scenarios needs a reachable PostgreSQL server (SQLite triggers fairdm.E101, which _check_production_configuration does not let SILENCED_SYSTEM_CHECKS suppress). This environment has no Postgres reachable: no docker daemon, no psql client, and localhost:5432 refuses the connection.",
+      "decision_ref": "D25"
+    }
+  ],
+  "concerns": [
+    "fairdm.E300 is already check_celery_broker's id (fairdm/conf/checks.py, pre-existing, unrelated, not production_critical). T025's acceptance criterion names fairdm.E300 explicitly for the new portal-roles check, and every design doc in this spec (plan.md, decisions.md, tasks.md) assigns it the same id with no apparent awareness of the collision. Implemented exactly as specified; two different checks now report under the same id. manage.py check --deploy output and any future SILENCED_SYSTEM_CHECKS entry naming fairdm.E300 cannot tell them apart. Renumbering either check is outside T020-T025's scope - flagging for a maintainer decision.",
+    "T021 (pre_delete/pre_save guards on Group, 'every ORM writer' per research R6 and this story's brief) breaks 7 pre-existing US-1 tests that reset state via Group.objects.all().delete(): tests/test_portal_roles.py::TestReconcile (5) and tests/test_apps.py::TestPortalRolesReconciliation (2). Confirmed empirically (a throwaway probe reproduced the mechanism before either receiver was written) and by running both classes after T021 landed - all 7 fail with ValidationError naming a shipped role. See D23.",
+    "T025 (check_portal_roles_present, the first production_critical check to query the database) breaks 6 pre-existing tests in tests/test_conf/test_checks.py that call `call_command(\"check\", deploy=True)` with no database fixture enabled: TestCheckCommandIntegration (2) and TestDeployCommand (4, parametrised). Confirmed by running both classes in isolation - all 6 fail with RuntimeError: Database access not allowed. See D24.",
+    "Neither of the 13 pre-existing tests above (D23 + D24) was modified, per this story's explicit prohibition against editing a test authored in a different story. Both regressions are direct, necessary consequences of implementing the acceptance criteria as specified, not defects in the new code - every acceptance criterion for T021 and T025 is independently proven by this story's own new tests, which are all green.",
+    "The full pytest run (poetry run pytest, 601s) is red for exactly these 13 tests and no others: 2778 passed, 8 skipped (unchanged from the verified baseline), 13 failed. The numbers reconcile exactly against context.verified_base's 2767 passed: 2767 - 13 (now-failing, previously-passing) + 24 (this story's new tests, all passing) = 2778.",
+    "poetry run pre-commit run --all-files is fully green (trim trailing whitespace, fix end of files, check yaml, poetry-check, ruff lint, ruff format, mypy, deptry all Passed)."
+  ],
+  "blocked": [
+    {
+      "task": "T021",
+      "reason": "Every acceptance criterion is met - TestProtection (T020) is green, proving the receivers work exactly as specified. But connecting pre_delete on Group disables Django's collector fast-delete path for that model, so a bulk Group.objects.all().delete() now sends pre_delete per row and is refused the moment it reaches a shipped role - the same setup step tests/test_portal_roles.py::TestReconcile (5 tests) and tests/test_apps.py::TestPortalRolesReconciliation (2 tests) both use, neither authored in this story. This story's brief prohibits modifying a test authored elsewhere and instructs marking the task blocked rather than doing so (see D23 for the full reproduction and reasoning). The implementation is committed and correct; the seven foreign tests are left exactly as they were.",
+      "attempts_used": 1
+    },
+    {
+      "task": "T025",
+      "reason": "Every acceptance criterion is met - TestPortalRolesPresent (T024) is green. Two things remain unresolved and outside this task's authority: (1) fairdm.E300 collides with check_celery_broker's pre-existing id, per every design doc's own assignment (see concerns). (2) Being the first production_critical check to query the database, it breaks 6 pre-existing tests in tests/test_conf/test_checks.py (TestCheckCommandIntegration, TestDeployCommand) that call check --deploy with no database fixture enabled - reasonable until now, since nothing registered under deploy=True ever needed one. Per this story's prohibition against modifying a test authored elsewhere, neither the id collision nor the six tests are touched (see D24). The implementation is committed and correct against every criterion this task itself sets.",
+      "attempts_used": 1
+    }
+  ]
+}
