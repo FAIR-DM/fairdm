@@ -396,3 +396,32 @@ class TestProtection:
 
         custom.delete()  # must not raise
         assert not Group.objects.filter(pk=custom.pk).exists()
+
+
+@pytest.mark.django_db
+class TestPermissionsForQueryCount:
+    """EFF-001: `_permissions_for` resolves a role's whole declaration in one query,
+    not one `Permission.objects.filter(...).first()` per declared permission string."""
+
+    def test_resolves_the_data_curator_in_one_query(self, django_assert_num_queries):
+        with django_assert_num_queries(1):
+            PortalRoles._permissions_for(PortalRoles.DATA_CURATOR)
+
+    def test_still_skips_a_declared_permission_with_no_matching_row(self):
+        """The same tolerance research R5 established for `reconcile()` as a whole -
+        a declared permission with nothing to resolve to yet must not raise."""
+        from fairdm.portal_roles import PortalRole
+
+        role = PortalRole(
+            name="Throwaway",
+            label="Throwaway",
+            permissions=("nonexistent_app.nonexistent_codename",),
+        )
+
+        assert PortalRoles._permissions_for(role) == []
+
+    def test_a_role_with_no_declared_permissions_resolves_to_none(self):
+        """Guards the empty-tuple edge a single OR'd query must not fall into: an
+        unconstrained `Permission.objects.filter(Q())` matches every row in the
+        database, which would hand the Developer role every permission that exists."""
+        assert PortalRoles._permissions_for(PortalRoles.DEVELOPER) == []

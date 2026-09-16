@@ -8,6 +8,7 @@ are distinct terms (see CONTEXT.md).
 from typing import NamedTuple
 
 from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
@@ -167,23 +168,25 @@ class PortalRoles:
 
     @classmethod
     def _permissions_for(cls, role: PortalRole) -> list[Permission]:
-        """The `Permission` rows a role's declaration resolves to right now.
+        """The `Permission` rows a role's declaration resolves to right now, in one query.
 
         A declared permission that has no matching row yet is skipped rather than raised on:
         `INSTALLED_APPS` lists `fairdm` before the apps whose permissions these roles need, so
         an early `post_migrate` pass sees an incomplete set, and a later pass converges
         (research R5). `dataset.can_publish` currently has no model declaring it at all and is
         skipped the same way, for the same reason: nothing here may raise on a missing right.
+
+        A role with no declared permissions (the Developer) returns early rather than reaching
+        the query below: an empty `Q()` has no conditions and matches every `Permission` row in
+        the database, not none of them.
         """
-        permissions = []
+        if not role.permissions:
+            return []
+        query = Q()
         for permission_name in role.permissions:
             app_label, codename = permission_name.split(".", 1)
-            permission = Permission.objects.filter(
-                content_type__app_label=app_label, codename=codename
-            ).first()
-            if permission is not None:
-                permissions.append(permission)
-        return permissions
+            query |= Q(content_type__app_label=app_label, codename=codename)
+        return list(Permission.objects.filter(query))
 
     @classmethod
     def reconcile(cls) -> None:
