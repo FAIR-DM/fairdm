@@ -182,3 +182,30 @@ The specification said the page lists the people holding each role, and its edge
 deactivated account holds nothing. Those two readings give different pages. The page lists active
 holders: naming a departed volunteer as the portal's administrator tells a visitor something untrue,
 and the page exists to tell them something true. FR-030 now says so.
+
+## D19 — The portal's identity is `identity.Identity`, and the Data Curator's list is the full
+attachment set
+
+**Decision.** "The portal's identity" (FR-002, spec.md AC3) is `fairdm.contrib.identity.models.Identity`
+— the singleton "Portal identity configuration including branding and metadata" already in the
+codebase — so the Portal Administrator's fourth permission is `identity.change_identity`. The Data
+Curator's permission list is the full Cartesian product research R9 calls for: view/add/change/delete
+on `Project`, `Dataset`, `Sample`, `Measurement`, and on each one's `*Description` and `*Date`
+attachment, plus view/add/change/delete on the shared `Contribution` model, plus `dataset.import_data`
+(an existing `Dataset` permission) and `dataset.can_publish`, qualified `dataset.` because
+`import_export/views.py`'s import and publish checks both run against `Dataset` instances
+(`model = Dataset` on `BaseImportExportView`).
+
+**Why.** Neither name appears anywhere in the specification or plan verbatim; both had to be
+resolved against the actual model layer so the declaration would compile to real permission rows
+(T002's "every permission is written as an explicit app_label.codename"). `dataset.can_publish` is
+not a real `Permission` row anywhere in this codebase today — no model's `Meta.permissions` declares
+it — so `reconcile()` treats it exactly like a permission research R5 describes as not-yet-created:
+skip it, don't raise, and let a later migration that adds it converge automatically the next time
+`reconcile()` runs. This is not the ordering gap R5 was written for, but the tolerance it requires is
+identical, and the acceptance criterion T005 pins ("raises nothing when a permission it wants does
+not exist yet") does not distinguish the two causes.
+
+**Revisit if:** a future story adds a `can_publish` model permission under a different app label or
+codename than `dataset.can_publish` — the Data Curator's declaration would then need to follow it, or
+the role silently stops covering what `DatasetPublishConfirm.check()` asks for.
