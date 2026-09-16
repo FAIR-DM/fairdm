@@ -83,6 +83,15 @@ class TestPortalRoleBackend:
 
         assert backend.has_perm(person, "dataset.change_dataset", None) is False
 
+    def test_registering_the_backend_does_not_break_authenticate(self):
+        """``django.contrib.auth.authenticate()`` introspects every configured backend's
+        ``authenticate`` signature before calling it (``django/contrib/auth/__init__.py``
+        ``_get_compatible_backends``), so a backend with no ``authenticate`` method at all
+        breaks sign-in for every account, not only one this backend cares about."""
+        from django.contrib.auth import authenticate
+
+        assert authenticate(email="nobody@example.com", password="wrong") is None
+
     def test_manage_organization_is_never_answered_by_this_backend(self):
         """D14: a stale ``Permission`` row for it survives in migrated databases -
         the model no longer declares it (``fairdm/contrib/contributors/migrations/

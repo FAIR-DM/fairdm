@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.contrib.auth.backends import BaseBackend
+
 if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractBaseUser
     from django.db.models import Model
@@ -23,11 +25,17 @@ if TYPE_CHECKING:
 _EXCLUDED_PERMISSIONS = ("contributors.manage_organization", "manage_organization")
 
 
-class PortalRolePermissionBackend:
+class PortalRolePermissionBackend(BaseBackend):
     """Derives an object-level answer from the model-level permissions a person holds.
 
     Registered in ``AUTHENTICATION_BACKENDS`` after the existing backends
     (``fairdm/conf/settings/auth.py``). Writes no per-record row.
+
+    Extends ``BaseBackend`` for its no-op ``authenticate``/``get_user`` - a permission-only
+    backend that supplies neither still has to answer to them, because
+    ``django.contrib.auth.authenticate()`` introspects every configured backend's
+    ``authenticate`` signature before calling any of them, not only the one that ends up
+    handling a given credential.
     """
 
     def has_perm(self, user_obj: AbstractBaseUser, perm: str, obj: Model | None = None) -> bool:
