@@ -821,3 +821,41 @@ Two duplications the two new checks had introduced between them:
 
 `_MIGRATE_COMMAND_NAME` is renamed `MIGRATE_COMMAND_NAME`: a leading underscore marks something
 private, and this codebase does not use that convention.
+
+## D38 — COR-001's test seam moved to the permission backend, not the broken view module
+
+**ADR:** none — a triage record for this run's own test-coverage gap.
+
+The fix is exactly what the review's `suggested_fix` names: both `check()` methods in
+`fairdm/contrib/import_export/views.py` now ask `user.has_perm(f"{instance._meta.app_label}.
+import_data", instance)` and the `can_publish` equivalent, instead of the bare codename the
+object-level backend refuses by design.
+
+The acceptance criteria ask for a test per call site. `fairdm.contrib.import_export.views`
+cannot be imported at all — `class DatasetPublishConfirm(FairDMModelFormMixin, FormView)`
+names a symbol `fairdm.views` has never defined (confirmed with a direct import attempt: `pytest
+tests/...` collection fails with `ImportError: cannot import name 'FairDMModelFormMixin' from
+'fairdm.views'`) — a pre-existing defect that predates this feature (the import was added
+2025-11-13, per `git blame`) and is already flagged twice on this branch: T017's concern
+("no test exercises ... `fairdm.contrib.import_export.views` fails to import on its own") and
+T018's concern (the exact bare-codename bug this finding re-reports, left unfixed there because
+"fixing it would touch behaviour this story was not asked to change in a module I cannot even
+run"). Neither prior story touched it, and this run does not either — routing around a broken
+import with a test-time placeholder just to reach two `@staticmethod`s felt closer to tampering
+with the reason a test can't be written than to a legitimate test double, and the module's own
+scope (import/export views entirely unwired into any URL or plugin registry — confirmed by grep)
+makes a proper fix a separate, much larger piece of work than COR-001 asks for.
+
+`TestImportAndPublishGatePermissions` (`tests/test_permissions.py`) proves the exact permission
+strings the corrected call sites now ask with — `dataset.import_data` and `dataset.can_publish`
+— resolve `True` for a Data Curator on a dataset they did not create, `False` for a person
+holding nothing, and `True` for a contributor holding the object-level row, the same way the
+file's existing `TestPortalRoleBackend` already proves `dataset.change_dataset`. That is the
+mechanism both call sites depend on; what it cannot prove is that the two call sites themselves
+read the corrected string, which is why this is a decisions.md entry and a `concerns` line, not
+a silent substitution.
+
+**Revisit if:** a future story gives `fairdm.contrib.import_export.views` a working
+`FairDMModelFormMixin` (or removes the dead reference) and wires the module into a URL or plugin
+registry — at that point `DataImportView.check`/`DatasetPublishConfirm.check` become directly
+testable and the two call sites should get their own direct test, retiring the indirection here.

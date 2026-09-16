@@ -511,3 +511,19 @@
   `password`, it is not a form-declared field, so excluding it from the fieldsets alone removes it
   from the built form's fields, the same way `is_staff`/`is_superuser` already worked. 6/6 in
   `TestPersonAdminFields`, 64/64 in the file. Commit `720ff02`.
+
+- **COR-001**: both plugin gates in `fairdm/contrib/import_export/views.py`
+  (`DataImportView.check` and `DatasetPublishConfirm.check`) now ask
+  `user.has_perm(f"{instance._meta.app_label}.import_data", instance)` and the `can_publish`
+  equivalent, instead of the bare codename `PortalRolePermissionBackend` refuses by design
+  (`fairdm/permissions.py`) - the regression that narrowed a Data Curator's reach to only
+  superusers and a dataset's own contributors. See D38: `fairdm.contrib.import_export.views`
+  cannot be imported at all (a pre-existing, unrelated defect already flagged twice on this
+  branch — T017, T018 — confirmed again here), so the test coverage lands one level down, on the
+  permission backend the two call sites depend on: `TestImportAndPublishGatePermissions`
+  (`tests/test_permissions.py`) proves `dataset.import_data`/`dataset.can_publish` resolve `True`
+  for a Data Curator on a dataset they did not create, `False` for a person holding nothing, and
+  `True` for a contributor holding the object-level row — the exact strings and cases the brief
+  asked for, against the mechanism rather than the unreachable call site. `tests/test_permissions.py`
+  (17 tests) and `tests/test_contrib/test_contributors/test_permissions.py` (26 tests) both green,
+  43 total. Commit `d80209a`.
