@@ -859,3 +859,35 @@ a silent substitution.
 `FairDMModelFormMixin` (or removes the dead reference) and wires the module into a URL or plugin
 registry — at that point `DataImportView.check`/`DatasetPublishConfirm.check` become directly
 testable and the two call sites should get their own direct test, retiring the indirection here.
+
+## D40 — The review's findings, and how each was settled
+
+**ADR:** none — a triage record for one review round, with the two findings that changed behaviour
+recorded at the code they changed.
+
+Six findings, all verified by the reviewer against the running code, two of them serious.
+
+`SEC-001` was a privilege escalation and mine: narrowing the Person form closed `is_superuser`,
+`is_staff` and `password` and left `groups`, which grants the same rights by proxy. A Community
+Manager could put themselves in the Data Curator role. `auth.view_group` is the discriminator the
+specification already supplies — the Portal Administrator holds it, the Community Manager does not —
+so the field is narrowed on exactly that. Verified independently after the fix: a Community Manager
+is offered neither `groups` nor any of the other three, a Portal Administrator still holds both the
+field and the job, and a superuser still sees everything.
+
+`COR-001` was a capability this feature removed without noticing. Both plugin gates asked `has_perm`
+with a bare codename, which the backend refuses by design, so removing the group-name branch left
+every Data Curator unable to import into or publish a dataset — a right the role declares and the
+documentation promises. Both call sites now ask with the app label. The tests land one level down,
+on the backend, because `fairdm/contrib/import_export/views.py` cannot be imported at all: it names
+a symbol `fairdm.views` has never defined. That is filed separately and is not this feature's to
+fix, but it is the reason the two call sites had no coverage to catch this in the first place.
+
+The four smaller findings were applied as they came: the administration interface now names the
+role it refuses to delete, reconciliation resolves a role's permissions in one query rather than one
+per permission, the changelog records that the `has_permission` template tag no longer answers for a
+member of a named group, and the navigation's administration-guide link follows the same rule as
+administration access rather than the staff flag.
+
+Five tamper flags, all additive: new test classes, plus two existing assertions widened to include
+`groups` — strictly stronger, and the finding named those two tests as the ones that missed the case.
