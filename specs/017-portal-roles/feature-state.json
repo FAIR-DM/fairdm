@@ -85,6 +85,13 @@
         "SPEC-004 resolved in favour of the approved FR-004: the superuser gates on profile claims and merges become permission questions the Community Manager holds, superseding an earlier recorded decision by ADR",
         "SPEC-007 resolved by amending FR-030: the team page lists active holders only"
       ]
+    },
+    "walkthrough": {
+      "approved_by": "sam",
+      "at": "2026-09-17T07:59:31Z",
+      "self_resolved": [
+        "Portal Team page: title, page_info modal with a docs link, a lead paragraph, and a 1/2/4-col responsive grid; then wording for the lead and modal, revised once"
+      ]
     }
   },
   "stories": [
