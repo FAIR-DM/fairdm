@@ -1,0 +1,73 @@
+{
+  "story": "FIX-1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 340,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us2",
+  "tasks": [
+    "T011"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-08-24/0f180d36"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "US-2 registered PortalRolePermissionBackend and it derives an object-level answer from EVERY model-level permission a person holds, including one granted directly to that person. That reopened a hole an earlier feature deliberately closed: four pre-existing tests assert that somebody holding dataset.change_dataset or project.change_project directly, with no grant on the record, is refused on a private record's update, delete and descriptions pages. All four now fail. The implementer was right to leave them alone and escalate. The rule is what needs narrowing, not the tests. The approved specification requires a ROLE's rights to reach records (FR-003, FR-018, FR-020). It never asked for a permission granted directly to a person to do so, and that wider reading was mine, written into the plan before this collision was known. Narrow the backend to permissions held through one of the four shipped portal roles. A Data Curator still changes any dataset; a person carrying a stray direct grant is refused exactly as they were before this feature. That also removes the breaking change for existing portals, so the upgrade note US-1 wrote is no longer true and has to be rewritten.",
+    "spec_sections": [
+      "Requirements / How rights are decided (FR-018, FR-020)",
+      "Requirements / The role set (FR-003)"
+    ],
+    "plan_sections": [
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D20 (this feature's decisions.md, written by the previous implementer) records the collision, the four failing tests, and that reverting the AUTHENTICATION_BACKENDS entry makes them pass. Read it. Your job is the narrowing it could not choose on its own authority.",
+      "The earlier feature's guard is evidence about intent, not an obstacle: a page relying on an inherited visibility rule is not guarded at all, which is why those four tests exist. Do not modify, weaken, skip or delete any of them - after your change they must pass unchanged.",
+      "D14 - the exclusion for contributors.manage_organization stays exactly as it is.",
+      "Research R2's reasoning still holds for the role case: ModelBackend answers False for every object-level question, so without this backend a Data Curator holding change_dataset cannot change a dataset. What changes is the SOURCE of the permission the backend will honour."
+    ],
+    "acceptance": [
+      {
+        "task": "T011",
+        "given_when_then": "Given a person in the Data Curator role, When has_perm('dataset.change_dataset', any_dataset) is asked, Then True - including for a private dataset they have no record-level grant on. Given a person holding dataset.change_dataset directly through user_permissions and in no portal role, When the same question is asked, Then False. Given a person in a group the portal created itself that carries dataset.change_dataset, When the same question is asked, Then False - only the four shipped roles confer this. Given obj is None, an anonymous user, a deactivated account, or contributors.manage_organization, Then False, exactly as now. And the four pre-existing tests in tests/test_core/test_dataset/test_plugins.py and tests/test_core/test_project/test_plugins.py pass unchanged."
+      }
+    ],
+    "verified_base": {
+      "commit": "HEAD of 017-portal-roles-us2 as you find it",
+      "verified_at": "2026-09-16T11:40:00Z",
+      "steps": [
+        "poetry:test (2761 passed, 8 skipped, 4 failed - the four named in D20 and no others)"
+      ],
+      "note": "This is the one story dispatched onto a known-red tree, and the four failures are the reason you are here. Everything else was green. When you are done the whole suite is green, including those four, with none of them edited."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us2, branch 017-portal-roles-us2, continuing on top of US-2's commits. Its virtualenv is synced and pinned to Python 3.13. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves this worktree on port 8000 for the maintainer; leave it alone."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 90
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full.",
+    "Read specs/017-portal-roles/decisions.md entry D20, and the four failing tests it names.",
+    "Read fairdm/permissions.py and fairdm/portal_roles.py.",
+    "Run the four named tests first and watch them fail - that is your red."
+  ],
+  "prohibitions": [
+    "Never modify, weaken, skip, xfail or delete any of the four pre-existing tests named in D20. They must pass unchanged. If you believe one of them is wrong, stop and report - it is not yours to change.",
+    "Do not change what any role holds in fairdm/portal_roles.py.",
+    "Do not remove the contributors.manage_organization exclusion.",
+    "Do not touch the Group receivers, the system checks, the management command or the team page.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own task's status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

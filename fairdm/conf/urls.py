@@ -21,6 +21,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     # path("", include("dac.allauth")),
+    path("account-center/", include("mvp.urls")),
     path("account-center/", include("dac.urls")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),

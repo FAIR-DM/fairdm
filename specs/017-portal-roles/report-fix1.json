@@ -1,0 +1,62 @@
+{
+  "story": "FIX-1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-08-24/0f180d36",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_permissions.py::TestPortalRoleBackend::test_a_model_level_permission_held_through_a_shipped_role_answers_for_any_instance",
+          "tests/test_permissions.py::TestPortalRoleBackend::test_a_permission_granted_directly_to_the_person_is_refused",
+          "tests/test_permissions.py::TestPortalRoleBackend::test_a_permission_held_through_a_group_the_portal_invented_is_refused",
+          "tests/test_permissions.py::TestPortalRoleBackend::test_a_permission_string_with_no_app_label_answers_false_rather_than_raising"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused -q  (RED, before the fix: 4 failed)",
+          "poetry run pytest tests/test_permissions.py -q  (RED, before the fix: 2 failed - direct grant and portal-invented group)",
+          "poetry run pytest tests/test_permissions.py -q  (GREEN, after the fix: 10 passed)",
+          "poetry run pytest tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused -q  (GREEN: 4 passed, all four D20 tests unmodified)",
+          "poetry run pytest tests/test_core/test_dataset/test_plugins.py tests/test_core/test_project/test_plugins.py -q  (GREEN: 150 passed)",
+          "poetry run pre-commit run --files fairdm/permissions.py tests/test_permissions.py  (all hooks passed)",
+          "poetry run pytest tests/test_permissions.py::TestPortalRoleBackend::test_a_permission_string_with_no_app_label_answers_false_rather_than_raising -q  (RED, before the follow-up fix: 1 failed with ValueError, not an assertion)",
+          "poetry run pytest tests/test_core/test_project/test_factories.py tests/test_core/test_dataset/test_plugins.py tests/test_core/test_project/test_plugins.py -q  (GREEN after the follow-up fix: 157 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "fa8e0f258957e6ff33fcf181f777180b69fec449",
+        "766e570d919ee8504ead0d223b59c20776be013f",
+        "4c198143365810e673cec62c58bbe7c440374b90",
+        "0a6caa4f48fd403840c065c0503987ed3dd87ee8",
+        "bc5732d1dad9bdbe4aafba04b98b725f9b3c9524",
+        "670af99c12a0bf094d065102c4d18e7565765dc0"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Two of the pre-existing tests in tests/test_permissions.py were edited: test_a_permission_granted_directly_to_the_person_answers_the_same_way (rewritten to assert refusal, renamed test_a_permission_granted_directly_to_the_person_is_refused) and test_a_model_level_permission_held_through_a_group_answers_for_any_instance (its arbitrary 'Some Role' group changed to an actual shipped role, PortalRoles.DATA_CURATOR.name). Neither is one of the four tests named in D20 or protected by this brief's prohibitions.",
+      "why": "These two tests encoded T011's original, wider acceptance (a direct grant, or membership of any group, answers the same way as a role) - the exact reading this fix narrows. Leaving them asserting the old behaviour would either fail after the fix or silently keep testing the wrong rule; D22 records why the narrower rule is correct.",
+      "decision_ref": "decisions.md D22"
+    },
+    {
+      "what": "Fixed a crash the narrowing introduced: PortalRolePermissionBackend.has_perm raised ValueError on a permission string with no app label (e.g. user.has_perm(\"change_project\", project)), which tests/test_core/test_project/test_factories.py's guardian-backed fixtures use and which the prior wide implementation happened to answer False for instead of raising. Added a guard (`if \".\" not in perm: return False`) and a regression test before fixing it.",
+      "why": "This is not named in the brief, but it is squarely inside fairdm/permissions.py - the exact function this story narrows - and it broke three previously-green tests the moment the narrowing landed. The brief's own bar is 'the whole suite is green'; leaving a self-inflicted crash unfixed to stay narrowly in scope would have left the story red.",
+      "decision_ref": "progress.md, T011 (FIX-1) follow-up entry"
+    }
+  ],
+  "concerns": [],
+  "blocked": []
+}

@@ -1,0 +1,107 @@
+{
+  "story": "US3",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 341,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us3",
+  "tasks": [
+    "T020",
+    "T021",
+    "T022",
+    "T023",
+    "T024",
+    "T025"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-08-24/0f180d36"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "The four portal roles now exist and decide what their holders can do. Nothing stops somebody deleting one. The likeliest way a portal loses a role is an administrator tidying up the group list in the administration interface, and the moment a role goes, everyone in it silently stops being able to do their job - no error, no signal, just refusals. This story closes that three ways: the deletion and the rename are refused at the point they are attempted, a portal that is serving in production will not start with a role missing and names the ones it cannot find, and in development the same condition is reported on demand instead of blocking anybody.",
+    "spec_sections": [
+      "User Story 3 - The roles cannot be lost by accident",
+      "Requirements / Installation and repair (FR-012 to FR-017)",
+      "Edge Cases"
+    ],
+    "plan_sections": [
+      "Phases / Phase 3 - US-3, the roles cannot be lost by accident",
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D11 - the production boot refusal MUST stand down for the command that repairs the condition. fairdm.E300 runs in FairDMConfig.ready(), which fires before migrate does any work, and the post_migrate receiver is the only thing that installs the roles. Without the stand-down a production portal upgrading to this version can neither start nor migrate, and nothing inside it can repair that. This was a critical design-review finding; T024 covers the upgrade path explicitly.",
+      "Research R4 - E300 is one more check tagged DeployTags.deploy and DeployTags.production_critical with deploy=True, not a new mechanism. It returns no error when the group table is absent or unreadable (ProgrammingError/OperationalError), which is how an unmigrated database is told apart from a portal missing its roles.",
+      "Research R6 - a raising pre_delete/pre_save receiver is this codebase's own idiom (see refuse_off_vocabulary_role in contributors/apps.py) and holds for every ORM writer, but it cannot explain itself: in the administration interface it surfaces as a server error. FR-012 and FR-013 both require a message naming the role, so the receivers are the enforcement and a Group administration class is the explanation. The pre_save guard must fire only for an existing row, or PortalRoles.reconcile()'s own get_or_create is refused by the receiver it just installed.",
+      "PortalRoles.shipped_names() is the list of protected names. Never hard-code the four names anywhere in this story."
+    ],
+    "acceptance": [
+      {
+        "task": "T020",
+        "given_when_then": "Given a shipped role, When something attempts to delete it, Then the deletion is refused and the role and its members survive; When something attempts to rename it, Then the name is unchanged; When a group is created, including by reconcile() itself, Then nothing interferes; and a group the portal created for itself deletes and renames normally."
+      },
+      {
+        "task": "T021",
+        "given_when_then": "Given the contributors application's ready(), When it starts, Then pre_delete and pre_save receivers on Group are connected with dispatch_uids, and each raises with a message naming the role and saying FairDM requires it."
+      },
+      {
+        "task": "T022",
+        "given_when_then": "Given the administration interface, When an administrator looks at a shipped role, Then no delete action and no delete button is offered for it; When they change its name on the change form and save, Then they get a field error naming the role rather than a server error."
+      },
+      {
+        "task": "T023",
+        "given_when_then": "Given the Group administration class registered on CustomAdminSite, When the target is a shipped role, Then has_delete_permission is False and the form refuses a change to name."
+      },
+      {
+        "task": "T024",
+        "given_when_then": "Given a migrated database missing two roles, When the check runs, Then it returns one error naming both; with all four present, nothing; with no group table at all, nothing. Given the production baseline and that database, When the portal starts, Then it refuses and names them; in development it starts and `check --deploy` reports them. Given a production database holding data but none of the four roles, When migrate runs, Then it completes - this is the upgrade path of every portal already running and it must not be blocked."
+      },
+      {
+        "task": "T025",
+        "given_when_then": "Given fairdm/conf/checks.py, When check_portal_roles_present is registered, Then it carries id fairdm.E300, the deploy and production_critical tags, tolerates an absent or unreadable group table, and stands down for the command that installs the roles."
+      }
+    ],
+    "verified_base": {
+      "commit": "5c0ed51ea9fa4a3b5a96073ba59addafb3a9e9ae",
+      "verified_at": "2026-09-16T12:30:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "Lint, types, build, conformance and the documentation check were run on this worktree at this commit and are green. The full pytest suite was read at 2767 passed, 8 skipped on the identical code tree immediately before this branch was cut - the only difference between the two is markdown under specs/. Do not re-run the suite to check your starting point. If the tree is red on arrival, that is an environment fault: report it, do not work around it."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us3, branch 017-portal-roles-us3, cut from the feature branch with US-1 and US-2 merged in. Its virtualenv is synced and pinned to Python 3.13 - do not change the interpreter. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves this worktree on port 8000 for the maintainer to watch; leave it alone, and expect the autoreloader to restart when you save. Testing a production-environment boot needs a subprocess with DJANGO_ENV set - tests/test_apps.py already does this and is the pattern to follow."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full, then your own tasks T020-T025 in specs/017-portal-roles/tasks.md - your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and stop there.",
+    "Read fairdm/apps.py (_check_production_configuration and NON_PRODUCTION_ENVIRONMENTS), fairdm/conf/checks.py (how an existing production-critical check is registered), and fairdm/contrib/contributors/apps.py (how this codebase connects a receiver) before you write anything.",
+    "git log --oneline -10.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "Do not hard-code the four role names. PortalRoles.shipped_names() is the one source.",
+    "Do not make the boot refusal block migrate. A production portal must always be able to run the command that installs its roles - D11, and it is the reason this task exists in this shape.",
+    "Do not touch the permission backend, the admin site's has_permission, the Person form, the management command or the team page.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

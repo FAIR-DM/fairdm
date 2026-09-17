@@ -1,0 +1,62 @@
+{
+  "story": "FIX-4",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 343,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-fix4",
+  "tasks": [
+    "T037"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "The portal team page was reviewed running and the presentation is too thin. It has a bare heading, no explanation of what a portal role is, and it stacks every member in a single column at every width. Four changes were asked for by name. This is presentation only: who appears on the page, which roles are listed and in what order, and the two-query access pattern behind them are all settled and must not change.",
+    "spec_sections": [
+      "Requirements / The team page (FR-030, FR-031, FR-034, FR-035)",
+      "User Stories / US-5"
+    ],
+    "plan_sections": [],
+    "prior_decisions": [
+      "The page title becomes 'Portal Team', not 'Team'. Translated, like every other title in this codebase.",
+      "The lead paragraph is `page_subtitle` on the view, not markup added to the template. django-mvp's `c-page.title` already renders a subtitle as a lead paragraph directly under the heading (`<p class=\"opacity-70 text-lg leading-relaxed max-w-prose\">`), which is exactly the shape asked for. Adding a paragraph to the template instead would put a second one below the one the component already draws.",
+      "The info modal is `page_info` plus `page_info_actions` on the view. Setting `page_info` draws an info icon beside the title that opens a dialog holding the text; `page_info_actions` is a list of dicts, each spread onto `c-button`, drawn at the foot of that dialog. Both are documented at docs/views.md in django-mvp under 'Explaining what a page is for'. Do not place `c-page.info` in the template by hand - the title component already draws it from these two attributes.",
+      "The single action in the modal points at the roles documentation this feature wrote: text 'About portal roles', href 'https://fairdm.org/portal-administration/roles/', icon 'external-link', target '_blank'. That is the published location of docs/portal-administration/roles.md. The href follows the convention the sidebar's own documentation links already use.",
+      "The grid is one column on mobile, two at medium, four at large: `{\"cols\": 1, \"md\": 2, \"lg\": 4, \"gap\": 4}`. `c-grid` declares `cols`, `sm`, `md`, `lg`, `xl`, `xxl` and `gap`, and `lg:grid-cols-4` is on django-mvp's shipped safelist, so the class is really in the stylesheet. The cards themselves will look wrong in a four-column track - that is expected and is not yours to fix.",
+      "While you are in fairdm/menus/menus.py, the User Guide and Admin Guide items both point at `https://faridm.org/...`, a misspelling of fairdm.org that predates this feature. Correct both to `fairdm.org`. A broken link in a file this feature already edits is not a separate concern.",
+      "The view currently copies `list_item_template` and `grid_config` into the context by hand and the template reads them from there. Leave that arrangement alone unless a test forces otherwise - it is not what you were asked to change."
+    ],
+    "acceptance": [
+      {
+        "task": "T037",
+        "given_when_then": "Given any visitor on /community/team/, When the page renders, Then the heading reads 'Portal Team'; a lead paragraph sits directly beneath it saying in one or two sentences who runs the portal and what the roles on the page mean; an info control sits beside the heading which opens a dialog explaining what a portal role is and how it differs from a contribution role, carrying one button linking out to the roles documentation; and each role's members are laid out in a grid that is one column wide on a narrow viewport, two columns at the medium breakpoint and four at the large breakpoint. Given the same page, Then who is listed is unchanged: active holders only, a role nobody holds still absent, portal roles only, in declaration order, and no email address anywhere on the page. Given the existing tests in tests/test_contrib/test_contributors/test_views/test_team.py, Then every one of them still passes unmodified, and new assertions cover the title, the lead, the info text and its action, and the grid classes actually emitted into the markup."
+      }
+    ],
+    "verified_base": {
+      "commit": "450b401ddd83210e891a999d903ac4dab76dbd8d",
+      "verified_at": "2026-09-16T17:00:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "The full suite was read serially at 2835 passed, 8 skipped on this branch, and lint, types, build, conformance and the documentation check are green. Do not re-run the suite to check your starting point."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-fix4, branch 017-portal-roles-fix4, cut from the feature branch. Virtualenv already installed and pinned to Python 3.13. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves a different checkout on port 8000: do not start, stop or touch any server. Assert the rendered markup in tests instead - a grid is proved by the classes in the response body, never by looking at a picture of it. A second worktree is upgrading django-mvp on its own branch; do not change any dependency pin or the lock file."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 120
+  }
+}

@@ -5,10 +5,15 @@ These tests verify that Django's check framework integration works
 correctly and that all configuration validation logic is properly tested.
 """
 
+import sys
+from unittest import mock
+
 import pytest
+from django.contrib.auth import get_user_model
 from django.core.checks import Error
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
+from django.db import utils as django_db_utils
 from django.test import override_settings
 
 
@@ -393,7 +398,9 @@ class TestSecureCookiePrefixChecks:
 
         assert check_secure_cookie_prefixes_match_secure_flag(app_configs=None) == []
 
-    @override_settings(SESSION_COOKIE_NAME="__Host-sessionid", SESSION_COOKIE_SECURE=False)
+    @override_settings(
+        SESSION_COOKIE_NAME="__Host-sessionid", SESSION_COOKIE_SECURE=False
+    )
     def test_check_covers_the_host_prefix_and_the_session_cookie(self):
         from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
 
@@ -639,3 +646,294 @@ class TestDeployCommand:
             call_command("check", deploy=True)
 
         assert "fairdm.E001" in str(exc_info.value)
+
+
+def _delete_group_by_raw_sql(name: str) -> None:
+    """Remove a group row, and its permission associations, without going through
+    the ORM (research R6) - the ORM guard T021 installs on ``Group`` refuses this
+    the same way it refuses an administrator, so a test that wants "the role does
+    not exist yet" has to reach around it, exactly as a shell or a script could."""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id FROM auth_group WHERE name = %s", [name])
+        row = cursor.fetchone()
+        if row is None:
+            return
+        cursor.execute(
+            "DELETE FROM auth_group_permissions WHERE group_id = %s", [row[0]]
+        )
+        cursor.execute("DELETE FROM auth_group WHERE id = %s", [row[0]])
+
+
+class TestPortalRolesPresent:
+    """T024/T025, FR-015 to FR-017: a serving portal missing a shipped role
+    refuses to start and names it; the boot refusal stands down for the
+    command that installs the roles (D11, research R4)."""
+
+    def test_two_missing_roles_are_named_in_one_error(self, db):
+        from fairdm.conf.checks import check_portal_roles_present
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        _delete_group_by_raw_sql(PortalRoles.COMMUNITY_MANAGER.name)
+
+        errors = check_portal_roles_present(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E500"
+        assert PortalRoles.DATA_CURATOR.name in errors[0].msg
+        assert PortalRoles.COMMUNITY_MANAGER.name in errors[0].msg
+
+    def test_all_four_present_returns_nothing(self, db):
+        from fairdm.conf.checks import check_portal_roles_present
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+
+        assert check_portal_roles_present(app_configs=None) == []
+
+    @pytest.mark.parametrize(
+        "exception_class",
+        [
+            django_db_utils.ProgrammingError,
+            django_db_utils.OperationalError,
+            # A test harness that refuses database access outright (e.g.
+            # pytest-django's own safeguard for a test with no `db` fixture)
+            # raises this, not a django.db.utils error - "unreadable" covers
+            # it too (D24, research R4).
+            RuntimeError,
+        ],
+    )
+    def test_an_absent_or_unreadable_group_table_returns_nothing(
+        self, db, exception_class
+    ):
+        from fairdm.conf.checks import check_portal_roles_present
+
+        with mock.patch(
+            "django.contrib.auth.models.Group.objects.filter",
+            side_effect=exception_class("no such table: auth_group"),
+        ):
+            assert check_portal_roles_present(app_configs=None) == []
+
+    def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
+        self, db
+    ):
+        """A ``DATABASE_URL``-absent portal (``fairdm.E100``'s own case) composes an
+        unusable ``DATABASES`` entry that raises ``ImproperlyConfigured`` the moment
+        any query tries to compile SQL against it - not ``OperationalError`` or
+        ``ProgrammingError``. Reproduced against ``TestProductionBoot`` failing with
+        an uncaught traceback instead of a clean `SystemCheckError` before this was
+        added to the except clause."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.conf.checks import check_portal_roles_present
+
+        with mock.patch(
+            "django.contrib.auth.models.Group.objects.filter",
+            side_effect=ImproperlyConfigured(
+                "settings.DATABASES is improperly configured."
+            ),
+        ):
+            assert check_portal_roles_present(app_configs=None) == []
+
+    def test_stands_down_when_the_current_command_is_migrate(self, db, monkeypatch):
+        from fairdm.conf.checks import check_portal_roles_present
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        monkeypatch.setattr(sys, "argv", ["manage.py", "migrate", "--noinput"])
+
+        assert check_portal_roles_present(app_configs=None) == []
+
+    def test_does_not_stand_down_for_an_unrelated_command(self, db, monkeypatch):
+        """The stand-down is scoped to the command that installs the roles - D11
+        names only ``migrate``, not every management command."""
+        from fairdm.conf.checks import check_portal_roles_present
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        monkeypatch.setattr(sys, "argv", ["manage.py", "runserver"])
+
+        errors = check_portal_roles_present(app_configs=None)
+
+        assert len(errors) == 1
+
+    def test_check_deploy_reports_a_missing_role_regardless_of_environment(self, db):
+        """FR-017: development never refuses to start, but the framework's
+        on-demand configuration check reports the condition all the same."""
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+
+        with pytest.raises(SystemCheckError) as exc_info:
+            call_command("check", deploy=True)
+
+        assert "fairdm.E500" in str(exc_info.value)
+        assert PortalRoles.DATA_CURATOR.name in str(exc_info.value)
+
+    def test_check_is_registered_with_the_production_critical_deploy_tags(self):
+        """The wiring FR-015/FR-016 depend on: `FairDMConfig._check_production_configuration`
+        (fairdm/apps.py) aggregates exactly the checks tagged `DeployTags.production_critical`,
+        and only `manage.py check --deploy` sees a check tagged `deploy=True` at all (research
+        R4). Both are asserted directly against the registered check rather than exercised
+        through a live production boot: doing that for real needs a PostgreSQL connection -
+        every other production_critical check reads settings values only, so the existing
+        subprocess boot tests never open one, but this check's job is to query the `Group`
+        table, and SQLite cannot stand in (`fairdm.E101` fires for any non-development
+        environment, unconditionally, and `_check_production_configuration` does not consult
+        `SILENCED_SYSTEM_CHECKS`). `TestPortalRolesReconciliation` in `tests/test_apps.py`
+        already proves `migrate` installs the roles against this suite's real (SQLite)
+        database; the tests above prove the check's own query and stand-down logic; this proves
+        the two are wired into the same gate every other production-critical check uses.
+        """
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import DeployTags, check_portal_roles_present
+
+        assert check_portal_roles_present in registry.get_checks(
+            include_deployment_checks=True
+        )
+        assert set(check_portal_roles_present.tags) == {
+            DeployTags.deploy,
+            DeployTags.production_critical,
+        }
+        # deploy=True: only visible to `manage.py check --deploy`, not a plain check.
+        assert check_portal_roles_present not in registry.get_checks(
+            include_deployment_checks=False
+        )
+
+
+class TestDevAccountsAbsent:
+    """T028/T029, FR-022 to FR-029, D16: the command's refusal guards the act of
+    loading, not the resulting state - this check reports any of the five
+    development addresses found on a portal that is not in development,
+    naming them, the same shape as `check_portal_roles_present` (research
+    R4), including its tolerance for a database it cannot read."""
+
+    @override_settings(DJANGO_ENV="production")
+    def test_one_dev_address_on_a_production_portal_is_named(self, db):
+        from fairdm.conf.checks import check_dev_accounts_absent
+        from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNTS
+
+        Person = get_user_model()
+        account = DEV_ACCOUNTS[0]
+        Person.objects.create_user(
+            email=account["email"],
+            password="whatever",
+            first_name=account["first_name"],
+            last_name=account["last_name"],
+        )
+
+        errors = check_dev_accounts_absent(app_configs=None)
+
+        assert len(errors) == 1
+        assert isinstance(errors[0], Error)
+        assert errors[0].id == "fairdm.E501"
+        assert account["email"] in errors[0].msg
+
+    @override_settings(DJANGO_ENV="production")
+    def test_all_five_dev_addresses_on_a_production_portal_are_named_together(self, db):
+        from fairdm.conf.checks import check_dev_accounts_absent
+        from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNTS
+
+        Person = get_user_model()
+        for account in DEV_ACCOUNTS:
+            Person.objects.create_user(
+                email=account["email"],
+                password="whatever",
+                first_name=account["first_name"],
+                last_name=account["last_name"],
+            )
+
+        errors = check_dev_accounts_absent(app_configs=None)
+
+        assert len(errors) == 1
+        for account in DEV_ACCOUNTS:
+            assert account["email"] in errors[0].msg
+
+    @override_settings(DJANGO_ENV="production")
+    def test_no_dev_addresses_on_a_production_portal_reports_nothing(self, db):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        assert check_dev_accounts_absent(app_configs=None) == []
+
+    def test_a_development_portal_holding_all_five_reports_nothing(self, db):
+        """The suite's own ambient environment is development (pytest-env),
+        so no override is needed - the check must stand down on its own."""
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        call_command("create_dev_accounts", verbosity=0)
+
+        assert check_dev_accounts_absent(app_configs=None) == []
+
+    @pytest.mark.parametrize(
+        "exception_class",
+        [
+            django_db_utils.ProgrammingError,
+            django_db_utils.OperationalError,
+            # A test harness that refuses database access outright (e.g.
+            # pytest-django's own safeguard for a test with no `db` fixture)
+            # raises this, not a django.db.utils error - the same tolerance
+            # `check_portal_roles_present` carries (D24, research R4).
+            RuntimeError,
+        ],
+    )
+    @override_settings(DJANGO_ENV="production")
+    def test_an_unreadable_user_table_returns_nothing(self, db, exception_class):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        Person = get_user_model()
+        with mock.patch.object(
+            Person.objects,
+            "filter",
+            side_effect=exception_class("no such table: contributors_person"),
+        ):
+            assert check_dev_accounts_absent(app_configs=None) == []
+
+    @override_settings(DJANGO_ENV="production")
+    def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
+        self, db
+    ):
+        """A `DATABASE_URL`-absent portal (`fairdm.E100`'s own case) raises
+        `ImproperlyConfigured` the moment a query tries to compile SQL against
+        it, not `OperationalError`/`ProgrammingError` (mirrors
+        `check_portal_roles_present`'s own test for the identical case)."""
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        Person = get_user_model()
+        with mock.patch.object(
+            Person.objects,
+            "filter",
+            side_effect=ImproperlyConfigured(
+                "settings.DATABASES is improperly configured."
+            ),
+        ):
+            assert check_dev_accounts_absent(app_configs=None) == []
+
+    def test_check_is_registered_with_the_same_tags_as_the_portal_roles_check(self):
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import (
+            check_dev_accounts_absent,
+            check_portal_roles_present,
+        )
+
+        assert check_dev_accounts_absent in registry.get_checks(
+            include_deployment_checks=True
+        )
+        assert check_dev_accounts_absent.tags == check_portal_roles_present.tags
+
+    def test_no_other_check_in_the_file_shares_fairdm_e501(self):
+        import inspect
+
+        from fairdm.conf import checks
+
+        assert inspect.getsource(checks).count('"fairdm.E501"') == 1

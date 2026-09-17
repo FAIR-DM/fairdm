@@ -2,7 +2,19 @@
 
 import pytest
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.urls import reverse
+
+
+class TestSidebarFooterSettingIsNotDeclared:
+    """``MVP_CONFIG["layout"]["sidebar"]["footer"]`` (T038, django-mvp 0.23
+    upgrade): the key no longer has any effect and django-mvp emits
+    ``MVPDeprecationWarning`` at startup for a project that still sets it.
+    django-mvp now ships the footer as a fixed composition that already draws
+    what this list configured, so nothing should redeclare the key."""
+
+    def test_the_sidebar_settings_declare_no_footer_key(self):
+        assert "footer" not in settings.MVP_CONFIG["layout"]["sidebar"]
 
 
 @pytest.mark.django_db

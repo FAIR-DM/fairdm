@@ -310,15 +310,67 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
 
+    #: D12 - `contributors.change_person`, which FR-004 gives the Community Manager, would
+    #: otherwise be a three-click route to superuser: `UserAdmin`'s stock fieldsets put these
+    #: on the change form with no permission gate of their own.
+    _SUPERUSER_ONLY_FIELDS = ("is_superuser", "is_staff", "password")
+
+    def get_fieldsets(self, request, obj=None):
+        """Drop the account-escalation fields for a request whose user is not a superuser.
+
+        SEC-001: `groups` grants the same rights as `is_superuser`/`is_staff` by proxy -
+        setting a person's membership in Data Curator or Portal Administrator hands them
+        that role's rights. `auth.view_group` is the discriminator FR-002/FR-004 already
+        supply: the Portal Administrator holds it (assigning roles is their job) and the
+        Community Manager does not.
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            return fieldsets
+        excluded = set(self._SUPERUSER_ONLY_FIELDS)
+        if not request.user.has_perm("auth.view_group"):
+            excluded.add("groups")
+        narrowed = []
+        for name, options in fieldsets:
+            fields = tuple(
+                field for field in options["fields"] if field not in excluded
+            )
+            if fields:
+                narrowed.append((name, {**options, "fields": fields}))
+        return narrowed
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Drop ``password`` from the built form for a non-superuser.
+
+        ``is_superuser`` and ``is_staff`` are excluded by ``get_fieldsets`` alone, which
+        ``ModelAdmin.get_form`` reads to build its field list. ``password`` is not a plain
+        model field on the base ``UserChangeForm`` - it is declared directly
+        (``ReadOnlyPasswordHashField``), and Django's ``ModelFormMetaclass`` always re-adds a
+        declared field to ``base_fields`` regardless of the fields list, so excluding it from
+        the fieldsets alone is not enough.
+        """
+        form = super().get_form(request, obj, **kwargs)
+        if not request.user.is_superuser:
+            form.base_fields.pop("password", None)
+        return form
+
+    def _may_manage_persons(self, request):
+        """D13/D21: profile claims and merges are the Community Manager's, through the
+        same ``contributors.change_person`` right FR-004 already gives that role - not
+        "any staff member", which is what the superseded reasoning on ``claim_link_view``
+        and ``merge_view`` was written against."""
+        return request.user.has_perm("contributors.change_person")
+
     def get_actions(self, request):
-        """Drop the merge/claim-link actions for a non-superuser (Route 2).
+        """Drop the merge/claim-link actions for anyone the views themselves would
+        refuse (Route 2).
 
         ``merge_view`` and ``claim_link_view`` themselves are the load-bearing
         gate -- this only keeps the interface from offering an action that
-        would redirect a non-superuser into a page that refuses them.
+        would redirect somebody into a page that refuses them.
         """
         actions = super().get_actions(request)
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             actions.pop("merge_person_action", None)
             actions.pop("generate_claim_link_action", None)
         return actions
@@ -436,8 +488,13 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         for an unrelated, already-reported reason (that URL is commented out
         in ``urls.py``). Refusing here first keeps this permission check
         observable on its own.
+
+        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
+        only alternative to "superuser" was "any staff member". A portal role granted
+        deliberately -- the Community Manager, through ``contributors.change_person``,
+        which FR-004 already gives it -- is a third thing, and now gates this instead.
         """
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             raise PermissionDenied
 
         from django.shortcuts import get_object_or_404
@@ -478,8 +535,13 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         identity and moves their affiliations (including any OWNER one),
         object-level permissions, confirmed emails and social account onto
         the surviving record. That is not an ordinary staff operation.
+
+        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
+        only alternative to "superuser" was "any staff member". A portal role granted
+        deliberately -- the Community Manager, through ``contributors.change_person``,
+        which FR-004 already gives it -- is a third thing, and now gates this instead.
         """
-        if not request.user.is_superuser:
+        if not self._may_manage_persons(request):
             raise PermissionDenied
 
         from django.contrib import messages

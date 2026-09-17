@@ -25,4 +25,8 @@ do not restate earlier ones, only build past them.
 0016-the-framework-indexes-the-fields-it-searches-by-default
 0017-listings-are-addressed-and-named-apart-from-records
 0018-publication-is-a-queryset-method-not-a-default-manager
+0019-a-portal-role-is-the-unit-of-portal-wide-rights
+0020-a-missing-role-is-answered-four-ways
+0021-claims-and-merges-belong-to-a-named-role
+0022-development-accounts-are-a-command-that-refuses
 ```

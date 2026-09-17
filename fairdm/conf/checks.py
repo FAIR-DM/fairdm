@@ -9,6 +9,7 @@ import logging
 from django.conf import settings
 from django.core.checks import Error, Tags, register
 from django.core.exceptions import ImproperlyConfigured
+from django.db.utils import OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -402,6 +403,154 @@ def check_celery_async(app_configs, **kwargs):
         )
 
     return errors
+
+
+# =============================================================================
+# PORTAL ROLES CHECKS
+# =============================================================================
+
+#: The command that installs the portal roles, named here because the check for them
+#: stands down while it runs - ``sys.argv`` is already the real invocation by the time
+#: the check reads it, since this module is imported ahead of app-registry population.
+MIGRATE_COMMAND_NAME = "migrate"
+
+#: What "the database cannot be read" looks like, for a check that queries one. An
+#: unmigrated or absent table raises the first two, a database Django cannot resolve an
+#: engine for raises ``ImproperlyConfigured`` (the ``DATABASE_URL``-absent case
+#: ``fairdm.E100`` reports), and a test harness refusing database access outright raises
+#: ``RuntimeError``. None of them is a check's own fault to report, and telling them
+#: apart from a real finding is what keeps an unmigrated database from looking like a
+#: misconfigured portal.
+UNREADABLE_DATABASE = (
+    OperationalError,
+    ProgrammingError,
+    ImproperlyConfigured,
+    RuntimeError,
+)
+
+
+@register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_portal_roles_present(app_configs, **kwargs):
+    """
+    Check that every role ``fairdm.portal_roles.PortalRoles`` ships exists in the
+    database, naming every one missing at once (FR-015, research R4).
+
+    Tolerates a database that has not been migrated yet, or is not configured at
+    all: querying a group table that does not exist, cannot be read, belongs to
+    a database Django cannot even resolve an engine for (``ImproperlyConfigured`` -
+    the ``DATABASE_URL``-absent case ``fairdm.E100`` reports), or that database
+    access itself is refused outright (``RuntimeError`` - a test harness with no
+    database enabled raises this the same way) is not this check's job to report,
+    and is how an unmigrated, unconfigured or genuinely unreadable database is told
+    apart from a portal actually missing its roles (research R4, D24).
+
+    Stands down for ``migrate`` (D11): ``post_migrate`` is the only thing that
+    installs the roles, and this check runs in ``FairDMConfig.ready()``, which fires
+    before ``migrate`` does any work. Without the stand-down, a production portal
+    upgrading to this version - auth tables long since migrated, its roles not yet
+    created - could neither start nor migrate, with nothing inside it able to repair
+    that (a critical design-review finding).
+
+    Error ID: fairdm.E500
+    """
+    import sys
+
+    from django.contrib.auth.models import Group
+
+    if MIGRATE_COMMAND_NAME in sys.argv:
+        return []
+
+    from fairdm.portal_roles import PortalRoles
+
+    try:
+        existing = set(
+            Group.objects.filter(name__in=PortalRoles.shipped_names()).values_list(
+                "name", flat=True
+            )
+        )
+    except UNREADABLE_DATABASE:
+        return []
+
+    missing = [name for name in PortalRoles.shipped_names() if name not in existing]
+    if not missing:
+        return []
+
+    return [
+        Error(
+            f"FairDM role(s) missing from the database: {', '.join(missing)}.",
+            hint="Run `manage.py migrate` to install them.",
+            id="fairdm.E500",
+        )
+    ]
+
+
+@register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_dev_accounts_absent(app_configs, **kwargs):
+    """
+    Check that none of the five development accounts
+    ``manage.py create_dev_accounts`` ships exist on a portal that is not in
+    development, naming every one found at once (FR-027, D16).
+
+    The command that creates these accounts already refuses outside
+    development (``fairdm.apps.NON_PRODUCTION_ENVIRONMENTS``), but that
+    refusal guards the *act* of loading, not the resulting state: a database
+    copied down from production, a dump restored the wrong way round, or an
+    environment variable changed under a live database all produce accounts
+    the command would have refused to create. Unlike
+    ``check_portal_roles_present``, which leaves its own environment gating
+    entirely to ``FairDMConfig._check_production_configuration()``, this
+    check reads the resolved environment itself: `manage.py check --deploy`
+    runs every ``deploy=True`` check regardless of environment (FR-015), and
+    a development portal running it must still see nothing, since the whole
+    point of the accounts is to exist there.
+
+    Tolerates a database that cannot be read the same way
+    ``check_portal_roles_present`` does - an absent or unreadable user table,
+    a database Django cannot even resolve an engine for
+    (``ImproperlyConfigured``), or a test harness that refuses database
+    access outright (``RuntimeError``) - which is not this check's job to
+    report (research R4, D24).
+
+    Error ID: fairdm.E501
+    """
+    from django.apps import apps
+    from django.contrib.auth import get_user_model
+
+    from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
+    from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_EMAILS
+
+    if (
+        apps.get_app_config("fairdm").resolved_environment()
+        in NON_PRODUCTION_ENVIRONMENTS
+    ):
+        return []
+
+    Person = get_user_model()
+
+    try:
+        found = sorted(
+            Person.objects.filter(email__in=DEV_ACCOUNT_EMAILS).values_list(
+                "email", flat=True
+            )
+        )
+    except UNREADABLE_DATABASE:
+        return []
+
+    if not found:
+        return []
+
+    return [
+        Error(
+            f"Development account(s) present on a portal outside development: "
+            f"{', '.join(found)}.",
+            hint=(
+                "These accounts share a password published in the "
+                "documentation. Remove them, or confirm this portal really "
+                "is in development."
+            ),
+            id="fairdm.E501",
+        )
+    ]
 
 
 # =============================================================================

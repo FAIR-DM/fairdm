@@ -1,0 +1,162 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-08-24/0f180d36",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T002",
+      "status": "done",
+      "evidence": {
+        "tests_added": ["tests/test_portal_roles.py::TestDeclarations"],
+        "commands": [
+          "poetry run pytest tests/test_portal_roles.py::TestDeclarations -x  # RED: ModuleNotFoundError: No module named 'fairdm.portal_roles'",
+          "poetry run pytest tests/test_portal_roles.py::TestDeclarations -v  # GREEN after T003: 8 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["fce8f536a0912baf8f3e59cad99112bdd316b108"]
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "commands": [
+          "poetry run pytest tests/test_portal_roles.py::TestDeclarations -v  # 8 passed",
+          "poetry run ruff check --fix fairdm/portal_roles.py && poetry run ruff format fairdm/portal_roles.py",
+          "poetry run mypy fairdm/portal_roles.py  # RED first: label: str rejected gettext_lazy's _StrPromise; fixed to str | Promise, then Success"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "323b2556cad2f4dc6403a8edcd2758e67d6230f2",
+        "f092d6f4818990c1c4a3bb5b1060ac36524f94bf"
+      ]
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "evidence": {
+        "tests_added": ["tests/test_portal_roles.py::TestReconcile"],
+        "commands": [
+          "poetry run pytest tests/test_portal_roles.py::TestReconcile -v  # passed immediately: reconcile() was already implemented as part of T003's commit rather than stubbed",
+          "probe: reconcile()'s body temporarily replaced with `pass`; poetry run pytest tests/test_portal_roles.py::TestReconcile -v  # RED: 5 of 6 tests failed for the expected reason",
+          "reconcile()'s body restored (git diff empty); poetry run pytest tests/test_portal_roles.py -v  # GREEN: 14 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["15f28cc48e24b69e442ccdbdac090ad8fec7b6ab"]
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "evidence": {
+        "tests_added": ["tests/test_apps.py::TestPortalRolesReconciliation"],
+        "commands": [
+          "poetry run pytest tests/test_apps.py::TestPortalRolesReconciliation -v  # RED: django.contrib.auth.models.Group.DoesNotExist (no post_migrate receiver connected yet)",
+          "poetry run pytest tests/test_apps.py::TestPortalRolesReconciliation -v  # GREEN after wiring the signal: 2 passed",
+          "poetry run pytest tests/test_apps.py tests/test_portal_roles.py -q  # 30 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["43085b0ed3389af897492a8912c8400836398cf4"]
+    },
+    {
+      "id": "T006",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_conf/test_settings/test_apps.py::TestGroupsFixtureRemoved"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_conf/test_settings/test_apps.py::TestGroupsFixtureRemoved -v  # RED: fixture file present, loaddata step still listed",
+          "poetry run pytest tests/test_conf/test_settings/test_apps.py -q  # GREEN: 9 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["cb7e676be2612fb35938733dfdfd84a1a4bc4f22"]
+    },
+    {
+      "id": "T007",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_choices.py::TestDefaultGroupsRemoved",
+          "tests/test_contrib/test_contributors/test_filters.py::TestPersonFilterIsStaffLabel"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_choices.py::TestDefaultGroupsRemoved tests/test_contrib/test_contributors/test_filters.py -v  # RED: both failed",
+          "poetry run pytest tests/test_contrib/test_contributors/ -q  # GREEN: 386 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["34ed2c964cc1c3f308495503587a7be116889605"]
+    },
+    {
+      "id": "T008",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "commands": [
+          "grep -c 'Portal Administrator\\|Data Curator\\|Community Manager\\|Developer' docs/portal-administration/roles.md  # 13",
+          "grep -n superuser docs/portal-administration/roles.md"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["c522b7a703768024e0b9a0f8f0b04d9e7e62cae0"]
+    },
+    {
+      "id": "T009",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "commands": [
+          "grep -n 'portal role\\|contribution role\\|rights-carrying' CONTEXT.md"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["b11867f3d4e51be01d1ec6e9d0ff7aeccbb63ea4"]
+    },
+    {
+      "id": "T010",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "commands": [
+          "grep -n 'model-level permission now applies\\|audit' CHANGELOG.md docs/portal-administration/roles.md"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["98aaf26a4db9ae481061164baa6af044e277f571"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "reconcile() and the Portal Administrator/Data Curator/Community Manager permission derivation were implemented in T003's commit rather than stubbed and built separately in T005. T004's red step was therefore a probe (reconcile()'s body temporarily replaced with `pass`, five of six new tests observed failing, then the exact original body restored — `git diff` empty) rather than a fresh implementation-driven failure.",
+      "why": "Building the whole PortalRoles class as one coherent unit was more natural than stubbing reconcile() to a no-op and filling it in later; the probe gives the same red-green assurance craft-tdd requires for coverage that already exists.",
+      "decision_ref": "specs/017-portal-roles/progress.md#2026-09-16 (T004 entry)"
+    },
+    {
+      "what": "'The portal's identity' (FR-002) was resolved to fairdm.contrib.identity.models.Identity (permission identity.change_identity), and the Data Curator's permission list was derived as the full view/add/change/delete set across Project, Dataset, Sample, Measurement, their Description/Date attachments, and Contribution, plus dataset.import_data and dataset.can_publish.",
+      "why": "Neither the target model for 'the portal's identity' nor the Data Curator's complete permission list is named verbatim anywhere in the spec, plan or tasks — both had to be resolved against the actual model layer so every permission could be an explicit app_label.codename per T002's acceptance criterion.",
+      "decision_ref": "specs/017-portal-roles/decisions.md#D19"
+    }
+  ],
+  "concerns": [
+    "The worktree's synced virtualenv resolved to Python 3.14, under which django-environ fails to import (pkgutil.find_loader was removed) and the whole test suite could not collect at all — an environment fault present before any of my changes. Fixed locally with `poetry env use /home/sam/.local/bin/python3.13` followed by `poetry install --sync --with dev,test,docs`; no repository file was touched. Worth checking whether other 017 worktrees hit the same thing.",
+    "docs/portal-administration/adjusting_dataset_access.md:130 still names the pre-existing 'Database Admin' group in a troubleshooting bullet. It is outside T008's named file scope (roles.md, managing_users_and_permissions.md), so I left it alone rather than widen the diff.",
+    "T008, T009 and T010 are documentation-only tasks with no automated test in this repository's test suite (there is no existing convention of a test that opens a docs/*.md or CONTEXT.md file), so their 'done' status rests on hand proofreading plus the grep spot-checks recorded in their evidence, not a red-green cycle.",
+    "`poetry run python manage.py makemigrations --check --dry-run` reports two pending migrations — 'identity' (a unique_together-to-constraint conversion) and 'orbit' (a third-party package) — neither touched by any commit in this story (git diff 3ac8a56..HEAD -- fairdm/contrib/identity/ is empty, and 'orbit' is not even a project dependency I can find via `poetry show`). Pre-existing drift, not something this story introduced or should fix."
+  ],
+  "blocked": []
+}

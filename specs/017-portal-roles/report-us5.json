@@ -1,0 +1,81 @@
+{
+  "story": "US5",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-08-05/d3dce07f",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T031",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_visitor_who_is_not_signed_in_gets_200",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_roles_appear_in_declaration_order",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_person_holding_two_roles_appears_under_both",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_role_nobody_holds_is_absent",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_deactivated_holder_is_absent",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_no_email_address_appears_in_response",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_contribution_role_holder_without_a_portal_role_is_absent",
+          "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView::test_page_holds_its_query_count_as_the_number_of_holders_grows"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -x  # RED: NoReverseMatch: Reverse for 'team' not found",
+          "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -v  # GREEN after T032: 8 passed"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["8ec863c", "5fab80c"]
+    },
+    {
+      "id": "T032",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -v"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["ea64575", "5fab80c"]
+    },
+    {
+      "id": "T033",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_menus/test_menus.py::TestTeamMenuItem::test_team_link_appears_in_the_community_group"
+        ],
+        "commands": [
+          "poetry run pytest tests/test_menus/test_menus.py -v  # RED then GREEN: 8 passed, including the 7 pre-existing menu tests"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["b0219bb", "a43c64f"]
+    },
+    {
+      "id": "T034",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "poetry run pytest  # 2818 passed, 8 skipped",
+          "poetry run pre-commit run --all-files  # all hooks passed (docs/ is excluded from the lint gate)"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["5f13189", "0acd335", "de53856"]
+    }
+  ],
+  "deviations": [],
+  "concerns": [
+    "fairdm/contrib/contributors/templates/contributors/contributor_card.html, reused unchanged for the team page's cards, has a header comment reading 'Desperately need to be reworked by design team' and references object.get_photo_url, which Contributor/Person do not define - it silently resolves empty rather than erroring. Pre-existing on people-list and organization-list; out of this story's scope to fix, but worth flagging since the team page now depends on it too."
+  ],
+  "blocked": []
+}

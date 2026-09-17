@@ -1,6 +1,5 @@
 import json
 import logging
-from functools import cached_property
 
 from django.apps import apps
 from django.conf import settings
@@ -779,13 +778,6 @@ class Person(AbstractUser, Contributor):
                 default=float,
             )
         return None
-
-    @cached_property
-    def is_data_admin(self):
-        """Check if the contributor is a data administrator."""
-        return (
-            self.is_superuser or self.groups.filter(name="Data Administrators").exists()
-        )
 
     def get_location_display(self):
         """Get a human-readable location string."""

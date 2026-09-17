@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   customised either need a small change — the settings and template changes involved, and
   the one piece of markdown syntax that renders differently afterwards, are covered in
   [Rich text and markdown](docs/portal-development/rich-text.md).
+- **The `groups` fixture and its three empty, ungoverned groups are gone**, replaced by the four
+  portal roles described below. A portal already using the three previous groups keeps every
+  member: they are renamed in place, not deleted, the next time the database is brought up to
+  date.
 
 ### Fixed
 
@@ -40,8 +44,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Migration guides](docs/more/migration-guides.md#the-demo-application-moved-to-demo).
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
+- **A model-level permission held through one of the four portal roles below now applies to
+  every instance of that model**, not only the record it was granted for. A permission granted
+  any other way — directly to a person, or through a group the portal made up itself — is
+  unchanged from before. See [Portal roles](docs/portal-administration/roles.md).
+- **The `has_permission` template tag no longer treats membership in a group named directly
+  in a template as authorization on its own.** It now asks Django's ordinary permission check
+  for each permission string passed to it, so a template using the bare codename spelling its
+  `user_permissions` context convention expects (for example `change_dataset`) no longer
+  matches for anyone — use the app-labelled form (`dataset.change_dataset`) instead.
+- **django-mvp moves to 0.23 and django-accounts-center to 0.8.** django-mvp took over the
+  Account Center that django-accounts-center used to provide, and django-accounts-center
+  dropped its own copy in the same release cycle, so the two versions move together. A portal
+  with a view of its own still setting the pre-0.16 `has_<action>_permission` attributes
+  renames them to `show_<action>_action` — django-mvp now raises `ImproperlyConfigured` rather
+  than reading them. A portal setting `MVP_CONFIG["layout"]["sidebar"]["footer"]` drops the
+  key — the sidebar footer is now a fixed composition that already draws a superset of what
+  that list configured, and django-mvp only warns and discards the setting. A portal including
+  `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
+  above it, since the landing page and its `account-center` URL name now come from django-mvp.
 
 ### Added
+
+#### Portal roles (Feature 017)
+
+- **Four portal roles replace the three ungoverned groups from before**: Portal Administrator,
+  Data Curator, Community Manager and Developer, each declared with an exact, named permission
+  set and installed into every portal automatically, every time its database is brought up to
+  date. Editing a role's permissions by hand no longer sticks — the next update restores the
+  declared set. See [Portal roles](docs/portal-administration/roles.md).
 
 #### Portal configuration via `fairdm.setup()` (Feature 001)
 

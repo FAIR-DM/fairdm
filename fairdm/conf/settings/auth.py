@@ -57,6 +57,10 @@ AUTHENTICATION_BACKENDS = [
     "fairdm.contrib.contributors.permissions.OrganizationPermissionBackend",  # Organization ownership via OWNER affiliation
     "fairdm.core.sample.permissions.SamplePermissionBackend",  # Sample permission inheritance
     "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Measurement permission inheritance
+    # Carries a model-level permission held through a portal role (or granted directly) down
+    # to individual records. Registered after the others so an explicit stored grant is
+    # consulted first (017-portal-roles US-2).
+    "fairdm.permissions.PortalRolePermissionBackend",
 ]
 
 # guardian.W001 fires when its own backend path is absent from the list above. Every backend in

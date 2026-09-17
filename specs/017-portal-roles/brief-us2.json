@@ -1,0 +1,136 @@
+{
+  "story": "US2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 340,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us2",
+  "tasks": [
+    "T011",
+    "T012",
+    "T013",
+    "T014",
+    "T015",
+    "T016",
+    "T017",
+    "T017a",
+    "T017b",
+    "T018",
+    "T019"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-08-24/0f180d36"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "US-1 declared the four portal roles and installs them into every portal. Nothing enforces them yet. A role's permissions are model-level, and Django's ModelBackend answers False for every object-level question, so a Data Curator holding change_dataset cannot in fact change a dataset. Reaching the administration interface still asks for is_staff alone, which no role sets. And five places in the code still decide a person's rights by matching the group name 'Data Administrators', granting broad edit rights outside the permission system entirely. This story makes the roles real: one more authentication backend, an administration site that accepts a role holder, a Person form that stops being a route to superuser, and the five name-matching branches replaced by ordinary permission questions.",
+    "spec_sections": [
+      "User Story 2 - A role decides what its holder can actually do",
+      "Requirements / The role set (FR-006 to FR-008)",
+      "Requirements / How rights are decided (FR-018 to FR-021)",
+      "Requirements / The role set (FR-003, FR-004) - what the Data Curator and Community Manager hold"
+    ],
+    "plan_sections": [
+      "Summary",
+      "Phases / Phase 2 - US-2, a role decides what its holder can do",
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D12 - the Person administration form is a route to superuser. Django's UserAdmin puts is_superuser, is_staff and password on the change form with no permission gate of their own, and FR-004 gives the Community Manager contributors.change_person. The form must drop those three fields for any request whose user is not a superuser. This is not a narrowing of FR-004; it is what FR-004 has to mean.",
+      "D13 - profile claims and merges become the Community Manager's. claim_link_view and merge_view raise PermissionDenied for anyone who is not a superuser, by a decision recorded in their own docstrings. That decision was written when the only alternative was 'anybody with is_staff'. A portal role granted deliberately is a third thing. Replace the superuser gates with permission questions the Community Manager role holds, and record a decisions.md entry for the ADR that supersedes the old reasoning - do not delete or rewrite the old docstrings' reasoning, supersede it.",
+      "D14 - the object-level fallback must exclude contributors.manage_organization. fairdm/core/permissions.py:44-53 already refuses to derive it from anything but a current owner affiliation, and its comment explains that Django ORs backends so no later backend can veto an earlier yes. A stale Permission row for it survives in migrated databases. Carry the same explicit exclusion.",
+      "Research R2 - ModelBackend.has_perm returns False whenever obj is not None. The new backend answers the object-level question from the model-level permissions the person holds, which is the rule Django's own admin already follows. It must return False when obj is None, or asking user.has_perm(perm) inside it recurses through the chain back into itself.",
+      "Research R3 - administration access is derived, never stored. Override CustomAdminSite.has_permission AND its login form: AdminAuthenticationForm.confirm_login_allowed refuses a non-staff user, so changing one without the other leaves a role holder able to reach the interface only if already signed in. Do not set is_staff on anybody.",
+      "US-1 discovery - dataset.import_data and dataset.can_publish are declared by no model anywhere, so reconcile() skips them and the Data Curator does not actually hold them. T017b declares them on Dataset.Meta.permissions, which produces an AlterModelOptions migration. That migration is expected; any other migration in this story is a defect."
+    ],
+    "acceptance": [
+      {
+        "task": "T011",
+        "given_when_then": "Given a person holding a model permission through a role, When has_perm(perm, instance) is asked for any instance of that model, Then True; for a person without it, False; for a permission granted directly to the person, True; for an anonymous or deactivated account, False; for has_perm(perm) with no object, False from this backend; and for contributors.manage_organization, never answered by this backend even when the stale permission row is held."
+      },
+      {
+        "task": "T012",
+        "given_when_then": "Given AUTHENTICATION_BACKENDS, When a request asks an object-level question, Then PortalRolePermissionBackend answers it from model-level permissions without writing any per-record row."
+      },
+      {
+        "task": "T013",
+        "given_when_then": "Given a holder of each rights-carrying role, When they open the administration interface - both with an existing session and by signing in through the administration login form - Then they reach the index and a changelist; a Developer-only holder, an ordinary contributor and a deactivated holder are each refused."
+      },
+      {
+        "task": "T014",
+        "given_when_then": "Given CustomAdminSite, When it decides whether a person may enter, Then it accepts a holder of a rights-carrying role without anything being stored on that person."
+      },
+      {
+        "task": "T015",
+        "given_when_then": "Given a Community Manager on the Person change form, When they open it, Then is_superuser, is_staff and password are not offered; When they POST is_superuser=on for themselves or anybody else, Then the flag is unchanged; and a superuser still sees and can set all three."
+      },
+      {
+        "task": "T016",
+        "given_when_then": "Given the Person administration class, When the requesting user is not a superuser, Then get_fieldsets/get_form omit is_superuser, is_staff and password."
+      },
+      {
+        "task": "T017",
+        "given_when_then": "Given a data curator, When they open another team's dataset - including a private one - and its samples through the portal's own pages, Then they can view and change them and can reach the import and publish plugin pages, and the record page carries no mark saying a curator changed it. Given a community manager, Then they can change a person and an organisation, cannot change that dataset, and cannot delete a person. Given somebody in two roles, Then they hold both sets."
+      },
+      {
+        "task": "T017a",
+        "given_when_then": "Given the role declarations, When the database is up to date, Then every permission named in any role resolves to a real Permission row - a declared right that nothing declares is red, not silently skipped."
+      },
+      {
+        "task": "T017b",
+        "given_when_then": "Given Dataset, When its Meta.permissions is read, Then import_data and can_publish are declared, with the AlterModelOptions migration that follows."
+      },
+      {
+        "task": "T018",
+        "given_when_then": "Given any of the five group-name branches, When a rights decision is made, Then it is made by asking the permission system, and Person.is_data_admin no longer exists."
+      },
+      {
+        "task": "T019",
+        "given_when_then": "Given a Community Manager, When they run a profile claim or a merge from the administration interface, Then it proceeds; given a person holding no portal role, Then it is refused."
+      }
+    ],
+    "verified_base": {
+      "commit": "873520591e2bca3c2103a0414912c0308ce63954",
+      "verified_at": "2026-09-16T10:52:42Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:test",
+        "poetry:build"
+      ],
+      "note": "Full verify green on this exact commit in this exact worktree: lint, mypy, the whole pytest suite (612s), build, conformance and the docs check. Do not re-run the suite to check your starting point. If the tree is red on arrival, that is an environment fault - report it, do not work around it."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us2, branch 017-portal-roles-us2, cut from the feature branch with US-1 already merged in. Its virtualenv is synced and pinned to Python 3.13 - do not change the interpreter. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`; raw `ruff check .` is red at main by design and is not the gate. A dev server is serving this worktree on port 8000 for the maintainer to watch; leave it alone, and expect the autoreloader to restart when you save."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full, then your own tasks T011-T019 in specs/017-portal-roles/tasks.md - your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and stop there.",
+    "Read fairdm/portal_roles.py and fairdm/core/permissions.py before you write the backend.",
+    "git log --oneline -10.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "Do not set is_staff on any account, in code or in a fixture, to grant administration access. Access is derived (research R3).",
+    "Do not touch fairdm/portal_roles.py's role declarations except to add a permission a task explicitly names. US-1's test pins the exact set, and widening a role is a security change.",
+    "Do not write the Group deletion receivers, the system checks, the management command or the team page. Those are US3 to US5.",
+    "The only migration this story may produce is T017b's AlterModelOptions on Dataset. Any other migration is a defect - report it rather than committing it.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

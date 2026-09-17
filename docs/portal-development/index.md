@@ -93,6 +93,8 @@ component_library/index
 create_a_plugin
 rich-text
 quality_control
+portal_roles
+development_accounts
 testing-portal-projects
 profile-claiming-api
 restful-api

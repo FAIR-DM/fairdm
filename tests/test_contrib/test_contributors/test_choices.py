@@ -30,3 +30,13 @@ class TestOrganizationTypeVocabulary:
     def test_organization_type_has_no_members_outside_the_ror_set(self):
         """The vocabulary holds exactly the nine ROR values, no more."""
         assert len(OrganizationType.values) == 9
+
+
+class TestDefaultGroupsRemoved:
+    """FR-036, FR-039: the three ungoverned group names are replaced by the four
+    declared roles in `fairdm/portal_roles.py`, so this choice enumeration is gone."""
+
+    def test_default_groups_is_gone(self):
+        import fairdm.contrib.contributors.choices as choices
+
+        assert not hasattr(choices, "DefaultGroups")

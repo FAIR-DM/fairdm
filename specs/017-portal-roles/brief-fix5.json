@@ -1,0 +1,60 @@
+{
+  "story": "FIX-5",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 338,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-fix5",
+  "tasks": [
+    "T038"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "FairDM pins django-mvp at 0.21 and django-accounts-center at 0.7.1. Both have moved: django-mvp 0.23.0 and django-accounts-center 0.8.0 are on PyPI. The two releases are coupled - django-mvp 0.22 took over the Account Center, and django-accounts-center 0.8 deleted its own copy of it in the same week - so a project upgrading one without the other either runs two Account Centers or none. Three breaking changes land on this codebase and every one of them is a hard failure rather than a silent drift, so the upgrade is small, exactly specified, and provable.",
+    "spec_sections": [],
+    "plan_sections": [],
+    "prior_decisions": [
+      "Bump to `django-mvp (>=0.23.0,<0.24.0)` and `django-accounts-center (>=0.8.0,<0.9.0)` in pyproject.toml, then `poetry lock` and `poetry install`. Both versions are published. Do not bump anything else; an unrelated transitive move that the lock picks up is fine, a hand-edited pin is not.",
+      "BREAKING 1 - `has_<action>_permission` is no longer read and now raises `ImproperlyConfigured` at class definition. `fairdm/contrib/contributors/views/person.py` line 21 sets `has_create_permission = False`. Rename it to `show_create_action = False`. The accepted values and the callable signature are unchanged, so the rename is the whole migration. The comment beside it stays true. Note that `has_delete_permission` and `has_change_permission` elsewhere in this codebase are Django's own ModelAdmin methods and have nothing to do with this - leave every one of them alone.",
+      "BREAKING 2 - `MVP_CONFIG[\"layout\"][\"sidebar\"][\"footer\"]` is no longer read and now emits an `MVPDeprecationWarning` before being discarded. It is set in `fairdm/conf/settings/addons.py`. Delete the key and the comment block explaining it. Nothing replaces it and no template override is needed: django-mvp 0.23 ships the sidebar footer as a fixed composition that already draws the signed-in user's menu, a log-in button for a visitor, a theme control and a language control - which is a superset of the three entries this list configured. The comment's reasoning, that a phone visitor reaches log-in only through the drawer, still holds and is now satisfied by the packaged footer rather than by this setting.",
+      "BREAKING 3 - django-accounts-center 0.8 no longer provides an Account Center. `dac.views.AccountCenterView`, the `dac/account_center.html` it rendered and the `account-center` route in `dac.urls` are gone; django-mvp ships all three now, in an includable `mvp.urls`. `fairdm/conf/urls.py` includes `dac.urls` at `account-center/`. Add `path(\"account-center/\", include(\"mvp.urls\"))` immediately above it, at the same prefix, so the landing page keeps the address and the URL name `account-center` it has now. The upgrade note in django-accounts-center's changelog spells this out. This codebase declares no overview card and subclasses no AccountCenterView, so nothing else moves.",
+      "`dac.icons.DAC_ICONS` still exists at 0.8.0 and is still the package's own pack, so the `EASY_ICONS` packs list is unchanged. The comment above it in addons.py says the account menu raises `IconNotFoundError` on `account_center` without it; at 0.8.0 that key belongs to django-mvp's pack instead, so reread the comment against the installed code and correct it if it is now wrong rather than leaving a wrong explanation behind.",
+      "django-accounts-center 0.8 also deleted the breadcrumb trail on Account Center pages and its `dac/static/css/dac.css`. Confirm by grep that this codebase neither links that stylesheet nor uses `{% account_section %}`, `dac.menus.get_active_section` or `url_names` in a menu item's extra_context, and say so in the report. If any of them turns up, it has to go.",
+      "django-mvp 0.23 also renamed nothing else that this codebase touches, but the release changed the list view's action-row sizing, the breadcrumb trail's shrink behaviour and the sidebar footer's composition. Existing tests asserting any of those will move. Where a test pinned presentation that the upgrade legitimately changed, update the assertion to the new truth and say which in the report. Where a test caught a real break, fix the code.",
+      "Record both upgrades in CHANGELOG.md under Unreleased, naming what a downstream portal has to do: rename `has_<action>_permission` on any view of their own, drop the sidebar footer setting, and mount `mvp.urls` beside `dac.urls`."
+    ],
+    "acceptance": [
+      {
+        "task": "T038",
+        "given_when_then": "Given the upgraded pins, When the project starts, Then it starts: no `ImproperlyConfigured`, no `MVPDeprecationWarning` from this codebase's own settings, and `django-admin check --deploy` is clean of anything the upgrade introduced. Given a signed-in visitor, When they open /account-center/, Then the Account Center landing page renders, served by django-mvp, and `reverse(\"account-center\")` still resolves to that address. Given the allauth management pages django-accounts-center still authors, Then they still render under the same prefix. Given the people list page, When it renders, Then no create action is drawn, exactly as before the rename. Given the sidebar at any width, Then its footer draws the signed-in user's menu or a log-in button, a theme control and a language control. Given the whole suite, Then it is green read serially, with every assertion that moved explained in the report."
+      }
+    ],
+    "verified_base": {
+      "commit": "450b401ddd83210e891a999d903ac4dab76dbd8d",
+      "verified_at": "2026-09-16T17:00:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "The full suite was read serially at 2835 passed, 8 skipped on this branch, and lint, types, build, conformance and the documentation check are green. Do not re-run the suite to check your starting point - but do re-run it after the upgrade, which is the whole point of this task."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-fix5, branch 017-portal-roles-fix5, cut from the feature branch. Virtualenv already installed and pinned to Python 3.13; `poetry lock` then `poetry install` after editing the pins. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves a different checkout on port 8000: do not start, stop or touch any server. The two packages' own sources are readable at /home/sam/projects/django-mvp/django-mvp and /home/sam/projects/django-mvp/django-accounts-center - read their CHANGELOG.md and docs/ there rather than guessing, but never edit them and never install from them. A second worktree is changing the team page on its own branch; stay out of fairdm/contrib/contributors/views/team.py and its template."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  }
+}
