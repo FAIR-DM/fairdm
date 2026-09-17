@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Migrating any database other than `default` failed.** Ten data migrations queried
+  through the ORM without saying which database they were being applied to, so they read
+  and wrote `default` instead. A portal that migrates a second database — to check its
+  migrations, to build a fresh copy, or to run a second tenant — got either an error about
+  a column that exists in one of them and not the other, or a silent write to the wrong
+  place. Each of those migrations now routes to the database it is given, and the test
+  suite fails if a new one does not.
+- **The ICP-MS example's admin form was missing every field the measurement itself
+  carries** — its name, sample, dataset and image, along with the value it records. A
+  measurement admin that lists its own fieldsets replaces the standard ones rather than
+  adding to them, which the three demo measurement admins did not account for.
 - **Deleting a project or dataset that has a person credited on it raised an error.** The
   record's credits are removed alongside it, and withdrawing that person's rights over the
   record was attempted after the record itself had gone. Every project and dataset created

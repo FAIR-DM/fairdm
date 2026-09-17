@@ -14,35 +14,38 @@ def cleanup_guardian_permissions(apps, schema_editor):
     """
     ContentType = apps.get_model("contenttypes", "ContentType")
     Permission = apps.get_model("auth", "Permission")
-    
+    db_alias = schema_editor.connection.alias
+
     # Get Organization content type
     try:
-        org_ct = ContentType.objects.get(app_label="contributors", model="organization")
+        org_ct = ContentType.objects.using(db_alias).get(
+            app_label="contributors", model="organization"
+        )
     except ContentType.DoesNotExist:
         # No organizations exist yet, nothing to clean up
         return
-    
+
     # Try to delete the Permission object (may not exist in fresh databases)
-    Permission.objects.filter(
+    Permission.objects.using(db_alias).filter(
         content_type=org_ct,
         codename="manage_organization"
     ).delete()
-    
+
     # Clean up guardian's UserObjectPermission if guardian is installed
     try:
         UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
-        UserObjectPermission.objects.filter(
+        UserObjectPermission.objects.using(db_alias).filter(
             permission__content_type=org_ct,
             permission__codename="manage_organization"
         ).delete()
     except LookupError:
         # Guardian not installed or UserObjectPermission model doesn't exist
         pass
-    
+
     # Clean up guardian's GroupObjectPermission if guardian is installed
     try:
         GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
-        GroupObjectPermission.objects.filter(
+        GroupObjectPermission.objects.using(db_alias).filter(
             permission__content_type=org_ct,
             permission__codename="manage_organization"
         ).delete()

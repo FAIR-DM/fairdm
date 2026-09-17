@@ -24,7 +24,10 @@ FairDM enforces four core quality gates to maintain code quality, consistency, a
 
 ## 1. Running Tests
 
-FairDM uses **pytest** for testing. Tests are located in the `tests/` directory.
+FairDM uses **pytest** for testing. The framework's tests are in `tests/` and
+the reference application's are in `demo/tests/`. Both run by default: the demo
+app ships with FairDM, so a change that breaks it is a change that breaks a
+worked example every portal developer reads.
 
 ### Run All Tests
 
@@ -364,6 +367,41 @@ class Sample(LifecycleModel):
         """Log sample creation for audit trail."""
         logger.info(f"Sample {self.name} created in dataset {self.dataset.title}")
 ```
+
+### Data Migrations
+
+A `RunPython` step is handed the database it is meant to operate on, as
+`schema_editor.connection.alias`. Every query it makes has to be routed there.
+A query that leaves the routing out goes to `default` instead, which is a
+different database with a different schema in any portal that migrates a second
+one, so the migration either fails on a column that does not exist there or
+quietly reads and writes the wrong data.
+
+**Good**:
+
+```python
+def backfill(apps, schema_editor):
+    Organization = apps.get_model("contributors", "Organization")
+    db_alias = schema_editor.connection.alias
+
+    for org in Organization.objects.using(db_alias).filter(country__isnull=True):
+        org.country = "DE"
+        org.save(using=db_alias, update_fields=["country"])
+```
+
+**Bad**:
+
+```python
+def backfill(apps, schema_editor):
+    Organization = apps.get_model("contributors", "Organization")
+
+    for org in Organization.objects.filter(country__isnull=True):
+        org.country = "DE"
+        org.save(update_fields=["country"])
+```
+
+`tests/test_migrations.py` fails the suite when a data migration reads the wrong
+database, so this is checked rather than remembered.
 
 ## Next Steps
 

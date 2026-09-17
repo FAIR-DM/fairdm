@@ -307,29 +307,32 @@ FairDM's pytest settings are in `pyproject.toml`:
 ```toml
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
-python_files = ["test_*.py", "*_test.py"]
+python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-testpaths = ["tests"]
-markers = [
-    "unit: Unit tests (isolated logic, no database)",
-    "integration: Integration tests (database, file system)",
-    "contract: Contract tests (API validation, external contracts)",
-    "slow: Tests that take >1 second to run",
-]
+testpaths = ["tests", "demo/tests"]
+markers = ["slow: Tests that take > 1 second to execute"]
 addopts = [
     "--strict-markers",
-    "--tb=short",
-    "--disable-warnings",
+    "--reuse-db",
+    "--no-migrations",
+    "--ds=tests.settings",
+    "-n=auto",
+    "--dist=loadscope",
 ]
 ```
 
 **Key settings**:
 
 - **`DJANGO_SETTINGS_MODULE`**: Test-specific Django settings
-- **`testpaths`**: Only discover tests in `tests/` directory
+- **`testpaths`**: The framework's own tests and the reference application's.
+  The demo app is shipped, so its tests stay green alongside them
 - **`--strict-markers`**: Prevent typos in marker names
-- **`--tb=short`**: Concise traceback format
+- **`--reuse-db` / `--no-migrations`**: Build the test database from the models
+  rather than by running the migrations. `tests/test_migrations.py` covers the
+  migrations separately
+- **`-n=auto` / `--dist=loadscope`**: One worker per core, with each test class
+  or module kept together on one worker. Add `-n0` to read a single failure
 
 ## Troubleshooting
 

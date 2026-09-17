@@ -17,7 +17,7 @@ from django.db import migrations
 
 def migrate_status_to_unknown(apps, schema_editor):
     Sample = apps.get_model("sample", "Sample")
-    Sample.objects.update(status="unknown")
+    Sample.objects.using(schema_editor.connection.alias).update(status="unknown")
 
 
 class Migration(migrations.Migration):

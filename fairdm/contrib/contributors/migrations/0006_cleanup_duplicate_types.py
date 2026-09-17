@@ -10,20 +10,22 @@ def cleanup_duplicate_types(apps, schema_editor):
     keep the most recently modified entry and delete the rest.
     """
     ContributorIdentifier = apps.get_model("contributors", "ContributorIdentifier")
-    
+    db_alias = schema_editor.connection.alias
+
     total_deleted = 0
-    
+
     # Find all (related, type) combinations with duplicates
     from django.db.models import Count
     duplicates = (
-        ContributorIdentifier.objects.values("related", "type")
+        ContributorIdentifier.objects.using(db_alias)
+        .values("related", "type")
         .annotate(count=Count("id"))
         .filter(count__gt=1)
     )
-    
+
     for dup in duplicates:
         # Get all instances with this (related, type) combination
-        instances = ContributorIdentifier.objects.filter(
+        instances = ContributorIdentifier.objects.using(db_alias).filter(
             related_id=dup["related"],
             type=dup["type"],
         ).order_by("-modified")

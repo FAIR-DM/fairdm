@@ -482,8 +482,12 @@ class ExampleMeasurementAdmin(MeasurementChildAdmin):
     # Add example-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "char_field", "text_field"]
 
-    # Extend base_fieldsets to include example properties
+    # Extend base_fieldsets to include example properties. Declaring `fieldsets`
+    # replaces the base groups rather than adding to them, so they are spliced
+    # back in around the custom group - the placement the polymorphic admin uses
+    # when a child model declares none.
     fieldsets = (
+        MeasurementChildAdmin.base_fieldsets[0],
         (
             "Example Properties",
             {
@@ -500,6 +504,7 @@ class ExampleMeasurementAdmin(MeasurementChildAdmin):
                 ],
             },
         ),
+        *MeasurementChildAdmin.base_fieldsets[1:],
     )
 
 
@@ -538,8 +543,10 @@ class XRFMeasurementAdmin(MeasurementChildAdmin):
     # Add XRF-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "element"]
 
-    # Extend base_fieldsets to include XRF analysis parameters
+    # Extend base_fieldsets to include XRF analysis parameters. See the note on
+    # ExampleMeasurementAdmin for why the base groups are spliced back in.
     fieldsets = (
+        MeasurementChildAdmin.base_fieldsets[0],
         (
             "XRF Analysis Parameters",
             {
@@ -552,6 +559,7 @@ class XRFMeasurementAdmin(MeasurementChildAdmin):
                 ],
             },
         ),
+        *MeasurementChildAdmin.base_fieldsets[1:],
     )
 
 
@@ -590,13 +598,18 @@ class ICP_MS_MeasurementAdmin(MeasurementChildAdmin):
     # Add ICP-MS-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "isotope"]
 
-    # Extend base_fieldsets to include ICP-MS analysis parameters
+    # Extend base_fieldsets to include ICP-MS analysis parameters. See the note
+    # on ExampleMeasurementAdmin for why the base groups are spliced back in.
+    # `value` is here because this is the only demo type that declares one, and
+    # a measurement whose value cannot be entered is not a working example.
     fieldsets = (
+        MeasurementChildAdmin.base_fieldsets[0],
         (
             "ICP-MS Analysis Parameters",
             {
                 "fields": [
                     "isotope",
+                    "value",
                     "counts_per_second",
                     "concentration_ppb",
                     "uncertainty_percent",
@@ -606,4 +619,5 @@ class ICP_MS_MeasurementAdmin(MeasurementChildAdmin):
                 ],
             },
         ),
+        *MeasurementChildAdmin.base_fieldsets[1:],
     )

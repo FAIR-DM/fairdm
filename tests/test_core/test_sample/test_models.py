@@ -9,6 +9,7 @@ creation, validation, querying, and hierarchy traversal.
 
 import itertools
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -343,7 +344,12 @@ class TestStatusMigration:
         migration = importlib.import_module(
             "fairdm.core.sample.migrations.0008_migrate_sample_status_to_unknown"
         )
-        migration.migrate_status_to_unknown(django_apps, None)
+        # The migration reads the database alias off the schema editor to route
+        # its query, so it needs one carrying this test's connection. A real
+        # schema editor cannot be opened inside the test's transaction on
+        # SQLite, and the connection is the whole of what the migration touches.
+        schema_editor = SimpleNamespace(connection=connection)
+        migration.migrate_status_to_unknown(django_apps, schema_editor)
 
         assert Sample.objects.get(pk=rock.pk).status.name == "unknown"
         assert Sample.objects.get(pk=water.pk).status.name == "unknown"

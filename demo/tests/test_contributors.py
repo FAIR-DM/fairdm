@@ -35,6 +35,12 @@ class TestDemoPersonCreation:
         This demonstrates the two primary Person creation patterns:
         1. Claimed users (with email + password) for interactive portal use
         2. Unclaimed contributors (name-only) for provenance tracking
+
+        PersonFactory builds an unclaimed person by default, because a
+        contributor added for attribution alone is the common case. A claimed
+        one asks for it: a password, so the account can be signed into, and
+        is_claimed, which is a record of a person having taken the account over
+        rather than something the presence of an email address implies.
         """
         # Create claimed person (interactive user)
         claimed_person = PersonFactory(
@@ -42,9 +48,9 @@ class TestDemoPersonCreation:
             first_name="Jane",
             last_name="Researcher",
             is_active=True,
+            is_claimed=True,
+            password="testpass123",
         )
-        claimed_person.set_password("testpass123")
-        claimed_person.save()
 
         # Verify claimed status
         assert claimed_person.is_claimed
@@ -58,11 +64,13 @@ class TestDemoPersonCreation:
             last_name="Contributor",
         )
 
-        # Verify unclaimed status
+        # Verify unclaimed status. The record stays active: what stops anyone
+        # signing in as it is the unusable password, and leaving it active is
+        # what lets the person it describes claim it later by invitation.
         assert not unclaimed_person.is_claimed
         assert unclaimed_person.email is None
         assert not unclaimed_person.has_usable_password()
-        assert not unclaimed_person.is_active
+        assert unclaimed_person.is_active
 
         # Both types can coexist in the database
         assert Person.objects.count() >= 2
