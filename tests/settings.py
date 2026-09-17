@@ -17,7 +17,6 @@ import logging
 import os
 import sys
 import tempfile
-from pathlib import Path
 
 # This module is development-shaped, so it has to say so: an unset DJANGO_ENV
 # resolves to production, which refuses to boot on a configuration like this
@@ -115,9 +114,18 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 COMPRESS_ENABLED = False
 COMPRESS_OFFLINE = False
 
-# Use temporary directories for media files in tests
-MEDIA_ROOT = Path(tempfile.gettempdir()) / "fairdm_test_media"
-STATIC_ROOT = Path(tempfile.gettempdir()) / "fairdm_test_static"
+# A per-process path, not created here. This is only the fallback for code
+# that reads these settings outside a test (a management command, an IDE's
+# static analysis, the mypy django-stubs plugin); the
+# `_media_root_under_tmp_path` fixture in the root `conftest.py` points every
+# test at its own `tmp_path` before any test body runs, so nothing in the
+# suite ever writes here. A fixed shared path here is what issue #323 was:
+# every run wrote into it and nothing ever removed it. Naming a path without
+# calling `mkdtemp` means storage only creates it (`os.makedirs`) if
+# something actually writes to it — which the suite never does — so there is
+# nothing left over to clean up, per process or per run.
+MEDIA_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-media-{os.getpid()}")
+STATIC_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-static-{os.getpid()}")
 
 # ==============================================================================
 # CELERY

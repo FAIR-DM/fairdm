@@ -7,6 +7,7 @@ with the core model factories (Project, Dataset, Sample, Measurement).
 import pytest
 from django.test import TestCase
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -27,7 +28,6 @@ from fairdm.factories.contributors import (
     ContributorIdentifierFactory,
     UserFactory,
 )
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 class TestContributorFactories(TestCase):
@@ -115,6 +115,29 @@ class TestContributorFactoryCreation:
         assert org.pk is not None
         assert org.name
         assert org.profile
+
+    def test_person_factory_no_auto_image(self):
+        """A default PersonFactory() leaves `image` unset — generating one on
+        every call left a file behind under whatever MEDIA_ROOT was active,
+        forever (issue #323). Pass `with_image=True` for a test that needs
+        one."""
+        person = PersonFactory()
+
+        assert not person.image
+
+    def test_organization_factory_no_auto_image(self):
+        """A default OrganizationFactory() leaves `image` unset — see the
+        same note on PersonFactory above (issue #323)."""
+        org = OrganizationFactory()
+
+        assert not org.image
+
+    def test_person_factory_with_image_generates_one(self):
+        """`PersonFactory(with_image=True)` produces the placeholder this
+        factory used to generate unconditionally (issue #323)."""
+        person = PersonFactory(with_image=True)
+
+        assert person.image
 
 
 @pytest.mark.django_db
