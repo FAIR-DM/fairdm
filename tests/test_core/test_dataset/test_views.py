@@ -1818,7 +1818,7 @@ class TestDatasetCardRendering:
         assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
 
     def test_a_dataset_with_an_image_gets_a_media_block(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PUBLIC, image=True)
         _, html = self._card_html(client)
         assert html.count("record-card__media") == 1
         assert "record-card__placeholder" not in html

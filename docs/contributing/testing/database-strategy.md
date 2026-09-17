@@ -423,6 +423,18 @@ def temp_file(tmp_path):
     # Automatic cleanup by pytest
 ```
 
+Media files get this for free. A model instance that carries an image
+writes it under `MEDIA_ROOT`, and a root-level `conftest.py` fixture
+(`_media_root_under_tmp_path`, autouse) points `MEDIA_ROOT` and `STATIC_ROOT`
+at the current test's own `tmp_path` before every test runs — the same shape
+as the fixture above, applied automatically rather than per-fixture. Nothing
+you write has to ask for it. Before this fixture existed, both settings were
+a path fixed for every run of the suite, so every factory-built image
+written by any test accumulated forever in one directory; on one machine that
+grew to 450,585 files before it exhausted the system's inodes. Never
+hard-code `MEDIA_ROOT`/`STATIC_ROOT` to a path outside `tmp_path` in a test or
+fixture — it reintroduces the same leak.
+
 ## Troubleshooting
 
 ### Problem: Tests fail randomly

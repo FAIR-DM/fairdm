@@ -11,6 +11,38 @@ def randint(min_value, max_value):
     return lambda: random.randint(min_value, max_value)
 
 
+def apply_optional_image(obj, create, extracted, **image_kwargs):
+    """Fill ``obj.image`` per the opt-in convention the core and contributor
+    factories use (issue #323): omitted or falsy touches no disk, ``image=True``
+    generates a placeholder JPEG sized by ``image_kwargs`` (``width``,
+    ``height``, ``color``), and any other value is used as the file directly.
+
+    Called from each factory's own ``image`` ``@factory.post_generation`` hook.
+    A declared ``factory.django.ImageField`` can't express "opt-in" on its
+    own — a declared field is always evaluated, so ``image=True`` would just
+    assign the literal ``True`` to the model field rather than being read as
+    a request for a generated one.
+    """
+    if not create or not extracted:
+        return
+
+    if extracted is True:
+        from io import BytesIO
+
+        from django.core.files.base import ContentFile
+        from PIL import Image
+
+        width = image_kwargs.get("width", 100)
+        height = image_kwargs.get("height", width)
+        color = image_kwargs.get("color", "blue")
+        buffer = BytesIO()
+        Image.new("RGB", (width, height), color=color).save(buffer, format="JPEG")
+        obj.image.save("placeholder.jpg", ContentFile(buffer.getvalue()), save=True)
+    else:
+        obj.image = extracted
+        obj.save(update_fields=["image"])
+
+
 class FairDMProvider(BaseProvider):
     def geo_point(self, **kwargs):
         fake = faker.Faker()

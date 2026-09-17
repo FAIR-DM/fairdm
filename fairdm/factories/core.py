@@ -117,7 +117,7 @@ from fairdm.core.sample.models import (
     SampleRelation,
 )
 
-from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
+from . import utils  # Ensure utils is imported for the custom Provider
 from .contributors import (
     OrganizationFactory,
 )  # Import OrganizationFactory for Project.owner
@@ -164,6 +164,11 @@ class ProjectFactory(DjangoModelFactory):
         ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])  # Specify types
         ProjectFactory(dates=1)  # Creates 1 date with default type
         ProjectFactory(dates=2, dates__types=["Created", "Updated"])  # Specify types
+
+    Image (opt-in, issue #323):
+        ProjectFactory()  # No image, no file written
+        ProjectFactory(image=True)  # A generated placeholder JPEG
+        ProjectFactory(image=some_file)  # That file used directly
     """
 
     class Meta:
@@ -171,7 +176,6 @@ class ProjectFactory(DjangoModelFactory):
 
     # Basic fields
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
@@ -187,6 +191,11 @@ class ProjectFactory(DjangoModelFactory):
 
     # Relations - owner required for Project (Organization, not Person)
     owner = SubFactory(OrganizationFactory)
+
+    @factory.post_generation
+    def image(obj, create, extracted, **kwargs):
+        """Opt-in image — see the class docstring (issue #323)."""
+        utils.apply_optional_image(obj, create, extracted, width=800, height=600)
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
@@ -351,6 +360,8 @@ class DatasetFactory(DjangoModelFactory):
         DatasetFactory(descriptions=2)  # Creates 2 descriptions
         DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
         DatasetFactory(dates=1)  # Creates 1 date
+
+    Image (opt-in, issue #323): same as ProjectFactory above.
     """
 
     class Meta:
@@ -358,7 +369,6 @@ class DatasetFactory(DjangoModelFactory):
 
     # Basic fields
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
 
     # Relations - project can be passed in or auto-created
@@ -377,6 +387,11 @@ class DatasetFactory(DjangoModelFactory):
         # Create a minimal license with only the required fields
         license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
         return license_obj
+
+    @factory.post_generation
+    def image(obj, create, extracted, **kwargs):
+        """Opt-in image — see ProjectFactory above (issue #323)."""
+        utils.apply_optional_image(obj, create, extracted, width=800, height=600)
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):

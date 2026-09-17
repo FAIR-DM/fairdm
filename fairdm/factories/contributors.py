@@ -26,6 +26,8 @@ from fairdm.contrib.contributors.models import (
     Person,
 )
 
+from . import utils
+
 User = get_user_model()
 
 
@@ -62,14 +64,23 @@ class ContributorFactory(DjangoModelFactory):
     PersonFactory and OrganizationFactory build on this rather than duplicating
     these declarations; the preferred name is a sequence, not a random Faker
     value, so that ordering by name is stable across a test run.
+
+    Image is opt-in (issue #323): omitted writes no file, ``image=True``
+    generates a placeholder, ``image=<file>`` uses that file directly.
     """
 
     class Meta:
         model = Contributor
 
-    image = factory.django.ImageField(width=400, height=400, color="blue")
     name = factory.Sequence(lambda n: f"Contributor {n}")
     profile = Faker("text", max_nb_chars=300)
+
+    @factory.post_generation
+    def image(obj, create, extracted, **kwargs):
+        """Opt-in image — see the class docstring (issue #323)."""
+        utils.apply_optional_image(
+            obj, create, extracted, width=400, height=400, color="blue"
+        )
 
 
 class PersonFactory(ContributorFactory):
