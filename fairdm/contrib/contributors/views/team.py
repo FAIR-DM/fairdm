@@ -19,13 +19,13 @@ class TeamView(FairDMTemplateView):
     template_name = "contributors/team.html"
     page_title = _("Portal Team")
     page_subtitle = _(
-        "Meet the individuals helping to maintain this portal and keep the "
-        "community thriving."
+        "Meet the individuals that maintain this portal and keep the community "
+        "thriving."
     )
     page_info = _(
-        "Data portals don't just run themselves! Behind every portal is a team of "
-        "active contributors helping to maintain this space for the benefit of the "
-        "wider community. Be sure to say thanks next time you see them!"
+        "Data portals don't run themselves! Behind every portal is a dedicated team "
+        "of contributors who help maintain and improve the space for the benefit of "
+        "the wider community. Thanks to everyone who helps make this possible."
     )
     page_info_actions = [
         {
