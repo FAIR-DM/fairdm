@@ -51,8 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   your project's test suite creates projects, datasets, people or organisations, it has
   probably been filling its own `MEDIA_ROOT` with a new JPEG and a new directory per object,
   every test run, forever. Nothing removed them. A test that genuinely needs one now asks
-  for it: `ProjectFactory(image=True)` produces exactly the placeholder the factory used to
-  generate on its own, and `image=<file>` still takes a specific one.
+  for it: `ProjectFactory(with_image=True)` produces exactly the placeholder the factory
+  used to generate on its own, and `image=<file>` still takes a specific one.
 
 ### Changed
 

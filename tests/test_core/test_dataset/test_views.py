@@ -250,9 +250,7 @@ class TestDatasetListingFilters:
         matching = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDescriptionFactory(related=matching, type="Abstract")
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(
-            reverse("dataset-list"), {"description_type": "Abstract"}
-        )
+        response = client.get(reverse("dataset-list"), {"description_type": "Abstract"})
         entries = list(response.context["object_list"])
         assert matching in entries
         assert other not in entries
@@ -658,7 +656,9 @@ class TestDatasetCreatePageProjectFieldNarrowing:
     on the same terms as the update page (`DatasetForm.__init__`, `request.user.projects.all()`,
     mirrors `test_plugins.py`'s `TestUpdatePageProjectField`)."""
 
-    def test_the_project_field_is_narrowed_to_the_researchers_own_projects(self, client):
+    def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
+        self, client
+    ):
         from fairdm.contrib.contributors.models import Contribution
 
         user = UserFactory()
@@ -743,7 +743,9 @@ class TestDatasetCreatePagePermissionAssignment:
             "change_dataset_metadata",
             "change_dataset_settings",
         ]:
-            assert user.has_perm(f"dataset.{perm}", dataset), f"Missing permission: {perm}"
+            assert user.has_perm(f"dataset.{perm}", dataset), (
+                f"Missing permission: {perm}"
+            )
 
 
 @pytest.mark.django_db
@@ -925,7 +927,9 @@ def _assert_cascade_preview_group(content, label):
     `<c-text ... bold />`) names `label`, rather than a bare substring match — the portal's
     sidebar navigation renders several of the same words ("Samples", "Rock Samples") in its own
     unrelated markup, on every page a signed-in visitor can reach."""
-    pattern = rf'<p class="text-base mb-3 font-semibold "\s*>\s*{re.escape(label)}\s*</p>'
+    pattern = (
+        rf'<p class="text-base mb-3 font-semibold "\s*>\s*{re.escape(label)}\s*</p>'
+    )
     return re.search(pattern, content) is not None
 
 
@@ -1060,7 +1064,9 @@ class TestDatasetDeleteView:
         assert response.url == reverse("dataset-list")
         assert not Sample.objects.filter(pk=sample_pk).exists()
 
-    def test_deleting_a_dataset_removes_its_samples_and_their_measurements(self, client):
+    def test_deleting_a_dataset_removes_its_samples_and_their_measurements(
+        self, client
+    ):
         """T077 — the ordinary shape of a dataset holding data: samples, and measurements made
         on those same samples. Both go with it."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1081,7 +1087,9 @@ class TestDatasetDeleteView:
         assert not Sample.objects.filter(pk=sample_pk).exists()
         assert not Measurement.objects.filter(pk=measurement_pk).exists()
 
-    def test_deletion_is_refused_while_another_dataset_measures_its_samples(self, client):
+    def test_deletion_is_refused_while_another_dataset_measures_its_samples(
+        self, client
+    ):
         """T077 — a dataset whose samples carry measurements recorded by another dataset cannot
         be deleted, and the page says so rather than raising."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1187,7 +1195,9 @@ class TestDatasetDeleteView:
         )
         rock_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
         water_label = WaterSampleFactory._meta.model._meta.verbose_name_plural.title()
-        measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        measurement_label = (
+            ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        )
         assertContains(response, f"{rock_label} (1)")
         assertContains(response, f"{water_label} (1)")
         assertContains(response, f"{measurement_label} (1)")
@@ -1251,7 +1261,9 @@ class TestDatasetDeleteView:
 
         response = client.get(url)
         sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
-        measurement_label = ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        measurement_label = (
+            ExampleMeasurementFactory._meta.model._meta.verbose_name_plural.title()
+        )
         assertContains(response, f"{sample_label} (2)")
         assertContains(response, f"{measurement_label} (3)")
 
@@ -1429,7 +1441,9 @@ class TestDatasetViews:
         dataset = DatasetFactory(
             name="Reef Survey Dataset", visibility=Visibility.PUBLIC
         )
-        response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        )
 
         assert response.status_code == 200
         assert response.context["dataset"] == dataset
@@ -1496,8 +1510,9 @@ class TestDatasetListingQueryCount:
 
     @staticmethod
     def _build_datasets(count):
-        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
         from research_vocabs.models import Concept
+
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
         for index in range(count):
@@ -1818,7 +1833,7 @@ class TestDatasetCardRendering:
         assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
 
     def test_a_dataset_with_an_image_gets_a_media_block(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC, image=True)
+        DatasetFactory(visibility=Visibility.PUBLIC, with_image=True)
         _, html = self._card_html(client)
         assert html.count("record-card__media") == 1
         assert "record-card__placeholder" not in html

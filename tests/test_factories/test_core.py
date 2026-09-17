@@ -9,6 +9,7 @@ import factory
 import pytest
 from django.test import TestCase
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import Person
 from fairdm.core.dataset.models import Dataset, DatasetDate, DatasetDescription
 from fairdm.core.measurement.models import (
@@ -36,7 +37,6 @@ from fairdm.factories.core import (
     SampleDateFactory,
     SampleDescriptionFactory,
 )
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 class TestCoreFactoriesBasic(TestCase):
@@ -411,7 +411,8 @@ class TestProjectFactories:
     def test_project_factory_no_auto_image(self):
         """A default ProjectFactory() leaves `image` unset — generating one on
         every call left a file behind under whatever MEDIA_ROOT was active,
-        forever (issue #323). Pass `image=True` for a test that needs one."""
+        forever (issue #323). Pass `with_image=True` for a test that needs
+        one."""
         project = ProjectFactory()
 
         assert not project.image
@@ -454,7 +455,7 @@ class TestProjectFactories:
 
         from django.conf import settings
 
-        project = ProjectFactory(image=True)
+        project = ProjectFactory(with_image=True)
 
         assert Path(settings.MEDIA_ROOT) == tmp_path / "media"
         assert tmp_path in Path(project.image.path).parents
@@ -507,10 +508,10 @@ class TestDatasetFactories:
 
         assert not dataset.image
 
-    def test_dataset_factory_image_true_generates_one(self):
-        """`DatasetFactory(image=True)` produces the placeholder this factory
-        used to generate unconditionally (issue #323)."""
-        dataset = DatasetFactory(image=True)
+    def test_dataset_factory_with_image_generates_one(self):
+        """`DatasetFactory(with_image=True)` produces the placeholder this
+        factory used to generate unconditionally (issue #323)."""
+        dataset = DatasetFactory(with_image=True)
 
         assert dataset.image
 

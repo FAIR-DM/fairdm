@@ -117,7 +117,7 @@ from fairdm.core.sample.models import (
     SampleRelation,
 )
 
-from . import utils  # Ensure utils is imported for the custom Provider
+from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
 from .contributors import (
     OrganizationFactory,
 )  # Import OrganizationFactory for Project.owner
@@ -167,12 +167,23 @@ class ProjectFactory(DjangoModelFactory):
 
     Image (opt-in, issue #323):
         ProjectFactory()  # No image, no file written
-        ProjectFactory(image=True)  # A generated placeholder JPEG
+        ProjectFactory(with_image=True)  # A generated placeholder JPEG
         ProjectFactory(image=some_file)  # That file used directly
     """
 
     class Meta:
         model = Project
+
+    class Params:
+        # No image unless a test asks for one — a real JPEG written on every
+        # instantiation left a file behind under whatever MEDIA_ROOT was
+        # active (issue #323). `with_image=True` produces the image this
+        # factory used to generate unconditionally; `image=<file>` still
+        # takes a specific one, since the field carries no declaration
+        # unless the trait switches it on.
+        with_image = factory.Trait(
+            image=factory.django.ImageField(width=800, height=600),
+        )
 
     # Basic fields
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
@@ -191,11 +202,6 @@ class ProjectFactory(DjangoModelFactory):
 
     # Relations - owner required for Project (Organization, not Person)
     owner = SubFactory(OrganizationFactory)
-
-    @factory.post_generation
-    def image(obj, create, extracted, **kwargs):
-        """Opt-in image — see the class docstring (issue #323)."""
-        utils.apply_optional_image(obj, create, extracted, width=800, height=600)
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
@@ -367,6 +373,13 @@ class DatasetFactory(DjangoModelFactory):
     class Meta:
         model = Dataset
 
+    class Params:
+        # No image unless a test asks for one — see ProjectFactory above
+        # (issue #323).
+        with_image = factory.Trait(
+            image=factory.django.ImageField(width=800, height=600),
+        )
+
     # Basic fields
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
     # visibility defaults to PRIVATE per model definition
@@ -387,11 +400,6 @@ class DatasetFactory(DjangoModelFactory):
         # Create a minimal license with only the required fields
         license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
         return license_obj
-
-    @factory.post_generation
-    def image(obj, create, extracted, **kwargs):
-        """Opt-in image — see ProjectFactory above (issue #323)."""
-        utils.apply_optional_image(obj, create, extracted, width=800, height=600)
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):

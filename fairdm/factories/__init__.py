@@ -59,7 +59,7 @@ All core model factories support opt-in metadata via:
     - dates=<int>, dates__types=[...]
 
 ``ProjectFactory``, ``DatasetFactory``, ``PersonFactory`` and ``OrganizationFactory``
-also take an opt-in ``image``: omitted, no file is written; ``image=True`` generates
+also take an opt-in image: omitted, no file is written; ``with_image=True`` generates
 a placeholder; ``image=<file>`` uses that file directly.
 
 Documentation

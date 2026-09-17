@@ -484,9 +484,3 @@ port = 8010                   # Live server port (default: 5000)
 verbosity = "quiet"           # Options: "full", "quiet", "errors-only"
 django = true                 # Enable Django integration (default: false)
 theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
-
-[tool.forge.docs]
-# `fairdm/factories/` is this repo's factories module, organised as a package
-# rather than the single `factories.py` file the standard exemption for
-# framework wiring matches by name.
-exempt-paths = ["fairdm/factories/"]
