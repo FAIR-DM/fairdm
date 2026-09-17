@@ -21,7 +21,7 @@ from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories.contributors import UserFactory
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 pytestmark = pytest.mark.django_db
 

@@ -8,7 +8,7 @@ from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories import PointFactory
-from fairdm_demo.factories import RockSampleFactory
+from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db

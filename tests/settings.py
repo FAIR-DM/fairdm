@@ -34,7 +34,7 @@ import fairdm
 
 # Setup FairDM with demo app for testing
 fairdm.setup(
-    apps=["fairdm_demo"],
+    apps=["demo"],
     addons=[],  # No addons needed for unit tests
 )
 
@@ -176,18 +176,14 @@ ROOT_URLCONF = "fairdm.conf.urls"
 # ==============================================================================
 # TEMPLATES
 # ==============================================================================
-# Remove mvp.context_processors.page_config which doesn't exist in test environment
-
-for template_config in TEMPLATES:
-    if (
-        "OPTIONS" in template_config
-        and "context_processors" in template_config["OPTIONS"]
-    ):
-        template_config["OPTIONS"]["context_processors"] = [
-            cp
-            for cp in template_config["OPTIONS"]["context_processors"]
-            if "mvp.context_processors" not in cp
-        ]
+# The suite used to strip every `mvp.context_processors.*` entry here, to work
+# around one processor - `page_config` - that the installed django-mvp no longer
+# ships. The filter matched the module rather than that name, so it also removed
+# `mvp_config`, and every page the suite rendered was drawn with an empty shell
+# configuration: no sidebar title, no footer widgets, no theme settings, none of
+# the navbar actions. A test could assert the shell rendered a control it is not
+# configured to draw, or miss one it is. The settings FairDM ships are what the
+# suite renders now.
 
 # ==============================================================================
 # FACTORIES
@@ -195,7 +191,7 @@ for template_config in TEMPLATES:
 # Factory boy configuration for test data generation
 
 FAIRDM_FACTORIES = {
-    "fairdm_demo.CustomSample": "fairdm_demo.factories.CustomSampleFactory",
-    "fairdm_demo.CustomParentSample": "fairdm_demo.factories.CustomParentSampleFactory",
-    "fairdm_demo.ExampleMeasurement": "fairdm_demo.factories.ExampleMeasurementFactory",
+    "demo.CustomSample": "demo.factories.CustomSampleFactory",
+    "demo.CustomParentSample": "demo.factories.CustomParentSampleFactory",
+    "demo.ExampleMeasurement": "demo.factories.ExampleMeasurementFactory",
 }

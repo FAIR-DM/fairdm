@@ -18,7 +18,7 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
-from fairdm_demo.models import RockSample, WaterSample
+from demo.models import RockSample, WaterSample
 
 User = get_user_model()
 

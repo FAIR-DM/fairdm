@@ -46,7 +46,7 @@ from fairdm.factories import (
 )
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db

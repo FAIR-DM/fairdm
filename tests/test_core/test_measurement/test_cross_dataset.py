@@ -17,7 +17,7 @@ from django.db.models import RestrictedError
 
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.factories import DatasetFactory, PersonFactory
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.fixture

@@ -75,6 +75,24 @@ A fourth term, **framework contributor**, means someone who contributes to FairD
 code. It is unrelated to any portal's research community, and should never appear in discussion of
 portal data.
 
+## Roles
+
+Two more terms both use the bare word "role", and neither is the other:
+
+- **Portal role** — one of the four named rights a person can hold on a portal: Portal
+  Administrator, Data Curator, Community Manager or Developer. Declared once, in code, on
+  `PortalRoles` (`fairdm/portal_roles.py`), and installed into every portal's `auth.Group` table
+  automatically every time its database is brought up to date. Avoid the bare word "role" for
+  this; say "portal role".
+- **Contribution role** — the credit a `Contribution` records for how a contributor took part in
+  a project, dataset, sample or measurement (e.g. "Data Collector", "Editor"). It carries no
+  rights of any kind and decides nothing about what its holder can do.
+
+A **rights-carrying role** is a portal role that holds at least one permission — today, the Portal
+Administrator, Data Curator and Community Manager roles. Holding one gives access to the
+administration interface; the Developer role holds no permissions and is not rights-carrying, so
+holding only it does not.
+
 ## Framework mechanisms
 
 ### Registry

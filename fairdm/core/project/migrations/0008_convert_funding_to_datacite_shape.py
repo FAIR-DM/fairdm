@@ -18,8 +18,9 @@ from django.db import migrations
 
 def convert_flat_funding_to_datacite_shape(apps, schema_editor):
     Project = apps.get_model("project", "Project")
+    db_alias = schema_editor.connection.alias
 
-    for project in Project.objects.exclude(funding__isnull=True).iterator():
+    for project in Project.objects.using(db_alias).exclude(funding__isnull=True).iterator():
         funding = project.funding
 
         if isinstance(funding, list):
@@ -38,7 +39,7 @@ def convert_flat_funding_to_datacite_shape(apps, schema_editor):
             reference["awardNumber"] = grant_number
 
         project.funding = [reference]
-        project.save(update_fields=["funding"])
+        project.save(using=db_alias, update_fields=["funding"])
 
 
 class Migration(migrations.Migration):

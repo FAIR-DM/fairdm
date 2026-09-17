@@ -61,7 +61,11 @@ You should see the FairDM demo portal homepage. Take a moment to explore:
 - Click into detail pages to see the metadata structure
 
 ```{tip}
-The demo includes a test user account. Check the demo fixture or create a new superuser with: `poetry run python manage.py createsuperuser`
+To sign in as a curator, a community manager, a developer or an ordinary contributor without
+creating your own test data, run `poetry run python manage.py create_dev_accounts` - see
+[Development accounts](development_accounts.md) for the full list and the shared password. To
+sign in as the deployer instead, create a new superuser with:
+`poetry run python manage.py createsuperuser`
 ```
 
 ## Step 2: Define Your First Custom Sample Model
@@ -70,9 +74,9 @@ Now that you have the demo running, let's create a domain-specific Sample model.
 
 ### Create a Custom App
 
-In a real FairDM project (generated from the cookiecutter), you would create custom models in your own Django app. For this tutorial, we'll create a simple example in the `fairdm_demo` app.
+In a real FairDM project (generated from the cookiecutter), you would create custom models in your own Django app. For this tutorial, we'll create a simple example in the `demo` app.
 
-Create a new file: `fairdm_demo/models/samples.py`
+Create a new file: `demo/models/samples.py`
 
 ```python
 from django.db import models
@@ -119,7 +123,7 @@ class RockSample(Sample):
 
 Measurements represent observations or analyses performed on samples. Let's create a `MineralAnalysis` measurement model.
 
-Create a new file: `fairdm_demo/models/measurements.py`
+Create a new file: `demo/models/measurements.py`
 
 ```python
 from django.db import models
@@ -165,7 +169,7 @@ class MineralAnalysis(Measurement):
 
 To make your models visible in the FairDM UI and API, you need to register them with the FairDM registry. This auto-generates forms, tables, filters, and serializers.
 
-Create a new file: `fairdm_demo/registry.py`
+Create a new file: `demo/registry.py`
 
 ```python
 from fairdm.registry import registry, SampleConfig, MeasurementConfig
@@ -195,18 +199,18 @@ registry.register(
 
 ### Import Your Registry
 
-Ensure your registry is imported when Django starts. Add to `fairdm_demo/apps.py`:
+Ensure your registry is imported when Django starts. Add to `demo/apps.py`:
 
 ```python
 from django.apps import AppConfig
 
 class FairdmDemoConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'fairdm_demo'
+    name = 'demo'
     
     def ready(self):
         # Import registry to ensure models are registered
-        import fairdm_demo.registry  # noqa
+        import demo.registry  # noqa
 ```
 
 ## Step 5: Create and Apply Migrations

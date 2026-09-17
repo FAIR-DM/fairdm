@@ -16,7 +16,7 @@ from django.core.exceptions import ValidationError
 
 from fairdm.core.measurement.models import Measurement
 from fairdm.factories import DatasetFactory
-from fairdm_demo.factories import ExampleMeasurementFactory
+from demo.factories import ExampleMeasurementFactory
 
 
 @pytest.mark.django_db

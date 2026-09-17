@@ -36,7 +36,7 @@ from fairdm.factories.core import (
     SampleDateFactory,
     SampleDescriptionFactory,
 )
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 class TestCoreFactoriesBasic(TestCase):

@@ -171,7 +171,7 @@ Serves G8. Out of scope: enforcement of visibility, which is R14.
 
 ### R16 — Every core record type can be created and edited in the portal
 
-*multi-feature · advances G6, G2*
+*delivered in [#315](https://github.com/FAIR-DM/fairdm/issues/315) · advances G6, G2*
 
 Registering a sample or measurement type produces its components but not its pages. Samples have no create, list or delete pages at all, and a measurement has only a placeholder. A portal author who registers a domain model still cannot let a researcher enter data through the portal, which leaves the Django admin as the only route and defeats the point of registration.
 

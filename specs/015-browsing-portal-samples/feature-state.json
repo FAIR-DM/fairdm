@@ -3,7 +3,7 @@
   "feature": "015-browsing-portal-samples",
   "branch": "015-browsing-portal-samples",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "SPECIFY",
@@ -54,6 +54,11 @@
       "state": "PR_READY",
       "at": "2026-09-03T14:20:00Z",
       "note": "merge-gate feedback round: T081-T085 by one implementer, T086 (table pagination default) direct. Six tasks, six commits, no story issue - a feedback round, not a story. Receipts green, verify green, tamper flags benign."
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-03T12:50:52Z",
+      "note": "PR #322 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -91,8 +96,8 @@
       "at": null
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-03T12:47:07Z"
     }
   },
   "stories": [

@@ -3,7 +3,7 @@
 Covers the metadata factories declared in ``fairdm/factories/core.py``
 (``MeasurementDescriptionFactory``, ``MeasurementDateFactory``,
 ``MeasurementIdentifierFactory``), the abstract ``MeasurementFactory`` base, the
-concrete demo measurement factories in ``fairdm_demo/factories.py``, and their
+concrete demo measurement factories in ``demo/factories.py``, and their
 exports from ``fairdm.factories``.
 """
 
@@ -22,13 +22,13 @@ from fairdm.factories.core import (
     MeasurementFactory,
     MeasurementIdentifierFactory,
 )
-from fairdm_demo.factories import (
+from demo.factories import (
     ExampleMeasurementFactory,
     ICP_MS_MeasurementFactory,
     RockSampleFactory,
     XRFMeasurementFactory,
 )
-from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+from demo.models import ICP_MS_Measurement, XRFMeasurement
 
 
 @pytest.mark.django_db
@@ -121,7 +121,7 @@ class TestConcreteMeasurementFactories:
     type, with its own required fields supplied, given no arguments beyond a sample."""
 
     def test_example_measurement_factory_produces_an_example_measurement(self):
-        from fairdm_demo.models import ExampleMeasurement
+        from demo.models import ExampleMeasurement
 
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 

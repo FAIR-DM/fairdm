@@ -1,14 +1,49 @@
 {% extends "fairdm/plugin.html" %}
-{% block plugin %}
-  <div class="row g-4">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Key Dates</h5>
-          {# Key dates formset will be rendered here by KeyDatesPlugin #}
-          {{ formset }}
-        </div>
-      </div>
-    </div>
-  </div>
-{% endblock plugin %}
+{% load i18n cotton %}
+
+{% block extra_css %}
+  {{ block.super }}
+  {{ formset.media.css }}
+{% endblock extra_css %}
+
+{% block page.content %}
+  <form method="post"
+        id="key-dates-form"
+        class="key-dates-form"
+        novalidate>
+    {% csrf_token %}
+    <c-group gap="2">
+      {% for form in formset %}
+        <c-card title="{{ form.value.label }}" tight>
+          {{ form.value }}
+          <c-slot name="footer">
+            <c-text size="sm" tight>
+              <c-icon name="info" />
+              {{ form.value.help_text }}
+            </c-text>
+          </c-slot>
+        </c-card>
+      {% endfor %}
+      {% if formset.non_field_errors %}
+        <c-alert variant="danger">{{ formset.non_field_errors }}</c-alert>
+      {% endif %}
+    </c-group>
+  </form>
+  <c-card>
+    <c-button text="{% trans "Cancel" %}"
+              icon="cancel"
+              variant="secondary"
+              outline
+              href="{{ base_object.get_absolute_url }}" />
+    <c-button text="{% trans "Save changes" %}"
+              type="submit"
+              variant="primary"
+              icon="confirm"
+              form="key-dates-form" />
+  </c-card>
+{% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {{ formset.media.js }}
+{% endblock extra_js %}

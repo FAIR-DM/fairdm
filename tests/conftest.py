@@ -71,6 +71,56 @@ def project(user):
 
 
 @pytest.fixture
+def disconnect_shipped_role_guard():
+    """Disconnect T021's `Group` `pre_delete`/`pre_save` guard for the duration of
+    a test.
+
+    The guard refuses to delete or rename a shipped portal role through the ORM
+    (`fairdm/contrib/contributors/receivers.py`), including a bulk
+    `Group.objects.all().delete()` - correctly, since nothing in a portal may
+    bulk-delete a shipped role. A handful of tests need a shipped role to be
+    *missing* to prove `PortalRoles.reconcile()` / `migrate` rebuilds it from
+    nothing, and the specification's own account of how a role can actually go
+    missing is exactly this: from outside the ORM, restored on the next
+    `migrate` (D23). This fixture models that route explicitly, by name, only
+    for the tests that request it - never weaken the guard itself to reach the
+    same effect, and `TestProtection` must never request this fixture, since its
+    whole purpose is proving the guard holds.
+    """
+    from django.contrib.auth.models import Group
+    from django.db.models.signals import pre_delete, pre_save
+
+    from fairdm.contrib.contributors.receivers import (
+        refuse_shipped_role_deletion,
+        refuse_shipped_role_rename,
+    )
+
+    pre_delete.disconnect(
+        refuse_shipped_role_deletion,
+        sender=Group,
+        dispatch_uid="contributors.refuse_shipped_role_deletion",
+    )
+    pre_save.disconnect(
+        refuse_shipped_role_rename,
+        sender=Group,
+        dispatch_uid="contributors.refuse_shipped_role_rename",
+    )
+    try:
+        yield
+    finally:
+        pre_delete.connect(
+            refuse_shipped_role_deletion,
+            sender=Group,
+            dispatch_uid="contributors.refuse_shipped_role_deletion",
+        )
+        pre_save.connect(
+            refuse_shipped_role_rename,
+            sender=Group,
+            dispatch_uid="contributors.refuse_shipped_role_rename",
+        )
+
+
+@pytest.fixture
 def project_with_datasets():
     """
     Create a project with 3 datasets.

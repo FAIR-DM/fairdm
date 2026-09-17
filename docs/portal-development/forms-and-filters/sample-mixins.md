@@ -14,7 +14,7 @@ what registration gives you for free.
 ```{note}
 These are the extension point a portal developer touches. `SampleForm` and `SampleFilter` in
 `fairdm.core.sample` are a reference implementation with no callers outside their own tests —
-`fairdm_demo`'s `RockSampleForm` and `RockSampleFilter`, shown throughout this page, inherit the
+`demo`'s `RockSampleForm` and `RockSampleFilter`, shown throughout this page, inherit the
 mixins directly, and that is the pattern to copy.
 ```
 

@@ -23,7 +23,7 @@ class TestSampleRegistryGeneration:
         (rock_type, collection_date, weight_grams, hardness_mohs,
         mineral_content) alongside the shared `name`. The generated form must
         carry exactly those, not merely be non-`None`."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
         form = config.get_form_class()()
@@ -42,7 +42,7 @@ class TestSampleRegistryGeneration:
     ):
         """The filter set built for the same fields must expose filters for
         the rock-specific columns by name."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
         filterset = config.get_filterset_class()()
@@ -55,7 +55,7 @@ class TestSampleRegistryGeneration:
         """The table built for the same fields must expose a column for at
         least one rock-specific field, by name, not merely have some
         non-zero number of columns."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
         table = config.get_table_class()(RockSample.objects.none())
@@ -68,7 +68,7 @@ class TestSampleRegistryGeneration:
         """The admin entry's `list_display` must name a field the type
         itself contributes, not just the base sample fields."""
         from fairdm.core.sample.admin import SampleChildAdmin
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
         admin_class = config.get_admin_class()
@@ -85,7 +85,7 @@ class TestBaseSampleConfiguration:
         """A subclass naming only `model` gets `BaseSampleConfiguration.fields`
         for every component, since it names no field list of its own."""
         from fairdm.core.sample.config import BaseSampleConfiguration
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         class MinimalRockConfig(BaseSampleConfiguration):
             model = RockSample
@@ -100,7 +100,7 @@ class TestBaseSampleConfiguration:
         """A subclass that does declare `fields` gets its own list instead -
         the base's default never wins over a component the subclass named."""
         from fairdm.core.sample.config import BaseSampleConfiguration
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         class RockOnlyConfig(BaseSampleConfiguration):
             model = RockSample
@@ -138,7 +138,7 @@ class TestRegistryUsesTheMixins:
         `SampleFormMixin`'s wrapped Select2 widget for `dataset` - a plain
         `ModelForm` never sets one."""
         from django_addanother.widgets import AddAnotherWidgetWrapper
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = self._config_for(RockSample, ["name", "dataset"])
         form = config.get_form_class()()
@@ -149,7 +149,7 @@ class TestRegistryUsesTheMixins:
         """A specimen type config naming no `filterset_class` still gets
         `SampleFilterMixin`'s declared `image` filter - a plain `FilterSet`
         base would never have it, because it names no model field."""
-        from fairdm_demo.models import RockSample
+        from demo.models import RockSample
 
         config = self._config_for(RockSample, ["name", "rock_type"])
         filterset_class = config.get_filterset_class()

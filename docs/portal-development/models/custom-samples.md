@@ -382,7 +382,7 @@ See [Model Configuration](../model_configuration.md) for the complete registry d
 
 FairDM's own `fairdm.factories.SampleFactory` is abstract — it declares the fields every sample
 factory needs but cannot itself build a `Sample`, for the same reason the model can't. Write your
-own concrete factory alongside your sample type, the way `fairdm_demo.factories.RockSampleFactory`
+own concrete factory alongside your sample type, the way `demo.factories.RockSampleFactory`
 does for the reference implementation:
 
 ```python

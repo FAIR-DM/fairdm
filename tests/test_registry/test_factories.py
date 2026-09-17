@@ -21,8 +21,8 @@ from fairdm.registry.factories import (
     TableFactory,
 )
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from fairdm_demo.models import ExampleMeasurement
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.models import ExampleMeasurement
 
 
 @pytest.fixture
@@ -656,7 +656,7 @@ class TestFormFactoryMeasurementBranch:
     def test_generated_form_uses_the_measurement_form_mixins_dataset_widget(self):
         from django_addanother.widgets import AddAnotherWidgetWrapper
 
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         form_class = FormFactory(XRFMeasurement, fields=["name", "dataset"]).generate()
         form = form_class()
@@ -674,7 +674,7 @@ class TestFilterFactoryMeasurementBranch:
     def test_generated_filterset_carries_the_measurement_filter_mixins_search_filter(
         self,
     ):
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         filterset_class = FilterFactory(
             XRFMeasurement, fields=["name", "dataset"]

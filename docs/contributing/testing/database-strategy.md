@@ -203,7 +203,11 @@ addopts = [
 ]
 ```
 
-**Trade-off**: Faster, but won't catch migration issues.
+**Trade-off**: Faster, but no test built this way executes a migration. What the
+migrations do is covered separately, in `tests/test_migrations.py`: that every
+model change has a migration behind it, that the whole graph applies to a
+database that has never held data, and that data migrations read the database
+they are being applied to rather than `default`.
 
 ## Database Queries and N+1 Problems
 
@@ -462,7 +466,8 @@ poetry run pytest & poetry run pytest  # Don't do this
 poetry run pytest --reuse-db --no-migrations
 ```
 
-**Warning**: Won't catch migration issues. Run full migrations in CI.
+**Note**: This is already the default, and it means no test built this way runs
+a migration. `tests/test_migrations.py` runs them instead, on every test run.
 
 ## Next Steps
 

@@ -18,7 +18,6 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
 
     name = "keywords"
     title = _("Manage Keywords")
-    menu = None  # Subclasses should define this
     form_class = KeywordForm
     slug_url_kwarg = "uuid"
     slug_field = "uuid"
@@ -27,6 +26,9 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
 class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
     """Base plugin class for managing descriptions on FairDM objects using inline formsets."""
 
+    # Without this, template resolution fell through to InlineFormSetView's inherited "_detail"
+    # suffix, which resolved to the record's own detail template (issue #280).
+    template_name = "plugins/descriptions.html"
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
     slug_url_kwarg = "uuid"
@@ -57,7 +59,7 @@ class KeyDatesPlugin(Plugin, InlineFormSetView):
 
     name = "key-dates"
     title = _("Key Dates")
-    menu = None  # Subclasses should define this
+    template_name = "plugins/key-dates.html"
     form_class = DateForm
     formset_class = CoreInlineFormset
     slug_url_kwarg = "uuid"

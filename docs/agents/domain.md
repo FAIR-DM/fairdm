@@ -17,7 +17,7 @@ FairDM is a single-context repo. There is no `CONTEXT-MAP.md` and no per-package
 ├── CONTEXT.md          ← domain glossary
 ├── docs/adr/           ← architectural decision records
 ├── fairdm/             ← the framework
-├── fairdm_demo/        ← demo application
+├── demo/        ← demo application
 └── specs/NNN-slug/     ← per-feature specs, plans, and tasks
 ```
 

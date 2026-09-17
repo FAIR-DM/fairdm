@@ -24,6 +24,9 @@ class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
     list_item_template = "project/project_card.html"
+    # One project per row at every width. The card reflows on its own width, so
+    # a wide row gets the side-by-side layout rather than a second column.
+    grid = {"cols": 1, "gap": 4}
     search_fields = ["uuid", "name", "identifiers__value"]
     order_by = [
         ("name", _("Name (A-Z)"), "name"),
@@ -42,13 +45,19 @@ class ProjectListView(FairDMListView):
         return user.is_authenticated
 
     def get_queryset(self) -> QuerySet[Project]:
-        """Return the queryset of visible projects with prefetched contributors.
+        """Return the public projects, loaded with everything a card draws.
+
+        `with_list_data()` carries the owner, the keyword badges, the
+        descriptions the abstract summary is taken from, and the public dataset
+        count; `with_contributors()` carries the contributor stack. Both are
+        needed, so both are composed - the card renders in a constant number of
+        queries whether the page holds one project or twenty.
 
         Returns:
             QuerySet: Filtered and optimized Project queryset.
         """
         qs: ProjectQuerySet = super().get_queryset()
-        return qs.get_visible().with_contributors()
+        return qs.get_visible().with_list_data().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):

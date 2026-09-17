@@ -31,7 +31,7 @@ class SampleFilterMixin(django_filters.FilterSet):
 
     `Meta.fields` stays as a convenience list a subclass's own `Meta` (which does
     carry a `model`) can extend, matching the existing usage in
-    `fairdm_demo.filters.RockSampleFilter` and `WaterSampleFilter`.
+    `demo.filters.RockSampleFilter` and `WaterSampleFilter`.
 
     Usage:
         class MyCustomSampleFilter(SampleFilterMixin, django_filters.FilterSet):
@@ -172,7 +172,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
 
         # Set polymorphic content type queryset
         self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
-            app_label__in=["fairdm_core", "fairdm_demo"]
+            app_label__in=["fairdm_core", "demo"]
         )
 
     def filter_search(self, queryset, name, value):

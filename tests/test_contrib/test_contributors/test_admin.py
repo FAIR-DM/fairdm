@@ -15,6 +15,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
+from django.test import RequestFactory
 from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
@@ -964,6 +965,78 @@ class TestMergeAndClaimLinkViewsRequireSuperuser:
             admin_client.get(url)
 
 
+# ── T019: merge and claim-link become the Community Manager's (D13, D21) ────
+
+
+@pytest.mark.django_db
+class TestMergeAndClaimLinkViewsAdmitACommunityManager:
+    """FR-004: a portal role granted deliberately is a different thing from "any staff
+    member", which is the argument that supersedes the superuser-only reasoning in
+    ``claim_link_view``/``merge_view``'s own docstrings (D13, D21)."""
+
+    def test_merge_view_proceeds_for_a_community_manager(self, client, unclaimed_person):
+        manager = _community_manager("merge-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+    def test_claim_link_view_proceeds_for_a_community_manager(
+        self, client, unclaimed_person
+    ):
+        """Mirrors ``test_claim_link_view_is_not_refused_for_a_superuser``: the gate lets a
+        Community Manager through, then the view hits the same already-reported
+        ``NoReverseMatch`` defect (commented-out ``contributors:claim-profile`` URL) rather
+        than the permission gate refusing them."""
+        from django.urls import NoReverseMatch
+
+        manager = _community_manager("claim-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse(
+            "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
+        )
+        with pytest.raises(NoReverseMatch):
+            client.get(url)
+
+    def test_a_person_holding_a_role_without_change_person_is_still_refused(
+        self, client, unclaimed_person
+    ):
+        """A Data Curator reaches the administration interface (a rights-carrying role,
+        T014) but holds no right this gate asks for - refused by this view's own gate,
+        not merely absent from the site altogether."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        curator = PersonFactory(email="curator-only@example.com", is_active=True)
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        client.force_login(curator)
+
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_the_actions_are_offered_to_a_community_manager_in_the_changelist(
+        self, client
+    ):
+        manager = _community_manager("actions-manager@example.com")
+        client.force_login(manager)
+
+        url = reverse("admin:contributors_person_changelist")
+        response = client.get(url)
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "merge_person_action" in content
+        assert "generate_claim_link_action" in content
+
+
 @pytest.mark.django_db
 class TestPersonAdminActionsHiddenFromNonSuperuser:
     """The merge/claim-link changelist actions do not appear for a
@@ -999,6 +1072,191 @@ class TestPersonAdminActionsHiddenFromNonSuperuser:
         content = response.content.decode()
         assert "merge_person_action" in content
         assert "generate_claim_link_action" in content
+
+
+# ── T015/T016: the Person change form stops being a route to superuser ──────
+
+
+def _community_manager(email="community-manager@example.com"):
+    """A person holding the Community Manager role (D12, FR-004)."""
+    from django.contrib.auth.models import Group
+
+    from fairdm.factories import PersonFactory
+    from fairdm.portal_roles import PortalRoles
+
+    PortalRoles.reconcile()
+    manager = PersonFactory(email=email, is_active=True)
+    manager.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+    return manager
+
+
+@pytest.mark.django_db
+class TestPersonAdminFields:
+    """D12: ``contributors.change_person`` - which FR-004 gives the Community Manager -
+    must not be a route to ``is_superuser`` through the Person change form."""
+
+    def test_a_community_manager_is_not_offered_the_account_escalation_fields(
+        self, person
+    ):
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = _community_manager()
+
+        fieldsets = model_admin.get_fieldsets(request, person)
+        form_class = model_admin.get_form(request, person)
+
+        field_names = _fieldset_field_names(fieldsets)
+        # SEC-001: `groups` grants the same rights by proxy - narrowing the other
+        # three and leaving this one open is the escalation route the finding used.
+        assert not {"is_superuser", "is_staff", "password", "groups"} & field_names
+        assert not {"is_superuser", "is_staff", "password", "groups"} & set(
+            form_class.base_fields
+        )
+
+    def test_a_superuser_is_still_offered_all_three(self, person, superuser):
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = superuser
+
+        fieldsets = model_admin.get_fieldsets(request, person)
+        form_class = model_admin.get_form(request, person)
+
+        field_names = _fieldset_field_names(fieldsets)
+        assert {"is_superuser", "is_staff", "password", "groups"} <= field_names
+        assert {"is_superuser", "is_staff", "groups"} <= set(form_class.base_fields)
+
+    def test_posting_is_superuser_on_leaves_the_flag_unchanged_for_the_actor(self):
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, manager)
+        form = form_class(
+            data={
+                "first_name": manager.first_name,
+                "last_name": manager.last_name,
+                "name": manager.name,
+                "email": manager.email,
+                "is_active": "on",
+                "is_superuser": "on",
+                "groups": [
+                    str(g.pk) for g in manager.groups.all()
+                ],
+            },
+            instance=manager,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert saved.is_superuser is False
+
+    def test_posting_is_superuser_on_leaves_the_flag_unchanged_for_somebody_else(
+        self, person
+    ):
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, person)
+        form = form_class(
+            data={
+                "first_name": person.first_name,
+                "last_name": person.last_name,
+                "name": person.name,
+                "email": person.email,
+                "is_active": "on",
+                "is_superuser": "on",
+            },
+            instance=person,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert saved.is_superuser is False
+
+    def test_posting_a_data_curator_group_id_leaves_membership_unchanged(self):
+        """SEC-001: `groups` is the field that grants the other three's worth of
+        rights by proxy - mirrors `test_posting_is_superuser_on_leaves_the_flag_
+        unchanged_for_the_actor` above for that field."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.portal_roles import PortalRoles
+
+        model_admin = admin.site._registry[Person]
+        manager = _community_manager()
+        original_group_ids = set(manager.groups.values_list("pk", flat=True))
+        data_curator = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        request = RequestFactory().get("/")
+        request.user = manager
+
+        form_class = model_admin.get_form(request, manager)
+        form = form_class(
+            data={
+                "first_name": manager.first_name,
+                "last_name": manager.last_name,
+                "name": manager.name,
+                "email": manager.email,
+                "is_active": "on",
+                "groups": [str(data_curator.pk)],
+            },
+            instance=manager,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert set(saved.groups.values_list("pk", flat=True)) == original_group_ids
+
+    def test_a_portal_administrator_can_still_see_and_set_groups(self):
+        """FR-002: assigning roles is the Portal Administrator's job, so the
+        `auth.view_group` right the role already carries must keep offering and
+        saving `groups`, unlike the Community Manager above."""
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        portal_admin = PersonFactory(email="portal-admin@example.com", is_active=True)
+        portal_admin.groups.add(
+            Group.objects.get(name=PortalRoles.PORTAL_ADMINISTRATOR.name)
+        )
+        data_curator = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
+
+        model_admin = admin.site._registry[Person]
+        request = RequestFactory().get("/")
+        request.user = portal_admin
+
+        fieldsets = model_admin.get_fieldsets(request, portal_admin)
+        assert "groups" in _fieldset_field_names(fieldsets)
+
+        form_class = model_admin.get_form(request, portal_admin)
+        assert "groups" in form_class.base_fields
+
+        form = form_class(
+            data={
+                "first_name": portal_admin.first_name,
+                "last_name": portal_admin.last_name,
+                "name": portal_admin.name,
+                "email": portal_admin.email,
+                "is_active": "on",
+                "groups": [
+                    str(g.pk) for g in portal_admin.groups.all()
+                ]
+                + [str(data_curator.pk)],
+            },
+            instance=portal_admin,
+        )
+
+        assert form.is_valid(), form.errors
+        saved = form.save()
+
+        assert data_curator in saved.groups.all()
 
 
 # ── T046: ClaimingAuditLog admin view ────────────────────────────────────────

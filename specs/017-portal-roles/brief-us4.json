@@ -1,0 +1,105 @@
+{
+  "story": "US4",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 342,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us4",
+  "tasks": [
+    "T026",
+    "T027",
+    "T028",
+    "T029",
+    "T030"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "Everything built so far is invisible until somebody signs in as each role and sees what that person can do. Nothing in the framework creates a named account: there is one superuser from environment variables, a fake-data command for records, and nothing else. This story ships five accounts - one per role, one holding nothing - as part of the package, so that anyone building a portal on FairDM can load them into their own development environment and see the portal as a curator, as a community manager, as a developer, and as an ordinary contributor. They carry a password that is written down in the documentation, so the refusal to create them outside development is the whole of their safety, and a second check reports any that reached a production portal by some route the command never saw.",
+    "spec_sections": [
+      "User Story 4 - Anyone building on the framework can sign in as each role",
+      "Requirements / Development accounts (FR-022 to FR-029)",
+      "Key entities - the table of five accounts"
+    ],
+    "plan_sections": [
+      "Phases / Phase 4 - US-4, signing in as each role",
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D7 - the accounts ship with the package, not with the demo. Their audience is wider than this repository: a research group building a portal on FairDM needs to sign in as a curator in THEIR portal, and the demo is not installed there.",
+      "D7 also settles the shape: a management command creating the accounts through the ORM, not a JSON fixture. Person subclasses a polymorphic Contributor, so a fixture row needs a content-type primary key that differs between databases; the password would ship as a pre-computed hash pinned to today's hasher parameters; and signing in without confirming an address needs an allauth EmailAddress row per account. A command hashes at run time, resolves content types by lookup, and can refuse outright - a loaddata of a shipped file cannot refuse anything.",
+      "D16 - the command's refusal guards the act of loading and not the resulting state, so a second check reports any of the five addresses found on a portal that is not in development. A database copied down from production, a dump restored the wrong way round, or an environment variable changed under a live database all produce the condition the command would have refused.",
+      "Check ids in fairdm/conf/checks.py are numbered by hundreds and E500 is now the portal-roles check. The development-accounts check takes fairdm.E501 - it is reserved and free. Read the file before you register anything.",
+      "The environment rule is the framework's own: fairdm.apps.NON_PRODUCTION_ENVIRONMENTS holds the environments FairDM ships a non-production override for, and everything else is a production deployment. Use that, do not invent a second rule, and do not key anything on DEBUG."
+    ],
+    "acceptance": [
+      {
+        "task": "T026",
+        "given_when_then": "Given a development environment with the roles installed, When the command runs, Then exactly five accounts exist - Portal Administrator, Data Curator, Community Manager, Portal Developer and Regular User, with the emails the specification's table gives, the first four in their matching role and the last in none. Each signs in through the portal with the password `password` and meets no confirmation step. Running it twice creates no duplicate. On the production baseline it fails, says why, and creates nothing. When one of the addresses already belongs to somebody, it fails rather than adopting that account."
+      },
+      {
+        "task": "T027",
+        "given_when_then": "Given fairdm/management/commands/create_dev_accounts.py, When it runs, Then it creates the accounts through the ORM, hashes the password at run time, marks each address confirmed so allauth lets them straight in, and refuses on any resolved environment outside NON_PRODUCTION_ENVIRONMENTS."
+      },
+      {
+        "task": "T028",
+        "given_when_then": "Given a production portal holding any of the five development addresses, When the check runs, Then it reports fairdm.E501 naming them; a development portal holding all five reports nothing; a database with no user table reports nothing, the same tolerance the portal-roles check carries."
+      },
+      {
+        "task": "T029",
+        "given_when_then": "Given fairdm/conf/checks.py, When check_dev_accounts_absent is registered, Then it carries id fairdm.E501 and the same tags as the portal-roles check, and no other check in the file shares that id."
+      },
+      {
+        "task": "T030",
+        "given_when_then": "Given a portal developer reading docs/portal-development/, When they look for how to sign in as each role, Then they find the command, the table of five accounts, the password, and a plain statement that these exist only outside production - and the demo's getting-started page points at it."
+      }
+    ],
+    "verified_base": {
+      "commit": "acf79bfb7ec162e9843514b9dfb5c38b94385c1a",
+      "verified_at": "2026-09-16T14:05:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "Lint, types, build, conformance and the documentation check ran on this worktree at this commit and are green. The full pytest suite was read serially at 2792 passed, 8 skipped on the identical code tree immediately before this branch was cut - the only difference is markdown under specs/. Do not re-run the suite to check your starting point. If the tree is red on arrival, that is an environment fault: report it, do not work around it."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us4, branch 017-portal-roles-us4, cut from the feature branch with the first three stories merged in. Virtualenv synced and pinned to Python 3.13 - do not change the interpreter. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves this worktree on port 8000 for the maintainer to watch, and your command is what will populate it, so expect it to be used the moment you land. Leave the server alone. Testing a production-environment refusal needs DJANGO_ENV set for a subprocess - tests/test_apps.py already does this and is the pattern to follow."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 150
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full, then your own tasks T026-T030 in specs/017-portal-roles/tasks.md - your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and stop there.",
+    "Read fairdm/apps.py (NON_PRODUCTION_ENVIRONMENTS and resolved_environment), fairdm/conf/checks.py (the portal-roles check, which is the pattern yours follows), fairdm/portal_roles.py, and an existing command such as fairdm/management/commands/seed_licenses.py before you write anything.",
+    "Read the CONTEXT.md entries for Person and Contributor: the account and the credited individual are one model here, which is why creating an account is not as simple as it looks.",
+    "git log --oneline -10.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "The accounts ship with the package. Do not put them in demo/, and do not make the command depend on the demo being installed.",
+    "Do not key the refusal on DEBUG or on a name you invent. fairdm.apps.NON_PRODUCTION_ENVIRONMENTS is the framework's own rule.",
+    "Do not weaken the refusal to make a test easier to write. If a scenario needs a production environment, run a subprocess.",
+    "Do not change what any role holds, the permission backend, the admin site, the Group guard, the portal-roles check or the team page.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

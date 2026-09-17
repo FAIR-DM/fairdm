@@ -1,0 +1,83 @@
+{
+  "story": "US1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 339,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us1",
+  "tasks": ["T002", "T003", "T004", "T005", "T006", "T007", "T008", "T009", "T010"],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-08-24/0f180d36"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "FairDM ships no portal roles today. An administrator has to invent them, and the three group names the framework does carry hold no permissions at all, so three places in the code grant broad rights by matching a group's name instead. This story is the foundation of the feature: it declares the four roles FairDM ships, with the exact permissions each holds, and installs them into every portal - new or already running - every time the database is brought up to date. Four later stories read what you declare here, so the shape of the declaration matters more than anything else you write.",
+    "spec_sections": [
+      "User Story 1 - The roles a portal needs arrive with the framework",
+      "Requirements / The role set (FR-001 to FR-005)",
+      "Requirements / Installation and repair (FR-009 to FR-011)",
+      "Requirements / What this replaces (FR-036 to FR-039)",
+      "Key entities"
+    ],
+    "plan_sections": [
+      "Summary",
+      "Phases / Phase 1 - US-1, the roles arrive with the framework",
+      "Project structure",
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D10 - The legacy groups are renamed, not replaced. reconcile() renames Portal Administrators to Portal Administrator, Data Administrators to Data Curator and Developers to Developer, in place and only when the target name is free, because a rename carries the membership rows across and a fresh create does not. Do not delete the legacy rows and do not write a data migration.",
+      "D15 - The Portal Administrator holds no right to edit a group. Membership is edited on the Person form's groups field, so the role holds auth.view_group and contributors.change_person and nothing that can change what a role may do. Granting auth.change_group would let the role rewrite its own rights.",
+      "D17 - The module is fairdm/portal_roles.py, not fairdm/roles.py. This codebase already spends the word 'role' on contribution roles, and FR-039 exists to keep the two apart.",
+      "ARCH-001 from the design review - the declarations and the methods that read them are ONE class (PortalRoles), not a module of loose functions. Constitution Article XI.",
+      "Research R5 - the post_migrate receiver is connected with NO sender and a dispatch_uid. INSTALLED_APPS lists fairdm before the apps whose permissions the roles need, so a sender-bound receiver runs too early. Connected without a sender it runs once per app config and the last pass sees every permission, so it must tolerate a permission that does not exist yet rather than raising.",
+      "Research R1 - there are five call sites reading the legacy group names, not three. You do not remove any of them in this story; US2 does. You only make sure the Data Curator's permission list covers what they reach, including import_data and can_publish."
+    ],
+    "acceptance": [
+      {"task": "T002", "given_when_then": "Given the declarations module, When its four roles are read, Then they are exactly Portal Administrator, Data Curator, Community Manager and Developer; each one's permission set matches the declaration exactly rather than by subset; Developer's is empty; and the Portal Administrator's holds none of auth.add_group, auth.change_group or auth.delete_group."},
+      {"task": "T003", "given_when_then": "Given a portal author reading fairdm/portal_roles.py, When they look for what a role holds, Then one class carries the four declarations as data plus shipped_names(), rights_carrying() and reconcile(), and every permission is written as an explicit app_label.codename."},
+      {"task": "T004", "given_when_then": "Given an empty database, When it is brought up to date, Then all four roles exist with their rights; a second run changes nothing and duplicates nothing; permissions edited by hand are restored; the people in a role are untouched; a group the portal created itself is left alone; and a database holding the three legacy groups with members ends with those same people in the corresponding new roles."},
+      {"task": "T005", "given_when_then": "Given any portal, When migrate runs, Then reconcile() renames the legacy rows first, then creates what is missing and sets each role's permissions, and it raises nothing when a permission it wants does not exist yet."},
+      {"task": "T006", "given_when_then": "Given the setup pipeline, When a portal is set up for the first time, Then no groups fixture is loaded, because the file and its loaddata line are gone."},
+      {"task": "T007", "given_when_then": "Given the contributors application, When DefaultGroups is looked for, Then it is gone; and the person filter's is_staff field no longer claims to filter Portal Administrators."},
+      {"task": "T008", "given_when_then": "Given an administrator reading docs/portal-administration/roles.md, When they look up what a role can do, Then they find the four roles this feature ships and what each holds, and a statement that a superuser is the deployer's account while the Portal Administrator role is the portal job."},
+      {"task": "T009", "given_when_then": "Given CONTEXT.md, When a reader looks up 'role', Then portal role, contribution role and rights-carrying role are each defined and distinguished, and the four roles are named."},
+      {"task": "T010", "given_when_then": "Given a portal administrator upgrading to this version, When they read the changelog and the administration documentation, Then they are told that a model-level permission now applies to every instance of that model and that grants made outside these four roles should be audited before upgrading."}
+    ],
+    "verified_base": {
+      "commit": "3ac8a56fc4f17ce23b12b260f1d16c987e810744",
+      "verified_at": "2026-09-16T09:50:21Z",
+      "steps": ["conformance", "docs", "poetry:lint", "poetry:typecheck", "poetry:test", "poetry:build"],
+      "note": "Full verify green on this exact commit: lint, mypy, the whole pytest suite (566s), build, conformance and the docs check. Your worktree starts here and its virtualenv was synced after it was created. Do not re-run the suite to check your starting point. If the tree is red on arrival, that is an environment fault - report it, do not work around it."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us1, on branch 017-portal-roles-us1, cut from the feature branch. Its virtualenv is already synced with `poetry install --sync --with dev,test,docs`. Run everything through poetry: `poetry run pytest tests/test_portal_roles.py::TestDeclarations`, `poetry run pre-commit run --all-files` for the lint gate (raw ruff check . is red at main by design and is not the gate), `poetry run invoke format`. The full suite takes about ten minutes; run it once, at your completion report."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full, then your own tasks T002-T010 in specs/017-portal-roles/tasks.md - your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and stop there.",
+    "Read the CONTEXT.md entries for Contributor, Contribution and Person before you write the word 'role' anywhere.",
+    "git log --oneline -10.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "Do not touch the five group-name call sites (contributors/models.py is_data_admin, templatetags/fairdm.py, contrib/plugins/utils.py, contrib/import_export/views.py lines 157 and 224). US2 owns them. Your job is only to make sure the Data Curator's declared permissions cover what they reach.",
+    "Do not write the permission backend, the admin-site change, the Group receivers, the system checks, the management command or the team page. Those are US2 to US5.",
+    "Do not add a migration. This story adds no model change; if makemigrations wants to write one, something is wrong and you should report it.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

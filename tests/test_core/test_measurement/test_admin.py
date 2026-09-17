@@ -26,7 +26,7 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -126,7 +126,7 @@ class TestMeasurementAdminFilters:
         from django.contrib import admin as django_admin
 
         from fairdm.factories import DatasetFactory
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
@@ -164,7 +164,7 @@ class TestMeasurementAdminFilters:
         """Narrowing the parent changelist by sample leaves only that sample's rows."""
         from django.contrib import admin as django_admin
 
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         sample2 = RockSampleFactory(dataset=sample.dataset)
 
@@ -200,7 +200,7 @@ class TestMeasurementAdminFilters:
         from django.contrib import admin as django_admin
         from django.contrib.contenttypes.models import ContentType
 
-        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+        from demo.models import ICP_MS_Measurement, XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF",
@@ -366,7 +366,7 @@ class TestMeasurementContributionInlineRoleVocabulary:
     ):
         from fairdm.contrib.contributors.models import Contribution
         from fairdm.factories import PersonFactory
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF Test",
@@ -409,7 +409,7 @@ class TestMeasurementContributionInlineRoleVocabulary:
         }
 
         response = admin_client.post(
-            reverse("admin:fairdm_demo_xrfmeasurement_change", args=[xrf.pk]),
+            reverse("admin:demo_xrfmeasurement_change", args=[xrf.pk]),
             data=data,
         )
 
@@ -431,7 +431,7 @@ class TestMeasurementContributionInlineRoleVocabulary:
     def test_the_roles_field_does_not_offer_the_off_vocabulary_concept(
         self, admin_user, sample
     ):
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF Test",
@@ -558,7 +558,7 @@ class TestMeasurementAdminPolymorphicHandling:
 
     def test_child_admin_renders_with_inlines(self, measurement_admin, sample):
         """Test that child admin renders correctly with all inlines."""
-        from fairdm_demo.models import XRFMeasurement
+        from demo.models import XRFMeasurement
 
         # Create an XRF measurement
         xrf = XRFMeasurement.objects.create(
@@ -634,7 +634,7 @@ class TestMeasurementAdminTypeColumn:
     ):
         """The column, called the way the admin changelist calls it, names each row's
         real (polymorphic) type - not the base Measurement's own verbose name."""
-        from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+        from demo.models import ICP_MS_Measurement, XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF",

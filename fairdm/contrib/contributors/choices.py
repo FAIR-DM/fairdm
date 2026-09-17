@@ -34,14 +34,6 @@ class OrganizationType(models.TextChoices):
     OTHER = "other", _("Other")
 
 
-class DefaultGroups(models.TextChoices):
-    """Default groups for contributors."""
-
-    PORTAL_ADMIN = "Portal Administrators", _("Portal Administrators")
-    DATA_ADMIN = "Data Administrators", _("Data Administrators")
-    DEVELOPERS = "Developers", _("Developers")
-
-
 class PersonalIdentifiers(models.TextChoices):
     ORCID = "ORCID", "ORCID"
     RESEARCHER_ID = "ResearcherID", "ResearcherID"

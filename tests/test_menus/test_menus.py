@@ -6,6 +6,7 @@ reads ``FAIRDM_API_DOCS_URL``. These tests pin the resulting group structure.
 """
 
 import pytest
+from django.urls import reverse
 
 
 @pytest.fixture()
@@ -66,10 +67,82 @@ class TestDocumentationMenuGroupOtherChildren:
         """Second child must be 'User Guide', an external link."""
         child = documentation_menu_group.children[1]
         assert str(child.name) == "User Guide"
-        assert child._url == "https://faridm.org/user-guide/"
+        assert child._url == "https://fairdm.org/user-guide/"
 
     def test_third_child_is_admin_guide(self, documentation_menu_group):
-        """Third child must be 'Admin Guide', gated behind the staff-only check."""
+        """Third child must be 'Admin Guide', offered to whoever can reach the admin."""
         child = documentation_menu_group.children[2]
         assert str(child.name) == "Admin Guide"
-        assert child._url == "https://faridm.org/admin-guide/"
+        assert child._url == "https://fairdm.org/admin-guide/"
+
+
+@pytest.mark.django_db
+class TestTeamMenuItem:
+    """The Community group links to the portal team page (T033, FR-032).
+
+    Asserted against a rendered page rather than ``AppMenu.children`` in
+    memory: this module is imported for its side effect of extending
+    ``AppMenu``, and a reloaded dev server can hold a `Community` group
+    declared twice - the rendered nav is what a visitor actually sees either
+    way.
+    """
+
+    def test_team_link_appears_in_the_community_group(self, client):
+        response = client.get(reverse("team"))
+        content = response.content.decode()
+
+        community_start = content.index("Community")
+        documentation_start = content.index("Documentation", community_start)
+        community_section = content[community_start:documentation_start]
+
+        assert f'href="{reverse("team")}"' in community_section
+        assert "People" in community_section
+        assert "Organizations" in community_section
+
+
+@pytest.mark.django_db
+class TestAdminGuideLinkVisibility:
+    """COR-002: the Admin Guide link must be offered to anyone who can reach the
+    administration interface (`CustomAdminSite.has_permission`), not only to somebody
+    carrying `is_staff` - a role holder who reaches the interface through
+    `_holds_a_rights_carrying_role` could not previously see the link to its own docs."""
+
+    def test_a_role_holder_without_staff_sees_the_admin_guide_link(
+        self, documentation_menu_group, rf
+    ):
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import PersonFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        curator = PersonFactory(is_staff=False)
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = curator
+
+        assert child.check(request) is True
+
+    def test_a_person_with_neither_staff_nor_a_role_does_not_see_the_link(
+        self, documentation_menu_group, rf
+    ):
+        from fairdm.factories import PersonFactory
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = PersonFactory(is_staff=False)
+
+        assert child.check(request) is False
+
+    def test_a_staff_account_with_no_role_still_sees_the_link(
+        self, documentation_menu_group, rf
+    ):
+        from fairdm.factories import PersonFactory
+
+        child = documentation_menu_group.children[2]
+        request = rf.get("/")
+        request.user = PersonFactory(is_staff=True)
+
+        assert child.check(request) is True

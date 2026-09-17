@@ -19,20 +19,23 @@ def cleanup_duplicate_types(apps, schema_editor):
         ("MeasurementIdentifier", MeasurementIdentifier),
     ]
     
+    db_alias = schema_editor.connection.alias
+
     total_deleted = 0
-    
+
     for model_name, model in models_to_clean:
         # Find all (related, type) combinations with duplicates
         from django.db.models import Count
         duplicates = (
-            model.objects.values("related", "type")
+            model.objects.using(db_alias)
+            .values("related", "type")
             .annotate(count=Count("id"))
             .filter(count__gt=1)
         )
-        
+
         for dup in duplicates:
             # Get all instances with this (related, type) combination
-            instances = model.objects.filter(
+            instances = model.objects.using(db_alias).filter(
                 related_id=dup["related"],
                 type=dup["type"],
             ).order_by("-modified")

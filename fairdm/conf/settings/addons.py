@@ -74,7 +74,6 @@ MVP_CONFIG = {
             # Text shown beside the brand icon in the sidebar header.
             "title": "FairDM",
             "collapse": "icons",
-            "footer": ["user.sidebar-menu"],
         },
     },
 }
@@ -105,6 +104,15 @@ EASY_ICONS = {
         },
         "packs": [
             "mvp.utils.BS5_ICONS",
+            # django-accounts-center's allauth management pages (password,
+            # MFA, sessions, social connections, passkeys) draw their own
+            # icons from this pack. `account_center` and `overview` moved to
+            # django-mvp's own pack above when django-mvp took over the
+            # Account Center, so this line is no longer what keeps those two
+            # names resolving - but without it the management pages still
+            # raise `IconNotFoundError` the moment a signed-in visitor opens
+            # one.
+            "dac.icons.DAC_ICONS",
         ],
         "icons": {
             # Core Actions
@@ -180,6 +188,7 @@ EASY_ICONS = {
             "date": "bi bi-calendar3",
             "time": "bi bi-clock",
             "identifier": "bi bi-fingerprint",
+            "license": "bi bi-c-circle",
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",
             # Settings & Configuration

@@ -21,14 +21,14 @@ from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm_demo.factories import (
+from demo.factories import (
     CustomSampleFactory,
     ExampleMeasurementFactory,
     RockSampleFactory,
     SoilSampleFactory,
     WaterSampleFactory,
 )
-from fairdm_demo.models import (
+from demo.models import (
     CustomSample,
     ExampleMeasurement,
     RockSample,
@@ -625,25 +625,28 @@ class TestSwitcherIsInlineWithTheTitle:
     The switcher's own render gate (FR-047) is untouched and covered by
     `TestSwitcher`."""
 
-    def test_the_switcher_and_the_breadcrumb_trail_share_one_flex_row(self, client):
+    def test_the_switcher_sits_in_the_title_bar_beside_the_other_actions(
+        self, client
+    ):
         slug = registry.get_for_model(RockSample).get_slug()
 
         response = client.get(reverse(f"{slug}-list"))
 
         soup = BeautifulSoup(response.content, "html.parser")
         switcher = soup.find(id="listing-switcher")
-        breadcrumbs = soup.find("nav", class_="breadcrumbs")
         assert switcher is not None
-        assert breadcrumbs is not None
-        assert switcher.parent is breadcrumbs.parent
-        # The shell's own title wrapper is itself a flex container (stacked
-        # column, for the subtitle beneath it) - a bare "flex" check would
-        # pass against that ancestor by coincidence. Row alignment is what
-        # this task actually asks for, so pin the direction too.
+        # The trail used to be the anchor here: it shared the title bar with
+        # the heading, and the switcher sat beside it. The shell draws the
+        # trail in the app header now, so the anchor is the title bar itself
+        # and the switcher travels with the listing's other actions.
+        title_bar = soup.find(class_="page-title")
+        assert title_bar is not None
+        assert switcher in title_bar.descendants
+        # A row, not a column: the actions run alongside the heading rather
+        # than opening a line of their own above or below it.
         classes = switcher.parent.get("class", [])
         assert "flex" in classes
         assert "flex-col" not in classes
-        assert "items-center" in classes
 
     def test_the_switcher_button_is_small_and_labelled_switch(self, client):
         slug = registry.get_for_model(RockSample).get_slug()
@@ -721,11 +724,11 @@ class TestNothingUnreachable:
 
     def _external_importers(self):
         """Every module this package exposes that a `.py` file elsewhere in
-        `fairdm/` or `fairdm_demo/` production code imports directly - an
+        `fairdm/` or `demo/` production code imports directly - an
         import in `registry/factories.py` counts as a real entry point exactly
         as much as a route does."""
         found = set()
-        for top in ("fairdm", "fairdm_demo"):
+        for top in ("fairdm", "demo"):
             for path in (self.REPO_ROOT / top).rglob("*.py"):
                 if self.PACKAGE_DIR in path.parents:
                     continue

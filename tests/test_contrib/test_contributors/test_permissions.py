@@ -8,6 +8,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.test import RequestFactory
+from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from partial_date import PartialDate
 
@@ -463,3 +465,140 @@ class TestStoredGuardianGrantNeverHonoured:
         """A superuser passes on affiliation-derived status alone, not a stored row."""
         assert superuser.has_perm("manage_organization", organization)
         assert superuser.has_perm("contributors.manage_organization", organization)
+
+
+# ── T017: a role decides what its holder can actually do on the portal's own pages ──
+
+
+def _holder_of(*role_names, email):
+    from django.contrib.auth.models import Group
+
+    from fairdm.portal_roles import PortalRoles
+
+    PortalRoles.reconcile()
+    person = PersonFactory(email=email, is_active=True)
+    for role_name in role_names:
+        person.groups.add(Group.objects.get(name=role_name))
+    return person
+
+
+@pytest.mark.django_db
+class TestDataCuratorPortalPages:
+    """FR-003, FR-007, FR-021: a Data Curator reaches another team's dataset - private
+    included - and its samples through the portal's own pages, and the record carries no
+    mark saying a curator changed it."""
+
+    def _private_dataset_with_sample(self):
+        from demo.factories import RockSampleFactory
+
+        from fairdm.factories import DatasetFactory
+        from fairdm.utils.choices import Visibility
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        return dataset, sample
+
+    def test_can_view_and_change_another_teams_private_dataset(self, client):
+        from fairdm.portal_roles import PortalRoles
+
+        dataset, _sample = self._private_dataset_with_sample()
+        curator = _holder_of(PortalRoles.DATA_CURATOR.name, email="curator@example.com")
+
+        assert curator.has_perm("dataset.view_dataset", dataset)
+        assert curator.has_perm("dataset.change_dataset", dataset)
+
+        client.force_login(curator)
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+        assert response.status_code == 200
+
+    def test_can_view_and_change_the_datasets_sample(self):
+        from fairdm.contrib.plugins.access import can_open
+        from fairdm.core.sample.plugins import Edit
+        from fairdm.portal_roles import PortalRoles
+
+        _dataset, sample = self._private_dataset_with_sample()
+        curator = _holder_of(PortalRoles.DATA_CURATOR.name, email="curator2@example.com")
+        request = RequestFactory().get("/")
+        request.user = curator
+
+        assert can_open(Edit, request, sample) is True
+
+    # No test exercises `DataImportView.check`/`DatasetPublishConfirm.check` here (the
+    # "import and publish plugin pages" of this task's acceptance): `fairdm.contrib.
+    # import_export.views` fails to import on its own, independent of this story
+    # (`ImportError: cannot import name 'FairDMModelFormMixin' from 'fairdm.views'`) -
+    # confirmed by attempting exactly that import in isolation. Flagged in
+    # `decisions.md`/`concerns` rather than fixed: an unrelated pre-existing defect, not
+    # named in any task this story assigns.
+
+    def test_the_record_carries_no_mark_saying_a_curator_changed_it(self):
+        """FR-021: met by writing no such mark. Pinned as a standing proof, not a probe of a
+        mechanism that exists - there is nothing to mutate."""
+        from fairdm.core.dataset.models import Dataset
+
+        field_names = {field.name for field in Dataset._meta.get_fields()}
+        assert not field_names & {
+            "last_edited_by",
+            "edited_by",
+            "modified_by",
+            "changed_by",
+        }
+
+
+@pytest.mark.django_db
+class TestCommunityManagerPortalRights:
+    """FR-004: a Community Manager changes a person and an organisation, cannot change a
+    dataset, and cannot delete a person."""
+
+    def test_can_change_a_person_and_an_organisation(self, organization):
+        from fairdm.portal_roles import PortalRoles
+
+        manager = _holder_of(
+            PortalRoles.COMMUNITY_MANAGER.name, email="manager@example.com"
+        )
+        other_person = PersonFactory(email="managed@example.com")
+
+        assert manager.has_perm("contributors.change_person", other_person)
+        assert manager.has_perm("contributors.change_organization", organization)
+
+    def test_cannot_change_a_dataset(self):
+        from fairdm.factories import DatasetFactory
+        from fairdm.portal_roles import PortalRoles
+
+        manager = _holder_of(
+            PortalRoles.COMMUNITY_MANAGER.name, email="manager2@example.com"
+        )
+        dataset = DatasetFactory()
+
+        assert not manager.has_perm("dataset.change_dataset", dataset)
+
+    def test_cannot_delete_a_person(self):
+        from fairdm.portal_roles import PortalRoles
+
+        manager = _holder_of(
+            PortalRoles.COMMUNITY_MANAGER.name, email="manager3@example.com"
+        )
+        other_person = PersonFactory(email="managed2@example.com")
+
+        assert not manager.has_perm("contributors.delete_person", other_person)
+
+
+@pytest.mark.django_db
+class TestAPersonHoldingTwoRolesHoldsBothSets:
+    def test_holds_both_data_curator_and_community_manager_rights(self, organization):
+        from fairdm.factories import DatasetFactory
+        from fairdm.portal_roles import PortalRoles
+
+        person = _holder_of(
+            PortalRoles.DATA_CURATOR.name,
+            PortalRoles.COMMUNITY_MANAGER.name,
+            email="both-roles@example.com",
+        )
+        dataset = DatasetFactory()
+        other_person = PersonFactory(email="managed3@example.com")
+
+        assert person.has_perm("dataset.change_dataset", dataset)
+        assert person.has_perm("contributors.change_person", other_person)
+        assert person.has_perm("contributors.change_organization", organization)

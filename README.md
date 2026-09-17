@@ -249,7 +249,7 @@ Full documentation is available at: **<https://fairdm.github.io/fairdm/>**
 
 ## 🧪 Demo Application
 
-Explore a working example in the `fairdm_demo/` directory:
+Explore a working example in the `demo/` directory:
 
 ```bash
 # The demo app showcases:
@@ -275,10 +275,16 @@ poetry run pytest
 poetry run pytest --cov=fairdm --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_registry.py
+poetry run pytest tests/test_registry/test_config.py
+
+# Run the reference application's tests on their own (they run by default too)
+poetry run pytest demo/tests
 
 # Run with verbose output
 poetry run pytest -v
+
+# Run in a single process (tests are parallel by default)
+poetry run pytest -n0
 ```
 
 ### Code Quality

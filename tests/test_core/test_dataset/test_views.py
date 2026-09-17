@@ -12,22 +12,30 @@ test_integration.py.
 
 import re
 import time
+from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django import forms
+from django.conf import settings
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from licensing.models import License
 from pytest_django.asserts import assertContains, assertNotContains
 
+import fairdm.core.dataset
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    DatasetDescriptionFactory,
     DatasetFactory,
     DatasetIdentifierFactory,
+    PersonFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -1036,7 +1044,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_removes_its_samples(self, client):
         """T077 — the samples held beneath a deleted dataset are gone too, through the ORM's
         own cascade rather than anything this page does by hand."""
-        from fairdm_demo.factories import RockSampleFactory
+        from demo.factories import RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Dataset With A Sample")
@@ -1055,7 +1063,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_removes_its_samples_and_their_measurements(self, client):
         """T077 — the ordinary shape of a dataset holding data: samples, and measurements made
         on those same samples. Both go with it."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Dataset With Data")
@@ -1076,7 +1084,7 @@ class TestDatasetDeleteView:
     def test_deletion_is_refused_while_another_dataset_measures_its_samples(self, client):
         """T077 — a dataset whose samples carry measurements recorded by another dataset cannot
         be deleted, and the page says so rather than raising."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Borrowed From")
@@ -1101,7 +1109,7 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_leaves_a_sample_it_borrowed_alone(self, client):
         """T077 — a measurement may refer to a sample belonging to another dataset. Deleting
         the measurement's dataset takes the measurement and leaves that sample standing."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         sample_dataset = DatasetFactory(name="Sample Dataset")
@@ -1151,7 +1159,7 @@ class TestDatasetDeleteView:
         sharing its dataset with the sample it references trips a pre-existing
         `Measurement.sample` PROTECT interaction unrelated to this page (`issues_found`), and
         this test's job is the preview's rendered content, not that interaction."""
-        from fairdm_demo.factories import (
+        from demo.factories import (
             ExampleMeasurementFactory,
             RockSampleFactory,
             WaterSampleFactory,
@@ -1188,7 +1196,12 @@ class TestDatasetDeleteView:
         # no instance names, no contributors, no dates, no identifiers.
         assertNotContains(response, "Granite Core 1")
         assertNotContains(response, "Spring Water 1")
-        assertNotContains(response, user.get_full_name())
+        # Scoped to the page's own content: the signed-in visitor's name is
+        # drawn in the shell's account menu on every page, which says nothing
+        # about what this preview lists.
+        main = BeautifulSoup(content, "html.parser").find("main")
+        assert main is not None
+        assert user.get_full_name() not in main.get_text()
         assert not _assert_cascade_preview_group(content, "Dates")
         assert not _assert_cascade_preview_group(content, "Identifiers")
         assert not _assert_cascade_preview_group(content, "Contributors")
@@ -1221,7 +1234,7 @@ class TestDatasetDeleteView:
         remove: proven by counting the samples and measurements that exist before the
         confirmed delete and confirming every one of them is gone after it, not by
         re-deriving the same expression the view itself computes."""
-        from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
         dataset = DatasetFactory(name="Countable Dataset")
@@ -1256,6 +1269,14 @@ class TestNonCollectionPagesIgnorePublished:
     `published` is `True` or `False` - the listings this feature builds in
     later stories are the only readers of the flag.
 
+    The dataset listing is now one of those readers, so it is no longer
+    compared byte for byte: its card states whether the data beneath the
+    dataset is published, which is the whole point of the badge (issue #333).
+    What the card draws for each state is asserted in
+    `TestDatasetCardRendering`. The part of the original rule that still holds
+    on that page - the flag decides nothing about which datasets are listed -
+    is kept below. Every other page ignores the flag entirely.
+
     Toggled through `.update()`, not `.save()`, so the comparison is not
     confounded by `modified`'s `auto_now` (the same reason
     `TestDatasetOrdering.test_default_ordering_is_most_recently_modified_first`
@@ -1274,10 +1295,14 @@ class TestNonCollectionPagesIgnorePublished:
             response.content,
         )
 
-    def test_dataset_list_page_renders_identically_across_published_states(
+    def test_the_listing_shows_the_same_datasets_whichever_way_published_is_set(
         self, client
     ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        """Visibility decides who may see a dataset's metadata; `published`
+        decides whether the data beneath it may be shown. The listing is a
+        metadata page, so the flag changes what a card says and never whether
+        the dataset appears at all."""
+        dataset = DatasetFactory(name="Listed Either Way", visibility=Visibility.PUBLIC)
         url = reverse("dataset-list")
 
         Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
@@ -1287,9 +1312,10 @@ class TestNonCollectionPagesIgnorePublished:
         published = client.get(url)
 
         assert unpublished.status_code == 200
-        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
-            published
-        )
+        assert published.status_code == 200
+        for response in (unpublished, published):
+            assertContains(response, "Listed Either Way")
+            assertContains(response, dataset.uuid)
 
     def test_dataset_overview_page_renders_identically_across_published_states(
         self, client
@@ -1439,3 +1465,396 @@ class TestDatasetPermissions:
         if dataset:
             # Check that the dataset has contributors
             assert dataset.contributors.count() > 0
+
+
+@pytest.mark.django_db
+class TestDatasetListingQueryCount:
+    """Rendering the listing costs a constant number of queries regardless of
+    how many datasets it returns (issue #333).
+
+    Constitution Article X requires a `django_assert_num_queries` guard rather
+    than wall-clock timing. The count is measured twice — once for a single
+    dataset and once for twenty, each carrying the full set of related records
+    a card draws — so the test fails if any of the prefetching is removed,
+    rather than merely recording today's number.
+
+    Two pieces of measurement hygiene, both taken from the project listing's
+    equivalent test:
+
+    `orbit` is disabled for the duration. It records requests and queries by
+    writing rows of its own, which land in the same count as the page's.
+
+    The page is fetched once before either measurement. The first request does
+    one-time work the second never repeats — the site cache, and easy-thumbnails
+    writing each card image's `Source` and `Thumbnail` rows the first time that
+    image is rendered at a given size.
+    """
+
+    @pytest.fixture(autouse=True)
+    def without_orbit(self, settings):
+        settings.ORBIT = {"ENABLED": False}
+
+    @staticmethod
+    def _build_datasets(count):
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from research_vocabs.models import Concept
+
+        keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
+        for index in range(count):
+            dataset = DatasetFactory(
+                name=f"Survey {index}", visibility=Visibility.PUBLIC
+            )
+            DatasetDescriptionFactory(
+                related=dataset,
+                type="Abstract",
+                value=f"## Survey {index}\n\nWe measured **heat flow** here.",
+            )
+            dataset.keywords.add(*keywords)
+            dataset.add_contributor(PersonFactory())
+            sample = RockSampleFactory(dataset=dataset)
+            RockSampleFactory(dataset=dataset)
+            ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+    def test_listing_query_count_does_not_grow_with_the_number_of_datasets(
+        self, client, django_assert_num_queries
+    ):
+        url = reverse("dataset-list")
+
+        self._build_datasets(1)
+        client.get(url)  # warm up one-time per-process and per-image setup
+        with CaptureQueriesContext(connection) as one_dataset:
+            response = client.get(url)
+            assert response.status_code == 200
+        baseline = len(one_dataset.captured_queries)
+
+        self._build_datasets(19)  # a full page
+        client.get(url)
+        with django_assert_num_queries(baseline):
+            response = client.get(url)
+            assert response.status_code == 200
+            assert len(response.context["object_list"]) == 20
+
+
+@pytest.mark.django_db
+class TestDatasetListingCounts:
+    """The two counts a card reports come from annotations, not from a query
+    per card, and each counts only its own relation (issue #333)."""
+
+    def test_the_counts_are_annotated_onto_the_listing(self, client):
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+        entry = client.get(reverse("dataset-list")).context["object_list"][0]
+
+        # Three samples and two measurements, not six of each: two counts in one
+        # query are two joins, and each multiplies the other's rows unless both
+        # are counted `distinct`.
+        assert entry.sample_count == 3
+        assert entry.measurement_count == 2
+
+    def test_a_dataset_with_neither_counts_zero_of_each(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        entry = client.get(reverse("dataset-list")).context["object_list"][0]
+        assert entry.sample_count == 0
+        assert entry.measurement_count == 0
+
+
+@pytest.mark.django_db
+class TestDatasetCardRendering:
+    """The dataset card on the public listing (issue #333).
+
+    Every assertion is made against the rendered template HTML. The card
+    previously delegated to the shared Bootstrap-era object-card component, and
+    none of those classes resolve against the stylesheet the portal loads.
+
+    These tests describe what the card says and where it points, never how it
+    looks: the layout is the project card's, shared rather than copied, and the
+    project listing's own tests already hold the two rules about the stylesheet
+    that a rendering test cannot reach.
+    """
+
+    def _card_html(self, client):
+        response = client.get(reverse("dataset-list"))
+        assert response.status_code == 200
+        return response, response.content.decode()
+
+    def test_card_no_longer_delegates_to_the_shared_object_card(self):
+        """That component is Bootstrap markup: its classes resolve to nothing
+        in the stylesheet the portal loads, which is the defect itself."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "<c-components.object-card" not in template
+
+    def test_card_draws_the_shared_record_card_with_the_dataset_accent(self):
+        """The two listings draw one card. A second block of near-identical
+        rules is how they would drift apart, so the dataset card carries the
+        shared class and a modifier, not a set of classes of its own."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "record-card record-card--dataset" in template
+        assert "dataset-card" not in template
+
+    def test_the_whole_card_is_the_link(self, client, public_dataset):
+        response, html = self._card_html(client)
+        assertContains(response, f'href="{public_dataset.get_absolute_url()}"')
+        assertNotContains(response, "View Details")
+        assertNotContains(response, "View details")
+
+    def test_card_shows_the_dataset_name(self, client):
+        DatasetFactory(name="Rift Basin Heat Flow", visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "Rift Basin Heat Flow")
+
+    def test_card_reports_a_published_dataset_as_published(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        response, _ = self._card_html(client)
+        assertContains(response, "Published")
+
+    def test_card_states_nothing_at_all_about_an_unpublished_dataset(self, client):
+        """Unpublished is the ordinary state of a dataset on a working portal.
+        A badge on every one of them says nothing about the record and takes
+        the eye away from the one badge that does."""
+        DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        _, html = self._card_html(client)
+        assert "Not published" not in html
+        assert "Published" not in html
+
+    def test_an_unpublished_dataset_reports_no_counts(self, client):
+        """A count is data about data that has not been released. "116 samples"
+        on an unpublished dataset tells a visitor the size of a collection they
+        have no right to see."""
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+        _, html = self._card_html(client)
+
+        assert "1 sample" not in html
+        assert "1 measurement" not in html
+        assert "No samples" not in html
+        assert "No measurements" not in html
+        assert "record-card__counts" not in html
+
+    def test_card_counts_samples_and_measurements(self, client):
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        first = RockSampleFactory(dataset=dataset)
+        RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=first)
+        response, _ = self._card_html(client)
+        assertContains(response, "2 samples")
+        assertContains(response, "1 measurement")
+
+    def test_card_counts_one_sample_in_the_singular(self, client):
+        from demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory(dataset=dataset)
+        response, html = self._card_html(client)
+        assertContains(response, "1 sample")
+        assert "1 samples" not in html
+
+    def test_card_says_so_rather_than_showing_a_zero(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        response, html = self._card_html(client)
+        assertContains(response, "No samples")
+        assertContains(response, "No measurements")
+        assert "0 samples" not in html
+        assert "0 measurements" not in html
+
+    def test_the_counts_carry_the_sample_and_measurement_icons(self, client):
+        """A count reads as a bare number without its icon. Both are asked for
+        by name, so they follow whatever the portal has configured rather than
+        pinning a glyph in the template.
+
+        Scoped to the card's own spans: the sidebar draws the same icons, so a
+        page-wide search would pass with nothing on the card.
+        """
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        _, html = self._card_html(client)
+        counts = re.findall(
+            r'<span class="record-card__count">(.*?)</span>', html, re.DOTALL
+        )
+        assert len(counts) == 2, "the card is expected to render two counts"
+        icons = settings.EASY_ICONS["default"]["icons"]
+        assert icons["sample"] in counts[0]
+        assert icons["measurement"] in counts[1]
+
+    def test_card_names_the_parent_project(self, client):
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        response, _ = self._card_html(client)
+        assertContains(response, "Deep Time Survey")
+
+    def test_the_parent_project_sits_where_a_project_names_its_owner(self, client):
+        """Both answer "who does this belong to", so a reader running down a
+        mixed listing finds that answer in one place rather than two."""
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        people = re.search(
+            r'<div class="record-card__people">(.*?)\n      </div>', html, re.DOTALL
+        )
+        assert people, "the card is expected to group its people row"
+        assert "record-card__parent" in people.group(1)
+
+    def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
+        DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "record-card__parent" not in html
+
+    def test_the_parent_project_is_not_a_nested_link(self, client):
+        """The whole card is already an anchor, and an anchor inside an anchor
+        is invalid markup the browser un-nests, splitting the card into two
+        overlapping click targets."""
+        project = ProjectFactory(name="Deep Time Survey")
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert '<span class="record-card__parent"' in html
+        assert '<a class="record-card__parent"' not in html
+        assert project.get_absolute_url() not in html
+
+    def test_card_names_its_record_type_before_its_publication_state(self, client):
+        """A listing of datasets is unambiguous; a mixed listing is not, and
+        the card is the same card in both. The type is stated, then the state —
+        that order, so the reader gets the noun first."""
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        _, html = self._card_html(client)
+        badges = re.search(
+            r'<span class="record-card__badges">(.*?)\n        </span>',
+            html,
+            re.DOTALL,
+        )
+        assert badges, "the card is expected to group its badges"
+        row = badges.group(1)
+        assert "record-card__type" in row
+        assert settings.EASY_ICONS["default"]["icons"]["dataset"] in row
+        assert row.index("record-card__type") < row.index("Published")
+
+    def test_card_renders_the_abstract_as_plain_text(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDescriptionFactory(
+            related=dataset,
+            type="Abstract",
+            value="## Objectives\n\nWe measure **heat flow** across the rift.",
+        )
+        response, html = self._card_html(client)
+        assertContains(response, "Objectives")
+        assertContains(response, "heat flow")
+        assert "## Objectives" not in html
+        assert "**heat flow**" not in html
+
+    def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
+        from research_vocabs.models import Concept
+
+        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.keywords.add(keyword)
+        response, html = self._card_html(client)
+        assertContains(response, keyword.label)
+        assert f'href="?keywords={keyword.pk}"' not in html
+        assert f">{keyword.label}</a>" not in html
+
+    def test_card_shows_the_dataset_uuid_with_a_copy_control(
+        self, client, public_dataset
+    ):
+        response, html = self._card_html(client)
+        assertContains(response, public_dataset.uuid)
+        assert "clipboard" in html
+
+    def test_card_names_the_licence(self, client):
+        licence, _created = License.objects.get_or_create(
+            name="CC BY-SA 4.0",
+            defaults={
+                "canonical_url": "https://example.org/cc-by-sa-4.0",
+                "text": "…",
+            },
+        )
+        DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
+        response, _ = self._card_html(client)
+        assertContains(response, "CC BY-SA 4.0")
+
+    def test_an_unlicensed_dataset_draws_no_licence_row(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, license=None)
+        _, html = self._card_html(client)
+        assert "record-card__license" not in html
+
+    def test_card_shows_the_last_modified_date(self, client, public_dataset):
+        response, _ = self._card_html(client)
+        assertContains(response, public_dataset.modified.strftime("%b"))
+
+    def test_card_shows_contributor_names(self, client):
+        person = PersonFactory(name="Ada Lovelace")
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.add_contributor(person)
+        response, _ = self._card_html(client)
+        assertContains(response, "Ada Lovelace")
+
+    def test_a_dataset_without_an_image_gets_a_placeholder_not_a_gap(self, client):
+        """The media block is always drawn, so a listing keeps one alignment
+        down the page. Without an image it holds the dataset icon."""
+        DatasetFactory(image=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "record-card__media" in html
+        assert "record-card__placeholder" in html
+        assert "placeholder-3x2" not in html
+        assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
+
+    def test_a_dataset_with_an_image_gets_a_media_block(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert html.count("record-card__media") == 1
+        assert "record-card__placeholder" not in html
+
+    def test_card_marks_its_user_facing_strings_for_translation(self):
+        """Article VIII: a hard-coded user-visible string is a blocking
+        defect, and the card's fixed prose is its type, its state and its two
+        empty-count lines."""
+        template = (
+            Path(fairdm.core.dataset.__file__).parent
+            / "templates"
+            / "dataset"
+            / "dataset_card.html"
+        ).read_text()
+        assert "load i18n" in template
+        for phrase in ("Dataset", "Published", "No samples", "No measurements"):
+            marked = f'{{% translate "{phrase}" %}}'
+            assert marked in template, f"{phrase!r} is not marked for translation"
+
+    def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
+        """Django's `{# ... #}` is single-line only. Spread over several lines
+        it is not a comment at all — the text is emitted verbatim into the
+        response. `{% comment %}` is the multi-line form."""
+        from research_vocabs.models import Concept
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.keywords.add(
+            *Concept.objects.filter(vocabulary__name="fairdm-roles")[:3]
+        )
+        dataset.add_contributor(PersonFactory())
+        DatasetDescriptionFactory(
+            related=dataset, type="Abstract", value="An abstract."
+        )
+
+        _, html = self._card_html(client)
+
+        assert "{#" not in html
+        assert "#}" not in html
+        assert "{%" not in html

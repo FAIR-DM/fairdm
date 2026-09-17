@@ -1,0 +1,509 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "017-portal-roles",
+  "branch": "017-portal-roles",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-09-16T00:00:00Z",
+      "note": "free-text request, grilled in session"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-16T00:10:00Z"
+    },
+    {
+      "state": "SETUP",
+      "at": "2026-09-16T00:20:00Z",
+      "note": "epic #338, stories #339-343, draft PR #344"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-16T00:30:00Z",
+      "note": "approved by Sam in session"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-16T00:40:00Z"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-16T09:21:58Z",
+      "note": "S3 exited green; dispatching the design reviewer"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-16T09:52:13Z",
+      "note": "US1 dispatched to an implementer on sonnet"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-16T15:40:46Z",
+      "note": "all five stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-16T15:55:30Z",
+      "note": "converge green; dispatching the review"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-16T17:13:14Z",
+      "note": "review fixes merged; walkthrough in front of Sam"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-16T00:30:00Z",
+      "self_resolved": [
+        "missing role answered four ways rather than one refusal, because a hard refusal alone blocks the first migrate of a new portal",
+        "stricter than #306's warn-and-name choice for missing vocabularies, deliberately",
+        "a curator's edit is not marked as a curator's",
+        "no right granted over announcements; the framework has none",
+        "development accounts ship with the package, not the demo",
+        "no reviewer role until the publication process exists (R22)",
+        "the Community Manager cannot delete a person record",
+        "spec number 017 rather than 016, which FS-016 holds on its own branch"
+      ]
+    },
+    "plan": {
+      "approved_by": "notified \u2014 veto window, not a gate",
+      "at": "2026-09-16T09:55:00Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-16T01:20:00Z",
+      "self_resolved": [
+        "13 verified findings applied in full as plan and task edits; 2 critical, 4 high, 5 medium, 2 low",
+        "SPEC-004 resolved in favour of the approved FR-004: the superuser gates on profile claims and merges become permission questions the Community Manager holds, superseding an earlier recorded decision by ADR",
+        "SPEC-007 resolved by amending FR-030: the team page lists active holders only"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "sam",
+      "at": "2026-09-17T07:59:31Z",
+      "self_resolved": [
+        "Portal Team page: title, page_info modal with a docs link, a lead paragraph, and a 1/2/4-col responsive grid; then wording for the lead and modal, revised once"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 339,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        }
+      ],
+      "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us1"
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 340,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_permissions.py::TestPortalRoleBackend",
+              "tests/test_core/test_dataset/test_plugins.py::TestUpdatePageDoesNotDiscloseAPrivateDataset::test_a_model_level_holder_with_no_record_level_grant_is_refused",
+              "tests/test_core/test_dataset/test_plugins.py::TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record",
+              "tests/test_core/test_project/test_plugins.py::TestTheOverviewGuardsAPrivateProjectsVisibility::test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record",
+              "tests/test_core/test_project/test_plugins.py::TestUpdatePageOverHTTP::test_a_user_holding_only_model_level_change_permission_is_refused"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_permissions.py -v",
+              "poetry run pytest tests/test_core/test_dataset/test_plugins.py tests/test_core/test_project/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_permissions.py::TestPortalRoleBackend"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_permissions.py -v"
+            ],
+            "code": [
+              "fairdm/permissions.py:26",
+              "fairdm/conf/settings/auth.py:61"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_admin/test_sites.py::TestAdministrationAccessForRoleHolders"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_admin/test_sites.py -v"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_admin/test_sites.py::TestAdministrationAccessForRoleHolders"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_admin/test_sites.py -v",
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q"
+            ],
+            "code": [
+              "fairdm/contrib/admin/sites.py:44"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields -v"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestPersonAdminFields"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:313"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py::TestDataCuratorPortalPages",
+              "tests/test_contrib/test_contributors/test_permissions.py::TestCommunityManagerPortalRights",
+              "tests/test_contrib/test_contributors/test_permissions.py::TestAPersonHoldingTwoRolesHoldsBothSets"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_permissions.py -v"
+            ]
+          }
+        },
+        {
+          "id": "T017a",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestDeclaredPermissionsExist"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_portal_roles.py -v"
+            ]
+          }
+        },
+        {
+          "id": "T017b",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestDeclaredPermissionsExist"
+            ],
+            "commands": [
+              "poetry run python manage.py makemigrations dataset",
+              "poetry run pytest tests/test_portal_roles.py -v",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/core/dataset/models.py:378",
+              "fairdm/core/dataset/migrations/0013_alter_dataset_options.py:1"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_utils.py::TestCheckHasEditPermission",
+              "tests/test_templatetags/test_fairdm.py::TestHasPermissionTag"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_plugins/test_utils.py tests/test_templatetags/test_fairdm.py -v",
+              "poetry run pytest tests/test_contrib/test_contributors/test_models.py tests/test_contrib/test_plugins/ tests/test_templatetags/ -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/models.py:779",
+              "fairdm/contrib/plugins/utils.py:38",
+              "fairdm/templatetags/fairdm.py:200",
+              "fairdm/contrib/import_export/views.py:157",
+              "fairdm/contrib/import_export/views.py:224"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_admin.py::TestMergeAndClaimLinkViewsAdmitACommunityManager"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_admin.py -q",
+              "poetry run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/admin.py:349",
+              "fairdm/contrib/contributors/admin.py:473",
+              "fairdm/contrib/contributors/admin.py:523"
+            ]
+          }
+        }
+      ],
+      "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us2"
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 341,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 342,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P3",
+      "issue": 343,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -x"
+            ]
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_views/test_team.py::TestTeamView"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -v"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/views/team.py:11",
+              "fairdm/contrib/contributors/templates/contributors/team.html:1",
+              "fairdm/contrib/contributors/urls.py:25"
+            ]
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_menus/test_menus.py::TestTeamMenuItem::test_team_link_appears_in_the_community_group"
+            ],
+            "commands": [
+              "poetry run pytest tests/test_menus/test_menus.py -v"
+            ],
+            "code": [
+              "fairdm/menus/menus.py:86"
+            ]
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "code": [
+              "docs/portal-administration/roles.md:80"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 344,
+    "draft": true
+  }
+}

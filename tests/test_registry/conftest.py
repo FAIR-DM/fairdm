@@ -5,8 +5,6 @@ This conftest.py provides fixtures that ensure clean state between tests
 when working with Django models and the FairDM registry.
 """
 
-import uuid
-
 import factory
 import pytest
 from django.apps import apps
@@ -87,26 +85,6 @@ def clean_registry():
     registry._locations.update(saved_locations)
     admin.site._registry.clear()
     admin.site._registry.update(saved_admin)
-
-
-@pytest.fixture
-def unique_app_label():
-    """
-    Generate a unique app label for test models.
-
-    This prevents Django model registry conflicts when creating
-    models dynamically in tests. Each test gets a unique app label.
-
-    Example usage:
-        def test_something(unique_app_label):
-            class TestSample(Sample):
-                class Meta:
-                    app_label = unique_app_label
-
-    Returns:
-        str: A unique app label like "test_app_abc123def456"
-    """
-    return f"test_app_{uuid.uuid4().hex[:12]}"
 
 
 @pytest.fixture(autouse=True)

@@ -1,0 +1,100 @@
+{
+  "story": "US5",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 343,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/017-us5",
+  "tasks": [
+    "T031",
+    "T032",
+    "T033",
+    "T034"
+  ],
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-16/3c401f5e"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-08-05/d3dce07f"
+    }
+  ],
+  "context": {
+    "why": "Everything in this feature so far is invisible to a visitor. Somebody looking at a research portal for the first time wants to know who is behind it: who is in charge, who looks after the data, who to talk to about an account, and who built the thing. This story is the page that tells them, and it is the only part of this work anybody outside the team ever sees. It is also what gives the Developer role its purpose - that role holds no rights at all and exists so the people who build a portal are named on its team and credited for it.",
+    "spec_sections": [
+      "User Story 5 - A visitor can see who runs the portal",
+      "Requirements / The portal team page (FR-030 to FR-035)",
+      "Edge Cases"
+    ],
+    "plan_sections": [
+      "Phases / Phase 5 - US-5, the portal team page",
+      "Risks"
+    ],
+    "prior_decisions": [
+      "D18 - the page lists ACTIVE holders only. A deactivated account holds nothing, and naming a departed volunteer as the portal's administrator tells a visitor something untrue. FR-030 says so.",
+      "D1 - the Developer role holds no rights and exists for this page. It appears on it like any other role.",
+      "The page shows portal roles, never contribution roles. Those are credit on a record and have nothing to do with running the portal - CONTEXT.md keeps the two terms apart and this page is the easiest place to blur them.",
+      "PortalRoles.ROLES is the declaration order and the order the page presents. PortalRoles.shipped_names() and the role objects are the one source; never hard-code the four names or their order in a view or a template.",
+      "A role nobody holds is left off the page rather than shown empty (FR-034)."
+    ],
+    "acceptance": [
+      {
+        "task": "T031",
+        "given_when_then": "Given people holding portal roles, When a visitor who is not signed in opens the page, Then 200, each role appears with the active people holding it in declaration order, somebody holding two roles appears under both, a role nobody holds is absent, a deactivated holder is absent, no email address appears anywhere in the response, and no contribution role appears. The page also holds its query count as the number of holders grows."
+      },
+      {
+        "task": "T032",
+        "given_when_then": "Given the route, When it is reached, Then it lives in fairdm/contrib/contributors beside people-list and organization-list, and each person is shown by name with a link to their public profile."
+      },
+      {
+        "task": "T033",
+        "given_when_then": "Given the main navigation, When a visitor opens the Community group, Then the portal team page is there beside People and Organizations, with an icon from the existing set."
+      },
+      {
+        "task": "T034",
+        "given_when_then": "Given an administrator reading the documentation, When they look up the team page, Then they find what it shows and that putting somebody in a role is what puts them on it."
+      }
+    ],
+    "verified_base": {
+      "commit": "fc82c8f3f3102a35382e536e867e79d1d0b280a2",
+      "verified_at": "2026-09-16T15:20:00Z",
+      "steps": [
+        "conformance",
+        "docs",
+        "poetry:lint",
+        "poetry:typecheck",
+        "poetry:build",
+        "poetry:test"
+      ],
+      "note": "Lint, types, build, conformance and the documentation check ran on this worktree at this commit and are green. The full pytest suite was read serially at 2809 passed, 8 skipped on the identical code tree immediately before this branch was cut - the only difference is markdown under specs/. Do not re-run the suite to check your starting point."
+    },
+    "environment": "Worktree at /home/sam/projects/fairdm/fairdm-worktrees/017-us5, branch 017-portal-roles-us5, cut from the feature branch with the first four stories merged in. Virtualenv synced and pinned to Python 3.13. Run everything through poetry. The lint gate is `poetry run pre-commit run --all-files`. A dev server serves THIS worktree at http://devserver:8000 and the maintainer watches it while you work, so your page appears to him as you commit it. Its database already has the five development accounts, each in its role, so the page has something real to render. Leave the server running and do not restart it - the autoreloader picks your changes up. One trap that comes with that: this codebase declares its navigation as an import side effect, so a reloaded dev server can end up with a menu group declared twice. Assert what the page renders, never the menu objects in memory."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 150
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read this brief in full, then your own tasks T031-T034 in specs/017-portal-roles/tasks.md - your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and stop there.",
+    "Read fairdm/portal_roles.py, fairdm/menus/menus.py (the Community group), and the existing people-list view, url and template in fairdm/contrib/contributors before you write anything - this page belongs beside them and should look like they do.",
+    "Read the CONTEXT.md entries for Person, Contributor and Contribution so the page's language matches the domain's.",
+    "git log --oneline -10.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "No email address on the page, in any form, for anybody.",
+    "Do not hard-code the four role names or their order. PortalRoles is the one source.",
+    "Do not show contribution roles on this page.",
+    "Do not change what any role holds, the permission backend, the admin site, the Group guard, the checks or the development-accounts command.",
+    "Do not add a migration.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge onto the feature branch, no push, no gh, no token minting.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice."
+  ]
+}

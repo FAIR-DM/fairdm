@@ -24,8 +24,8 @@ from fairdm.core.measurement.models import (
 )
 from fairdm.factories import DatasetFactory, UserFactory
 from fairdm.registry import registry
-from fairdm_demo.factories import RockSampleFactory
-from fairdm_demo.models import ICP_MS_Measurement, XRFMeasurement
+from demo.factories import RockSampleFactory
+from demo.models import ICP_MS_Measurement, XRFMeasurement
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()

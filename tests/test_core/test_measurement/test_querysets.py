@@ -32,7 +32,7 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.factories import PersonFactory
-from fairdm_demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 def build_measurements_with_related(dataset, count):
