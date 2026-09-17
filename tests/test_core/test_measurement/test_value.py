@@ -16,8 +16,8 @@ from types import SimpleNamespace
 import pint
 import pytest
 
-from fairdm.core.measurement.models import Measurement
 from demo.factories import ExampleMeasurementFactory, ICP_MS_MeasurementFactory
+from fairdm.core.measurement.models import Measurement
 
 
 @pytest.mark.django_db

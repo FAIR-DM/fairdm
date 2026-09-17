@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from guardian.shortcuts import assign_perm
 
+from demo.models import RockSample, WaterSample
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.factories import (
     DatasetFactory,
@@ -18,7 +19,6 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
-from demo.models import RockSample, WaterSample
 
 User = get_user_model()
 

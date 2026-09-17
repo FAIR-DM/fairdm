@@ -16,6 +16,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from guardian.shortcuts import assign_perm
 
+from demo.factories import RockSampleFactory
+from demo.models import ICP_MS_Measurement, XRFMeasurement
 from fairdm.core.measurement.filters import MeasurementFilter, MeasurementFilterMixin
 from fairdm.core.measurement.models import (
     Measurement,
@@ -24,8 +26,6 @@ from fairdm.core.measurement.models import (
 )
 from fairdm.factories import DatasetFactory, UserFactory
 from fairdm.registry import registry
-from demo.factories import RockSampleFactory
-from demo.models import ICP_MS_Measurement, XRFMeasurement
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()

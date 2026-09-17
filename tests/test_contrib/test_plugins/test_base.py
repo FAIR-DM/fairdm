@@ -16,12 +16,12 @@ from django.http import Http404
 from django.test import RequestFactory
 from django.views.generic import TemplateView
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories.contributors import UserFactory
-from demo.factories import RockSampleFactory
 
 pytestmark = pytest.mark.django_db
 

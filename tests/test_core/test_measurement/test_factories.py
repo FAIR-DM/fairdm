@@ -10,6 +10,13 @@ exports from ``fairdm.factories``.
 import factory
 import pytest
 
+from demo.factories import (
+    ExampleMeasurementFactory,
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    XRFMeasurementFactory,
+)
+from demo.models import ICP_MS_Measurement, XRFMeasurement
 from fairdm.core.measurement.models import (
     MeasurementDate,
     MeasurementDescription,
@@ -22,13 +29,6 @@ from fairdm.factories.core import (
     MeasurementFactory,
     MeasurementIdentifierFactory,
 )
-from demo.factories import (
-    ExampleMeasurementFactory,
-    ICP_MS_MeasurementFactory,
-    RockSampleFactory,
-    XRFMeasurementFactory,
-)
-from demo.models import ICP_MS_Measurement, XRFMeasurement
 
 
 @pytest.mark.django_db

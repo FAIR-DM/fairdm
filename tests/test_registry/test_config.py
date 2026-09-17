@@ -11,6 +11,7 @@ import pytest
 from django.contrib import admin
 from django.db import models
 
+from demo.models import RockSample
 from fairdm.core.models import Measurement, Sample
 from fairdm.core.sample.admin import SampleChildAdmin
 from fairdm.registry import registry
@@ -25,7 +26,6 @@ from fairdm.registry.exceptions import (
     DuplicateRegistrationError,
     FieldValidationError,
 )
-from demo.models import RockSample
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 

@@ -1332,8 +1332,8 @@ class TestContributorCredits:
 
     @pytest.mark.django_db
     def test_reports_each_kind_of_credited_output(self, person):
-        from fairdm.utils.choices import Visibility
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from fairdm.utils.choices import Visibility
 
         project = ProjectFactory()
         # Dataset.objects (the manager Contributor.datasets reads) excludes PRIVATE

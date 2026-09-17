@@ -16,6 +16,8 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
 
+from demo.factories import RockSampleFactory
+from demo.models import RockSample, WaterSample
 from fairdm.core.models import Sample
 from fairdm.core.sample.forms import SampleForm
 from fairdm.core.sample.models import (
@@ -33,8 +35,6 @@ from fairdm.factories import (
     SampleIdentifierFactory,
     SampleRelationFactory,
 )
-from demo.factories import RockSampleFactory
-from demo.models import RockSample, WaterSample
 
 
 @pytest.mark.django_db
@@ -539,8 +539,8 @@ class TestSampleLocalId:
     different datasets carrying the same one are both valid."""
 
     def test_the_same_local_id_is_valid_in_two_different_datasets(self):
-        from fairdm.factories import DatasetFactory
         from demo.factories import RockSampleFactory
+        from fairdm.factories import DatasetFactory
 
         dataset_a = DatasetFactory()
         dataset_b = DatasetFactory()
@@ -575,8 +575,8 @@ class TestSampleLocationRelation:
     def test_deleting_a_referenced_location_is_refused(self, dataset):
         from django.db.models.deletion import ProtectedError
 
-        from fairdm.factories import PointFactory
         from demo.factories import RockSampleFactory
+        from fairdm.factories import PointFactory
 
         location = PointFactory()
         RockSampleFactory(dataset=dataset, location=location)
@@ -672,8 +672,8 @@ class TestSamplePrefetch:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm.factories import DatasetFactory
         from demo.factories import RockSampleFactory
+        from fairdm.factories import DatasetFactory
 
         dataset = DatasetFactory()
         description_types = SampleDescription.VOCABULARY.values
@@ -820,8 +820,8 @@ class TestSampleQuerySetOptimizations:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        from fairdm.core.sample.models import SampleDate, SampleDescription
         from demo.models import RockSample
+        from fairdm.core.sample.models import SampleDate, SampleDescription
 
         # Create sample with metadata
         sample = RockSample.objects.create(
@@ -864,8 +864,8 @@ class TestSampleQuerySetOptimizations:
         """Test that PolymorphicQuerySet automatically returns correctly typed instances."""
         from datetime import date
 
-        from fairdm.core.sample.models import Sample
         from demo.models import RockSample, WaterSample
+        from fairdm.core.sample.models import Sample
 
         # Create mixed sample types
         RockSample.objects.create(
@@ -970,8 +970,8 @@ class TestSampleQuerySetOptimizations:
         import time
         from datetime import date
 
-        from fairdm.core.sample.models import Sample
         from demo.models import RockSample, WaterSample
+        from fairdm.core.sample.models import Sample
 
         # Create 50 of each type (100 total - scaled down for test speed)
         for i in range(50):

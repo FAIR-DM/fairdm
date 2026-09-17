@@ -18,6 +18,8 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.urls import reverse
 
+from demo.factories import RockSampleFactory, WaterSampleFactory
+from demo.models import RockSample, WaterSample
 from fairdm.core.sample.admin import (
     SampleChildAdmin,
     SampleDateInline,
@@ -35,8 +37,6 @@ from fairdm.core.sample.models import (
 from fairdm.factories.core import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from demo.factories import RockSampleFactory, WaterSampleFactory
-from demo.models import RockSample, WaterSample
 
 User = get_user_model()
 
@@ -715,9 +715,9 @@ class TestSampleAdminReachesPrivateDatasets:
     """
 
     def test_the_dataset_field_offers_a_private_dataset(self, rf, admin_user):
+        from demo.factories import RockSampleFactory
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
-        from demo.factories import RockSampleFactory
 
         private = DatasetFactory(visibility=Visibility.PRIVATE)
         sample = RockSampleFactory(dataset=private)
@@ -730,9 +730,9 @@ class TestSampleAdminReachesPrivateDatasets:
         assert private in form.fields["dataset"].queryset
 
     def test_a_specimen_in_a_private_dataset_validates(self, rf, admin_user):
+        from demo.factories import RockSampleFactory
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
-        from demo.factories import RockSampleFactory
 
         private = DatasetFactory(visibility=Visibility.PRIVATE)
         sample = RockSampleFactory(dataset=private)

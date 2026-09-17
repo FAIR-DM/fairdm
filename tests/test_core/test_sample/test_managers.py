@@ -6,9 +6,9 @@ rule) - tests/test_core/test_sample/ carried no test_managers.py before this tas
 
 import pytest
 
+from demo.factories import RockSampleFactory
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
-from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db
