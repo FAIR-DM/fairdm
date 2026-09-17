@@ -279,6 +279,9 @@ poetry run pytest tests/test_registry.py
 
 # Run with verbose output
 poetry run pytest -v
+
+# Run in a single process (tests are parallel by default)
+poetry run pytest -n0
 ```
 
 ### Code Quality

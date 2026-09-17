@@ -32,6 +32,17 @@ FairDM uses **pytest** for testing. Tests are located in the `tests/` directory.
 poetry run pytest
 ```
 
+Tests run in parallel by default, one worker per available core, with each test
+class or module kept together on a single worker. Every worker builds its own
+test database, so tests running at the same time cannot see each other's data.
+
+Parallel output interleaves, which makes a single failure harder to read. Add
+`-n0` to any command to fall back to one process:
+
+```bash
+poetry run pytest tests/test_core/test_models.py -n0
+```
+
 ### Run Tests for a Specific Module
 
 ```bash
