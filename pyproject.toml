@@ -386,8 +386,13 @@ addopts = [
     "--reuse-db",
     "--no-migrations",
     "--ds=tests.settings",
+    # One worker per core, and every test in a class or module on the same
+    # worker so class-scoped and module-scoped fixtures are built once.
+    "-n=auto",
+    "--dist=loadscope",
 ]
 # Coverage can be enabled with: --cov --cov-report html
+# A single test is easier to read serially: add -n0 to any invocation.
 
 [tool.coverage.run]
 source = ["fairdm"]
