@@ -6,8 +6,8 @@ constitution Article X.
 
 import pytest
 
-from fairdm.factories import DatasetFactory, UserFactory
 from demo.factories import RockSampleFactory
+from fairdm.factories import DatasetFactory, UserFactory
 
 
 @pytest.fixture

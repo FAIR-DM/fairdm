@@ -22,11 +22,11 @@ from pathlib import Path
 # production, which refuses to boot on a configuration like this one.
 os.environ.setdefault("DJANGO_ENV", "development")
 
-import fairdm  # noqa: E402
+import fairdm
 
 fairdm.setup(apps=["demo"], addons=[])
 
-from config.settings import *  # noqa: E402, F403
+from config.settings import *
 
 MIGRATION_TEST_DIR = Path(os.environ["FAIRDM_MIGRATION_TEST_DIR"])
 

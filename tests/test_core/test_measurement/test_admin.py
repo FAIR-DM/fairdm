@@ -19,6 +19,7 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.urls import reverse
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.measurement.admin import MeasurementChildAdmin
 from fairdm.core.measurement.models import (
     Measurement,
@@ -26,7 +27,6 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 User = get_user_model()
 
@@ -125,8 +125,8 @@ class TestMeasurementAdminFilters:
         """Narrowing the parent changelist by dataset leaves only that dataset's rows."""
         from django.contrib import admin as django_admin
 
-        from fairdm.factories import DatasetFactory
         from demo.models import XRFMeasurement
+        from fairdm.factories import DatasetFactory
 
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
@@ -364,9 +364,9 @@ class TestMeasurementContributionInlineRoleVocabulary:
     def test_posting_an_off_vocabulary_role_is_a_form_error_not_a_500(
         self, admin_client, sample
     ):
+        from demo.models import XRFMeasurement
         from fairdm.contrib.contributors.models import Contribution
         from fairdm.factories import PersonFactory
-        from demo.models import XRFMeasurement
 
         xrf = XRFMeasurement.objects.create(
             name="XRF Test",

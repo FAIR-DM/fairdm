@@ -490,7 +490,6 @@ class TestDataCuratorPortalPages:
 
     def _private_dataset_with_sample(self):
         from demo.factories import RockSampleFactory
-
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
 

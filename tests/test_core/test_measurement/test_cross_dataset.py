@@ -15,9 +15,9 @@ declared on the polymorphic ``Measurement`` base cannot be stored against a subc
 import pytest
 from django.db.models import RestrictedError
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
 from fairdm.factories import DatasetFactory, PersonFactory
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.fixture

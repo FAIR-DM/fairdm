@@ -13,10 +13,10 @@ comprehensive filtering capabilities for Sample models including:
 import pytest
 from django.contrib.auth import get_user_model
 
-from fairdm.core.models import Dataset
-from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
 from demo.filters import RockSampleFilter
 from demo.models import RockSample, WaterSample
+from fairdm.core.models import Dataset
+from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
 
 User = get_user_model()
 

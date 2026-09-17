@@ -28,6 +28,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import Promise
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import (
     DATACITE_RELATIONSHIP_TYPES,
     Dataset,
@@ -46,7 +47,6 @@ from fairdm.factories import (
 )
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db

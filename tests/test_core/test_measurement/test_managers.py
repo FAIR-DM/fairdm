@@ -14,9 +14,9 @@ story's prohibited list (owned by a concurrently running story).
 import pytest
 from django.core.exceptions import ValidationError
 
+from demo.factories import ExampleMeasurementFactory
 from fairdm.core.measurement.models import Measurement
 from fairdm.factories import DatasetFactory
-from demo.factories import ExampleMeasurementFactory
 
 
 @pytest.mark.django_db

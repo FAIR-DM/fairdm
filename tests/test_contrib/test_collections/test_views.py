@@ -16,11 +16,6 @@ from django.utils import timezone
 from pytest_django.asserts import assertContains
 
 import fairdm.contrib.collections as collections_pkg
-from fairdm.contrib.collections.views import DataTableView
-from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory
-from fairdm.registry import registry
-from fairdm.utils.choices import Visibility
 from demo.factories import (
     CustomSampleFactory,
     ExampleMeasurementFactory,
@@ -35,6 +30,11 @@ from demo.models import (
     SoilSample,
     WaterSample,
 )
+from fairdm.contrib.collections.views import DataTableView
+from fairdm.core.sample.models import Sample
+from fairdm.factories import DatasetFactory
+from fairdm.registry import registry
+from fairdm.utils.choices import Visibility
 
 
 @pytest.mark.django_db

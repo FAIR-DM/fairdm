@@ -7,9 +7,9 @@ import contextlib
 import pytest
 from django.contrib.auth import get_user_model
 
+from demo.factories import RockSampleFactory
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from demo.factories import RockSampleFactory
 
 User = get_user_model()
 

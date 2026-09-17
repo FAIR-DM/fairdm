@@ -20,6 +20,7 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from guardian.shortcuts import assign_perm as guardian_assign_perm
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.measurement.permissions import MeasurementPermissionBackend
 from fairdm.core.utils import assign_perm as fairdm_assign_perm
@@ -27,7 +28,6 @@ from fairdm.core.utils import get_permission_target
 from fairdm.core.utils import get_perms as fairdm_get_perms
 from fairdm.core.utils import remove_perm as fairdm_remove_perm
 from fairdm.factories import DatasetFactory, PersonFactory
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.fixture
