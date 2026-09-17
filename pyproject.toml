@@ -274,6 +274,10 @@ exclude = ["fairdm/conf/*"]
     "F841", # Unused variables in demo/example code
     "E402", # Import ordering in admin (after register decorators)
 ]
+# The root conftest.py is test configuration shared by tests/ and demo/tests/.
+"conftest.py" = [
+    "S101", # Allow assert statements: its fixtures fail tests by asserting
+]
 "fairdm/conf/*" = [
     "F405",   # Star imports in config files
     "F403",   # Star imports in config files
@@ -378,7 +382,9 @@ env = ["DJANGO_ENV=development"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-testpaths = ["tests"]
+# demo/tests belongs here: the reference application is shipped, so it either
+# runs on every change and stays green or it is not a suite.
+testpaths = ["tests", "demo/tests"]
 markers = ["slow: Tests that take > 1 second to execute"]
 filterwarnings = ["ignore", "default:::keywords"]
 addopts = [
@@ -421,6 +427,9 @@ extend_exclude = [
     ".*tests",
     "tests/",
     "demo/tests/",
+    # Test configuration shared by both suites, so pytest is a test dependency
+    # here in exactly the way it is inside them.
+    "conftest.py",
     # Factories are test-support code and depend on factory_boy, which is a
     # dev/test dependency rather than a runtime one.
     "fairdm/factories/",

@@ -275,7 +275,10 @@ poetry run pytest
 poetry run pytest --cov=fairdm --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_registry.py
+poetry run pytest tests/test_registry/test_config.py
+
+# Run the reference application's tests on their own (they run by default too)
+poetry run pytest demo/tests
 
 # Run with verbose output
 poetry run pytest -v

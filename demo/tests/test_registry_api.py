@@ -105,7 +105,7 @@ class TestDemoRegistryIntrospection:
             print(f"  Table: {table_class.__name__}")
             print(f"  Filterset: {filterset_class.__name__}")
 
-    def test_check_model_registration_status(self):
+    def test_check_model_registration_status(self, unique_app_label):
         """Demonstrate checking if models are registered."""
         # Test with registered models
         assert registry.is_registered(RockSample) is True
@@ -122,7 +122,7 @@ class TestDemoRegistryIntrospection:
 
         class UnregisteredSample(Sample):
             class Meta:
-                app_label = "demo"
+                app_label = unique_app_label
 
         assert registry.is_registered(UnregisteredSample) is False
 
