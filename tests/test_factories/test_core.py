@@ -408,6 +408,14 @@ class TestProjectFactories:
 
         assert project.contributors.count() == 0
 
+    def test_project_factory_no_auto_image(self):
+        """A default ProjectFactory() leaves `image` unset — generating one on
+        every call left a file behind under whatever MEDIA_ROOT was active,
+        forever (issue #323). Pass `image=...` for a test that needs one."""
+        project = ProjectFactory()
+
+        assert not project.image
+
     def test_project_factory_with_owner(self):
         """Test ProjectFactory can set an owner (must be Organization)."""
         org = OrganizationFactory()
@@ -436,6 +444,30 @@ class TestProjectFactories:
         assert date.related == project
         assert date.type == "Created"
         assert date.value
+
+    def test_project_factory_image_stays_under_media_root(self, tmp_path):
+        """A project created with a real image writes it only inside the
+        current test's own `MEDIA_ROOT`. `MEDIA_ROOT` used to be a path fixed
+        for every run of the suite, and nothing ever removed what landed
+        there (issue #323)."""
+        import io
+        from pathlib import Path
+
+        from django.conf import settings
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), color="green").save(buffer, format="JPEG")
+        buffer.seek(0)
+        upload = SimpleUploadedFile(
+            "test.jpg", buffer.read(), content_type="image/jpeg"
+        )
+
+        project = ProjectFactory(image=upload)
+
+        assert Path(settings.MEDIA_ROOT) == tmp_path / "media"
+        assert tmp_path in Path(project.image.path).parents
 
 
 @pytest.mark.django_db
@@ -477,6 +509,13 @@ class TestDatasetFactories:
         dataset = DatasetFactory()
 
         assert dataset.contributors.count() == 0
+
+    def test_dataset_factory_no_auto_image(self):
+        """A default DatasetFactory() leaves `image` unset — see the same
+        note on ProjectFactory above (issue #323)."""
+        dataset = DatasetFactory()
+
+        assert not dataset.image
 
     def test_dataset_description_factory(self):
         """Test DatasetDescriptionFactory creates valid descriptions."""

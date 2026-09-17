@@ -334,6 +334,13 @@ addopts = [
 - **`-n=auto` / `--dist=loadscope`**: One worker per core, with each test class
   or module kept together on one worker. Add `-n0` to read a single failure
 
+`MEDIA_ROOT` and `STATIC_ROOT` are not in this list because they are not
+fixed: an autouse fixture in the root `conftest.py` points both at the
+current test's own `tmp_path` before every test runs, on every worker, so a
+model instance saved with a real image never lands anywhere but a directory
+pytest already owns and cleans up. Nothing to configure here — a test that
+needs an image just asks a factory for one.
+
 ## Troubleshooting
 
 ### Tests Can't Import FairDM Modules

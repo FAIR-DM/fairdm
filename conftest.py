@@ -33,6 +33,23 @@ def unique_app_label():
 
 
 @pytest.fixture(autouse=True)
+def _media_root_under_tmp_path(tmp_path, settings):
+    """Every test's ``MEDIA_ROOT``/``STATIC_ROOT`` are this test's own ``tmp_path``.
+
+    ``tests/settings.py`` falls back to a per-process temp directory for code
+    that reads these settings outside a test, but every test overrides it with
+    this. A model instance saved with a real image writes it under
+    ``MEDIA_ROOT``, so a fixed shared path here meant every run of the suite
+    wrote into the same directory and nothing ever removed it (issue #323).
+    ``tmp_path`` is unique per test and per pytest-xdist worker, and pytest
+    prunes old runs' directories on its own, so growth stays bounded the same
+    way ``django-literature``'s equivalent fixture already does.
+    """
+    settings.MEDIA_ROOT = str(tmp_path / "media")
+    settings.STATIC_ROOT = str(tmp_path / "static")
+
+
+@pytest.fixture(autouse=True)
 def no_models_left_in_installed_apps():
     """Fail the test that leaves a new model behind in an installed app.
 

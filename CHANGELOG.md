@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consider whether the account was still active.
 - Error messages naming an invalid URL, ORCID or ROR value could not be translated, because
   the value was substituted into the message before translation could look it up.
+- **`ProjectFactory`, `DatasetFactory`, `PersonFactory` and `OrganizationFactory` no longer
+  write a real image file on every instantiation.** Every portal that installs FairDM uses
+  these factories in its own test suite, and none of them had asked for an image — so if
+  your project's test suite creates projects, datasets, people or organisations, it has
+  probably been filling its own `MEDIA_ROOT` with a new JPEG and a new directory per object,
+  every test run, forever. Nothing removed them. A test that genuinely needs an image on one
+  of these objects now passes `image=...` explicitly.
 
 ### Changed
 

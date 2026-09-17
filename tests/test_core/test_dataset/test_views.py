@@ -1818,7 +1818,19 @@ class TestDatasetCardRendering:
         assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
 
     def test_a_dataset_with_an_image_gets_a_media_block(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC)
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), color="blue").save(buffer, format="JPEG")
+        buffer.seek(0)
+        upload = SimpleUploadedFile(
+            "test.jpg", buffer.read(), content_type="image/jpeg"
+        )
+
+        DatasetFactory(visibility=Visibility.PUBLIC, image=upload)
         _, html = self._card_html(client)
         assert html.count("record-card__media") == 1
         assert "record-card__placeholder" not in html

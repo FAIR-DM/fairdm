@@ -116,6 +116,21 @@ class TestContributorFactoryCreation:
         assert org.name
         assert org.profile
 
+    def test_person_factory_no_auto_image(self):
+        """A default PersonFactory() leaves `image` unset — generating one on
+        every call left a file behind under whatever MEDIA_ROOT was active,
+        forever (issue #323). Pass `image=...` for a test that needs one."""
+        person = PersonFactory()
+
+        assert not person.image
+
+    def test_organization_factory_no_auto_image(self):
+        """A default OrganizationFactory() leaves `image` unset — see the
+        same note on PersonFactory above (issue #323)."""
+        org = OrganizationFactory()
+
+        assert not org.image
+
 
 @pytest.mark.django_db
 class TestAffiliationFactory:

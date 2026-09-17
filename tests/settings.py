@@ -13,11 +13,12 @@ Tests run against a real PostGIS instance (dev container or CI service).
 Used automatically by pytest-django via pyproject.toml configuration.
 """
 
+import atexit
 import logging
 import os
+import shutil
 import sys
 import tempfile
-from pathlib import Path
 
 # This module is development-shaped, so it has to say so: an unset DJANGO_ENV
 # resolves to production, which refuses to boot on a configuration like this
@@ -115,9 +116,16 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 COMPRESS_ENABLED = False
 COMPRESS_OFFLINE = False
 
-# Use temporary directories for media files in tests
-MEDIA_ROOT = Path(tempfile.gettempdir()) / "fairdm_test_media"
-STATIC_ROOT = Path(tempfile.gettempdir()) / "fairdm_test_static"
+# A per-process directory, removed when the process exits. This is only the
+# fallback for code that reads these settings outside a test (a management
+# command, an IDE's static analysis, the mypy django-stubs plugin); the
+# `_media_root_under_tmp_path` fixture in the root `conftest.py` points every
+# test at its own `tmp_path` instead. A fixed shared path here is what
+# issue #323 was: every run wrote into it and nothing ever removed it.
+MEDIA_ROOT = tempfile.mkdtemp(prefix="fairdm_test_media_")
+STATIC_ROOT = tempfile.mkdtemp(prefix="fairdm_test_static_")
+atexit.register(shutil.rmtree, MEDIA_ROOT, ignore_errors=True)
+atexit.register(shutil.rmtree, STATIC_ROOT, ignore_errors=True)
 
 # ==============================================================================
 # CELERY

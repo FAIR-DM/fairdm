@@ -195,8 +195,10 @@ class TestImageFieldWidgetAndValidation:
         """
         from fairdm.factories import ProjectFactory
 
-        # Create a project that initially has an image (factory generates one by default)
-        project = ProjectFactory()
+        # The factory leaves `image` unset by default (issue #323), so this test
+        # asks for one explicitly since the assertions below need a real file.
+        upload = _make_uploaded_file(_make_small_jpeg(), "test.jpg", "image/jpeg")
+        project = ProjectFactory(image=upload)
         assert project.image, (
             "Precondition: project should have an image after factory creation"
         )
@@ -240,7 +242,8 @@ class TestImageThumbnailAliases:
         """T019: project.image['core_small'] returns a non-empty URL."""
         from fairdm.factories import ProjectFactory
 
-        project = ProjectFactory()
+        upload = _make_uploaded_file(_make_small_jpeg(), "test.jpg", "image/jpeg")
+        project = ProjectFactory(image=upload)
         assert project.image, "Precondition: project must have an image"
         thumbnail = project.image["core_small"]
         url = thumbnail.url
@@ -255,7 +258,8 @@ class TestImageThumbnailAliases:
         """T020: project.image['core_large'] returns a non-empty URL."""
         from fairdm.factories import ProjectFactory
 
-        project = ProjectFactory()
+        upload = _make_uploaded_file(_make_small_jpeg(), "test.jpg", "image/jpeg")
+        project = ProjectFactory(image=upload)
         assert project.image, "Precondition: project must have an image"
         thumbnail = project.image["core_large"]
         url = thumbnail.url

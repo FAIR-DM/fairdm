@@ -67,7 +67,9 @@ class ContributorFactory(DjangoModelFactory):
     class Meta:
         model = Contributor
 
-    image = factory.django.ImageField(width=400, height=400, color="blue")
+    # No `image` default: `image` is blank/null on the model, and a real JPEG
+    # written on every instantiation left a file behind under whatever MEDIA_ROOT
+    # was active (issue #323). Pass `image=...` when a test needs one.
     name = factory.Sequence(lambda n: f"Contributor {n}")
     profile = Faker("text", max_nb_chars=300)
 

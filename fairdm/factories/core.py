@@ -170,8 +170,11 @@ class ProjectFactory(DjangoModelFactory):
         model = Project
 
     # Basic fields
+    #
+    # No `image` default: `image` is blank/null on the model, and a real JPEG
+    # written on every instantiation left a file behind under whatever MEDIA_ROOT
+    # was active (issue #323). Pass `image=...` when a test needs one.
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
@@ -357,8 +360,9 @@ class DatasetFactory(DjangoModelFactory):
         model = Dataset
 
     # Basic fields
+    #
+    # No `image` default — see ProjectFactory above (issue #323).
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
 
     # Relations - project can be passed in or auto-created
