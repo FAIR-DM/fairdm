@@ -8,6 +8,8 @@ value-with-uncertainty display, FAIR metadata, and queryset
 optimization.
 """
 
+import unicodedata
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
@@ -1235,7 +1237,12 @@ class TestMeasurementValueWithUncertainty:
         )
         icp_ms.refresh_from_db()
 
-        assert icp_ms.print_value() == "12.50 ± 0.40 µg/l"
+        # NFKC-normalised: the unit registry is free to render the micro prefix as
+        # either U+00B5 MICRO SIGN or U+03BC GREEK SMALL LETTER MU (both normalise to
+        # the same codepoint), and that choice belongs to the registry, not this test.
+        assert unicodedata.normalize("NFKC", icp_ms.print_value()) == unicodedata.normalize(
+            "NFKC", "12.50 ± 0.40 µg/l"
+        )
 
 
 @pytest.mark.django_db
