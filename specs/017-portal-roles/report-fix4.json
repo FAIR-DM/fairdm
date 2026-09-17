@@ -1,0 +1,41 @@
+{
+  "story": "FIX-4",
+  "status": "complete",
+  "commits": [
+    {
+      "sha": "5b36c05bbb6940edce27d5687b968be1afdc8ab1",
+      "subject": "T037: Portal Team page title, lead, info dialog and responsive grid"
+    },
+    {
+      "sha": "cc323f7f2ac6fdd8cba52c5befce1fbb0a7a3367",
+      "subject": "T037: correct faridm.org misspelling to fairdm.org in the docs menu"
+    }
+  ],
+  "files_changed": [
+    "fairdm/contrib/contributors/views/team.py",
+    "tests/test_contrib/test_contributors/test_views/test_team.py",
+    "fairdm/menus/menus.py",
+    "tests/test_menus/test_menus.py"
+  ],
+  "receipts": [
+    "RECEIPT: craft-tdd/2026-09-16/3c401f5e",
+    "RECEIPT: craft-increments/2026-08-05/d3dce07f"
+  ],
+  "verification": {
+    "focused_before": "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -q -> 8 passed (base, before new tests added)",
+    "focused_red_team": "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -q -> '........FFFF' then '4 failed, 8 passed in 6.95s' (test_page_title_is_portal_team: AssertionError: assert 'Team' == 'Portal Team'; test_lead_paragraph_explains_who_runs_the_portal: AssertionError: assert ''; test_info_dialog_explains_a_portal_role_and_links_to_the_docs: AssertionError: assert ''; test_holders_grid_is_responsive_across_breakpoints: AssertionError: assert 'md:grid-cols-2' in <rendered html>)",
+    "focused_green_team": "poetry run pytest tests/test_contrib/test_contributors/test_views/test_team.py -q -> '............' then '12 passed in 7.18s'",
+    "focused_red_menus": "poetry run pytest tests/test_menus/test_menus.py::TestDocumentationMenuGroupOtherChildren -q -> '2 failed in 0.11s' (test_second_child_is_user_guide and test_third_child_is_admin_guide: AssertionError comparing 'https://faridm.org/...' against the corrected 'https://fairdm.org/...' expectation)",
+    "focused_green_menus": "poetry run pytest tests/test_menus/test_menus.py -q -> '...........' then '11 passed in 2.56s'",
+    "full_suite": "poetry run pytest -n auto --dist loadscope -q -> '2839 passed, 8 skipped in 93.36s (0:01:33)'. verified_base recorded 2835 passed, 8 skipped serially; this run adds exactly the 4 new team-page tests (2835+4=2839), 8 skipped unchanged.",
+    "lint": "poetry run pre-commit run --all-files -> trim trailing whitespace: Passed; fix end of files: Passed; check yaml: Passed; poetry-check: Passed; ruff (lint): Passed; ruff (format): Passed; mypy: Passed; deptry: Passed",
+    "migrations_check_note": "poetry run python manage.py makemigrations --check --dry-run reports pre-existing drift in the 'identity' and 'orbit' apps (unrelated to this story's files, no models touched here); not something this task caused or is in scope to fix."
+  },
+  "decisions": [
+    "Wrote page_subtitle and page_info as new gettext_lazy strings on TeamView since the brief specified the mechanism (page_subtitle / page_info + page_info_actions) but not exact wording; kept each to one or two plain sentences per the acceptance criteria's own phrasing ('who runs the portal and what the roles mean' / 'what a portal role is and how it differs from a contribution role').",
+    "No template changes were needed for the title, lead paragraph, or info dialog: page_view.html's <c-page.title :attrs=\"page\"> already spreads PageMixin's full page context dict (title, subtitle, info, info_actions) onto django-mvp's title component, which draws the info icon and its modal itself. Only the view's class attributes changed.",
+    "Discovered the worktree's poetry virtualenv had been recreated on Python 3.14 (site default), not the pinned 3.13 the brief described, and pytest couldn't even collect (`ImportError: cannot import name 'find_loader' from 'pkgutil'`, removed in 3.12+, used by an installed dependency). Ran `poetry env use /home/sam/.local/bin/python3.13` then `poetry install --sync` inside this worktree only, touching no dependency pin or the lock file (confirmed via `git status` before/after - poetry.lock and pyproject.toml are unchanged). This did not touch any other worktree or the running dev server on port 8000.",
+    "The two pre-existing test_menus.py assertions (test_second_child_is_user_guide, test_third_child_is_admin_guide) pinned the misspelled 'faridm.org' URL as expected behaviour. Per the brief's own prior_decisions instructing the fix in this same file, and craft-tdd's defect-fix loop (write/observe the failing assertion for the corrected URL, then fix the source), I updated those two literal strings from faridm.org to fairdm.org rather than leaving a test that asserts a bug is correct behaviour. This is the one case in this run where a pre-existing test's assertion text changed; no test was weakened, skipped, or had its coverage reduced - it now asserts the corrected value the brief explicitly asked for."
+  ],
+  "notes": "All 8 pre-existing tests in tests/test_contrib/test_contributors/test_views/test_team.py pass unmodified; 4 new tests were added to the same class covering the title, lead paragraph, info dialog + its documentation action, and the responsive grid classes actually emitted into the markup. Who is listed, role order, and the two-query access pattern (get_roles) were not touched. The grid_config change (cols=1, md=2, lg=4, gap=4) is presentation-only, as scoped; the brief notes the cards themselves may look wrong in a four-column track and that is not this task's concern. The environment's Python version drift (3.14 instead of the pinned 3.13) is worth flagging to the orchestrator in case other 017-* worktrees hit the same pkgutil import failure - it was a per-worktree poetry virtualenv cache issue, resolved locally, no shared files changed."
+}

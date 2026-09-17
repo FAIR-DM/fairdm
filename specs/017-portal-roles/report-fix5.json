@@ -1,0 +1,64 @@
+{
+  "story": "FIX-5",
+  "status": "complete",
+  "commits": [
+    {
+      "sha": "401c398b474a5df30a6d751e7260da4d1c8d147a",
+      "subject": "T038: bump django-mvp to 0.23 and django-accounts-center to 0.8"
+    },
+    {
+      "sha": "70c921e1db4794d01ef8d5346b679b2b51c808de",
+      "subject": "T038: rename has_create_permission to show_create_action on PersonListView (django-mvp 0.23 BREAKING 1)"
+    },
+    {
+      "sha": "d417e2143ca6e77278c9d9649627171cf2a0ada5",
+      "subject": "T038: drop MVP_CONFIG sidebar footer setting, superseded by django-mvp's fixed composition (django-mvp 0.23 BREAKING 2)"
+    },
+    {
+      "sha": "a9fabd31a513f124eeca2b22557cffd7272465c7",
+      "subject": "T038: mount mvp.urls beside dac.urls at account-center/ (django-accounts-center 0.8 BREAKING 3)"
+    },
+    {
+      "sha": "2213d4cfed2784a8dce1277f2ce4a0b16f6f2ee3",
+      "subject": "T038: correct the DAC_ICONS comment - account_center/overview now resolve from django-mvp's pack"
+    },
+    {
+      "sha": "0c37e0fd87bceb7f57f52820b67264c8f7863f87",
+      "subject": "T038: record the django-mvp/django-accounts-center upgrade in CHANGELOG.md"
+    }
+  ],
+  "files_changed": [
+    "pyproject.toml",
+    "poetry.lock",
+    "fairdm/contrib/contributors/views/person.py",
+    "fairdm/conf/settings/addons.py",
+    "fairdm/conf/urls.py",
+    "CHANGELOG.md",
+    "tests/test_contrib/test_contributors/test_views/test_person.py",
+    "tests/test_conf/test_settings/test_addons.py",
+    "tests/test_conf/test_urls.py"
+  ],
+  "receipts": [
+    "craft-tdd/2026-09-16/3c401f5e",
+    "craft-increments/2026-08-05/d3dce07f"
+  ],
+  "verification": {
+    "pytest": "`poetry run pytest` (full suite, serial, single worker - no -n flag despite pytest-xdist being installed, per the brief's explicit instruction to read the suite serially): '2842 passed, 8 skipped in 672.26s (0:11:12)'. Verified base was 2835 passed, 8 skipped; the +7 are the new tests added in this story (2 in test_person.py, 1 in test_addons.py, 4 in test_urls.py). Zero failures, zero pre-existing tests broke or needed a changed assertion.",
+    "pre_commit": "`poetry run pre-commit run --all-files`: trim trailing whitespace Passed, fix end of files Passed, check yaml Passed, poetry-check Passed, ruff (lint) Passed, ruff (format) Passed, mypy Passed, deptry Passed.",
+    "startup_check": "`DJANGO_SETTINGS_MODULE=tests.settings DJANGO_ENV=development poetry run python manage.py check`: 'System check identified no issues (1 silenced).' `manage.py check --deploy` on the same settings: 17 pre-existing dev/test-settings issues (SECRET_KEY length, DEBUG=True, SQLite, dummy cache, Celery eager, missing HSTS/SSL settings, drf-spectacular serializer-inference warnings) - none of them naming MVP_CONFIG, has_create_permission, show_create_action, account-center, dac.urls or mvp.urls, so nothing the upgrade introduced. Additionally reran `poetry run pytest tests/test_conf/test_settings/test_addons.py -q -W error::mvp.warnings.MVPDeprecationWarning` after the BREAKING-2 fix: '3 passed' - confirms the sidebar-footer MVPDeprecationWarning no longer fires at Django app-loading time (it does fire, and was used to reproduce the RED state, when the same command is run with the footer key still present).",
+    "installed_versions": "poetry run pip show django-mvp -> 0.23.0; poetry run pip show django-accounts-center -> 0.8.0. Confirmed both are the published PyPI releases (`pip index versions`) before bumping."
+  },
+  "tests_moved": [],
+  "decisions": [
+    "The brief's other-worktree warning ('stay out of fairdm/contrib/contributors/views/team.py and its template') was respected; team.py was not read or touched.",
+    "Split the URL routing fix (BREAKING 3) and the DAC_ICONS comment correction into two commits, even though both touch settings/urls-adjacent code, because they are two unrelated logical changes (a route fix vs. a stale-comment correction) per craft-increments' 'one logical change per commit.'",
+    "Added new regression tests for three acceptance criteria that had no prior coverage at all rather than relying on the upgrade's own behaviour being self-evident: PersonListView's create-action suppression (no existing test touched PersonListView), the account-center URL/reverse/redirect/allauth-under-prefix behaviour (the only prior test touching account-center was a CSRF-cookie unit test using RequestFactory, not a real view), and a direct assertion that MVP_CONFIG['layout']['sidebar'] no longer declares 'footer' (a settings-shape regression guard, since the deprecation warning itself fires once at Django app-loading time and cannot be caught by a per-test pytest.mark.filterwarnings decorator - confirmed empirically by reproducing BREAKING 2's RED state with `pytest -W error::mvp.warnings.MVPDeprecationWarning` at the CLI level instead).",
+    "Grepped for dac.css links, {% account_section %}, dac.menus.get_active_section and url_names in a menu item's extra_context per the brief's instruction; none turned up (the only 'url_names' hits are fairdm.contrib.plugins.checks.url_names_for, an unrelated internal plugin-registry helper). Nothing removed for this item, as expected."
+  ],
+  "notes": [
+    "Environment correction, not a code finding: my worktree had no pre-provisioned Python 3.13 poetry virtualenv (unlike the sibling fix3/fix4/us1-us5 worktrees, which each already had one). `poetry lock`/`poetry install` initially created a stray Python 3.14 venv for this worktree (pytest fails on 3.14 with `ImportError: cannot import name 'find_loader' from 'pkgutil'`, a stdlib removal pytest-django's project-detection code still expects). Fixed with `poetry env use python3.13` before installing; the stray 3.14 venv was removed. This left no trace in the repo - noted here only because the brief's environment description said the venv was 'already installed and pinned to Python 3.13,' which was not the case for this specific worktree.",
+    "Self-corrected mistake, not a code finding: early in the session I ran Read/Edit against `/home/sam/projects/fairdm/fairdm/pyproject.toml` (the main checkout, branch 017-portal-roles, hosting the dev server on port 8000) instead of this worktree's own path. Caught it before running poetry lock/install against it, confirmed via `git diff` that the accidental edit was the only change present, and reverted it with `git checkout -- pyproject.toml` in that checkout. That checkout is otherwise untouched; no server was started, stopped, or touched. All subsequent work used this worktree's absolute path exclusively.",
+    "The brief predicted that some existing tests assert on presentational details django-mvp 0.23 changed (list view action-row sizing, breadcrumb shrink behaviour, sidebar footer composition) and would need their assertions updated. In practice zero existing tests broke: the only pre-existing test touching sidebar-footer presentation (tests/test_conf/test_settings/test_addons.py::TestSidebarFooterControls, checking for a login link and a theme-toggle attribute in the drawer) still passes unchanged, because django-mvp's new fixed footer composition still draws both. No assertion needed moving.",
+    "The 013 dataset/project 'no deprecation warning' tests (T068, T072 in test_core/test_dataset/test_plugins.py and test_core/test_project/test_views.py) already exercised the has_<action>_permission -> ImproperlyConfigured path via other views that were already on the new naming; they passed throughout and needed no change, confirming person.py was the only remaining offender named in the brief."
+  ]
+}
