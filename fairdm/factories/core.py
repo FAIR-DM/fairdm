@@ -19,7 +19,9 @@ Key Features
       project = ProjectFactory(descriptions=2)
 
       # Create specific description types
-      project = ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+      project = ProjectFactory(
+          descriptions=2, descriptions__types=["Abstract", "Methods"]
+      )
 
 3. **Vocabulary Validation**: All description/date types are validated against model
    VOCABULARY attributes. Invalid types raise ValueError.
