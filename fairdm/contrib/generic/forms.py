@@ -7,6 +7,7 @@ from extra_views import InlineFormSetFactory
 from markdownx.fields import MarkdownxFormField
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
+from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.sample.models import SampleDescription
 from fairdm.forms import PartialDateField
 from fairdm.utils.utils import get_setting
@@ -270,6 +271,7 @@ class DescriptionForm(TypeVocabularyFormMixin):
     value = MarkdownxFormField(
         required=False,
         label=False,
+        max_length=DESCRIPTION_MAX_LENGTH,
     )
     # value = forms.CharField(
     #     required=False,

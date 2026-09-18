@@ -9,13 +9,13 @@ import pytest
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 
+from demo.factories import RockSampleFactory
 from fairdm.factories import (
     DatasetFactory,
     ProjectFactory,
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
-from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db

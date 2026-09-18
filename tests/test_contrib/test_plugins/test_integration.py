@@ -4,11 +4,11 @@ import pytest
 from django.urls import reverse
 from django.views.generic import TemplateView
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories import PointFactory
-from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -40,11 +40,11 @@ class TestAnAddonCanExtendARecordItDoesNotOwn:
 class TestARecordWithoutAUuid:
     def test_a_location_plugin_resolves_and_reverses(self):
         """The location record is keyed on a coordinate pair and has no uuid at all."""
-        from fairdm.contrib.location.models import Point
-        from fairdm.contrib.plugins import reverse as plugin_reverse
-
         # Addressing is declared when the location URL configuration is imported.
         from django.urls import reverse as django_reverse
+
+        from fairdm.contrib.location.models import Point
+        from fairdm.contrib.plugins import reverse as plugin_reverse
 
         django_reverse("point:point-overview", kwargs={"lon": "1", "lat": "2"})
 
@@ -73,6 +73,12 @@ class TestWhatARecordPageCosts:
         A record page is expensive for reasons that have nothing to do with plugins. What matters
         here is that adding plugins does not multiply the permission checks — which is what the
         per-request memo buys, and what an unmemoised object-level check would have cost.
+
+        The page is fetched once before either measurement. The first request in a process does
+        one-time work that later ones never repeat — the site record, the identity records and
+        their savepoints — and whether a neighbouring test already did some of it decides which of
+        the two measurements carries the remainder. Unwarmed, the comparison turns on test
+        ordering rather than on the number of plugins.
         """
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
@@ -80,6 +86,8 @@ class TestWhatARecordPageCosts:
         sample = RockSampleFactory()
         client.force_login(plain_user)
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
+
+        client.get(url)  # warm up one-time per-process setup
 
         with CaptureQueriesContext(connection) as before:
             client.get(url)

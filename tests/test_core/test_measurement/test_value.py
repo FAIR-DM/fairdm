@@ -11,13 +11,14 @@ uncertainty (`ICP_MS_Measurement`, T093) so this behaviour is exercised, not onl
 described.
 """
 
+import unicodedata
 from types import SimpleNamespace
 
 import pint
 import pytest
 
-from fairdm.core.measurement.models import Measurement
 from demo.factories import ExampleMeasurementFactory, ICP_MS_MeasurementFactory
+from fairdm.core.measurement.models import Measurement
 
 
 @pytest.mark.django_db
@@ -97,4 +98,9 @@ class TestPrintValue:
         )
         measurement.refresh_from_db()
 
-        assert measurement.print_value() == "5.00 ± 0.30 µg/l"
+        # NFKC-normalised: the unit registry is free to render the micro prefix as
+        # either U+00B5 MICRO SIGN or U+03BC GREEK SMALL LETTER MU (both normalise to
+        # the same codepoint), and that choice belongs to the registry, not this test.
+        assert unicodedata.normalize("NFKC", measurement.print_value()) == unicodedata.normalize(
+            "NFKC", "5.00 ± 0.30 µg/l"
+        )

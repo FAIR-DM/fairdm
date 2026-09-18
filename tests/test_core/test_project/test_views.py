@@ -1764,22 +1764,13 @@ class TestProjectListingQueryCount:
     a card draws — so the test fails if any of the prefetching is removed,
     rather than merely recording today's number.
 
-    Two pieces of measurement hygiene, both copied from `TestQueryCount` in
-    `tests/test_contrib/test_collections/test_views.py`, which established them
-    for the sample and measurement listings:
-
-    `orbit` is disabled for the duration. It records requests and queries by
-    writing rows of its own, which land in the same count as the page's.
-
-    The page is fetched once before either measurement. The first request does
-    one-time work the second never repeats — the site cache, and easy-thumbnails
-    writing each card image's `Source` and `Thumbnail` rows the first time that
-    image is rendered at a given size.
+    The page is fetched once before either measurement, copied from
+    `TestQueryCount` in `tests/test_contrib/test_collections/test_views.py`,
+    which established it for the sample and measurement listings. The first
+    request does one-time work the second never repeats — the site cache, and
+    easy-thumbnails writing each card image's `Source` and `Thumbnail` rows the
+    first time that image is rendered at a given size.
     """
-
-    @pytest.fixture(autouse=True)
-    def without_orbit(self, settings):
-        settings.ORBIT = {"ENABLED": False}
 
     @staticmethod
     def _build_projects(count):

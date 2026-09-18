@@ -178,8 +178,8 @@ class TestPolymorphicMeasurementQueries:
 
     def test_polymorphic_query_returns_subclass_instance(self, xrf_measurement):
         """Test that querying Measurement returns the correct polymorphic subclass."""
-        from fairdm.core.measurement.models import Measurement
         from demo.models import XRFMeasurement
+        from fairdm.core.measurement.models import Measurement
 
         # Query the base Measurement model
         measurement = Measurement.objects.get(pk=xrf_measurement.pk)
@@ -214,8 +214,8 @@ class TestBaseMeasurementConfigurationIntegration:
 
     def test_measurement_config_inherits_from_base(self, clean_registry):
         """Test that measurement configs inherit from BaseMeasurementConfiguration."""
-        from fairdm.core.measurement.config import BaseMeasurementConfiguration
         from demo.models import XRFMeasurement
+        from fairdm.core.measurement.config import BaseMeasurementConfiguration
 
         config = registry.get_for_model(XRFMeasurement)
 

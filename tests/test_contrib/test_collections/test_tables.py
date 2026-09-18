@@ -4,13 +4,13 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.models import ExampleMeasurement, RockSample
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, PointFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from demo.models import ExampleMeasurement, RockSample
 
 
 @pytest.mark.django_db

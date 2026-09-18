@@ -19,7 +19,9 @@ Key Features
       project = ProjectFactory(descriptions=2)
 
       # Create specific description types
-      project = ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+      project = ProjectFactory(
+          descriptions=2, descriptions__types=["Abstract", "Methods"]
+      )
 
 3. **Vocabulary Validation**: All description/date types are validated against model
    VOCABULARY attributes. Invalid types raise ValueError.
@@ -164,14 +166,29 @@ class ProjectFactory(DjangoModelFactory):
         ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])  # Specify types
         ProjectFactory(dates=1)  # Creates 1 date with default type
         ProjectFactory(dates=2, dates__types=["Created", "Updated"])  # Specify types
+
+    Image (opt-in, issue #323):
+        ProjectFactory()  # No image, no file written
+        ProjectFactory(with_image=True)  # A generated placeholder JPEG
+        ProjectFactory(image=some_file)  # That file used directly
     """
 
     class Meta:
         model = Project
 
+    class Params:
+        # No image unless a test asks for one — a real JPEG written on every
+        # instantiation left a file behind under whatever MEDIA_ROOT was
+        # active (issue #323). `with_image=True` produces the image this
+        # factory used to generate unconditionally; `image=<file>` still
+        # takes a specific one, since the field carries no declaration
+        # unless the trait switches it on.
+        with_image = factory.Trait(
+            image=factory.django.ImageField(width=800, height=600),
+        )
+
     # Basic fields
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
@@ -351,14 +368,22 @@ class DatasetFactory(DjangoModelFactory):
         DatasetFactory(descriptions=2)  # Creates 2 descriptions
         DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
         DatasetFactory(dates=1)  # Creates 1 date
+
+    Image (opt-in, issue #323): same as ProjectFactory above.
     """
 
     class Meta:
         model = Dataset
 
+    class Params:
+        # No image unless a test asks for one — see ProjectFactory above
+        # (issue #323).
+        with_image = factory.Trait(
+            image=factory.django.ImageField(width=800, height=600),
+        )
+
     # Basic fields
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
-    image = factory.django.ImageField(width=800, height=600)
     # visibility defaults to PRIVATE per model definition
 
     # Relations - project can be passed in or auto-created

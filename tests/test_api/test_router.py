@@ -157,8 +157,8 @@ class TestRegistryGeneratedEndpoints:
 
     def test_custom_parent_sample_list_accessible(self, api_client):
         """CustomParentSample is registered in the demo app; its endpoint must work."""
-        from fairdm.api.viewsets import _model_to_slug
         from demo.models import CustomParentSample
+        from fairdm.api.viewsets import _model_to_slug
 
         slug = _model_to_slug(CustomParentSample)
         response = api_client.get(f"/api/v1/samples/{slug}/")
@@ -166,16 +166,16 @@ class TestRegistryGeneratedEndpoints:
 
     def test_example_measurement_list_accessible(self, api_client):
         """ExampleMeasurement is registered in the demo app; its endpoint must work."""
-        from fairdm.api.viewsets import _model_to_slug
         from demo.models import ExampleMeasurement
+        from fairdm.api.viewsets import _model_to_slug
 
         slug = _model_to_slug(ExampleMeasurement)
         response = api_client.get(f"/api/v1/measurements/{slug}/")
         assert response.status_code == 200
 
     def test_custom_parent_sample_list_has_pagination(self, api_client):
-        from fairdm.api.viewsets import _model_to_slug
         from demo.models import CustomParentSample
+        from fairdm.api.viewsets import _model_to_slug
 
         slug = _model_to_slug(CustomParentSample)
         data = api_client.get(f"/api/v1/samples/{slug}/").json()

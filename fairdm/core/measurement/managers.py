@@ -58,12 +58,16 @@ class MeasurementQuerySet(PolymorphicQuerySet):
             MeasurementQuerySet: Chainable queryset with related data prefetched
 
         Example:
-            >>> measurements = Measurement.objects.with_related().filter(dataset=my_dataset)
+            >>> measurements = Measurement.objects.with_related().filter(
+            ...     dataset=my_dataset
+            ... )
             >>> # Accessing measurement.sample, measurement.dataset, measurement.contributors
             >>> # will not trigger additional queries
             >>>
             >>> # Chain with additional prefetching for deep nested data:
-            >>> measurements = Measurement.objects.with_related().select_related("sample__dataset")
+            >>> measurements = Measurement.objects.with_related().select_related(
+            ...     "sample__dataset"
+            ... )
         """
         return self.select_related(
             "sample",

@@ -5,9 +5,9 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 
+from demo.models import RockSample, WaterSample
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.registry import registry
-from demo.models import RockSample, WaterSample
 
 
 @pytest.mark.django_db

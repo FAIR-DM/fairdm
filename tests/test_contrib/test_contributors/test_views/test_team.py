@@ -20,15 +20,6 @@ def _group(role):
     return Group.objects.get(name=role.name)
 
 
-def _non_instrumentation_queries(captured):
-    """Queries the page's own rendering made, minus django-orbit's write-behind
-    logging of the render signals every template emits (`ORBIT_CONFIG`,
-    `fairdm/conf/settings/addons.py`) - one `INSERT` per signal, scaling with
-    the number of cards on the page rather than with the view's own query
-    count, so it would otherwise swamp this comparison."""
-    return [q for q in captured if "orbit_orbitentry" not in q["sql"]]
-
-
 @pytest.mark.django_db
 class TestTeamView:
     """`TeamView`, reached at the `team` URL name."""
@@ -124,9 +115,7 @@ class TestTeamView:
         with CaptureQueriesContext(connection) as after:
             client.get(reverse("team"))
 
-        assert len(_non_instrumentation_queries(after.captured_queries)) == len(
-            _non_instrumentation_queries(before.captured_queries)
-        )
+        assert len(after.captured_queries) == len(before.captured_queries)
 
     def test_page_title_is_portal_team(self, client):
         response = client.get(reverse("team"))
