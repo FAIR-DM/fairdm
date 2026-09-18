@@ -4,11 +4,11 @@ import pytest
 from django.urls import reverse
 from django.views.generic import TemplateView
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories import PointFactory
-from demo.factories import RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -40,11 +40,11 @@ class TestAnAddonCanExtendARecordItDoesNotOwn:
 class TestARecordWithoutAUuid:
     def test_a_location_plugin_resolves_and_reverses(self):
         """The location record is keyed on a coordinate pair and has no uuid at all."""
-        from fairdm.contrib.location.models import Point
-        from fairdm.contrib.plugins import reverse as plugin_reverse
-
         # Addressing is declared when the location URL configuration is imported.
         from django.urls import reverse as django_reverse
+
+        from fairdm.contrib.location.models import Point
+        from fairdm.contrib.plugins import reverse as plugin_reverse
 
         django_reverse("point:point-overview", kwargs={"lon": "1", "lat": "2"})
 

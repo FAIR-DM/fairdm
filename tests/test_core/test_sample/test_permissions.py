@@ -205,9 +205,9 @@ class TestGetObjectsForUserNormalisesPolymorphicContentType:
     normalises that the same way the other wrappers normalise `perm`'s content type."""
 
     def test_a_grant_filed_under_the_base_content_type_is_found(self, dataset, user):
-        from fairdm.core.utils import get_objects_for_user
         from demo.factories import RockSampleFactory
         from demo.models import RockSample
+        from fairdm.core.utils import get_objects_for_user
 
         granted = RockSampleFactory(dataset=dataset)
         ungranted = RockSampleFactory(dataset=dataset)

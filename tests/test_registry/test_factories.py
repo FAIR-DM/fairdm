@@ -11,6 +11,8 @@ from django.forms import ModelForm
 from django_filters import FilterSet
 from django_tables2 import Table
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.models import ExampleMeasurement
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
@@ -21,8 +23,6 @@ from fairdm.registry.factories import (
     TableFactory,
 )
 from fairdm.utils.choices import Visibility
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from demo.models import ExampleMeasurement
 
 
 @pytest.fixture

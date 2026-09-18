@@ -4,13 +4,13 @@ import pytest
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView, UpdateView
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.contrib.plugins.utils import slugify
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.models import Sample
-from demo.factories import RockSampleFactory
 
 
 class TestNaming:

@@ -25,6 +25,7 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
@@ -32,7 +33,6 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.factories import PersonFactory
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 def build_measurements_with_related(dataset, count):

@@ -54,8 +54,12 @@ class MeasurementPermissionBackend(PolymorphicObjectPermissionBackend):
         # Cross-dataset scenario
         measurement_a = Measurement.objects.create(dataset=dataset_a, sample=sample_b)
         assign_perm("change_dataset", user, dataset_a)
-        user.has_perm("change_measurement", measurement_a)  # True (can edit measurement)
-        user.has_perm("change_sample", sample_b)  # False (requires Dataset B permission)
+        user.has_perm(
+            "change_measurement", measurement_a
+        )  # True (can edit measurement)
+        user.has_perm(
+            "change_sample", sample_b
+        )  # False (requires Dataset B permission)
         ```
     """
 

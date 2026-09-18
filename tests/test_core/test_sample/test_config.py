@@ -67,8 +67,8 @@ class TestSampleRegistryGeneration:
     def test_generated_admin_lists_the_specimen_types_own_fields(self, clean_registry):
         """The admin entry's `list_display` must name a field the type
         itself contributes, not just the base sample fields."""
-        from fairdm.core.sample.admin import SampleChildAdmin
         from demo.models import RockSample
+        from fairdm.core.sample.admin import SampleChildAdmin
 
         config = registry.get_for_model(RockSample)
         admin_class = config.get_admin_class()
@@ -84,8 +84,8 @@ class TestBaseSampleConfiguration:
     def test_omitting_fields_falls_back_to_the_bases_default_fields(self):
         """A subclass naming only `model` gets `BaseSampleConfiguration.fields`
         for every component, since it names no field list of its own."""
-        from fairdm.core.sample.config import BaseSampleConfiguration
         from demo.models import RockSample
+        from fairdm.core.sample.config import BaseSampleConfiguration
 
         class MinimalRockConfig(BaseSampleConfiguration):
             model = RockSample
@@ -99,8 +99,8 @@ class TestBaseSampleConfiguration:
     def test_declaring_fields_overrides_the_bases_default_for_every_component(self):
         """A subclass that does declare `fields` gets its own list instead -
         the base's default never wins over a component the subclass named."""
-        from fairdm.core.sample.config import BaseSampleConfiguration
         from demo.models import RockSample
+        from fairdm.core.sample.config import BaseSampleConfiguration
 
         class RockOnlyConfig(BaseSampleConfiguration):
             model = RockSample
@@ -138,6 +138,7 @@ class TestRegistryUsesTheMixins:
         `SampleFormMixin`'s wrapped Select2 widget for `dataset` - a plain
         `ModelForm` never sets one."""
         from django_addanother.widgets import AddAnotherWidgetWrapper
+
         from demo.models import RockSample
 
         config = self._config_for(RockSample, ["name", "dataset"])

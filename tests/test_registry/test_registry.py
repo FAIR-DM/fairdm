@@ -18,10 +18,10 @@ from django_filters import FilterSet
 from django_tables2 import Table
 
 import fairdm
+from demo.models import CustomParentSample, CustomSample, ExampleMeasurement
 from fairdm.core.models import Measurement, Sample
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
-from demo.models import CustomParentSample, CustomSample, ExampleMeasurement
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 User = get_user_model()

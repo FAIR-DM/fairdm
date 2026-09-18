@@ -11,6 +11,8 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from guardian.shortcuts import assign_perm
 
+from demo.factories import RockSampleFactory
+from demo.models import ExampleMeasurement, XRFMeasurement
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
     DatasetFactory,
@@ -18,8 +20,6 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
-from demo.factories import RockSampleFactory
-from demo.models import ExampleMeasurement, XRFMeasurement
 
 User = get_user_model()
 

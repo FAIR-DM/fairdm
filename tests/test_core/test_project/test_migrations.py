@@ -3,10 +3,7 @@
 import importlib
 
 import pytest
-from django.apps import apps as global_apps
 from django.db.migrations.state import ProjectState
-
-from fairdm.factories import ProjectFactory, ProjectIdentifierFactory
 
 
 class TestFundingShapeMigrationIsIrreversible:

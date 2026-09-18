@@ -156,105 +156,23 @@ requires = ['poetry-core (>=2.0,<3.0)']
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py313"
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "*/migrations/*.py",
-    "staticfiles/*",
-    "docs/",
-]
-# line-length is deliberately unset: Ruff's default is 88, which is the
-# organisation standard. Do not restate it.
-fix = true
-
-[tool.ruff.lint]
-select = [
-    # flake8-2020
-    "YTT",
-    # flake8-bandit
-    "S",
-    # flake8-bugbear
-    "B",
-    # flake8-builtins
-    "A",
-    # flake8-comprehensions
-    "C4",
-    # flake8-debugger
-    "T10",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # mccabe
-    "C90",
-    # pycodestyle
-    "E",
-    "W",
-    # pyflakes
-    "F",
-    # pygrep-hooks
-    "PGH",
-    # pyupgrade
-    "UP",
-    # ruff
-    "RUF",
-    # tryceratops
-    "TRY",
-]
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
-    # ClassAttributesShouldBeAnnotated
-    "RUF012",
-    "TRY003",
-    # Use of mark_safe
+extend = "ruff-base.toml"
+extend-ignore = [
+    # Use of mark_safe: templatetags and form rendering pass pre-escaped
+    # trusted content (fairdm/templatetags/fairdm.py, core/forms.py, etc).
     "S308",
-    # Use of standard pseudo-random generators
+    # Use of standard pseudo-random generators: fake-data generation only
+    # (fairdm/factories, generate_fake_data command), never security-sensitive.
     "S311",
-    "A003",
+    # Star imports: plugin registries and the models shim re-export by design
+    # (fairdm/plugins.py, contrib/contributors/plugins, db/models.py).
     "F403",
     "F405",
-    "C901",
-    # === COMMENTED OUT - NEED TO FIX PROPERLY ===
-    # # Allow assert statements in registry config (type narrowing)
-    # "S101",
-    # # Allow try-except-pass in factory/registry code
-    # "S110",
-    # # Allow try-except-continue
-    # "S112",
-    # # Nested if statements are sometimes clearer
-    # "SIM102",
-    # # contextlib.suppress is not always clearer
-    # "SIM105",
-    # # Allow concatenation instead of unpacking (clearer in some cases)
-    # "RUF005",
-    # # Allow unused loop variables (common in iteration)
-    # "B007",
-    # # Allow redefinition in __init__ (field pattern)
-    # "F811",
 ]
+
+[tool.ruff.lint]
+# Settings modules are assembled top-to-bottom with conditional imports and
+# intentional try/except control flow; excluded from lint, not format.
 exclude = ["fairdm/conf/*"]
 
 [tool.ruff.lint.per-file-ignores]
@@ -266,7 +184,6 @@ exclude = ["fairdm/conf/*"]
     "F821",   # Allow undefined names (common in test fixtures/factories)
     "F841",   # Allow unused local variables in tests
     "A001",   # Allow shadowing builtins in tests (e.g., license, id)
-    "B017",   # Allow asserting on Exception in tests
     "E402",   # Allow module level imports not at top (pytest markers)
     "RUF043", # Allow unescaped regex patterns in pytest.raises
 ]
@@ -278,25 +195,18 @@ exclude = ["fairdm/conf/*"]
 "conftest.py" = [
     "S101", # Allow assert statements: its fixtures fail tests by asserting
 ]
+# `[tool.ruff.lint].exclude` above only takes effect when ruff is invoked
+# without explicit file paths; the pre-commit hook passes changed files
+# directly (no --force-exclude), which bypasses that exclude, so these carry
+# the actual enforcement. Settings modules are assembled top-to-bottom with
+# conditional imports and intentional try/except control flow.
 "fairdm/conf/*" = [
-    "F405",   # Star imports in config files
-    "F403",   # Star imports in config files
-    # Django settings modules are assembled top-to-bottom and import
-    # conditionally partway through, so import placement is deliberate.
-    "E402",
-    # Style-only rules in settings and startup code. The behaviour here is
-    # intended; rewriting it to satisfy a preference is not worth the risk.
+    "E402",   # Module level imports not at top of file (conditional setup)
     "TRY300", # return in try rather than else
     "TRY301", # raise inside try rather than an inner function
     "TRY400", # logging.error rather than logging.exception
     "RUF005", # list concatenation rather than iterable unpacking
 ]
-
-[tool.ruff.format]
-docstring-code-format = true
-docstring-code-line-length = 88
-line-ending = "lf"
-exclude = ["*/migrations/*.py"]
 
 # djlint is not currently enforced: it runs in no pre-commit hook and no CI job.
 # The settings below are kept because they encode real knowledge about the

@@ -389,9 +389,9 @@ class TestImproperlyConfiguredEnforcement:
         from django.core.exceptions import ImproperlyConfigured
         from rest_framework import serializers as drf_serializers
 
+        from demo.models import CustomParentSample
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from demo.models import CustomParentSample
 
         class NonConformingSampleSerializer(drf_serializers.ModelSerializer):
             class Meta:
@@ -411,9 +411,9 @@ class TestImproperlyConfiguredEnforcement:
         from django.core.exceptions import ImproperlyConfigured
         from rest_framework import serializers as drf_serializers
 
+        from demo.models import ExampleMeasurement
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from demo.models import ExampleMeasurement
 
         class NonConformingMeasurementSerializer(drf_serializers.ModelSerializer):
             class Meta:
@@ -430,10 +430,10 @@ class TestImproperlyConfiguredEnforcement:
 
     def test_conforming_sample_serializer_succeeds(self):
         """Custom serializer_class inheriting BaseSampleSerializer does NOT raise."""
+        from demo.models import CustomParentSample
         from fairdm.api.serializers import BaseSampleSerializer
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from demo.models import CustomParentSample
 
         class ConformingSampleSerializer(BaseSampleSerializer):
             class Meta(BaseSampleSerializer.Meta):
@@ -451,10 +451,10 @@ class TestImproperlyConfiguredEnforcement:
 
     def test_conforming_measurement_serializer_succeeds(self):
         """Custom serializer_class inheriting BaseMeasurementSerializer does NOT raise."""
+        from demo.models import ExampleMeasurement
         from fairdm.api.serializers import BaseMeasurementSerializer
         from fairdm.api.viewsets import generate_viewset
         from fairdm.registry.config import ModelConfiguration
-        from demo.models import ExampleMeasurement
 
         class ConformingMeasurementSerializer(BaseMeasurementSerializer):
             class Meta(BaseMeasurementSerializer.Meta):
