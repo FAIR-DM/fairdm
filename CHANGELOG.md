@@ -85,6 +85,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Description text now has a 20,000-character ceiling.** Project, dataset, sample and
+  measurement descriptions previously had no length limit anywhere between the editing page
+  and the database. The limit is well beyond any real abstract or methods note, so ordinary
+  metadata is unaffected; it stops an accidental paste of an entire document from landing in
+  a description field.
+
 #### Portal roles (Feature 017)
 
 - **Four portal roles replace the three ungoverned groups from before**: Portal Administrator,
