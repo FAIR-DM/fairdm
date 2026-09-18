@@ -65,14 +65,18 @@ class TestWhatARecordPageCosts:
     the memo is what keeps the count flat rather than multiplying by the number of plugins.
     """
 
-    def test_the_cost_does_not_scale_with_the_number_of_plugins(
-        self, client, plain_user, django_capture_on_commit_callbacks
-    ):
+    def test_the_cost_does_not_scale_with_the_number_of_plugins(self, client, plain_user):
         """The claim worth pinning is invariance, not an absolute number.
 
         A record page is expensive for reasons that have nothing to do with plugins. What matters
         here is that adding plugins does not multiply the permission checks — which is what the
         per-request memo buys, and what an unmemoised object-level check would have cost.
+
+        The page is fetched once before either measurement. The first request in a process does
+        one-time work that later ones never repeat — the site record, the identity records and
+        their savepoints, seven queries here — and whether a neighbouring test already did some of
+        it decides which of the two measurements carries the remainder. Unwarmed, the comparison
+        turns on test ordering rather than on the number of plugins.
         """
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
@@ -80,6 +84,8 @@ class TestWhatARecordPageCosts:
         sample = RockSampleFactory()
         client.force_login(plain_user)
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
+
+        client.get(url)  # warm up one-time per-process setup
 
         with CaptureQueriesContext(connection) as before:
             client.get(url)

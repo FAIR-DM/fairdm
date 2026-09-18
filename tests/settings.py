@@ -128,6 +128,26 @@ MEDIA_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-media-{os.getpid(
 STATIC_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-static-{os.getpid()}")
 
 # ==============================================================================
+# OBSERVABILITY
+# ==============================================================================
+# django-orbit is off for the whole suite. It is a development dashboard and
+# nothing in the suite reads what it records, but with it on, every page request
+# writes one row per SQL query and one per signal — 263 rows for a single record
+# page — reaching the signals through a global monkey-patch of `Signal.send`
+# that `repr()`s every kwarg it is passed. Under Django's
+# `instrumented_test_render` that reprs the render context and re-evaluates
+# whatever queryset it still carries.
+#
+# Its writes land in the same connection as the page's own, so a test that
+# counts queries counts orbit's bookkeeping too — around nine rows of noise for
+# every query the page itself makes, which leaves a query-count assertion
+# measuring orbit rather than the feature under test.
+# `orbit.apps.OrbitConfig.ready` reads this at startup, so turning it off here
+# also keeps the watchers from being installed at all.
+
+ORBIT = {"ENABLED": False}
+
+# ==============================================================================
 # CELERY
 # ==============================================================================
 # Run tasks synchronously in tests (no background workers)
