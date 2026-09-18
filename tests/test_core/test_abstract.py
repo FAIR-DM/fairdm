@@ -11,7 +11,12 @@ from fairdm.factories.core import (
     DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
+    MeasurementDescriptionFactory,
+    ProjectDescriptionFactory,
+    ProjectFactory,
+    SampleDescriptionFactory,
 )
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -302,3 +307,49 @@ class TestNameIndex:
 
         assert self._has_index_on_name(Sample._meta.db_table)
         assert self._has_index_on_name(Measurement._meta.db_table)
+
+
+@pytest.mark.django_db
+class TestDescriptionMaxLength:
+    """Issue #329: nothing between the textarea and the database bounded how long a
+    description could be. ``AbstractDescription.value`` now carries a ceiling every
+    concrete subclass inherits, checked here against all four of them."""
+
+    DESCRIPTION_CASES = [
+        (ProjectDescriptionFactory, ProjectFactory),
+        (DatasetDescriptionFactory, DatasetFactory),
+        (SampleDescriptionFactory, RockSampleFactory),
+        (
+            MeasurementDescriptionFactory,
+            lambda: ExampleMeasurementFactory(sample=RockSampleFactory()),
+        ),
+    ]
+
+    @pytest.mark.parametrize("description_factory, related_factory", DESCRIPTION_CASES)
+    def test_value_at_the_ceiling_is_valid(self, description_factory, related_factory):
+        from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
+
+        related = related_factory()
+        description = description_factory.build(
+            related=related, value="x" * DESCRIPTION_MAX_LENGTH
+        )
+
+        description.full_clean()
+
+    @pytest.mark.parametrize("description_factory, related_factory", DESCRIPTION_CASES)
+    def test_value_one_character_over_the_ceiling_is_rejected(
+        self, description_factory, related_factory
+    ):
+        from django.core.exceptions import ValidationError
+
+        from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
+
+        related = related_factory()
+        description = description_factory.build(
+            related=related, value="x" * (DESCRIPTION_MAX_LENGTH + 1)
+        )
+
+        with pytest.raises(ValidationError) as excinfo:
+            description.full_clean()
+
+        assert "value" in excinfo.value.message_dict

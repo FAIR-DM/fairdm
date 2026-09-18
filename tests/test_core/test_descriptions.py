@@ -70,3 +70,22 @@ class TestVocabularyDescriptionsForm:
         row = related_model._default_manager.get(related=instance)
         assert row.type == first_type
         assert row.value == "Some descriptive text."
+
+    @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
+    def test_a_value_over_the_ceiling_is_rejected(self, related_model, parent_factory):
+        """Issue #329: this form writes rows straight through the manager
+        (``save()`` below never calls ``full_clean()``), so the model's own
+        length ceiling never runs unless the form enforces it too."""
+        from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
+
+        instance = parent_factory()
+        first_type = related_model.VOCABULARY.values[0]
+
+        form = VocabularyDescriptionsForm(
+            related_model=related_model,
+            instance=instance,
+            data={first_type: "x" * (DESCRIPTION_MAX_LENGTH + 1)},
+        )
+
+        assert not form.is_valid()
+        assert first_type in form.errors

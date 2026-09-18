@@ -2,6 +2,7 @@ import re
 from html import unescape
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxLengthValidator
 from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
@@ -333,9 +334,17 @@ class GenericModel(Model):
         return self._meta.verbose_name_plural
 
 
+# Generous on purpose: several times the length of any abstract in the wild (a
+# structured journal abstract runs 250-500 words, this allows roughly 3,000), so it
+# stops a pasted thesis chapter or a machine-generated payload without rejecting a
+# real one (issue #329). One ceiling for every description type - there is no
+# evidence a methods note needs a different limit than an abstract.
+DESCRIPTION_MAX_LENGTH = 20000
+
+
 class AbstractDescription(GenericModel):
     type = models.CharField(max_length=50)
-    value = models.TextField()
+    value = models.TextField(validators=[MaxLengthValidator(DESCRIPTION_MAX_LENGTH)])
 
     class Meta:
         abstract = True
