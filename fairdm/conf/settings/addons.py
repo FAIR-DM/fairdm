@@ -75,6 +75,13 @@ MVP_CONFIG = {
             "title": "FairDM",
             "collapse": "icons",
         },
+        # The sidebar's own drawer already carries the login control and the
+        # theme toggle at every screen width (see
+        # TestSidebarFooterControls), so the package's default header copy
+        # of the same two controls only doubled them for a desktop visitor.
+        "navbar": {
+            "desktop": {"end": []},
+        },
     },
 }
 
