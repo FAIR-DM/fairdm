@@ -43,3 +43,31 @@ class TestSidebarFooterControls:
 
         assert sidebar is not None
         assert sidebar.find(attrs={"data-toggle-theme": True}) is not None
+
+
+@pytest.mark.django_db
+class TestHeaderDoesNotDuplicateSidebarActions:
+    """The sidebar's drawer already carries the login control and the theme
+    toggle at every screen width (``TestSidebarFooterControls`` above), so a
+    desktop visitor who also gets a header copy of each sees the same two
+    controls twice on the one page (fairdm#350)."""
+
+    def header(self, client):
+        response = client.get(reverse("project-list"))
+        soup = BeautifulSoup(response.content, "html.parser")
+        return soup.find("div", class_="mvp-header")
+
+    def test_the_header_has_no_login_link(self, client):
+        header = self.header(client)
+
+        assert header is not None
+        login_url = reverse("account_login")
+        assert not any(
+            link.get("href") == login_url for link in header.find_all("a", href=True)
+        )
+
+    def test_the_header_has_no_theme_toggle(self, client):
+        header = self.header(client)
+
+        assert header is not None
+        assert header.find(attrs={"data-toggle-theme": True}) is None
