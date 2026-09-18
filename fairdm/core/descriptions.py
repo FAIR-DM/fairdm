@@ -12,6 +12,8 @@ and use the form declared here.
 
 from django import forms
 
+from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
+
 
 class VocabularyDescriptionsForm(forms.Form):
     """One text area per concept in ``related_model``'s vocabulary, labelled
@@ -34,6 +36,7 @@ class VocabularyDescriptionsForm(forms.Form):
                 help_text=concept.definition(),
                 widget=forms.Textarea,
                 initial=existing.get(type_value, ""),
+                max_length=DESCRIPTION_MAX_LENGTH,
             )
 
     def save(self):
