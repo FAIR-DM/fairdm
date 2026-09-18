@@ -237,26 +237,11 @@ class TestQueryCount:
     grow with the number of rows it shows - for the measurement listing as well as the
     sample listing.
 
-    Two pieces of measurement hygiene make this readable at the page level, and both
-    are load-bearing.
-
-    `orbit` is disabled for the duration. It records requests and signals by writing
-    rows of its own, and it reaches signals by monkey-patching `Signal.send` globally
-    and `repr()`ing every kwarg - which, under Django's `instrumented_test_render`,
-    reprs the render context and re-evaluates whatever queryset it still carries.
-    Either way its writes land in the same count as the page's own.
-    `orbit.conf.get_config()` reads `settings.ORBIT` at call time, so turning it off
-    here removes the noise at source rather than filtering it afterwards.
-
-    The page is also fetched once before either measurement. The first request in a
+    The page is fetched once before either measurement. The first request in a
     test process does one-time work the second never repeats - the site cache, the
     identity records, their savepoints - which shows up as the first count being the
     larger one however flat the feature is.
     """
-
-    @pytest.fixture(autouse=True)
-    def without_orbit(self, settings):
-        settings.ORBIT = {"ENABLED": False}
 
     def _page_query_count(self, client, url):
         client.get(url)  # warm up one-time per-process setup
