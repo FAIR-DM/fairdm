@@ -2776,7 +2776,7 @@ sphinx-book-theme = ["sphinx-book-theme (>1.1)"]
 type = "git"
 url = "https://github.com/FAIR-DM/fairdm-docs"
 reference = "HEAD"
-resolved_reference = "7e8b8c1a574bbee139ee92471d8903919445e9da"
+resolved_reference = "48f41ac424b8d8e417cdee4e08cc00f74f4d66c5"
 
 [[package]]
 name = "faker"
