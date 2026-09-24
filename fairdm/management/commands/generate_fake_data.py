@@ -19,9 +19,9 @@ Configuration:
     directly.
 
 Usage:
-    poetry run python manage.py generate_fake_data
-    poetry run python manage.py generate_fake_data --projects 5 --datasets 3
-    poetry run python manage.py generate_fake_data --clear
+    uv run python manage.py generate_fake_data
+    uv run python manage.py generate_fake_data --projects 5 --datasets 3
+    uv run python manage.py generate_fake_data --clear
 """
 
 import random

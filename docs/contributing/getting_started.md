@@ -10,7 +10,7 @@ This guide outlines the workflow for contributing code, documentation, and other
 
 Before you begin, ensure you have completed the environment setup:
 
-- **[Development environment set up](before_you_start.md)**: Follow the setup guide to install Python, Poetry, Git, PostgreSQL (optional), and clone the repository
+- **[Development environment set up](before_you_start.md)**: Follow the setup guide to install Python, uv, Git, PostgreSQL (optional), and clone the repository
 - **[Quality gates understood](django_dev.md)**: Familiarize yourself with tests, type checking, linting, and documentation builds
 
 If you haven't set up your environment yet, start with [Before You Start](before_you_start.md).
@@ -135,7 +135,7 @@ All code changes must include tests. See the [Python Code Development guide](dja
 ### Run Tests Locally
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 Ensure all tests pass before proceeding.
@@ -147,31 +147,31 @@ Before committing, run all quality gates locally:
 ### 1. Tests
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 ### 2. Type Checking
 
 ```bash
-poetry run mypy fairdm
+uv run mypy fairdm
 ```
 
 ### 3. Linting
 
 ```bash
-poetry run ruff check fairdm
+uv run ruff check fairdm
 ```
 
 Auto-fix issues where possible:
 
 ```bash
-poetry run ruff check --fix fairdm
+uv run ruff check --fix fairdm
 ```
 
 ### 4. Documentation Build (if you changed docs)
 
 ```bash
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 ```{important}

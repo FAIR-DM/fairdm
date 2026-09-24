@@ -86,7 +86,7 @@ Run validation locally:
 
 ```bash
 # Check all links, including spec references
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 ```
 
 ## Constitution Cross-References
@@ -205,7 +205,7 @@ To verify an anchor exists before linking:
 1. **Build the documentation locally**:
 
    ```bash
-   poetry run sphinx-build -b html docs docs/_build/html
+   uv run sphinx-build -b html docs docs/_build/html
    ```
 
 2. **Open the target file** in `docs/_build/html/`
@@ -342,7 +342,7 @@ Verify all cross-references work before committing:
 
 ```bash
 # Comprehensive link validation (internal + external)
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
 # Check results
 cat docs/_build/linkcheck/output.txt | grep -E "(broken|redirected)"

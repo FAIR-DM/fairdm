@@ -11,7 +11,7 @@ html_favicon = "_static/icon.svg"
 
 
 # Project information --------------------------------------
-package_meta = toml.load("../pyproject.toml")["tool"]["poetry"]
+package_meta = toml.load("../pyproject.toml")["project"]
 project = package_meta["name"].title()
 version = package_meta["version"]  # The short X.Y version.
 release = version

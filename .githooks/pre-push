@@ -17,7 +17,7 @@ echo ""
 
 # Run pre-commit on all files (same as CI lint job)
 echo "📝 Running pre-commit checks..."
-poetry run pre-commit run --all-files --show-diff-on-failure
+uv run pre-commit run --all-files --show-diff-on-failure
 EXITCODE=$?
 
 if [ $EXITCODE -ne 0 ]; then
@@ -25,8 +25,8 @@ if [ $EXITCODE -ne 0 ]; then
     echo "❌ Pre-commit checks failed!"
     echo "   Fix the issues above and try again."
     echo ""
-    echo "💡 Tip: Run 'poetry run invoke format' to auto-fix formatting issues"
-    echo "   Or run 'poetry run invoke pre-push' to see all issues"
+    echo "💡 Tip: Run 'uv run invoke format' to auto-fix formatting issues"
+    echo "   Or run 'uv run invoke pre-push' to see all issues"
     echo ""
     exit 1
 fi

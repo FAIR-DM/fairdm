@@ -472,8 +472,8 @@ class MyModel(models.Model):
 
 After adding indexes, run:
 ```bash
-poetry run python manage.py makemigrations
-poetry run python manage.py migrate
+uv run python manage.py makemigrations
+uv run python manage.py migrate
 ```
 
 ### 10. Registry Integration

@@ -370,25 +370,25 @@ with patch('requests.get') as mock_get:
 ### Run all contract tests
 
 ```bash
-poetry run pytest tests/contract/
+uv run pytest tests/contract/
 ```
 
 ### Run this specific file
 
 ```bash
-poetry run pytest tests/contract/test_api_project_schema.py
+uv run pytest tests/contract/test_api_project_schema.py
 ```
 
 ### Run a specific test
 
 ```bash
-poetry run pytest tests/contract/test_api_project_schema.py::test_project_list_api__returns_valid_schema
+uv run pytest tests/contract/test_api_project_schema.py::test_project_list_api__returns_valid_schema
 ```
 
 ### Run with verbose output
 
 ```bash
-poetry run pytest tests/contract/ -v
+uv run pytest tests/contract/ -v
 ```
 
 ## Best Practices Demonstrated

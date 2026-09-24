@@ -29,9 +29,9 @@ Before setting up the development environment, ensure you have the following ins
    - Check version: `python --version` or `python3 --version`
    - Download from [python.org](https://www.python.org/downloads/)
 
-2. **Poetry** (dependency manager)
-   - Install: [https://python-poetry.org/docs/#installation](https://python-poetry.org/docs/#installation)
-   - Check version: `poetry --version`
+2. **uv** (dependency manager)
+   - Install: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+   - Check version: `uv --version`
 
 3. **Git**
    - Check version: `git --version`
@@ -81,27 +81,27 @@ Follow these steps to set up a local FairDM development environment:
    git remote add upstream https://github.com/FAIR-DM/fairdm.git
    ```
 
-### 2. Install Dependencies with Poetry
+### 2. Install Dependencies with uv
 
 1. **Install Python dependencies**:
 
    ```bash
-   poetry install
+   uv sync
    ```
 
    This creates a virtual environment and installs all project dependencies including development tools (pytest, mypy, ruff, etc.).
 
    ```{note}
-   **GIS support is optional.** `fairdm.contrib.location.serializers` and `fairdm.contrib.location.api` depend on `djangorestframework-gis`, which pulls in GDAL and is not installed by default. If you're working on GIS-related code, install it with the `gis` extra: `poetry install --extras gis`. Without it, those two modules raise `ImproperlyConfigured` on import.
+   **GIS support is optional.** `fairdm.contrib.location.serializers` and `fairdm.contrib.location.api` depend on `djangorestframework-gis`, which pulls in GDAL and is not installed by default. If you're working on GIS-related code, install it with the `gis` extra: `uv sync --extra gis`. Without it, those two modules raise `ImproperlyConfigured` on import.
    ```
 
-2. **Activate the Poetry shell** (optional but recommended):
+2. **Activate the virtual environment** (optional but recommended):
 
    ```bash
-   poetry shell
+   source .venv/bin/activate
    ```
 
-   All subsequent commands in this guide assume you're in the Poetry shell. If you don't activate the shell, prefix commands with `poetry run` (e.g., `poetry run pytest`).
+   All subsequent commands in this guide assume you have activated the virtual environment. If you don't activate it, prefix commands with `uv run` (e.g., `uv run pytest`).
 
 ### 3. Set Up the Database
 
@@ -133,7 +133,7 @@ SQLite requires no setup. Django will create `db.sqlite3` automatically when you
 Apply all database migrations to set up the schema:
 
 ```bash
-poetry run python manage.py migrate
+uv run python manage.py migrate
 ```
 
 ### 5. Create a Superuser (Optional)
@@ -141,7 +141,7 @@ poetry run python manage.py migrate
 To access the Django admin interface:
 
 ```bash
-poetry run python manage.py createsuperuser
+uv run python manage.py createsuperuser
 ```
 
 Follow the prompts to create an admin account.
@@ -151,7 +151,7 @@ Follow the prompts to create an admin account.
 Start the Django development server:
 
 ```bash
-poetry run python manage.py runserver
+uv run python manage.py runserver
 ```
 
 Open [http://localhost:8000](http://localhost:8000) in your browser. You should see the FairDM homepage.
@@ -165,7 +165,7 @@ Open [http://localhost:8000](http://localhost:8000) in your browser. You should 
 Run the test suite to ensure everything is working:
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 All tests should pass. If any fail, check your environment setup.

@@ -9,19 +9,19 @@ datasets, samples, measurements, contributors) plus a demo application in `demo`
 
 ## Stack & commands
 
-- **Stack:** Python 3.13, Django 5.1+, Poetry-managed, PostgreSQL in production
-- **Install:** `poetry install --with dev,test,docs`
-- **Test:** `poetry run pytest` (or `poetry run invoke test` for coverage)
-- **Lint:** `poetry run pre-commit run --all-files` — this is the gate CI enforces.
-  Raw `poetry run ruff check .` covers a wider file set and is not the gate.
-- **Format:** `poetry run invoke format`
-- **Type-check:** `poetry run pre-commit run --hook-stage manual mypy`. Staged manually
+- **Stack:** Python 3.13, Django 5.2+, uv-managed, PostgreSQL in production
+- **Install:** `uv sync --group docs`
+- **Test:** `uv run pytest` (or `uv run invoke test` for coverage)
+- **Lint:** `uv run pre-commit run --all-files` — this is the gate CI enforces.
+  Raw `uv run ruff check .` covers a wider file set and is not the gate.
+- **Format:** `uv run invoke format`
+- **Type-check:** `uv run pre-commit run --hook-stage manual mypy`. Staged manually
   rather than on every commit: the package currently reports 214 errors across 44 files,
   so making it blocking would hold every pull request red until a dedicated typing pass.
-- **Build:** `poetry build`
+- **Build:** `uv build`
 
 Development tooling comes from the `mvp-shared[dev,test]` bundle pinned in `pyproject.toml`,
-so `poetry run <tool>` and the pre-commit hooks always agree on versions.
+so `uv run <tool>` and the pre-commit hooks always agree on versions.
 
 The `docker-compose.yml` local development environment is not currently working and is not part
 of any verification path.
@@ -47,10 +47,9 @@ Required status checks (exact names, as they report on a pull request):
 - `call-build / Code Quality`
 - `call-build / Security Scan`
 - `call-build / Build Package`
-- `call-tests / Test Python 3.13, Django 5.1`
 - `call-tests / Test Python 3.13, Django 5.2`
 
-CI calls the shared family workflows in `django-mvp/shared`, pinned to `v0.4.1`, from
+CI calls the shared workflows in `django-mvp/shared`, pinned to `v0.6.0`, from
 `.github/workflows/build.yml` and `.github/workflows/tests.yml`. Releases run through
 `prepare-release.yml` → `tag-release.yml` → `publish.yml`.
 

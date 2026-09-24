@@ -70,7 +70,7 @@ Where the framework is headed is a separate question from what it is. That lives
 ### Prerequisites
 
 - **Python 3.13+**
-- **Poetry** for dependency management
+- **uv** for dependency management
 - **PostgreSQL** (recommended) or SQLite for development
 
 ### Installation
@@ -80,20 +80,20 @@ Where the framework is headed is a separate question from what it is. That lives
 git clone https://github.com/FAIR-DM/fairdm.git
 cd fairdm
 
-# Install dependencies with Poetry
-poetry install
+# Install dependencies with uv
+uv sync
 
 # Activate the virtual environment
-poetry shell
+source .venv/bin/activate
 
 # Run database migrations
-poetry run python manage.py migrate
+uv run python manage.py migrate
 
 # Create a superuser
-poetry run python manage.py createsuperuser
+uv run python manage.py createsuperuser
 
 # Run the development server
-poetry run python manage.py runserver
+uv run python manage.py runserver
 ```
 
 Visit `http://localhost:8000` to see your portal!
@@ -269,22 +269,22 @@ The demo app serves as **executable documentation** and demonstrates best practi
 
 ```bash
 # Run the full test suite
-poetry run pytest
+uv run pytest
 
 # Run with coverage
-poetry run pytest --cov=fairdm --cov-report=html
+uv run pytest --cov=fairdm --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_registry/test_config.py
+uv run pytest tests/test_registry/test_config.py
 
 # Run the reference application's tests on their own (they run by default too)
-poetry run pytest demo/tests
+uv run pytest demo/tests
 
 # Run with verbose output
-poetry run pytest -v
+uv run pytest -v
 
 # Run in a single process (tests are parallel by default)
-poetry run pytest -n0
+uv run pytest -n0
 ```
 
 ### Code Quality
@@ -293,13 +293,13 @@ FairDM uses **Ruff** for linting and formatting:
 
 ```bash
 # Lint the codebase
-poetry run ruff check .
+uv run ruff check .
 
 # Format code
-poetry run ruff format .
+uv run ruff format .
 
 # Check type hints with mypy
-poetry run mypy fairdm
+uv run mypy fairdm
 ```
 
 ### Project Commands
@@ -308,16 +308,16 @@ Useful Invoke tasks (see `tasks.py`):
 
 ```bash
 # Show available tasks
-poetry run invoke -l
+uv run invoke -l
 
 # Run database migrations
-poetry run invoke migrate
+uv run invoke migrate
 
 # Create test data
-poetry run invoke create-test-data
+uv run invoke create-test-data
 
 # Build documentation
-poetry run invoke docs
+uv run invoke docs
 ```
 
 ---
@@ -326,7 +326,7 @@ poetry run invoke docs
 
 ### Core Framework
 
-- **Django 5.1+** — Web framework
+- **Django 5.2** — Web framework
 - **Python 3.13+** — Programming language
 - **PostgreSQL** — Database (recommended)
 - **Redis** — Caching and task queue
@@ -365,7 +365,7 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 **Before your first push**, install git hooks to run CI checks locally:
 
 ```bash
-poetry run invoke install-hooks
+uv run invoke install-hooks
 ```
 
 This prevents CI failures by running the same linting and formatting checks locally.

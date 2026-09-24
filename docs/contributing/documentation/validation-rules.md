@@ -37,7 +37,7 @@ Build validation ensures that all documentation can be successfully compiled by 
 **Command**:
 
 ```bash
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 **What it checks**:
@@ -109,7 +109,7 @@ Link validation ensures all cross-references, specification links, constitution 
 **Command**:
 
 ```bash
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 ```
 
 **What it checks**:
@@ -205,10 +205,10 @@ Run both checks locally before pushing, to catch issues early:
 
 ```bash
 # 1. Build documentation
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 
 # 2. Check links
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 ```
 
 ### Quick Validation Script
@@ -220,10 +220,10 @@ Create a local script `validate-docs.sh`:
 set -e
 
 echo "Building documentation..."
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 
 echo "Checking links..."
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 
 echo "All validation checks passed."
 ```
@@ -333,8 +333,8 @@ Run both checks locally before opening a pull request.
 **Quick validation command**:
 
 ```bash
-poetry run sphinx-build -W -b html docs docs/_build/html && \
-poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck
+uv run sphinx-build -W -b html docs docs/_build/html && \
+uv run sphinx-build -b linkcheck docs docs/_build/linkcheck
 ```
 
 If both succeed, your documentation is ready for review.
