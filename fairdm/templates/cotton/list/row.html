@@ -1,0 +1,14 @@
+{% comment %}
+  <c-list.row> — one daisyUI `list-row`.
+
+  The row is a grid: its children sit side by side, and the child carrying
+  `list-col-grow` takes the remaining width. `list-col-wrap` on a child drops
+  it onto its own line beneath the others.
+
+  Attributes:
+    class – extra classes on the <li>
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars class />
+<li class="list-row {{ class }}" {{ attrs }}>{{ slot }}</li>

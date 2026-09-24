@@ -1,0 +1,22 @@
+{% comment %}
+  <c-stats> — daisyUI `stats`: several figures read as one group.
+
+  daisyUI lays stats out in one row and scrolls sideways when they don't fit.
+  `cols` and `lg` switch it to a wrapping grid instead, so four figures sit
+  two-by-two on a phone and in one row on a desktop. The prebuilt stylesheet
+  ships no responsive `stats-horizontal`, and daisyUI's own `grid-auto-flow:
+  column` would override the column count, so the flow is reset inline.
+
+  Attributes:
+    cols   – grid columns below `lg` (1–4); unset keeps daisyUI's single row
+    lg     – grid columns from `lg` up (1–6)
+    class  – extra classes on the root
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars cols lg class />
+<div class="stats bg-base-100 border border-base-300 w-full {% if cols %}grid {% if cols == '1' %}grid-cols-1{% elif cols == '2' %}grid-cols-2{% elif cols == '3' %}grid-cols-3{% else %}grid-cols-4{% endif %}{% endif %} {% if lg == '2' %}lg:grid-cols-2{% elif lg == '3' %}lg:grid-cols-3{% elif lg == '4' %}lg:grid-cols-4{% elif lg == '5' %}lg:grid-cols-5{% elif lg == '6' %}lg:grid-cols-6{% endif %} {{ class }}"
+     {% if cols %}style="grid-auto-flow: row"{% endif %}
+     {{ attrs }}>
+  {{ slot }}
+</div>

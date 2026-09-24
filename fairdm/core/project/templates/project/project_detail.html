@@ -1,46 +1,512 @@
 {% extends "detail_view.html" %}
-{% load i18n fairdm flex_menu %}
+{% load i18n static humanize thumbnail fairdm flex_menu %}
+{% comment %}
+  The project's landing page.
+
+  Read by three kinds of visitor: someone deciding whether the data is usable to them, someone
+  who has to cite it, and the project's team keeping the record complete. The layout follows
+  the pattern research repositories share (Zenodo, OSF, GitHub): identity first, then the
+  figures, then the content in a wide column with the facts a reuser checks — citation, access,
+  licence, people, funding — in a narrow column beside it. Below `lg` the two columns stack, the
+  content first.
+
+  Everything drawn here is gathered by `fairdm/core/project/overview.py`. A visitor never sees a
+  figure that only a private record explains.
+{% endcomment %}
+
+{% block head %}
+  {{ block.super }}
+  {% comment %}
+    schema.org JSON-LD, so search engines and dataset harvesters index the project from its
+    own page. Characters that could close the script element are escaped where it is built.
+  {% endcomment %}
+  <script type="application/ld+json">{{ json_ld|safe }}</script>
+{% endblock head %}
 
 {% block app.header.tray %}
   {% render_menu "ProjectMenu" renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
 {% endblock app.header.tray %}
 
-{% block page.actions %}
-  {{ block.super }}
-  {% if directory.descriptions_url %}
-    <c-button href="{{ directory.descriptions_url }}"
-              text="{% trans 'Descriptions' %}"
-              icon="description"
-              size="sm"
-              variant="secondary" />
-  {% endif %}
-{% endblock page.actions %}
+{% block page.title %}
+  {# ── Identity ─────────────────────────────────────────────────────────── #}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-4">
+      <div class="flex flex-col md:flex-row gap-4 md:items-start">
+        <div class="hidden md:block shrink-0">
+          {% if project.image %}
+            <img src="{{ project.image|thumbnail_url:'core_small' }}"
+                 alt=""
+                 class="w-24 rounded-box object-cover" />
+          {% else %}
+            <div class="avatar avatar-placeholder">
+              <div class="w-24 rounded-box bg-base-200 text-base-content/60 text-4xl">
+                <c-icon name="project" aria-hidden="true" />
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
+            {% if project.visibility == project.VISIBILITY.PUBLIC %}
+              <span class="badge badge-ghost badge-sm"><c-icon name="globe" aria-hidden="true" />{% translate "Public" %}</span>
+            {% else %}
+              <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
+            {% endif %}
+          </div>
+
+          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ project.name }}</h1>
+
+          <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {% if project.owner %}
+              <span class="inline-flex items-center gap-1">
+                <c-icon name="organization" aria-hidden="true" />
+                <a href="{{ project.owner.get_absolute_url }}" class="link link-hover">{{ project.owner }}</a>
+              </span>
+            {% endif %}
+            {% if timeline.start_date %}
+              <span class="inline-flex items-center gap-1">
+                <c-icon name="calendar" aria-hidden="true" />
+                {{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}
+              </span>
+            {% endif %}
+            <span>{% blocktranslate with when=project.modified|naturalday:"j M Y" %}Updated {{ when }}{% endblocktranslate %}</span>
+          </p>
+
+          {% if project.keywords.all %}
+            <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
+              {% for keyword in project.keywords.all %}
+                <li class="badge badge-outline badge-sm">{{ keyword.label }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
+          <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
+          <c-addons.share-dropdown size="sm" />
+          {% if can_manage %}
+            {% if urls.add_dataset %}
+              <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
+                        text="{% translate 'Add dataset' %}"
+                        icon="add"
+                        size="sm"
+                        variant="primary" />
+            {% endif %}
+            <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+              <c-menu>
+                <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
+                <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+                <c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />
+                {% if directory.delete_url %}
+                  <c-menu.divider />
+                  <c-menu.item label="{% translate 'Delete project' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
+                {% endif %}
+              </c-menu>
+            </c-dropdown>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.title %}
 
 {% block page.content %}
-  {# ── Stats strip — flat tiles with accent top border ─────────── #}
-  <c-section id="project-stats">
-    <c-grid cols="1" md="4" gap="4">
-      <c-cards.statistic value="{{ dataset_count|default:'0' }}"
-                         title="{% trans 'Datasets' %}"
-                         icon="dataset"
-                         variant="success" />
-      <c-cards.statistic value="{{ object.contributors.count }}"
-                         title="{% trans 'Contributors' %}"
-                         icon="person"
-                         variant="primary" />
-      <c-cards.statistic value="{{ project.samples.count|default:'0' }}"
-                         title="{% trans 'Samples' %}"
-                         icon="sample"
-                         variant="warning" />
-      <c-cards.statistic value="{{ project.measurements.count|default:'0' }}"
-                         title="{% trans 'Measurements' %}"
-                         icon="measurement"
-                         variant="danger" />
-    </c-grid>
-  </c-section>
+  {# ── Notices ──────────────────────────────────────────────────────────── #}
+  {% if can_manage and project.visibility != project.VISIBILITY.PUBLIC %}
+    <c-alert variant="warning" icon="lock" soft>
+      <span>{% translate "This project is private. Only its team can open this page, and none of its datasets can be found by anyone else until the project is made public." %}</span>
+      <c-button href="{{ urls.update }}" text="{% translate 'Change visibility' %}" size="sm" />
+    </c-alert>
+  {% endif %}
+  {% if project.status == project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS %}
+    {% with person=team.contact.contributor|default:team.leads.0.contributor %}
+      <c-alert variant="info" icon="people" soft>
+        <span>{% translate "This project is looking for collaborators." %}{% if person %} {% blocktranslate with name=person %}Get in touch with {{ name }} to take part.{% endblocktranslate %}{% endif %}</span>
+        {% if person %}<c-button href="{{ person.get_absolute_url }}" text="{% translate 'View profile' %}" size="sm" />{% endif %}
+      </c-alert>
+    {% endwith %}
+  {% endif %}
+
+  {# ── Figures ──────────────────────────────────────────────────────────── #}
+  <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" desc="{{ counts.datasets_desc }}" href="{{ urls.datasets }}" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" desc="{{ counts.samples_desc }}" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" desc="{{ counts.measurements_desc }}" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}">
+      <c-slot name="desc">
+        {% blocktranslate count counter=team.people %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}{% if team.organizations %} · {% blocktranslate count counter=team.organizations %}{{ counter }} organisation{% plural %}{{ counter }} organisations{% endblocktranslate %}{% endif %}
+      </c-slot>
+    </c-stats.item>
+  </c-stats>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+
+    {# ── Main column ────────────────────────────────────────────────────── #}
+    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
+
+      <c-card title="{% translate 'About this project' %}" class="bg-base-100">
+        {% if descriptions|length > 1 %}
+          <c-tabs group="project-about" label="{% translate 'Project descriptions' %}">
+            {% for description in descriptions %}
+              <c-tabs.tab group="project-about" label="{{ description.label }}" :checked="forloop.first">
+                <div class="prose max-w-none">{{ description.value|safe_markdown }}</div>
+              </c-tabs.tab>
+            {% endfor %}
+          </c-tabs>
+        {% elif descriptions %}
+          <div class="prose max-w-none">{{ descriptions.0.value|safe_markdown }}</div>
+        {% elif can_manage %}
+          <div class="flex flex-col items-start gap-3">
+            <p class="text-base-content/70">{% translate "Nobody has described this project yet. An abstract is the first thing visitors and search engines read, and the first thing a data repository asks for." %}</p>
+            <c-button href="{{ urls.descriptions }}" text="{% translate 'Write an abstract' %}" icon="description" size="sm" variant="primary" />
+          </div>
+        {% else %}
+          <p class="text-base-content/70">{% translate "The team hasn't described this project yet." %}</p>
+        {% endif %}
+      </c-card>
+
+      <c-card title="{% translate 'Datasets' %}" class="bg-base-100" tight>
+        <c-slot name="badges">
+          {% if counts.datasets %}<span class="badge badge-ghost badge-sm">{{ counts.datasets }}</span>{% endif %}
+        </c-slot>
+        <c-slot name="actions">
+          {% if counts.datasets and urls.datasets %}
+            <c-button href="{{ urls.datasets }}" text="{% translate 'View all' %}" size="sm" ghost />
+          {% endif %}
+        </c-slot>
+        {% if datasets_preview.rows %}
+          <c-list label="{% translate 'Most recently updated datasets' %}" class="mt-2">
+            {% for dataset in datasets_preview.rows %}
+              <c-list.row>
+                <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                  <a href="{{ dataset.get_absolute_url }}" class="link link-hover font-medium break-words">{{ dataset.name }}</a>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/70">
+                    {% if dataset.published %}
+                      <span class="badge badge-soft badge-success badge-xs">{% translate "Published" %}</span>
+                    {% elif dataset.visibility == 1 %}
+                      <span class="badge badge-soft badge-info badge-xs">{% translate "Public, data not yet released" %}</span>
+                    {% else %}
+                      <span class="badge badge-ghost badge-xs"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
+                    {% endif %}
+                    {% if dataset.license %}
+                      <span class="badge badge-outline badge-xs" title="{% translate 'Licence' %}">{{ dataset.license.name }}</span>
+                    {% else %}
+                      <span class="badge badge-soft badge-warning badge-xs">{% translate "No licence" %}</span>
+                    {% endif %}
+                    <span class="tabular-nums">
+                      {% blocktranslate count counter=dataset.n_samples %}{{ counter }} sample{% plural %}{{ counter }} samples{% endblocktranslate %}
+                      · {% blocktranslate count counter=dataset.n_measurements %}{{ counter }} measurement{% plural %}{{ counter }} measurements{% endblocktranslate %}
+                    </span>
+                    <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Updated {{ when }}{% endblocktranslate %}</span>
+                  </div>
+                </div>
+              </c-list.row>
+            {% endfor %}
+          </c-list>
+          {% if datasets_preview.more %}
+            <div class="px-4 pb-4">
+              <a href="{{ urls.datasets }}" class="link link-primary text-sm">
+                {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="px-6 pb-6 pt-2 flex flex-col items-start gap-3">
+            {% if can_manage %}
+              <p class="text-base-content/70">{% translate "Datasets hold this project's samples and measurements, and are what other researchers cite and reuse. Add the first one to start sharing data." %}</p>
+              {% if urls.add_dataset %}
+                <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}" text="{% translate 'Add dataset' %}" icon="add" size="sm" variant="primary" />
+              {% endif %}
+            {% else %}
+              <p class="text-base-content/70">{% translate "No datasets have been shared from this project yet." %}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </c-card>
+
+      {% if composition_chart or growth_chart %}
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+          {% if composition_chart %}
+            <c-card title="{% translate "What's in this project" %}" class="bg-base-100 min-w-0">
+              <c-chart :chart="composition_chart.chart"
+                       id="project-composition"
+                       height="{{ composition_chart.height }}"
+                       name="{% translate 'Records by type' %}"
+                       caption="{% translate 'Records by sample and measurement type.' %}"
+                       description="{{ composition_chart.description }}" />
+            </c-card>
+          {% endif %}
+          {% if growth_chart %}
+            <c-card title="{% translate 'Data added over time' %}" class="bg-base-100 min-w-0">
+              <c-chart :chart="growth_chart.chart"
+                       id="project-growth"
+                       aspect-ratio="16/9"
+                       name="{% translate 'Samples and measurements added over time' %}"
+                       caption="{% translate 'Running total, by month added to the portal.' %}"
+                       description="{{ growth_chart.description }}" />
+            </c-card>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% comment %}
+        PLACEHOLDER — sample locations. Intent: a map plotting every sample that carries a
+        location, clustered at low zoom, so a visitor sees the project's spatial coverage before
+        opening a dataset; clicking a cluster filters the datasets list above. Waiting on the
+        location app, which is switched off in the portal's settings.
+      {% endcomment %}
+      <c-card title="{% translate 'Where the samples come from' %}" class="bg-base-100">
+        <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Planned" %}</span></c-slot>
+        <c-placeholder.card icon="map"
+                            message="{% translate "A map of every sample with a location, so you can see the project's spatial coverage before opening a dataset." %}" />
+      </c-card>
+
+      {% comment %}
+        PLACEHOLDER — recent activity. Intent: the last ten changes to the project and its
+        datasets ("Lea Brandt added 12 samples to …", "Dataset … was published"), so the team sees
+        what moved and a visitor sees the project is alive. Needs an activity log, which doesn't
+        exist yet.
+      {% endcomment %}
+      <c-card title="{% translate 'Recent activity' %}" class="bg-base-100">
+        <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Planned" %}</span></c-slot>
+        <c-placeholder.card icon="activity"
+                            message="{% translate 'The latest changes to this project and its datasets: new samples, published datasets, people joining.' %}" />
+      </c-card>
+    </div>
+
+    {# ── Facts column ───────────────────────────────────────────────────── #}
+    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
+
+      {% if readiness %}
+        <c-card title="{% translate 'Metadata readiness' %}" class="bg-base-100 border border-primary">
+          <c-slot name="badges"><span class="badge badge-ghost badge-sm">{% translate "Team only" %}</span></c-slot>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-baseline justify-between gap-2 text-sm">
+              <span>{% blocktranslate with done=readiness.done total=readiness.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}</span>
+              <span class="tabular-nums text-base-content/70">{{ readiness.percent }}%</span>
+            </div>
+            <c-progress value="{{ readiness.done }}" max="{{ readiness.total }}" variant="primary"
+                        label="{% blocktranslate with done=readiness.done total=readiness.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}" />
+            <p class="text-xs text-base-content/70">{% translate "What search engines, data repositories and other researchers look for before they trust and reuse a project." %}</p>
+          </div>
+          <ul class="flex flex-col gap-1 text-sm mt-2">
+            {% for item in readiness.items %}
+              {% if not item.done %}
+                <li class="flex items-start gap-2">
+                  <c-icon name="warning" class="text-warning mt-1" aria-hidden="true" />
+                  <span class="flex-1">{{ item.label }}<span class="sr-only"> — {% translate "missing" %}</span></span>
+                  {% if item.url %}<a href="{{ item.url }}" class="link link-primary shrink-0">{% translate "Fix" %}</a>{% endif %}
+                </li>
+              {% endif %}
+            {% endfor %}
+            {% for item in readiness.items %}
+              {% if item.done %}
+                <li class="flex items-start gap-2 text-base-content/60">
+                  <c-icon name="success" class="text-success mt-1" aria-hidden="true" />
+                  <span class="flex-1">{{ item.label }}<span class="sr-only"> — {% translate "done" %}</span></span>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </c-card>
+      {% endif %}
+
+      <c-card title="{% translate 'Cite this project' %}" class="bg-base-100" id="cite">
+        <p class="text-sm bg-base-200 rounded-box p-3 break-words" id="project-citation">{{ citation.text }}</p>
+        <c-slot name="footer">
+          <c-button text="{% translate 'Copy' %}" icon="copy" size="sm"
+                    onclick="navigator.clipboard.writeText(document.getElementById('project-citation').innerText)" />
+          {% comment %}
+            PLACEHOLDER — citation formats. Intent: APA, BibTeX and RIS, generated from the same
+            DataCite record the page already builds, as a dropdown beside Copy.
+          {% endcomment %}
+          <c-button text="{% translate 'BibTeX, RIS' %}" icon="download" size="sm" ghost disabled title="{% translate 'Planned' %}" />
+        </c-slot>
+      </c-card>
+
+      <c-card title="{% translate 'Access and reuse' %}" class="bg-base-100">
+        <dl class="flex flex-col gap-3 text-sm">
+          <div>
+            <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Identifiers" %}</dt>
+            <dd class="flex flex-col gap-1 mt-1">
+              {% for identifier in identifiers %}
+                <span class="flex flex-wrap items-baseline gap-2">
+                  <span class="badge badge-ghost badge-xs">{{ identifier.get_type_display|default:identifier.type }}</span>
+                  {% if identifier.type == "DOI" %}
+                    <a href="https://doi.org/{{ identifier.value }}" class="link link-primary break-words font-mono text-xs">{{ identifier.value }}</a>
+                  {% else %}
+                    <span class="font-mono text-xs break-words">{{ identifier.value }}</span>
+                  {% endif %}
+                </span>
+              {% endfor %}
+              <span class="flex flex-wrap items-center gap-2">
+                <span class="badge badge-ghost badge-xs">{% translate "Portal ID" %}</span>
+                <span class="font-mono text-xs">{{ project.uuid }}</span>
+                <button type="button" class="btn btn-ghost btn-xs"
+                        aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                        onclick="navigator.clipboard.writeText('{{ project.uuid }}')">
+                  <c-icon name="copy" aria-hidden="true" />
+                </button>
+              </span>
+            </dd>
+          </div>
+
+          <div>
+            <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Licences" %}</dt>
+            <dd class="flex flex-col gap-1 mt-1">
+              {% for name, n in licenses.items %}
+                <span class="flex items-baseline gap-2">
+                  <span class="badge badge-outline badge-sm">{{ name }}</span>
+                  <span class="text-base-content/70">{% blocktranslate count counter=n %}{{ counter }} dataset{% plural %}{{ counter }} datasets{% endblocktranslate %}</span>
+                </span>
+              {% empty %}
+                <span class="text-base-content/70">{% translate "No public datasets yet, so no licence applies." %}</span>
+              {% endfor %}
+              {% if licenses.unlicensed %}
+                <span class="text-warning">{% blocktranslate count counter=licenses.unlicensed %}{{ counter }} public dataset has no licence and can't be reused safely.{% plural %}{{ counter }} public datasets have no licence and can't be reused safely.{% endblocktranslate %}</span>
+              {% endif %}
+            </dd>
+          </div>
+
+          <div>
+            <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "For machines" %}</dt>
+            <dd class="flex flex-wrap gap-2 mt-1">
+              {% if api_url %}
+                <a href="{{ api_url }}" class="btn btn-xs btn-outline"><c-icon name="api" aria-hidden="true" />{% translate "REST API" %}</a>
+              {% endif %}
+              {% comment %}
+                PLACEHOLDER — metadata downloads. Intent: the DataCite JSON and schema.org JSON-LD
+                records the admin can already export, served from the project's own address so a
+                harvester can fetch them. The JSON-LD is already embedded in this page's head.
+              {% endcomment %}
+              <span class="btn btn-xs btn-outline btn-disabled" title="{% translate 'Planned' %}"><c-icon name="download" aria-hidden="true" />DataCite JSON</span>
+              <span class="btn btn-xs btn-outline btn-disabled" title="{% translate 'Planned' %}"><c-icon name="download" aria-hidden="true" />JSON-LD</span>
+            </dd>
+          </div>
+        </dl>
+      </c-card>
+
+      <c-card title="{% translate 'Team' %}" class="bg-base-100">
+        <c-slot name="actions">
+          {% if urls.contributors and team.total %}<c-button href="{{ urls.contributors }}" text="{% translate 'See all' %}" size="sm" ghost />{% endif %}
+        </c-slot>
+        {% if team.total %}
+          <ul class="flex flex-col gap-3">
+            {% for entry in team.leads %}
+              <li class="flex items-center gap-3">
+                <c-avatar :for="entry.contributor" alt="" size="sm" only />
+                <div class="min-w-0">
+                  <a href="{{ entry.contributor.get_absolute_url }}" class="link link-hover font-medium">{{ entry.contributor }}</a>
+                  <p class="text-xs text-base-content/70">{{ entry.roles|join:", " }}</p>
+                </div>
+              </li>
+            {% endfor %}
+            {% if team.contact %}
+              <li class="flex items-center gap-3">
+                <c-avatar :for="team.contact.contributor" alt="" size="sm" only />
+                <div class="min-w-0">
+                  <a href="{{ team.contact.contributor.get_absolute_url }}" class="link link-hover font-medium">{{ team.contact.contributor }}</a>
+                  <p class="text-xs text-base-content/70">{{ team.contact.roles|join:", " }}</p>
+                </div>
+              </li>
+            {% endif %}
+          </ul>
+          {% if team.others %}
+            <div class="flex items-center gap-3 mt-4">
+              <c-avatar.group size="xs">
+                {% for entry in team.others|slice:":6" %}
+                  <c-avatar :for="entry.contributor" alt="{{ entry.contributor }}" size="sm" only />
+                {% endfor %}
+              </c-avatar.group>
+              <span class="text-sm text-base-content/70">
+                {% blocktranslate count counter=team.others|length %}and {{ counter }} other contributor{% plural %}and {{ counter }} other contributors{% endblocktranslate %}
+              </span>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="text-sm text-base-content/70">{% translate "Nobody is credited on this project yet." %}</p>
+        {% endif %}
+      </c-card>
+
+      {% if funding or can_manage %}
+        <c-card title="{% translate 'Funding' %}" class="bg-base-100">
+          {% if funding %}
+            <ul class="flex flex-col gap-3 text-sm">
+              {% for award in funding %}
+                <li class="flex flex-col">
+                  {% if award.funderIdentifier %}
+                    <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium">{{ award.funderName }}</a>
+                  {% else %}
+                    <span class="font-medium">{{ award.funderName }}</span>
+                  {% endif %}
+                  {% if award.awardTitle %}<span class="text-base-content/70">{{ award.awardTitle }}</span>{% endif %}
+                  {% if award.awardNumber %}
+                    <span class="text-xs font-mono">
+                      {% if award.awardURI %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
+                    </span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-sm text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
+          {% endif %}
+        </c-card>
+      {% endif %}
+
+      <c-card title="{% translate 'Project details' %}" class="bg-base-100">
+        <dl class="flex flex-col gap-3 text-sm">
+          <div class="flex justify-between gap-3">
+            <dt class="text-base-content/70">{% translate "Status" %}</dt>
+            <dd><span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span></dd>
+          </div>
+          {% if timeline.start_date %}
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between gap-3">
+                <dt class="text-base-content/70">{% translate "Timeline" %}</dt>
+                <dd class="text-end">{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</dd>
+              </div>
+              {% if timeline.percent is not None %}
+                <dd class="flex flex-col gap-1">
+                  <c-progress value="{{ timeline.percent }}" max="100"
+                              label="{% if timeline.finished %}{% translate 'Finished' %}{% elif timeline.not_started %}{% translate 'Not started yet' %}{% else %}{% blocktranslate with year=timeline.year years=timeline.years %}Year {{ year }} of {{ years }}{% endblocktranslate %}{% endif %}" />
+                  <span class="text-xs text-base-content/70">
+                    {% if timeline.finished %}{% translate "Finished" %}{% elif timeline.not_started %}{% translate "Not started yet" %}{% else %}{% blocktranslate with year=timeline.year years=timeline.years %}Year {{ year }} of {{ years }}{% endblocktranslate %}{% endif %}
+                  </span>
+                </dd>
+              {% endif %}
+            </div>
+          {% endif %}
+          {% if project.owner %}
+            <div class="flex justify-between gap-3">
+              <dt class="text-base-content/70">{% translate "Owner" %}</dt>
+              <dd class="text-end"><a href="{{ project.owner.get_absolute_url }}" class="link link-hover">{{ project.owner }}</a></dd>
+            </div>
+          {% endif %}
+          <div class="flex justify-between gap-3">
+            <dt class="text-base-content/70">{% translate "Added" %}</dt>
+            <dd class="text-end">{{ project.added|date:"j M Y" }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-base-content/70">{% translate "Last updated" %}</dt>
+            <dd class="text-end">{{ project.modified|date:"j M Y" }}</dd>
+          </div>
+        </dl>
+      </c-card>
+    </div>
+  </div>
 {% endblock page.content %}
 
 {% block extra_js %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
+  {% if composition_chart or growth_chart %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+            integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    <script src="{% static 'js/chart-theme.js' %}"></script>
+    <script defer src="{% static 'mvp_charts/js/mvp-charts.js' %}"></script>
+  {% endif %}
 {% endblock extra_js %}

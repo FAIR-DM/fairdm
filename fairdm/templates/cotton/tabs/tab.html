@@ -1,0 +1,19 @@
+{% comment %}
+  <c-tabs.tab> — one tab and its panel, inside <c-tabs>.
+
+  Attributes:
+    group   – shared by every tab in the set (required)
+    label   – the tab's text
+    checked – present on the tab shown first
+    class   – extra classes on the panel
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars group label checked class />
+<input type="radio"
+       name="{{ group }}"
+       role="tab"
+       class="tab"
+       aria-label="{{ label }}"
+       {% if checked %}checked{% endif %} />
+<div role="tabpanel" class="tab-content pt-4 {{ class }}">{{ slot }}</div>
