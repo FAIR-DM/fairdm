@@ -247,10 +247,10 @@ Before submitting documentation:
 
 ```bash
 # Build documentation and check for errors
-poetry run sphinx-build -W docs docs/_build
+uv run sphinx-build -W docs docs/_build
 
 # Run link validation
-poetry run sphinx-build -b linkcheck docs docs/_build
+uv run sphinx-build -b linkcheck docs docs/_build
 ```
 
 ### CI Validation
@@ -333,7 +333,7 @@ This is a warning.
 
 - Check build output for specific warnings
 - Common issues: broken references, invalid syntax, missing files
-- Run `poetry run sphinx-build docs docs/_build` locally to see warnings
+- Run `uv run sphinx-build docs docs/_build` locally to see warnings
 
 ### "Internal link check failed"
 

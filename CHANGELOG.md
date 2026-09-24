@@ -56,6 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The project is built and developed with uv instead of Poetry.** Contributors run
+  `uv sync` to install and `uv run` in place of `poetry run`. The lockfile is now `uv.lock`,
+  and the published package is built with hatchling.
+- **Django 5.1 is no longer supported.** It reached end of life, and the development toolchain
+  now requires Django 5.2 or later. The Django requirement is `>=5.2,<6.0`.
 - **The demo application moved from `fairdm_demo/` to `demo/`** and is imported as `demo`. Its
   Django app label changed with it, which moves the database tables it owns. Nothing about how it
   behaves changed. Portals that install it, import from it, or name its models by label need a

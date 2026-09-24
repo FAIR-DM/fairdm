@@ -13,7 +13,7 @@ When you implement a new feature:
 1. **Identify relevant sections** based on your feature type (models, UI, config, etc.)
 2. **Update documentation** in the appropriate guide (developer/admin/contributor/contributing)
 3. **Add cross-references** to your spec and constitution principles
-4. **Validate locally** with `poetry run sphinx-build -W docs docs/_build`
+4. **Validate locally** with `uv run sphinx-build -W docs docs/_build`
 5. **Note what you updated** in your pull request description, so reviewers can confirm coverage
 
 ---
@@ -71,10 +71,10 @@ Before submitting documentation:
 
 ```bash
 # Build docs and check for errors
-poetry run sphinx-build -W docs docs/_build
+uv run sphinx-build -W docs docs/_build
 
 # Validate internal links
-poetry run sphinx-build -b linkcheck docs docs/_build
+uv run sphinx-build -b linkcheck docs docs/_build
 ```
 
 There's no CI job that runs these checks yet, so run them yourself before opening a pull request.

@@ -272,25 +272,25 @@ def test_create_project():
 ### Run all integration tests
 
 ```bash
-poetry run pytest tests/integration/
+uv run pytest tests/integration/
 ```
 
 ### Run this specific file
 
 ```bash
-poetry run pytest tests/integration/fairdm/core/test_project_workflow.py
+uv run pytest tests/integration/fairdm/core/test_project_workflow.py
 ```
 
 ### Run a specific test
 
 ```bash
-poetry run pytest tests/integration/fairdm/core/test_project_workflow.py::test_project_creation__with_valid_data__creates_project_and_assigns_owner
+uv run pytest tests/integration/fairdm/core/test_project_workflow.py::test_project_creation__with_valid_data__creates_project_and_assigns_owner
 ```
 
 ### Run with database reuse (faster)
 
 ```bash
-poetry run pytest tests/integration/ --reuse-db
+uv run pytest tests/integration/ --reuse-db
 ```
 
 ## Best Practices Demonstrated

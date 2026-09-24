@@ -59,9 +59,9 @@ Tests are grouped by **test layer** (unit, integration, contract) at the top lev
 **Why**: Layer-based organization allows running specific test types independently:
 
 ```bash
-poetry run pytest tests/unit/        # Fast feedback
-poetry run pytest tests/integration/ # Database tests
-poetry run pytest tests/contract/    # API validation
+uv run pytest tests/unit/        # Fast feedback
+uv run pytest tests/integration/ # Database tests
+uv run pytest tests/contract/    # API validation
 ```
 
 ### Rule 2: App-Mirroring Structure
@@ -398,9 +398,9 @@ def test_something_slow():
 Run specific markers:
 
 ```bash
-poetry run pytest -m unit              # Only unit tests
-poetry run pytest -m integration       # Only integration tests
-poetry run pytest -m "not slow"        # Exclude slow tests
+uv run pytest -m unit              # Only unit tests
+uv run pytest -m integration       # Only integration tests
+uv run pytest -m "not slow"        # Exclude slow tests
 ```
 
 ## Common Pitfalls

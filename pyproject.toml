@@ -10,14 +10,23 @@ keywords = [
     "fairdm",
     "FAIR",
 ]
-dynamic = ["version", "classifiers"]
+version = "0.0.1"
 readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django :: 5.2",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 authors = [{ name = "Samuel Jennings" }]
 requires-python = '>=3.13,<4.0'
 dependencies = [
     "celery (>=5.6.2,<6.0.0)",
     'crispy-tailwind (>=1.0.3,<2.0.0)',
-    'django[argon2] (>=5.1.3,<6.0.0)',
+    'django[argon2] (>=5.2,<6.0.0)',
     'django-admin-extra-buttons (>=1.5.8,<2.0.0)',
     'django-adminactions (>=2.0.0,<3.0.0)',
     'django-allauth[mfa,socialaccount] (>=65.19.4,<66.0.0)',
@@ -119,41 +128,38 @@ Repository = "https://github.com/FAIR-DM/fairdm"
 Issues = "https://github.com/FAIR-DM/fairdm/issues"
 Changelog = "https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md"
 
-[tool.poetry]
-version = "0.0.1"
-requires-poetry = '>=2.0,<3.0'
-packages = [{ include = "fairdm" }, { include = "demo" }]
-include = ["README.md", "LICENSE"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Framework :: Django :: 5.1",
-    "Framework :: Django :: 5.2",
-    "Intended Audience :: Science/Research",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3.13",
+[dependency-groups]
+# Toolchain bundle pinned to a shared tag. Ships ruff, mypy, deptry, pre-commit,
+# pytest, pytest-django, coverage and django-stubs.
+dev = [
+    "mvp-shared[dev,test]",
+    "fairdm-discussions",
+    "pytest-mock>=3.15.1,<4.0",
+    "django>=5.2.17,<6.0",
+]
+docs = [
+    "fairdm-docs[pydata-sphinx-theme]",
+    "sphinxcontrib-mermaid>=2.1.1,<3.0",
 ]
 
-[tool.poetry.group.test.dependencies]
-django = ">=5.2.17,<6.0"
-
-[tool.poetry.group.dev.dependencies]
-# Family toolchain bundle; the pin tag is the family-standard version. Ships
-# ruff, mypy, deptry, pre-commit, pytest, pytest-django, coverage, django-stubs.
-# Replaces the former fairdm-dev-tools git dependency (family ADR 0002).
-mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.4.1", extras = ["dev", "test"], python = ">=3.12" }
+[tool.uv.sources]
+mvp-shared = { git = "https://github.com/django-mvp/shared.git", tag = "v0.6.0" }
 fairdm-discussions = { git = "https://github.com/FAIR-DM/fairdm-discussions" }
-pytest-mock = "^3.15.1"
-
-[tool.poetry.group.docs.dependencies]
-fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs", extras = [
-    "pydata-sphinx-theme",
-] }
-sphinxcontrib-mermaid = "^2.1.1"
-
+fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 
 [build-system]
-requires = ['poetry-core (>=2.0,<3.0)']
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+# django-research-vocabs and django-literature are declared as git URLs above.
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["fairdm", "demo"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/fairdm", "/demo", "/README.md", "/LICENSE"]
 
 [tool.ruff]
 extend = "ruff-base.toml"

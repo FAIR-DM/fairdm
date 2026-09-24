@@ -7,11 +7,11 @@ Thank you for contributing to FairDM! This guide will help you set up your devel
 ### 1. Install Dependencies
 
 ```bash
-# Install Poetry (if not already installed)
-curl -sSL https://install.python-poetry.org | python3 -
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install project dependencies
-poetry install --with dev,test,docs
+uv sync --group docs
 ```
 
 ### 2. Install Git Hooks (IMPORTANT!)
@@ -19,7 +19,7 @@ poetry install --with dev,test,docs
 **This prevents CI failures by running the same checks locally before you push:**
 
 ```bash
-poetry run invoke install-hooks
+uv run invoke install-hooks
 ```
 
 This configures git to run pre-push validation automatically. It will:
@@ -35,10 +35,10 @@ Git will automatically run basic checks on commit (trailing whitespace, etc.). I
 
 ```bash
 # Auto-fix all formatting issues
-poetry run invoke format
+uv run invoke format
 
 # Or manually run pre-commit
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ### Before You Push (CRITICAL!)
@@ -50,7 +50,7 @@ If you installed git hooks, checks run automatically when you push.
 Run checks manually before pushing:
 
 ```bash
-poetry run invoke pre-push
+uv run invoke pre-push
 ```
 
 This runs **exactly the same checks as CI**, preventing failures.
@@ -59,11 +59,11 @@ This runs **exactly the same checks as CI**, preventing failures.
 
 | Task | Command | Description |
 |------|---------|-------------|
-| **Format code** | `poetry run invoke format` | Auto-fix formatting and linting issues |
-| **Run tests** | `poetry run invoke test` | Run test suite with coverage |
-| **Pre-push checks** | `poetry run invoke pre-push` | Run all CI checks locally |
-| **Install hooks** | `poetry run invoke install-hooks` | Set up automatic pre-push validation |
-| **Django checks** | `poetry run python manage.py check` | Run Django system checks |
+| **Format code** | `uv run invoke format` | Auto-fix formatting and linting issues |
+| **Run tests** | `uv run invoke test` | Run test suite with coverage |
+| **Pre-push checks** | `uv run invoke pre-push` | Run all CI checks locally |
+| **Install hooks** | `uv run invoke install-hooks` | Set up automatic pre-push validation |
+| **Django checks** | `uv run python manage.py check` | Run Django system checks |
 
 ## Understanding CI Failures
 
@@ -76,12 +76,12 @@ If CI fails with **Lint & Format** errors:
 
 2. **Run format to auto-fix**:
    ```bash
-   poetry run invoke format
+   uv run invoke format
    ```
 
 3. **Check for remaining issues**:
    ```bash
-   poetry run invoke pre-push
+   uv run invoke pre-push
    ```
 
 4. **Commit and push fixes**:
@@ -132,12 +132,12 @@ The project uses `.pre-commit-config.yaml` for code quality:
 
 Run to see all issues:
 ```bash
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 Auto-fix most issues:
 ```bash
-poetry run invoke format
+uv run invoke format
 ```
 
 ### "Line too long" errors
@@ -158,14 +158,14 @@ result = some_very_long_function_name(
 
 Ruff handles import sorting automatically:
 ```bash
-poetry run invoke format
+uv run invoke format
 ```
 
 ### Git hooks not working
 
 Reinstall hooks:
 ```bash
-poetry run invoke install-hooks
+uv run invoke install-hooks
 ```
 
 ## Questions?
