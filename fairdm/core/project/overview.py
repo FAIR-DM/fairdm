@@ -9,23 +9,29 @@ project's public datasets only, and the samples and measurements beneath them; a
 team sees everything, with the private share called out.
 """
 
-import json
 from collections import Counter, OrderedDict
 from datetime import date
 
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.db.models.functions import TruncMonth
-from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Line
+from pyecharts.charts import Line
 
-from fairdm.contrib.contributors.models import Contributor, Person
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.overview import (
+    as_date,
+    composition_chart,
+    contributions_of,
+    format_authors,
+    is_person,
+    json_ld,
+    roles_of,
+    safe_reverse,
+)
 from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
 
@@ -60,10 +66,7 @@ def build(request, project, can_manage):
         "composition_chart": composition_chart(samples, measurements),
         "growth_chart": growth_chart(samples, measurements),
         "citation": citation(request, project),
-        "json_ld": json.dumps(to_json_ld(project), default=str)
-        .replace("<", "\\u003c")
-        .replace(">", "\\u003e")
-        .replace("&", "\\u0026"),
+        "json_ld": json_ld(to_json_ld(project)),
         "api_url": safe_reverse(f"api:{project._meta.model_name}-detail", uuid=project.uuid),
         "urls": {
             "datasets": safe_reverse("project:dataset-list", uuid=project.uuid),
@@ -79,12 +82,6 @@ def build(request, project, can_manage):
     return context
 
 
-def safe_reverse(name, **kwargs):
-    try:
-        return reverse(name, kwargs=kwargs or None)
-    except NoReverseMatch:
-        return None
-
 
 def descriptions(project):
     """The project's descriptions in the vocabulary's own order, abstract first."""
@@ -96,12 +93,6 @@ def descriptions(project):
         if by_type.get(t)
     ]
 
-
-def as_date(partial):
-    if partial is None:
-        return None
-    value = getattr(partial, "date", partial)
-    return value if isinstance(value, date) else None
 
 
 def timeline(project):
@@ -130,25 +121,7 @@ def timeline(project):
     return result
 
 
-def contributions_of(project):
-    """The project's credits with each contributor as its own subtype, Person or Organization.
 
-    ``select_related`` stops at the polymorphic base, which has neither a person's name parts nor
-    a way to tell the two apart, so the real instances are fetched in one extra query.
-    """
-    contributions = list(project.contributors.prefetch_related("roles"))
-    real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
-    for contribution in contributions:
-        contribution.contributor = real[contribution.contributor_id]
-    return contributions
-
-
-def is_person(contributor):
-    return isinstance(contributor, Person)
-
-
-def roles_of(contribution):
-    return {role.name for role in contribution.roles.all()}
 
 
 def team(project):
@@ -231,44 +204,6 @@ def licenses(datasets):
     return {"items": counter.most_common(), "unlicensed": unlicensed}
 
 
-def type_counts(queryset):
-    rows = queryset.values("polymorphic_ctype").annotate(n=Count("pk")).order_by("-n")
-    result = []
-    for row in rows:
-        model = ContentType.objects.get_for_id(row["polymorphic_ctype"]).model_class()
-        result.append((str(model._meta.verbose_name_plural).capitalize(), row["n"]))
-    return result
-
-
-def composition_chart(samples, measurements):
-    """Records by type, largest first — one hue, since the bars compare magnitude."""
-    items = type_counts(samples) + type_counts(measurements)
-    if not items:
-        return None
-    items.sort(key=lambda item: item[1])  # ECharts draws the first category at the bottom
-    chart = (
-        Bar()
-        .add_xaxis([label for label, _ in items])
-        .add_yaxis(
-            _("Records"),
-            [n for _, n in items],
-            bar_max_width=18,
-            label_opts=opts.LabelOpts(is_show=True, position="right"),
-            itemstyle_opts=opts.ItemStyleOpts(border_radius=[0, 4, 4, 0]),
-        )
-        .reversal_axis()
-        .set_global_opts(
-            legend_opts=opts.LegendOpts(is_show=False),
-            tooltip_opts=opts.TooltipOpts(trigger="axis"),
-            xaxis_opts=opts.AxisOpts(splitline_opts=opts.SplitLineOpts(is_show=True)),
-        )
-    )
-    chart.options["grid"] = {"left": 8, "right": 40, "top": 8, "bottom": 8, "containLabel": True}
-    return {
-        "chart": chart,
-        "height": f"{max(len(items) * 44 + 32, 160)}px",
-        "description": "; ".join(f"{label}: {n}" for label, n in reversed(items)),
-    }
 
 
 def monthly(queryset):
@@ -336,13 +271,6 @@ def growth_chart(samples, measurements):
     }
 
 
-def author_name(contributor):
-    last = getattr(contributor, "last_name", "")
-    first = getattr(contributor, "first_name", "")
-    if last and first:
-        return f"{last}, {first[0]}."
-    return str(contributor)
-
 
 def citation(request, project):
     """A DataCite-shaped citation: Creators (Year). Title. Publisher. Identifier."""
@@ -351,11 +279,7 @@ def citation(request, project):
     year = as_date(start).year if as_date(start) else project.added.year
     doi = next((i.value for i in project.identifiers.all() if i.type == "DOI"), None)
     link = f"https://doi.org/{doi}" if doi else request.build_absolute_uri(project.get_absolute_url())
-    names = [author_name(c) for c in creators]
-    if len(names) > 1:
-        authors = ", ".join(names[:-1]) + " & " + names[-1]
-    else:
-        authors = names[0] if names else ""
+    authors = format_authors(creators)
     publisher = getattr(getattr(request, "site", None), "name", "") or ""
     parts = [f"{authors} ({year})." if authors else f"({year}).", f"{project.name}.", f"{publisher}.", link]
     return {"text": " ".join(p for p in parts if p.strip(". ")), "link": link, "has_doi": bool(doi), "creators": len(creators)}

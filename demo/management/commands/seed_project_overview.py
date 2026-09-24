@@ -21,6 +21,7 @@ from django.utils import timezone
 from guardian.shortcuts import assign_perm
 from licensing.models import License
 from partial_date import PartialDate
+from literature.models import LiteratureItem
 from research_vocabs.models import Concept, Vocabulary
 
 from demo.factories import (
@@ -32,7 +33,13 @@ from demo.factories import (
 )
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.choices import ProjectStatus
-from fairdm.core.dataset.models import Dataset
+from fairdm.core.dataset.models import (
+    Dataset,
+    DatasetDate,
+    DatasetDescription,
+    DatasetIdentifier,
+    DatasetLiteratureRelation,
+)
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import (
     Project,
@@ -140,12 +147,15 @@ class Command(BaseCommand):
         random.seed(20260924)
         call_command("seed_licenses", verbosity=0)
         users = self.accounts()
+        # Datasets first: a project with public datasets refuses to be deleted.
+        Dataset.all_objects.filter(project__name__in=SEEDED_NAMES).delete()
         Project.objects.filter(name__in=SEEDED_NAMES).delete()
         keywords = self.keywords()
         self.showcase(users, keywords)
         self.empty(users)
         self.sparse(users)
-        self.stdout.write(self.style.SUCCESS("Seeded the project overview states."))
+        self.dataset_metadata(users, keywords)
+        self.stdout.write(self.style.SUCCESS("Seeded the project and dataset overview states."))
 
     def accounts(self):
         users = {}
@@ -312,3 +322,118 @@ class Command(BaseCommand):
         )
         for n in range(3):
             RockSampleFactory(dataset=dataset, name=f"REF-{n + 1:02d}")
+        Dataset.all_objects.create(
+            name="Round 2 reference ages (draft)",
+            project=project,
+            visibility=Visibility.PRIVATE,
+            license=None,
+            created_by=users["super.user"],
+        )
+
+    def literature(self, key, title, year, doi, kind="article-journal"):
+        item, _ = LiteratureItem.objects.get_or_create(
+            citation_key=key,
+            defaults={
+                "item": {
+                    "type": kind,
+                    "title": title,
+                    "DOI": doi,
+                    "issued": {"date-parts": [[year]]},
+                }
+            },
+        )
+        return item
+
+    def dataset_metadata(self, users, keywords):
+        """Dataset-level metadata for the showcase's datasets, so each access state has a fully
+        described example: the Soultz cores (published), the Bruchsal soil gas survey (public,
+        data not released) and the borehole logs (private)."""
+        showcase = Project.objects.get(name=SHOWCASE)
+        people = {p.last_name: p for p in Person.objects.filter(email__endswith="@example.org")}
+        for dataset in Dataset.all_objects.filter(project=showcase):
+            for permission in ("view_dataset", "change_dataset", "delete_dataset"):
+                assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
+
+        cores = Dataset.all_objects.get(project=showcase, name__startswith="Core samples")
+        cores.keywords.set(keywords[:3] + keywords[5:])
+        DatasetDescription.objects.create(
+            related=cores,
+            type="Abstract",
+            value=(
+                "Rock cores recovered from the GPK and EPS boreholes at Soultz-sous-Forêts, "
+                "between 1.4 and 5 km depth, with their X-ray fluorescence major and trace "
+                "element geochemistry. The cores span the sedimentary cover and the granite "
+                "basement and were sampled to constrain radiogenic heat production."
+            ),
+        )
+        DatasetDescription.objects.create(
+            related=cores,
+            type="Methods",
+            value=(
+                "Core sections were cut at roughly 25 m intervals, crushed and milled to below "
+                "63 µm. Fused beads were measured on a wavelength-dispersive XRF spectrometer; "
+                "values below the detection limit are reported as the limit itself and flagged."
+            ),
+        )
+        DatasetDescription.objects.create(
+            related=cores,
+            type="TechnicalInfo",
+            value="Concentrations are in ppm by mass. Depths are measured depth along hole.",
+        )
+        for type_, value in [
+            ("CollectionStart", "2024-05-02"),
+            ("CollectionEnd", "2025-10-17"),
+            ("Submitted", "2026-01-20"),
+            ("Published", "2026-03-04"),
+            ("Available", "2026-03-04"),
+        ]:
+            DatasetDate.objects.create(related=cores, type=type_, value=PartialDate(value))
+        DatasetIdentifier.objects.create(related=cores, type="DOI", value="10.5880/fairdm.2026.014")
+        cores.add_contributor(people["Keller"], with_roles=["Creator", "Supervisor"])
+        cores.add_contributor(people["Brandt"], with_roles=["Creator", "DataCollector"])
+        cores.add_contributor(people["Demir"], with_roles=["Creator", "Researcher"])
+        cores.add_contributor(people["Oliveira"], with_roles=["ContactPerson", "DataManager"])
+        cores.add_contributor(people["Tanaka"], with_roles=["DataCurator"])
+        cores.add_contributor(people["Weber"], with_roles=["DataCollector"])
+        for key, title, year, doi, relation in [
+            (
+                "brandt2026heat",
+                "Radiogenic heat production of the Soultz granite from 3.5 km of core",
+                2026,
+                "10.1016/j.geothermics.2026.103112",
+                "IsDescribedBy",
+            ),
+            (
+                "keller2025graben",
+                "Conductive and advective heat transport in the Upper Rhine Graben",
+                2025,
+                "10.1029/2025JB031442",
+                "IsCitedBy",
+            ),
+            (
+                "genter2010soultz",
+                "Contribution of the exploration of deep crystalline fractured reservoir of "
+                "Soultz to the knowledge of enhanced geothermal systems",
+                2010,
+                "10.1016/j.crte.2010.01.006",
+                "Cites",
+            ),
+        ]:
+            DatasetLiteratureRelation.objects.create(
+                dataset=cores,
+                literature_item=self.literature(key, title, year, doi),
+                relationship_type=relation,
+            )
+
+        soil = Dataset.all_objects.get(project=showcase, name__startswith="Shallow soil gas")
+        DatasetDescription.objects.create(
+            related=soil,
+            type="Abstract",
+            value=(
+                "Soil gas and soil chemistry along two transects across the eastern "
+                "boundary fault near Bruchsal, to test whether fluid pathways reach the surface."
+            ),
+        )
+        DatasetDate.objects.create(related=soil, type="CollectionStart", value=PartialDate("2025-06"))
+        soil.add_contributor(people["Martin"], with_roles=["Creator", "ContactPerson"])
+        soil.add_contributor(people["Hofmann"], with_roles=["DataCollector"])
