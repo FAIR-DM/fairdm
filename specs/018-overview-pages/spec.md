@@ -178,7 +178,7 @@ its dataset's team. Open a rock sample and a sample type with no template of its
    is opened, **Then** its parent type's template is used.
 3. **Given** a sample type with no template of its own anywhere in its ancestry, **When** one of its
    samples is opened, **Then** the shared page is used.
-4. **Given** a sample whose dataset is public and published, **When** a visitor opens it, **Then**
+4. **Given** a sample whose dataset is published, **When** a visitor opens it, **Then**
    the page opens.
 5. **Given** a sample whose dataset is private, or public but unpublished, **When** a visitor opens
    it, **Then** they get a "not found" response. **When** a member of the dataset's team opens it,
@@ -216,7 +216,7 @@ member of its dataset's team, including the one recorded in a different dataset 
 2. **Given** a measurement type that provides its own overview template, a subtype without one, and
    a type with none in its ancestry, **When** a measurement of each is opened, **Then** the template
    is chosen the same way as for samples.
-3. **Given** a measurement whose own dataset is public and published, **When** a visitor opens it,
+3. **Given** a measurement whose own dataset is published, **When** a visitor opens it,
    **Then** the page opens, whatever the state of its sample's dataset.
 4. **Given** a measurement whose own dataset is private, or public but unpublished, **When** a
    visitor opens it, **Then** they get a "not found" response.
@@ -300,7 +300,7 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 - **FR-012**: A project or dataset a viewer may not see MUST answer "not found".
 - **FR-013**: A sample MUST follow its dataset. Its page opens for everyone once that dataset is
-  public and published, and otherwise only for the dataset's team. Anyone else MUST get "not found".
+  published, and otherwise only for the dataset's team. Anyone else MUST get "not found".
 - **FR-014**: A measurement MUST follow its own dataset, not its sample's. The rule is otherwise the
   same as FR-013.
 - **FR-015**: On a project, a visitor's figures, charts and licence summary MUST count only the
@@ -310,7 +310,7 @@ member of its dataset's team, including the one recorded in a different dataset 
   or value ranges.
 - **FR-017**: Wherever a page lists or links records from another dataset (measurements on a sample,
   other measurements on the same sample, the sample a measurement was made on), it MUST show a
-  visitor only records whose own dataset is public and published. The team of that dataset sees them
+  visitor only records whose own dataset is published. The team of that dataset sees them
   all. Where the record cannot be shown, the
   page MUST describe it without naming or linking it.
 - **FR-018**: A readiness checklist MUST be shown only to the record's team, and on a dataset only
@@ -448,9 +448,9 @@ page, and uses the anatomy, cards and blocks from US-1 without redefining them.
   record is complete enough to be found and trusted (projects) or to be published (datasets).
 - **The team**: The people who may change a record. For a sample or measurement, the team of its
   dataset.
-- **Published**: A dataset whose data may be shown publicly. A visitor sees a dataset's samples
-  and measurements only when it is both public and published. A private dataset hides everything
-  beneath it, whether or not it is published.
+- **Published**: A dataset whose data may be shown publicly. Publishing a dataset makes it public,
+  so a published dataset is never private. A visitor sees a dataset's samples and measurements only
+  once it is published.
 
 ## Success Criteria *(mandatory)*
 
@@ -485,5 +485,8 @@ page, and uses the anatomy, cards and blocks from US-1 without redefining them.
 - Out of scope, each to be filed as its own issue: carrying units explicitly in the registry,
   letting a measurement type opt out of its own page, schema.org metadata for samples, and hiding
   the tab strip when a record has only one tab.
+- A published dataset is always public, because publishing makes it public. The code does not
+  enforce that yet. Enforcing it belongs to the checked publication process (R22), not to these
+  pages.
 - The fix links missing from the readiness checklists (keywords, funding, creators, contact person,
   related publications) stay missing until pages to edit those exist.
