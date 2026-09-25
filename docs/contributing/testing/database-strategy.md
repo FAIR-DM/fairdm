@@ -132,10 +132,10 @@ Steps 1-2 and 4 add 5-10 seconds **per test run**.
 
 ```bash
 # First run: Creates database
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 
 # Subsequent runs: Reuses existing database
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 ```
 
 **Benefits**:
@@ -148,7 +148,7 @@ poetry run pytest --reuse-db
 
 ```bash
 # Force recreation (after migration changes)
-poetry run pytest --create-db
+uv run pytest --create-db
 ```
 
 ## Fast Test Execution
@@ -190,7 +190,7 @@ def test_project_list():
 
 ```bash
 # Skip migrations (assumes migrations are current)
-poetry run pytest --no-migrations
+uv run pytest --no-migrations
 ```
 
 Configured in `pyproject.toml`:
@@ -322,13 +322,13 @@ For large test suites, run tests in parallel:
 
 ```bash
 # Install pytest-xdist
-poetry add --group dev pytest-xdist
+uv add --dev pytest-xdist
 
 # Run with 4 processes
-poetry run pytest -n 4
+uv run pytest -n 4
 
 # Run with auto-detect CPU count
-poetry run pytest -n auto
+uv run pytest -n auto
 ```
 
 **Considerations:**
@@ -356,16 +356,16 @@ addopts = [
 
 ```bash
 # Create fresh database
-poetry run pytest --create-db
+uv run pytest --create-db
 
 # Reuse existing database
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 
 # Keep database after tests
-poetry run pytest --reuse-db --no-migrations
+uv run pytest --reuse-db --no-migrations
 
 # Run specific test with database
-poetry run pytest tests/integration/test_project.py::test_create -v
+uv run pytest tests/integration/test_project.py::test_create -v
 ```
 
 ## Best Practices
@@ -391,7 +391,7 @@ Use `transaction=True` only when testing transaction behavior.
 Add to your shell alias:
 
 ```bash
-alias pytest-fast="poetry run pytest --reuse-db"
+alias pytest-fast="uv run pytest --reuse-db"
 ```
 
 ### 3. Minimize Database Tests
@@ -464,10 +464,10 @@ def test_two():
 
 ```bash
 # ✅ Good: Each worker gets own database
-poetry run pytest -n auto
+uv run pytest -n auto
 
 # ❌ Bad: Manual parallel with same DB
-poetry run pytest & poetry run pytest  # Don't do this
+uv run pytest & uv run pytest  # Don't do this
 ```
 
 ### Problem: Migrations too slow
@@ -475,7 +475,7 @@ poetry run pytest & poetry run pytest  # Don't do this
 **Solution**: Use `--no-migrations` flag
 
 ```bash
-poetry run pytest --reuse-db --no-migrations
+uv run pytest --reuse-db --no-migrations
 ```
 
 **Note**: This is already the default, and it means no test built this way runs

@@ -190,25 +190,25 @@ def test_something():
 ### Run all unit tests
 
 ```bash
-poetry run pytest tests/unit/
+uv run pytest tests/unit/
 ```
 
 ### Run this specific file
 
 ```bash
-poetry run pytest tests/unit/fairdm/core/test_models.py
+uv run pytest tests/unit/fairdm/core/test_models.py
 ```
 
 ### Run a specific test
 
 ```bash
-poetry run pytest tests/unit/fairdm/core/test_models.py::test_get_absolute_url__with_valid_slug__returns_detail_url
+uv run pytest tests/unit/fairdm/core/test_models.py::test_get_absolute_url__with_valid_slug__returns_detail_url
 ```
 
 ### Run with verbose output
 
 ```bash
-poetry run pytest tests/unit/fairdm/core/test_models.py -v
+uv run pytest tests/unit/fairdm/core/test_models.py -v
 ```
 
 ## Best Practices Demonstrated

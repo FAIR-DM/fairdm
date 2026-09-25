@@ -21,7 +21,7 @@ Coverage is a **diagnostic tool**, not a quality metric. High coverage doesn't g
 Run tests with coverage tracking:
 
 ```bash
-poetry run pytest --cov=fairdm --cov-report=term-missing
+uv run pytest --cov=fairdm --cov-report=term-missing
 ```
 
 This shows:
@@ -35,7 +35,7 @@ This shows:
 Generate an interactive HTML report:
 
 ```bash
-poetry run pytest --cov=fairdm --cov-report=html
+uv run pytest --cov=fairdm --cov-report=html
 ```
 
 Open `htmlcov/index.html` in your browser to:
@@ -50,13 +50,13 @@ Check coverage from specific test layers:
 
 ```bash
 # Unit test coverage only
-poetry run pytest tests/unit/ --cov=fairdm --cov-report=term-missing
+uv run pytest tests/unit/ --cov=fairdm --cov-report=term-missing
 
 # Integration test coverage only
-poetry run pytest tests/integration/ --cov=fairdm --cov-report=term-missing
+uv run pytest tests/integration/ --cov=fairdm --cov-report=term-missing
 
 # Contract test coverage only
-poetry run pytest tests/contract/ --cov=fairdm --cov-report=term-missing
+uv run pytest tests/contract/ --cov=fairdm --cov-report=term-missing
 ```
 
 This helps identify which test layers cover which code paths.
@@ -236,7 +236,7 @@ FairDM's CI pipeline (GitHub Actions) runs coverage checks:
 
 ```yaml
 - name: Run tests with coverage
-  run: poetry run pytest --cov=fairdm --cov-report=xml --cov-report=term
+  run: uv run pytest --cov=fairdm --cov-report=xml --cov-report=term
 
 - name: Upload coverage to Codecov
   uses: codecov/codecov-action@v3

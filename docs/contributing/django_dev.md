@@ -32,7 +32,7 @@ worked example every portal developer reads.
 ### Run All Tests
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 Tests run in parallel by default, one worker per available core, with each test
@@ -43,31 +43,31 @@ Parallel output interleaves, which makes a single failure harder to read. Add
 `-n0` to any command to fall back to one process:
 
 ```bash
-poetry run pytest tests/test_core/test_models.py -n0
+uv run pytest tests/test_core/test_models.py -n0
 ```
 
 ### Run Tests for a Specific Module
 
 ```bash
-poetry run pytest tests/test_core/
+uv run pytest tests/test_core/
 ```
 
 ### Run a Specific Test File
 
 ```bash
-poetry run pytest tests/test_core/test_models.py
+uv run pytest tests/test_core/test_models.py
 ```
 
 ### Run a Specific Test Function
 
 ```bash
-poetry run pytest tests/test_core/test_models.py::test_project_creation
+uv run pytest tests/test_core/test_models.py::test_project_creation
 ```
 
 ### Run Tests with Coverage
 
 ```bash
-poetry run pytest --cov=fairdm --cov-report=html
+uv run pytest --cov=fairdm --cov-report=html
 ```
 
 This generates a coverage report in `htmlcov/index.html` showing which lines are tested.
@@ -108,7 +108,7 @@ FairDM uses **mypy** to catch type errors before runtime.
 ### Run mypy
 
 ```bash
-poetry run mypy fairdm
+uv run mypy fairdm
 ```
 
 ### Configuration
@@ -162,7 +162,7 @@ FairDM uses **ruff** for fast Python linting and code formatting.
 ### Run Ruff Linter
 
 ```bash
-poetry run ruff check fairdm
+uv run ruff check fairdm
 ```
 
 ### Auto-Fix Issues
@@ -170,7 +170,7 @@ poetry run ruff check fairdm
 Many linting issues can be automatically fixed:
 
 ```bash
-poetry run ruff check --fix fairdm
+uv run ruff check --fix fairdm
 ```
 
 ### Configuration
@@ -221,7 +221,7 @@ FairDM uses **Sphinx** with the **pydata-sphinx-theme** for documentation.
 ### Build Documentation Locally
 
 ```bash
-poetry run sphinx-build -b html docs docs/_build/html
+uv run sphinx-build -b html docs docs/_build/html
 ```
 
 Open `docs/_build/html/index.html` in your browser to view the built documentation.
@@ -229,7 +229,7 @@ Open `docs/_build/html/index.html` in your browser to view the built documentati
 ### Check for Documentation Errors
 
 ```bash
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 The `-W` flag treats warnings as errors, ensuring all documentation issues are caught.
@@ -239,7 +239,7 @@ The `-W` flag treats warnings as errors, ensuring all documentation issues are c
 For live reloading while editing docs:
 
 ```bash
-poetry run sphinx-autobuild docs docs/_build/html
+uv run sphinx-autobuild docs docs/_build/html
 ```
 
 Open [http://localhost:8000](http://localhost:8000) to view live documentation updates.
@@ -286,10 +286,10 @@ For advanced registry customization, see [Registry API Reference](../api/registr
 To run all quality gates in one command:
 
 ```bash
-poetry run pytest && \
-poetry run mypy fairdm && \
-poetry run ruff check fairdm && \
-poetry run sphinx-build -W -b html docs docs/_build/html
+uv run pytest && \
+uv run mypy fairdm && \
+uv run ruff check fairdm && \
+uv run sphinx-build -W -b html docs docs/_build/html
 ```
 
 If all commands succeed, your code is ready for a pull request.
@@ -298,7 +298,7 @@ If all commands succeed, your code is ready for a pull request.
 **Use pre-commit hooks**: Install pre-commit hooks to automatically run linting and type checking before each commit:
 
 ```bash
-poetry run pre-commit install
+uv run pre-commit install
 ```
 
 This catches issues early and prevents CI failures.

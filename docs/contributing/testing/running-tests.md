@@ -7,7 +7,7 @@ This guide covers how to run FairDM tests locally using pytest, including filter
 Ensure you have installed FairDM's development dependencies:
 
 ```bash
-poetry install --with dev
+uv sync
 ```
 
 This installs:
@@ -22,7 +22,7 @@ This installs:
 ### Run All Tests
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 This executes all tests in `tests/` with default settings.
@@ -31,13 +31,13 @@ This executes all tests in `tests/` with default settings.
 
 ```bash
 # Unit tests only (no database)
-poetry run pytest tests/unit/
+uv run pytest tests/unit/
 
 # Integration tests only (database required)
-poetry run pytest tests/integration/
+uv run pytest tests/integration/
 
 # Contract tests only (API validation)
-poetry run pytest tests/contract/
+uv run pytest tests/contract/
 ```
 
 See [Test Layers](test-layers.md) for layer definitions.
@@ -46,13 +46,13 @@ See [Test Layers](test-layers.md) for layer definitions.
 
 ```bash
 # Single test module
-poetry run pytest tests/unit/fairdm/core/test_models.py
+uv run pytest tests/unit/fairdm/core/test_models.py
 
 # All tests in an app
-poetry run pytest tests/integration/fairdm/core/
+uv run pytest tests/integration/fairdm/core/
 
 # Specific test function
-poetry run pytest tests/unit/fairdm/core/test_models.py::test_project_creation__with_valid_data__creates_project
+uv run pytest tests/unit/fairdm/core/test_models.py::test_project_creation__with_valid_data__creates_project
 ```
 
 ## Using Test Markers
@@ -63,29 +63,29 @@ FairDM uses pytest markers to categorize tests. See [Test Organization](test-org
 
 ```bash
 # Unit tests only (no database access)
-poetry run pytest -m unit
+uv run pytest -m unit
 
 # Integration tests only (database required)
-poetry run pytest -m integration
+uv run pytest -m integration
 
 # Contract tests only (API validation)
-poetry run pytest -m contract
+uv run pytest -m contract
 
 # Slow tests only (>1 second)
-poetry run pytest -m slow
+uv run pytest -m slow
 
 # Skip slow tests
-poetry run pytest -m "not slow"
+uv run pytest -m "not slow"
 ```
 
 ### Combine Markers
 
 ```bash
 # Unit tests that are not slow
-poetry run pytest -m "unit and not slow"
+uv run pytest -m "unit and not slow"
 
 # Integration or contract tests
-poetry run pytest -m "integration or contract"
+uv run pytest -m "integration or contract"
 ```
 
 ## Verbose Output
@@ -94,10 +94,10 @@ poetry run pytest -m "integration or contract"
 
 ```bash
 # Show test names as they run
-poetry run pytest -v
+uv run pytest -v
 
 # Show even more detail (test docstrings, fixtures)
-poetry run pytest -vv
+uv run pytest -vv
 ```
 
 **Example output**:
@@ -111,10 +111,10 @@ tests/unit/fairdm/core/test_models.py::test_project_validation__missing_title__r
 
 ```bash
 # Show print() and logging output from passing tests
-poetry run pytest -s
+uv run pytest -s
 
 # Combine with verbose mode
-poetry run pytest -vv -s
+uv run pytest -vv -s
 ```
 
 Use `-s` when debugging test failures to see intermediate values.
@@ -125,10 +125,10 @@ By default, pytest captures `stdout` and `stderr` and only shows them for failin
 
 ```bash
 # Default behavior (captured output shown on failure)
-poetry run pytest
+uv run pytest
 
 # Disable capture entirely (show all output immediately)
-poetry run pytest --capture=no
+uv run pytest --capture=no
 ```
 
 ## Database Management
@@ -138,7 +138,7 @@ poetry run pytest --capture=no
 By default, pytest-django wraps each test in a transaction and rolls it back:
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 - **Fast**: No database cleanup overhead
@@ -153,7 +153,7 @@ Speed up test runs by reusing the test database across sessions:
 
 ```bash
 # Create database once, reuse on subsequent runs
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 ```
 
 **When to use**:
@@ -170,7 +170,7 @@ poetry run pytest --reuse-db
 
 ```bash
 # Force database recreation
-poetry run pytest --create-db
+uv run pytest --create-db
 ```
 
 ### Parallel Testing
@@ -179,13 +179,13 @@ Run tests in parallel using `pytest-xdist` (not installed by default):
 
 ```bash
 # Install pytest-xdist
-poetry add --group dev pytest-xdist
+uv add --dev pytest-xdist
 
 # Run tests in parallel (auto-detect CPU count)
-poetry run pytest -n auto
+uv run pytest -n auto
 
 # Run with specific worker count
-poetry run pytest -n 4
+uv run pytest -n 4
 ```
 
 **Note**: Each worker gets its own database (`test_fairdm_gw0`, `test_fairdm_gw1`, etc.).
@@ -196,10 +196,10 @@ poetry run pytest -n 4
 
 ```bash
 # Re-run only tests that failed in the last run
-poetry run pytest --lf
+uv run pytest --lf
 
 # Run failed tests first, then all others
-poetry run pytest --ff
+uv run pytest --ff
 ```
 
 Useful for debugging failures without re-running the entire suite.
@@ -208,10 +208,10 @@ Useful for debugging failures without re-running the entire suite.
 
 ```bash
 # Run tests with "project" in the name
-poetry run pytest -k project
+uv run pytest -k project
 
 # Run tests with "validation" but not "slow"
-poetry run pytest -k "validation and not slow"
+uv run pytest -k "validation and not slow"
 ```
 
 **Example**:
@@ -219,17 +219,17 @@ poetry run pytest -k "validation and not slow"
 ```bash
 # Matches: test_project_creation, test_project_validation
 # Skips: test_dataset_creation
-poetry run pytest -k project
+uv run pytest -k project
 ```
 
 ### Stop on First Failure
 
 ```bash
 # Stop immediately on first failure
-poetry run pytest -x
+uv run pytest -x
 
 # Stop after 3 failures
-poetry run pytest --maxfail=3
+uv run pytest --maxfail=3
 ```
 
 Useful for fixing errors incrementally.
@@ -240,13 +240,13 @@ Run tests with coverage tracking:
 
 ```bash
 # Terminal report with missing line numbers
-poetry run pytest --cov=fairdm --cov-report=term-missing
+uv run pytest --cov=fairdm --cov-report=term-missing
 
 # HTML report (open htmlcov/index.html)
-poetry run pytest --cov=fairdm --cov-report=html
+uv run pytest --cov=fairdm --cov-report=html
 
 # XML report (for CI/CD)
-poetry run pytest --cov=fairdm --cov-report=xml
+uv run pytest --cov=fairdm --cov-report=xml
 ```
 
 See [Coverage](coverage.md) for detailed coverage guide.
@@ -255,10 +255,10 @@ See [Coverage](coverage.md) for detailed coverage guide.
 
 ```bash
 # Unit test coverage
-poetry run pytest tests/unit/ --cov=fairdm --cov-report=term-missing
+uv run pytest tests/unit/ --cov=fairdm --cov-report=term-missing
 
 # Integration test coverage
-poetry run pytest tests/integration/ --cov=fairdm --cov-report=term-missing
+uv run pytest tests/integration/ --cov=fairdm --cov-report=term-missing
 ```
 
 This shows which test layers cover which code paths.
@@ -269,24 +269,24 @@ This shows which test layers cover which code paths.
 
 ```bash
 # Fast: Unit tests only, no coverage, stop on first failure
-poetry run pytest tests/unit/ -x --ff
+uv run pytest tests/unit/ -x --ff
 ```
 
 ### Pre-Commit Checks
 
 ```bash
 # Comprehensive: All tests with coverage
-poetry run pytest --cov=fairdm --cov-report=term-missing
+uv run pytest --cov=fairdm --cov-report=term-missing
 ```
 
 ### Debugging Failed Test
 
 ```bash
 # Verbose, show prints, stop on first failure, show locals
-poetry run pytest -vv -s -x --showlocals
+uv run pytest -vv -s -x --showlocals
 
 # Use Python debugger (pdb) on failure
-poetry run pytest --pdb
+uv run pytest --pdb
 ```
 
 **Using `--showlocals`**: Shows local variable values when tests fail.
@@ -297,7 +297,7 @@ poetry run pytest --pdb
 
 ```bash
 # Recreate database, run all tests, generate XML coverage
-poetry run pytest --create-db --cov=fairdm --cov-report=xml --cov-report=term
+uv run pytest --create-db --cov=fairdm --cov-report=xml --cov-report=term
 ```
 
 ## Configuration
@@ -347,12 +347,12 @@ needs an image just asks a factory for one.
 
 **Symptom**: `ModuleNotFoundError: No module named 'fairdm'`
 
-**Cause**: FairDM not installed in Poetry environment.
+**Cause**: FairDM not installed in project environment.
 
 **Solution**:
 
 ```bash
-poetry install
+uv sync
 ```
 
 ### Database Permission Errors
@@ -389,7 +389,7 @@ DATABASES = {
 
 ```bash
 # Recreate test database with migrations
-poetry run pytest --create-db
+uv run pytest --create-db
 ```
 
 ### Slow Test Runs
@@ -403,14 +403,14 @@ poetry run pytest --create-db
 
 ```bash
 # Reuse database across test runs
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 
 # Run unit tests only (no database)
-poetry run pytest tests/unit/
+uv run pytest tests/unit/
 
 # Run in parallel
-poetry add --group dev pytest-xdist
-poetry run pytest -n auto
+uv add --dev pytest-xdist
+uv run pytest -n auto
 ```
 
 ### Confusing Test Output
@@ -421,13 +421,13 @@ poetry run pytest -n auto
 
 ```bash
 # Show test names as they run
-poetry run pytest -v
+uv run pytest -v
 
 # Show captured output (prints, logs)
-poetry run pytest -s
+uv run pytest -s
 
 # Show local variables on failure
-poetry run pytest --showlocals
+uv run pytest --showlocals
 ```
 
 ## Best Practices
@@ -438,28 +438,28 @@ poetry run pytest --showlocals
 
 ```bash
 # Fast feedback loop (2-5 seconds)
-poetry run pytest tests/unit/ -x
+uv run pytest tests/unit/ -x
 ```
 
 **Use `--reuse-db` for local development**:
 
 ```bash
 # Saves 2-3 seconds per run
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 ```
 
 **Run full suite before committing**:
 
 ```bash
 # Comprehensive validation
-poetry run pytest --cov=fairdm --cov-report=term-missing
+uv run pytest --cov=fairdm --cov-report=term-missing
 ```
 
 **Use markers to focus on relevant tests**:
 
 ```bash
 # Working on API? Test contracts only
-poetry run pytest -m contract
+uv run pytest -m contract
 ```
 
 ### ❌ DON'T
@@ -468,30 +468,30 @@ poetry run pytest -m contract
 
 ```bash
 # Bad: Outdated schema causes cryptic errors
-poetry run pytest --reuse-db  # After adding migration
+uv run pytest --reuse-db  # After adding migration
 
 # Good: Recreate database
-poetry run pytest --create-db
+uv run pytest --create-db
 ```
 
 **Don't run integration tests in the inner loop**:
 
 ```bash
 # Bad: Slow feedback (10-30 seconds)
-poetry run pytest tests/integration/ -x
+uv run pytest tests/integration/ -x
 
 # Good: Fast unit tests first (2-5 seconds)
-poetry run pytest tests/unit/ -x
+uv run pytest tests/unit/ -x
 ```
 
 **Don't ignore test warnings**:
 
 ```bash
 # Bad: Warnings hidden, bugs lurk
-poetry run pytest --disable-warnings
+uv run pytest --disable-warnings
 
 # Good: Fix warnings incrementally
-poetry run pytest  # Shows warnings
+uv run pytest  # Shows warnings
 ```
 
 ## Further Reading
@@ -510,23 +510,23 @@ poetry run pytest  # Shows warnings
 
 ```bash
 # 1. Run only the failing test with verbose output
-poetry run pytest tests/integration/fairdm/core/test_api.py::test_create_project -vv -s
+uv run pytest tests/integration/fairdm/core/test_api.py::test_create_project -vv -s
 
 # 2. Show local variables on failure
-poetry run pytest tests/integration/fairdm/core/test_api.py::test_create_project --showlocals
+uv run pytest tests/integration/fairdm/core/test_api.py::test_create_project --showlocals
 
 # 3. Drop into debugger on failure
-poetry run pytest tests/integration/fairdm/core/test_api.py::test_create_project --pdb
+uv run pytest tests/integration/fairdm/core/test_api.py::test_create_project --pdb
 ```
 
 ### Example: Pre-Commit Validation
 
 ```bash
 # Run all tests with coverage, stop on first failure
-poetry run pytest --cov=fairdm --cov-report=term-missing -x
+uv run pytest --cov=fairdm --cov-report=term-missing -x
 
 # If all pass, check HTML coverage for gaps
-poetry run pytest --cov=fairdm --cov-report=html
+uv run pytest --cov=fairdm --cov-report=html
 # Open htmlcov/index.html
 ```
 
@@ -534,18 +534,18 @@ poetry run pytest --cov=fairdm --cov-report=html
 
 ```bash
 # Find slow tests (>1 second)
-poetry run pytest --durations=10
+uv run pytest --durations=10
 
 # Mark slow tests and skip them
-poetry run pytest -m "not slow"
+uv run pytest -m "not slow"
 ```
 
 ### Example: Contract Validation
 
 ```bash
 # Run only contract tests with verbose output
-poetry run pytest -m contract -vv
+uv run pytest -m contract -vv
 
 # Verify API responses match OpenAPI spec
-poetry run pytest tests/contract/test_api_contract.py -vv
+uv run pytest tests/contract/test_api_contract.py -vv
 ```

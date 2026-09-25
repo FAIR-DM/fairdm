@@ -91,7 +91,7 @@
 		// Mypy type checking
 		// "mypy.configFile": "${workspaceFolder}/pyproject.toml",
 		"mypy.runUsingActiveInterpreter": true,
-		// "mypy.dmypyExecutable": "poetry",
+		// "mypy.dmypyExecutable": "uv",
 		"mypy.targets": [
 			"fairdm"
 		],
@@ -214,7 +214,7 @@
 			{
 				"label": "Run Tests",
 				"type": "shell",
-				"command": "poetry run pytest",
+				"command": "uv run pytest",
 				"group": {
 					"kind": "test",
 					"isDefault": true
@@ -227,7 +227,7 @@
 			{
 				"label": "Run Linting (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff check fairdm demo tests",
+				"command": "uv run ruff check fairdm demo tests",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -237,7 +237,7 @@
 			{
 				"label": "Format Code (Ruff)",
 				"type": "shell",
-				"command": "poetry run ruff format fairdm demo tests",
+				"command": "uv run ruff format fairdm demo tests",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -247,7 +247,7 @@
 			{
 				"label": "Run Pre-commit",
 				"type": "shell",
-				"command": "poetry run pre-commit run --all-files",
+				"command": "uv run pre-commit run --all-files",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -257,7 +257,7 @@
 			{
 				"label": "Type Check (mypy)",
 				"type": "shell",
-				"command": "poetry run mypy fairdm",
+				"command": "uv run mypy fairdm",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -267,7 +267,7 @@
 			{
 				"label": "Run Development Server",
 				"type": "shell",
-				"command": "poetry run python manage.py runserver",
+				"command": "uv run python manage.py runserver",
 				"isBackground": true,
 				"group": "build",
 				"presentation": {
@@ -278,7 +278,7 @@
 			{
 				"label": "Make Migrations",
 				"type": "shell",
-				"command": "poetry run python manage.py makemigrations",
+				"command": "uv run python manage.py makemigrations",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -288,7 +288,7 @@
 			{
 				"label": "Run Migrations",
 				"type": "shell",
-				"command": "poetry run python manage.py migrate",
+				"command": "uv run python manage.py migrate",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",
@@ -298,7 +298,7 @@
 			{
 				"label": "Build Documentation",
 				"type": "shell",
-				"command": "poetry run sphinx-build -b html docs docs/_build/html",
+				"command": "uv run sphinx-build -b html docs docs/_build/html",
 				"group": "build",
 				"presentation": {
 					"reveal": "always",

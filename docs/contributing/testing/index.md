@@ -152,7 +152,7 @@ New to FairDM testing? Follow these steps:
 5. **Run your tests** ([running guide](running-tests.md))
 
    ```bash
-   poetry run pytest tests/unit/
+   uv run pytest tests/unit/
    ```
 
 ## Next Steps

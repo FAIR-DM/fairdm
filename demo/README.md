@@ -136,19 +136,19 @@ class DemoSampleOptions:
 ### 1. Create Migrations
 
 ```bash
-poetry run python manage.py makemigrations demo
+uv run python manage.py makemigrations demo
 ```
 
 ### 2. Apply Migrations
 
 ```bash
-poetry run python manage.py migrate
+uv run python manage.py migrate
 ```
 
 ### 3. Create Sample Data
 
 ```bash
-poetry run python manage.py shell
+uv run python manage.py shell
 
 from demo.factories import DemoSampleFactory, DemoMeasurementFactory
 
@@ -163,7 +163,7 @@ for sample in samples:
 ### 4. Run Development Server
 
 ```bash
-poetry run python manage.py runserver
+uv run python manage.py runserver
 ```
 
 ### 5. Navigate to Demo Content
@@ -269,13 +269,13 @@ Run demo app tests:
 
 ```bash
 # All tests
-poetry run pytest demo/tests/
+uv run pytest demo/tests/
 
 # Specific test module
-poetry run pytest demo/tests/test_plugins.py
+uv run pytest demo/tests/test_plugins.py
 
 # With coverage
-poetry run pytest demo/tests/ --cov=demo
+uv run pytest demo/tests/ --cov=demo
 ```
 
 ---

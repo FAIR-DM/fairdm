@@ -6,10 +6,10 @@ Get started with FairDM testing in 5 minutes. This guide walks through writing y
 
 ```bash
 # Install dependencies
-poetry install --with dev
+uv sync
 
 # Verify pytest is installed
-poetry run pytest --version
+uv run pytest --version
 ```
 
 ## Step 1: Choose Your Test Layer (1 minute)
@@ -138,15 +138,15 @@ def test_project_list_endpoint__authenticated_user__returns_200():
 
 ```bash
 # Run your specific test file
-poetry run pytest tests/unit/fairdm/core/test_models.py -v
+uv run pytest tests/unit/fairdm/core/test_models.py -v
 
 # Or run by layer
-poetry run pytest tests/unit/ -v               # All unit tests
-poetry run pytest tests/integration/ -v        # All integration tests
+uv run pytest tests/unit/ -v               # All unit tests
+uv run pytest tests/integration/ -v        # All integration tests
 
 # Or run by marker
-poetry run pytest -m unit -v                   # Unit tests only
-poetry run pytest -m integration -v            # Integration tests only
+uv run pytest -m unit -v                   # Unit tests only
+uv run pytest -m integration -v            # Integration tests only
 ```
 
 **Expected output:**
@@ -255,23 +255,23 @@ def test_api_endpoint__returns_expected_schema():
 
 ```bash
 # Run all tests
-poetry run pytest
+uv run pytest
 
 # Run specific layer
-poetry run pytest tests/unit/
-poetry run pytest -m unit
+uv run pytest tests/unit/
+uv run pytest -m unit
 
 # Verbose output
-poetry run pytest -v
+uv run pytest -v
 
 # Stop on first failure
-poetry run pytest -x
+uv run pytest -x
 
 # Reuse database (faster)
-poetry run pytest --reuse-db
+uv run pytest --reuse-db
 
 # With coverage
-poetry run pytest --cov=fairdm --cov-report=term-missing
+uv run pytest --cov=fairdm --cov-report=term-missing
 ```
 
 ### Factory Patterns
@@ -297,7 +297,7 @@ obj = MyFactory(custom_field="value")
 **Solution**: Ensure FairDM is installed:
 
 ```bash
-poetry install
+uv sync
 ```
 
 ### "django.db.utils.OperationalError: database does not exist"
@@ -305,7 +305,7 @@ poetry install
 **Solution**: Create test database:
 
 ```bash
-poetry run pytest --create-db
+uv run pytest --create-db
 ```
 
 ### "Test function name does not follow convention"
@@ -401,7 +401,7 @@ class TestProjectWorkflow:
 **Run this test:**
 
 ```bash
-poetry run pytest tests/integration/fairdm/core/test_project_workflow.py -v
+uv run pytest tests/integration/fairdm/core/test_project_workflow.py -v
 ```
 
 You're now ready to write tests for FairDM! 🎉

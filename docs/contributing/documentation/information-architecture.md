@@ -485,8 +485,8 @@ If truly none of these work, discuss with the project maintainers — there may 
 
 When you've added or updated documentation, ensure it's properly integrated:
 
-1. **Build check**: `poetry run sphinx-build -W -b html docs docs/_build/html`
-2. **Link check**: `poetry run sphinx-build -b linkcheck docs docs/_build/linkcheck`
+1. **Build check**: `uv run sphinx-build -W -b html docs docs/_build/html`
+2. **Link check**: `uv run sphinx-build -b linkcheck docs docs/_build/linkcheck`
 
 ---
 
