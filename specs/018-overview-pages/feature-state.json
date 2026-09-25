@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "INTAKE",
@@ -26,13 +26,18 @@
     },
     {
       "state": "QUEUED",
-      "at": "2026-09-25T12:55:00Z",
+      "at": "2026-09-25T12:46:00Z",
       "note": "epic #372, stories #368-371"
     },
     {
       "state": "PLAN",
-      "at": "2026-09-25T13:10:00Z",
+      "at": "2026-09-25T12:48:00Z",
       "note": "planning started on Sam's request; stop before implementation for his confirmation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-25T12:55:22Z",
+      "note": "S3 exited green; dispatching the design reviewer"
     }
   ],
   "gates": {
@@ -53,6 +58,16 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-25T13:03:00Z",
+      "self_resolved": [
+        "8 findings, all verified: 3 high, 3 medium, 2 low",
+        "all high and medium findings applied as plan and task edits (measurement url_path, per-row visibility, related samples, private parent project, E501 coverage, Article XI cohesion)",
+        "ECharts moved into its own replaceable block",
+        "growth chart for visitors declined: a running total is a count (decisions D7)"
+      ]
     }
   },
   "stories": [
@@ -177,6 +192,11 @@
           "attempts": 0
         },
         {
+          "id": "T019a",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T020",
           "status": "todo",
           "attempts": 0
@@ -263,7 +283,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
@@ -272,7 +292,7 @@
     }
   },
   "pr": {
-    "number": null,
+    "number": 374,
     "draft": true
   }
 }

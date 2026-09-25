@@ -1,0 +1,92 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "high",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "RECEIPT: craft-review/2026-09-17/b773db2e", "loaded_via": "skill-tool"},
+    {"name": "craft-security", "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742", "loaded_via": "skill-tool"},
+    {"name": "craft-simplify", "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1", "loaded_via": "skill-tool"}
+  ],
+  "scope": "S3R design review of specs/018-overview-pages/{plan.md,research.md,tasks.md,decisions.md} against spec.md, CONSTITUTION.md and CONTEXT.md. Code read on this branch: fairdm/core/plugins.py; fairdm/contrib/plugins/{base.py,registration.py,access.py,mixins.py}; fairdm/core/{sample,measurement,project}/plugins.py; fairdm/core/dataset/plugins.py (visibility helpers, Overview); fairdm/core/{sample,measurement,project}/urls.py; fairdm/core/urls.py; fairdm/core/measurement/views.py; fairdm/core/{sample,measurement}/models.py (managers, __str__, get_absolute_url, SampleRelation); fairdm/core/dataset/models.py (DatasetQuerySet); fairdm/core/project/models.py (get_absolute_url); fairdm/management/commands/create_dev_accounts.py; fairdm/conf/checks.py (check_dev_accounts_absent); tests/test_contrib/test_plugins/test_urls.py. Branch sources via git show: origin/wip/sample-overview fairdm/core/sample/{plugins,overview}.py; origin/wip/measurement-overview fairdm/core/measurement/{overview,views,urls}.py; origin/wip/dataset-overview fairdm/core/overview.py, fairdm/core/dataset/overview.py, dataset_detail.html, uv.lock; origin/wip/project-overview project_detail.html (script tags). django-mvp-charts 0.2.0 METADATA (PyPI install, no direct_url.json) for the ECharts loading claim.",
+  "findings": [
+    {
+      "id": "DSR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[architecture] The measurement page will not stay at /measurement/<uuid>/ as FR-037 requires: under plan D5 its Overview plugin mounts at /measurement/<uuid>/overview/. research.md's 'Plugin addressing' claim is wrong, and T026's planned assertion cannot catch the move.",
+      "evidence": "fairdm/contrib/plugins/base.py:47-49 and get_url_path() (lines 80-92): url_path defaults to \"\", which resolves to the slugified class name, so an unconfigured plugin named Overview is mounted at 'overview/'. That is why the sample overview, which sets no url_path, lives at /samples/<uuid>/overview/ (tests/test_contrib/test_plugins/test_urls.py:60). Project and dataset keep their root address only because each Overview explicitly sets url_path = None (fairdm/core/project/plugins.py:275, fairdm/core/dataset/plugins.py:326). Plan D4/D5 derive the measurement Overview from TypedOverviewPlugin -> OverviewPlugin (fairdm/core/plugins.py:10, no url_path) and mount the registry URLs at '<str:uuid>/', and neither says url_path = None. reverse('measurement:overview') still resolves, to the new path, so Measurement.get_absolute_url (models.py:170-182) silently changes. T026 plans to check the address through get_absolute_url and reverse(), which move together with it.",
+      "reproduction": "Implement D5 as written. GET /measurement/<uuid>/ returns 404 and the page answers at /measurement/<uuid>/overview/. get_absolute_url() == reverse('measurement:overview', ...) is still true, so T026 passes.",
+      "suggested_fix": "plan.md D5: add 'The measurement Overview sets url_path = None, as the project and dataset overviews do, so it is the root of the record's include'. Do not put url_path on TypedOverviewPlugin, which would move the sample page. tasks.md T026: assert the literal path, response.request path == f\"/measurement/{uuid}/\" and get_absolute_url() == f\"/measurement/{uuid}/\", not equality with reverse(). research.md 'Plugin addressing': correct the claim."
+    },
+    {
+      "id": "DSR-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The FR-017 filter the plan ports is gated on the team of the page's own record, not on the team of each listed record's dataset. A member of the sample's (or measurement's) dataset team is therefore shown another team's measurements from private or unpublished datasets.",
+      "evidence": "FR-017: a visitor sees only records whose own dataset is published, and 'The team of that dataset sees them all', meaning the listed record's dataset. Branch code: origin/wip/sample-overview fairdm/core/sample/overview.py:153-155 (measurement_summary) and origin/wip/measurement-overview fairdm/core/measurement/overview.py:131-141 (siblings) both apply `if not can_manage: filter(dataset__visibility=PUBLIC, dataset__published=True)`. can_manage is has_perm('dataset.change_dataset', <page record>.dataset) (sample/plugins.py build call and measurement/overview.py:54). Plan D3 introduces published_datasets_only(queryset, path) 'for FR-017's lists' but says nothing about who bypasses it. research.md's 'Findings on the branches the plan corrects' does not list this, and T009/T022/T029 say 'port onto the shared helpers', so the gating moves across as it is.",
+      "reproduction": "Sample S is in dataset A, with staff.user on A's team. Measurement M is on S but belongs to private dataset B, whose team staff.user is not on. staff.user opens S: M's name and type are listed with a link, and the link 404s for them (FR-014), which confirms that a record in B exists. The same happens for the siblings list on a measurement page.",
+      "suggested_fix": "plan.md D3: define the FR-017 rule per row: a listed record is shown when its own dataset is published, or when the requester is on that record's dataset team (resolved against that dataset, e.g. through guardian's get_objects_for_user for dataset.view_dataset/change_dataset). It is never switched off by the page record's can_manage. tasks.md T020 and T026: add one case each where a team member of the page's dataset is not shown a measurement from a third dataset they have no rights on."
+    },
+    {
+      "id": "DSR-003",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The sample page's 'taken from' and 'subsamples' lists apply no visibility filter at all. A parent or subsample in another team's private or unpublished dataset is named and linked to visitors, which FR-017 forbids. No task covers it.",
+      "evidence": "FR-017 covers 'wherever a page lists or links records from another dataset'. FR-033 puts the samples a sample was taken from and its subsamples on the page. Branch code: origin/wip/sample-overview fairdm/core/sample/overview.py:172-190 (related_samples) reads SampleRelation rows and Sample.objects.in_bulk() with no dataset condition, and build() also counts them into the 'related samples' figure (lines 105-106). SampleRelation (fairdm/core/sample/models.py around line 447) has no constraint tying source and target to one dataset, so cross-dataset relations are allowed. The T020 bullets list measurements but not related samples. The plan's FR-017 coverage row (T020, T026, T029) has no task that touches related_samples.",
+      "reproduction": "Published sample P has a subsample C in a private dataset. An anonymous visitor opens P and sees C's name, a link to it (which 404s) and '1 subsample' in the figures.",
+      "suggested_fix": "plan.md D3: state that related_samples applies the same per-row FR-017 rule as DSR-002. A related sample the viewer may not see is described without its name or link (e.g. 'an unpublished sample'), as D5 already does for a measurement's sample. tasks.md T020: add the case of a visitor on a published sample whose subsample and parent sit in an unpublished dataset, checking that neither is named or linked."
+    },
+    {
+      "id": "DSR-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] A private project is named, described and linked to visitors from the pages of its public records. This happens in the dataset header's 'Part of' line and parent card, the dataset JSON-LD isPartOf, the sample and measurement parent cards, and the measurement breadcrumbs. The spec says a private record is never confirmed to exist.",
+      "evidence": "spec.md Edge Cases: 'A private record is never confirmed to exist.' SC-003 bars a 'linked record that depends on data they are not allowed to see', and FR-012 applies to projects. Branch code: origin/wip/dataset-overview fairdm/core/dataset/overview.py:289-296 (project_info) returns dataset.project with no visibility check, and dataset_detail.html:62-66 and :493-503 render its name, status, owner and link. schema_org() adds isPartOf with dataset.project.name (around line 370). Nothing couples dataset and project visibility: no constraint in fairdm/core/dataset/models.py, and DatasetForm (forms.py:139) lets project and visibility be chosen independently. Plan D5 breadcrumbs list project > dataset > sample > measurement without a project visibility condition. This is partly a spec tension, because FR-024/FR-035/FR-041 ask for the project to be shown.",
+      "reproduction": "A public, published dataset belongs to a private project. An anonymous visitor opens the dataset and sees the private project's name, status and owner, a link to it (which 404s) and its name in the JSON-LD.",
+      "suggested_fix": "plan.md D3: the parent project (c-card.parent, the header meta line, breadcrumbs and JSON-LD isPartOf) is included only when project_is_visible(request, project), which already exists in fairdm/core/project/plugins.py. Otherwise it is left out. tasks.md T013: one case with a public dataset in a private project, visited anonymously. If the maintainer means FR-024's 'Part of' to override the edge case, that is a spec re-gate, not a plan edit."
+    },
+    {
+      "id": "DSR-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The three new development accounts are not covered by the second line of defence the existing development accounts have. fairdm.E501 only looks for create_dev_accounts' five addresses, so super.user@example.com, a superuser with a published password, goes unreported on a portal outside development.",
+      "evidence": "fairdm/conf/checks.py:488-548 (check_dev_accounts_absent, E501) filters on DEV_ACCOUNT_EMAILS imported from fairdm/management/commands/create_dev_accounts.py:66. Its own docstring says the command's environment refusal 'guards the act of loading, not the resulting state', and names a database copied between environments as the case it exists for. Plan D6 and decisions.md D5 reuse only the refusal. None of regular.user/staff.user/super.user@example.com is in DEV_ACCOUNT_EMAILS.",
+      "reproduction": "Run seed_overviews on a development database, then promote or restore that database to a production environment. `manage.py check --deploy` reports nothing, and super.user@example.com / password signs in as superuser.",
+      "suggested_fix": "tasks.md T011: add the three example.com addresses to the set E501 checks, e.g. export them from seed_overviews and take the union in check_dev_accounts_absent, or add them to DEV_ACCOUNT_EMAILS. Add one E501 test for super.user@example.com outside development."
+    },
+    {
+      "id": "DSR-006",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[architecture] Plan D3 designs module-level functions that share a subject, which Article XI (Cohesion) says belong on a class, and the plan's constitution check omits Article XI. Specifically: dataset_is_published(dataset), on_dataset_team(request, dataset) and published_datasets_only(queryset, path), plus per-page modules of build()/citation()/identifiers()/... functions that each take the same record and are called by the plugin.",
+      "evidence": "CONSTITUTION.md Article XI (lines 140-164): functions sharing a subject belong on a class, and it names the Django-first answer: 'a QuerySet or Manager method instead of a function taking a queryset, a model method or property instead of a function taking an instance ... a view method instead of a helper called by a view'. Plan D3 names exactly those shapes. DatasetQuerySet already exists (fairdm/core/dataset/models.py:122, with published() at :135), as do SampleQuerySet and MeasurementQuerySet (sample/models.py:134, measurement/models.py:50). The per-page build(request, obj, can_manage) modules are helpers called by the Overview plugin's get_context_data. The plan's constitution-check table lists I-X and XVII-XVIII but not XI. This also bears on G3: a portal can subclass a plugin method, but it cannot override a module function.",
+      "suggested_fix": "plan.md D3: the visibility rule becomes QuerySet methods on SampleQuerySet/MeasurementQuerySet (e.g. visible_to(request)) plus a Dataset property for 'is published'. It does not become a helper module. Each page's build() and its record-specific helpers become methods on that page's Overview plugin. The pure formatting helpers (as_date, sentence_case, json_ld, safe_reverse) may stay as functions. Add an Article XI row to the constitution check. This relocates the code and adds none."
+    },
+    {
+      "id": "DSR-007",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] research/plan D7 says ECharts loads from jsDelivr 'as the django-mvp-charts README prescribes', but the README says that is for development and the demo only, and that production projects bundle ECharts themselves. Hard-coding the CDN tag in the package's skeleton leaves a portal no clean way to follow that guidance.",
+      "evidence": "django-mvp-charts 0.2.0 METADATA line 282 (PyPI install, no direct_url.json): 'Development and the demo project load ECharts from a CDN. Production projects are expected to bundle it themselves'. Plan D7 puts the pinned CDN script in overview/page.html's extra_js. The origin/wip/project-overview project_detail.html:505 already does this. FairDM already loads htmx from jsDelivr in base.html, so the CDN itself is precedent, not a new category.",
+      "suggested_fix": "plan.md D7: put the ECharts <script> tag in its own named block inside the skeleton (e.g. overview.chart_library), so a portal that bundles ECharts can replace it with one template override. Correct the README attribution."
+    },
+    {
+      "id": "DSR-008",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[security] Decision D4 (Forge's own, not a maintainer ruling) feeds records from public-but-unpublished datasets into the project's growth chart. That chart shows the month-by-month timing of when rows were added, and SC-003's only exception is 'the sample and measurement counts of a public, unpublished dataset'.",
+      "evidence": "decisions.md D4: 'The growth chart shows when records were added, not what they hold.' SC-003 permits counts and does not mention a time series. The by-type composition chart is a breakdown of permitted counts and is not in question.",
+      "suggested_fix": "Either limit the visitor's growth chart to published datasets (a one-filter edit in T009, plus a T004 case), or record in decisions.md that the maintainer confirms a monthly running total is a 'count' under SC-003. No new mechanism either way."
+    }
+  ],
+  "notes": [
+    "The schema carries one top-level lens, so each finding's lens is given as a [prefix] in its claim.",
+    "research.md 'django-mvp components' says 0.24 ships card/placeholder.card/badge/... and not stats/list/tabs/progress, with no citation. No 0.24 install is available to spot-check. Cite the 0.24 wheel's template paths once T001 has re-locked.",
+    "FR-028 (crediting a record type's schema maintainer, with a way to cite it) has no acceptance scenario and is not named in T013's bullets. Add it to T013's list so the ported branch content is asserted.",
+    "The repo will hold two development-account schemes: create_dev_accounts' regular.user@fairdm.org etc. and seed_overviews' regular.user@example.com etc. The spec ruled the latter for development data. docs/portal-development/development_accounts.md should mention both so nobody signs in with the wrong one.",
+    "plan.md D4 has TypedOverviewPlugin raise Http404 in handle_no_permission. The existing PrivateRecordNotFoundMixin (fairdm/contrib/plugins/mixins.py:16) keys on obj.visibility, which samples and measurements lack, so a new override is correct. A one-line comment saying why the mixin is not reused would stop a later 'simplification'.",
+    "tasks.md T020 says 'US-3 scenarios 4-8' while scenarios 1-3 are in T019. Fine, but the coverage table should show that FR-042 scenario 1 (unfilled blocks show shared content) is asserted in T019, not only template choice.",
+    "Stories are sequential (one implementer, phases in order), so the shared edits to seed_overviews.py, overview-pages.md and the changelog across US-1 to US-4 will not collide."
+  ]
+}

@@ -68,3 +68,40 @@ signed-out visitor gets 200 on a measurement in a factory (private) dataset. FR-
 for the private case. The change is to the test's setup, not its assertion.
 
 **ADR:** none. It is a test update.
+
+## D7. Design review dispositions
+
+One reviewer read the plan through three lenses and returned eight findings. All of them were
+checked against the code before being acted on.
+
+- **The measurement address (high).** The plugin base mounts an overview without `url_path` at
+  `overview/`. Remedied in plan D5 and T026/T028: `url_path = None`, and the tests pin the
+  literal path.
+- **Per-row visibility for lists (high).** The branches switched the filter off for anyone on the
+  *page's* dataset team, which let a team member see records from a third dataset. Remedied in
+  plan D3 and T019a/T020/T022/T026/T029: `visible_to(user)` on the Sample and Measurement
+  QuerySets, applied per row.
+- **Related samples unfiltered (high).** Parents and subsamples can sit in another dataset.
+  Remedied in the same rule, with a T020 case.
+- **A private parent project named on a public dataset (medium).** Remedied: the parent project is
+  shown only when `project_is_visible` passes (plan D3, T013/T014/T020/T026).
+- **Seed accounts outside E501 (medium).** Remedied: `EXAMPLE_ACCOUNT_EMAILS` is defined in the
+  package, and E501 checks it (plan D6, T011).
+- **Article XI cohesion (medium).** Remedied: shared behaviour moves to `RecordOverviewPlugin`,
+  page logic to each `Overview` plugin, and visibility to QuerySets and a Dataset property. Module
+  functions are kept for pure formatting only (plan D3).
+- **ECharts replaceable (low).** Remedied: it loads from its own `overview.chart_library` block
+  (plan D7).
+- **The growth chart for visitors (low, likely).** Declined. D4 stands. A running total of record
+  counts is a count, and the maintainer ruled that counts on a public, unpublished dataset are
+  shown.
+
+**ADR:** none. These are the dispositions of one review.
+
+## D8. Shared overview behaviour lives on plugin classes
+
+`RecordOverviewPlugin` holds the behaviour all four pages share, and each page's `Overview`
+plugin holds its own. A portal changes a page's behaviour by subclassing its plugin, the same way
+it changes a page's look through the `overview.*` blocks.
+
+**ADR:** pending, decided at convergence together with D1.

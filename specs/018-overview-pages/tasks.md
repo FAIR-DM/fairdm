@@ -33,13 +33,14 @@ the project page as their first user.
 
 ### Tests (write first, must fail)
 
-- [ ] T003 [P] [US1] `tests/test_core/test_overview.py`: `format_authors` for zero, one, two and
-  several contributors, persons and organisations; `citation()` omits empty parts;
-  `identifiers()` links DOIs and IGSNs through doi.org and leaves other types unlinked;
-  `timeline()` orders dated steps, puts undated steps last and keeps year-only and month-only
-  dates as recorded; `dataset_is_published` / `on_dataset_team` / `published_datasets_only`
-  across public-published, public-unpublished and private datasets; `json_ld` escapes `<`, `>`
-  and `&`.
+- [ ] T003 [P] [US1] Tests for the shared pieces:
+  - `tests/test_core/test_overview.py`: `format_authors` for zero, one, two and several
+    contributors, persons and organisations; `json_ld` escapes `<`, `>` and `&`.
+  - `tests/test_core/test_plugins.py`: `RecordOverviewPlugin.get_citation()` omits empty parts;
+    `get_identifiers()` links DOIs and IGSNs through doi.org and leaves other types unlinked;
+    `get_timeline()` orders dated steps, puts undated steps last and keeps year-only and
+    month-only dates as recorded; `get_credits()` returns persons and organisations as their own
+    types.
 - [ ] T004 [P] [US1] `tests/test_core/test_project/test_overview.py`: US-1 scenarios 1–8 against
   the rendered page, including:
   - a visitor's figures, charts and licence summary exclude private datasets
@@ -58,9 +59,11 @@ the project page as their first user.
 
 ### Implementation
 
-- [ ] T006 [US1] `fairdm/core/overview.py`: port the dataset branch's module and add `credits`,
-  `citation`, `identifiers`, `timeline`, `dataset_is_published`, `on_dataset_team`,
-  `published_datasets_only` (plan D3). Python strings through `gettext`/`gettext_lazy`.
+- [ ] T006 [US1] Plan D3: `RecordOverviewPlugin` in `fairdm/core/plugins.py` with
+  `get_credits`, `get_identifiers`, `get_citation`, `get_timeline` and
+  `get_records_by_type_chart`, and `fairdm/core/overview.py` holding only the pure formatting
+  functions (`format_authors`, `author_name`, `json_ld`, `as_date`, `sentence_case`,
+  `safe_reverse`). Python strings through `gettext`/`gettext_lazy`.
 - [ ] T007 [US1] `fairdm/templates/overview/page.html`: the skeleton with every block from plan
   D1 in page order, the block list in its header comment, the `lg` stacking grid, and the
   conditional ECharts/chart-theme/mvp-charts scripts in `extra_js` (plan D7). Use
@@ -70,8 +73,10 @@ the project page as their first user.
   `fairdm/templates/overview/includes/pending_action.html` (plan D2). Markup taken from the
   branch cards they replace. Copy buttons, tabs and disclosures are keyboard reachable and
   labelled.
-- [ ] T009 [US1] `fairdm/core/project/overview.py` and `plugins.py`: port from the branch onto the
-  shared helpers. `project/project_detail.html` extends `overview/page.html` and fills only
+- [ ] T009 [US1] `fairdm/core/project/plugins.py`: the project `Overview` subclasses
+  `RecordOverviewPlugin`, and the branch's `project/overview.py` logic (counts, dataset preview,
+  team, timeline, readiness, growth chart, licences) becomes methods on it, assembled in
+  `get_context_data()`. No `project/overview.py` module. `project/project_detail.html` extends `overview/page.html` and fills only
   blocks. The branch's placeholders (map, activity, citation formats, metadata downloads) use
   `c-card.placeholder` or the pending action.
 - [ ] T010 [US1] Charts on the project page: each chart shows its text alternative to assistive
@@ -79,9 +84,15 @@ the project page as their first user.
 - [ ] T011 [US1] `demo/management/commands/seed_overviews.py`: the development guard (the
   `NON_PRODUCTION_ENVIRONMENTS` check `create_dev_accounts` uses), the three
   `example.com` accounts, and the three seeded projects with their datasets as on
-  `wip/project-overview`. Safe to run twice (FR-045–FR-047). `tests/test_demo/test_management/test_commands/test_seed_overviews.py` (new directory,
-  mirroring `demo/`): it refuses outside development, creates the accounts once, and a second run leaves
-  the same record count.
+  `wip/project-overview`. Safe to run twice (FR-045–FR-047). Define `EXAMPLE_ACCOUNT_EMAILS`
+  beside `DEV_ACCOUNT_EMAILS` in `fairdm/management/commands/create_dev_accounts.py`, import it
+  in the seed, and make check `fairdm.E501` in `fairdm/conf/checks.py` report the union (plan D6).
+  Tests:
+  - `tests/test_demo/test_management/test_commands/test_seed_overviews.py` (new directory,
+    mirroring `demo/`): it refuses outside development, creates the accounts once, and a second
+    run leaves the same record count.
+  - An E501 test in the existing checks tests: `super.user@example.com` outside development is
+    reported.
 - [ ] T012 [US1] Docs:
   - `docs/portal-development/overview-pages.md` with the anatomy, the full block list, and a
     worked example that overrides `project/project_detail.html` and fills one block
@@ -89,6 +100,8 @@ the project page as their first user.
     `c-card.*` and for `stats`, `list`, `tabs` and `progress`
   - both pages linked from their table of contents
   - a changelog entry under Unreleased (FR-048, FR-049, Article XVII)
+  - `docs/portal-development/development_accounts.md`: which accounts `create_dev_accounts`
+    creates, which `seed_overviews` creates, and that E501 covers both
 
 **Checkpoint**: the project page is complete, and every later story reuses what this phase
 built without redefining it.
@@ -115,10 +128,15 @@ as a visitor and as `staff.user`.
   - an unregistered record type is skipped
   - the chart appears only with more than one type
   - the withdrawal notice
+  - the registry's schema maintainer credited with a way to cite it (FR-028)
+  - a public dataset in a private project, visited anonymously: the project is not named,
+    linked or put in the JSON-LD (plan D3)
 
 ### Implementation
 
-- [ ] T014 [US2] `fairdm/core/dataset/overview.py` and `plugins.py`: port onto the shared helpers.
+- [ ] T014 [US2] `fairdm/core/dataset/plugins.py`: the dataset `Overview` subclasses
+  `RecordOverviewPlugin`, and the branch's `dataset/overview.py` logic becomes methods on it.
+  The parent project is shown only when `project_is_visible` passes (plan D3).
   `dataset/dataset_detail.html` extends `overview/page.html` and fills only blocks, with the
   record facts `publications` and `versions` (a placeholder card). Publish, Import data, CSV
   download and All rows use the pending action.
@@ -141,10 +159,22 @@ sample next to a water sample.
 
 - [ ] T019 [P] [US3] `tests/test_core/test_plugins.py`: `TypedOverviewPlugin` resolves a type's
   own template, a subtype's parent template and the generic fallback, using test-local templates.
+  A type template that fills one block leaves every other block showing the shared content
+  (US-3 scenario 1). The sample overview's address is unchanged (`/samples/<uuid>/overview/`).
+- [ ] T019a [P] [US3] `tests/test_core/test_sample/test_managers.py` and
+  `tests/test_core/test_measurement/test_managers.py` (or their existing QuerySet test modules):
+  `visible_to(user)` for an anonymous visitor, a holder of `dataset.view_dataset` on one dataset
+  only, and a model-level permission holder, across public-published, public-unpublished and
+  private datasets. `tests/test_core/test_dataset/test_models.py`: `Dataset.data_is_public`.
 - [ ] T020 [P] [US3] `tests/test_core/test_sample/test_overview.py`: US-3 scenarios 4–8, covering:
   - visibility in each dataset state, for a visitor and a team member, with a 404 that matches a
     missing record
   - measurements from unpublished datasets hidden from visitors
+  - a member of the sample's own dataset team is not shown a measurement from a third dataset
+    they hold no rights on (the rule is per row, plan D3)
+  - a published sample whose parent and subsample sit in an unpublished dataset: a visitor sees
+    neither named nor linked, and the related-samples figure doesn't count them
+  - a sample in a private project: the project is not named or linked
   - history merging and ordering with partial dates
   - the label and meaning of every custody status, including a status stored as a vocabulary
     concept
@@ -152,9 +182,14 @@ sample next to a water sample.
 
 ### Implementation
 
-- [ ] T021 [US3] `TypedOverviewPlugin` in `fairdm/core/plugins.py` (plan D4).
-- [ ] T022 [US3] `fairdm/core/sample/overview.py` and `plugins.py` on the shared helpers and
-  `TypedOverviewPlugin`. `sample/sample_overview.html` extends `overview/page.html` and uses
+- [ ] T021 [US3] `Dataset.data_is_public`, `SampleQuerySet.visible_to(user)` and
+  `MeasurementQuerySet.visible_to(user)` (plan D3), then `TypedOverviewPlugin` in
+  `fairdm/core/plugins.py` (plan D4), with its `check` built on `visible_to` and the comment on
+  why `PrivateRecordNotFoundMixin` isn't reused. Neither plugin class sets `url_path`.
+- [ ] T022 [US3] `fairdm/core/sample/plugins.py`: the sample `Overview` subclasses
+  `TypedOverviewPlugin`, and the branch's `sample/overview.py` logic becomes methods on it, with
+  `LIFECYCLE` as a class attribute. Measurements made on it and related samples are filtered per
+  row with `visible_to` (plan D3). `sample/sample_overview.html` extends `overview/page.html` and uses
   `overview.*` block names. `c-card.timeline` draws the history.
 - [ ] T023 [US3] `demo/templates/demo/rocksample_overview.html` rewritten to the `overview.*`
   blocks, with a docstring-style comment linking the docs page (Article XVIII).
@@ -175,15 +210,17 @@ the one in a different dataset from its sample.
 - [ ] T026 [P] [US4] `tests/test_core/test_measurement/test_overview.py`: US-4 scenarios 1–8,
   covering:
   - the tab strip, with the overview first
-  - the address unchanged (`get_absolute_url` and `reverse("measurement:overview")`)
+  - the address unchanged: the response's request path and `get_absolute_url()` both equal the
+    literal `f"/measurement/{uuid}/"` (plan D5)
   - template resolution through `TypedOverviewPlugin`
   - visibility against the measurement's own dataset, including a sample and a measurement in
     different datasets
   - the unpublished-sample wording with no link, in the page, the breadcrumbs and the citation
   - the result only for a non-empty `value`
   - procedure merging
-  - siblings filtered for visitors
-  - breadcrumbs with and without a project
+  - siblings filtered for visitors, and per row: a member of the measurement's dataset team is
+    not shown a sibling in a third dataset they hold no rights on
+  - breadcrumbs with and without a project, and with a private project left out
 - [ ] T027 [US4] Update `test_detail_page_renders` in
   `tests/test_core/test_measurement/test_models.py` to use a public, published dataset, and add
   the 404 case beside it. This is a pre-existing test whose premise the feature changes, so it
@@ -193,9 +230,13 @@ the one in a different dataset from its sample.
 
 - [ ] T028 [US4] Register the measurement `Overview` plugin (a `TypedOverviewPlugin`) in
   `fairdm/core/measurement/plugins.py`, mount the registry URLs in
-  `fairdm/core/measurement/urls.py`, override `get_breadcrumbs()`, and delete
+  `fairdm/core/measurement/urls.py` with `url_path = None` on the plugin, override
+  `get_breadcrumbs()`, and delete
   `MeasurementDetailView` and `measurement/detail.html` (plan D5).
-- [ ] T029 [US4] `fairdm/core/measurement/overview.py` on the shared helpers.
+- [ ] T029 [US4] The branch's `measurement/overview.py` logic becomes methods on the measurement
+  `Overview`, with `PROCEDURE` as a class attribute. Siblings and the measured sample are filtered
+  per row with `visible_to`. The citation says "an unpublished sample" when the sample can't be
+  shown.
   `measurement/measurement_overview.html` extends `overview/page.html`, with `overview.result` in
   the figures position.
 - [ ] T030 [US4] `demo/templates/demo/xrfmeasurement_overview.html` rewritten to the `overview.*`
@@ -226,15 +267,15 @@ the one in a different dataset from its sample.
 | FR-009 | T026, T028 (projects, datasets and samples already open on their overview tab) |
 | FR-010 | T009, T014, T022, T029 |
 | FR-012 | T004, T013 |
-| FR-013 | T020, T021, T022 |
+| FR-013 | T019a, T020, T021, T022 |
 | FR-014 | T026, T028 |
 | FR-015, FR-019–FR-023 | T004, T009, T010 |
 | FR-016, FR-024–FR-030 | T013, T014, T015 |
-| FR-017 | T020, T026, T029 |
+| FR-017 | T019a, T020, T022, T026, T029 |
 | FR-018 | T004, T013 |
 | FR-031–FR-035 | T020, T022 |
 | FR-036–FR-041 | T026, T029 |
-| FR-042, FR-043 | T019, T021 |
+| FR-042, FR-043 | T019, T021 (T019 also asserts US-3 scenario 1) |
 | FR-044 | T023, T030 |
 | FR-045–FR-047 | T011, T016, T024, T031 |
 | FR-048, FR-049 | T012, T017, T025, T032 |

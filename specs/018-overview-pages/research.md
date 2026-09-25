@@ -33,12 +33,16 @@ merged.
 ## Plugin addressing
 
 `registry.get_urls_for_model(model)` builds a record's plugin URLs and its tab menu. A record's
-address comes from `registry.declare_addressing`, which defaults to `<str:uuid>`. The sample URL
-configuration mounts its plugins at `samples/<str:uuid>/` under the `sample` namespace, and the
-Overview plugin's URL name is `overview`. So mounting the measurement's plugins at `<str:uuid>/`
-inside the existing `measurement/` include, with `app_name = "measurement"`, keeps
-`reverse("measurement:overview", kwargs={"uuid": …})` and the permanent address unchanged. No
-`declare_addressing` call is needed.
+address comes from `registry.declare_addressing`, which defaults to `<str:uuid>`. A plugin's own
+path segment comes from `url_path`. Left at its default (`""`), it becomes the slugified class
+name, which is why the sample overview lives at `/samples/<uuid>/overview/`. The project and
+dataset overviews set `url_path = None` to sit at the root of their record's include.
+
+So the measurement `Overview` sets `url_path = None`, and its plugins are mounted at `<str:uuid>/`
+inside the existing `measurement/` include with `app_name = "measurement"`. The URL name stays
+`overview`, and the address stays `/measurement/<uuid>/`. No `declare_addressing` call is needed.
+Tests pin the literal path, because `reverse()` and `get_absolute_url()` would move together if
+`url_path` were wrong.
 
 `Plugin.get_breadcrumbs()` is an overridable method on the plugin base
 (`fairdm/contrib/plugins/base.py`), so the measurement breadcrumbs move from the deleted view to
