@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "PAUSED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -38,6 +38,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-09-25T12:55:22Z",
       "note": "S3 exited green; dispatching the design reviewer"
+    },
+    {
+      "state": "PAUSED",
+      "at": "2026-09-25T13:03:24Z",
+      "note": "plan and design review done; waiting for Sam's confirmation before implementation"
     }
   ],
   "gates": {
