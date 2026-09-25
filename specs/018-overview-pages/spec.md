@@ -46,19 +46,15 @@ its own content without the framework knowing about it.
   Should they see how many samples and measurements it holds? → A: Yes. The counts describe the
   dataset without revealing any of its data, and they tell a reuser that something is coming.
 - Q: Each redesign shipped its own development data command, and each one created its own sign-in
-  accounts. Which accounts does development data use? → A: The development accounts FairDM already
-  distributes through `create_dev_accounts` (ADR 0022). Development data never creates an account of
-  its own, because an account created outside that command escapes the check that stops those
-  accounts reaching production.
+  accounts. Which accounts does development data use? → A: Three accounts at `example.com`:
+  `regular.user`, `staff.user` and `super.user`, each with the password `password`. These are the
+  development sign-ins used across the maintainer's other projects, and FairDM will follow them. The
+  command creates them if they are missing and leaves them alone if they exist.
 - Q: Projects and datasets have no subtypes. Do their pages look for a type's own template the way
   samples and measurements do? → A: No. A portal changes a project or dataset page by overriding
   the template in the usual way and filling the same `overview.` blocks. Choosing a template by
   record type exists for samples and measurements only, because those are the records portals
   subclass.
-- Q: The spec says a record is "released" to a viewer in several places. What exactly does that
-  mean? → A: A dataset is released to a viewer when it is public and published, or when the viewer
-  is on its team. A sample or measurement is released when its own dataset is. The term is defined
-  under *Key entities* and used with that meaning only.
 - Q: The schema.org description in the page head is read by machines, not people. Does it follow
   the same visibility rules as the page? → A: Yes. It carries nothing the viewer could not read on
   the page. On a public, unpublished dataset it names the variables measured but gives no value
@@ -117,7 +113,7 @@ summary count public datasets only.
 
 ### User Story 2 - A dataset's page answers a reuser's questions in the order they ask them (Priority: P1)
 
-A reuser opens a dataset and learns in order: what it is and whether its data is released, the
+A reuser opens a dataset and learns in order: what it is and whether its data is published, the
 licence, what the data looks like and what each field means, how to cite it, and who made it. A
 dataset has no page of its own for its samples or measurements, so its overview carries the data:
 one tab per record type present, each with the type's description, a preview of the first rows, and
@@ -187,7 +183,7 @@ its dataset's team. Open a rock sample and a sample type with no template of its
 5. **Given** a sample whose dataset is private, or public but unpublished, **When** a visitor opens
    it, **Then** they get a "not found" response. **When** a member of the dataset's team opens it,
    **Then** the page opens.
-6. **Given** a sample with measurements recorded in another team's unreleased dataset, **When** a
+6. **Given** a sample with measurements recorded in another team's unpublished dataset, **When** a
    visitor opens it, **Then** those measurements are not listed.
 7. **Given** a sample with collection, preparation and storage steps, some dated only to the year or
    the month, **When** its timeline is shown, **Then** the steps are in date order and each date is
@@ -224,14 +220,14 @@ member of its dataset's team, including the one recorded in a different dataset 
    **Then** the page opens, whatever the state of its sample's dataset.
 4. **Given** a measurement whose own dataset is private, or public but unpublished, **When** a
    visitor opens it, **Then** they get a "not found" response.
-5. **Given** a measurement whose sample's dataset has not been released to the viewer, **When** the
-   page is shown, **Then** the sample is described as an unreleased sample, and is neither named nor
+5. **Given** a measurement whose sample's dataset is not published, **When** a visitor opens it,
+   **Then** the sample is described as an unpublished sample, and is neither named nor
    linked.
 6. **Given** a measurement type that declares a value, **When** the page is shown, **Then** the
    result is shown large with its uncertainty where there is one. **Given** a type that declares no
    value, **Then** the result area is left for the type to fill.
-7. **Given** a measurement with other measurements on the same sample, some in unreleased datasets,
-   **When** a visitor opens it, **Then** only the released ones are listed.
+7. **Given** a measurement with other measurements on the same sample, some in unpublished datasets,
+   **When** a visitor opens it, **Then** only the published ones are listed.
 8. **Given** a measurement in a dataset with a project, and one without, **When** each is opened,
    **Then** the breadcrumbs read project, dataset, sample, measurement, leaving out what is absent.
 
@@ -314,7 +310,8 @@ member of its dataset's team, including the one recorded in a different dataset 
   or value ranges.
 - **FR-017**: Wherever a page lists or links records from another dataset (measurements on a sample,
   other measurements on the same sample, the sample a measurement was made on), it MUST show a
-  visitor only records whose own dataset is released to them. Where the record cannot be shown, the
+  visitor only records whose own dataset is public and published. The team of that dataset sees them
+  all. Where the record cannot be shown, the
   page MUST describe it without naming or linking it.
 - **FR-018**: A readiness checklist MUST be shown only to the record's team, and on a dataset only
   until it is published.
@@ -406,8 +403,10 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 - **FR-045**: One command MUST load development data that reaches every state described in this
   specification, on all four pages.
-- **FR-046**: The command MUST give its records to the development accounts FairDM already
-  distributes, and MUST NOT create any account of its own.
+- **FR-046**: The command MUST create, when they are missing, three development accounts:
+  `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com`, each with the
+  password `password`. `staff.user` MUST be on the team of the seeded records that have one, and
+  `regular.user` MUST be on none.
 - **FR-047**: The command MUST be safe to run again, replacing only the records it created.
 
 **Documentation**
@@ -449,8 +448,9 @@ page, and uses the anatomy, cards and blocks from US-1 without redefining them.
   record is complete enough to be found and trusted (projects) or to be published (datasets).
 - **The team**: The people who may change a record. For a sample or measurement, the team of its
   dataset.
-- **Released**: A dataset is released to a viewer when it is public and published, or when the
-  viewer is on its team. A sample or measurement is released to a viewer when its own dataset is.
+- **Published**: A dataset whose data may be shown publicly. A visitor sees a dataset's samples
+  and measurements only when it is both public and published. A private dataset hides everything
+  beneath it, whether or not it is published.
 
 ## Success Criteria *(mandatory)*
 
@@ -460,20 +460,18 @@ page, and uses the anatomy, cards and blocks from US-1 without redefining them.
   position and is drawn by the same component on all four overview pages.
 - **SC-002**: A portal developer adds a card to a sample type's page, and changes its badges, with
   one template and no Python.
-- **SC-003**: For every page, and for a visitor and a team member each, the number of database
-  queries needed to render the page does not grow with the number of records the page summarises.
-- **SC-004**: No visitor is shown a count, chart, row, value range or linked record that depends on
+- **SC-003**: No visitor is shown a count, chart, row, value range or linked record that depends on
   data they are not allowed to see, other than the sample and measurement counts of a public,
   unpublished dataset.
-- **SC-005**: A private record, or one in an unreleased dataset, answers "not found" to a visitor on
+- **SC-004**: A private record, or one in an unpublished dataset, answers "not found" to a visitor on
   every page, and the response is the same as for a record that does not exist.
-- **SC-006**: Every capability that is not available yet is announced as such, and no button on any
+- **SC-005**: Every capability that is not available yet is announced as such, and no button on any
   overview page does nothing when pressed.
-- **SC-007**: The tabs, charts, disclosure sections, menus and timelines on all four pages meet WCAG
+- **SC-006**: The tabs, charts, disclosure sections, menus and timelines on all four pages meet WCAG
   2.2 AA: keyboard reachable, named for assistive technology, and not relying on colour alone. Each
   chart has a text alternative.
-- **SC-008**: After loading development data, every state in this specification is reachable by
-  signing in as one of FairDM's development accounts or as a visitor.
+- **SC-007**: After loading development data, every state in this specification is reachable by
+  signing in as one of the three development accounts or as a visitor.
 
 ## Assumptions
 
