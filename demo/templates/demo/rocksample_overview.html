@@ -1,0 +1,32 @@
+{% extends "sample/sample_overview.html" %}
+{% load i18n %}
+{% comment %}
+  A sample type adding its own content to the generic sample page.
+
+  The Overview plugin finds this template by the model's app label and name
+  (`demo/rocksample_overview.html`) before it falls back to `sample/sample_overview.html`.
+  Only the blocks this type has something to say in are overridden.
+{% endcomment %}
+
+{# Add the rock type beside the generic type and custody badges; block.super keeps those. #}
+{% block sample.badges %}
+  {{ block.super }}
+  {% if sample.rock_type %}
+    <span class="badge badge-outline badge-sm">{{ sample.rock_type|capfirst }}</span>
+  {% endif %}
+{% endblock sample.badges %}
+
+{# The block the base page leaves empty for exactly this: the type's own fields. #}
+{% block sample.properties %}
+  <c-card title="{% translate 'Rock properties' %}" class="bg-base-100">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <c-data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
+      <c-data-field label="{% translate 'Collection date' %}" value="{{ sample.collection_date|date:'j M Y' }}" />
+      <c-data-field label="{% translate 'Weight' %}" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
+      <c-data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
+    </div>
+    {% if sample.mineral_content %}
+      <c-data-field label="{% translate 'Mineral content' %}" value="{{ sample.mineral_content }}" />
+    {% endif %}
+  </c-card>
+{% endblock sample.properties %}

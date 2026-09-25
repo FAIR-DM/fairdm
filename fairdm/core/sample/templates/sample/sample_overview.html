@@ -1,0 +1,393 @@
+{% extends "detail_view.html" %}
+{% load i18n humanize thumbnail fairdm %}
+{% comment %}
+  The sample's own page, drawn from the base Sample model alone.
+
+  A sample type adds its own content by providing `<app_label>/<model_name>_overview.html`,
+  which extends this template and fills its blocks. The Overview plugin looks for that template
+  first (see `Overview.get_template_names`). Use `{{ block.super }}` to add to a block and keep
+  what is already there; leave it out to replace the block.
+
+    {% extends "sample/sample_overview.html" %}
+    {% block sample.badges %}{{ block.super }}<span class="badge badge-sm">…</span>{% endblock %}
+    {% block sample.properties %}<c-card title="…">…</c-card>{% endblock %}
+
+  Blocks, in page order:
+
+    sample.badges       header: type and custody status badges
+    sample.meta         header: dataset, project, local ID
+    sample.actions      header: buttons
+    sample.notices      alerts above the figures
+    sample.figures      the figures strip
+    sample.main         the wide column; wraps every block below it down to sample.side
+      sample.properties   the type's own fields — empty here, the block a type fills first
+      sample.notes        free-text notes (the "Other" description)
+      sample.history      what happened to the specimen, as a timeline
+      sample.measurements measurements made on it
+      sample.related      parent samples and subsamples
+      sample.location     where it came from
+    sample.side         the narrow column; wraps every block below it
+      sample.cite         the citation
+      sample.identifiers  IGSN, DOI, local ID, portal ID
+      sample.provenance   dataset, project and the licence the data is under
+      sample.people       everyone credited
+      sample.details      status and record dates
+
+  Everything here is gathered by `fairdm/core/sample/overview.py`.
+{% endcomment %}
+
+{% block page.title %}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-4">
+      <div class="flex flex-col md:flex-row gap-4 md:items-start">
+        <div class="hidden md:block shrink-0">
+          {% if sample.image %}
+            <img src="{{ sample.image|thumbnail_url:'core_small' }}" alt="" class="w-24 rounded-box object-cover" />
+          {% else %}
+            <div class="avatar avatar-placeholder">
+              <div class="w-24 rounded-box bg-base-200 text-base-content/60 text-4xl">
+                <c-icon name="sample" aria-hidden="true" />
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            {% block sample.badges %}
+              <span class="badge badge-ghost badge-sm"><c-icon name="sample" aria-hidden="true" />{{ sample_type|capfirst }}</span>
+              {% if status.variant == "success" %}
+                <span class="badge badge-soft badge-success badge-sm">{{ status.label }}</span>
+              {% elif status.variant == "info" %}
+                <span class="badge badge-soft badge-info badge-sm">{{ status.label }}</span>
+              {% elif status.variant == "error" %}
+                <span class="badge badge-soft badge-error badge-sm">{{ status.label }}</span>
+              {% elif status.variant == "neutral" %}
+                <span class="badge badge-soft badge-neutral badge-sm">{{ status.label }}</span>
+              {% else %}
+                <span class="badge badge-outline badge-sm">{% translate "Custody unknown" %}</span>
+              {% endif %}
+            {% endblock sample.badges %}
+          </div>
+
+          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ sample.name }}</h1>
+
+          <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {% block sample.meta %}
+              <span class="inline-flex items-center gap-1">
+                <c-icon name="dataset" aria-hidden="true" />
+                <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a>
+              </span>
+              {% if sample.dataset.project %}
+                <span class="inline-flex items-center gap-1">
+                  <c-icon name="project" aria-hidden="true" />
+                  <a href="{{ sample.dataset.project.get_absolute_url }}" class="link link-hover">{{ sample.dataset.project }}</a>
+                </span>
+              {% endif %}
+              {% if sample.local_id %}
+                <span class="inline-flex items-center gap-1 font-mono">{{ sample.local_id }}</span>
+              {% endif %}
+            {% endblock sample.meta %}
+          </p>
+
+          {% if sample.keywords.all %}
+            <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
+              {% for keyword in sample.keywords.all %}
+                <li class="badge badge-outline badge-sm">{{ keyword.label }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
+          {% block sample.actions %}
+            <c-button href="#cite" text="{% translate 'Cite' %}" icon="identifier" size="sm" />
+            <c-addons.share-dropdown size="sm" />
+          {% endblock sample.actions %}
+        </div>
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.title %}
+
+{% block page.content %}
+  {% block sample.notices %}
+    {% if status.value == "destroyed" %}
+      <c-alert variant="warning" icon="warning" soft>
+        <span>{% translate "This specimen has been destroyed and can't be re-examined. Its record and measurements are kept." %}</span>
+      </c-alert>
+    {% endif %}
+    {% if can_manage and not sample.dataset.published %}
+      <c-alert variant="info" icon="lock" soft>
+        <span>{% translate "Only the dataset's team can see this sample until the dataset is published." %}</span>
+      </c-alert>
+    {% endif %}
+  {% endblock sample.notices %}
+
+  {% block sample.figures %}
+    <c-stats cols="1" lg="3" aria-label="{% translate 'Sample at a glance' %}">
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" desc="{{ counts.measurements_desc }}" />
+      <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" desc="{{ counts.related_desc }}" />
+      <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}"
+                    desc="{% if lifecycle %}{% blocktranslate count counter=lifecycle|length %}{{ counter }} recorded event{% plural %}{{ counter }} recorded events{% endblocktranslate %}{% else %}{% translate 'No history recorded' %}{% endif %}" />
+    </c-stats>
+  {% endblock sample.figures %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
+      {% block sample.main %}
+
+        {% block sample.properties %}{% endblock sample.properties %}
+
+        {% block sample.notes %}
+          {% if notes %}
+            <c-card title="{% translate 'Notes' %}" class="bg-base-100">
+              <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
+            </c-card>
+          {% endif %}
+        {% endblock sample.notes %}
+
+        {% block sample.history %}
+          <c-card title="{% translate 'History' %}" class="bg-base-100">
+            {% if lifecycle %}
+              <ul class="timeline timeline-vertical timeline-compact timeline-snap-icon">
+                {% for step in lifecycle %}
+                  <li>
+                    {% if not forloop.first %}<hr />{% endif %}
+                    <div class="timeline-middle">
+                      <c-icon name="{% if step.date %}date{% else %}time{% endif %}" class="text-primary" aria-hidden="true" />
+                    </div>
+                    <div class="timeline-end mb-6 ms-2 flex flex-col gap-1 min-w-0">
+                      <div class="flex flex-wrap items-baseline gap-x-3">
+                        <span class="font-medium">{{ step.label }}</span>
+                        <span class="text-sm text-base-content/70">{% if step.day %}{{ step.day|date:"j M Y" }}{% elif step.date %}{{ step.date }}{% else %}{% translate "date not recorded" %}{% endif %}</span>
+                      </div>
+                      {% if step.people %}
+                        <p class="text-sm">
+                          {% translate "by" %}
+                          {% for person in step.people %}<a href="{{ person.get_absolute_url }}" class="link link-hover">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                      {% endif %}
+                      {% if step.note %}
+                        <div class="prose max-w-none text-sm text-base-content/80">{{ step.note|safe_markdown }}</div>
+                      {% endif %}
+                    </div>
+                    {% if not forloop.last %}<hr />{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-sm text-base-content/70">
+                {% if can_manage %}
+                  {% translate "Nothing is recorded about how this specimen was collected, prepared or stored. Those dates and notes are what lets someone else trust and reuse its measurements." %}
+                {% else %}
+                  {% translate "No history has been recorded for this specimen." %}
+                {% endif %}
+              </p>
+            {% endif %}
+          </c-card>
+        {% endblock sample.history %}
+
+        {% block sample.measurements %}
+          <c-card title="{% translate 'Measurements' %}" class="bg-base-100" tight>
+            <c-slot name="badges">{% if measurements.total %}<span class="badge badge-ghost badge-sm">{{ measurements.total }}</span>{% endif %}</c-slot>
+            {% if measurements.types %}
+              <c-tabs group="sample-measurements" variant="border" label="{% translate 'Measurement types' %}" class="px-4 pt-2">
+                {% for group in measurements.types %}
+                  <c-tabs.tab group="sample-measurements" label="{{ group.label|capfirst }} ({{ group.count }})" :checked="forloop.first" class="pb-2">
+                    <ul class="list">
+                      {% for entry in group.items %}
+                        <li class="list-row">
+                          <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                            <a href="{{ entry.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.measurement }}</a>
+                            <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                              {% if entry.elsewhere %}
+                                <span>{% translate "In dataset" %} <a href="{{ entry.measurement.dataset.get_absolute_url }}" class="link link-hover">{{ entry.measurement.dataset }}</a></span>
+                              {% endif %}
+                              <span>{% blocktranslate with when=entry.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                            </span>
+                          </div>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                    {% if group.count > group.items|length %}
+                      {% comment %}PLACEHOLDER — a filtered measurements listing for this sample. Intent: every measurement of this type made on this sample, as a table.{% endcomment %}
+                      <p class="text-sm text-base-content/70 px-4 pb-2">
+                        {% blocktranslate count counter=group.count|add:"-5" %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+                        <span class="badge badge-soft badge-neutral badge-xs">{% translate "Full list planned" %}</span>
+                      </p>
+                    {% endif %}
+                  </c-tabs.tab>
+                {% endfor %}
+              </c-tabs>
+            {% else %}
+              <p class="text-sm text-base-content/70 px-6 pb-6 pt-2">{% translate "No measurements have been made on this sample yet." %}</p>
+            {% endif %}
+          </c-card>
+        {% endblock sample.measurements %}
+
+        {% block sample.related %}
+          {% if relations.parents or relations.children %}
+            <c-card title="{% translate 'Related samples' %}" class="bg-base-100" tight>
+              <ul class="list">
+                {% if relations.parents %}
+                  <li class="p-4 pb-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Taken from" %}</li>
+                  {% for parent in relations.parents %}
+                    <li class="list-row">
+                      <div class="list-col-grow min-w-0">
+                        <a href="{{ parent.sample.get_absolute_url }}" class="link link-hover font-medium">{{ parent.sample }}</a>
+                        <span class="text-xs text-base-content/70 ms-2">{{ parent.type|capfirst }}</span>
+                      </div>
+                    </li>
+                  {% endfor %}
+                {% endif %}
+                {% if relations.children %}
+                  <li class="p-4 pb-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Subsamples" %}</li>
+                  {% for child in relations.children %}
+                    <li class="list-row">
+                      <div class="list-col-grow min-w-0">
+                        <a href="{{ child.sample.get_absolute_url }}" class="link link-hover font-medium">{{ child.sample }}</a>
+                        <span class="text-xs text-base-content/70 ms-2">{{ child.type|capfirst }}</span>
+                      </div>
+                    </li>
+                  {% endfor %}
+                {% endif %}
+              </ul>
+            </c-card>
+          {% endif %}
+        {% endblock sample.related %}
+
+        {% block sample.location %}
+          {% comment %}
+            PLACEHOLDER — the map. Intent: the sample's point on a map, with the other samples in
+            its dataset faint around it for context. Waiting on the location app, which is switched
+            off; the coordinates themselves are real.
+          {% endcomment %}
+          <c-card title="{% translate 'Location' %}" class="bg-base-100">
+            {% if location %}
+              <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Map planned" %}</span></c-slot>
+              <dl class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
+                <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>
+                {% if location.crs %}<div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Reference system" %}</dt><dd class="font-mono">{{ location.crs }}</dd></div>{% endif %}
+              </dl>
+            {% else %}
+              <p class="text-sm text-base-content/70">{% translate "No location has been recorded for this sample." %}</p>
+            {% endif %}
+          </c-card>
+        {% endblock sample.location %}
+
+      {% endblock sample.main %}
+    </div>
+
+    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
+      {% block sample.side %}
+
+        {% block sample.cite %}
+          <c-card title="{% translate 'Cite this sample' %}" class="bg-base-100" id="cite">
+            <p class="text-sm bg-base-200 rounded-box p-3 break-words" id="sample-citation">{{ citation.text }}</p>
+            {% if not citation.has_igsn %}
+              <p class="text-xs text-base-content/70">{% translate "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal." %}</p>
+            {% endif %}
+            <c-slot name="footer">
+              <c-button text="{% translate 'Copy' %}" icon="copy" size="sm"
+                        onclick="navigator.clipboard.writeText(document.getElementById('sample-citation').innerText)" />
+            </c-slot>
+          </c-card>
+        {% endblock sample.cite %}
+
+        {% block sample.identifiers %}
+          <c-card title="{% translate 'Identifiers' %}" class="bg-base-100">
+            <ul class="flex flex-col gap-2 text-sm">
+              {% for identifier in identifiers %}
+                <li class="flex flex-wrap items-baseline gap-2">
+                  <span class="badge badge-ghost badge-xs">{{ identifier.type }}</span>
+                  {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary font-mono text-xs break-words">{{ identifier.value }}</a>{% else %}<span class="font-mono text-xs break-words">{{ identifier.value }}</span>{% endif %}
+                </li>
+              {% endfor %}
+              {% if sample.local_id %}
+                <li class="flex flex-wrap items-baseline gap-2">
+                  <span class="badge badge-ghost badge-xs">{% translate "Local ID" %}</span>
+                  <span class="font-mono text-xs">{{ sample.local_id }}</span>
+                </li>
+              {% endif %}
+              <li class="flex flex-wrap items-center gap-2">
+                <span class="badge badge-ghost badge-xs">{% translate "Portal ID" %}</span>
+                <span class="font-mono text-xs">{{ sample.uuid }}</span>
+                <button type="button" class="btn btn-ghost btn-xs"
+                        aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                        onclick="navigator.clipboard.writeText('{{ sample.uuid }}')">
+                  <c-icon name="copy" aria-hidden="true" />
+                </button>
+              </li>
+            </ul>
+          </c-card>
+        {% endblock sample.identifiers %}
+
+        {% block sample.provenance %}
+          <c-card title="{% translate 'Where this sample belongs' %}" class="bg-base-100">
+            <dl class="flex flex-col gap-3 text-sm">
+              <div>
+                <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Dataset" %}</dt>
+                <dd><a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover font-medium">{{ sample.dataset }}</a></dd>
+              </div>
+              {% if sample.dataset.project %}
+                <div>
+                  <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Project" %}</dt>
+                  <dd><a href="{{ sample.dataset.project.get_absolute_url }}" class="link link-hover">{{ sample.dataset.project }}</a></dd>
+                </div>
+              {% endif %}
+              <div>
+                <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Licence" %}</dt>
+                <dd>
+                  {% if sample.dataset.license %}
+                    <span class="badge badge-outline badge-sm">{{ sample.dataset.license.name }}</span>
+                    <span class="text-xs text-base-content/70">{% translate "from its dataset" %}</span>
+                  {% else %}
+                    <span class="text-warning">{% translate "Its dataset has no licence yet." %}</span>
+                  {% endif %}
+                </dd>
+              </div>
+            </dl>
+          </c-card>
+        {% endblock sample.provenance %}
+
+        {% block sample.people %}
+          {% if credits %}
+            <c-card title="{% translate 'People' %}" class="bg-base-100">
+              <ul class="flex flex-col gap-3">
+                {% for credit in credits %}
+                  <li class="flex items-center gap-3">
+                    <c-avatar :for="credit.contributor" alt="" size="sm" only />
+                    <div class="min-w-0">
+                      <a href="{{ credit.contributor.get_absolute_url }}" class="link link-hover font-medium">{{ credit.contributor }}</a>
+                      <p class="text-xs text-base-content/70">{{ credit.roles.values|join:", " }}</p>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </c-card>
+          {% endif %}
+        {% endblock sample.people %}
+
+        {% block sample.details %}
+          <c-card title="{% translate 'Record' %}" class="bg-base-100">
+            <dl class="flex flex-col gap-2 text-sm">
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between gap-3">
+                  <dt class="text-base-content/70">{% translate "Custody" %}</dt>
+                  <dd>{{ status.label }}</dd>
+                </div>
+                {% if status.meaning %}<dd class="text-xs text-base-content/70">{{ status.meaning }}</dd>{% endif %}
+              </div>
+              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Type" %}</dt><dd class="text-end">{{ sample_type|capfirst }}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Added" %}</dt><dd class="text-end">{{ sample.added|date:"j M Y" }}</dd></div>
+              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Last updated" %}</dt><dd class="text-end">{{ sample.modified|date:"j M Y" }}</dd></div>
+            </dl>
+          </c-card>
+        {% endblock sample.details %}
+
+      {% endblock sample.side %}
+    </div>
+  </div>
+{% endblock page.content %}
