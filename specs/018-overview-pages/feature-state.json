@@ -1,0 +1,303 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "018-overview-pages",
+  "branch": "018-overview-pages",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PAUSED",
+  "state_history": [
+    {
+      "state": "INTAKE",
+      "at": "2026-09-25T09:40:00Z",
+      "note": "free-text request, grilled in session; intake #372"
+    },
+    {
+      "state": "SPECIFY",
+      "at": "2026-09-25T10:30:00Z"
+    },
+    {
+      "state": "SPEC_PR",
+      "at": "2026-09-25T11:20:00Z",
+      "note": "specification PR #373"
+    },
+    {
+      "state": "GATE_SPEC",
+      "at": "2026-09-25T12:42:58Z",
+      "note": "#373 merged by Sam"
+    },
+    {
+      "state": "QUEUED",
+      "at": "2026-09-25T12:46:00Z",
+      "note": "epic #372, stories #368-371"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-25T12:48:00Z",
+      "note": "planning started on Sam's request; stop before implementation for his confirmation"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-25T12:55:22Z",
+      "note": "S3 exited green; dispatching the design reviewer"
+    },
+    {
+      "state": "PAUSED",
+      "at": "2026-09-25T13:03:24Z",
+      "note": "plan and design review done; waiting for Sam's confirmation before implementation"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-25T12:42:58Z",
+      "self_resolved": [
+        "readiness checklist first in the facts column; record-specific cards between people and parent record",
+        "projects and datasets do not choose a template by type",
+        "page-head metadata carries nothing the viewer could not read on the page",
+        "all page text translatable"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-25T13:03:00Z",
+      "self_resolved": [
+        "8 findings, all verified: 3 high, 3 medium, 2 low",
+        "all high and medium findings applied as plan and task edits (measurement url_path, per-row visibility, related samples, private parent project, E501 coverage, Article XI cohesion)",
+        "ECharts moved into its own replaceable block",
+        "growth chart for visitors declined: a running total is a count (decisions D7)"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 368,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 369,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 370,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019a",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 371,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 374,
+    "draft": true
+  }
+}
