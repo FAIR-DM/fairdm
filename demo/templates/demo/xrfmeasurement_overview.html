@@ -1,0 +1,46 @@
+{% extends "measurement/measurement_overview.html" %}
+{% load i18n humanize %}
+{% comment %}
+  A measurement type adding its own content to the generic measurement page.
+
+  XRF records its result as an element and a concentration rather than a single `value`, so the
+  generic result block has nothing to show; this template fills it. It also adds the element to
+  the header badges, keeping the generic ones with `block.super`.
+{% endcomment %}
+
+{% block measurement.badges %}
+  {{ block.super }}
+  <span class="badge badge-outline badge-sm font-mono">{{ measurement.element }}</span>
+{% endblock measurement.badges %}
+
+{% block measurement.result %}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-3">
+      <p class="text-xs uppercase font-semibold text-base-content/60">{% translate "Concentration" %}</p>
+      <p class="flex flex-wrap items-baseline gap-x-3">
+        <span class="text-4xl font-semibold tabular-nums">{{ measurement.concentration_ppm|floatformat:"-2"|intcomma }}</span>
+        <span class="text-lg text-base-content/70">{% translate "ppm" %} {{ measurement.element }}</span>
+      </p>
+      {% if measurement.detection_limit_ppm is not None %}
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate with limit=measurement.detection_limit_ppm|floatformat:"-2"|intcomma %}Detection limit {{ limit }} ppm{% endblocktranslate %}
+          {% if measurement.concentration_ppm <= measurement.detection_limit_ppm %}
+            <span class="badge badge-soft badge-warning badge-sm ms-2">{% translate "At or below the detection limit" %}</span>
+          {% endif %}
+        </p>
+      {% endif %}
+    </div>
+  </c-card.wrapper>
+{% endblock measurement.result %}
+
+{% block measurement.properties %}
+  <c-card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+      <c-data-field label="{% translate 'Instrument' %}" value="{{ measurement.instrument_model }}" />
+      <c-data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
+    </div>
+    {% if measurement.measurement_conditions %}
+      <c-data-field label="{% translate 'Conditions' %}" value="{{ measurement.measurement_conditions }}" />
+    {% endif %}
+  </c-card>
+{% endblock measurement.properties %}
