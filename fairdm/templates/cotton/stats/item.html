@@ -1,0 +1,23 @@
+{% comment %}
+  <c-stats.item> — one daisyUI `stat` inside <c-stats>.
+
+  Attributes:
+    title  – what is being counted, above the figure
+    value  – the figure
+    desc   – one qualifying line under the figure (or the `desc` slot)
+    href   – makes the title a link to where the figure comes from
+    class  – extra classes on the root
+  Slots:
+    figure – optional trailing element (daisyUI `stat-figure`)
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars title value desc href class />
+<div class="stat {{ class }}" {{ attrs }}>
+  {% if figure %}<div class="stat-figure">{{ figure }}</div>{% endif %}
+  <div class="stat-title">
+    {% if href %}<a href="{{ href }}" class="link link-hover">{{ title }}</a>{% else %}{{ title }}{% endif %}
+  </div>
+  <div class="stat-value tabular-nums">{{ value }}</div>
+  {% if desc %}<div class="stat-desc">{{ desc }}</div>{% endif %}
+</div>

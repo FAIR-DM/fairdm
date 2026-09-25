@@ -23,6 +23,7 @@ from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
+from . import overview
 from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription, PublicDatasetsProtect
 
@@ -299,6 +300,13 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, OverviewPlugin):
         # name Django's ``SingleObjectMixin`` added automatically for the standalone detail view
         # this replaces. This view is a ``TemplateView`` and does not add it on its own.
         context["project"] = self.base_object
+        context.update(
+            overview.build(
+                self.request,
+                self.base_object,
+                can_manage=has_perm(self.request, Update.permission, self.base_object),
+            )
+        )
         return context
 
 

@@ -1,0 +1,21 @@
+{% comment %}
+  <c-progress> — daisyUI `progress` bar.
+
+  A bar alone says nothing to a screen reader or to someone who can't judge
+  its length, so `label` is required: say what is measured and how far along
+  it is, in words, and show the same words beside the bar.
+
+  Attributes:
+    value   – current amount
+    max     – total (default 100)
+    label   – accessible name, e.g. "Year 2 of 4"
+    variant – primary, secondary, accent, info, success, warning, error
+    class   – extra classes on the <progress>
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars value max="100" label variant class />
+<progress class="progress {% if variant == 'primary' %}progress-primary{% elif variant == 'secondary' %}progress-secondary{% elif variant == 'accent' %}progress-accent{% elif variant == 'info' %}progress-info{% elif variant == 'success' %}progress-success{% elif variant == 'warning' %}progress-warning{% elif variant == 'error' %}progress-error{% endif %} w-full {{ class }}"
+          value="{{ value }}"
+          max="{{ max }}"
+          aria-label="{{ label }}"></progress>

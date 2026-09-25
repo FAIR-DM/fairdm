@@ -195,6 +195,7 @@ EASY_ICONS = {
             "date": "bi bi-calendar3",
             "time": "bi bi-clock",
             "identifier": "bi bi-fingerprint",
+            "cite": "bi bi-quote",
             "license": "bi bi-c-circle",
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",

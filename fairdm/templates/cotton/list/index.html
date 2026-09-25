@@ -1,0 +1,18 @@
+{% comment %}
+  <c-list> — daisyUI `list`: rows of like records, each laid out the same way.
+
+  Use for homogeneous records a reader compares down the page; use cards for
+  mixed content. An optional `title` renders as the list's first, non-row item.
+
+  Attributes:
+    title  – small heading row above the items
+    label  – accessible name for the list, when there's no visible title
+    class  – extra classes on the <ul>
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars title label class />
+<ul class="list {{ class }}" {% if label %}aria-label="{{ label }}"{% endif %} {{ attrs }}>
+  {% if title %}<li class="p-4 pb-2 text-xs uppercase font-semibold text-base-content/60">{{ title }}</li>{% endif %}
+  {{ slot }}
+</ul>
