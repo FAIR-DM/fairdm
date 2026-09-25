@@ -22,6 +22,7 @@ from pyecharts.charts import Line
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
+from fairdm.core import overview as shared
 from fairdm.core.overview import (
     as_date,
     composition_chart,
@@ -79,7 +80,43 @@ def build(request, project, can_manage):
     }
     if can_manage:
         context["readiness"] = readiness(project, context)
+    context.update(shared_context(request, project, context))
     return context
+
+
+def shared_context(request, project, context):
+    """The keys every overview page provides, which the shared skeleton and cards read."""
+    result = {
+        "record": project,
+        "overview_icon": "project",
+        "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
+        "citation": {"title": _("Cite this project"), "text": context["citation"]["text"]},
+        "identifiers": shared.identifiers(project),
+        "people": shared.people(
+            shared.credits(project), named_roles=[*LEAD_ROLES, "ContactPerson"], condensed=True
+        ),
+        "people_url": context["urls"]["contributors"],
+        "parents": [{"label": _("Organisation"), "record": project.owner}] if project.owner else [],
+        "details": [
+            {"label": _("Status"), "text": project.get_status_display()},
+            {"label": _("Added"), "date": project.added},
+            {"label": _("Last updated"), "date": project.modified},
+        ],
+    }
+    if not context["citation"]["has_doi"]:
+        result["citation"]["note"] = _(
+            "This project has no DOI, so the citation points at this page."
+        )
+    if "readiness" in context:
+        readiness_ = context["readiness"]
+        readiness_["title"] = _("Metadata readiness")
+        readiness_["summary"] = _("%(done)s of %(total)s in place") % readiness_
+        readiness_["about"] = _(
+            "What search engines, data repositories and other researchers look for before "
+            "they trust and reuse a project."
+        )
+        result["readiness"] = readiness_
+    return result
 
 
 
@@ -118,6 +155,12 @@ def timeline(project):
         result["year"] = min(elapsed // 365 + 1, result["years"])
         result["finished"] = today > end_d
         result["not_started"] = today < start_d
+        if result["finished"]:
+            result["label"] = _("Finished")
+        elif result["not_started"]:
+            result["label"] = _("Not started yet")
+        else:
+            result["label"] = _("Year %(year)s of %(years)s") % result
     return result
 
 
@@ -150,6 +193,8 @@ def team(project):
         "people": sum(1 for c in contributions if is_person(c.contributor)),
         "organizations": sum(1 for c in contributions if not is_person(c.contributor)),
         "has_contact": contact is not None,
+        # Who a would-be collaborator writes to: the contact person, else the first lead.
+        "reach": (contact or (leads[0] if leads else None) or {}).get("contributor"),
     }
 
 

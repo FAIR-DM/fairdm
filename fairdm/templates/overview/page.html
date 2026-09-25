@@ -1,0 +1,177 @@
+{% extends "detail_view.html" %}
+{% load i18n static thumbnail %}
+{% comment %}
+  The overview page every core record shares: project, dataset, sample and measurement.
+
+  One anatomy on all four, so a reader finds the same fact in the same place: the header (badges,
+  name, a line placing the record, keywords, actions), notices, a strip of figures, then the
+  content in a wide column with the facts a reuser checks in a narrow column beside it. Below
+  `lg` the columns stack, content first.
+
+  Each record's own template extends this one and fills blocks. A sample or measurement type
+  extends its record's template the same way, using `{{ block.super }}` to add to a block and keep
+  what is there. Blocks, in page order:
+
+    overview.image          header: the record's image, or its icon
+    overview.badges         header: status badges
+    overview.meta           header: the line placing the record (parents, dates, IDs)
+    overview.byline         header: who made it
+    overview.keywords       header: keywords
+    overview.actions        header: buttons (Cite and Share by default)
+    overview.notices        alerts above the figures
+    overview.figures        the figures strip
+    overview.main           the wide column; each record fills it with its own blocks
+    overview.side           the facts column, which holds, in this order:
+      overview.readiness      what the team still has to add (team only)
+      overview.cite           how to cite it
+      overview.identifiers    licence, access, identifiers, API
+      overview.people         everyone credited
+      overview.record_facts   cards particular to the record (funding, publications, versions)
+      overview.parent         what it belongs to
+      overview.dates          details and dates
+    overview.chart_library  the ECharts script; replace it to serve ECharts yourself
+
+  The facts-column blocks draw the shared `c-card.*` components from the context every overview
+  plugin provides, so a record's template only overrides them to change what they say.
+{% endcomment %}
+
+{% block head %}
+  {{ block.super }}
+  {% if json_ld %}
+    {% comment %}
+      schema.org JSON-LD for search engines and harvesters. It carries nothing the viewer can't
+      read on this page, and the characters that could end the element are escaped where it is
+      built.
+    {% endcomment %}
+    <script type="application/ld+json">{{ json_ld|safe }}</script>
+  {% endif %}
+{% endblock head %}
+
+{% block page.title %}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-4">
+      <div class="flex flex-col md:flex-row gap-4 md:items-start">
+        <div class="hidden md:block shrink-0">
+          {% block overview.image %}
+            {% if record.image %}
+              <img src="{{ record.image|thumbnail_url:'core_small' }}" alt="" class="w-24 rounded-box object-cover" />
+            {% else %}
+              <div class="avatar avatar-placeholder">
+                <div class="w-24 rounded-box bg-base-200 text-base-content/60 text-4xl">
+                  <c-icon name="{{ overview_icon }}" aria-hidden="true" />
+                </div>
+              </div>
+            {% endif %}
+          {% endblock overview.image %}
+        </div>
+
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            {% block overview.badges %}{% endblock overview.badges %}
+          </div>
+
+          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record.name }}</h1>
+
+          <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {% block overview.meta %}{% endblock overview.meta %}
+          </p>
+
+          {% block overview.byline %}{% endblock overview.byline %}
+
+          {% block overview.keywords %}
+            {% with keywords=record.keywords.all %}
+              {% if keywords %}
+                <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
+                  {% for keyword in keywords %}
+                    <li class="badge badge-outline badge-sm">{{ keyword.label }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+          {% endblock overview.keywords %}
+        </div>
+
+        <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
+          {% block overview.actions %}
+            <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
+            <c-addons.share-dropdown size="sm" />
+          {% endblock overview.actions %}
+        </div>
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.title %}
+
+{% block page.content %}
+  {% block overview.notices %}{% endblock overview.notices %}
+
+  {% block overview.figures %}{% endblock overview.figures %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
+      {% block overview.main %}{% endblock overview.main %}
+    </div>
+
+    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
+      {% block overview.side %}
+
+        {% block overview.readiness %}
+          {% if readiness %}
+            <c-card.readiness :readiness="readiness"
+                              title="{{ readiness.title }}"
+                              summary="{{ readiness.summary }}"
+                              about="{{ readiness.about }}" />
+          {% endif %}
+        {% endblock overview.readiness %}
+
+        {% block overview.cite %}
+          <c-card.citation title="{{ citation.title }}" text="{{ citation.text }}">
+            {{ citation.note }}
+            {% if citation.note_url %}<a href="{{ citation.note_url }}" class="link link-primary">{{ citation.note_link }}</a>{% endif %}
+          </c-card.citation>
+        {% endblock overview.cite %}
+
+        {% block overview.identifiers %}
+          <c-card.identifiers :identifiers="identifiers"
+                              portal_id="{{ record.uuid }}"
+                              local_id="{{ record.local_id|default:'' }}"
+                              :license="license"
+                              license_note="{{ license_note|default:'' }}"
+                              access="{{ access_text|default:'' }}"
+                              api_url="{{ api_url|default:'' }}" />
+        {% endblock overview.identifiers %}
+
+        {% block overview.people %}
+          <c-card.people :people="people"
+                         all_url="{{ people_url|default:'' }}"
+                         :condensed="people.condensed" />
+        {% endblock overview.people %}
+
+        {% block overview.record_facts %}{% endblock overview.record_facts %}
+
+        {% block overview.parent %}
+          {% if parents %}<c-card.parent :parents="parents" />{% endif %}
+        {% endblock overview.parent %}
+
+        {% block overview.dates %}
+          <c-card.dates :rows="details" />
+        {% endblock overview.dates %}
+
+      {% endblock overview.side %}
+    </div>
+  </div>
+{% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if has_charts %}
+    {% block overview.chart_library %}
+      <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+              integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+              crossorigin="anonymous"
+              referrerpolicy="no-referrer"></script>
+    {% endblock overview.chart_library %}
+    <script src="{% static 'js/chart-theme.js' %}"></script>
+    <script defer src="{% static 'mvp_charts/js/mvp-charts.js' %}"></script>
+  {% endif %}
+{% endblock extra_js %}

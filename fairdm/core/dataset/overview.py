@@ -19,6 +19,7 @@ from django.db.models import Max, Min
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
+from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
@@ -48,7 +49,7 @@ ROLE_ORDER = ["Creator", "ContactPerson"]
 
 
 def build(request, dataset, can_manage):
-    can_see_data = dataset.published or can_manage
+    can_see_data = dataset.data_is_public or can_manage
     samples = Sample.objects.filter(dataset=dataset)
     measurements = Measurement.objects.filter(dataset=dataset)
     data_types = record_types(dataset, samples, measurements, can_see_data)
@@ -67,7 +68,7 @@ def build(request, dataset, can_manage):
         "composition_chart": composition_chart(samples, measurements)
         if len(data_types) > 1
         else None,
-        "project_info": project_info(dataset, can_manage),
+        "project_info": project_info(request, dataset, can_manage),
         "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
         "urls": {
             "update": safe_reverse("dataset:overview-update", uuid=dataset.uuid),
@@ -78,18 +79,99 @@ def build(request, dataset, can_manage):
     context["counts"]["publications"] = len(context["literature"]["items"])
     context["citation"] = citation(request, dataset, context)
     context["json_ld"] = json_ld(schema_org(request, dataset, context))
-    if can_manage:
+    if can_manage and not dataset.data_is_public:
         context["readiness"] = readiness(dataset, context)
+    context.update(shared_context(request, dataset, context))
     return context
+
+
+ACCESS_TEXT = {
+    "published": _("Open. Every record is shown on this page and through the API."),
+    "public": _("Description only, until the dataset is published."),
+    "private": _("The team only."),
+}
+
+
+def shared_context(request, dataset, context):
+    """The keys every overview page provides, which the shared skeleton and cards read."""
+    citation_ = context["citation"]
+    result = {
+        "record": dataset,
+        "overview_icon": "dataset",
+        "has_charts": bool(context["composition_chart"]),
+        "citation": {"title": _("Cite this dataset"), "text": citation_["text"]},
+        "identifiers": shared.identifiers(dataset),
+        "license": dataset.license,
+        "access_text": ACCESS_TEXT[context["access"]["state"]],
+        "people": shared.people(shared.credits(dataset), named_roles=ROLE_ORDER),
+        "parents": [],
+        "details": dataset_details(dataset, context["dates"]),
+    }
+    if citation_["from_reference"]:
+        result["citation"]["note"] = _("Cite the data publication above rather than this page.")
+    elif not citation_["has_doi"]:
+        result["citation"]["note"] = _(
+            "This dataset has no DOI yet, so the citation points at this page. It gets one when "
+            "it is published."
+        )
+    info = context["project_info"]
+    if info:
+        project = info["project"]
+        parent = {
+            "label": _("Project"),
+            "record": project,
+            "badge": project.get_status_display(),
+            "badge_variant": project.status_badge_variant,
+        }
+        if info["siblings"]:
+            parent["detail"] = ngettext(
+                "%(n)s other dataset in this project",
+                "%(n)s other datasets in this project",
+                info["siblings"],
+            ) % {"n": info["siblings"]}
+            parent["detail_url"] = project.get_absolute_url()
+        result["parents"].append(parent)
+    if "readiness" in context:
+        readiness_ = context["readiness"]
+        readiness_["title"] = _("Ready to publish?")
+        if readiness_["ready"]:
+            readiness_["summary"] = _("Everything required is in place.")
+        else:
+            readiness_["summary"] = ngettext(
+                "%(n)s required item missing",
+                "%(n)s required items missing",
+                readiness_["missing_required"],
+            ) % {"n": readiness_["missing_required"]}
+        readiness_["about"] = _(
+            "What a data repository needs before it can publish this dataset and give it a DOI."
+        )
+        result["readiness"] = readiness_
+    return result
+
+
+def dataset_details(dataset, dates_):
+    rows = []
+    if dates_["collection_start"]:
+        rows.append({"label": _("Collected"), "date": dates_["collection_start"], "until": dates_["collection_end"]})
+    for key, label in (
+        ("submitted", _("Submitted")),
+        ("published", _("Published")),
+        ("available", _("Available from")),
+    ):
+        if dates_[key]:
+            rows.append({"label": label, "date": dates_[key]})
+    rows.append({"label": _("Added"), "date": dataset.added})
+    rows.append({"label": _("Last updated"), "date": dataset.modified})
+    return rows
 
 
 def access(dataset):
     """The dataset's access state, in the words the page uses for it everywhere."""
     if dataset.visibility != Visibility.PUBLIC:
         return {"state": "private", "label": _("Private")}
-    if dataset.published:
+    if dataset.data_is_public:
         return {"state": "published", "label": _("Published")}
-    return {"state": "public", "label": _("Public — data not yet released")}
+    return {"state": "public", "label": _("Public, data not yet published")}
 
 
 def descriptions(dataset):
@@ -286,9 +368,13 @@ def counts(samples, measurements, data_types):
     }
 
 
-def project_info(dataset, can_manage):
+def project_info(request, dataset, can_manage):
+    """The parent project, when the viewer may see it. Nothing ties a dataset's visibility to
+    its project's, so a public dataset can sit in a private project that must not be named."""
+    from fairdm.core.project.plugins import project_is_visible
+
     project = dataset.project
-    if project is None:
+    if project is None or not project_is_visible(request, project):
         return None
     siblings = Dataset.all_objects.filter(project=project).exclude(pk=dataset.pk)
     if not can_manage:
@@ -363,10 +449,12 @@ def schema_org(request, dataset, context):
     start, end = context["dates"]["collection_start"], context["dates"]["collection_end"]
     if start:
         data["temporalCoverage"] = f"{start.isoformat()}/{end.isoformat() if end else '..'}"
+    # Field names only: a visitor on an unpublished dataset may read what each field means, never
+    # the range of values it holds.
     variables = [f["label"] for t in context["data_types"] for f in t["fields"]]
     if variables:
         data["variableMeasured"] = variables
-    if dataset.project_id:
+    if context["project_info"]:
         data["isPartOf"] = {
             "@type": "ResearchProject",
             "name": dataset.project.name,

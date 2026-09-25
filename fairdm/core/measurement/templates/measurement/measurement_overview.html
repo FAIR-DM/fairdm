@@ -1,108 +1,60 @@
-{% extends "detail_view.html" %}
+{% extends "overview/page.html" %}
 {% load i18n humanize fairdm %}
 {% comment %}
-  A measurement's own page, drawn from the base Measurement model and the registry's description
-  of its type.
+  The measurement's own page, drawn from the base Measurement model and what the registry says
+  about the measurement's type.
+
+  A reuser asks four things of a single measurement: what the result was, how it was measured,
+  what it was measured on, and whether they can cite and reuse it. The page answers them in that
+  order. The anatomy and the facts column come from `overview/page.html`; the context is gathered
+  by `fairdm/core/measurement/overview.py`.
 
   A measurement type adds its own content by providing `<app_label>/<model_name>_overview.html`,
-  which extends this template and fills its blocks. `MeasurementDetailView` looks for that
-  template first. Use `{{ block.super }}` to add to a block and keep what is there; leave it out
-  to replace the block.
+  which extends this template and fills its blocks:
 
     {% extends "measurement/measurement_overview.html" %}
-    {% block measurement.badges %}{{ block.super }}<span class="badge badge-sm">…</span>{% endblock %}
-    {% block measurement.result %}<c-card>…the type's own result…</c-card>{% endblock %}
+    {% block overview.result %}…the type's own result…{% endblock %}
+    {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
 
-  Blocks, in page order:
-
-    measurement.badges       header: type badge
-    measurement.meta         header: sample, dataset, local ID
-    measurement.actions      header: buttons
-    measurement.notices      alerts above the result
-    measurement.result       the measured value, large. Filled here only when the type declares
-                             `value` (and optionally `uncertainty`); otherwise the block a type
-                             fills first
-    measurement.main         the wide column; wraps every block below it down to measurement.side
-      measurement.properties   the type's own fields — empty here
-      measurement.method       what kind of measurement this is, and whose protocol it follows
-      measurement.procedure    how this one was made: set up, measured, taken down
-      measurement.notes        free-text notes (the "Other" description)
-      measurement.sample       the sample it was made on
-      measurement.siblings     other measurements on the same sample
-    measurement.side         the narrow column; wraps every block below it
-      measurement.cite         the citation
-      measurement.identifiers  DOI, local ID, portal ID
-      measurement.provenance   dataset, project and the licence the data is under
-      measurement.people       everyone credited
-      measurement.details      record dates
-
-  Everything here is gathered by `fairdm/core/measurement/overview.py`.
+  Measurement blocks: overview.result (in the figures' place; shown when the type declares a
+  `value`, otherwise the block a type fills first), then in the wide column overview.properties
+  (empty here), overview.method, overview.procedure, overview.notes, overview.sample,
+  overview.siblings. Every other block is listed in `overview/page.html`.
 {% endcomment %}
 
-{% block page.title %}
-  <c-card.wrapper class="bg-base-100">
-    <div class="card-body gap-4">
-      <div class="flex flex-col md:flex-row gap-4 md:items-start">
-        <div class="hidden md:block shrink-0">
-          <div class="avatar avatar-placeholder">
-            <div class="w-24 rounded-box bg-base-200 text-base-content/60 text-4xl">
-              <c-icon name="measurement" aria-hidden="true" />
-            </div>
-          </div>
-        </div>
+{% block overview.badges %}
+  <span class="badge badge-ghost badge-sm"><c-icon name="measurement" aria-hidden="true" />{{ measurement_type|capfirst }}</span>
+{% endblock overview.badges %}
 
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2">
-            {% block measurement.badges %}
-              <span class="badge badge-ghost badge-sm"><c-icon name="measurement" aria-hidden="true" />{{ measurement_type|capfirst }}</span>
-            {% endblock measurement.badges %}
-          </div>
-
-          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ measurement.name }}</h1>
-
-          <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {% block measurement.meta %}
-              <span class="inline-flex items-center gap-1">
-                <c-icon name="sample" aria-hidden="true" />
-                {% translate "on" %}
-                {% if sample_visible %}
-                  <a href="{{ sample.get_absolute_url }}" class="link link-hover">{{ sample }}</a>
-                {% else %}
-                  {% translate "an unreleased sample" %}
-                {% endif %}
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <c-icon name="dataset" aria-hidden="true" />
-                <a href="{{ measurement.dataset.get_absolute_url }}" class="link link-hover">{{ measurement.dataset }}</a>
-              </span>
-              {% if measurement.local_id %}
-                <span class="font-mono">{{ measurement.local_id }}</span>
-              {% endif %}
-            {% endblock measurement.meta %}
-          </p>
-        </div>
-
-        <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
-          {% block measurement.actions %}
-            <c-button href="#cite" text="{% translate 'Cite' %}" icon="identifier" size="sm" />
-            <c-addons.share-dropdown size="sm" />
-          {% endblock measurement.actions %}
-        </div>
-      </div>
-    </div>
-  </c-card.wrapper>
-{% endblock page.title %}
-
-{% block page.content %}
-  {% block measurement.notices %}
-    {% if can_manage and not measurement.dataset.published %}
-      <c-alert variant="info" icon="lock" soft>
-        <span>{% translate "Only the dataset's team can see this measurement until the dataset is published." %}</span>
-      </c-alert>
+{% block overview.meta %}
+  <span class="inline-flex items-center gap-1">
+    <c-icon name="sample" aria-hidden="true" />
+    {% translate "on" %}
+    {% if sample_visible %}
+      <a href="{{ sample.get_absolute_url }}" class="link link-hover">{{ sample }}</a>
+    {% else %}
+      {% translate "an unpublished sample" %}
     {% endif %}
-  {% endblock measurement.notices %}
+  </span>
+  <span class="inline-flex items-center gap-1">
+    <c-icon name="dataset" aria-hidden="true" />
+    <a href="{{ measurement.dataset.get_absolute_url }}" class="link link-hover">{{ measurement.dataset }}</a>
+  </span>
+  {% if measurement.local_id %}
+    <span class="font-mono">{{ measurement.local_id }}</span>
+  {% endif %}
+{% endblock overview.meta %}
 
-  {% block measurement.result %}
+{% block overview.notices %}
+  {% if not measurement.dataset.data_is_public %}
+    <c-alert variant="info" icon="lock" soft>
+      <span>{% translate "Only the dataset's team can see this measurement until the dataset is published." %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.figures %}
+  {% block overview.result %}
     {% if result %}
       <c-card.wrapper class="bg-base-100">
         <div class="card-body">
@@ -111,242 +63,100 @@
         </div>
       </c-card.wrapper>
     {% endif %}
-  {% endblock measurement.result %}
+  {% endblock overview.result %}
+{% endblock overview.figures %}
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
-      {% block measurement.main %}
+{% block overview.main %}
+  {% block overview.properties %}{% endblock overview.properties %}
 
-        {% block measurement.properties %}{% endblock measurement.properties %}
-
-        {% block measurement.method %}
-          {% if method.description or method.authority or method.citation %}
-            <c-card title="{% blocktranslate with type=measurement_type %}About {{ type }}{% endblocktranslate %}" class="bg-base-100">
-              {% if method.description %}<p class="text-sm">{{ method.description }}</p>{% endif %}
-              {% if method.keywords %}
-                <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Method keywords' %}">
-                  {% for keyword in method.keywords %}<li class="badge badge-outline badge-sm">{{ keyword }}</li>{% endfor %}
-                </ul>
-              {% endif %}
-              {% if method.authority or method.citation %}
-                <div class="flex flex-col gap-1 text-sm text-base-content/70">
-                  {% if method.authority %}
-                    <p>{% translate "Recorded to the schema maintained by" %} {% if method.authority.website %}<a href="{{ method.authority.website }}" class="link link-hover">{{ method.authority.name }}</a>{% else %}{{ method.authority.name }}{% endif %}.</p>
-                  {% endif %}
-                  {% if method.citation.text %}
-                    <p>{% translate "Protocol:" %} {% if method.citation.doi %}<a href="{{ method.citation.doi }}" class="link link-hover">{{ method.citation.text }}</a>{% else %}{{ method.citation.text }}{% endif %}</p>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </c-card>
-          {% endif %}
-        {% endblock measurement.method %}
-
-        {% block measurement.procedure %}
-          <c-card title="{% translate 'How it was measured' %}" class="bg-base-100">
-            {% if procedure %}
-              <ul class="timeline timeline-vertical timeline-compact timeline-snap-icon">
-                {% for step in procedure %}
-                  <li>
-                    {% if not forloop.first %}<hr />{% endif %}
-                    <div class="timeline-middle">
-                      <c-icon name="{% if step.date %}date{% else %}time{% endif %}" class="text-primary" aria-hidden="true" />
-                    </div>
-                    <div class="timeline-end mb-6 ms-2 flex flex-col gap-1 min-w-0">
-                      <div class="flex flex-wrap items-baseline gap-x-3">
-                        <span class="font-medium">{{ step.label }}</span>
-                        {% if step.day %}<span class="text-sm text-base-content/70">{{ step.day|date:"j M Y" }}</span>{% elif step.date %}<span class="text-sm text-base-content/70">{{ step.date }}</span>{% endif %}
-                      </div>
-                      {% if step.people %}
-                        <p class="text-sm">
-                          {% translate "by" %}
-                          {% for person in step.people %}<a href="{{ person.get_absolute_url }}" class="link link-hover">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-                        </p>
-                      {% endif %}
-                      {% if step.note %}
-                        <div class="prose max-w-none text-sm text-base-content/80">{{ step.note|safe_markdown }}</div>
-                      {% endif %}
-                    </div>
-                    {% if not forloop.last %}<hr />{% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="text-sm text-base-content/70">
-                {% if can_manage %}
-                  {% translate "Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs." %}
-                {% else %}
-                  {% translate "No details of how this measurement was made have been recorded." %}
-                {% endif %}
-              </p>
+  {% block overview.method %}
+    {% if method.description or method.authority or method.citation %}
+      <c-card title="{% blocktranslate with type=measurement_type %}About {{ type }}{% endblocktranslate %}" class="bg-base-100">
+        {% if method.description %}<p class="text-sm">{{ method.description }}</p>{% endif %}
+        {% if method.keywords %}
+          <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Method keywords' %}">
+            {% for keyword in method.keywords %}<li class="badge badge-outline badge-sm">{{ keyword }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        {% if method.authority or method.citation %}
+          <div class="flex flex-col gap-1 text-sm text-base-content/70">
+            {% if method.authority %}
+              <p>{% translate "Recorded to the schema maintained by" %} {% if method.authority.website %}<a href="{{ method.authority.website }}" class="link link-hover">{{ method.authority.name }}</a>{% else %}{{ method.authority.name }}{% endif %}.</p>
             {% endif %}
-          </c-card>
-        {% endblock measurement.procedure %}
+            {% if method.citation.text %}
+              <p>{% translate "Protocol:" %} {% if method.citation.doi %}<a href="{{ method.citation.doi }}" class="link link-hover">{{ method.citation.text }}</a>{% else %}{{ method.citation.text }}{% endif %}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </c-card>
+    {% endif %}
+  {% endblock overview.method %}
 
-        {% block measurement.notes %}
-          {% if notes %}
-            <c-card title="{% translate 'Notes' %}" class="bg-base-100">
-              <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
-            </c-card>
-          {% endif %}
-        {% endblock measurement.notes %}
+  {% block overview.procedure %}
+    {% if can_manage %}
+      {% translate "Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs." as empty %}
+    {% else %}
+      {% translate "No details of how this measurement was made have been recorded." as empty %}
+    {% endif %}
+    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" />
+  {% endblock overview.procedure %}
 
-        {% block measurement.sample %}
-          <c-card title="{% translate 'Measured on' %}" class="bg-base-100">
-            {% if sample_visible %}
-              <div class="flex flex-col gap-1">
-                <a href="{{ sample.get_absolute_url }}" class="link link-hover font-medium text-lg break-words">{{ sample }}</a>
-                <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">
-                  <span>{{ sample_type|capfirst }}</span>
-                  {% if sample.local_id %}<span class="font-mono">{{ sample.local_id }}</span>{% endif %}
-                  <span>{% translate "in" %} <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a></span>
+  {% block overview.notes %}
+    {% if notes %}
+      <c-card title="{% translate 'Notes' %}" class="bg-base-100">
+        <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
+      </c-card>
+    {% endif %}
+  {% endblock overview.notes %}
+
+  {% block overview.sample %}
+    <c-card title="{% translate 'Measured on' %}" class="bg-base-100">
+      {% if sample_visible %}
+        <div class="flex flex-col gap-1">
+          <a href="{{ sample.get_absolute_url }}" class="link link-hover font-medium text-lg break-words">{{ sample }}</a>
+          <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">
+            <span>{{ sample_type|capfirst }}</span>
+            {% if sample.local_id %}<span class="font-mono">{{ sample.local_id }}</span>{% endif %}
+            <span>{% translate "in" %} <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a></span>
+          </span>
+        </div>
+      {% else %}
+        <p class="text-sm text-base-content/70">{% translate "The sample this was measured on belongs to a dataset that hasn't been published yet." %}</p>
+      {% endif %}
+      {% if other_dataset %}
+        <c-alert variant="info" icon="info" soft class="mt-3">
+          <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one team measures specimens another team collected." %}</span>
+        </c-alert>
+      {% endif %}
+    </c-card>
+  {% endblock overview.sample %}
+
+  {% block overview.siblings %}
+    {% if siblings.total %}
+      <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100" tight>
+        <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
+        <ul class="list mt-2">
+          {% for row in siblings.rows %}
+            <li class="list-row">
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ row.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ row.measurement.name }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                  <span>{{ row.type|capfirst }}</span>
+                  {% if row.measurement.dataset_id != measurement.dataset_id %}<span>{% translate "in" %} {{ row.measurement.dataset }}</span>{% endif %}
+                  <span>{% blocktranslate with when=row.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
                 </span>
               </div>
-            {% else %}
-              <p class="text-sm text-base-content/70">{% translate "The sample this was measured on belongs to a dataset that hasn't been released yet." %}</p>
-            {% endif %}
-            {% if other_dataset %}
-              <c-alert variant="info" icon="info" soft class="mt-3">
-                <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one team measures specimens another team collected." %}</span>
-              </c-alert>
-            {% endif %}
-          </c-card>
-        {% endblock measurement.sample %}
-
-        {% block measurement.siblings %}
-          {% if siblings.total %}
-            <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100" tight>
-              <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
-              <ul class="list mt-2">
-                {% for row in siblings.rows %}
-                  <li class="list-row">
-                    <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                      <a href="{{ row.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ row.measurement.name }}</a>
-                      <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
-                        <span>{{ row.type|capfirst }}</span>
-                        {% if row.measurement.dataset_id != measurement.dataset_id %}<span>{% translate "in" %} {{ row.measurement.dataset }}</span>{% endif %}
-                        <span>{% blocktranslate with when=row.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
-                      </span>
-                    </div>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if siblings.more %}
-                {% comment %}PLACEHOLDER — every measurement on this sample, as a filterable table. Intent: compare this value with the others of its type at a glance.{% endcomment %}
-                <p class="text-sm text-base-content/70 px-4 pb-4">
-                  {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-                  <span class="badge badge-soft badge-neutral badge-xs">{% translate "Full list planned" %}</span>
-                </p>
-              {% endif %}
-            </c-card>
-          {% endif %}
-        {% endblock measurement.siblings %}
-
-      {% endblock measurement.main %}
-    </div>
-
-    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
-      {% block measurement.side %}
-
-        {% block measurement.cite %}
-          <c-card title="{% translate 'Cite this measurement' %}" class="bg-base-100" id="cite">
-            <p class="text-sm bg-base-200 rounded-box p-3 break-words" id="measurement-citation">{{ citation.text }}</p>
-            {% if not citation.has_doi %}
-              <p class="text-xs text-base-content/70">{% translate "Most measurements are cited through their dataset. This citation points at this page." %}
-                <a href="{{ measurement.dataset.get_absolute_url }}#cite" class="link link-primary">{% translate "Cite the dataset" %}</a></p>
-            {% endif %}
-            <c-slot name="footer">
-              <c-button text="{% translate 'Copy' %}" icon="copy" size="sm"
-                        onclick="navigator.clipboard.writeText(document.getElementById('measurement-citation').innerText)" />
-            </c-slot>
-          </c-card>
-        {% endblock measurement.cite %}
-
-        {% block measurement.identifiers %}
-          <c-card title="{% translate 'Identifiers' %}" class="bg-base-100">
-            <ul class="flex flex-col gap-2 text-sm">
-              {% for identifier in identifiers %}
-                <li class="flex flex-wrap items-baseline gap-2">
-                  <span class="badge badge-ghost badge-xs">{{ identifier.type }}</span>
-                  {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary font-mono text-xs break-words">{{ identifier.value }}</a>{% else %}<span class="font-mono text-xs break-words">{{ identifier.value }}</span>{% endif %}
-                </li>
-              {% endfor %}
-              {% if measurement.local_id %}
-                <li class="flex flex-wrap items-baseline gap-2">
-                  <span class="badge badge-ghost badge-xs">{% translate "Local ID" %}</span>
-                  <span class="font-mono text-xs">{{ measurement.local_id }}</span>
-                </li>
-              {% endif %}
-              <li class="flex flex-wrap items-center gap-2">
-                <span class="badge badge-ghost badge-xs">{% translate "Portal ID" %}</span>
-                <span class="font-mono text-xs">{{ measurement.uuid }}</span>
-                <button type="button" class="btn btn-ghost btn-xs"
-                        aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
-                        onclick="navigator.clipboard.writeText('{{ measurement.uuid }}')">
-                  <c-icon name="copy" aria-hidden="true" />
-                </button>
-              </li>
-            </ul>
-          </c-card>
-        {% endblock measurement.identifiers %}
-
-        {% block measurement.provenance %}
-          <c-card title="{% translate 'Where this measurement belongs' %}" class="bg-base-100">
-            <dl class="flex flex-col gap-3 text-sm">
-              <div>
-                <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Dataset" %}</dt>
-                <dd><a href="{{ measurement.dataset.get_absolute_url }}" class="link link-hover font-medium">{{ measurement.dataset }}</a></dd>
-              </div>
-              {% if measurement.dataset.project %}
-                <div>
-                  <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Project" %}</dt>
-                  <dd><a href="{{ measurement.dataset.project.get_absolute_url }}" class="link link-hover">{{ measurement.dataset.project }}</a></dd>
-                </div>
-              {% endif %}
-              <div>
-                <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Licence" %}</dt>
-                <dd>
-                  {% if measurement.dataset.license %}
-                    <span class="badge badge-outline badge-sm">{{ measurement.dataset.license.name }}</span>
-                    <span class="text-xs text-base-content/70">{% translate "from its dataset" %}</span>
-                  {% else %}
-                    <span class="text-warning">{% translate "Its dataset has no licence yet." %}</span>
-                  {% endif %}
-                </dd>
-              </div>
-            </dl>
-          </c-card>
-        {% endblock measurement.provenance %}
-
-        {% block measurement.people %}
-          {% if credits %}
-            <c-card title="{% translate 'People' %}" class="bg-base-100">
-              <ul class="flex flex-col gap-3">
-                {% for credit in credits %}
-                  <li class="flex items-center gap-3">
-                    <c-avatar :for="credit.contributor" alt="" size="sm" only />
-                    <div class="min-w-0">
-                      <a href="{{ credit.contributor.get_absolute_url }}" class="link link-hover font-medium">{{ credit.contributor }}</a>
-                      <p class="text-xs text-base-content/70">{{ credit.roles.values|join:", " }}</p>
-                    </div>
-                  </li>
-                {% endfor %}
-              </ul>
-            </c-card>
-          {% endif %}
-        {% endblock measurement.people %}
-
-        {% block measurement.details %}
-          <c-card title="{% translate 'Record' %}" class="bg-base-100">
-            <dl class="flex flex-col gap-2 text-sm">
-              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Type" %}</dt><dd class="text-end">{{ measurement_type|capfirst }}</dd></div>
-              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Added" %}</dt><dd class="text-end">{{ measurement.added|date:"j M Y" }}</dd></div>
-              <div class="flex justify-between gap-3"><dt class="text-base-content/70">{% translate "Last updated" %}</dt><dd class="text-end">{{ measurement.modified|date:"j M Y" }}</dd></div>
-            </dl>
-          </c-card>
-        {% endblock measurement.details %}
-
-      {% endblock measurement.side %}
-    </div>
-  </div>
-{% endblock page.content %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% if siblings.more %}
+          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70 px-4 pb-4">
+            {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a filterable table." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
+          </div>
+        {% endif %}
+      </c-card>
+    {% endif %}
+  {% endblock overview.siblings %}
+{% endblock overview.main %}

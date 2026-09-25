@@ -20,6 +20,8 @@ from datetime import date
 from django.apps import apps
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+
+from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
 from django.db import transaction
 from guardian.shortcuts import assign_perm
 from licensing.models import License
@@ -41,14 +43,9 @@ from fairdm.utils.choices import Visibility
 
 PROJECT = "Sample page examples"
 
-ACCOUNTS = [
-    ("regular.user@example.com", "Regular", "User", False, False),
-    ("staff.user@example.com", "Staff", "User", True, False),
-    ("super.user@example.com", "Super", "User", True, True),
-]
 
 
-class Command(BaseCommand):
+class SampleSeed(BaseCommand):
     help = "Seed samples that exercise every state of the sample overview page (development only)."
 
     @transaction.atomic

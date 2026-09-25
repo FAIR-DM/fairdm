@@ -1,0 +1,30 @@
+{% load i18n %}
+{% comment %}
+  <c-card.dates> — the record's details and dates, one row each, at the foot of the facts column.
+
+  Attributes:
+    rows   – [{label, date, until, text, note}]
+             date/until – a date, or a date range; formatted here
+             text       – a value that isn't a date (a status, a type)
+             note       – a line under the row, e.g. what a custody status means
+    class  – extra classes on the card
+  Slots:
+    (default) – anything above the rows, e.g. a project's timeline bar
+{% endcomment %}
+<c-vars rows class />
+<c-card title="{% translate 'Details' %}" class="bg-base-100 {{ class }}" only>
+  {{ slot }}
+  <dl class="flex flex-col gap-2 text-sm">
+    {% for row in rows %}
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between gap-3">
+          <dt class="text-base-content/70">{{ row.label }}</dt>
+          <dd class="text-end">
+            {% if row.date %}{{ row.date|date:"j M Y" }}{% if row.until %} – {{ row.until|date:"j M Y" }}{% endif %}{% else %}{{ row.text }}{% endif %}
+          </dd>
+        </div>
+        {% if row.note %}<dd class="text-xs text-base-content/70">{{ row.note }}</dd>{% endif %}
+      </div>
+    {% endfor %}
+  </dl>
+</c-card>

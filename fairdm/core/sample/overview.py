@@ -14,10 +14,8 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django.utils.translation import ngettext
 
-from fairdm.contrib.contributors.models import Contributor
-from fairdm.contrib.plugins.access import has_perm
+from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
-from fairdm.utils.choices import Visibility
 
 from .models import Sample, SampleDescription, SampleRelation
 
@@ -53,49 +51,63 @@ STATUS_MEANING = {
 }
 
 
-def sample_is_visible(request, obj):
-    """A sample follows its dataset: open to everyone once the dataset is public and published,
-    and otherwise only to the dataset's team."""
-    if obj is None:
-        return True
-    dataset = obj.dataset
-    if dataset.visibility == Visibility.PUBLIC and dataset.published:
-        return True
-    return has_perm(request, "dataset.view_dataset", dataset) or has_perm(
-        request, "dataset.change_dataset", dataset
-    )
-
-
 def build(request, sample, can_manage):
-    contributions = list(sample.contributors.prefetch_related("roles"))
-    people = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
-    credits = [
-        {"contributor": people[c.contributor_id], "roles": {r.name: r.label for r in c.roles.all()}}
-        for c in contributions
-    ]
+    from fairdm.core.project.plugins import project_is_visible
+
+    user = request.user
+    entries = shared.credits(sample)
     descriptions = {d.type: d.value for d in sample.descriptions.all()}
     dates = {d.type: d.value for d in sample.dates.all()}
-    measurements = measurement_summary(request, sample, can_manage)
-    relations = related_samples(sample)
+    measurements = measurement_summary(user, sample)
+    relations = related_samples(user, sample)
     # The status field hands back a vocabulary concept, not its stored string.
     status = getattr(sample.status, "name", sample.status) or "unknown"
     status_labels = dict(type(sample)._meta.get_field("status").choices)
+    status_ = {
+        "value": status,
+        "label": status_labels.get(status, status),
+        "variant": STATUS_VARIANTS.get(status),
+        "meaning": STATUS_MEANING.get(status, ""),
+    }
+    history = shared.timeline(LIFECYCLE, dates, descriptions, entries)
+    project = sample.dataset.project
+    if project is not None and not project_is_visible(request, project):
+        project = None
+    identifiers = shared.identifiers(sample)
+    igsn = next((i for i in identifiers if i["type"] == "IGSN"), None)
+    collected = dates.get("Collected")
+    sample_type = str(type(sample)._meta.verbose_name)
+
+    parents = [{"label": _("Dataset"), "record": sample.dataset}]
+    if project is not None:
+        parents.append({"label": _("Project"), "record": project})
+
+    citation_text = shared.citation(
+        request,
+        authors=shared.with_role(entries, "Collection"),
+        year=getattr(getattr(collected, "date", None), "year", None) or sample.added.year,
+        title=f"{sample.name} [{sample_type}]",
+        link=igsn["link"] if igsn else request.build_absolute_uri(sample.get_absolute_url()),
+    )
+    citation = {"title": _("Cite this sample"), "text": citation_text}
+    if not igsn:
+        citation["note"] = _(
+            "This sample has no IGSN, so the citation points at this page. An IGSN gives the "
+            "physical specimen an identifier that outlives the portal."
+        )
+
     return {
+        "record": sample,
+        "overview_icon": "sample",
         "can_manage": can_manage,
-        "sample_type": str(type(sample)._meta.verbose_name),
-        "status": {
-            "value": status,
-            "label": status_labels.get(status, status),
-            "variant": STATUS_VARIANTS.get(status),
-            "meaning": STATUS_MEANING.get(status, ""),
-        },
-        "lifecycle": lifecycle(sample, dates, descriptions, credits),
+        "sample_type": sample_type,
+        "status": status_,
+        "lifecycle": history,
         "notes": descriptions.get("Other"),
-        "credits": credits,
-        "identifiers": identifiers(sample),
         "measurements": measurements,
         "relations": relations,
         "location": sample.location,
+        "project": project,
         "counts": {
             "measurements": measurements["total"],
             "measurements_desc": ngettext("%(n)s type", "%(n)s types", len(measurements["types"]))
@@ -104,55 +116,37 @@ def build(request, sample, can_manage):
             else _("None yet"),
             "related": len(relations["parents"]) + len(relations["children"]),
             "related_desc": relations_summary(relations),
-            "people": len(credits),
+            "people": len(entries),
         },
-        "citation": citation(request, sample, credits, dates),
+        "citation": citation,
+        "identifiers": identifiers,
+        "license": sample.dataset.license,
+        "license_note": _("from its dataset"),
+        "access_text": _("Open to everyone.")
+        if sample.dataset.data_is_public
+        else _("Its dataset's team only, until the dataset is published."),
+        "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
+        "people": shared.people(entries),
+        "parents": parents,
+        "details": [
+            {"label": _("Custody"), "text": status_["label"], "note": status_["meaning"]},
+            {"label": _("Type"), "text": sample_type[:1].upper() + sample_type[1:]},
+            {"label": _("Added"), "date": sample.added},
+            {"label": _("Last updated"), "date": sample.modified},
+        ],
     }
 
 
-def lifecycle(sample, dates, descriptions, credits):
-    steps = []
-    for date_type, role, description_type, label in LIFECYCLE:
-        who = [c["contributor"] for c in credits if role and role in c["roles"]]
-        date = dates.get(date_type)
-        note = descriptions.get(description_type) if description_type else None
-        if date or who or note:
-            steps.append(
-                {
-                    "label": label,
-                    "date": date,
-                    # A full date is formatted by the template; a year or month alone is shown as
-                    # recorded, rather than padded out to a day nobody wrote down.
-                    "day": date.date if date is not None and date.precision == 2 else None,
-                    "people": who,
-                    "note": note,
-                }
-            )
-    dated = sorted((s for s in steps if s["date"]), key=lambda s: str(s["date"]))
-    undated = [s for s in steps if not s["date"]]
-    return dated + undated
-
-
-def identifiers(sample):
-    result = []
-    for identifier in sample.identifiers.all():
-        value = identifier.value
-        # An IGSN is a DataCite DOI since 2023, so both resolve through doi.org.
-        link = f"https://doi.org/{value}" if value.startswith("10.") else None
-        result.append({"type": identifier.type, "value": value, "link": link})
-    return result
-
-
-def measurement_summary(request, sample, can_manage):
+def measurement_summary(user, sample):
     """Measurements made on this sample, grouped by type.
 
-    A measurement can belong to a different dataset than its sample — that is how one team
-    measures another team's specimens — so each carries its dataset, and a visitor sees only
-    measurements whose own dataset is released to them.
+    A measurement can belong to a different dataset than its sample, which is how one team
+    measures another team's specimens. Each is shown only if the viewer may see its own dataset,
+    and being on the sample's dataset team opens nothing else.
     """
-    queryset = Measurement.objects.filter(sample=sample).select_related("dataset")
-    if not can_manage:
-        queryset = queryset.filter(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
+    queryset = (
+        Measurement.objects.filter(sample=sample).visible_to(user).select_related("dataset")
+    )
     groups = {}
     for measurement in queryset.order_by("-added"):
         model = type(measurement)
@@ -169,24 +163,30 @@ def measurement_summary(request, sample, can_manage):
     return {"types": types, "total": sum(g["count"] for g in types)}
 
 
-def related_samples(sample):
+def related_samples(user, sample):
+    """Parents and subsamples. Either may sit in another dataset, so each is checked against its
+    own dataset. One the viewer may not see is described, never named or linked, and isn't
+    counted."""
     parents = [
-        r.target
-        for r in SampleRelation.objects.filter(source=sample, type="child_of").select_related("target")
+        r.target_id for r in SampleRelation.objects.filter(source=sample, type="child_of")
     ]
     children = [
-        r.source
-        for r in SampleRelation.objects.filter(target=sample, type="child_of").select_related("source")
+        r.source_id for r in SampleRelation.objects.filter(target=sample, type="child_of")
     ]
-    # The relation rows hold the polymorphic base; fetch each sample as its own type.
-    real = Sample.objects.in_bulk([s.pk for s in parents + children])
-    def entry(stub):
-        sample = real[stub.pk]
-        return {"sample": sample, "type": str(type(sample)._meta.verbose_name)}
+    visible = Sample.objects.filter(pk__in=parents + children).visible_to(user).in_bulk()
 
+    def entries(pks):
+        shown = [visible[pk] for pk in pks if pk in visible]
+        return [
+            {"sample": s, "type": str(type(s)._meta.verbose_name)} for s in shown
+        ], len(pks) - len(shown)
+
+    parent_entries, hidden_parents = entries(parents)
+    child_entries, hidden_children = entries(children)
     return {
-        "parents": [entry(s) for s in parents],
-        "children": [entry(s) for s in children],
+        "parents": parent_entries,
+        "children": child_entries,
+        "hidden": hidden_parents + hidden_children,
     }
 
 
@@ -203,33 +203,3 @@ def relations_summary(relations):
             % {"n": len(relations["children"])}
         )
     return " · ".join(parts) or _("None recorded")
-
-
-def format_authors(contributors):
-    """"Keller, A., Brandt, L. & Demir, Y." — the DataCite creator list as a reader writes it."""
-    names = []
-    for contributor in contributors:
-        last, first = getattr(contributor, "last_name", ""), getattr(contributor, "first_name", "")
-        names.append(f"{last}, {first[0]}." if last and first else str(contributor))
-    if len(names) > 1:
-        return ", ".join(names[:-1]) + " & " + names[-1]
-    return names[0] if names else ""
-
-
-def citation(request, sample, credits, dates):
-    """DataCite's citation for a physical object: Collectors (Year). Name [type]. Publisher.
-    Identifier — the IGSN when there is one, since that is what resolves to the specimen."""
-    collectors = [c["contributor"] for c in credits if "Collection" in c["roles"]]
-    collected = dates.get("Collected")
-    year = getattr(getattr(collected, "date", None), "year", None) or sample.added.year
-    igsn = next((i.value for i in sample.identifiers.all() if i.type == "IGSN"), None)
-    link = f"https://doi.org/{igsn}" if igsn else request.build_absolute_uri(sample.get_absolute_url())
-    authors = format_authors(collectors)
-    publisher = getattr(getattr(request, "site", None), "name", "") or ""
-    parts = [
-        f"{authors} ({year})." if authors else f"({year}).",
-        f"{sample.name} [{type(sample)._meta.verbose_name}].",
-        f"{publisher}.",
-        link,
-    ]
-    return {"text": " ".join(p for p in parts if p.strip(". ")), "has_igsn": bool(igsn)}

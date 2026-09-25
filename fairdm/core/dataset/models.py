@@ -380,6 +380,15 @@ class Dataset(BaseModel):
             ("change_dataset_settings", "Can change dataset settings"),
         ]
 
+    @property
+    def data_is_public(self) -> bool:
+        """Whether anyone may see this dataset's samples and measurements.
+
+        Publishing is meant to make a dataset public, so a published dataset should never be
+        private. The two fields are still set separately, so both are checked.
+        """
+        return self.visibility == Visibility.PUBLIC and self.published
+
     def get_absolute_url(self):
         """The dataset's own page: its registered overview (014 plan P1, T057).
 

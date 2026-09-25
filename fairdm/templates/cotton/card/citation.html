@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+  <c-card.citation> — how to cite the record, with a button that copies it.
+
+  The card's element id is `cite`, which every overview page's Cite button jumps to.
+
+  Attributes:
+    title  – e.g. "Cite this dataset"
+    text   – the citation, as plain text
+    class  – extra classes on the card
+  Slots:
+    (default) – a note under the citation, e.g. why it points at this page rather than a DOI
+{% endcomment %}
+<c-vars title text class />
+<c-card title="{{ title }}" class="bg-base-100 scroll-mt-24 {{ class }}" id="cite" only>
+  <p class="text-sm bg-base-200 rounded-box p-3 break-words" id="citation-text">{{ text }}</p>
+  {% if slot %}<div class="text-xs text-base-content/70">{{ slot }}</div>{% endif %}
+  <c-slot name="footer">
+    <button type="button" class="btn btn-sm"
+            onclick="navigator.clipboard.writeText(document.getElementById('citation-text').innerText); this.querySelector('[data-copied]').classList.remove('hidden')">
+      <c-icon name="copy" aria-hidden="true" />
+      {% translate "Copy" %}
+      <span data-copied class="hidden text-success" role="status">{% translate "Copied" %}</span>
+    </button>
+    {% translate "BibTeX and RIS" as formats %}
+    {% translate "APA, BibTeX and RIS formats, generated from the same record." as reason %}
+    {% include "overview/includes/pending_action.html" with label=formats icon="download" reason=reason %}
+  </c-slot>
+</c-card>

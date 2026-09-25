@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}
+  <c-card.placeholder> — a card for something FairDM can't show yet.
+
+  Every overview page uses it for the same things (maps, recent activity, versions), so a
+  planned feature always looks the same: a "Planned" badge by the title, and one line on what the
+  card will show once it exists.
+
+  Attributes:
+    title    – the card's title, as it will read once the feature exists
+    icon     – an icon for the empty area
+    message  – what the card will show
+    class    – extra classes on the card
+{% endcomment %}
+<c-vars title icon message class />
+<c-card title="{{ title }}" class="bg-base-100 {{ class }}" only>
+  <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Planned" %}</span></c-slot>
+  <c-placeholder.card icon="{{ icon }}" message="{{ message }}" only />
+</c-card>

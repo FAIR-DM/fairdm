@@ -1,4 +1,4 @@
-"""Helpers shared by the record overview pages (project and dataset).
+"""Helpers shared by the four record overview pages: project, dataset, sample and measurement.
 
 Each overview gathers its own context; what lives here is the handful of rules both pages apply
 the same way — who a contributor really is, how an author is written in a citation, and how a
@@ -124,3 +124,88 @@ def json_ld(data):
         .replace(">", "\\u003e")
         .replace("&", "\\u0026")
     )
+
+
+def credits(obj):
+    """Everyone credited on ``obj``: each contributor as its own type, with its role labels.
+
+    Returns ``[{"contributor", "roles": {name: label}}]`` in the record's own order.
+    """
+    return [
+        {"contributor": c.contributor, "roles": {r.name: r.label for r in c.roles.all()}}
+        for c in contributions_of(obj)
+    ]
+
+
+def people(entries, named_roles=(), condensed=False):
+    """Split credits into the people named in full and everyone else, as ``c-card.people`` draws
+    them. With no ``named_roles`` everyone is named. Named people are ordered by the first of
+    ``named_roles`` they hold."""
+    order = list(named_roles)
+    named, others = [], []
+    for entry in entries:
+        item = {"contributor": entry["contributor"], "roles": list(entry["roles"].values())}
+        held = [order.index(name) for name in entry["roles"] if name in order]
+        if not order or held:
+            named.append((min(held, default=0), item))
+        else:
+            others.append(item)
+    named.sort(key=lambda pair: pair[0])
+    return {
+        "named": [item for _, item in named],
+        "others": others,
+        "total": len(entries),
+        "condensed": condensed,
+    }
+
+
+def with_role(entries, role):
+    return [entry["contributor"] for entry in entries if role in entry["roles"]]
+
+
+def identifiers(obj):
+    """``obj``'s identifiers, each with a doi.org link when it is a DOI or an IGSN (an IGSN is a
+    DataCite DOI since 2023)."""
+    return [
+        {
+            "type": i.type,
+            "value": i.value,
+            "link": f"https://doi.org/{i.value}" if str(i.value).startswith("10.") else None,
+        }
+        for i in obj.identifiers.all()
+    ]
+
+
+def citation(request, *, authors, year, title, link):
+    """DataCite's citation form: Creators (Year). Title. Publisher. Identifier."""
+    names = format_authors(authors)
+    publisher = getattr(getattr(request, "site", None), "name", "") or ""
+    parts = [f"{names} ({year})." if names else f"({year}).", f"{title}.", f"{publisher}.", link]
+    return " ".join(p for p in parts if p.strip(". "))
+
+
+def timeline(steps, dates, descriptions, entries):
+    """One entry per step in a record's life, joining the three ways the vocabularies describe
+    it: a date type, a contributor role and a description type.
+
+    ``steps`` is ``[(date_type, role, description_type, label)]``. Dated steps come first in date
+    order, undated ones after them in the table's order. A date recorded only to the year or the
+    month is shown as recorded, never padded out to a day.
+    """
+    result = []
+    for date_type, role, description_type, label in steps:
+        when = dates.get(date_type) if date_type else None
+        who = with_role(entries, role) if role else []
+        note = descriptions.get(description_type) if description_type else None
+        if when or who or note:
+            result.append(
+                {
+                    "label": label,
+                    "date": when,
+                    "day": when.date if when is not None and when.precision == 2 else None,
+                    "people": who,
+                    "note": note,
+                }
+            )
+    dated = sorted((s for s in result if s["date"]), key=lambda s: str(s["date"]))
+    return dated + [s for s in result if not s["date"]]

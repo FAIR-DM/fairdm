@@ -1,0 +1,87 @@
+{% load i18n %}
+{% comment %}
+  <c-card.identifiers> — what a reuser checks before taking anything: the licence, who can see
+  the data, the record's identifiers, and how a machine reaches it.
+
+  Attributes:
+    identifiers   – [{type, value, link}]; `link` is set for DOIs and IGSNs
+    portal_id     – the record's portal ID, with a copy button
+    local_id      – the team's own ID for the record, if it has one
+    license       – a licence object (name, canonical_url, description), or nothing
+    license_note  – a line after the licence, e.g. "from its dataset"
+    access        – one sentence on who can see the data
+    api_url       – the record's REST API address, if it has one
+    class         – extra classes on the card
+  Slots:
+    licenses  – replaces the single licence, e.g. a project's licence summary across datasets
+{% endcomment %}
+<c-vars identifiers portal_id local_id license license_note access api_url class />
+<c-card title="{% translate 'Access and reuse' %}" class="bg-base-100 {{ class }}" only>
+  <dl class="flex flex-col gap-3 text-sm">
+    <div>
+      <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Licence" %}</dt>
+      <dd class="mt-1 flex flex-col gap-1">
+        {% if licenses %}
+          {{ licenses }}
+        {% elif license %}
+          <p>
+            {% if license.canonical_url %}<a href="{{ license.canonical_url }}" class="link link-hover font-medium">{{ license.name }}</a>{% else %}<span class="font-medium">{{ license.name }}</span>{% endif %}
+            {% if license_note %}<span class="text-xs text-base-content/70">{{ license_note }}</span>{% endif %}
+          </p>
+          {% if license.description %}<p class="text-base-content/70">{{ license.description }}</p>{% endif %}
+        {% else %}
+          <p class="text-warning">{% translate "No licence has been chosen, so nobody can safely reuse this data yet." %}</p>
+        {% endif %}
+      </dd>
+    </div>
+    {% if access %}
+      <div>
+        <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Access" %}</dt>
+        <dd class="mt-1">{{ access }}</dd>
+      </div>
+    {% endif %}
+    <div>
+      <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Identifiers" %}</dt>
+      <dd class="flex flex-col gap-1 mt-1">
+        {% for identifier in identifiers %}
+          <span class="flex flex-wrap items-baseline gap-2">
+            <span class="badge badge-ghost badge-xs">{{ identifier.type }}</span>
+            {% if identifier.link %}
+              <a href="{{ identifier.link }}" class="link link-primary break-all font-mono text-xs">{{ identifier.value }}</a>
+            {% else %}
+              <span class="font-mono text-xs break-all">{{ identifier.value }}</span>
+            {% endif %}
+          </span>
+        {% endfor %}
+        {% if local_id %}
+          <span class="flex flex-wrap items-baseline gap-2">
+            <span class="badge badge-ghost badge-xs">{% translate "Local ID" %}</span>
+            <span class="font-mono text-xs break-all">{{ local_id }}</span>
+          </span>
+        {% endif %}
+        {% if portal_id %}
+          <span class="flex flex-wrap items-center gap-2">
+            <span class="badge badge-ghost badge-xs">{% translate "Portal ID" %}</span>
+            <span class="font-mono text-xs">{{ portal_id }}</span>
+            <button type="button" class="btn btn-ghost btn-xs"
+                    aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                    onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+              <c-icon name="copy" aria-hidden="true" />
+            </button>
+          </span>
+        {% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "For machines" %}</dt>
+      <dd class="flex flex-wrap gap-2 mt-1">
+        {% if api_url %}
+          <a href="{{ api_url }}" class="btn btn-xs btn-outline"><c-icon name="api" aria-hidden="true" />{% translate "REST API" %}</a>
+        {% endif %}
+        {% translate "Metadata downloads" as downloads %}
+        {% translate "The DataCite JSON and schema.org JSON-LD records, served from this address." as reason %}
+        {% include "overview/includes/pending_action.html" with label=downloads icon="download" reason=reason size="xs" %}
+      </dd>
+    </div>
+  </dl>
+</c-card>

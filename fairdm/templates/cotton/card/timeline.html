@@ -1,0 +1,45 @@
+{% load i18n fairdm %}
+{% comment %}
+  <c-card.timeline> — what happened to a record, in order: a sample's history, a measurement's
+  procedure. Each step says when, by whom and how. A date recorded only to the year or the month
+  is shown as recorded.
+
+  Attributes:
+    title  – e.g. "History"
+    steps  – [{label, date, day, people, note}]; `day` is set when the date is a full day
+    empty  – what to say when no step is recorded
+    class  – extra classes on the card
+{% endcomment %}
+<c-vars title steps empty class />
+<c-card title="{{ title }}" class="bg-base-100 {{ class }}" only>
+  {% if steps %}
+    <ol class="timeline timeline-vertical timeline-compact timeline-snap-icon">
+      {% for step in steps %}
+        <li>
+          {% if not forloop.first %}<hr />{% endif %}
+          <div class="timeline-middle">
+            <c-icon name="{% if step.date %}date{% else %}time{% endif %}" class="text-primary" aria-hidden="true" only />
+          </div>
+          <div class="timeline-end mb-6 ms-2 flex flex-col gap-1 min-w-0">
+            <div class="flex flex-wrap items-baseline gap-x-3">
+              <span class="font-medium">{{ step.label }}</span>
+              <span class="text-sm text-base-content/70">{% if step.day %}{{ step.day|date:"j M Y" }}{% elif step.date %}{{ step.date }}{% else %}{% translate "date not recorded" %}{% endif %}</span>
+            </div>
+            {% if step.people %}
+              <p class="text-sm">
+                {% translate "by" %}
+                {% for person in step.people %}<a href="{{ person.get_absolute_url }}" class="link link-hover">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+              </p>
+            {% endif %}
+            {% if step.note %}
+              <div class="prose max-w-none text-sm text-base-content/80">{{ step.note|safe_markdown }}</div>
+            {% endif %}
+          </div>
+          {% if not forloop.last %}<hr />{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="text-sm text-base-content/70">{{ empty }}</p>
+  {% endif %}
+</c-card>

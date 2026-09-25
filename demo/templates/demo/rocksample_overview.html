@@ -9,15 +9,15 @@
 {% endcomment %}
 
 {# Add the rock type beside the generic type and custody badges; block.super keeps those. #}
-{% block sample.badges %}
+{% block overview.badges %}
   {{ block.super }}
   {% if sample.rock_type %}
     <span class="badge badge-outline badge-sm">{{ sample.rock_type|capfirst }}</span>
   {% endif %}
-{% endblock sample.badges %}
+{% endblock overview.badges %}
 
 {# The block the base page leaves empty for exactly this: the type's own fields. #}
-{% block sample.properties %}
+{% block overview.properties %}
   <c-card title="{% translate 'Rock properties' %}" class="bg-base-100">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
       <c-data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
@@ -29,4 +29,4 @@
       <c-data-field label="{% translate 'Mineral content' %}" value="{{ sample.mineral_content }}" />
     {% endif %}
   </c-card>
-{% endblock sample.properties %}
+{% endblock overview.properties %}

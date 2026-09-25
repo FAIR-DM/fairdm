@@ -1,0 +1,66 @@
+{% load i18n %}
+{% comment %}
+  <c-card.people> — everyone credited on the record.
+
+  The people a reader looks for first (creators, leads, the contact person) are named with their
+  roles. Everyone else follows as a list, or, when `condensed` is set, as a row of avatars with a
+  count, for records with long credit lists.
+
+  Attributes:
+    people     – {named: [{contributor, roles}], others: [...], total}
+    all_url    – where the full list lives, shown as "See all"
+    empty      – what to say when nobody is credited
+    condensed  – show `others` as avatars and a count
+    class      – extra classes on the card
+{% endcomment %}
+<c-vars people all_url empty condensed=False class />
+<c-card title="{% translate 'People' %}" class="bg-base-100 {{ class }}" only>
+  {% if all_url and people.total %}
+    <c-slot name="actions"><a href="{{ all_url }}" class="btn btn-ghost btn-sm">{% translate "See all" %}</a></c-slot>
+  {% endif %}
+  {% if people.total %}
+    {% if people.named %}
+      <ul class="flex flex-col gap-3">
+        {% for entry in people.named %}
+          <li class="flex items-center gap-3">
+            <c-avatar :for="entry.contributor" alt="" size="sm" only />
+            <div class="min-w-0">
+              <a href="{{ entry.contributor.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.contributor }}</a>
+              {% if entry.roles %}<p class="text-xs text-base-content/70">{{ entry.roles|join:", " }}</p>{% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if people.others %}
+      {% if condensed %}
+        <div class="flex items-center gap-3 {% if people.named %}mt-4{% endif %}">
+          <c-avatar.group size="xs" only>
+            {% for entry in people.others|slice:":6" %}
+              <c-avatar :for="entry.contributor" alt="{{ entry.contributor }}" size="sm" only />
+            {% endfor %}
+          </c-avatar.group>
+          <span class="text-sm text-base-content/70">
+            {% if people.named %}
+              {% blocktranslate count counter=people.others|length %}and {{ counter }} other contributor{% plural %}and {{ counter }} other contributors{% endblocktranslate %}
+            {% else %}
+              {% blocktranslate count counter=people.others|length %}{{ counter }} contributor{% plural %}{{ counter }} contributors{% endblocktranslate %}
+            {% endif %}
+          </span>
+        </div>
+      {% else %}
+        {% if people.named %}<c-rule class="my-3" only />{% endif %}
+        <ul class="flex flex-col gap-1 text-sm">
+          {% for entry in people.others %}
+            <li class="flex flex-wrap justify-between gap-x-3">
+              <a href="{{ entry.contributor.get_absolute_url }}" class="link link-hover">{{ entry.contributor }}</a>
+              <span class="text-xs text-base-content/70">{{ entry.roles|join:", " }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-base-content/70">{{ empty|default:_("Nobody is credited yet.") }}</p>
+  {% endif %}
+</c-card>

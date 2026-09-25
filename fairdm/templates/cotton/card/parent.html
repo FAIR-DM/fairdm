@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  <c-card.parent> — the records this one belongs to: a dataset's project, a sample's dataset and
+  project, a project's owning organisation.
+
+  A parent the viewer isn't allowed to see is never passed in, so a private record is never
+  named here.
+
+  Attributes:
+    parents  – [{label, record, badge, badge_variant, detail, detail_url}]
+               label        – what the parent is ("Project", "Dataset")
+               record       – the parent, linked by its own address
+               badge        – optional status shown beside it
+               detail       – optional line under it; `detail_url` makes it a link
+    class    – extra classes on the card
+{% endcomment %}
+<c-vars parents class />
+<c-card title="{% translate 'Part of' %}" class="bg-base-100 {{ class }}" only>
+  <dl class="flex flex-col gap-3 text-sm">
+    {% for parent in parents %}
+      <div class="flex flex-col gap-1">
+        <dt class="text-xs uppercase font-semibold text-base-content/60">{{ parent.label }}</dt>
+        <dd class="flex flex-col gap-1">
+          <a href="{{ parent.record.get_absolute_url }}" class="link link-hover font-medium break-words">{{ parent.record }}</a>
+          {% if parent.badge %}
+            <span><span class="badge badge-soft badge-{{ parent.badge_variant|default:'neutral' }} badge-sm">{{ parent.badge }}</span></span>
+          {% endif %}
+          {% if parent.detail %}
+            {% if parent.detail_url %}
+              <a href="{{ parent.detail_url }}" class="link link-primary">{{ parent.detail }}</a>
+            {% else %}
+              <span class="text-base-content/70">{{ parent.detail }}</span>
+            {% endif %}
+          {% endif %}
+        </dd>
+      </div>
+    {% endfor %}
+  </dl>
+</c-card>

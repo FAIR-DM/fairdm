@@ -16,6 +16,8 @@ from datetime import timedelta
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+
+from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
 from django.db import transaction
 from django.utils import timezone
 from guardian.shortcuts import assign_perm
@@ -58,11 +60,6 @@ SPARSE = (
 )
 SEEDED_NAMES = [SHOWCASE, EMPTY, SPARSE]
 
-ACCOUNTS = [
-    ("regular.user@example.com", "Regular", "User", False, False),
-    ("staff.user@example.com", "Staff", "User", True, False),
-    ("super.user@example.com", "Super", "User", True, True),
-]
 
 PROJECT_PERMISSIONS = [
     "view_project",
@@ -139,7 +136,7 @@ DATASETS = [
 ]
 
 
-class Command(BaseCommand):
+class ProjectSeed(BaseCommand):
     help = "Seed projects that exercise every state of the project overview page (development only)."
 
     @transaction.atomic

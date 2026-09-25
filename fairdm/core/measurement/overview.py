@@ -3,8 +3,7 @@
 Everything here reads fields every measurement has, plus what the registry says about the
 measurement's type. What a particular type adds (an element and its concentration, an isotope
 ratio) is drawn by that type's own template, which extends
-``measurement/measurement_overview.html`` and fills its blocks — see
-``MeasurementDetailView.get_template_names``.
+``measurement/measurement_overview.html`` and fills its blocks. See ``TypedOverviewPlugin``.
 
 A reuser asks four things of a single measurement: what the result was, what it was measured
 on, how it was measured, and whether they can cite and reuse it. The page answers them in that
@@ -14,12 +13,8 @@ order.
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
-from fairdm.contrib.contributors.models import Contributor
-from fairdm.contrib.plugins.access import has_perm
+from fairdm.core import overview as shared
 from fairdm.registry import registry
-from fairdm.utils.choices import Visibility
-
-from .models import Measurement
 
 #: Each step in how a measurement was made: its date type, the contributor role that performs
 #: it, the description type that explains it, and what the page calls it. The measurement
@@ -34,48 +29,80 @@ PROCEDURE = [
 SIBLINGS = 8
 
 
-def dataset_is_open(dataset):
-    return dataset.visibility == Visibility.PUBLIC and dataset.published
+def build(request, measurement, can_manage):
+    from fairdm.core.project.plugins import project_is_visible
+    from fairdm.core.sample.models import Sample
 
-
-def is_team(request, dataset):
-    return has_perm(request, "dataset.view_dataset", dataset) or has_perm(
-        request, "dataset.change_dataset", dataset
-    )
-
-
-def measurement_is_visible(request, measurement):
-    """A measurement follows its own dataset, not its sample's: open to everyone once that
-    dataset is public and published, and otherwise only to the dataset's team."""
-    return dataset_is_open(measurement.dataset) or is_team(request, measurement.dataset)
-
-
-def build(request, measurement):
-    can_manage = has_perm(request, "dataset.change_dataset", measurement.dataset)
-    contributions = list(measurement.contributors.prefetch_related("roles"))
-    people = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
-    credits = [
-        {"contributor": people[c.contributor_id], "roles": {r.name: r.label for r in c.roles.all()}}
-        for c in contributions
-    ]
+    user = request.user
+    entries = shared.credits(measurement)
     descriptions = {d.type: d.value for d in measurement.descriptions.all()}
     dates = {d.type: d.value for d in measurement.dates.all()}
     sample = measurement.sample
+    sample_visible = Sample.objects.filter(pk=sample.pk).visible_to(user).exists()
+    project = measurement.dataset.project
+    if project is not None and not project_is_visible(request, project):
+        project = None
+    measurement_type = str(type(measurement)._meta.verbose_name)
+    identifiers = shared.identifiers(measurement)
+    doi = next((i for i in identifiers if i["type"] == "DOI"), None)
+    setup = dates.get("Setup")
+
+    title = _("%(name)s [%(type)s] of %(sample)s") % {
+        "name": measurement.name,
+        "type": measurement_type,
+        "sample": sample if sample_visible else _("an unpublished sample"),
+    }
+    citation = {
+        "title": _("Cite this measurement"),
+        "text": shared.citation(
+            request,
+            authors=shared.with_role(entries, "MeasurementCollection"),
+            year=getattr(getattr(setup, "date", None), "year", None) or measurement.added.year,
+            title=title,
+            link=doi["link"] if doi else request.build_absolute_uri(measurement.get_absolute_url()),
+        ),
+    }
+    if not doi:
+        citation["note"] = _(
+            "Most measurements are cited through their dataset. This citation points at this page."
+        )
+        citation["note_url"] = measurement.dataset.get_absolute_url() + "#cite"
+        citation["note_link"] = _("Cite the dataset")
+
+    parents = [{"label": _("Dataset"), "record": measurement.dataset}]
+    if project is not None:
+        parents.append({"label": _("Project"), "record": project})
+
     return {
+        "record": measurement,
+        "overview_icon": "measurement",
         "can_manage": can_manage,
-        "measurement_type": str(type(measurement)._meta.verbose_name),
+        "measurement_type": measurement_type,
         "result": result(measurement),
         "method": method(measurement),
-        "procedure": procedure(dates, descriptions, credits),
+        "procedure": shared.timeline(PROCEDURE, dates, descriptions, entries),
         "notes": descriptions.get("Other"),
-        "credits": credits,
         "sample": sample,
         "sample_type": str(type(sample)._meta.verbose_name),
-        "sample_visible": dataset_is_open(sample.dataset) or is_team(request, sample.dataset),
+        "sample_visible": sample_visible,
         "other_dataset": sample.dataset_id != measurement.dataset_id,
-        "siblings": siblings(request, measurement, can_manage),
-        "identifiers": identifiers(measurement),
-        "citation": citation(request, measurement, credits, dates),
+        "siblings": siblings(user, measurement),
+        "project": project,
+        "citation": citation,
+        "identifiers": identifiers,
+        "license": measurement.dataset.license,
+        "license_note": _("from its dataset"),
+        "access_text": _("Open to everyone.")
+        if measurement.dataset.data_is_public
+        else _("Its dataset's team only, until the dataset is published."),
+        "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
+        "people": shared.people(entries),
+        "parents": parents,
+        "details": [
+            {"label": _("Type"), "text": measurement_type[:1].upper() + measurement_type[1:]},
+            {"label": _("Added"), "date": measurement.added},
+            {"label": _("Last updated"), "date": measurement.modified},
+        ],
     }
 
 
@@ -85,7 +112,7 @@ def result(measurement):
     ``Measurement.get_value`` is part of the base model's contract: a type that defines ``value``
     (and optionally ``uncertainty``) gets its result shown here with no template of its own. A
     type that records its result some other way leaves this empty and fills the
-    ``measurement.result`` block itself.
+    ``overview.result`` block itself.
     """
     if getattr(measurement, "value", None) is None:
         return None
@@ -109,36 +136,18 @@ def method(measurement):
     }
 
 
-def procedure(dates, descriptions, credits):
-    steps = []
-    for date_type, role, description_type, label in PROCEDURE:
-        date = dates.get(date_type) if date_type else None
-        who = [c["contributor"] for c in credits if role and role in c["roles"]]
-        note = descriptions.get(description_type)
-        if date or who or note:
-            steps.append(
-                {
-                    "label": label,
-                    "date": date,
-                    "day": date.date if date is not None and date.precision == 2 else None,
-                    "people": who,
-                    "note": note,
-                }
-            )
-    return steps
+def siblings(user, measurement):
+    """Other measurements made on the same sample, most recent first: the context a single value
+    is read against. Each is shown only if the viewer may see its own dataset."""
+    from .models import Measurement
 
-
-def siblings(request, measurement, can_manage):
-    """Other measurements made on the same sample, most recent first — the context a single
-    value is read against. A visitor sees only those whose own dataset is released."""
     queryset = (
         Measurement.objects.filter(sample_id=measurement.sample_id)
         .exclude(pk=measurement.pk)
+        .visible_to(user)
         .select_related("dataset")
         .order_by("-added")
     )
-    if not can_manage:
-        queryset = queryset.filter(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
     total = queryset.count()
     rows = [
         {
@@ -149,43 +158,3 @@ def siblings(request, measurement, can_manage):
         for m in queryset[:SIBLINGS]
     ]
     return {"rows": rows, "more": max(total - SIBLINGS, 0), "total": total}
-
-
-def identifiers(measurement):
-    return [
-        {
-            "type": i.type,
-            "value": i.value,
-            "link": f"https://doi.org/{i.value}" if i.value.startswith("10.") else None,
-        }
-        for i in measurement.identifiers.all()
-    ]
-
-
-def format_authors(contributors):
-    """"Keller, A., Brandt, L. & Demir, Y." — the DataCite creator list as a reader writes it."""
-    names = []
-    for contributor in contributors:
-        last, first = getattr(contributor, "last_name", ""), getattr(contributor, "first_name", "")
-        names.append(f"{last}, {first[0]}." if last and first else str(contributor))
-    if len(names) > 1:
-        return ", ".join(names[:-1]) + " & " + names[-1]
-    return names[0] if names else ""
-
-
-def citation(request, measurement, credits, dates):
-    """Who measured it (Year). Name [type] of <sample>. Publisher. Identifier."""
-    measurers = [c["contributor"] for c in credits if "MeasurementCollection" in c["roles"]]
-    setup = dates.get("Setup")
-    year = getattr(getattr(setup, "date", None), "year", None) or measurement.added.year
-    doi = next((i.value for i in measurement.identifiers.all() if i.type == "DOI"), None)
-    link = f"https://doi.org/{doi}" if doi else request.build_absolute_uri(measurement.get_absolute_url())
-    authors = format_authors(measurers)
-    publisher = getattr(getattr(request, "site", None), "name", "") or ""
-    title = _("%(name)s [%(type)s] of %(sample)s") % {
-        "name": measurement.name,
-        "type": type(measurement)._meta.verbose_name,
-        "sample": measurement.sample,
-    }
-    parts = [f"{authors} ({year})." if authors else f"({year}).", f"{title}.", f"{publisher}.", link]
-    return {"text": " ".join(p for p in parts if p.strip(". ")), "has_doi": bool(doi)}

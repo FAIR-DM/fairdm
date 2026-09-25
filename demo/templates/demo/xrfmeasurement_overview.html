@@ -8,12 +8,12 @@
   the header badges, keeping the generic ones with `block.super`.
 {% endcomment %}
 
-{% block measurement.badges %}
+{% block overview.badges %}
   {{ block.super }}
   <span class="badge badge-outline badge-sm font-mono">{{ measurement.element }}</span>
-{% endblock measurement.badges %}
+{% endblock overview.badges %}
 
-{% block measurement.result %}
+{% block overview.result %}
   <c-card.wrapper class="bg-base-100">
     <div class="card-body gap-3">
       <p class="text-xs uppercase font-semibold text-base-content/60">{% translate "Concentration" %}</p>
@@ -31,9 +31,9 @@
       {% endif %}
     </div>
   </c-card.wrapper>
-{% endblock measurement.result %}
+{% endblock overview.result %}
 
-{% block measurement.properties %}
+{% block overview.properties %}
   <c-card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
       <c-data-field label="{% translate 'Instrument' %}" value="{{ measurement.instrument_model }}" />
@@ -43,4 +43,4 @@
       <c-data-field label="{% translate 'Conditions' %}" value="{{ measurement.measurement_conditions }}" />
     {% endif %}
   </c-card>
-{% endblock measurement.properties %}
+{% endblock overview.properties %}

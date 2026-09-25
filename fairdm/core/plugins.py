@@ -44,6 +44,49 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         return str(self.base_object)
 
 
+class TypedOverviewPlugin(OverviewPlugin):
+    """The overview of a record portals subclass: a sample or a measurement.
+
+    Two things differ from a project or dataset overview.
+
+    **The template follows the record's type.** For each concrete class from the record's own
+    type up to ``base_model``, it looks for ``<app_label>/<model_name>_overview.html``, then falls
+    back to ``fallback_template``. A type gets its own page by providing that template, extending
+    its record's template and filling the ``overview.*`` blocks it wants. A subtype inherits its
+    parent type's page until it provides its own.
+
+    **The record follows its dataset.** It opens for everyone once its own dataset is public and
+    published, and otherwise only for that dataset's team (``visible_to``). Anyone else gets a
+    404, so the address never confirms the record exists. ``PrivateRecordNotFoundMixin`` can't be
+    reused here: it reads ``obj.visibility``, which samples and measurements don't have.
+    """
+
+    base_model = None
+    fallback_template = None
+
+    @staticmethod
+    def check(request, obj):
+        # A staticmethod, not a classmethod: registration refuses a classmethod `check`
+        # (fairdm.contrib.plugins.access.check_is_valid).
+        if obj is None:
+            return True
+        return type(obj).objects.visible_to(request.user).filter(pk=obj.pk).exists()
+
+    def handle_no_permission(self):
+        from django.http import Http404
+
+        raise Http404(_("Nothing matches the given query."))
+
+    def get_template_names(self):
+        names = []
+        for cls in type(self.base_object).__mro__:
+            if cls is self.base_model:
+                break
+            if isinstance(cls, type) and issubclass(cls, self.base_model) and not cls._meta.abstract:
+                names.append(f"{cls._meta.app_label}/{cls._meta.model_name}_overview.html")
+        return [*names, self.fallback_template]
+
+
 class UpdatePlugin(Plugin, FairDMUpdateView):
     """Reusable edit plugin for model forms.
 

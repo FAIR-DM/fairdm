@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+  <c-card.readiness> — for the record's team only: what is still missing before the record is
+  complete enough to be found, trusted or published. Missing items come first, each linked to the
+  page that fixes it where one exists.
+
+  Attributes:
+    title      – e.g. "Ready to publish?"
+    summary    – one line on the overall state
+    about      – one line on why the list matters
+    readiness  – {items: [{label, done, url, required}], done, total, ready}
+                 `required` false marks an item as recommended
+    class      – extra classes on the card
+{% endcomment %}
+<c-vars title summary about readiness class />
+<c-card title="{{ title }}" class="bg-base-100 border border-primary {{ class }}" only>
+  <c-slot name="badges"><span class="badge badge-ghost badge-sm">{% translate "Team only" %}</span></c-slot>
+  <div class="flex flex-col gap-2">
+    <div class="flex items-baseline justify-between gap-2 text-sm">
+      <span>{{ summary }}</span>
+      <span class="tabular-nums text-base-content/70">{{ readiness.done }}/{{ readiness.total }}</span>
+    </div>
+    <c-progress value="{{ readiness.done }}" max="{{ readiness.total }}"
+                variant="{% if readiness.ready %}success{% else %}primary{% endif %}"
+                label="{% blocktranslate with done=readiness.done total=readiness.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}"
+                only />
+    {% if about %}<p class="text-xs text-base-content/70">{{ about }}</p>{% endif %}
+  </div>
+  <ul class="flex flex-col gap-1 text-sm mt-2">
+    {% for item in readiness.items %}
+      {% if not item.done %}
+        <li class="flex items-start gap-2">
+          <c-icon name="warning" class="{% if item.required is False %}text-base-content/40{% else %}text-warning{% endif %} mt-1" aria-hidden="true" only />
+          <span class="flex-1">{{ item.label }}{% if item.required is False %} <span class="text-base-content/60">({% translate "recommended" %})</span>{% endif %}<span class="sr-only"> — {% translate "missing" %}</span></span>
+          {% if item.url %}<a href="{{ item.url }}" class="link link-primary shrink-0">{% translate "Fix" %}</a>{% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+    {% for item in readiness.items %}
+      {% if item.done %}
+        <li class="flex items-start gap-2 text-base-content/60">
+          <c-icon name="success" class="text-success mt-1" aria-hidden="true" only />
+          <span class="flex-1">{{ item.label }}<span class="sr-only"> — {% translate "done" %}</span></span>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</c-card>

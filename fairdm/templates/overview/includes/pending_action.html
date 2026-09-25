@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}
+  A button for something FairDM can't do yet. It is disabled, labelled "Planned" so it never
+  reads as broken, and its title says what it will do.
+
+  Include with: label, icon, reason, and optionally variant ("primary") and size ("xs" or "sm").
+{% endcomment %}
+<button type="button"
+        class="btn btn-{{ size|default:'sm' }} {% if variant == 'primary' %}btn-primary{% else %}btn-outline{% endif %}"
+        disabled
+        title="{{ reason }}">
+  {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" />{% endif %}
+  {{ label }}
+  <span class="badge badge-ghost badge-xs">{% translate "Planned" %}</span>
+  <span class="sr-only">{% translate "Not available yet." %} {{ reason }}</span>
+</button>

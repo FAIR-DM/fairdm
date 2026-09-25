@@ -67,6 +67,16 @@ DEV_ACCOUNTS = (
 #: command never ran against (D16).
 DEV_ACCOUNT_EMAILS = frozenset(account["email"] for account in DEV_ACCOUNTS)
 
+#: The sign-in accounts the demo's development data uses: ``(email, first, last, is_staff,
+#: is_superuser)``, all with the password ``password``. They share that written-down password as
+#: the five above do, so ``fairdm.E501`` looks for them too.
+EXAMPLE_ACCOUNTS = (
+    ("regular.user@example.com", "Regular", "User", False, False),
+    ("staff.user@example.com", "Staff", "User", True, False),
+    ("super.user@example.com", "Super", "User", True, True),
+)
+EXAMPLE_ACCOUNT_EMAILS = frozenset(account[0] for account in EXAMPLE_ACCOUNTS)
+
 
 class Command(BaseCommand):
     help = (
