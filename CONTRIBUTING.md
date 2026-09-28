@@ -107,12 +107,12 @@ MyPy is configured but currently disabled in CI. When enabled:
 - Follow `django-stubs` patterns for Django code
 - Check `pyproject.toml` for mypy configuration
 
-### Testing
+### Testing and code documentation
 
-- Write tests for all new features
-- Aim for >80% coverage
-- Use pytest with Django plugin
-- Follow existing test patterns in `tests/`
+- Tests follow the [testing standard](docs/contributing/standards/testing.md): what gets a test,
+  the test-first cycle, structure and fixtures, and the coverage floors (project 90%, patch 85%).
+- Docstrings, Cotton component annotations and comments follow the
+  [code documentation standard](docs/contributing/standards/code-documentation.md).
 
 ## Pre-commit Hooks
 
