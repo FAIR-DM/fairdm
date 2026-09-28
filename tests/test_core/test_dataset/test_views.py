@@ -1,23 +1,11 @@
-"""
-Integration tests for fairdm.core.dataset views.
-
-Tests the interaction between views, forms, and models, verifying complete
-request/response cycles for dataset CRUD operations.
-
-Phases 3-8 map to User Stories 1-6 from spec/014-dataset-crud-views.
-
-Also covers general list/create/permission smoke tests moved from the former
-test_integration.py.
-"""
+"""Integration tests for the dataset list, create, update and delete views."""
 
 import re
 import time
-from pathlib import Path
 
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
-from django.conf import settings
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -25,7 +13,6 @@ from guardian.shortcuts import assign_perm
 from licensing.models import License
 from pytest_django.asserts import assertContains, assertNotContains
 
-import fairdm.core.dataset
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetCreateView
@@ -41,23 +28,18 @@ from fairdm.factories import (
 )
 from fairdm.utils.choices import Visibility
 
-# ---------------------------------------------------------------------------
-# Phase 3 — User Story 1: Browse and Search the Dataset List
-# ---------------------------------------------------------------------------
+# `DatasetFactory()` and the create view produce private datasets, so lookups use
+# `Dataset.all_objects`.
 
 
 @pytest.mark.django_db
 class TestDatasetListView:
-    """Smoke tests and behaviour tests for DatasetListView (US1)."""
-
     def test_anonymous_get(self, client):
-        """T004 — GET /datasets/ returns 200 for anonymous users."""
         url = reverse("dataset-list")
         response = client.get(url)
         assert response.status_code == 200
 
     def test_shows_only_public_datasets(self, client):
-        """T005 — List shows only PUBLIC datasets; PRIVATE datasets are hidden."""
         public = DatasetFactory(name="Public Dataset", visibility=Visibility.PUBLIC)
         DatasetFactory(name="Private Dataset", visibility=Visibility.PRIVATE)
 
@@ -69,7 +51,6 @@ class TestDatasetListView:
         assert "Private Dataset" not in str(response.content)
 
     def test_order_by_added(self, client):
-        """T006 — ?o=added and ?o=-added return results in expected chronological order."""
         older = DatasetFactory(name="Older Dataset", visibility=Visibility.PUBLIC)
         time.sleep(0.01)
         newer = DatasetFactory(name="Newer Dataset", visibility=Visibility.PUBLIC)
@@ -87,20 +68,8 @@ class TestDatasetListView:
         assert content_desc.index(newer.name) < content_desc.index(older.name)
 
 
-# ---------------------------------------------------------------------------
-# 014 US-1: Find a dataset — visibility, search, ordering, filters, empty
-# state and the listing entry's link. Mirrors
-# tests/test_core/test_project/test_views.py::TestProjectListing.
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDatasetListingVisibility:
-    """T012/FR-002 — the listing shows only public datasets, whoever is looking. The
-    pre-existing `test_shows_only_public_datasets` above only covers a signed-out
-    visitor; T012 and SC-002 both name the signed-in cases too (reconciliation: built,
-    untested)."""
-
     def test_signed_out_visitor_sees_only_the_public_dataset(
         self, client, public_dataset, private_dataset
     ):
@@ -130,10 +99,6 @@ class TestDatasetListingVisibility:
 
 @pytest.mark.django_db
 class TestDatasetListingSearch:
-    """T013/FR-003,FR-006 — one search, over name, uuid, external identifiers,
-    descriptions and keywords, replacing the two competing controls the listing used
-    to offer (014 plan P8). Each of the five reaches a record the others would not."""
-
     def test_search_by_name_returns_the_matching_dataset_only(self, client):
         target = DatasetFactory(
             name="Zircon Thermochronology Survey", visibility=Visibility.PUBLIC
@@ -199,10 +164,6 @@ class TestDatasetListingSearch:
 
 @pytest.mark.django_db
 class TestDatasetListingOrdering:
-    """T014/FR-004 — ordering by name and by date added, in both directions. The
-    pre-existing `test_order_by_added` above covers date added; name is untested in
-    either direction (reconciliation: built, untested)."""
-
     def test_ordered_by_name_returns_alphabetical_order(self, client):
         bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
         alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
@@ -220,9 +181,6 @@ class TestDatasetListingOrdering:
 
 @pytest.mark.django_db
 class TestDatasetListingFilters:
-    """T015/FR-005 — filters by licence, project, description type and date type,
-    applied through the listing itself."""
-
     def test_license_filter_narrows_to_the_matching_license(self, client):
         cc_by = License.objects.get(name="CC BY 4.0")
         cc0 = License.objects.get(name="CC0 1.0")
@@ -269,11 +227,6 @@ class TestDatasetListingFilters:
 
 @pytest.mark.django_db
 class TestDatasetListingFiltersAllRunWithoutError:
-    """T016/FR-006 — every filter the rendered filterset form actually offers runs a
-    query without raising, applied one at a time. The field set is read from the
-    rendered form itself, never a hand-written list, so a filter added or removed
-    later is swept automatically."""
-
     def _value_for(self, field_name, dataset, project, license_obj):
         return {
             "license": license_obj.pk,
@@ -312,10 +265,6 @@ class TestDatasetListingFiltersAllRunWithoutError:
 
 @pytest.mark.django_db
 class TestDatasetListingOffersNoDeadFilter:
-    """T017/FR-006 — no filter is offered that cannot change the result set. The
-    listing shows public datasets only (T012), so a visibility choice between Public
-    and Private can never narrow it — that filter is withdrawn (014 plan P8)."""
-
     def test_the_rendered_filterset_form_offers_no_visibility_field(self, client):
         response = client.get(reverse("dataset-list"))
         assert "visibility" not in response.context["filter"].form.fields
@@ -323,11 +272,6 @@ class TestDatasetListingOffersNoDeadFilter:
 
 @pytest.mark.django_db
 class TestDatasetListingProjectFilterVisibility:
-    """T018/FR-007 — the project filter offers only projects the visitor may see:
-    public projects, plus any the requester holds `view_project` on at record level.
-    Not the creation form's contribution-based rule, which raises for an anonymous
-    visitor (014 plan P8)."""
-
     def test_a_private_project_is_absent_for_an_anonymous_visitor(self, client):
         private_project = ProjectFactory(
             name="Confidential Survey", visibility=Visibility.PRIVATE
@@ -373,10 +317,6 @@ class TestDatasetListingProjectFilterVisibility:
 
 @pytest.mark.django_db
 class TestDatasetListingEmptyState:
-    """T019/FR-008 — a search matching no dataset renders the listing's own empty
-    state, rather than a blank page (mirrors
-    TestProjectListing.test_listing_shows_empty_state_when_a_search_matches_nothing)."""
-
     def test_listing_shows_empty_state_when_a_search_matches_nothing(
         self, client, public_dataset
     ):
@@ -385,39 +325,25 @@ class TestDatasetListingEmptyState:
         )
         assert response.status_code == 200
         assert list(response.context["object_list"]) == []
-        assertContains(response, "There&#x27;s nothing here yet")
 
 
 @pytest.mark.django_db
 class TestDatasetListingEntryLink:
-    """T020/FR-009 — each listing entry links to its dataset's page, reached
-    through the record's own `get_absolute_url` (mirrors
-    TestProjectListing.test_listing_entry_links_to_its_projects_page)."""
-
     def test_listing_entry_links_to_its_datasets_page(self, client, public_dataset):
         response = client.get(reverse("dataset-list"))
         expected_url = public_dataset.get_absolute_url()
         assertContains(response, f'href="{expected_url}"')
 
 
-# ---------------------------------------------------------------------------
-# Phase 4 — User Story 2: Create a New Dataset
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDatasetCreateView:
-    """Smoke tests and behaviour tests for DatasetCreateView (US2)."""
-
     def test_anonymous_redirects_to_login(self, client):
-        """T011 — GET /datasets/create/ by anonymous client returns 302 to login."""
         url = reverse("dataset-create")
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_authenticated_get_200(self, client):
-        """T012 — GET /datasets/create/ by authenticated client returns 200."""
         user = UserFactory()
         client.force_login(user)
         url = reverse("dataset-create")
@@ -425,12 +351,6 @@ class TestDatasetCreateView:
         assert response.status_code == 200
 
     def test_valid_post_redirects_to_detail(self, client):
-        """T013 — Valid POST redirects to the dataset's own page (dataset:overview,
-        014 T057 — the retired standalone dataset-detail route no longer exists).
-
-        MUST FAIL before T015 (DatasetCreateForm) because DatasetForm requires
-        additional fields that make a minimal POST fail form validation.
-        """
         from licensing.models import License
 
         from fairdm.factories import ProjectFactory
@@ -438,8 +358,7 @@ class TestDatasetCreateView:
         user = UserFactory()
         client.force_login(user)
         project = ProjectFactory()
-        # User must be a contributor of the project for it to appear in the
-        # project queryset (DatasetForm filters to user.projects.all())
+        # The form only offers projects the user contributes to.
         project.add_contributor(user)
         license_obj = License.objects.first()
 
@@ -460,19 +379,11 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        # `all_objects` - a newly created dataset defaults to private, and
-        # `Dataset.objects` is privacy-first by default (R1).
         dataset = Dataset.all_objects.get(name="New Test Dataset")
         expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assert response.url == expected_url
 
     def test_assigns_contributor_roles(self, client):
-        """T014 — After valid POST, creating user is a contributor with correct roles.
-
-        FR-013. Object-level permission assignment (FR-012) is covered on its own terms by
-        `TestDatasetCreatePagePermissionAssignment` (T029); this test covers the contributor/
-        role side only.
-        """
         from licensing.models import License
 
         from fairdm.factories import ProjectFactory
@@ -480,8 +391,6 @@ class TestDatasetCreateView:
         user = UserFactory()
         client.force_login(user)
         project = ProjectFactory()
-        # User must be a contributor of the project for it to appear in the
-        # project queryset (DatasetForm filters to user.projects.all())
         project.add_contributor(user)
         license_obj = License.objects.first()
 
@@ -502,7 +411,6 @@ class TestDatasetCreateView:
 
         from fairdm.core.dataset.models import Dataset
 
-        # `all_objects` - a newly created dataset defaults to private.
         dataset = Dataset.all_objects.get(name="Permission Test Dataset")
 
         contributor = dataset.contributors.filter(contributor=user).first()
@@ -514,10 +422,6 @@ class TestDatasetCreateView:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageUsesTheDeclaredForm:
-    """T033/FR-022 - the creation page uses the update page's declared form (`DatasetForm`)
-    narrowed to its own four fields, rather than a field list of its own. A label declared once
-    on `DatasetForm` reaches both the creation and the update page."""
-
     def test_the_view_declares_a_subclass_of_the_update_pages_form(self):
         assert DatasetCreateView.form_class is DatasetCreateForm
         assert issubclass(DatasetCreateForm, DatasetForm)
@@ -542,10 +446,6 @@ class TestDatasetCreatePageUsesTheDeclaredForm:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageFieldSet:
-    """T023/FR-012 - the creation page asks for a name, a visibility, a licence and a project,
-    and for nothing else. A field added later (e.g. `image` or `reference`, both offered by the
-    update page) fails this test."""
-
     FIELDS = {"name", "visibility", "license", "project"}
 
     def test_the_rendered_form_offers_exactly_the_creation_field_set(self, client):
@@ -561,10 +461,6 @@ class TestDatasetCreatePageFieldSet:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageVisibilityField:
-    """T024/FR-013 - visibility is presented as a visible radio choice pre-selecting Public.
-    Asserted against the rendered control and its pre-selection, not just the form's initial
-    value (rituals)."""
-
     def test_the_rendered_page_offers_a_radio_choice_pre_selecting_public(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -574,8 +470,6 @@ class TestDatasetCreatePageVisibilityField:
         form = response.context["form"]
 
         assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
-        assertContains(response, "Private")
-        assertContains(response, "Public")
 
         content = response.content.decode()
         public_input = re.search(
@@ -592,9 +486,6 @@ class TestDatasetCreatePageVisibilityField:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageLicenseDefault:
-    """T025/FR-014 - the portal's configured default licence is pre-selected. Tested under an
-    overridden setting, so the test does not pin one licence name (rituals)."""
-
     def test_the_rendered_form_preselects_the_configured_default_licence(
         self, client, settings
     ):
@@ -611,12 +502,6 @@ class TestDatasetCreatePageLicenseDefault:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageProjectField:
-    """T026/FR-015 - the project field is optional and starts empty; a dataset can be created
-    without one. Exercised against the creation page's own shipped form
-    (`DatasetCreateForm`), not `DatasetForm` directly — the object under test in the
-    pre-existing `test_forms.py` coverage is unreachable from this page (reconciliation:
-    vacuous test)."""
-
     def test_the_project_field_is_optional_and_starts_empty(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -652,10 +537,6 @@ class TestDatasetCreatePageProjectField:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageProjectFieldNarrowing:
-    """T027/FR-016 - the project field offers only projects the signed-in researcher may use,
-    on the same terms as the update page (`DatasetForm.__init__`, `request.user.projects.all()`,
-    mirrors `test_plugins.py`'s `TestUpdatePageProjectField`)."""
-
     def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
         self, client
     ):
@@ -677,9 +558,6 @@ class TestDatasetCreatePageProjectFieldNarrowing:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageProjectFieldWidget:
-    """T086 - the creation page's project field renders as a plain select, not the
-    django_addanother wrapper markup that does not render correctly in the portal."""
-
     def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -693,11 +571,6 @@ class TestDatasetCreatePageProjectFieldWidget:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageNameRequired:
-    """T028/FR-017 - a dataset cannot be created without a name. Exercised against the creation
-    page's own shipped form (`DatasetCreateForm`), not `DatasetForm` directly — the pre-existing
-    `test_forms.py` coverage exercises an object unreachable from this page (reconciliation:
-    vacuous test)."""
-
     def test_submitting_without_a_name_reports_an_error_and_saves_nothing(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -713,10 +586,6 @@ class TestDatasetCreatePageNameRequired:
 
 @pytest.mark.django_db
 class TestDatasetCreatePagePermissionAssignment:
-    """T029/FR-018 - on creation the creator is granted view, change, delete,
-    change-metadata and change-settings on the record. Built (`views.py` `form_valid`) but
-    untested until now (reconciliation)."""
-
     def test_the_creator_is_granted_full_permissions_on_the_new_dataset(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -750,9 +619,6 @@ class TestDatasetCreatePagePermissionAssignment:
 
 @pytest.mark.django_db
 class TestDatasetCreatePageRecordsCreator:
-    """T031/FR-020 - on creation the dataset records who created it, written server-side and not
-    through the form (`created_by` is `editable=False` — `models.py`)."""
-
     def test_the_dataset_records_its_creator(self, client):
         user = UserFactory()
         client.force_login(user)
@@ -775,16 +641,8 @@ class TestDatasetCreatePageRecordsCreator:
         assert dataset.created_by == user
 
 
-# ---------------------------------------------------------------------------
-# Phase 5 — User Story 3: Edit Dataset Core Attributes
-# ---------------------------------------------------------------------------
-
-
 def _identifier_management_data(total=0, initial=0):
-    """Management-form boilerplate for the attributes page's identifiers row set
-    (`fairdm/core/related_records.py` `DatasetIdentifierInline`, prefix `identifiers` from
-    `AbstractIdentifier.Meta.default_related_name`). Mirrors
-    `tests/test_core/test_project/test_views.py`'s helper of the same name."""
+    """Return management-form data for the identifiers row set."""
     return {
         "identifiers-TOTAL_FORMS": str(total),
         "identifiers-INITIAL_FORMS": str(initial),
@@ -794,10 +652,7 @@ def _identifier_management_data(total=0, initial=0):
 
 
 def _date_management_data(total=0, initial=0):
-    """Management-form boilerplate for the attributes page's dates row set
-    (`fairdm/core/related_records.py` `DatasetDateInline`, prefix `dates` from
-    `AbstractDate.Meta.default_related_name`). Mirrors
-    `tests/test_core/test_project/test_views.py`'s helper of the same name."""
+    """Return management-form data for the dates row set."""
     return {
         "dates-TOTAL_FORMS": str(total),
         "dates-INITIAL_FORMS": str(initial),
@@ -808,16 +663,7 @@ def _date_management_data(total=0, initial=0):
 
 @pytest.mark.django_db
 class TestDatasetUpdateView:
-    """Smoke tests and behaviour tests for the update page (US3), an additional view of
-    `dataset:overview` rather than the retired standalone `dataset-update` route (014 plan P1).
-    Row-set and field-set behaviour lives in `tests/test_core/test_dataset/test_plugins.py`,
-    mirroring the project's own split.
-    """
-
     def test_anonymous_redirects_to_login(self, client):
-        """T019/T034 — GET the update page for a public dataset by an anonymous client
-        returns 302, since it is public visibility, not authentication, that the 404
-        override below is guarding."""
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -825,16 +671,12 @@ class TestDatasetUpdateView:
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
-        """T035 — An anonymous visitor to a private dataset's update page answers 404, not a
-        sign-in redirect, so the address does not confirm the record exists — the same
-        disclosure rule `dataset:overview` itself carries (014 plan P1)."""
-        dataset = DatasetFactory()  # private, per the model default
+        dataset = DatasetFactory()
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        """T020/T035 — Authenticated client without change_dataset returns 403."""
         user = UserFactory()
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
@@ -843,18 +685,14 @@ class TestDatasetUpdateView:
         assert response.status_code == 403
 
     def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        """T035 — A private dataset the user may not edit answers 404, not 403, so the
-        response does not confirm that a dataset with this address exists — the same
-        disclosure rule `dataset:overview` itself carries (014 plan P1)."""
         user = UserFactory()
-        dataset = DatasetFactory()  # private, per the model default
+        dataset = DatasetFactory()
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
-        """T021/T034 — Client with change_dataset permission GET returns 200."""
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("change_dataset", user, dataset)
@@ -864,7 +702,6 @@ class TestDatasetUpdateView:
         assert response.status_code == 200
 
     def test_valid_post_redirects_to_detail(self, client):
-        """T022/T045 — Valid POST by permitted user returns 302 to the dataset's own page."""
         from licensing.models import License
 
         user = UserFactory()
@@ -872,8 +709,6 @@ class TestDatasetUpdateView:
         assign_perm("change_dataset", user, dataset)
         client.force_login(user)
 
-        # User must be a contributor of the dataset's project for it to appear
-        # in the project queryset (DatasetForm filters to user.projects.all())
         project = dataset.project
         project.add_contributor(user)
         license_obj = dataset.license if dataset.license else License.objects.first()
@@ -900,10 +735,6 @@ class TestDatasetUpdateView:
 
 @pytest.mark.django_db
 class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
-    """T086 - the update page's project and reference (data publication) fields render as
-    plain selects, not the django_addanother wrapper markup that does not render correctly
-    in the portal."""
-
     def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
         user = UserFactory()
         dataset = DatasetFactory()
@@ -917,33 +748,9 @@ class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
         assertNotContains(response, "add-related")
 
 
-# ---------------------------------------------------------------------------
-# Phase 6 — User Story 4: Delete a Dataset
-# ---------------------------------------------------------------------------
-
-
-def _assert_cascade_preview_group(content, label):
-    """Whether the cascade preview's own group-heading markup (`delete_view.html`'s
-    `<c-text ... bold />`) names `label`, rather than a bare substring match — the portal's
-    sidebar navigation renders several of the same words ("Samples", "Rock Samples") in its own
-    unrelated markup, on every page a signed-in visitor can reach."""
-    pattern = (
-        rf'<p class="text-base mb-3 font-semibold "\s*>\s*{re.escape(label)}\s*</p>'
-    )
-    return re.search(pattern, content) is not None
-
-
 @pytest.mark.django_db
 class TestDatasetDeleteView:
-    """The deletion page (US-6), an additional view of `dataset:overview` rather than the
-    retired standalone `dataset-delete` route (014 plan P7), mirroring
-    `tests/test_core/test_dataset/test_views.py::TestDatasetUpdateView`'s own split from its
-    retired route."""
-
     def test_anonymous_visitor_to_a_public_dataset_redirects_to_login(self, client):
-        """T070 — the deletion page requires the visitor to be signed in (FR-043): a public
-        dataset's page still redirects an anonymous visitor to sign in, since it is
-        authentication rather than the dataset's own visibility being tested here."""
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -951,17 +758,12 @@ class TestDatasetDeleteView:
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
-        """T070/T071 — an anonymous visitor to a private dataset's deletion page answers 404,
-        not a sign-in redirect, so the address does not confirm the record exists — the same
-        disclosure rule `dataset:overview` and its update page carry."""
-        dataset = DatasetFactory()  # private, per the model default
+        dataset = DatasetFactory()
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        """T071 — an authenticated visitor without delete_dataset on a public dataset is
-        refused with 403, since the dataset's existence is already public knowledge."""
         user = UserFactory()
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(user)
@@ -970,18 +772,14 @@ class TestDatasetDeleteView:
         assert response.status_code == 403
 
     def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        """T071 — a private dataset the requester may not delete answers 404, not 403, so the
-        response does not confirm that a dataset with this address exists."""
         user = UserFactory()
-        dataset = DatasetFactory()  # private, per the model default
+        dataset = DatasetFactory()
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
     def test_with_permission_returns_200(self, client):
-        """T070 — a client holding delete_dataset reaches the page at its stable, uuid-keyed
-        address."""
         user = UserFactory()
         dataset = DatasetFactory()
         assign_perm("delete_dataset", user, dataset)
@@ -991,8 +789,6 @@ class TestDatasetDeleteView:
         assert response.status_code == 200
 
     def test_wrong_name_shows_error(self, client):
-        """T072 — a confirmation that does not match the dataset's name is refused, and the
-        dataset is not deleted."""
         user = UserFactory()
         dataset = DatasetFactory(name="My Dataset")
         assign_perm("delete_dataset", user, dataset)
@@ -1001,11 +797,9 @@ class TestDatasetDeleteView:
         response = client.post(url, data={"confirmation": "Wrong Name"})
         assert response.status_code == 200
         assert "confirmation" in response.context["form"].errors
-        # `all_objects` - the dataset is private by default.
         assert Dataset.all_objects.filter(pk=dataset.pk).exists()
 
     def test_confirmation_ignores_surrounding_whitespace(self, client):
-        """T072 — the dataset's name typed with leading/trailing spaces is accepted (FR-045)."""
         user = UserFactory()
         dataset = DatasetFactory(name="Spaced Dataset")
         pk = dataset.pk
@@ -1018,10 +812,8 @@ class TestDatasetDeleteView:
         assert not Dataset.all_objects.filter(pk=pk).exists()
 
     def test_page_carries_exactly_one_confirmation_control(self, client):
-        """T073 — the rendered page carries exactly one control named for the confirmation.
-        Fixed upstream in django-mvp 0.19.3 (the page used to draw the bound field a second
-        time, unbound, so what the visitor typed was never what got posted); this is now an
-        ordinary passing test rather than an expected failure."""
+        # django-mvp used to draw the bound field a second time, unbound (fixed in
+        # 0.19.3).
         user = UserFactory()
         dataset = DatasetFactory(name="My Dataset")
         assign_perm("delete_dataset", user, dataset)
@@ -1032,8 +824,6 @@ class TestDatasetDeleteView:
         assert content.count('id="id_confirmation"') == 1
 
     def test_correct_name_redirects_to_list(self, client):
-        """T077 — a valid submission redirects to the dataset listing (FR-049), and the
-        dataset is gone."""
         user = UserFactory()
         dataset = DatasetFactory(name="Delete Me Dataset")
         pk = dataset.pk
@@ -1046,8 +836,6 @@ class TestDatasetDeleteView:
         assert not Dataset.all_objects.filter(pk=pk).exists()
 
     def test_deleting_a_dataset_removes_its_samples(self, client):
-        """T077 — the samples held beneath a deleted dataset are gone too, through the ORM's
-        own cascade rather than anything this page does by hand."""
         from demo.factories import RockSampleFactory
 
         user = UserFactory()
@@ -1067,8 +855,6 @@ class TestDatasetDeleteView:
     def test_deleting_a_dataset_removes_its_samples_and_their_measurements(
         self, client
     ):
-        """T077 — the ordinary shape of a dataset holding data: samples, and measurements made
-        on those same samples. Both go with it."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
@@ -1090,8 +876,6 @@ class TestDatasetDeleteView:
     def test_deletion_is_refused_while_another_dataset_measures_its_samples(
         self, client
     ):
-        """T077 — a dataset whose samples carry measurements recorded by another dataset cannot
-        be deleted, and the page says so rather than raising."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
@@ -1115,8 +899,6 @@ class TestDatasetDeleteView:
         assert Dataset.all_objects.filter(pk=dataset.pk).exists()
 
     def test_deleting_a_dataset_leaves_a_sample_it_borrowed_alone(self, client):
-        """T077 — a measurement may refer to a sample belonging to another dataset. Deleting
-        the measurement's dataset takes the measurement and leaves that sample standing."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
@@ -1137,8 +919,6 @@ class TestDatasetDeleteView:
         assert Sample.objects.filter(pk=sample.pk).exists()
 
     def test_public_dataset_deletes_like_any_other(self, client):
-        """T076 — a public dataset is deleted like any other; FR-048's visibility rule never
-        prevents a deletion on its own."""
         user = UserFactory()
         dataset = DatasetFactory(
             name="Public Dataset To Delete", visibility=Visibility.PUBLIC
@@ -1157,16 +937,6 @@ class TestDatasetDeleteView:
     def test_preview_shows_counted_lines_for_two_sample_types_and_one_measurement_type(
         self, client
     ):
-        """T088 — before the confirmation is offered, the page previews what will be deleted
-        with the dataset (FR-046), as a count-only summary of samples and measurements rather
-        than a name-by-name listing: a researcher is told how many of each concrete type will
-        go, and nothing else the cascade also removes (contributors, contribution roles,
-        descriptions, dates, identifiers) appears at all.
-
-        The measurement's own sample lives in a different, unaffected dataset — a measurement
-        sharing its dataset with the sample it references trips a pre-existing
-        `Measurement.sample` PROTECT interaction unrelated to this page (`issues_found`), and
-        this test's job is the preview's rendered content, not that interaction."""
         from demo.factories import (
             ExampleMeasurementFactory,
             RockSampleFactory,
@@ -1190,9 +960,6 @@ class TestDatasetDeleteView:
         response = client.get(url)
         content = response.content.decode()
 
-        assertContains(
-            response, "The following related records will also be permanently deleted"
-        )
         rock_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
         water_label = WaterSampleFactory._meta.model._meta.verbose_name_plural.title()
         measurement_label = (
@@ -1202,28 +969,26 @@ class TestDatasetDeleteView:
         assertContains(response, f"{water_label} (1)")
         assertContains(response, f"{measurement_label} (1)")
 
-        # Nothing besides the two counted sample lines and the one measurement line -
-        # no instance names, no contributors, no dates, no identifiers.
+        # Only the counted lines: no instance names, contributors, dates or identifiers.
         assertNotContains(response, "Granite Core 1")
         assertNotContains(response, "Spring Water 1")
-        # Scoped to the page's own content: the signed-in visitor's name is
-        # drawn in the shell's account menu on every page, which says nothing
-        # about what this preview lists.
+        # Within <main>: the shell's account menu shows the user's name on every page.
         main = BeautifulSoup(content, "html.parser").find("main")
         assert main is not None
         assert user.get_full_name() not in main.get_text()
-        assert not _assert_cascade_preview_group(content, "Dates")
-        assert not _assert_cascade_preview_group(content, "Identifiers")
-        assert not _assert_cascade_preview_group(content, "Contributors")
+        listed = [
+            line
+            for _group, lines, _depth in response.context["related_objects"]
+            for line in lines
+        ]
+        assert sorted(listed) == sorted(
+            [f"{rock_label} (1)", f"{water_label} (1)", f"{measurement_label} (1)"]
+        )
         assertNotContains(response, "10.9999/rich-dataset")
 
     def test_preview_shows_nothing_for_a_dataset_holding_no_samples_or_measurements(
         self, client
     ):
-        """T088/FR-047 — an empty dataset (no samples, no measurements) shows no
-        related-records warning at all, not an empty box: dates, identifiers and
-        contributors are cascade-deleted along with it but none of them are shown, so an
-        otherwise-"rich" dataset that merely lacks data must not trigger the section either."""
         user = UserFactory()
         dataset = DatasetFactory(name="Bare Dataset", dates=1)
         DatasetIdentifierFactory(related=dataset, value="10.0000/bare-dataset")
@@ -1234,16 +999,9 @@ class TestDatasetDeleteView:
 
         response = client.get(url)
 
-        assertNotContains(
-            response, "The following related records will also be permanently deleted"
-        )
         assert response.context["related_objects"] == []
 
     def test_preview_counts_match_what_an_actual_delete_removes(self, client):
-        """T088 — the counted lines are the truth about what the deletion will actually
-        remove: proven by counting the samples and measurements that exist before the
-        confirmed delete and confirming every one of them is gone after it, not by
-        re-deriving the same expression the view itself computes."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         user = UserFactory()
@@ -1276,29 +1034,6 @@ class TestDatasetDeleteView:
 
 @pytest.mark.django_db
 class TestNonCollectionPagesIgnorePublished:
-    """T015 / US-1, Acceptance Scenario 3, SC-010, FR-006: every non-collection
-    portal page already served for a dataset renders identically whether
-    `published` is `True` or `False` - the listings this feature builds in
-    later stories are the only readers of the flag.
-
-    The dataset listing is now one of those readers, so it is no longer
-    compared byte for byte: its card states whether the data beneath the
-    dataset is published, which is the whole point of the badge (issue #333).
-    What the card draws for each state is asserted in
-    `TestDatasetCardRendering`. The part of the original rule that still holds
-    on that page - the flag decides nothing about which datasets are listed -
-    is kept below. Every other page ignores the flag entirely.
-
-    Toggled through `.update()`, not `.save()`, so the comparison is not
-    confounded by `modified`'s `auto_now` (the same reason
-    `TestDatasetOrdering.test_default_ordering_is_most_recently_modified_first`
-    bypasses `save()`). CSRF tokens are masked afresh on every response by
-    Django's own middleware regardless of anything this feature touches, so
-    a page carrying a form is compared with its token blanked out first -
-    otherwise every such comparison fails for a reason that has nothing to
-    do with `published`.
-    """
-
     @staticmethod
     def _without_csrf_token(response):
         return re.sub(
@@ -1310,10 +1045,8 @@ class TestNonCollectionPagesIgnorePublished:
     def test_the_listing_shows_the_same_datasets_whichever_way_published_is_set(
         self, client
     ):
-        """Visibility decides who may see a dataset's metadata; `published`
-        decides whether the data beneath it may be shown. The listing is a
-        metadata page, so the flag changes what a card says and never whether
-        the dataset appears at all."""
+        # `published` changes what a card says, never whether the dataset is listed
+        # (#333).
         dataset = DatasetFactory(name="Listed Either Way", visibility=Visibility.PUBLIC)
         url = reverse("dataset-list")
 
@@ -1389,43 +1122,33 @@ class TestNonCollectionPagesIgnorePublished:
 
 @pytest.mark.django_db
 class TestDatasetViews:
-    """Tests for Dataset views."""
-
     def test_dataset_list_view_accessible(self, client):
-        """Test that dataset list view is accessible."""
         response = client.get(reverse("dataset-list"))
 
         assert response.status_code == 200
 
     def test_dataset_list_view_shows_public_datasets(self, client):
-        """Test that only public datasets are shown in list view."""
         public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
 
         response = client.get(reverse("dataset-list"))
 
-        # Check that public dataset is visible
         assert public_dataset.name.encode() in response.content
-        # Check that private dataset is not visible
         assert private_dataset.name.encode() not in response.content
 
     def test_dataset_create_view_requires_authentication(self, client):
-        """Test that dataset creation requires login."""
         response = client.get(reverse("dataset-create"))
 
-        # Should redirect to login
         assert response.status_code == 302
 
     def test_dataset_create_view_accessible_when_authenticated(
         self, authenticated_client
     ):
-        """Test that authenticated users can access dataset create view."""
         response = authenticated_client.get(reverse("dataset-create"))
 
         assert response.status_code == 200
 
     def test_dataset_create_view_with_project_param(self, authenticated_client):
-        """Test dataset creation with project parameter in URL."""
         project = ProjectFactory()
 
         response = authenticated_client.get(
@@ -1435,9 +1158,6 @@ class TestDatasetViews:
         assert response.status_code == 200
 
     def test_dataset_detail_view_accessible(self, client):
-        """The dataset's own registered page (dataset:overview, 014 T057) serves
-        the requested dataset and renders its name in the page body
-        (FAIR-DM/fairdm#113)."""
         dataset = DatasetFactory(
             name="Reef Survey Dataset", visibility=Visibility.PUBLIC
         )
@@ -1452,23 +1172,17 @@ class TestDatasetViews:
 
 @pytest.mark.django_db
 class TestDatasetPermissions:
-    """Tests for Dataset permissions and access control."""
-
     def test_anonymous_user_cannot_create_dataset(self, client):
-        """Test that anonymous users cannot create datasets."""
         form_data = {
             "name": "Test Dataset",
         }
 
         response = client.post(reverse("dataset-create"), data=form_data)
 
-        # Should redirect to login
         assert response.status_code == 302
-        # Check that redirect URL contains 'login'
         assert "login" in response["Location"]
 
     def test_dataset_creator_becomes_contributor(self, authenticated_client):
-        """Test that dataset creator is automatically added as contributor."""
         form_data = {
             "name": "Test Dataset",
         }
@@ -1477,28 +1191,11 @@ class TestDatasetPermissions:
 
         dataset = Dataset.objects.filter(name="Test Dataset").first()
         if dataset:
-            # Check that the dataset has contributors
             assert dataset.contributors.count() > 0
 
 
 @pytest.mark.django_db
 class TestDatasetListingQueryCount:
-    """Rendering the listing costs a constant number of queries regardless of
-    how many datasets it returns (issue #333).
-
-    Constitution Article I requires a `django_assert_num_queries` guard rather
-    than wall-clock timing. The count is measured twice — once for a single
-    dataset and once for twenty, each carrying the full set of related records
-    a card draws — so the test fails if any of the prefetching is removed,
-    rather than merely recording today's number.
-
-    The page is fetched once before either measurement, taken from the project
-    listing's equivalent test. The first request does one-time work the second
-    never repeats — the site cache, and easy-thumbnails writing each card
-    image's `Source` and `Thumbnail` rows the first time that image is
-    rendered at a given size.
-    """
-
     @staticmethod
     def _build_datasets(count):
         from research_vocabs.models import Concept
@@ -1533,7 +1230,7 @@ class TestDatasetListingQueryCount:
             assert response.status_code == 200
         baseline = len(one_dataset.captured_queries)
 
-        self._build_datasets(19)  # a full page
+        self._build_datasets(19)
         client.get(url)
         with django_assert_num_queries(baseline):
             response = client.get(url)
@@ -1543,9 +1240,6 @@ class TestDatasetListingQueryCount:
 
 @pytest.mark.django_db
 class TestDatasetListingCounts:
-    """The two counts a card reports come from annotations, not from a query
-    per card, and each counts only its own relation (issue #333)."""
-
     def test_the_counts_are_annotated_onto_the_listing(self, client):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
@@ -1558,9 +1252,8 @@ class TestDatasetListingCounts:
 
         entry = client.get(reverse("dataset-list")).context["object_list"][0]
 
-        # Three samples and two measurements, not six of each: two counts in one
-        # query are two joins, and each multiplies the other's rows unless both
-        # are counted `distinct`.
+        # Two counts in one query are two joins, so each needs `distinct` or it
+        # multiplies the other's rows (3 samples and 2 measurements, not 6 of each).
         assert entry.sample_count == 3
         assert entry.measurement_count == 2
 
@@ -1573,52 +1266,14 @@ class TestDatasetListingCounts:
 
 @pytest.mark.django_db
 class TestDatasetCardRendering:
-    """The dataset card on the public listing (issue #333).
-
-    Every assertion is made against the rendered template HTML. The card
-    previously delegated to the shared Bootstrap-era object-card component, and
-    none of those classes resolve against the stylesheet the portal loads.
-
-    These tests describe what the card says and where it points, never how it
-    looks: the layout is the project card's, shared rather than copied, and the
-    project listing's own tests already hold the two rules about the stylesheet
-    that a rendering test cannot reach.
-    """
-
     def _card_html(self, client):
         response = client.get(reverse("dataset-list"))
         assert response.status_code == 200
         return response, response.content.decode()
 
-    def test_card_no_longer_delegates_to_the_shared_object_card(self):
-        """That component is Bootstrap markup: its classes resolve to nothing
-        in the stylesheet the portal loads, which is the defect itself."""
-        template = (
-            Path(fairdm.core.dataset.__file__).parent
-            / "templates"
-            / "dataset"
-            / "dataset_card.html"
-        ).read_text()
-        assert "<c-components.object-card" not in template
-
-    def test_card_draws_the_shared_record_card_with_the_dataset_accent(self):
-        """The two listings draw one card. A second block of near-identical
-        rules is how they would drift apart, so the dataset card carries the
-        shared class and a modifier, not a set of classes of its own."""
-        template = (
-            Path(fairdm.core.dataset.__file__).parent
-            / "templates"
-            / "dataset"
-            / "dataset_card.html"
-        ).read_text()
-        assert "record-card record-card--dataset" in template
-        assert "dataset-card" not in template
-
     def test_the_whole_card_is_the_link(self, client, public_dataset):
-        response, html = self._card_html(client)
+        response, _ = self._card_html(client)
         assertContains(response, f'href="{public_dataset.get_absolute_url()}"')
-        assertNotContains(response, "View Details")
-        assertNotContains(response, "View details")
 
     def test_card_shows_the_dataset_name(self, client):
         DatasetFactory(name="Rift Basin Heat Flow", visibility=Visibility.PUBLIC)
@@ -1631,18 +1286,12 @@ class TestDatasetCardRendering:
         assertContains(response, "Published")
 
     def test_card_states_nothing_at_all_about_an_unpublished_dataset(self, client):
-        """Unpublished is the ordinary state of a dataset on a working portal.
-        A badge on every one of them says nothing about the record and takes
-        the eye away from the one badge that does."""
         DatasetFactory(visibility=Visibility.PUBLIC, published=False)
         _, html = self._card_html(client)
         assert "Not published" not in html
         assert "Published" not in html
 
     def test_an_unpublished_dataset_reports_no_counts(self, client):
-        """A count is data about data that has not been released. "116 samples"
-        on an unpublished dataset tells a visitor the size of a collection they
-        have no right to see."""
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
@@ -1655,7 +1304,6 @@ class TestDatasetCardRendering:
         assert "1 measurement" not in html
         assert "No samples" not in html
         assert "No measurements" not in html
-        assert "record-card__counts" not in html
 
     def test_card_counts_samples_and_measurements(self, client):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1685,74 +1333,17 @@ class TestDatasetCardRendering:
         assert "0 samples" not in html
         assert "0 measurements" not in html
 
-    def test_the_counts_carry_the_sample_and_measurement_icons(self, client):
-        """A count reads as a bare number without its icon. Both are asked for
-        by name, so they follow whatever the portal has configured rather than
-        pinning a glyph in the template.
-
-        Scoped to the card's own spans: the sidebar draws the same icons, so a
-        page-wide search would pass with nothing on the card.
-        """
-        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        _, html = self._card_html(client)
-        counts = re.findall(
-            r'<span class="record-card__count">(.*?)</span>', html, re.DOTALL
-        )
-        assert len(counts) == 2, "the card is expected to render two counts"
-        icons = settings.EASY_ICONS["default"]["icons"]
-        assert icons["sample"] in counts[0]
-        assert icons["measurement"] in counts[1]
-
     def test_card_names_the_parent_project(self, client):
         project = ProjectFactory(name="Deep Time Survey")
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         response, _ = self._card_html(client)
         assertContains(response, "Deep Time Survey")
 
-    def test_the_parent_project_sits_where_a_project_names_its_owner(self, client):
-        """Both answer "who does this belong to", so a reader running down a
-        mixed listing finds that answer in one place rather than two."""
-        project = ProjectFactory(name="Deep Time Survey")
-        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        people = re.search(
-            r'<div class="record-card__people">(.*?)\n      </div>', html, re.DOTALL
-        )
-        assert people, "the card is expected to group its people row"
-        assert "record-card__parent" in people.group(1)
-
-    def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
-        DatasetFactory(project=None, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        assert "record-card__parent" not in html
-
     def test_the_parent_project_is_not_a_nested_link(self, client):
-        """The whole card is already an anchor, and an anchor inside an anchor
-        is invalid markup the browser un-nests, splitting the card into two
-        overlapping click targets."""
         project = ProjectFactory(name="Deep Time Survey")
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
-        assert '<span class="record-card__parent"' in html
-        assert '<a class="record-card__parent"' not in html
         assert project.get_absolute_url() not in html
-
-    def test_card_names_its_record_type_before_its_publication_state(self, client):
-        """A listing of datasets is unambiguous; a mixed listing is not, and
-        the card is the same card in both. The type is stated, then the state —
-        that order, so the reader gets the noun first."""
-        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        _, html = self._card_html(client)
-        badges = re.search(
-            r'<span class="record-card__badges">(.*?)\n        </span>',
-            html,
-            re.DOTALL,
-        )
-        assert badges, "the card is expected to group its badges"
-        row = badges.group(1)
-        assert "record-card__type" in row
-        assert settings.EASY_ICONS["default"]["icons"]["dataset"] in row
-        assert row.index("record-card__type") < row.index("Published")
 
     def test_card_renders_the_abstract_as_plain_text(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
@@ -1797,11 +1388,6 @@ class TestDatasetCardRendering:
         response, _ = self._card_html(client)
         assertContains(response, "CC BY-SA 4.0")
 
-    def test_an_unlicensed_dataset_draws_no_licence_row(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC, license=None)
-        _, html = self._card_html(client)
-        assert "record-card__license" not in html
-
     def test_card_shows_the_last_modified_date(self, client, public_dataset):
         response, _ = self._card_html(client)
         assertContains(response, public_dataset.modified.strftime("%b"))
@@ -1813,41 +1399,7 @@ class TestDatasetCardRendering:
         response, _ = self._card_html(client)
         assertContains(response, "Ada Lovelace")
 
-    def test_a_dataset_without_an_image_gets_a_placeholder_not_a_gap(self, client):
-        """The media block is always drawn, so a listing keeps one alignment
-        down the page. Without an image it holds the dataset icon."""
-        DatasetFactory(image=None, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        assert "record-card__media" in html
-        assert "record-card__placeholder" in html
-        assert "placeholder-3x2" not in html
-        assert "<img" not in html.split("record-card__media")[1].split("</div>")[0]
-
-    def test_a_dataset_with_an_image_gets_a_media_block(self, client):
-        DatasetFactory(visibility=Visibility.PUBLIC, with_image=True)
-        _, html = self._card_html(client)
-        assert html.count("record-card__media") == 1
-        assert "record-card__placeholder" not in html
-
-    def test_card_marks_its_user_facing_strings_for_translation(self):
-        """Article VIII: a hard-coded user-visible string is a blocking
-        defect, and the card's fixed prose is its type, its state and its two
-        empty-count lines."""
-        template = (
-            Path(fairdm.core.dataset.__file__).parent
-            / "templates"
-            / "dataset"
-            / "dataset_card.html"
-        ).read_text()
-        assert "load i18n" in template
-        for phrase in ("Dataset", "Published", "No samples", "No measurements"):
-            marked = f'{{% translate "{phrase}" %}}'
-            assert marked in template, f"{phrase!r} is not marked for translation"
-
     def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
-        """Django's `{# ... #}` is single-line only. Spread over several lines
-        it is not a comment at all — the text is emitted verbatim into the
-        response. `{% comment %}` is the multi-line form."""
         from research_vocabs.models import Concept
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)

@@ -1,4 +1,4 @@
-"""Integration tests for Project admin interface workflows."""
+"""Integration tests for the project admin."""
 
 import json
 
@@ -23,11 +23,7 @@ from fairdm.factories.core import ProjectDateFactory
 
 @pytest.mark.django_db
 class TestAdminSearchByName:
-    """Test admin search functionality by project name."""
-
     def test_search_by_exact_name(self, admin_client):
-        """Test searching for project by exact name match."""
-        # Create test projects
         ProjectFactory(name="Climate Research Study")
         ProjectFactory(name="Ocean Temperature Analysis")
         ProjectFactory(name="Solar Energy Project")
@@ -36,13 +32,11 @@ class TestAdminSearchByName:
         response = admin_client.get(url, {"q": "Climate Research Study"})
 
         assert response.status_code == 200
-        # Project should be in results
         content = response.content.decode()
         assert "Climate Research Study" in content
         assert "Ocean Temperature" not in content or "no results" in content.lower()
 
     def test_search_by_partial_name(self, admin_client):
-        """Test searching for project by partial name match."""
         ProjectFactory(name="Climate Research Study")
 
         url = reverse("admin:project_project_changelist")
@@ -53,7 +47,6 @@ class TestAdminSearchByName:
         assert "Climate Research Study" in content
 
     def test_search_by_uuid(self, admin_client):
-        """Test searching for project by UUID."""
         project1 = ProjectFactory(name="Climate Research Study")
 
         url = reverse("admin:project_project_changelist")
@@ -64,7 +57,6 @@ class TestAdminSearchByName:
         assert project1.name in content
 
     def test_search_by_external_identifier(self, admin_client):
-        """FR-019: an external identifier attached to a project finds it."""
         project = ProjectFactory(name="Climate Research Study")
         ProjectIdentifierFactory(
             related=project, type="DOI", value="10.1234/climate-example"
@@ -78,7 +70,6 @@ class TestAdminSearchByName:
         assert project.name in content
 
     def test_search_by_owning_organisation(self, admin_client):
-        """FR-019: a project's owning organisation name finds it."""
         owner = OrganizationFactory(name="Example Research Institute")
         project = ProjectFactory(name="Climate Research Study", owner=owner)
 
@@ -92,11 +83,7 @@ class TestAdminSearchByName:
 
 @pytest.mark.django_db
 class TestAdminFilterByStatus:
-    """Test admin filtering by project status."""
-
     def test_filter_by_concept_status(self, admin_client):
-        """Test filtering projects by concept status."""
-        # Create projects with different statuses
         ProjectFactory(name="Concept Project", status=0)
         ProjectFactory(name="Active Project", status=1)
         ProjectFactory(name="Completed Project", status=2)
@@ -107,11 +94,9 @@ class TestAdminFilterByStatus:
         assert response.status_code == 200
         content = response.content.decode()
         assert "Concept Project" in content
-        # Other projects should not be in filtered results
         assert "Active Project" not in content or "no results" in content.lower()
 
     def test_filter_by_visibility(self, admin_client):
-        """Test filtering projects by visibility."""
         from fairdm.utils.choices import Visibility
 
         ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
@@ -127,12 +112,10 @@ class TestAdminFilterByStatus:
         assert "Public Project" in content
 
     def test_filter_by_added_date(self, admin_client):
-        """Test filtering projects by date added."""
         concept_project = ProjectFactory(name="Concept Project", status=0)
 
         url = reverse("admin:project_project_changelist")
 
-        # Filter by "today" (projects added today)
         from django.utils import timezone
 
         today = timezone.now().date()
@@ -141,53 +124,41 @@ class TestAdminFilterByStatus:
         )
 
         assert response.status_code == 200
-        # All test projects were created today, should all be present
         content = response.content.decode()
         assert concept_project.name in content
 
 
 @pytest.mark.django_db
 class TestAdminInlineEditing:
-    """Test admin inline editing of project descriptions."""
-
     def test_inline_description_shown_in_change_form(self, admin_client):
-        """Test that description inline is displayed in project change form."""
         project = ProjectFactory(name="Test Project")
         url = reverse("admin:project_project_change", args=[project.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
-        # Look for inline formset elements
-        assert (
-            "projectdescription" in content.lower() or "description" in content.lower()
-        )
+        assert 'name="descriptions-TOTAL_FORMS"' in content
 
     def test_can_add_description_via_inline(self, admin_client):
-        """Test adding a description through inline form."""
         project = ProjectFactory(name="Test Project")
         url = reverse("admin:project_project_change", args=[project.pk])
 
-        # Prepare inline form data
         form_data = {
             "name": project.name,
             "status": project.status,
             "visibility": project.visibility,
-            # Inline formset management form (uses default_related_name from Meta)
             "descriptions-TOTAL_FORMS": "1",
             "descriptions-INITIAL_FORMS": "0",
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
-            # First inline form
             "descriptions-0-related": project.pk,
             "descriptions-0-type": "Abstract",
             "descriptions-0-value": "This is a test description added via inline form.",
-            # Date inline (empty - but management form required)
+            # Empty inline formsets still need their management forms.
             "dates-TOTAL_FORMS": "0",
             "dates-INITIAL_FORMS": "0",
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
-            # Identifier inline (empty - but management form required)
             "identifiers-TOTAL_FORMS": "0",
             "identifiers-INITIAL_FORMS": "0",
             "identifiers-MIN_NUM_FORMS": "0",
@@ -197,36 +168,13 @@ class TestAdminInlineEditing:
 
         response = admin_client.post(url, data=form_data)
 
-        # Debug: Check for form errors
-        if response.status_code == 200:
-            # Form had validation errors - stayed on the same page
-            content = response.content.decode()
-            if "error" in content.lower():
-                print("\n=== FORM ERRORS DETECTED (PROJECT TEST) ===")
-                # Extract error messages for debugging
-                import re
-
-                errors = re.findall(
-                    r'<ul class="errorlist[^>]*">.*?</ul>', content, re.DOTALL
-                )
-                for error in errors:
-                    print(error)
-
-        # Should redirect or show success
         assert response.status_code in [200, 302]
-
-        # Check that description was created
         descriptions = ProjectDescription.objects.filter(related=project)
         assert descriptions.count() > 0, (
             f"Expected descriptions to be created, but found {descriptions.count()}"
         )
 
     def test_can_add_description_date_and_identifier_via_inline(self, admin_client):
-        """FR-020: a description, a date and an identifier added inline all persist.
-
-        Covers acceptance scenario US-6.3 in full - the earlier test only
-        exercises the description inline.
-        """
         project = ProjectFactory(name="Test Project")
         url = reverse("admin:project_project_change", args=[project.pk])
 
@@ -273,17 +221,8 @@ class TestAdminInlineEditing:
 
 @pytest.mark.django_db
 class TestAdminDateInlineOrdering:
-    """FR-010: the date inline refuses a backwards timeline whichever of the
-    two dates is new.
-
-    `ProjectDate.clean()` finds its sibling with a database query and
-    returns early when there is none. A formset validates every form before
-    saving any of them, so on a project with no existing dates, adding a
-    Start and an End in the same admin submission validates both rows
-    against an empty sibling query and both would save unless the formset
-    itself also checks the pair.
-    """
-
+    # `ProjectDate.clean()` looks its sibling up in the database, so two new dates in
+    # one submission never see each other unless the formset checks the pair itself.
     def test_posting_backwards_start_and_end_together_is_refused(self, admin_client):
         project = ProjectFactory(name="Backwards Timeline Project")
         url = reverse("admin:project_project_change", args=[project.pk])
@@ -315,16 +254,12 @@ class TestAdminDateInlineOrdering:
 
         response = admin_client.post(url, data=form_data)
 
-        # A refusal redisplays the form with errors (200), rather than
-        # redirecting after a save (302).
         assert response.status_code == 200
         assert not ProjectDate.objects.filter(related=project).exists()
 
 
 @pytest.mark.django_db
 class TestAdminListDisplayColumns:
-    """Test admin list columns showing abstract and start-date presence (FR-021)."""
-
     def test_columns_reflect_presence_and_absence_of_abstract_and_start_date(
         self, admin_client, rf
     ):
@@ -357,14 +292,6 @@ class TestAdminListDisplayColumns:
 
 @pytest.mark.django_db
 class TestAdminListDisplayColumnsQueryCount:
-    """FR-021: the abstract/start-date columns are annotated on the
-    changelist queryset, not evaluated with a query per row.
-
-    `get_queryset` is called once per changelist page and used to render
-    every row, so its query count must not grow with the number of rows
-    touched.
-    """
-
     def test_flags_are_annotated_without_a_query_per_row(
         self, rf, django_assert_num_queries
     ):
@@ -375,11 +302,13 @@ class TestAdminListDisplayColumnsQueryCount:
 
         for _ in range(5):
             project = ProjectFactory()
-            ProjectDate.objects.create(related=project, type="Start", value="2024-01-01")
+            ProjectDate.objects.create(
+                related=project, type="Start", value="2024-01-01"
+            )
             ProjectDescription.objects.create(
                 related=project, type="Abstract", value="An abstract."
             )
-        ProjectFactory()  # a row with neither, to prove both flags read False
+        ProjectFactory()  # a row with neither, so both flags read False
 
         admin_instance = ProjectAdmin(Project, AdminSite())
         request = rf.get("/")
@@ -393,18 +322,6 @@ class TestAdminListDisplayColumnsQueryCount:
 
 @pytest.mark.django_db
 class TestAdminBulkStatusChange:
-    """Test admin bulk status change operation."""
-
-    def test_bulk_status_change_action_appears_in_ui(self, admin_client):
-        """Test that bulk status change action appears in admin UI."""
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        # Check for action dropdown or bulk action elements
-        assert "action" in content.lower()
-
     @pytest.mark.parametrize(
         ("action", "expected_status"),
         [
@@ -416,15 +333,7 @@ class TestAdminBulkStatusChange:
     def test_bulk_status_change_sets_the_status_its_label_names(
         self, admin_client, action, expected_status
     ):
-        """FR-022/SC-008: every bulk status action leaves the selected projects
-        in the status its label names.
-
-        Rewritten from a test that only asserted a 200 response and never
-        checked any project's status, which is why `make_active` and
-        `make_completed` previously wrote the wrong status without failing.
-        """
-        # Start every project at PLANNING, which differs from all three
-        # target statuses, so a no-op or a wrong-status write is caught.
+        # PLANNING differs from every target status, so a no-op write is caught.
         projects = ProjectFactory.create_batch(3, status=ProjectStatus.PLANNING)
 
         url = reverse("admin:project_project_changelist")
@@ -445,8 +354,6 @@ class TestAdminBulkStatusChange:
 
 @pytest.mark.django_db
 class TestAdminExportActions:
-    """FR-026: export is available over a selection of several projects."""
-
     @pytest.mark.parametrize(
         ("action", "name_of"),
         [
@@ -457,8 +364,6 @@ class TestAdminExportActions:
     def test_export_over_a_selection_carries_every_selected_project(
         self, admin_client, action, name_of
     ):
-        """T046: exporting several projects together produces output carrying
-        all of them."""
         projects = ProjectFactory.create_batch(3, funding=None)
 
         url = reverse("admin:project_project_changelist")
@@ -479,24 +384,16 @@ class TestAdminExportActions:
 
 @pytest.mark.django_db
 class TestAdminExportActionsQueryCount:
-    """FR-023/FR-026: the export actions prefetch the relations they walk,
-    so each is fetched once for the whole selection rather than once per
-    project.
-
-    A contributor's own representation (`Contributor.to_datacite()` /
-    `to_schema_org()`) still costs its own queries per contributor - that
-    lives in the contributors app, outside this fix's scope - so this
-    checks the four relations the fix names directly, by table, rather than
-    asserting an overall count that residual per-contributor queries would
-    also move.
-    """
-
+    # Counted by table: each contributor's own representation still queries per
+    # contributor.
     @staticmethod
     def _build_project_with_full_metadata():
         project = ProjectFactory(
             funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-1"}]
         )
-        ProjectDescriptionFactory(related=project, type="Abstract", value="An abstract.")
+        ProjectDescriptionFactory(
+            related=project, type="Abstract", value="An abstract."
+        )
         ProjectDateFactory(related=project, type="Start", value="2020-01-01")
         ProjectIdentifierFactory(
             related=project, type="DOI", value=f"10.1234/{project.pk}"

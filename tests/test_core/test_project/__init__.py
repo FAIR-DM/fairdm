@@ -1,1 +1,1 @@
-# Integration tests for fairdm.core.project
+"""Tests for the project app."""
