@@ -1,11 +1,9 @@
-"""``check_has_edit_permission`` (T018, FR-019): a rights decision made by asking the
-permission system, not by matching a group's name.
-"""
+"""Tests for check_has_edit_permission."""
 
 import pytest
 from django.test import RequestFactory
 
-from fairdm.contrib.plugins.utils import check_has_edit_permission
+from fairdm.contrib.plugins.utils import check_has_edit_permission, slugify
 from fairdm.factories import DatasetFactory, PersonFactory
 from fairdm.portal_roles import PortalRoles
 
@@ -29,11 +27,9 @@ class TestCheckHasEditPermission:
 
         assert check_has_edit_permission(_request_for(person), person) is True
 
-    def test_belonging_to_a_group_named_data_administrators_grants_nothing_on_its_own(self):
-        """FR-019: the rights decision is made by asking the permission system, not by
-        matching a group's name. A group carrying that literal name but none of the
-        model's permissions must not admit its member - proving the removed branch is
-        gone, independent of any portal role."""
+    def test_belonging_to_a_group_named_data_administrators_grants_nothing_on_its_own(
+        self,
+    ):
         from django.contrib.auth.models import Group
 
         legacy_named_group = Group.objects.create(name="Data Administrators")
@@ -58,3 +54,11 @@ class TestCheckHasEditPermission:
         dataset = DatasetFactory()
 
         assert not check_has_edit_permission(_request_for(person), dataset)
+
+
+class TestSlugify:
+    def test_acronyms_are_not_split_into_letters(self):
+        assert slugify("URLTestPlugin") == "url-test-plugin"
+
+    def test_spaces_and_underscores_become_hyphens(self):
+        assert slugify("My Plugin_Name") == "my-plugin-name"

@@ -1,9 +1,4 @@
-"""
-Shared fixtures for tests/test_conf.
-
-Fixtures used by more than one test module in this package live here so
-each module keeps only the fixtures it alone depends on.
-"""
+"""Shared fixtures for tests/test_conf."""
 
 import importlib.util
 import itertools
@@ -27,13 +22,6 @@ ENV_VAR_PREFIXES = (
 
 @pytest.fixture
 def isolated_env():
-    """Save and restore every fairdm-relevant environment variable around a test.
-
-    Clears variables under ``ENV_VAR_PREFIXES`` before the test body runs and
-    restores the original environment afterwards, so a test sets exactly the
-    variables it needs without leaking them into, or inheriting them from,
-    another test.
-    """
     original_env = os.environ.copy()
     for key in list(os.environ.keys()):
         if key.startswith(ENV_VAR_PREFIXES):
@@ -47,13 +35,6 @@ def isolated_env():
 
 @pytest.fixture
 def settings_module(tmp_path):
-    """Write and execute a portal settings module that calls ``fairdm.setup()``.
-
-    Returns a callable so a test can build more than one resolution. Each
-    call writes ``directory/filename`` (default ``tmp_path/settings.py``)
-    containing ``import fairdm`` followed by ``setup_call``, then ``after``,
-    executes it, and returns the resulting module object.
-    """
     counter = itertools.count()
 
     def _make(
@@ -75,7 +56,6 @@ def settings_module(tmp_path):
 
 @pytest.fixture
 def production_env(tmp_path):
-    """Provide complete production environment variables."""
     env_vars = {
         "DJANGO_ENV": "production",
         "DJANGO_SECRET_KEY": "a" * 60,  # Long enough for production
@@ -95,21 +75,17 @@ def production_env(tmp_path):
         "S3_REGION_NAME": "",
     }
 
-    # Save original env
     original_env = os.environ.copy()
 
-    # Clear Django-related env vars
     for key in list(os.environ.keys()):
         if key.startswith(
             ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
         ):
             del os.environ[key]
 
-    # Set test environment
     os.environ.update(env_vars)
 
     yield env_vars
 
-    # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)

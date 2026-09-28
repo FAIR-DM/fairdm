@@ -1,19 +1,13 @@
-"""
-Tests for ``fairdm/conf/settings/email.py`` — the baseline email
-configuration (FR-002, FR-003).
-"""
+"""Tests for ``fairdm/conf/settings/email.py``."""
 
 import os
 
 
 class TestEmail:
-    """The baseline configures email from the environment, with no
-    environment branching (FR-002, FR-003)."""
-
     def test_email_host_and_backend_come_from_the_environment(
         self, isolated_env, settings_module
     ):
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        os.environ["DJANGO_ENV"] = "qa"
         os.environ["EMAIL_HOST"] = "smtp.example.com"
         os.environ["EMAIL_HOST_USER"] = "portal@example.com"
         os.environ["EMAIL_HOST_PASSWORD"] = "s3cret"
@@ -40,4 +34,4 @@ class TestEmail:
     ):
         os.environ["DJANGO_ENV"] = "qa"
 
-        settings_module()  # must not raise
+        settings_module()

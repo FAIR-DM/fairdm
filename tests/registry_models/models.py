@@ -1,9 +1,4 @@
-"""Concrete Sample and Measurement subclasses for the registry test suite.
-
-These stand in for the types a portal defines itself. They are declared once, in a
-real installed app, because a model under an uninstalled label breaks admin and URL
-resolution for every later test in the session.
-"""
+"""Concrete Sample and Measurement subclasses for the registry test suite."""
 
 from django.db import models
 

@@ -1,12 +1,4 @@
-"""Tests for the shared related-record row-set declarations (T002).
-
-Source: ``fairdm/core/related_records.py``
-
-Exercises the row-set base against two record types - Project and Dataset -
-per plan P6: a component built from one model's own relations proves
-nothing on its own, since it can only fail if a literal name was left
-behind.
-"""
+"""Tests for the shared related-record row-set declarations."""
 
 import pytest
 from django.test import RequestFactory
@@ -44,9 +36,7 @@ ALL_FOUR_INLINE_CASES = [
 
 
 def _row_value(model, index):
-    """A valid, unique-enough ``value`` for a hand-built management form row.
-    Dates take a plain ISO string; identifiers carry a table-wide unique
-    constraint, so each needs its own value."""
+    """A valid, unique-enough ``value`` for a hand-built management form row."""
     if issubclass(model, AbstractDate):
         return "2020-01-01"
     return f"10.{9000 + index}/row-limit-test-{index}"
@@ -66,9 +56,6 @@ def _formset_for(declaration_cls, parent_model, instance, method="GET", data=Non
 
 @pytest.mark.django_db
 class TestRelatedRecordInline:
-    """The shared row-set base carries the two fields every related record
-    has and offers no blank rows, over both Project and Dataset."""
-
     @pytest.mark.parametrize(
         "parent_model, declaration_cls, parent_factory, row_factory, row_type",
         ROW_SET_CASES,
@@ -133,9 +120,6 @@ class TestRelatedRecordInline:
     def test_max_num_matches_the_parents_type_vocabulary(
         self, parent_model, declaration_cls, parent_factory, row_factory
     ):
-        """T087/FR-024-style row cap, moved off the dataset's own admin
-        (`fairdm/core/dataset/admin.py`'s ``IdentifierInline``/``DateInline``)
-        onto the shared base so the project's update page gets it too."""
         instance = parent_factory()
 
         formset = _formset_for(declaration_cls, parent_model, instance)
@@ -149,9 +133,6 @@ class TestRelatedRecordInline:
     def test_a_record_already_at_the_maximum_refuses_one_more_row(
         self, parent_model, declaration_cls, parent_factory, row_factory
     ):
-        """A record already holding one row per available type renders no
-        blank row (``extra = 0``) and cannot be made to accept another by
-        hand-editing the management form's ``TOTAL_FORMS``."""
         instance = parent_factory()
         types = [choice for choice, _label in declaration_cls.model.VOCABULARY.choices]
         for row_type in types:
@@ -181,18 +162,15 @@ class TestRelatedRecordInline:
 
         assert not formset.is_valid()
         assert any(
-            "Please submit at most" in str(error)
-            for error in formset.non_form_errors()
+            error.code == "too_many_forms"
+            for error in formset.non_form_errors().as_data()
         )
 
     def test_building_one_declarations_formset_does_not_mutate_the_shared_fields_tuple(
         self,
     ):
-        """Regression: ``BaseInlineFormSet.__init__`` appends the parent FK's
-        name to ``form._meta.fields`` in place. A list here would be the
-        same object as the class attribute, so building a Project formset
-        would leak a ``related`` field into every other subclass sharing
-        this base - including Dataset's."""
+        # BaseInlineFormSet.__init__ appends the parent FK name to form._meta.fields in
+        # place, so a shared list would leak that field into every sibling subclass.
         project = ProjectFactory()
 
         _formset_for(ProjectDateInline, Project, project)

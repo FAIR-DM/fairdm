@@ -1,15 +1,4 @@
-"""Tests for contributor data models (User Story 1).
-
-Tests cover:
-- The Contributor base: public identifier, profile fields, timestamps,
-  configuration store, field metadata (FS-009 US1 T008-T013)
-- Person claimed/unclaimed semantics (T013)
-- Organization creation and validation (T014)
-- Affiliation unique constraints (T015)
-- Contribution GFK relationships (T016)
-- ContributorIdentifier uniqueness (T017)
-- ClaimingAuditLog immutability and manager filter methods (T046)
-"""
+"""Tests for the contributor models."""
 
 import pytest
 from django.apps import apps
@@ -38,29 +27,22 @@ from fairdm.factories import (
     ProjectFactory,
 )
 
-# ── FS-009 US1 T008: Contributor public identifier ──────────────────────────
-
 
 class TestContributorIdentity:
-    """Verify the contributor public identifier (FR-002, SC-001)."""
-
     @pytest.mark.django_db
     def test_person_identifier_carries_contributor_prefix(self):
-        """A person's identifier is generated on first save with the 'c' prefix."""
         person = PersonFactory()
         assert person.uuid
         assert person.uuid.startswith("c")
 
     @pytest.mark.django_db
     def test_organization_identifier_carries_contributor_prefix(self):
-        """An organization's identifier is generated on first save with the 'c' prefix."""
         organization = OrganizationFactory()
         assert organization.uuid
         assert organization.uuid.startswith("c")
 
     @pytest.mark.django_db
     def test_identifier_unchanged_on_second_save(self):
-        """Saving a contributor a second time leaves its identifier unchanged."""
         person = PersonFactory()
         original_uuid = person.uuid
         person.name = "Changed Name"
@@ -70,7 +52,6 @@ class TestContributorIdentity:
 
     @pytest.mark.django_db
     def test_identifier_unique_across_both_concrete_types(self):
-        """No two contributors, of either concrete type, share an identifier."""
         person = PersonFactory()
         organization = OrganizationFactory()
         assert person.uuid != organization.uuid
@@ -79,28 +60,20 @@ class TestContributorIdentity:
 
     @pytest.mark.django_db
     def test_identifier_uniqueness_enforced_across_types(self):
-        """The database refuses a second contributor carrying a used identifier."""
         person = PersonFactory()
         with pytest.raises(IntegrityError):
             OrganizationFactory(uuid=person.uuid)
 
 
-# ── FS-009 US1 T009: Contributor profile fields ──────────────────────────────
-
-
 class TestContributorProfileFields:
-    """Verify the optional profile fields round-trip and the name is required (FR-003)."""
-
     @pytest.mark.django_db
     def test_preferred_name_is_required(self):
-        """A contributor without a preferred name is refused."""
         organization = OrganizationFactory.build(name="")
         with pytest.raises(ValidationError):
             organization.full_clean()
 
     @pytest.mark.django_db
     def test_optional_profile_fields_round_trip(self):
-        """Other names, description, links, location and language preferences round-trip."""
         from fairdm.factories import PointFactory
 
         location = PointFactory()
@@ -121,7 +94,6 @@ class TestContributorProfileFields:
 
     @pytest.mark.django_db
     def test_optional_profile_fields_default_empty(self):
-        """The optional profile fields are genuinely optional."""
         organization = OrganizationFactory(
             alternative_names=None, links=None, lang=None, location=None
         )
@@ -129,15 +101,9 @@ class TestContributorProfileFields:
         assert organization.location is None
 
 
-# ── FS-009 US1 T011: Contributor timestamps ──────────────────────────────────
-
-
 class TestContributorTimestamps:
-    """Verify the creation and modification timestamps (FR-005)."""
-
     @pytest.mark.django_db
     def test_created_timestamp_set_once(self):
-        """The creation timestamp is set on first save and does not move."""
         person = PersonFactory()
         original_added = person.added
         person.name = "Changed Name"
@@ -147,7 +113,6 @@ class TestContributorTimestamps:
 
     @pytest.mark.django_db
     def test_modified_timestamp_moves_on_later_save(self):
-        """The modification timestamp moves on a later save."""
         person = PersonFactory()
         original_modified = person.modified
         person.name = "Changed Name"
@@ -156,21 +121,14 @@ class TestContributorTimestamps:
         assert person.modified > original_modified
 
 
-# ── FS-009 US1 T012: Contributor configuration store ─────────────────────────
-
-
 class TestContributorConfiguration:
-    """Verify the general-purpose configuration store (FR-006)."""
-
     @pytest.mark.django_db
     def test_config_defaults_empty(self):
-        """A contributor with nothing written to its configuration store has an empty one."""
         person = PersonFactory()
         assert person.config == {}
 
     @pytest.mark.django_db
     def test_config_accepts_and_returns_arbitrary_json(self):
-        """Arbitrary JSON written to the store round-trips unchanged."""
         person = PersonFactory()
         person.config = {"anything": ["the", "specification", "does", "not", "define"]}
         person.save()
@@ -180,24 +138,11 @@ class TestContributorConfiguration:
         }
 
 
-# ── FS-009 US1 T013: Field metadata ──────────────────────────────────────────
-
-
 class TestFieldMetadata:
-    """Every concrete field on every model this app defines is translatable (FR-007, Articles VIII, IX)."""
-
     def _concrete_fields(self, model):
         return [f for f in model._meta.get_fields() if getattr(f, "concrete", False)]
 
     def test_every_field_has_verbose_name_and_help_text(self):
-        """Every concrete field declares a non-empty, translatable verbose_name and help_text.
-
-        Scoped to the models this specification's data model owns (plan.md "Data
-        model"): Contributor, Person, Organization, Affiliation, Contribution and
-        ContributorIdentifier. ClaimingAuditLog lives in this app's models.py but
-        belongs to profile claiming (specs/010-profile-claiming), which this story's
-        brief places out of scope.
-        """
         from django.utils.functional import Promise
 
         models_to_check = [
@@ -208,9 +153,6 @@ class TestFieldMetadata:
             Contribution,
             ContributorIdentifier,
         ]
-        # Fields whose identity *is* their name, and fields owned entirely by a
-        # third-party base class this app does not redeclare (Django's AbstractUser,
-        # django-ordered_model's OrderedModel).
         exempt_fields = {
             "id",
             "polymorphic_ctype",
@@ -222,14 +164,8 @@ class TestFieldMetadata:
             "date_joined",
             "order",
         }
-        # Affiliation.added/modified are inherited from fairdm.db.models.Model, which
-        # imports gettext eagerly rather than lazily (fairdm/db/models.py:14) -- a
-        # pre-existing defect in a shared framework base well outside this app, out
-        # of this story's scope to fix. Contributor declares its own added/modified
-        # directly and is not affected. ContributorIdentifier.type/value are inherited
-        # from fairdm.core.abstract.AbstractIdentifier, shared by every identifier
-        # model in the codebase (dataset, project, sample, measurement); also out of
-        # this app's scope.
+        # Inherited from shared base classes (fairdm.db.models.Model imports gettext
+        # eagerly; AbstractIdentifier is shared by every identifier model).
         exempt_by_model = {
             Affiliation: {"added", "modified"},
             ContributorIdentifier: {"type", "value"},
@@ -251,41 +187,25 @@ class TestFieldMetadata:
         assert not failures, f"Missing or non-lazy verbose_name/help_text: {failures}"
 
 
-# ── T023 (US2): Person is the account ────────────────────────────────────────
-
-
 class TestPersonIsTheAccount:
-    """Verify Person is Django's account model, and the only one (FR-008, SC-003)."""
-
     def test_get_user_model_is_person(self):
-        """django.contrib.auth.get_user_model() resolves to Person, by name."""
         assert get_user_model() is Person
         assert get_user_model().__name__ == "Person"
 
     def test_no_separate_account_model_registered(self):
-        """No other installed model declares a USERNAME_FIELD alongside Person."""
         username_field_models = [
             model for model in apps.get_models() if hasattr(model, "USERNAME_FIELD")
         ]
         assert username_field_models == [Person]
 
     def test_no_required_fields_beyond_the_username_field(self):
-        """REQUIRED_FIELDS is empty: email and password are the whole account-creation
-        contract, since a person may exist with neither a name resolved yet."""
         assert Person.REQUIRED_FIELDS == []
 
     def test_username_field_is_removed_not_shadowed(self):
-        """AbstractUser's username field is removed outright (Django's documented
-        `username = None` pattern), not shadowed by an unrelated callable."""
         assert Person.username is None
 
 
-# ── T024 (US2): Attribution-only person cannot authenticate ─────────────────
-
-
 class TestAttributionOnlyPerson:
-    """Verify a person added for attribution alone cannot authenticate (FR-010, SC-003)."""
-
     @pytest.mark.django_db
     def test_attribution_only_person_has_no_usable_password(self, unclaimed_person):
         assert unclaimed_person.email is None
@@ -293,30 +213,21 @@ class TestAttributionOnlyPerson:
 
     @pytest.mark.django_db
     def test_authenticate_fails_for_attribution_only_person(self, unclaimed_person):
-        """Even a lookup that matches the attribution-only record's NULL email fails
-        the password check, because create_unclaimed() sets an unusable password."""
-        result = authenticate(request=None, email=unclaimed_person.email, password="whatever")
+        result = authenticate(
+            request=None, email=unclaimed_person.email, password="whatever"
+        )
         assert result is None
 
 
-# ── T025 (US2): Attribution-only person stays reachable ─────────────────────
-
-
 class TestPersonActivationEligibility:
-    """Verify an attribution-only person remains reachable by a later invitation
-    or password reset (FR-011, SC-003)."""
-
     @pytest.mark.django_db
     def test_attribution_only_person_is_active(self, unclaimed_person):
-        """create_unclaimed() leaves is_active True so the ghost can later be invited."""
         assert unclaimed_person.is_active is True
 
     @pytest.mark.django_db
     def test_invited_attribution_only_person_is_found_by_password_reset(
         self, unclaimed_person
     ):
-        """Once given an email, the person's active state makes them eligible for
-        Django's password reset flow, which silently excludes inactive accounts."""
         unclaimed_person.email = "invited@example.com"
         unclaimed_person.set_password("some-temporary-password")
         unclaimed_person.save()
@@ -327,13 +238,7 @@ class TestPersonActivationEligibility:
         assert unclaimed_person in found
 
 
-# ── T026 (US2): Person email uniqueness ──────────────────────────────────────
-
-
 class TestPersonEmailUniqueness:
-    """Verify a second person cannot take an address already in use, while any
-    number of people may carry no address at all (FR-009, SC-005)."""
-
     @pytest.mark.django_db
     def test_duplicate_email_refused_at_validation(self):
         PersonFactory(email="duplicate@example.com")
@@ -362,8 +267,6 @@ class TestPersonEmailUniqueness:
 
     @pytest.mark.django_db
     def test_duplicate_email_refused_case_insensitively(self):
-        """A case-insensitive collision is refused at full_clean() too - the
-        constraint, not clean()'s own lowercasing, is what catches it (T031)."""
         PersonFactory(email="Case@Example.com")
         second = PersonFactory.build(email="case@example.com")
 
@@ -372,8 +275,6 @@ class TestPersonEmailUniqueness:
 
     @pytest.mark.django_db
     def test_duplicate_email_refused_case_insensitively_via_manager(self):
-        """Created directly through the manager, which never calls clean() and so
-        never lowercases - only the database-level constraint can catch this."""
         Person.objects.create_user(email="Manager@Example.com", password="pw")
 
         with pytest.raises(IntegrityError):
@@ -382,82 +283,63 @@ class TestPersonEmailUniqueness:
             )
 
 
-# ── T013: Person claimed/unclaimed semantics ────────────────────────────────
-
-
 class TestPersonClaimedUnclaimedSemantics:
-    """Verify claimed vs unclaimed Person behavior."""
-
     @pytest.mark.django_db
     def test_claimed_person_has_email_and_is_active(self, person):
-        """A claimed person has email, is_active, and is_claimed property returns True."""
         assert person.email is not None
         assert person.is_active is True
         assert person.is_claimed is True
 
     @pytest.mark.django_db
     def test_unclaimed_person_has_no_email(self, unclaimed_person):
-        """An unclaimed person has no email, is_active=True (allows claiming), is_claimed=False."""
         assert unclaimed_person.email is None
-        assert unclaimed_person.is_active is True  # Allows future claiming
+        assert unclaimed_person.is_active is True
         assert unclaimed_person.is_claimed is False
 
     @pytest.mark.django_db
     def test_create_unclaimed_via_manager(self, db):
-        """UserManager.create_unclaimed() creates a provenance-only record."""
         p = Person.objects.create_unclaimed(
             first_name="Test",
             last_name="Unclaimed",
         )
         assert p.pk is not None
         assert p.email is None
-        assert p.is_active is True  # Allows future claiming
+        assert p.is_active is True
         assert p.is_claimed is False
         assert not p.has_usable_password()
         assert p.name == "Test Unclaimed"
 
     @pytest.mark.django_db
     def test_person_auto_populates_name_from_first_last(self, db):
-        """Person.save() auto-populates name from first_name + last_name."""
         p = PersonFactory(first_name="Jane", last_name="Smith", name="")
         assert p.name == "Jane Smith"
 
     @pytest.mark.django_db
     def test_person_is_claimed_requires_usable_password(self, db):
-        """A person with email and is_active but no usable password is not claimed."""
         p = Person.objects.create_unclaimed(first_name="No", last_name="Password")
         p.email = "test@example.com"
         p.is_active = True
         p.save()
-        # Still not claimed because no usable password
         assert p.is_claimed is False
 
     @pytest.mark.django_db
     def test_person_clean_lowercases_email(self, db):
-        """Person.clean() lowercases the email."""
         p = PersonFactory(email="UPPER@Example.com")
         p.clean()
         assert p.email == "upper@example.com"
 
     @pytest.mark.django_db
     def test_person_polymorphic_query(self, db):
-        """Person instances are retrievable via Contributor polymorphic queryset."""
         p = PersonFactory()
         result = Contributor.objects.filter(pk=p.pk).first()
         assert isinstance(result, Person)
 
     @pytest.mark.django_db
     def test_backward_compatible_alias(self):
-        """OrganizationMember alias points to Affiliation."""
         assert OrganizationMember is Affiliation
 
 
-# ── T037 (US3): account state derivation ─────────────────────────────────────
-
-
 class TestAccountState:
-    """Person.account_state reports exactly one of the four D8 states (FR-013, SC-004)."""
-
     @pytest.mark.django_db
     @pytest.mark.parametrize(
         "member_name,expected_state",
@@ -476,7 +358,6 @@ class TestAccountState:
 
     @pytest.mark.django_db
     def test_no_person_reports_two_states(self, contributor_population):
-        """The four states are mutually exclusive - one person, one state."""
         pop = contributor_population
         states = {
             pop.ghost.account_state,
@@ -492,15 +373,9 @@ class TestAccountState:
         }
 
 
-# ── T038 (US3): account state precedence ─────────────────────────────────────
-
-
 class TestAccountStatePrecedence:
-    """Deactivation outranks every other signal (D8, FR-013, SC-004)."""
-
     @pytest.mark.django_db
     def test_deactivated_and_claimed_reports_inactive(self, db):
-        """A deactivated person who has also claimed their account is inactive."""
         person = PersonFactory(
             email="deactivated-claimed@example.com", is_active=False, is_claimed=True
         )
@@ -508,51 +383,31 @@ class TestAccountStatePrecedence:
 
     @pytest.mark.django_db
     def test_deactivated_without_email_still_reports_inactive(self, db):
-        """Deactivation wins even for a person who would otherwise be a ghost."""
         person = PersonFactory(email=None, is_active=False, is_claimed=False)
         assert person.account_state == AccountState.INACTIVE
 
 
-# ── T039 (US3): the claim flag is the only stored expression ────────────────
-
-
 class TestClaimIsStoredOnce:
-    """`is_claimed` is the only stored claim signal; `account_state` has no
-    database column of its own (D8, FR-012, FR-013).
-    """
-
     def test_is_claimed_is_a_concrete_database_field(self):
-        """The stored claim flag is a real column on Person."""
         field = Person._meta.get_field("is_claimed")
         from django.db import models as django_models
 
         assert isinstance(field, django_models.BooleanField)
 
     def test_account_state_has_no_database_column(self):
-        """`account_state` never appears among Person's concrete fields."""
         field_names = {f.name for f in Person._meta.get_fields()}
         assert "account_state" not in field_names
 
     def test_account_state_is_a_plain_property_not_stored_state(self):
-        """`account_state` is computed on read, not held in an attribute set at save time."""
         assert isinstance(Person.__dict__["account_state"], property)
-# ── T027 (US2): Claimed person email removal ─────────────────────────────────
-#
-# Replaces test_person_clean_prevents_claimed_email_null (design review RECON-001,
-# decisions.md D21): that test set has_usable_password() and is_active True together
-# with is_claimed True, so it passed whichever of the two the refusal actually read.
-# The second test below is the differentiator - it fails against the old
-# password/active check and only passes once clean() reads is_claimed (T032).
 
 
 class TestClaimedPersonEmailRemoval:
-    """Verify email removal is refused by the stored claim value, not by password or
-    active state (FR-015, SC-005, design review RECON-001)."""
-
     @pytest.mark.django_db
     def test_claimed_person_cannot_remove_email(self):
-        """A person who has claimed their account cannot null their email address."""
-        person = PersonFactory(email="claimed@example.com", is_active=True, is_claimed=True)
+        person = PersonFactory(
+            email="claimed@example.com", is_active=True, is_claimed=True
+        )
         person.set_password("testpass123")
         person.save()
 
@@ -564,8 +419,6 @@ class TestClaimedPersonEmailRemoval:
 
     @pytest.mark.django_db
     def test_unclaimed_person_with_usable_password_may_remove_email(self):
-        """A ghost given a password by some other route is not, on that account
-        alone, claimed - clearing the email is not refused."""
         person = PersonFactory(
             email="ghost-with-password@example.com", is_active=True, is_claimed=False
         )
@@ -573,59 +426,45 @@ class TestClaimedPersonEmailRemoval:
         person.save()
 
         person.email = None
-        person.full_clean()  # must not raise
+        person.full_clean()
 
         assert person.email is None
 
 
-# ── T014: Organization creation and validation ──────────────────────────────
-
-
 class TestOrganizationCreationAndValidation:
-    """Verify Organization model behavior."""
-
     @pytest.mark.django_db
     def test_create_organization(self, organization):
-        """Organizations can be created with a name."""
         assert organization.pk is not None
         assert organization.name == "Test University"
 
     @pytest.mark.django_db
     def test_organization_is_polymorphic_contributor(self, organization):
-        """Organization is retrievable via Contributor queryset."""
         result = Contributor.objects.filter(pk=organization.pk).first()
         assert isinstance(result, Organization)
 
     @pytest.mark.django_db
     def test_organization_manage_permission_derived(self, db):
-        """manage_organization permission is derived from OWNER affiliation (not in Meta)."""
-        # Verify permission is NOT in Meta (derived via backend instead)
         perms = [p[0] for p in Organization._meta.permissions]
         assert "manage_organization" not in perms
 
-        # Verify derived permission works via OrganizationPermissionBackend
         from fairdm.contrib.contributors.models import Affiliation
         from fairdm.factories import PersonFactory
 
         org = OrganizationFactory(name="Test Org")
         person = PersonFactory(email="owner@example.com")
 
-        # No permission without OWNER affiliation
         assert not person.has_perm("manage_organization", org)
 
-        # Create OWNER affiliation
         Affiliation.objects.create(
             person=person,
             organization=org,
             type=Affiliation.MembershipType.OWNER,
         )
 
-        # Permission derived from OWNER affiliation
         assert person.has_perm("manage_organization", org)
 
     @pytest.mark.django_db
     def test_organization_parent_child(self, db):
-        """Organizations support parent/child hierarchy."""
         parent = OrganizationFactory(name="Parent Org")
         child = OrganizationFactory(name="Child Org", parent=parent)
         assert child.parent == parent
@@ -633,7 +472,6 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_owner(self, person, organization):
-        """Organization.owner() returns the person with OWNER membership."""
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -645,8 +483,6 @@ class TestOrganizationCreationAndValidation:
     def test_organization_owner_is_none_when_the_only_owner_affiliation_has_ended(
         self, person, organization
     ):
-        """Organization.owner() returns None once the OWNER affiliation has an
-        end_date, even though the row's type still reads OWNER (Defect A)."""
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -657,7 +493,6 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_get_location_display(self, db):
-        """get_location_display returns city, country string."""
         org = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
         display = org.get_location_display()
         assert "Potsdam" in display
@@ -665,26 +500,18 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_default_identifier_is_ror(self):
-        """Organization.DEFAULT_IDENTIFIER is 'ROR'."""
         assert Organization.DEFAULT_IDENTIFIER == "ROR"
 
 
-# ── FS-009 US4 T048/T053: Organisation type field and validation ────────────
-
-
 class TestOrganizationTypeValidation:
-    """Verify Organization.type only accepts ROR schema 2.1 values (FR-016, SC-006)."""
-
     @pytest.mark.django_db
     def test_type_outside_the_ror_set_is_refused(self, organization):
-        """A type outside ROR's set is refused by full_clean()."""
         organization.type = "museum"
         with pytest.raises(ValidationError):
             organization.full_clean()
 
     @pytest.mark.django_db
     def test_every_ror_type_is_accepted(self):
-        """Each member of the ROR set is accepted, asserted by name."""
         for value in (
             OrganizationType.EDUCATION,
             OrganizationType.FUNDER,
@@ -701,20 +528,12 @@ class TestOrganizationTypeValidation:
             assert organization.type == value
 
     def test_type_field_is_indexed(self):
-        """The type field is indexed, since listing and filtering by institution
-        kind is its purpose (Article IX)."""
         assert Organization._meta.get_field("type").db_index is True
 
 
-# ── FS-009 US4 T050/T054: Organisation parent deletion ───────────────────────
-
-
 class TestOrganizationParentDeletion:
-    """Verify deleting a parent organisation does not delete its children (FR-018, SC-007)."""
-
     @pytest.mark.django_db
     def test_deleting_the_parent_leaves_the_child_with_no_parent(self, person):
-        """A department outlives its university, its members and credits untouched."""
         university = OrganizationFactory(name="Test University")
         department = OrganizationFactory(name="Test Department", parent=university)
         AffiliationFactory(
@@ -734,15 +553,9 @@ class TestOrganizationParentDeletion:
         assert contribution.contributor_id == department.pk
 
 
-# ── FS-009 US4 T051/T055: Organisation location fields ───────────────────────
-
-
 class TestOrganizationLocation:
-    """Verify Organization city/country fields are optional and round-trip (FR-019)."""
-
     @pytest.mark.django_db
     def test_city_and_country_are_optional(self):
-        """An organisation with neither city nor country passes validation."""
         organization = OrganizationFactory(name="Unspecified Institute")
         organization.full_clean()
         assert not organization.city
@@ -750,7 +563,6 @@ class TestOrganizationLocation:
 
     @pytest.mark.django_db
     def test_city_and_country_round_trip(self):
-        """City and country survive a save and a reload from the database."""
         organization = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
 
         organization.refresh_from_db()
@@ -759,22 +571,15 @@ class TestOrganizationLocation:
         assert organization.country == "DE"
 
     def test_city_and_country_are_indexed(self):
-        """City and country are indexed, since both are listing filters (Article IX)."""
         assert Organization._meta.get_field("city").db_index is True
         assert Organization._meta.get_field("country").db_index is True
 
 
-# ── T081/T085: Ownership transfer ────────────────────────────────────────────
-
-
 class TestOwnershipTransfer:
-    """Verify Organization.transfer_ownership() (FR-029, SC-009)."""
-
     @pytest.mark.django_db
     def test_transfer_demotes_incumbent_and_promotes_successor(
         self, organization, owner_affiliation
     ):
-        """Transfer leaves the incumbent an administrator and the successor the owner."""
         incumbent = owner_affiliation.person
         successor = AffiliationFactory(
             person=PersonFactory(
@@ -796,7 +601,6 @@ class TestOwnershipTransfer:
     def test_transfer_refuses_a_person_who_is_not_a_member(
         self, organization, owner_affiliation
     ):
-        """Transfer to someone with no affiliation is refused, and nothing changes."""
         stranger = PersonFactory(email="stranger@example.com")
 
         with pytest.raises(ValidationError):
@@ -808,7 +612,6 @@ class TestOwnershipTransfer:
 
     @pytest.mark.django_db
     def test_transfer_is_atomic(self, organization, owner_affiliation, monkeypatch):
-        """A failure mid-transfer leaves neither the demotion nor the promotion applied."""
         successor = AffiliationFactory(
             person=PersonFactory(
                 email="atomic-successor@example.com", is_active=True, is_claimed=True
@@ -837,8 +640,6 @@ class TestOwnershipTransfer:
     def test_transfer_leaves_an_already_ended_owner_affiliation_untouched(
         self, organization, person
     ):
-        """A transfer only demotes *current* owners; a past OWNER affiliation is
-        history and its type is left exactly as it is (Defect A)."""
         ended_owner_affiliation = AffiliationFactory(
             person=person,
             organization=organization,
@@ -862,17 +663,9 @@ class TestOwnershipTransfer:
         assert organization.owner() == successor
 
 
-# ── Defect C: transfer refuses a target who cannot be meant ─────────────────
-
-
 class TestTransferOwnershipRefusesInvalidTargets:
-    """Organization.transfer_ownership() refuses a target it cannot mean as the
-    new owner: the new owner must hold a current affiliation of type MEMBER or
-    higher, and must be an active, claimed person (Defect C)."""
-
     @pytest.mark.django_db
     def test_refuses_a_pending_affiliate(self, organization, owner_affiliation):
-        """A self-declared, unverified affiliate cannot become owner."""
         pending_person = PersonFactory(
             email="pending-affiliate@example.com", is_active=True, is_claimed=True
         )
@@ -891,7 +684,6 @@ class TestTransferOwnershipRefusesInvalidTargets:
 
     @pytest.mark.django_db
     def test_refuses_an_ended_affiliation(self, organization, owner_affiliation):
-        """A membership that has already ended cannot become owner."""
         ended_member = PersonFactory(
             email="ended-member@example.com", is_active=True, is_claimed=True
         )
@@ -911,7 +703,6 @@ class TestTransferOwnershipRefusesInvalidTargets:
 
     @pytest.mark.django_db
     def test_refuses_an_unclaimed_person(self, organization, owner_affiliation):
-        """Nobody controls an unclaimed profile; it cannot become owner."""
         unclaimed_member = PersonFactory(
             email="unclaimed-member@example.com", is_active=True, is_claimed=False
         )
@@ -930,7 +721,6 @@ class TestTransferOwnershipRefusesInvalidTargets:
 
     @pytest.mark.django_db
     def test_refuses_a_deactivated_person(self, organization, owner_affiliation):
-        """A deactivated account cannot become owner."""
         deactivated_member = PersonFactory(
             email="deactivated-member@example.com", is_active=False, is_claimed=True
         )
@@ -948,37 +738,24 @@ class TestTransferOwnershipRefusesInvalidTargets:
         assert owner_affiliation.type == Affiliation.MembershipType.OWNER
 
 
-# ── T015: Affiliation unique constraints ─────────────────────────────────────
-
-
 class TestAffiliationSchema:
-    """FR-020, FR-025, Article IX: the membership type is a real query path for
-    ownership lookups and is indexed; reverse access from person/organization
-    has a deliberate default related name."""
-
     def test_membership_type_is_indexed(self):
-        """Affiliation.type is indexed because ownership lookups filter on it."""
         field = Affiliation._meta.get_field("type")
         assert field.db_index is True
 
     def test_default_related_name_is_affiliations(self):
-        """Affiliation.Meta declares a default related name."""
         assert Affiliation._meta.default_related_name == "affiliations"
 
 
 class TestAffiliationUniqueConstraints:
-    """Verify Affiliation model constraints and behavior."""
-
     @pytest.mark.django_db
     def test_affiliation_unique_person_organization(self, person, organization):
-        """Cannot create two affiliations for same person+organization pair."""
         AffiliationFactory(person=person, organization=organization)
         with pytest.raises(IntegrityError):
             AffiliationFactory(person=person, organization=organization)
 
     @pytest.mark.django_db
     def test_affiliation_type_choices(self):
-        """MembershipType has four levels."""
         types = Affiliation.MembershipType
         assert types.PENDING == 0
         assert types.MEMBER == 1
@@ -987,7 +764,6 @@ class TestAffiliationUniqueConstraints:
 
     @pytest.mark.django_db
     def test_affiliation_start_end_dates(self, affiliation):
-        """Affiliation supports start_date and end_date."""
         affiliation.start_date = "2020"
         affiliation.end_date = "2024-06"
         affiliation.save()
@@ -997,7 +773,6 @@ class TestAffiliationUniqueConstraints:
 
     @pytest.mark.django_db
     def test_only_one_primary_per_person(self, person):
-        """Setting is_primary=True on one affiliation clears it on others for same person."""
         org1 = OrganizationFactory(name="Org A")
         org2 = OrganizationFactory(name="Org B")
         a1 = AffiliationFactory(person=person, organization=org1, is_primary=True)
@@ -1008,7 +783,6 @@ class TestAffiliationUniqueConstraints:
 
     @pytest.mark.django_db
     def test_affiliation_sync_ownership_permission(self, person, organization):
-        """When type changes to OWNER, manage_organization permission is assigned."""
         aff = AffiliationFactory(
             person=person,
             organization=organization,
@@ -1020,38 +794,26 @@ class TestAffiliationUniqueConstraints:
 
     @pytest.mark.django_db
     def test_affiliation_remove_ownership_permission(self, person, organization):
-        """When type changes from OWNER, manage_organization permission is removed."""
         aff = AffiliationFactory(
             person=person,
             organization=organization,
             type=Affiliation.MembershipType.OWNER,
         )
-        # Simulate: set type to MEMBER (downgrade)
         aff.type = Affiliation.MembershipType.MEMBER
         aff.save()
         assert not person.has_perm("contributors.manage_organization", organization)
 
     @pytest.mark.django_db
     def test_string_representation(self, affiliation):
-        """__str__ returns 'Person - Organization'."""
         result = str(affiliation)
         assert " - " in result
 
 
-# ── T061: Affiliation uniqueness is refused with a readable message ─────────
-
-
 class TestAffiliationUniqueness:
-    """FR-021, SC-008: a second membership of the same organisation by the same
-    person is refused, at validation with a readable message and at the
-    database by constraint."""
-
     @pytest.mark.django_db
     def test_duplicate_membership_refused_at_validation_with_readable_message(
         self, person, organization
     ):
-        """A second membership fails full_clean() with a readable message, not
-        only a database error."""
         AffiliationFactory(person=person, organization=organization)
         duplicate = Affiliation(person=person, organization=organization)
 
@@ -1062,31 +824,22 @@ class TestAffiliationUniqueness:
 
     @pytest.mark.django_db
     def test_duplicate_membership_refused_at_database(self, person, organization):
-        """A second membership that bypasses validation is still refused by the
-        database constraint."""
         AffiliationFactory(person=person, organization=organization)
 
         with pytest.raises(IntegrityError):
             Affiliation.objects.create(person=person, organization=organization)
 
 
-# ── T016: Contribution GFK relationships ─────────────────────────────────────
-
-
 class TestContributionGFKRelationships:
-    """Verify Contribution model with GenericForeignKey."""
-
     @pytest.mark.django_db
     def test_contribution_links_person_to_project(
         self, contribution, person, project_for_contributions
     ):
-        """Contribution correctly links a contributor to a project."""
         assert contribution.contributor == person
         assert contribution.content_object == project_for_contributions
 
     @pytest.mark.django_db
     def test_contribution_unique_per_entity_contributor(self, person):
-        """Cannot duplicate a contribution for the same contributor+entity."""
         project = ProjectFactory()
         ContributionFactory(contributor=person, content_object=project)
         with pytest.raises(IntegrityError):
@@ -1094,7 +847,6 @@ class TestContributionGFKRelationships:
 
     @pytest.mark.django_db
     def test_contribution_add_to_classmethod(self, person):
-        """Contributor.add_to() creates a contribution."""
         project = ProjectFactory()
         contribution = person.add_to(project)
         assert contribution is not None
@@ -1102,7 +854,6 @@ class TestContributionGFKRelationships:
 
     @pytest.mark.django_db
     def test_contribution_default_affiliation(self, person, organization):
-        """Contribution.set_default_affiliation hook sets primary org affiliation."""
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -1116,12 +867,10 @@ class TestContributionGFKRelationships:
     def test_contribution_has_contribution_to(
         self, person, contribution, project_for_contributions
     ):
-        """Contributor.has_contribution_to() returns True for contributed entities."""
         assert person.has_contribution_to(project_for_contributions) is True
 
     @pytest.mark.django_db
     def test_contribution_projects_property(self, person, contribution):
-        """Person.projects returns projects they contribute to."""
         projects = person.projects
         assert projects.count() >= 1
 
@@ -1129,27 +878,17 @@ class TestContributionGFKRelationships:
     def test_contribution_manager_for_entity(
         self, contribution, project_for_contributions
     ):
-        """ContributionManager.for_entity() filters by entity."""
         qs = Contribution.objects.for_entity(project_for_contributions)
         assert qs.count() >= 1
         assert contribution in qs
 
     @pytest.mark.django_db
     def test_contribution_manager_by_contributor(self, person, contribution):
-        """ContributionManager.by_contributor() filters by contributor."""
         qs = Contribution.objects.by_contributor(person)
         assert qs.count() >= 1
 
 
-# ── T088: Contribution targets ───────────────────────────────────────────────
-
-
 class TestContributionTargets:
-    """FR-030: a contributor of either kind is creditable on a project, a dataset, a sample
-    or a measurement through the one generic Contribution entry. The sample case is already
-    covered at tests/test_core/test_sample/test_models.py::TestSampleContributions and is
-    cited rather than rewritten here (design review RECON-004)."""
-
     @pytest.mark.django_db
     def test_person_creditable_on_a_project(self, person, project_for_contributions):
         contribution = person.add_to(project_for_contributions)
@@ -1184,19 +923,14 @@ class TestContributionTargets:
         assert contribution.contributor == organization
 
 
-# ── T089: Contribution uniqueness and role accumulation ─────────────────────
-
-
 class TestContributionUniqueness:
-    """FR-031, SC-010: exactly one credit per contributor per object. A second entry for the
-    same pairing is refused, and a further role accumulates on the existing entry rather than
-    replacing it - a person who both collected and analysed appears once, carrying both roles."""
-
     @pytest.mark.django_db
     def test_second_contribution_for_the_same_pairing_is_refused(
         self, person, project_for_contributions
     ):
-        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        ContributionFactory(
+            contributor=person, content_object=project_for_contributions
+        )
         with pytest.raises(IntegrityError):
             ContributionFactory(
                 contributor=person, content_object=project_for_contributions
@@ -1206,18 +940,9 @@ class TestContributionUniqueness:
     def test_duplicate_pairing_raises_a_validation_error_with_a_clear_message(
         self, person, project_for_contributions
     ):
-        """FR-031, Article IX: the named UniqueConstraint carries a message, and clean()
-        raises with the same wording, so a form validating before save is refused exactly
-        the way a raw insert would be.
-
-        The uniqueness checks are switched off so that only clean()'s own check can
-        raise. With them on, Django's constraint validation produces the identical
-        message from the constraint itself, and the assertion passes whether or not
-        clean() does anything at all - which is the shape a generic inline formset
-        needs clean() for, since it validates its forms before the parent object
-        supplies the content type.
-        """
-        ContributionFactory(contributor=person, content_object=project_for_contributions)
+        ContributionFactory(
+            contributor=person, content_object=project_for_contributions
+        )
         duplicate = Contribution(
             contributor=person,
             content_type=ContentType.objects.get_for_model(project_for_contributions),
@@ -1230,8 +955,6 @@ class TestContributionUniqueness:
     def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
         self, person, project_for_contributions
     ):
-        """design review SPEC-001: Contributor.add_to used roles.set(), which replaced the
-        first role rather than accumulating a second one."""
         person.add_to(project_for_contributions, roles=["DataCollector"])
         contribution = person.add_to(project_for_contributions, roles=["Researcher"])
 
@@ -1248,8 +971,6 @@ class TestContributionUniqueness:
     def test_crediting_again_under_a_new_role_accumulates_via_contribution_add_to(
         self, person, project_for_contributions
     ):
-        """design review SPEC-001: Contribution.add_to used roles.set(), which replaced the
-        first role rather than accumulating a second one."""
         Contribution.add_to(person, project_for_contributions, roles=["DataCollector"])
         contribution = Contribution.add_to(
             person, project_for_contributions, roles=["Researcher"]
@@ -1265,13 +986,7 @@ class TestContributionUniqueness:
         assert role_names == {"DataCollector", "Researcher"}
 
 
-# ── T090: Contribution roles vocabulary ──────────────────────────────────────
-
-
 class TestContributionRoles:
-    """FR-032: a credit's roles are drawn from the framework's controlled roles vocabulary
-    (fairdm-roles); a concept from another vocabulary is refused."""
-
     @pytest.mark.django_db
     def test_role_from_the_roles_vocabulary_is_accepted(self, contribution):
         from research_vocabs.models import Concept
@@ -1287,19 +1002,12 @@ class TestContributionRoles:
     def test_role_from_outside_the_roles_vocabulary_is_refused(
         self, contribution, off_vocabulary_role
     ):
-        """The relation itself refuses the write - no ``full_clean()`` call is needed
-        to catch it, and none is made here.
-
-        ``roles.add()`` raises from inside its own ``transaction.atomic(savepoint=False)``
-        block, so the call is wrapped in a savepoint-holding block of its own here -
-        exactly as any caller inside a broader transaction (a view under
-        ``ATOMIC_REQUESTS``, for one) already needs to, and as Django's own docs
-        describe for handling an exception raised inside ``atomic()`` without aborting
-        the enclosing transaction.
-        """
         from django.db import transaction
 
-        with transaction.atomic(), pytest.raises(ValidationError, match="roles vocabulary"):
+        with (
+            transaction.atomic(),
+            pytest.raises(ValidationError, match="roles vocabulary"),
+        ):
             contribution.roles.add(off_vocabulary_role)
 
         assert off_vocabulary_role not in contribution.roles.all()
@@ -1309,9 +1017,6 @@ class TestContributionRoles:
     def test_contribution_roles_fixture_has_real_concepts_to_attach(
         self, contribution, contribution_roles
     ):
-        """T005: the ``contribution_roles`` fixture (conftest.py) is a real,
-        non-empty queryset of the framework's controlled roles vocabulary -
-        exactly the concepts a credit test attaches to a contribution."""
         assert contribution_roles.count() > 1
 
         role = contribution_roles.get(name="Creator")
@@ -1322,23 +1027,14 @@ class TestContributionRoles:
         assert role in contribution.roles.all()
 
 
-# ── T092/T100: Credited-outputs reporting ────────────────────────────────────
-
-
 class TestContributorCredits:
-    """FR-034, SC-011: a contributor credited across all four kinds of research output
-    reports each of them and reports counts by kind, each resolved in a bounded number of
-    queries."""
-
     @pytest.mark.django_db
     def test_reports_each_kind_of_credited_output(self, person):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
         from fairdm.utils.choices import Visibility
 
         project = ProjectFactory()
-        # Dataset.objects (the manager Contributor.datasets reads) excludes PRIVATE
-        # datasets, DatasetFactory's own default - make this one visible so the property
-        # under test can find it.
+        # Dataset.objects excludes PRIVATE datasets, the factory default.
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         sample = RockSampleFactory()
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
@@ -1382,14 +1078,7 @@ class TestContributorCredits:
             person.get_credit_counts()
 
 
-# ── T093/T101: Co-contributor reporting ──────────────────────────────────────
-
-
 class TestCoContributors:
-    """FR-035, SC-011: the contributors credited alongside a given contributor come back
-    most frequent first - and only contributors who actually share a credited object, not
-    anyone who merely shares a content type or an object id with a different one of it."""
-
     @pytest.mark.django_db
     def test_orders_co_contributors_most_frequent_first(self, person):
         frequent = PersonFactory()
@@ -1425,12 +1114,6 @@ class TestCoContributors:
     def test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive(
         self, person
     ):
-        """The naive implementation filtered on
-        ``contributions__content_type_id__in=[...]`` and
-        ``contributions__object_id__in=[...]`` as two separate calls, so a contributor
-        whose *own* credits happened to reuse one of person's content types on one object
-        and one of person's object ids on a *different* object read as a co-contributor,
-        despite sharing no object with person at all."""
         project = ProjectFactory()
         dataset = DatasetFactory()
         person.add_to(project)
@@ -1455,44 +1138,27 @@ class TestCoContributors:
         assert false_positive not in co_contributors
 
 
-# ── T017: ContributorIdentifier uniqueness ───────────────────────────────────
-
-
 class TestContributorIdentifierUniqueness:
-    """Verify ContributorIdentifier model behavior."""
-
     @pytest.mark.django_db
     def test_create_orcid_identifier(self, orcid_identifier, person):
-        """ORCID identifier is created and linked to person."""
         assert orcid_identifier.pk is not None
         assert orcid_identifier.related == person
 
     @pytest.mark.django_db
     def test_create_ror_identifier(self, ror_identifier, organization):
-        """ROR identifier is created and linked to organization."""
         assert ror_identifier.pk is not None
         assert ror_identifier.related == organization
 
     @pytest.mark.django_db
     def test_person_default_identifier_is_orcid(self):
-        """Person.DEFAULT_IDENTIFIER is 'ORCID'."""
         assert Person.DEFAULT_IDENTIFIER == "ORCID"
 
 
-# ── T109: A contributor cannot carry two identifiers of the same type ───────
-
-
 class TestIdentifierUniquePerType:
-    """A second identifier of a type the contributor already carries is refused, both
-    at validation and at the database (FR-038, SC-013)."""
-
     @pytest.mark.django_db
     def test_second_identifier_of_same_type_refused_at_the_database(
         self, orcid_identifier, person
     ):
-        """Bypassing clean() entirely - inserted straight through the manager - the
-        database constraint still refuses a second identifier of a type the
-        contributor already carries."""
         with pytest.raises(IntegrityError):
             ContributorIdentifier.objects.create(
                 related=person, type="ORCID", value="0000-0001-9999-9999"
@@ -1502,7 +1168,6 @@ class TestIdentifierUniquePerType:
     def test_second_identifier_of_same_type_refused_at_clean(
         self, orcid_identifier, person
     ):
-        """clean() refuses it too, and the message names the type."""
         duplicate = ContributorIdentifier(
             related=person, type="ORCID", value="0000-0001-9999-9999"
         )
@@ -1516,8 +1181,6 @@ class TestIdentifierUniquePerType:
     def test_a_second_type_on_the_same_contributor_is_unaffected(
         self, orcid_identifier, person
     ):
-        """The constraint is per type, not per contributor - a person may carry an
-        ORCID and a different identifier type at once."""
         second = ContributorIdentifier(
             related=person, type="RESEARCHER_ID", value="A-1234-2020"
         )
@@ -1528,22 +1191,7 @@ class TestIdentifierUniquePerType:
         assert person.identifiers.count() == 2
 
 
-# ── An identifier value already claims one record; a second contributor cannot
-# ── carry the same value (finding 3, save_user's adopted-vs-duplicate decision).
-
-
 class TestIdentifierValueUniqueAcrossContributors:
-    """``AbstractIdentifier.value`` (fairdm/core/abstract.py) is unique both at the
-    database and in ``clean()`` - which checks every ``AbstractIdentifier`` subclass,
-    not only ``ContributorIdentifier``'s own table - so a second, different Person
-    cannot end up carrying an identifier already attached to someone else, whichever
-    write path is used. This is what makes skipping the write in
-    ``SocialAccountAdapter.save_user`` (adapters.py) sufficient on its own: the admin's
-    ``IdentifierInline`` (a plain ``ModelForm``) already refuses the same collision as
-    an ordinary field error through Django's own ``Model.validate_unique()``, so no
-    change to ``clean()`` itself was needed for that surface.
-    """
-
     @pytest.mark.django_db
     def test_second_contributor_with_the_same_value_refused_at_the_database(
         self, orcid_identifier, organization
@@ -1568,10 +1216,6 @@ class TestIdentifierValueUniqueAcrossContributors:
     def test_the_identifier_inline_form_refuses_it_as_an_ordinary_field_error(
         self, orcid_identifier, organization
     ):
-        """The admin's ``IdentifierInline`` declares ``fields = ["type", "value"]``
-        with no custom form - Django's default ``ModelForm`` - so this is the exact
-        validation a submission through that inline goes through: a duplicate value
-        comes back as ``form.errors``, not as an uncaught ``IntegrityError``."""
         from django import forms
 
         form_class = forms.modelform_factory(
@@ -1586,13 +1230,7 @@ class TestIdentifierValueUniqueAcrossContributors:
         assert "value" in form.errors
 
 
-# ── T110: A contributor reports its default identifier ──────────────────────
-
-
 class TestDefaultIdentifier:
-    """A contributor reports the identifier of the type expected for its kind as its
-    default, and reports nothing when it carries none (FR-039, SC-013)."""
-
     @pytest.mark.django_db
     def test_person_default_identifier_is_its_orcid(self, orcid_identifier, person):
         assert person.get_default_identifier() == orcid_identifier
@@ -1609,11 +1247,6 @@ class TestDefaultIdentifier:
 
 
 class TestContributorIdentifierVocabulary:
-    """005 F1/F2 - ContributorIdentifier is bound to a scoped collection (the union of the
-    Person and Organization collections), not the unscoped FairDMIdentifiers vocabulary, so a
-    member added for another record type - IGSN for samples - cannot be offered to a person or
-    an organisation."""
-
     def test_available_types_are_the_union_of_person_and_organization_types(self):
         assert set(ContributorIdentifier.VOCABULARY.values) == {
             "ORCID",
@@ -1630,15 +1263,9 @@ class TestContributorIdentifierVocabulary:
         )
 
 
-# ── T027a: Person name internationalization ────────────────────────────────
-
-
 class TestPersonNameInternationalization:
-    """Test Person name handling with non-Latin scripts (FR-020 compliance)."""
-
     @pytest.mark.django_db
     def test_person_name_chinese_script(self, db):
-        """Person model handles Chinese characters correctly."""
         person = PersonFactory(
             first_name="王",
             last_name="明",
@@ -1650,7 +1277,6 @@ class TestPersonNameInternationalization:
 
     @pytest.mark.django_db
     def test_person_name_arabic_script(self, db):
-        """Person model handles Arabic characters correctly."""
         person = PersonFactory(
             first_name="محمد",
             last_name="أحمد",
@@ -1662,7 +1288,6 @@ class TestPersonNameInternationalization:
 
     @pytest.mark.django_db
     def test_person_name_cyrillic_script(self, db):
-        """Person model handles Cyrillic characters correctly."""
         person = PersonFactory(
             first_name="Иван",
             last_name="Петров",
@@ -1674,43 +1299,28 @@ class TestPersonNameInternationalization:
 
     @pytest.mark.django_db
     def test_person_name_mixed_scripts(self, db):
-        """Person model handles mixed script names."""
         person = PersonFactory(
             first_name="José",
             last_name="García-López",
             name="",
         )
         assert person.name == "José García-López"
-        # Verify no mojibake or encoding issues
         assert "�" not in person.name
 
     @pytest.mark.django_db
     def test_person_name_emoji_and_special_chars(self, db):
-        """Person model handles emoji and special Unicode characters."""
         person = PersonFactory(
             first_name="Test",
             last_name="O'Brien-Smith",
             name="",
         )
         assert person.name == "Test O'Brien-Smith"
-        assert "'" in person.last_name  # Curly apostrophe preserved
-
-
-# ── T072: Multiple roles per contribution ──────────────────────────────────
+        assert "'" in person.last_name
 
 
 class TestMultipleRolesPerContribution:
-    """Test that a contribution can have multiple roles assigned."""
-
     @pytest.mark.django_db
     def test_contribution_multiple_roles(self, db):
-        """A contribution can have multiple roles from the FairDM roles vocabulary.
-
-        The vocabulary is guaranteed seeded for every test by the session-scoped
-        ``django_db_setup`` fixture (``tests/conftest.py``), which calls
-        ``Concept.preload()`` once per session - so this no longer defends against an
-        unseeded vocabulary by skipping. A test that may silently skip is not coverage.
-        """
         from research_vocabs.models import Concept
 
         project = ProjectFactory()
@@ -1731,15 +1341,9 @@ class TestMultipleRolesPerContribution:
         assert editor_role in contribution.roles.all()
 
 
-# ── T073: Affiliation time bounds ──────────────────────────────────────────
-
-
 class TestAffiliationTimeBounds:
-    """Test affiliation time-bound functionality with PartialDateField."""
-
     @pytest.mark.django_db
     def test_affiliation_active_no_end_date(self, db):
-        """Affiliation with end_date=None is considered active."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1749,13 +1353,11 @@ class TestAffiliationTimeBounds:
             end_date=None,
         )
 
-        # Active affiliations have no end_date
         assert affiliation.end_date is None
         assert org.affiliations.filter(end_date__isnull=True).exists()
 
     @pytest.mark.django_db
     def test_affiliation_historical_has_end_date(self, db):
-        """Affiliation with end_date IS NOT NULL is historical."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1770,12 +1372,10 @@ class TestAffiliationTimeBounds:
 
     @pytest.mark.django_db
     def test_multiple_affiliations_timeline(self, db):
-        """Person can have multiple affiliations with different time periods."""
         person = PersonFactory()
         org1 = OrganizationFactory(name="University A")
         org2 = OrganizationFactory(name="Institute B")
 
-        # Past affiliation
         past_aff = AffiliationFactory(
             person=person,
             organization=org1,
@@ -1783,7 +1383,6 @@ class TestAffiliationTimeBounds:
             end_date="2015",
         )
 
-        # Current affiliation
         current_aff = AffiliationFactory(
             person=person,
             organization=org2,
@@ -1796,15 +1395,9 @@ class TestAffiliationTimeBounds:
         assert person.affiliations.filter(end_date__isnull=False).count() == 1
 
 
-# ── T074: Partial date precision ───────────────────────────────────────────
-
-
 class TestPartialDatePrecision:
-    """Test PartialDateField supports year, year-month, and full date precision."""
-
     @pytest.mark.django_db
     def test_affiliation_year_only_precision(self, db):
-        """PartialDateField accepts year-only precision."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1818,7 +1411,6 @@ class TestPartialDatePrecision:
 
     @pytest.mark.django_db
     def test_affiliation_year_month_precision(self, db):
-        """PartialDateField accepts year-month precision."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1833,7 +1425,6 @@ class TestPartialDatePrecision:
 
     @pytest.mark.django_db
     def test_affiliation_full_date_precision(self, db):
-        """PartialDateField accepts full date precision."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1847,15 +1438,9 @@ class TestPartialDatePrecision:
         assert affiliation.end_date == "2023-12-31"
 
 
-# ── T075: Primary affiliation constraint ───────────────────────────────────
-
-
 class TestPrimaryAffiliationConstraint:
-    """Test that only one affiliation per person can be primary."""
-
     @pytest.mark.django_db
     def test_single_primary_affiliation(self, db):
-        """Person can have one primary affiliation."""
         person = PersonFactory()
         org = OrganizationFactory()
         affiliation = AffiliationFactory(
@@ -1869,12 +1454,10 @@ class TestPrimaryAffiliationConstraint:
 
     @pytest.mark.django_db
     def test_setting_new_primary_unsetsolds(self, db):
-        """Setting a new primary affiliation unsets the old one."""
         person = PersonFactory()
         org1 = OrganizationFactory(name="Org 1")
         org2 = OrganizationFactory(name="Org 2")
 
-        # Create first primary affiliation
         aff1 = AffiliationFactory(
             person=person,
             organization=org1,
@@ -1882,14 +1465,12 @@ class TestPrimaryAffiliationConstraint:
         )
         assert aff1.is_primary is True
 
-        # Create second primary affiliation - should unset first
         aff2 = AffiliationFactory(
             person=person,
             organization=org2,
             is_primary=True,
         )
 
-        # Refresh from DB
         aff1.refresh_from_db()
 
         assert aff2.is_primary is True
@@ -1898,7 +1479,6 @@ class TestPrimaryAffiliationConstraint:
 
     @pytest.mark.django_db
     def test_multiple_non_primary_affiliations_allowed(self, db):
-        """Person can have multiple non-primary affiliations."""
         person = PersonFactory()
         org1 = OrganizationFactory(name="Org 1")
         org2 = OrganizationFactory(name="Org 2")
@@ -1912,17 +1492,9 @@ class TestPrimaryAffiliationConstraint:
         assert person.affiliations.filter(is_primary=True).count() == 0
 
 
-# ── T070: primary-membership demotion is atomic ──────────────────────────────
-
-
 class TestPrimaryAffiliationDemotionIsAtomic:
-    """FR-024: promoting a new primary and demoting the old one happen together
-    or not at all."""
-
     @pytest.mark.django_db
     def test_demotion_and_save_roll_back_together_on_failure(self, person, monkeypatch):
-        """If the save that promotes the new primary fails, the demotion of the
-        old primary is rolled back too, not left half-applied."""
         import django.db.models as django_db_models
 
         org1 = OrganizationFactory(name="Org 1")
@@ -1943,20 +1515,9 @@ class TestPrimaryAffiliationDemotionIsAtomic:
         assert first.is_primary is True
 
 
-# ── T071: database-level primary-membership constraint ──────────────────────
-
-
 class TestPrimaryAffiliationDatabaseConstraint:
-    """FR-024, Article IX: a partial UniqueConstraint protects the
-    primary-membership invariant so a concurrent write cannot slip past the
-    save-time demotion."""
-
     @pytest.mark.django_db
-    def test_database_refuses_two_primary_memberships_written_directly(
-        self, person
-    ):
-        """Marking two memberships primary directly at the database - bypassing
-        Affiliation.save() - is refused by the constraint."""
+    def test_database_refuses_two_primary_memberships_written_directly(self, person):
         org1 = OrganizationFactory(name="Org 1")
         org2 = OrganizationFactory(name="Org 2")
         first = AffiliationFactory(person=person, organization=org1, is_primary=False)
@@ -1968,12 +1529,7 @@ class TestPrimaryAffiliationDatabaseConstraint:
             Affiliation.objects.filter(pk=second.pk).update(is_primary=True)
 
 
-# ── T046: ClaimingAuditLog immutability and manager ─────────────────────────
-
-
 class TestClaimingAuditLogImmutability:
-    """Verify that ClaimingAuditLog records cannot be modified after creation."""
-
     def test_create_succeeds(self, db, person_a, person_b):
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
 
@@ -1986,14 +1542,12 @@ class TestClaimingAuditLogImmutability:
         assert entry.pk is not None
 
     def test_update_raises_value_error(self, db, audit_log_entry):
-        """Calling save() on an existing record should raise ValueError."""
 
         audit_log_entry.failure_reason = "tampered"
         with pytest.raises(ValueError, match="immutable"):
             audit_log_entry.save()
 
     def test_record_not_modified_on_failed_save(self, db, audit_log_entry):
-        """DB record should be unchanged after a rejected save()."""
         from fairdm.contrib.contributors.models import ClaimingAuditLog
 
         original_reason = audit_log_entry.failure_reason
@@ -2007,8 +1561,6 @@ class TestClaimingAuditLogImmutability:
 
 
 class TestClaimingAuditLogManager:
-    """Tests for ClaimingAuditLogManager filter methods."""
-
     def test_for_person_returns_related_entries(self, db, person_a, person_b):
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
 
@@ -2086,16 +1638,8 @@ class TestClaimingAuditLogManager:
         assert not orcid_qs.filter(pk=email_entry.pk).exists()
 
 
-
 @pytest.mark.django_db
 class TestContributorLinkValidation:
-    """`links` holds URLs to a contributor's other online presences, and both kinds of
-    contributor refuse a value that is not one.
-
-    The message names the offending value, so a person correcting a list of several
-    links can tell which one was rejected.
-    """
-
     def test_person_refuses_a_link_that_is_not_a_url(self, person):
         person.links = ["https://example.org", "not a url"]
 

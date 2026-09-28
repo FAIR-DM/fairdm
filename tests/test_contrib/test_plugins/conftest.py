@@ -1,6 +1,4 @@
-"""
-Pytest fixtures for plugin system tests.
-"""
+"""Fixtures for the plugin tests."""
 
 import contextlib
 
@@ -16,7 +14,6 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    """Create a test user."""
     from fairdm.factories.contributors import UserFactory
 
     return UserFactory(email="test@example.com")
@@ -24,7 +21,6 @@ def user(db):
 
 @pytest.fixture
 def project(db):
-    """Create a test project."""
     return Project.objects.create(
         name="Test Project",
         visibility=Project.VISIBILITY.PUBLIC,
@@ -34,23 +30,16 @@ def project(db):
 
 @pytest.fixture
 def dataset(db, project):
-    """Create a test dataset."""
     return Dataset.objects.create(name="Test Dataset", project=project)
 
 
 @pytest.fixture
 def sample(db, dataset):
-    """Create a test sample.
-
-    ``Sample`` itself cannot be created directly (005-core-samples T030) - a registered
-    specimen type stands in for it here, same as everywhere else in the suite.
-    """
     return RockSampleFactory(dataset=dataset, local_id="TEST-001")
 
 
 @pytest.fixture
 def admin_user(db):
-    """Create an admin user."""
     from fairdm.factories.contributors import UserFactory
 
     return UserFactory(email="admin@example.com", is_staff=True, is_superuser=True)
@@ -58,7 +47,6 @@ def admin_user(db):
 
 @pytest.fixture
 def anonymous_user():
-    """A visitor who has not signed in."""
     from django.contrib.auth.models import AnonymousUser
 
     return AnonymousUser()
@@ -66,7 +54,6 @@ def anonymous_user():
 
 @pytest.fixture
 def plain_user(db):
-    """Signed in, holding no permissions at all."""
     from fairdm.factories.contributors import UserFactory
 
     return UserFactory(email="plain@example.com")
@@ -74,7 +61,6 @@ def plain_user(db):
 
 @pytest.fixture
 def model_perm_user(db):
-    """Holds a permission globally, with no object-level grant."""
     from guardian.shortcuts import assign_perm
 
     from fairdm.factories.contributors import UserFactory
@@ -86,16 +72,6 @@ def model_perm_user(db):
 
 @pytest.fixture
 def object_perm_user(db, sample):
-    """Holds a permission on one record only.
-
-    The inverse case matters as much as the ordinary one: ``ModelBackend`` contributes nothing once
-    an object is passed, so a decision written as a single object-level call refuses this user.
-
-    ``sample`` is a concrete specimen type (``RockSample``), and ``change_sample`` is declared on
-    the polymorphic base ``Sample`` - guardian's own ``assign_perm`` resolves the object's content
-    type directly and cannot store the row there (005-core-samples R2/D-019), so this goes through
-    the framework's normalising wrapper instead of ``guardian.shortcuts.assign_perm``.
-    """
     from fairdm.core.utils import assign_perm
     from fairdm.factories.contributors import UserFactory
 
@@ -106,7 +82,6 @@ def object_perm_user(db, sample):
 
 @pytest.fixture
 def as_user(rf):
-    """Build a request carrying a given user."""
 
     def build(user, path="/"):
         request = rf.get(path)
@@ -118,17 +93,11 @@ def as_user(rf):
 
 @pytest.fixture(autouse=True)
 def isolate_registry():
-    """Snapshot the registry and restore it after every test in this package.
-
-    Tests here register throwaway plugins against the real records, and many of them use the same
-    class name. Registration now refuses a duplicate name on one record type, which is the point —
-    but it means a test that leaks its registration breaks the next one. Snapshot and restore is
-    cheaper and more faithful than clearing and re-importing every plugin module, which is what the
-    older fixture did.
-    """
     from fairdm import plugins
 
-    saved = {model: list(entries) for model, entries in plugins.registry._registry.items()}
+    saved = {
+        model: list(entries) for model, entries in plugins.registry._registry.items()
+    }
     yield
     plugins.registry._registry.clear()
     plugins.registry._registry.update(saved)
@@ -136,50 +105,33 @@ def isolate_registry():
 
 @pytest.fixture
 def clear_registry():
-    """Clear plugin registry between tests to prevent pollution.
-
-    Use this fixture explicitly in tests that register plugins dynamically
-    to ensure a clean state. Don't use autouse=True as it will break tests
-    that expect real plugins to be registered (like test_project_edit_plugin.py).
-
-    After clearing, this fixture re-imports all plugin modules to restore
-    the registry state for subsequent tests.
-    """
     import sys
     from importlib import import_module, reload
 
     from fairdm import plugins
 
-    # Clear the registry before the test
     plugins.registry._registry.clear()
     yield
-    # Clear again after test
     plugins.registry._registry.clear()
 
-    # Re-import plugin modules to restore registry state
-    # Get all plugin modules that were previously imported
     plugin_modules = [name for name in sys.modules if name.endswith(".plugins")]
 
-    # Reload each plugin module to re-execute @register decorators
     for module_name in plugin_modules:
         if module_name in sys.modules:
             try:
                 reload(sys.modules[module_name])
             except Exception:
-                # If reload fails, try reimporting (skip if both fail)
                 with contextlib.suppress(Exception):
                     import_module(module_name)
 
 
 @pytest.fixture
 def authenticated_client(client, user):
-    """Return a client with an authenticated user."""
     client.force_login(user)
     return client
 
 
 @pytest.fixture
 def admin_client(client, admin_user):
-    """Return a client with an authenticated admin user."""
     client.force_login(admin_user)
     return client

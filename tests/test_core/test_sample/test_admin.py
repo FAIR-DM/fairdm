@@ -1,15 +1,4 @@
-"""Integration tests for Sample admin interface.
-
-Tests for User Story 2: Enhanced Admin Interface
-
-This module tests the Django admin interface for Sample models including:
-- Search functionality (name, local_id, uuid)
-- Filtering (dataset, status, location)
-- Inline metadata editing (descriptions, dates, identifiers, relationships)
-- Polymorphic type handling
-
-Based on tasks T031-T033 from Feature 007.
-"""
+"""Integration tests for Sample admin interface."""
 
 import pytest
 from django.contrib import admin
@@ -43,7 +32,6 @@ User = get_user_model()
 
 @pytest.fixture
 def admin_user(db):
-    """Create a superuser for admin access."""
     user = User.objects.create_superuser(
         email="admin@example.com",
         first_name="Admin",
@@ -55,29 +43,21 @@ def admin_user(db):
 
 @pytest.fixture
 def sample_admin():
-    """Create a SampleAdmin instance."""
     return SampleChildAdmin(Sample, AdminSite())
 
 
 @pytest.fixture
 def request_factory():
-    """Create a RequestFactory instance."""
     return RequestFactory()
 
 
 def _result_pks(response):
-    """The primary keys the changelist actually matched - read off the `ChangeList`
-    Django's admin builds, which is the result set itself, not the rendered markup.
-    """
+    """The primary keys the changelist actually matched - read off the `ChangeList`."""
     return {obj.pk for obj in response.context["cl"].result_list}
 
 
 @pytest.mark.django_db
 class TestSampleAdminSearch:
-    """T081/FR-039: each supported search term finds a matching specimen, asserted
-    through the registered polymorphic parent's changelist rather than by calling
-    `get_search_results()` against the model manager."""
-
     def test_search_by_name(self, admin_client):
         match = RockSampleFactory(name="Granite Sample")
         other = RockSampleFactory(name="Basalt Sample")
@@ -126,9 +106,6 @@ class TestSampleAdminSearch:
 
 @pytest.mark.django_db
 class TestSampleAdminFilters:
-    """T082/FR-039: each supported filter removes the specimens that do not match,
-    asserted through the changelist's actual result set."""
-
     def test_filter_by_dataset(self, admin_client):
         dataset1 = DatasetFactory(name="Dataset A")
         dataset2 = DatasetFactory(name="Dataset B")
@@ -166,11 +143,9 @@ class TestSampleAdminFilters:
         match = RockSampleFactory(dataset=dataset1)
         match.status = "available"
         match.save()
-        # Same dataset, different status - excluded by the status half of the filter.
         same_dataset = RockSampleFactory(dataset=dataset1)
         same_dataset.status = "stored"
         same_dataset.save()
-        # Same status, different dataset - excluded by the dataset half of the filter.
         RockSampleFactory(dataset=dataset2)
 
         url = reverse("admin:sample_sample_changelist")
@@ -187,11 +162,6 @@ class TestSampleAdminFilters:
 
 @pytest.mark.django_db
 class TestSampleDatasetListFilterOrdering:
-    """F9 - `field_choices` calls `order_by(*ordering)`, and an empty `ordering` tuple - what
-    `field_admin_ordering` returns when nothing declares admin-level ordering, the case here -
-    *clears* `Dataset.Meta.ordering` (`order_by()` with no arguments is not a no-op) rather than
-    leaving the model's own default ordering in place."""
-
     def test_falls_back_to_the_datasets_own_default_ordering(self):
         from fairdm.core.sample.admin import SampleDatasetListFilter
 
@@ -215,20 +185,6 @@ class TestSampleDatasetListFilterOrdering:
 
 @pytest.mark.django_db
 class TestSampleAdminInlines:
-    """T083/T089/FR-039: a description, a date, an identifier, a contribution and a
-    provenance link can each be added from the specimen's own page - a real form
-    submission through the *registered* admin, not `Model.objects.create()` and not
-    `SampleChildAdmin` instantiated by hand.
-
-    The dataset a specimen belongs to defaults to PRIVATE (D-019 in the dataset
-    story), and `SampleChildAdmin`'s `dataset` field only offers the choices
-    `Dataset`'s privacy-first default manager returns - the same restriction
-    `DatasetAdmin.get_queryset()` works around for the dataset changelist itself, not
-    fixed here since it is outside this story's named scope (see the completion
-    report's `concerns`). Every fixture below uses a PUBLIC dataset so the base
-    change form saves.
-    """
-
     @staticmethod
     def _base_form_data(sample):
         return {
@@ -328,9 +284,7 @@ class TestSampleAdminInlines:
             related=sample, type="DOI", value="10.1234/inline-test"
         ).exists()
 
-    def test_contribution_can_be_added_from_the_specimens_own_page(
-        self, admin_client
-    ):
+    def test_contribution_can_be_added_from_the_specimens_own_page(self, admin_client):
         from research_vocabs.models import Concept
 
         from fairdm.contrib.contributors.models import Contribution
@@ -389,16 +343,9 @@ class TestSampleAdminInlines:
         assert SampleRelation.objects.filter(source=child, target=parent).exists()
 
     def test_the_admin_registered_for_sample_is_the_polymorphic_parent(self):
-        """T089: the entry `admin.site` actually holds for `Sample` is the
-        polymorphic parent admin - it carries no inlines of its own; editing (and
-        therefore the inlines) is delegated entirely to the registered specimen
-        type's own admin, asserted next."""
         assert isinstance(admin.site._registry[Sample], SampleParentAdmin)
 
     def test_a_registered_specimen_types_admin_carries_the_inlines(self):
-        """T089: the admin actually registered for a concrete specimen type -
-        `admin.site._registry[RockSample]` - carries the inlines, not only the
-        `SampleChildAdmin` class it inherits from."""
         registered_admin = admin.site._registry[RockSample]
 
         inline_names = {inline.__name__ for inline in registered_admin.inlines}
@@ -414,16 +361,9 @@ class TestSampleAdminInlines:
 
 @pytest.mark.django_db
 class TestSampleContributionInlineRoleVocabulary:
-    """FR-032/SPEC-001: the roles widget on a specimen's contribution inline must not
-    offer a concept from any vocabulary other than the framework's roles vocabulary -
-    ``refuse_off_vocabulary_role`` (an ``m2m_changed`` receiver, see receivers.py)
-    refuses that write, uncaught, from inside Django's own no-savepoint
-    ``transaction.atomic()`` around ``ManyRelatedManager._add_items`` - so without the
-    admin narrowing the field's queryset, an off-vocabulary choice reaches the receiver
-    and the change request 500s instead of coming back as an ordinary field error.
-    """
-
     @staticmethod
+    # An off-vocabulary role reaches the m2m_changed receiver, which refuses it
+    # uncaught inside Django's atomic block, so the change request 500s.
     def _off_vocabulary_role():
         from research_vocabs.models import Concept, Vocabulary
 
@@ -509,9 +449,6 @@ class TestSampleContributionInlineRoleVocabulary:
 
 @pytest.mark.django_db
 class TestSampleAdminInlineLimits:
-    """T084/FR-039: the rows each inline editor offers are bounded by the number of
-    types its vocabulary contains, and the bound moves when the vocabulary does."""
-
     def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
         vocabulary_size = len(SampleDescription.VOCABULARY.values)
 
@@ -596,8 +533,6 @@ class TestSampleAdminInlineLimits:
 
 @pytest.mark.django_db
 class TestSampleAdminTypeColumn:
-    """T085/FR-039: the changelist names the specimen type of each row."""
-
     def test_the_changelist_names_each_rows_specimen_type(self, admin_client):
         RockSampleFactory(name="A Rock")
         WaterSampleFactory(name="A Water Sample")
@@ -613,11 +548,6 @@ class TestSampleAdminTypeColumn:
 
 @pytest.mark.django_db
 class TestSampleAdminReadonly:
-    """T086/FR-043: the generated identifier and the timestamps are presented as
-    unchangeable, asserted through a rendered admin form's actual editable field set
-    rather than by checking that a name appears in `readonly_fields` - for both the
-    registered parent admin's change view and a registered specimen type's own."""
-
     def test_absent_from_editable_fields_through_a_registered_specimen_type(
         self, admin_client
     ):
@@ -652,8 +582,6 @@ class TestSampleAdminReadonly:
 
 @pytest.mark.django_db
 class TestEveryTypeGetsTheInlines:
-    """T087/FR-039: every registered specimen type offers the same inline editors."""
-
     def test_every_registered_specimen_type_carries_the_same_inlines(self):
         expected = {inline.__name__ for inline in SampleChildAdmin.inlines}
 
@@ -665,55 +593,37 @@ class TestEveryTypeGetsTheInlines:
 
 @pytest.mark.django_db
 class TestSampleAdminConfiguration:
-    """Tests for general admin configuration."""
-
     def test_list_display_configured(self, sample_admin):
-        """Test that list_display shows appropriate fields."""
         assert "name" in sample_admin.list_display
         assert "dataset" in sample_admin.list_display
         assert "status" in sample_admin.list_display
         assert "added" in sample_admin.list_display
 
     def test_search_fields_configured(self, sample_admin):
-        """Test that search_fields includes name, local_id, uuid."""
         assert "name" in sample_admin.search_fields
         assert "local_id" in sample_admin.search_fields
         assert "uuid" in sample_admin.search_fields
 
     def test_readonly_fields_configured(self, sample_admin):
-        """Test that readonly fields include uuid and timestamps."""
         assert "uuid" in sample_admin.readonly_fields
         assert "added" in sample_admin.readonly_fields
         assert "modified" in sample_admin.readonly_fields
 
     def test_fieldsets_configured(self, sample_admin):
-        """Test that base_fieldsets are properly configured for polymorphic admin."""
-        # Polymorphic admin uses base_fieldsets instead of fieldsets
         assert hasattr(sample_admin, "base_fieldsets")
         assert sample_admin.base_fieldsets is not None
         assert len(sample_admin.base_fieldsets) >= 2
 
     def test_sample_admin_is_configured_for_inheritance(self, sample_admin):
-        """Test that SampleAdmin is designed for inheritance by custom classes."""
-        # SampleAdmin should have inlines configured
         assert len(sample_admin.inlines) > 0
-        # SampleAdmin should have search configured
         assert len(sample_admin.search_fields) > 0
-        # SampleAdmin should have list display configured
         assert len(sample_admin.list_display) > 0
 
 
 @pytest.mark.django_db
 class TestSampleAdminReachesPrivateDatasets:
-    """A specimen in a private dataset can be edited.
-
-    The dataset field's choices come from the privacy-first default manager
-    unless the admin says otherwise, so a specimen belonging to a private
-    dataset could be opened and then refused on save — its own dataset was
-    not among the choices. The administrative interface is where a portal is
-    repaired, so it has to reach the records that need repairing.
-    """
-
+    # The dataset field's default manager hides private datasets, so a specimen in one
+    # could be opened but not saved.
     def test_the_dataset_field_offers_a_private_dataset(self, rf, admin_user):
         from demo.factories import RockSampleFactory
         from fairdm.factories import DatasetFactory

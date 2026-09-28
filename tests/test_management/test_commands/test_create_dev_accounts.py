@@ -1,13 +1,4 @@
-"""
-Tests for the ``create_dev_accounts`` management command (FR-022 to FR-029, T026).
-
-The suite's own environment is ``development`` (``pytest-env`` sets ``DJANGO_ENV``
-in ``pyproject.toml``), so every scenario except the production refusal runs the
-command in-process. The production refusal needs a real process boot under a
-different resolved environment - ``tests/test_apps.py`` and
-``TestBundledPortalBoots`` in ``tests/test_conf/test_setup.py`` already establish
-that pattern, and the brief's own environment note names it as the one to follow.
-"""
+"""Tests for the ``create_dev_accounts`` management command (FR-022 to FR-029, T026)."""
 
 import os
 import subprocess
@@ -35,9 +26,6 @@ DEV_ACCOUNT_EMAILS = [account["email"] for account in DEV_ACCOUNTS]
 
 @pytest.mark.django_db
 class TestCreateDevAccountsCreatesTheFive:
-    """T026: exactly the five accounts of the specification's table, each in
-    its stated role and the last in none (FR-023, FR-024)."""
-
     def test_creates_exactly_five_accounts(self):
         call_command("create_dev_accounts", verbosity=0)
 
@@ -57,9 +45,6 @@ class TestCreateDevAccountsCreatesTheFive:
 
 @pytest.mark.django_db
 class TestCreateDevAccountsSignIn:
-    """FR-025, FR-026: every account uses the shared password and needs no
-    confirmation step to sign in through the portal."""
-
     def test_each_account_signs_in_with_no_confirmation_step(self, client):
         call_command("create_dev_accounts", verbosity=0)
 
@@ -88,8 +73,6 @@ class TestCreateDevAccountsSignIn:
 
 @pytest.mark.django_db
 class TestCreateDevAccountsIsIdempotent:
-    """FR-028: running the command twice creates no duplicate account."""
-
     def test_running_twice_creates_no_duplicate(self):
         call_command("create_dev_accounts", verbosity=0)
         call_command("create_dev_accounts", verbosity=0)
@@ -99,9 +82,6 @@ class TestCreateDevAccountsIsIdempotent:
 
 @pytest.mark.django_db
 class TestCreateDevAccountsRefusesToAdopt:
-    """FR-029: when one of the addresses already belongs to somebody, the
-    command fails rather than adopting that account."""
-
     def test_refuses_when_an_address_already_belongs_to_somebody_else(self):
         claimed_email = DEV_ACCOUNTS[0]["email"]
         Person.objects.create_user(
@@ -119,25 +99,14 @@ class TestCreateDevAccountsRefusesToAdopt:
         other_emails = DEV_ACCOUNT_EMAILS[1:]
         assert Person.objects.filter(email__in=other_emails).count() == 0
 
-        # And the pre-existing account is left exactly as it was.
         untouched = Person.objects.get(email=claimed_email)
         assert untouched.first_name == "Somebody"
         assert untouched.last_name == "Else"
 
 
 class TestCreateDevAccountsRefusesOutsideDevelopment:
-    """FR-027: on the production baseline the command fails, says why, and
-    creates nothing.
-
-    A real process boot under a fully valid production configuration -
-    mirroring ``TestBundledPortalBoots`` - so Django itself starts cleanly and
-    the command's own environment gate is what refuses, not an unrelated
-    missing setting. ``override_settings`` cannot stand in here: the point is
-    that the refusal fires before a single query is issued, which only a
-    real, otherwise-successful boot under a non-development environment can
-    demonstrate (prohibitions: never weaken this to make the test easier).
-    """
-
+    # Boots a real process under a valid production configuration, so the command's own environment
+    # gate is what refuses.
     def test_refuses_on_the_production_baseline_and_touches_no_database(self):
         env = {
             key: value
@@ -178,7 +147,5 @@ class TestCreateDevAccountsRefusesOutsideDevelopment:
             f"stdout: {result.stdout[-2000:]}\nstderr: {result.stderr[-2000:]}"
         )
         assert "production" in result.stderr, result.stderr[-2000:]
-        # No database traceback: the refusal fires ahead of any query the
-        # command itself would issue (a bug here would surface as an
-        # OperationalError instead of the command's own message).
+        # No database traceback: the refusal fires before any query, which would raise OperationalError.
         assert "OperationalError" not in result.stderr

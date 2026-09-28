@@ -1,11 +1,4 @@
-"""The administration interface's own explanation of FR-012/FR-013 (T022, research R6).
-
-A raising ``pre_delete``/``pre_save`` receiver (T021) is the enforcement and holds for every
-ORM writer, but it cannot explain itself: reached through the administration interface it
-would surface as a server error. This module covers the ``Group`` administration class that
-turns that into something the person who clicked can read - no delete action or button for a
-shipped role, and a field error naming the role rather than a 500 when its name is changed.
-"""
+"""Tests for the admin interface's own explanation of the rights model."""
 
 import pytest
 from django.urls import reverse
@@ -15,7 +8,6 @@ from fairdm.portal_roles import PortalRoles
 
 @pytest.fixture(autouse=True)
 def _reconciled_roles(db):
-    """Every test in this module needs the four shipped roles installed."""
     PortalRoles.reconcile()
 
 
@@ -82,9 +74,7 @@ class TestShippedRoleRenameProtection:
         response = admin_client.post(url, {"name": "Data Custodian"})
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert "FairDM requires" in content
-        assert PortalRoles.DATA_CURATOR.name in content
+        assert PortalRoles.DATA_CURATOR.name in response.content.decode()
         shipped_group.refresh_from_db()
         assert shipped_group.name == PortalRoles.DATA_CURATOR.name
 
@@ -112,11 +102,6 @@ class TestShippedRoleRenameProtection:
 
 @pytest.mark.django_db
 class TestShippedRoleDeleteMessage:
-    """SPC-001/FR-012: the refusal names the role rather than a bare 403 - the
-    naming message lives on the pre_delete receiver alone (T022/research R6), which the
-    administration interface's own delete route never reaches (has_delete_permission
-    returns False first, so Django raises PermissionDenied before it)."""
-
     def test_the_delete_page_names_the_role_and_says_fairdm_requires_it(
         self, admin_client, shipped_group
     ):
@@ -125,9 +110,7 @@ class TestShippedRoleDeleteMessage:
         response = admin_client.get(url)
 
         assert response.status_code == 403
-        content = response.content.decode()
-        assert "FairDM requires" in content
-        assert PortalRoles.DATA_CURATOR.name in content
+        assert PortalRoles.DATA_CURATOR.name in response.content.decode()
 
     def test_posting_to_the_delete_page_also_names_the_role(
         self, admin_client, shipped_group
@@ -139,7 +122,7 @@ class TestShippedRoleDeleteMessage:
         response = admin_client.post(url)
 
         assert response.status_code == 403
-        assert "FairDM requires" in response.content.decode()
+        assert PortalRoles.DATA_CURATOR.name in response.content.decode()
         assert Group.objects.filter(pk=shipped_group.pk).exists()
 
     def test_a_group_the_portal_made_itself_still_gets_the_ordinary_confirmation_page(

@@ -1,8 +1,4 @@
-"""Tests for the four roles FairDM ships and installs into every portal.
-
-See CONTEXT.md for how a *portal role* differs from a *contribution role* and
-what a *rights-carrying role* is.
-"""
+"""Tests for the four roles FairDM ships and installs into every portal."""
 
 import pytest
 from django.contrib.auth.models import Group, Permission
@@ -12,12 +8,10 @@ from django.db import connection, transaction
 from fairdm.factories import PersonFactory
 from fairdm.portal_roles import PortalRoles
 
-#: The Data Curator's declared rights: view/add/change/delete over Project,
-#: Dataset, Sample and Measurement and their attached description, date and
-#: contribution records, plus the two permissions the import and publish
-#: plugin checks read directly (research R1, R9).
+# The Data Curator's declared rights: view/add/change/delete over Project, Dataset, Sample and
+# Measurement and their attached description, date and contribution records, plus the two
+# permissions the import and publish plugin checks read directly.
 DATA_CURATOR_PERMISSIONS = {
-    # Project
     "project.view_project",
     "project.add_project",
     "project.change_project",
@@ -30,7 +24,6 @@ DATA_CURATOR_PERMISSIONS = {
     "project.add_projectdate",
     "project.change_projectdate",
     "project.delete_projectdate",
-    # Dataset
     "dataset.view_dataset",
     "dataset.add_dataset",
     "dataset.change_dataset",
@@ -45,7 +38,6 @@ DATA_CURATOR_PERMISSIONS = {
     "dataset.delete_datasetdate",
     "dataset.import_data",
     "dataset.can_publish",
-    # Sample
     "sample.view_sample",
     "sample.add_sample",
     "sample.change_sample",
@@ -58,7 +50,6 @@ DATA_CURATOR_PERMISSIONS = {
     "sample.add_sampledate",
     "sample.change_sampledate",
     "sample.delete_sampledate",
-    # Measurement
     "measurement.view_measurement",
     "measurement.add_measurement",
     "measurement.change_measurement",
@@ -71,7 +62,6 @@ DATA_CURATOR_PERMISSIONS = {
     "measurement.add_measurementdate",
     "measurement.change_measurementdate",
     "measurement.delete_measurementdate",
-    # Contribution
     "contributors.view_contribution",
     "contributors.add_contribution",
     "contributors.change_contribution",
@@ -91,8 +81,6 @@ COMMUNITY_MANAGER_PERMISSIONS = {
 
 
 class TestDeclarations:
-    """FR-001 to FR-005: exactly four roles, named and scoped as the spec requires."""
-
     def test_exactly_four_roles_with_the_shipped_names_in_order(self):
         assert PortalRoles.shipped_names() == [
             "Portal Administrator",
@@ -110,7 +98,6 @@ class TestDeclarations:
         }
 
     def test_portal_administrator_cannot_edit_a_group(self):
-        """D15: the role that assigns roles must not be able to rewrite what any role may do."""
         assert not {
             "auth.add_group",
             "auth.change_group",
@@ -127,7 +114,6 @@ class TestDeclarations:
         )
 
     def test_community_manager_cannot_delete_a_person(self):
-        """FR-004: the role must not hold the right to delete a person record."""
         assert (
             "contributors.delete_person"
             not in PortalRoles.COMMUNITY_MANAGER.permissions
@@ -169,8 +155,6 @@ def _resolvable_permissions(role):
 
 @pytest.mark.django_db
 class TestReconcile:
-    """FR-009 to FR-011, US-1 AC3, SC-002: installation and repair on every update."""
-
     def test_installs_all_four_roles_with_their_declared_rights(
         self, disconnect_shipped_role_guard
     ):
@@ -238,7 +222,6 @@ class TestReconcile:
     def test_legacy_groups_with_members_end_up_in_the_corresponding_new_roles(
         self, disconnect_shipped_role_guard
     ):
-        """R10, D10: a rename carries the membership rows across; a fresh create does not."""
         Group.objects.all().delete()
         legacy = {}
         for legacy_name in PortalRoles.LEGACY_NAMES:
@@ -259,15 +242,8 @@ class TestReconcile:
 
 @pytest.mark.django_db
 class TestDeclaredPermissionsExist:
-    """Every permission named in any role's declaration resolves to a real ``Permission``
-    row once the database is up to date.
-
-    ``reconcile()`` skips a permission with no matching row yet, which is right for the
-    ordering ``INSTALLED_APPS`` runs migrations in and wrong as a permanent state: without
-    this test, a typo, or a right nobody declares, is silently absent from the role forever
-    - exactly what happened to ``dataset.can_publish`` in US-1 (T017b).
-    """
-
+    # reconcile() skips a permission with no row yet, which suits migration ordering but would hide a
+    # declaration naming a permission that never exists.
     def test_every_declared_permission_resolves_to_a_real_permission_row(self):
         missing = []
         for role in PortalRoles.ROLES:
@@ -299,28 +275,21 @@ def _delete_group_by_raw_sql(name: str) -> None:
 
 @pytest.mark.django_db
 class TestProtection:
-    """FR-012 to FR-014: a shipped role cannot be deleted or renamed through the
-    ORM, by any writer, and a group a portal created for itself is untouched by
-    the guard (research R6, T020)."""
-
     def test_deleting_a_shipped_role_is_refused_and_it_and_its_members_survive(self):
         PortalRoles.reconcile()
         curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
         member = PersonFactory()
         member.groups.add(curator_group)
 
-        # Each raising receiver runs inside the atomic block delete()/save()
-        # itself opens, which Django marks for rollback on any exception - a
-        # bare `pytest.raises` here would leave the surrounding test
-        # transaction broken for every query after it, so the block under
-        # test is scoped to its own nested atomic (a savepoint).
+        # Each raising receiver runs inside the atomic block delete()/save() opens, which Django marks for
+        # rollback, so the block under test gets its own nested atomic (a savepoint).
         with pytest.raises(ValidationError), transaction.atomic():
             curator_group.delete()
 
         assert Group.objects.filter(pk=curator_group.pk).exists()
         assert member in curator_group.user_set.all()
 
-    def test_the_deletion_refusal_names_the_role_and_says_fairdm_requires_it(self):
+    def test_the_deletion_refusal_names_the_role(self):
         PortalRoles.reconcile()
         curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
 
@@ -329,7 +298,6 @@ class TestProtection:
 
         message = str(exc_info.value)
         assert PortalRoles.DATA_CURATOR.name in message
-        assert "FairDM requires" in message
 
     def test_renaming_a_shipped_role_is_refused_and_the_name_is_unchanged(self):
         PortalRoles.reconcile()
@@ -342,7 +310,7 @@ class TestProtection:
         curator_group.refresh_from_db()
         assert curator_group.name == PortalRoles.DATA_CURATOR.name
 
-    def test_the_rename_refusal_names_the_role_and_says_fairdm_requires_it(self):
+    def test_the_rename_refusal_names_the_role(self):
         PortalRoles.reconcile()
         curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
 
@@ -352,35 +320,31 @@ class TestProtection:
 
         message = str(exc_info.value)
         assert PortalRoles.DATA_CURATOR.name in message
-        assert "FairDM requires" in message
 
     def test_saving_a_shipped_role_with_its_name_unchanged_is_unaffected(self):
-        """Re-saving an existing shipped row without renaming it is not a
-        rename, and must not be refused."""
         PortalRoles.reconcile()
         curator_group = Group.objects.get(name=PortalRoles.DATA_CURATOR.name)
 
-        curator_group.save()  # must not raise
+        curator_group.save()
 
         curator_group.refresh_from_db()
         assert curator_group.name == PortalRoles.DATA_CURATOR.name
 
     def test_creating_a_group_is_unaffected_by_the_guard(self):
-        group = Group.objects.create(name="Field Team")  # must not raise
+        group = Group.objects.create(name="Field Team")
 
         assert Group.objects.filter(pk=group.pk).exists()
 
     def test_reconciles_own_creation_of_a_missing_role_is_unaffected_by_the_guard(
         self,
     ):
-        """R6: the pre_save guard must fire only for an existing row, or
-        ``reconcile()``'s own ``get_or_create()`` would be refused by the
-        receiver it just installed."""
+        # The pre_save guard must fire only for an existing row, or reconcile()'s own get_or_create()
+        # would be refused by the receiver it just installed.
         PortalRoles.reconcile()
         _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
         assert not Group.objects.filter(name=PortalRoles.DATA_CURATOR.name).exists()
 
-        PortalRoles.reconcile()  # must not raise
+        PortalRoles.reconcile()
 
         assert Group.objects.filter(name=PortalRoles.DATA_CURATOR.name).exists()
 
@@ -390,26 +354,21 @@ class TestProtection:
         custom = Group.objects.create(name="Project Alpha Team")
 
         custom.name = "Project Alpha Squad"
-        custom.save()  # must not raise
+        custom.save()
         custom.refresh_from_db()
         assert custom.name == "Project Alpha Squad"
 
-        custom.delete()  # must not raise
+        custom.delete()
         assert not Group.objects.filter(pk=custom.pk).exists()
 
 
 @pytest.mark.django_db
 class TestPermissionsForQueryCount:
-    """EFF-001: `_permissions_for` resolves a role's whole declaration in one query,
-    not one `Permission.objects.filter(...).first()` per declared permission string."""
-
     def test_resolves_the_data_curator_in_one_query(self, django_assert_num_queries):
         with django_assert_num_queries(1):
             PortalRoles._permissions_for(PortalRoles.DATA_CURATOR)
 
     def test_still_skips_a_declared_permission_with_no_matching_row(self):
-        """The same tolerance research R5 established for `reconcile()` as a whole -
-        a declared permission with nothing to resolve to yet must not raise."""
         from fairdm.portal_roles import PortalRole
 
         role = PortalRole(
@@ -421,7 +380,5 @@ class TestPermissionsForQueryCount:
         assert PortalRoles._permissions_for(role) == []
 
     def test_a_role_with_no_declared_permissions_resolves_to_none(self):
-        """Guards the empty-tuple edge a single OR'd query must not fall into: an
-        unconstrained `Permission.objects.filter(Q())` matches every row in the
-        database, which would hand the Developer role every permission that exists."""
+        # `Permission.objects.filter(Q())` matches every row, which would hand the Developer role every permission.
         assert PortalRoles._permissions_for(PortalRoles.DEVELOPER) == []

@@ -1,6 +1,4 @@
-"""
-Tests for the ``seed_licenses`` management command (FR-007a, D-018, R4).
-"""
+"""Tests for the ``seed_licenses`` management command (FR-007a, D-018, R4)."""
 
 import pytest
 from django.core.management import call_command
@@ -12,19 +10,19 @@ from fairdm.management.commands.seed_licenses import RECOMMENDED_LICENSE_NAMES
 
 @pytest.mark.django_db
 class TestSeedLicensesFromAnEmptyDatabase:
-    """T094: from an empty database, standing up a portal makes the
-    recommended licences available and the configured default resolves."""
-
     def test_recommended_licenses_are_created(self):
         License.objects.all().delete()
 
         call_command("seed_licenses", verbosity=0)
 
-        assert set(
-            License.objects.filter(
-                name__in=RECOMMENDED_LICENSE_NAMES
-            ).values_list("name", flat=True)
-        ) == RECOMMENDED_LICENSE_NAMES
+        assert (
+            set(
+                License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).values_list(
+                    "name", flat=True
+                )
+            )
+            == RECOMMENDED_LICENSE_NAMES
+        )
 
     def test_the_configured_default_resolves(self):
         License.objects.all().delete()
@@ -49,18 +47,13 @@ class TestSeedLicensesFromAnEmptyDatabase:
 
 @pytest.mark.django_db
 class TestSeedLicensesIsIdempotent:
-    """T095: running the command twice changes nothing, including a
-    licence the portal has edited."""
-
     def test_running_twice_creates_no_duplicates(self):
         License.objects.all().delete()
 
         call_command("seed_licenses", verbosity=0)
         call_command("seed_licenses", verbosity=0)
 
-        assert (
-            License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).count() == 3
-        )
+        assert License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).count() == 3
 
     def test_an_edited_licence_survives_a_second_run(self):
         License.objects.all().delete()
@@ -78,15 +71,8 @@ class TestSeedLicensesIsIdempotent:
 
 @pytest.mark.django_db
 class TestAPortalThatDeclinesTheStep:
-    """T096: a portal that drops the step from its settings does not get
-    the recommended licences - nothing else creates them."""
-
     def test_no_other_setup_step_seeds_the_licences(self, settings):
-        """Run the deploy pipeline with the licence step declined, and the
-        recommended licences stay absent. This is the half FR-007a makes a
-        requirement: seeding is a recommendation the portal may drop, so it
-        must not be smuggled in by a step it cannot drop.
-        """
+        # Seeding is a recommendation a portal may drop, so no step it cannot drop may seed it.
         License.objects.all().delete()
 
         always_run = settings.DJANGO_SETUP_TOOLS[""]["always_run"]
@@ -95,9 +81,8 @@ class TestAPortalThatDeclinesTheStep:
             "TestSeedLicensesInThePipeline"
         )
 
-        # The framework steps are the test harness's own job and say nothing about
-        # licences; what is worth running is every other step that loads reference
-        # data, `preload` above all.
+        # The framework steps say nothing about licences. What is worth running is every other step that
+        # loads reference data, `preload` above all.
         framework_steps = {"migrate", "collectstatic"}
         remaining = [
             step
@@ -114,9 +99,6 @@ class TestAPortalThatDeclinesTheStep:
         assert License.objects.filter(name__in=RECOMMENDED_LICENSE_NAMES).count() == 0
 
     def test_the_command_is_what_creates_them(self):
-        """The control for the test above: the same empty database, the one
-        declined step run, and the licences appear.
-        """
         License.objects.all().delete()
 
         call_command("seed_licenses", verbosity=0)
@@ -125,10 +107,6 @@ class TestAPortalThatDeclinesTheStep:
 
 
 class TestSeedLicensesInThePipeline:
-    """T098: the step runs in ``always_run``, beside ``preload`` - not
-    ``on_initial`` - so an *existing* portal gets it on its next deploy,
-    not only a freshly created one (D-018)."""
-
     def test_seed_licenses_is_declared_in_always_run(self, settings):
         always_run = settings.DJANGO_SETUP_TOOLS[""]["always_run"]
         assert ("seed_licenses",) in always_run

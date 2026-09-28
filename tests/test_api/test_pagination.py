@@ -1,12 +1,4 @@
-"""Tests for FairDM API pagination (Feature 011 â€” US1).
-
-Covers:
-- Default page_size=25
-- Custom ?page_size=N is respected
-- ?page_size above max (100) is capped at 100
-- Response includes next/previous navigation links when applicable
-- count reflects total accessible records
-"""
+"""Tests for FairDM API pagination (Feature 011 â€” US1)."""
 
 import pytest
 from django.urls import reverse
@@ -17,14 +9,11 @@ from fairdm.utils.choices import Visibility
 
 @pytest.fixture
 def many_public_projects(db):
-    """Create 30 public projects to test pagination (default page_size=25)."""
     return ProjectFactory.create_batch(30, visibility=Visibility.PUBLIC)
 
 
 @pytest.mark.django_db
 class TestPagination:
-    """Pagination behaviour for list endpoints."""
-
     def test_default_page_size_is_25(self, api_client, many_public_projects):
         response = api_client.get(reverse("api:project-list"))
         assert response.status_code == 200
@@ -38,7 +27,6 @@ class TestPagination:
         assert len(data["results"]) == 10
 
     def test_page_size_capped_at_100(self, api_client, db):
-        """Requesting page_size=200 must be silently capped at max_page_size=100."""
         ProjectFactory.create_batch(110, visibility=Visibility.PUBLIC)
         response = api_client.get(reverse("api:project-list"), {"page_size": 200})
         assert response.status_code == 200
@@ -66,11 +54,9 @@ class TestPagination:
             reverse("api:project-list"), {"page": 2, "page_size": 25}
         )
         data = response.json()
-        # Page 2 with page_size=25 should be the last page (5 items)
         assert data["next"] is None
 
     def test_count_reflects_accessible_records(self, api_client, db):
-        """count must reflect only publicly accessible records for anonymous users."""
         public_count = 5
         ProjectFactory.create_batch(public_count, visibility=Visibility.PUBLIC)
         ProjectFactory.create_batch(3, visibility=Visibility.PRIVATE)
@@ -81,7 +67,6 @@ class TestPagination:
     def test_count_increases_for_authenticated_user_with_permissions(
         self, authenticated_client, user, db
     ):
-        """Authenticated user with guardian view permission sees private records."""
         from guardian.shortcuts import assign_perm
 
         public = ProjectFactory.create_batch(3, visibility=Visibility.PUBLIC)
@@ -90,5 +75,4 @@ class TestPagination:
 
         response = authenticated_client.get(reverse("api:project-list"))
         data = response.json()
-        # Should see 3 public + 1 private = 4
         assert data["count"] == 4

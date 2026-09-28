@@ -1,8 +1,12 @@
 """One access decision, reached identically by navigation and by dispatch."""
 
 import pytest
+from django.urls import reverse
 from django.views.generic import TemplateView
+from guardian.shortcuts import assign_perm
 
+from demo.factories import RockSampleFactory
+from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import (
     can_open,
@@ -13,11 +17,13 @@ from fairdm.contrib.plugins.access import (
     resolve_check,
 )
 from fairdm.core.sample.models import Sample
+from fairdm.factories import (
+    DatasetFactory,
+    UserFactory,
+)
 
 
 class TestResolveCheck:
-    """The predicate must read the same whichever caller asks for it."""
-
     def test_plain_function(self):
         def predicate(request, obj):
             return True
@@ -62,8 +68,6 @@ class TestResolveCheck:
 
 
 class TestCheckIsValid:
-    """A classmethod predicate is the trap: not callable, but truthy."""
-
     def test_plain_function_is_valid(self):
         assert check_is_valid(lambda request, obj: True) is True
 
@@ -87,13 +91,15 @@ class TestCheckIsValid:
 
 @pytest.mark.django_db
 class TestPermissionResolution:
-    """Model-level OR object-level. ModelBackend contributes nothing once an object is passed."""
-
-    def test_model_level_permission_alone_passes(self, as_user, model_perm_user, sample):
+    def test_model_level_permission_alone_passes(
+        self, as_user, model_perm_user, sample
+    ):
         request = as_user(model_perm_user)
         assert has_perm(request, "sample.change_sample", sample) is True
 
-    def test_object_level_permission_alone_passes(self, as_user, object_perm_user, sample):
+    def test_object_level_permission_alone_passes(
+        self, as_user, object_perm_user, sample
+    ):
         request = as_user(object_perm_user)
         assert has_perm(request, "sample.change_sample", sample) is True
 
@@ -114,7 +120,6 @@ class TestPermissionResolution:
     def test_memo_key_survives_a_new_instance_of_the_same_record(
         self, as_user, plain_user, sample
     ):
-        """Keyed on identity, not id() — the decision runs inside template loops."""
         request = as_user(plain_user)
         has_perm(request, "sample.change_sample", sample)
         reloaded = Sample.objects.get(pk=sample.pk)
@@ -175,12 +180,6 @@ class TestCanOpen:
     def test_extra_view_inherits_the_owning_plugin_predicate(
         self, as_user, plain_user, sample
     ):
-        """The finding this whole feature exists to prevent.
-
-        An extra view is an ordinary Plugin subclass and inherits the permissive default, so a
-        decision read off the view alone would serve the child of a restricted plugin to a user
-        who is refused the parent and shown no entry for it.
-        """
 
         class Curation(Plugin, TemplateView):
             check = staticmethod(lambda request, obj: False)
@@ -207,8 +206,6 @@ class TestCanOpen:
 
 @pytest.mark.django_db
 class TestMenuCheck:
-    """The adapter is what the navigation package holds, never the author's function."""
-
     def test_matches_the_navigation_package_signature(
         self, as_user, plain_user, sample
     ):
@@ -241,7 +238,6 @@ class TestMenuCheck:
     def test_navigation_and_dispatch_reach_the_same_decision(
         self, as_user, plain_user, sample
     ):
-        """FR-020 structurally: if these ever diverge, a page is hidden but reachable."""
         calls = []
 
         class P(Plugin, TemplateView):
@@ -258,3 +254,121 @@ class TestMenuCheck:
         view.registered_model = Sample
         view.has_permission()
         assert len(calls) == from_menu + 1
+
+
+@pytest.mark.django_db
+class TestRecordPageAccess:
+    def test_dataset_overview_refuses_an_anonymous_visitor_to_a_private_record_not_found(
+        self, client
+    ):
+        dataset = DatasetFactory()
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        )
+        assert response.status_code == 404
+
+    def test_dataset_overview_refuses_a_signed_in_stranger_to_a_private_record_not_found(
+        self, client
+    ):
+        dataset = DatasetFactory()
+        client.force_login(UserFactory())
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        )
+        assert response.status_code == 404
+
+    def test_dataset_overview_admits_a_holder_of_view_permission(self, client):
+        dataset = DatasetFactory()
+        user = UserFactory()
+        assign_perm("view_dataset", user, dataset)
+        client.force_login(user)
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        )
+        assert response.status_code == 200
+
+    def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):
+        dataset = DatasetFactory()
+        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+
+        anonymous = client.get(url)
+        assert anonymous.status_code == 404
+
+        client.force_login(UserFactory())
+        assert client.get(url).status_code == 404
+
+
+@pytest.mark.django_db
+class TestPredicateFailureDoesNotBreakThePage:
+    def test_a_predicate_written_to_the_wrong_signature_hides_its_entry(
+        self, client, monkeypatch
+    ):
+        from fairdm.contrib.plugins import registry
+        from fairdm.core.sample.models import Sample
+
+        registered = registry.get_plugins_for_model(Sample)
+        assert registered, "expected sample plugins to be registered"
+
+        def wrong_signature(request, instance, **kwargs):
+            return True
+
+        plugin_class = registered[0][0]
+        monkeypatch.setattr(plugin_class, "check", wrong_signature, raising=False)
+
+        sample = RockSampleFactory()
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestWhatARecordPageCosts:
+    def test_the_cost_does_not_scale_with_the_number_of_plugins(
+        self, client, plain_user, django_capture_on_commit_callbacks
+    ):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        sample = RockSampleFactory()
+        client.force_login(plain_user)
+        url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
+
+        client.get(url)  # warm up one-time per-process setup
+
+        with CaptureQueriesContext(connection) as before:
+            client.get(url)
+        baseline = len(before.captured_queries)
+
+        for index in range(5):
+            plugins.register(Sample, label=f"Extra {index}", order=900 + index)(
+                type(
+                    f"ExtraCost{index}",
+                    (Plugin, TemplateView),
+                    {
+                        "template_name": "fairdm/plugin.html",
+                        "permission": "sample.change_sample",
+                    },
+                )
+            )
+        plugins.registry.get_urls_for_model(Sample)
+
+        with CaptureQueriesContext(connection) as after:
+            client.get(url)
+
+        assert len(after.captured_queries) - baseline <= 5, (
+            f"{baseline} -> {len(after.captured_queries)}: permission checks are not being memoised"
+        )
+
+    def test_the_permission_memo_holds_across_repeated_checks(
+        self, as_user, plain_user, sample, django_assert_num_queries
+    ):
+        from fairdm.contrib.plugins.access import has_perm
+
+        request = as_user(plain_user)
+        with django_assert_num_queries(0) as captured:
+            pass
+        has_perm(request, "sample.change_sample", sample)
+        first = len(request._fairdm_plugin_perm_cache)
+        with django_assert_num_queries(0):
+            for _ in range(10):
+                has_perm(request, "sample.change_sample", sample)
+        assert len(request._fairdm_plugin_perm_cache) == first

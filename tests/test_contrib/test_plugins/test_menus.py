@@ -1,8 +1,10 @@
 """Navigation entries: what appears, in what order, and for whom."""
 
 import pytest
+from django.urls import reverse
 from django.views.generic import TemplateView
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
@@ -30,7 +32,6 @@ class TestEntriesAppear:
 
         patterns = plugins.registry.get_urls_for_model(Sample)
         assert "Hidden" not in entry_labels(Sample)
-        # ...and it is still served.
         assert "hidden" in [p.name for p in patterns]
 
     def test_the_declared_label_and_icon_are_used(self):
@@ -58,7 +59,6 @@ class TestEntriesAppear:
         assert item.extra_context["icon"] == "circle"
 
     def test_a_class_attribute_cannot_configure_the_entry(self):
-        """The `menu` dict belonged to a navigation system that no longer exists."""
 
         @plugins.register(Sample, label="From Decorator")
         class Contested(Plugin, TemplateView):
@@ -97,8 +97,6 @@ class TestOrdering:
 
 @pytest.mark.django_db
 class TestVisibilityMatchesReachability:
-    """The guarantee, end to end rather than at the unit."""
-
     def test_a_refused_plugin_is_neither_listed_nor_reachable(
         self, client, as_user, plain_user
     ):
@@ -111,12 +109,12 @@ class TestVisibilityMatchesReachability:
 
         plugins.registry.get_urls_for_model(Sample)
         menu = plugins.registry.get_plugin_menu_for_model(Sample)
-        item = next(i for i in menu.children if i.extra_context.get("label") == "Curation")
+        item = next(
+            i for i in menu.children if i.extra_context.get("label") == "Curation"
+        )
 
         request = as_user(plain_user)
-        # Not shown...
         assert item.check(request) is False
-        # ...and not reachable.
         assert can_open(Curation, request, None) is False
 
     def test_a_permitted_plugin_is_both(self, as_user, plain_user):
@@ -153,9 +151,17 @@ class TestVisibilityMatchesReachability:
 @pytest.mark.django_db
 class TestMenusExistForAnyRecord:
     def test_a_record_with_no_hand_written_menu_still_gets_one(self):
-        """Location had none, and the registry appended to None."""
         from fairdm.contrib.location.models import Point
 
         menu = plugins.registry.get_plugin_menu_for_model(Point)
         assert menu is not None
         assert plugins.registry.get_urls_for_model(Point)
+
+
+@pytest.mark.django_db
+class TestNavigationRenders:
+    def test_every_visible_entry_points_somewhere(self, client):
+        sample = RockSampleFactory()
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        content = response.content.decode()
+        assert f"/samples/{sample.uuid}/" in content

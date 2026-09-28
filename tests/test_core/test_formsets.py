@@ -1,13 +1,4 @@
-"""Tests for the shared, parameterised date-ordering formset (T003).
-
-Source: ``fairdm/core/formsets.py``
-
-Exercises ``date_ordering_formset`` against two record types whose date
-vocabularies each carry an ordered pair - Project (Start/End) and Dataset
-(CollectionStart/CollectionEnd) - and proves the rule is scoped to the pair
-it is parameterised on, per plan P6: handing every record type the same
-rule gives one with no ordered pair a rule that runs and validates nothing.
-"""
+"""Tests for the shared, parameterised date-ordering formset."""
 
 import pytest
 from django.forms import inlineformset_factory
@@ -38,7 +29,9 @@ DATE_ORDER_CASES = [
 ]
 
 
-def _build_formset(parent_model, date_model, instance, start_type, end_type, message, data):
+def _build_formset(
+    parent_model, date_model, instance, start_type, end_type, message, data
+):
     formset_class = inlineformset_factory(
         parent_model,
         date_model,
@@ -59,9 +52,6 @@ def _build_formset(parent_model, date_model, instance, start_type, end_type, mes
 
 @pytest.mark.django_db
 class TestDateOrderingFormSet:
-    """A backwards start/end pair submitted as two rows in one submission is
-    refused, for both a project and a dataset."""
-
     @pytest.mark.parametrize(
         "parent_model, date_model, parent_factory, start_type, end_type, message",
         DATE_ORDER_CASES,
@@ -124,9 +114,6 @@ class TestDateOrderingFormSet:
     def test_an_equal_start_and_end_is_accepted(
         self, parent_model, date_model, parent_factory, start_type, end_type, message
     ):
-        """A start and end on the same day is not "backwards" - the rule
-        refuses an end strictly before the start, not one equal to it
-        (T010)."""
         instance = parent_factory()
         prefix = date_model._meta.default_related_name
         formset = _build_formset(
@@ -147,12 +134,6 @@ class TestDateOrderingFormSet:
         assert formset.is_valid(), formset.errors
 
     def test_types_outside_the_parameterised_pair_are_unaffected(self):
-        """The rule only compares the two types it was parameterised on.
-        Dataset's vocabulary carries other, unordered date types alongside
-        its CollectionStart/CollectionEnd pair (Submitted, Published, ...);
-        submitting two of those - however 'backwards' their values look -
-        is unaffected. This is the same reason a record type with no
-        ordered pair at all is never parameterised onto this rule."""
         dataset = DatasetFactory()
         prefix = DatasetDate._meta.default_related_name
         formset = _build_formset(

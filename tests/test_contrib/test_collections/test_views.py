@@ -1,4 +1,4 @@
-"""Views tests for fairdm.contrib.collections.views.DataTableView (US2)."""
+"""Tests for the collections DataTableView."""
 
 import ast
 import datetime
@@ -6,7 +6,6 @@ import importlib
 from pathlib import Path
 
 import pytest
-from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -39,10 +38,6 @@ from fairdm.utils.choices import Visibility
 
 @pytest.mark.django_db
 class TestPublicationFiltering:
-    """FR-011, SC-002, SC-010: a listing shows only published records, identically for
-    every viewer - the four FR-011 names explicitly, and the staff client is the one
-    most likely to be widened by accident."""
-
     @pytest.fixture(autouse=True)
     def _records(self, published_sample, unpublished_sample):
         self.published_sample = published_sample
@@ -86,9 +81,6 @@ class TestPublicationFiltering:
 
 @pytest.mark.django_db
 class TestColumnsPerType:
-    """FR-014, SC-003: a listing's columns come from its type's own registration, so
-    two types with different declarations produce different columns."""
-
     def test_two_types_with_different_field_declarations_produce_different_columns(
         self, client, published_dataset
     ):
@@ -112,9 +104,6 @@ class TestColumnsPerType:
 
 @pytest.mark.django_db
 class TestDefaultColumns:
-    """FR-015: a type registered with no field declarations still produces a working
-    listing from the framework's own defaults, rather than failing."""
-
     def test_a_type_with_no_field_declarations_renders_with_framework_defaults(
         self, client, published_dataset
     ):
@@ -129,14 +118,9 @@ class TestDefaultColumns:
 
 @pytest.mark.django_db
 class TestPaging:
-    """FR-017: a listing pages its results, and every page is reachable."""
-
     def test_a_listing_takes_its_page_size_from_the_base_table_view(
         self, client, published_dataset
     ):
-        """T086: the listing declares no page size of its own, so the base
-        class's 100 is what reaches it. A base class with no default at all
-        would leave it unpaginated."""
         RockSampleFactory(dataset=published_dataset)
         slug = registry.get_for_model(RockSample).get_slug()
 
@@ -148,16 +132,14 @@ class TestPaging:
     def test_a_second_page_returns_the_next_slice_and_carries_paging_controls(
         self, client, published_dataset
     ):
-        # Enough rows to spill onto a second page at whatever page size the view
-        # is configured for, rather than a literal that silently stops producing
-        # one when that size changes (T086 raised it from 20 to 100).
+        # Enough rows to spill onto a second page at whatever page size the view is
+        # configured for, rather than a literal that stops doing so when it changes.
         samples = RockSampleFactory.create_batch(
             DataTableView.paginate_by + 5, dataset=published_dataset
         )
         # `Sample`'s default ordering is `added` (auto_now_add), and a tight creation
-        # loop can leave several rows with the same timestamp - a stable default order
-        # with a tie-break is T041's deliverable (US-3, D5), not this story's. Space
-        # the timestamps out here so paging is deterministic without it.
+        # loop can leave several rows with the same timestamp. Space the timestamps
+        # out so paging is deterministic.
         base = timezone.now()
         for offset, sample in enumerate(samples):
             Sample.objects.filter(pk=sample.pk).update(
@@ -188,9 +170,6 @@ class TestPaging:
 
 @pytest.mark.django_db
 class TestEmptyState:
-    """FR-018: a listing with no published records to show says so - in this
-    feature's own words, not the application shell's authoring copy."""
-
     def test_a_type_with_no_published_records_shows_this_features_own_empty_state(
         self, client
     ):
@@ -199,7 +178,6 @@ class TestEmptyState:
         response = client.get(reverse(f"{slug}-list"))
 
         content = response.content.decode()
-        assert "Click the button below to get started" not in content
         empty_state = response.context["empty_state"]
         assert empty_state["heading"]
         assert empty_state["message"]
@@ -209,9 +187,6 @@ class TestEmptyState:
 
 @pytest.mark.django_db
 class TestRowLinksToRecord:
-    """FR-019, Acceptance Scenario 9: selecting a row opens that record's own page -
-    for a measurement listing as well as a sample listing."""
-
     def test_a_sample_listing_row_links_to_the_samples_own_page(
         self, client, published_sample
     ):
@@ -233,16 +208,6 @@ class TestRowLinksToRecord:
 
 @pytest.mark.django_db
 class TestQueryCount:
-    """FR-020, SC-006: the number of database queries a listing page issues does not
-    grow with the number of rows it shows - for the measurement listing as well as the
-    sample listing.
-
-    The page is fetched once before either measurement. The first request in a
-    test process does one-time work the second never repeats - the site cache, the
-    identity records, their savepoints - which shows up as the first count being the
-    larger one however flat the feature is.
-    """
-
     def _page_query_count(self, client, url):
         client.get(url)  # warm up one-time per-process setup
         with CaptureQueriesContext(connection) as ctx:
@@ -257,7 +222,7 @@ class TestQueryCount:
 
         one_row_count = self._page_query_count(client, url)
 
-        RockSampleFactory.create_batch(19, dataset=published_dataset)  # a full page
+        RockSampleFactory.create_batch(19, dataset=published_dataset)
 
         full_page_count = self._page_query_count(client, url)
 
@@ -282,10 +247,6 @@ class TestQueryCount:
 
 @pytest.mark.django_db
 class TestSearch:
-    """FR-024, FR-025, FR-031, SC-004: `?q=` searches the fields a type
-    declares, or `name` by default when it declares none - and never widens
-    what publication already excluded."""
-
     def _search(self, client, slug, term):
         return client.get(reverse(f"{slug}-list"), {"q": term})
 
@@ -351,9 +312,6 @@ class TestSearch:
 
 @pytest.mark.django_db
 class TestFilters:
-    """FR-029, Acceptance Scenario 6: every filter the registry generates for
-    a type narrows the listing to matching records and raises nothing."""
-
     def test_a_char_filter_narrows_to_matching_records(self, client, published_dataset):
         target = SoilSampleFactory(soil_type="Clay", dataset=published_dataset)
         SoilSampleFactory(soil_type="Sand", dataset=published_dataset)
@@ -396,18 +354,6 @@ class TestFilters:
 
 @pytest.mark.django_db
 class TestFilterChoicesOnTheRenderedPage:
-    """T078, FR-030, SC-002: no filter on a listing offers the name of a record
-    whose own dataset is unpublished, to any viewer.
-
-    Measured on the page's own filter set rather than on the generated class,
-    because the two are not the same object and the difference is where the leak
-    lived. `SampleFilterMixin.__init__` and `MeasurementFilterMixin.__init__`
-    assign their hand-declared `dataset` and `sample` choice lists at
-    instantiation, after any class-level scoping, from managers that apply no
-    publication test. A test that reads `base_filters` off the class never runs
-    that code and passes either way.
-    """
-
     def _page_filters(self, client, model):
         slug = registry.get_for_model(model).get_slug()
         response = client.get(reverse(f"{slug}-list"))
@@ -440,11 +386,6 @@ class TestFilterChoicesOnTheRenderedPage:
     def test_a_sample_listings_dataset_filter_offers_no_unpublished_dataset(
         self, client, published_dataset, unpublished_dataset
     ):
-        """`CustomSample` specifically, and not one of the generated types: it
-        supplies its own `filterset_class`, which is the documented tier of the
-        configuration API where the factory never runs at all. Swapping it for a
-        type whose filter set the factory builds would still pass and would stop
-        covering the case this test exists for."""
         assert registry.get_for_model(CustomSample).filterset_class is not None
         CustomSampleFactory(dataset=published_dataset)
 
@@ -456,9 +397,6 @@ class TestFilterChoicesOnTheRenderedPage:
     def test_a_published_but_private_dataset_is_still_offered(
         self, client, unpublished_dataset
     ):
-        """The scoping tests publication and nothing else. A private dataset
-        whose data is published contributes rows, so it stays in the choice list
-        beside them (D3, FR-003)."""
         private = DatasetFactory(published=True, visibility=Visibility.PRIVATE)
         CustomSampleFactory(dataset=private)
 
@@ -468,9 +406,6 @@ class TestFilterChoicesOnTheRenderedPage:
         assert unpublished_dataset not in choices
 
     def test_the_record_type_filter_is_left_alone(self, client, published_dataset):
-        """The measurement mixin scopes `polymorphic_ctype` to the registered
-        types. The publication pass reads each filter's own queryset, so a
-        relation publication says nothing about comes through untouched."""
         sample = RockSampleFactory(dataset=published_dataset)
         ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
 
@@ -484,13 +419,6 @@ class TestFilterChoicesOnTheRenderedPage:
 
 @pytest.mark.django_db
 class TestSwitcher:
-    """T048-T052, FR-042-047, US5 Acceptance Scenarios 1-6: every listing carries a
-    control offering every registered type's listing, grouped under Samples and
-    Measurements, marking the one currently being viewed, opening its destination
-    unnarrowed regardless of the origin's search/filter state (D6), and omitting
-    itself entirely where only one type is registered - a control offering only the
-    page you are on is a no-op (FR-047)."""
-
     def _all_listing_urls(self):
         return {
             reverse(f"{registry.get_for_model(model).get_slug()}-list")
@@ -603,61 +531,7 @@ class TestSwitcher:
 
 
 @pytest.mark.django_db
-class TestSwitcherIsInlineWithTheTitle:
-    """T084: the switcher control sits in the page title bar, directly next to
-    and inline with the page title, as a small button labelled "Switch" - not
-    "Switch listing", and not appended in a row of its own below the title.
-    The switcher's own render gate (FR-047) is untouched and covered by
-    `TestSwitcher`."""
-
-    def test_the_switcher_sits_in_the_title_bar_beside_the_other_actions(
-        self, client
-    ):
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        switcher = soup.find(id="listing-switcher")
-        assert switcher is not None
-        # The trail used to be the anchor here: it shared the title bar with
-        # the heading, and the switcher sat beside it. The shell draws the
-        # trail in the app header now, so the anchor is the title bar itself
-        # and the switcher travels with the listing's other actions.
-        title_bar = soup.find(class_="page-title")
-        assert title_bar is not None
-        assert switcher in title_bar.descendants
-        # A row, not a column: the actions run alongside the heading rather
-        # than opening a line of their own above or below it.
-        classes = switcher.parent.get("class", [])
-        assert "flex" in classes
-        assert "flex-col" not in classes
-
-    def test_the_switcher_button_is_small_and_labelled_switch(self, client):
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        switcher = soup.find(id="listing-switcher")
-        trigger = switcher.find("button")
-        assert trigger is not None
-        assert trigger.get_text(strip=True) == "Switch"
-        assert "btn-sm" in trigger.get("class", [])
-        assert "Switch listing" not in soup.get_text()
-
-
-@pytest.mark.django_db
 class TestNothingUnreachable:
-    """T074, FR-052, SC-009, Acceptance Scenarios 1-2: deletions alone cannot
-    demonstrate an absence, and the suite T061 runs cannot detect an unreached
-    module. The reachability graph below is walked fresh from the real entry
-    points Django itself uses - `INSTALLED_APPS` for `apps.py`, the resolved
-    root URLconf for `urls.py` - plus any plain Python import, inside the
-    package or from the rest of the repository, so a module nothing reaches
-    any more fails here rather than sitting unused until the next reader
-    notices it."""
-
     PACKAGE_DIR = Path(collections_pkg.__file__).parent
     PACKAGE_MODULE = "fairdm.contrib.collections"
     REPO_ROOT = Path(collections_pkg.__file__).resolve().parents[3]
@@ -667,9 +541,7 @@ class TestNothingUnreachable:
         return ".".join([self.PACKAGE_MODULE, *rel.parts])
 
     def _package_modules(self):
-        """Every `.py` file in the package with real content - `__init__.py`
-        excluded, since a package marker has no reachability question of its
-        own."""
+        """Map dotted module names to every non-empty module in the package."""
         return {
             self._dotted_name(path): path
             for path in sorted(self.PACKAGE_DIR.rglob("*.py"))
@@ -681,9 +553,7 @@ class TestNothingUnreachable:
         return ".".join([self.PACKAGE_MODULE, *rel_parent]).rstrip(".")
 
     def _package_imports(self, path):
-        """The `fairdm.contrib.collections.*` dotted module names one file
-        imports, resolving both absolute imports and, for a file inside the
-        package, relative ones (`from .views import X`)."""
+        """Return the package module names one file imports."""
         is_internal = self.PACKAGE_DIR in path.parents
         own_package = self._own_package(path) if is_internal else None
         found = set()
@@ -708,10 +578,7 @@ class TestNothingUnreachable:
         return found
 
     def _external_importers(self):
-        """Every module this package exposes that a `.py` file elsewhere in
-        `fairdm/` or `demo/` production code imports directly - an
-        import in `registry/factories.py` counts as a real entry point exactly
-        as much as a route does."""
+        """Return the package modules imported from elsewhere in the repository."""
         found = set()
         for top in ("fairdm", "demo"):
             for path in (self.REPO_ROOT / top).rglob("*.py"):

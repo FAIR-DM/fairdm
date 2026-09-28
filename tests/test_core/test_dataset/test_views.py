@@ -1275,6 +1275,16 @@ class TestDatasetCardRendering:
         response, _ = self._card_html(client)
         assertContains(response, f'href="{public_dataset.get_absolute_url()}"')
 
+    def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
+        DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        _, html = self._card_html(client)
+        assert "record-card__parent" not in html
+
+    def test_an_unlicensed_dataset_draws_no_licence_row(self, client):
+        DatasetFactory(visibility=Visibility.PUBLIC, license=None)
+        _, html = self._card_html(client)
+        assert "record-card__license" not in html
+
     def test_card_shows_the_dataset_name(self, client):
         DatasetFactory(name="Rift Basin Heat Flow", visibility=Visibility.PUBLIC)
         response, _ = self._card_html(client)

@@ -1,12 +1,4 @@
-"""Tests for the vocabulary-driven descriptions form (T004).
-
-Source: ``fairdm/core/descriptions.py``
-
-Exercises the form against two record types - ``ProjectDescription`` and
-``DatasetDescription`` - per plan P6: a component built from one model's own
-vocabulary proves nothing on its own, since it can only fail if a literal
-name was left behind.
-"""
+"""Tests for the vocabulary-driven descriptions form."""
 
 import pytest
 
@@ -23,16 +15,15 @@ DESCRIPTION_CASES = [
 
 @pytest.mark.django_db
 class TestVocabularyDescriptionsForm:
-    """One text area per concept in a related model's vocabulary, over both
-    ProjectDescription and DatasetDescription."""
-
     @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
     def test_field_set_matches_the_vocabulary_exactly_and_in_order(
         self, related_model, parent_factory
     ):
         instance = parent_factory()
 
-        form = VocabularyDescriptionsForm(related_model=related_model, instance=instance)
+        form = VocabularyDescriptionsForm(
+            related_model=related_model, instance=instance
+        )
 
         assert list(form.fields) == list(related_model.VOCABULARY.values)
 
@@ -45,7 +36,9 @@ class TestVocabularyDescriptionsForm:
         first_type = vocabulary.values[0]
         concept = vocabulary.get_concept(first_type)
 
-        form = VocabularyDescriptionsForm(related_model=related_model, instance=instance)
+        form = VocabularyDescriptionsForm(
+            related_model=related_model, instance=instance
+        )
 
         assert form.fields[first_type].label == concept.label()
         assert form.fields[first_type].help_text == concept.definition()
@@ -73,9 +66,8 @@ class TestVocabularyDescriptionsForm:
 
     @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
     def test_a_value_over_the_ceiling_is_rejected(self, related_model, parent_factory):
-        """Issue #329: this form writes rows straight through the manager
-        (``save()`` below never calls ``full_clean()``), so the model's own
-        length ceiling never runs unless the form enforces it too."""
+        # The form saves through the manager without full_clean(), so the model's length
+        # ceiling never runs unless the form enforces it too (#329).
         from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 
         instance = parent_factory()

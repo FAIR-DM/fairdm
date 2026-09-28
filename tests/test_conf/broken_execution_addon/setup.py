@@ -1,9 +1,4 @@
-"""
-Setup module for broken_execution_addon.
-
-Writes a setting, then raises — simulating an addon whose settings module
-imports cleanly but fails partway through execution (edge case, FR-022).
-"""
+"""Setup module for broken_execution_addon."""
 
 BROKEN_EXECUTION_ADDON_PARTIAL = "partial-write"
 

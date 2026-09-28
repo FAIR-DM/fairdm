@@ -1,19 +1,13 @@
-"""
-Tests for ``fairdm/conf/settings/celery.py`` — the baseline background-task
-configuration (FR-002, FR-003).
-"""
+"""Tests for ``fairdm/conf/settings/celery.py``."""
 
 import os
 
 
 class TestCelery:
-    """The baseline configures Celery from the environment, with no
-    environment branching (FR-002, FR-003)."""
-
     def test_broker_and_result_backend_come_from_redis_url(
         self, isolated_env, settings_module
     ):
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        os.environ["DJANGO_ENV"] = "qa"
         os.environ["REDIS_URL"] = "redis://cachehost:6380/3"
 
         module = settings_module()
@@ -30,8 +24,6 @@ class TestCelery:
         assert module.CELERY_TIMEZONE == "Europe/Berlin"
 
     def test_tasks_are_not_eager_by_default(self, isolated_env, settings_module):
-        """Async by default in the baseline — eager execution is a
-        development-only degradation (FR-003)."""
         os.environ["DJANGO_ENV"] = "qa"
 
         module = settings_module()
@@ -43,4 +35,4 @@ class TestCelery:
     ):
         os.environ["DJANGO_ENV"] = "qa"
 
-        settings_module()  # must not raise
+        settings_module()

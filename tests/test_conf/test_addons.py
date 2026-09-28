@@ -1,8 +1,4 @@
-"""
-Tests for FairDM addon integration system.
-
-Tests verify that fairdm.setup() correctly discovers, loads, and validates addon modules.
-"""
+"""Tests for FairDM addon integration system."""
 
 import os
 from unittest import mock
@@ -13,18 +9,14 @@ from django.core.exceptions import ImproperlyConfigured
 
 @pytest.fixture
 def addon_env():
-    """Provide environment for addon tests."""
-    # Save original env
     original_env = os.environ.copy()
 
-    # Clear Django-related env vars
     for key in list(os.environ.keys()):
         if key.startswith(
             ("DJANGO_", "DATABASE_", "REDIS_", "POSTGRES_", "EMAIL_", "S3_", "SENTRY_")
         ):
             del os.environ[key]
 
-    # Set minimal development environment (for graceful handling)
     os.environ.update(
         {
             "DJANGO_ENV": "development",
@@ -36,19 +28,13 @@ def addon_env():
 
     yield
 
-    # Restore original environment
     os.environ.clear()
     os.environ.update(original_env)
 
 
 @pytest.fixture
 def production_addon_env():
-    """Provide a production-shaped environment for addon tests, and restore it.
-
-    Mutating ``os.environ`` in a test body without restoring it leaks the
-    values into every later test in the same process, silently supplying
-    configuration those tests are written to be missing.
-    """
+    # Mutating os.environ without restoring it leaks configuration into later tests that expect it missing.
     original_env = os.environ.copy()
 
     os.environ.clear()
@@ -71,10 +57,7 @@ def production_addon_env():
 
 
 class TestAddonDiscovery:
-    """Test addon discovery and loading."""
-
     def test_addon_with_setup_module_is_loaded(self, addon_env, tmp_path):
-        """Test that addon with __fdm_setup_module__ is discovered and loaded."""
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(
             """
@@ -82,7 +65,6 @@ import os
 import sys
 from pathlib import Path
 
-# Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 import fairdm
@@ -98,28 +80,16 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Verify addon settings were injected
             assert hasattr(test_settings, "DUMMY_ADDON_INSTALLED")
             assert test_settings.DUMMY_ADDON_INSTALLED is True
             assert hasattr(test_settings, "DUMMY_ADDON_VERSION")
             assert test_settings.DUMMY_ADDON_VERSION == "1.0.0"
 
-            # Verify addon app was added to INSTALLED_APPS
             assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
 
     def test_addon_without_setup_module_logs_warning(
         self, production_env, tmp_path, settings_module
     ):
-        """An addon defining no ``__fdm_setup_module__`` is warned about by
-        name and skipped, and the portal starts (T112, FR-022).
-
-        Restores a test that was skipped for a Windows path-escaping problem
-        in a hand-built settings file, and whose body began with a bare
-        ``pass`` before dead code — so it asserted nothing on any platform.
-        The ``settings_module`` fixture removes the path escaping the skip
-        was about; the warning is observed by patching the call because
-        ``tests/settings.py`` disables logging for the whole suite.
-        """
         os.environ["DJANGO_ENV"] = "development"
 
         with mock.patch("fairdm.conf.addons.logger.warning") as mock_warning:
@@ -139,19 +109,6 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
     def test_addon_with_invalid_module_fails_gracefully_in_development(
         self, production_env, tmp_path, settings_module
     ):
-        """An addon that cannot be loaded emits a WARNING naming it, is
-        skipped, and the portal starts — in any non-production environment
-        (T099, T100; FR-022, scenario 3).
-
-        Replaces a skip whose body began with a bare ``pass`` before dead
-        code: it asserted nothing and predated the ``settings_module``
-        fixture this story's other layer tests use.
-
-        ``tests/settings.py`` disables logging for the whole suite (see
-        ``TestPortalOverride.test_no_usable_file_skips_portal_override_with_warning``
-        in ``test_setup.py``), so the warning is observed by patching the
-        call rather than via ``caplog``.
-        """
         os.environ["DJANGO_ENV"] = "development"
 
         with mock.patch("fairdm.conf.checks.logger.warning") as mock_warning:
@@ -160,7 +117,6 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
                 directory=tmp_path,
             )
 
-        # The portal started — setup() returned a usable module.
         assert module.DJANGO_ENV == "development"
 
         assert mock_warning.called
@@ -178,29 +134,19 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
         assert addons_layer.settings == ()
 
     def test_addon_url_discovery(self, addon_env, tmp_path):
-        """Test that addon URL configurations are discovered."""
         from fairdm.conf.addons import addon_urls, discover_addon_urls
 
-        # Clear existing addon URLs
         addon_urls.clear()
 
-        # Discover URLs from dummy addon
         urls = discover_addon_urls(["tests.test_conf.dummy_addon"])
 
-        # Verify dummy_addon urls were discovered
         assert "tests.test_conf.dummy_addon.urls" in urls
 
 
 class TestAddonPosition:
-    """Layer 3 (addons) sits between FairDM's environment override and the
-    portal's own (T094, T096; FR-008, FR-021, scenario 1)."""
-
     def test_addon_setting_beats_fairdm_environment_override(
         self, production_env, tmp_path, settings_module
     ):
-        """An addon's value for a setting FairDM's own environment override
-        also sets beats that override — not merely that the addon's own
-        settings land (FR-008, FR-021, scenario 1)."""
         os.environ["DJANGO_ENV"] = "development"
 
         module = settings_module(
@@ -215,8 +161,6 @@ class TestAddonPosition:
     def test_portal_environment_override_beats_addon_setting(
         self, production_env, tmp_path, settings_module
     ):
-        """The portal's own environment override beats an addon's value for
-        the same setting — the tail of scenario 1 (T096, FR-008, FR-021)."""
         os.environ["DJANGO_ENV"] = "development"
         (tmp_path / "development.py").write_text("DEBUG = 'portal-value'\n")
 
@@ -231,15 +175,9 @@ class TestAddonPosition:
 
 
 class TestAddonValidation:
-    """Test addon validation in different environments."""
-
     def test_broken_addon_fails_fast_in_production(
         self, production_addon_env, tmp_path
     ):
-        """A broken addon raises ImproperlyConfigured naming the addon in
-        production (T097, FR-022, scenario 2) — not merely some exception,
-        which any unrelated failure would also satisfy."""
-        # Create addon with broken setup module
         addon_dir = tmp_path / "broken_prod_addon"
         addon_dir.mkdir()
         (addon_dir / "__init__.py").write_text(
@@ -274,7 +212,6 @@ fairdm.setup(addons=["broken_prod_addon"])
             assert "broken_prod_addon" in str(exc_info.value)
 
     def test_addon_can_modify_installed_apps(self, addon_env, tmp_path):
-        """Test that addon can inject apps into INSTALLED_APPS."""
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(
             """
@@ -297,16 +234,11 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Verify addon app was added
             assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
 
 
 class TestAddonIntegration:
-    """Test complete addon integration scenarios."""
-
     def test_multiple_addons_can_be_loaded(self, addon_env, tmp_path):
-        """Test that multiple addons can be loaded together."""
-        # For now, just test with our dummy addon twice (simulating multiple addons)
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(
             """
@@ -329,11 +261,9 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Should load successfully
             assert hasattr(test_settings, "DUMMY_ADDON_INSTALLED")
 
     def test_addon_settings_take_precedence(self, addon_env, tmp_path):
-        """Test that addon settings override framework defaults."""
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(
             """
@@ -356,17 +286,10 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
             test_settings = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(test_settings)
 
-            # Verify addon's custom logger was added
             assert "dummy_addon" in test_settings.LOGGING["loggers"]
 
 
 class TestAddonPartialFailure:
-    """An addon whose setup module imports cleanly but raises partway
-    through execution is treated as unloadable by the same path as any
-    other broken addon — fail in production, warn and skip elsewhere — and
-    the settings scope is not left holding its partial writes (T101, T102;
-    edge case, FR-022)."""
-
     def test_partial_write_does_not_reach_settings_in_production(
         self, production_addon_env, tmp_path, settings_module
     ):
@@ -383,9 +306,6 @@ class TestAddonPartialFailure:
     def test_partial_write_does_not_reach_settings_in_development(
         self, production_env, tmp_path, settings_module
     ):
-        """``tests/settings.py`` disables logging for the whole suite, so
-        the warning is observed by patching the call rather than via
-        ``caplog`` (see ``TestPortalOverride`` in ``test_setup.py``)."""
         os.environ["DJANGO_ENV"] = "development"
 
         with mock.patch("fairdm.conf.setup.logger.warning") as mock_warning:
@@ -416,21 +336,11 @@ class TestAddonPartialFailure:
 
 
 class TestAddonScopeIsolation:
-    """Applying an addon's settings leaves everything that is not a Django
-    setting in the portal's own namespace exactly as it was (T111)."""
-
     def test_portal_non_setting_objects_keep_their_identity(
         self, production_env, tmp_path, settings_module
     ):
-        """A container the portal's settings module shares with another
-        module is still the same object after ``setup()`` applied an addon.
-
-        Layer 3 executes each addon against a private copy of the scope and
-        merges it back on success. Copying names Django never reads, and
-        merging those back, silently rebinds them: a portal that imports a
-        shared list or dict and appends to it after the ``setup()`` call
-        would be appending to a copy nothing else can see.
-        """
+        # setup() runs each addon against a copy of the scope and merges it back, which must not rebind
+        # names Django never reads, such as a list or dict a portal shares with another module.
         os.environ["DJANGO_ENV"] = "development"
 
         module = settings_module(
@@ -450,13 +360,8 @@ class TestAddonScopeIsolation:
     def test_in_place_mutation_by_a_failing_addon_is_discarded(
         self, production_env, tmp_path, settings_module
     ):
-        """An addon that appends to a settings container in place and then
-        raises leaves that container as it was (T113).
-
-        The scratch scope has to copy the container, not just the binding:
-        a shallow copy shares the list ``INSTALLED_APPS += [...]`` mutates,
-        so discarding it would not undo the append.
-        """
+        # The scratch scope must copy the container, not just the binding: a shallow copy shares the list
+        # that `INSTALLED_APPS += [...]` mutates.
         os.environ["DJANGO_ENV"] = "development"
 
         with mock.patch("fairdm.conf.setup.logger.warning"):

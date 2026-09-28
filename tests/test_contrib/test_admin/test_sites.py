@@ -1,8 +1,4 @@
-"""The administration interface accepts a holder of a rights-carrying role (FR-006, FR-008).
-
-Reaching the administration interface used to ask for ``is_staff`` alone, which no portal role
-sets (research R3) - access is derived from role membership, never stored on the person.
-"""
+"""Tests for admin site access by rights-carrying roles."""
 
 import pytest
 from django.urls import reverse
@@ -13,7 +9,6 @@ from fairdm.portal_roles import PortalRoles
 
 @pytest.fixture(autouse=True)
 def _reconciled_roles(db):
-    """Every test in this module needs the four shipped roles installed."""
     PortalRoles.reconcile()
 
 
@@ -27,9 +22,6 @@ def _holder_of(role_name):
 
 @pytest.mark.django_db
 class TestAdministrationAccessForRoleHolders:
-    """A holder of each rights-carrying role reaches the index and a changelist, both with
-    an existing session and by signing in through the administration login form."""
-
     @pytest.mark.parametrize(
         "role_name,changelist_url_name",
         [

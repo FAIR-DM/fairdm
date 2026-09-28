@@ -1,12 +1,4 @@
-"""Visibility filter tests for FairDM API (Feature 011 â€” US4).
-
-Covers:
-- Public objects visible to anonymous users via FairDMVisibilityFilter.
-- Private objects hidden from users without guardian view permission.
-- Authenticated user with view permission sees private objects.
-- Mixed public + private queryset returns correct subset (no duplicates via .distinct()).
-- Models without a visibility field (e.g. Contributor) return all records.
-"""
+"""Visibility filter tests for FairDM API (Feature 011 â€” US4)."""
 
 import pytest
 from django.urls import reverse
@@ -27,8 +19,6 @@ def make_token_client(user) -> APIClient:
 
 @pytest.mark.django_db
 class TestVisibilityFilterProjects:
-    """FairDMVisibilityFilter correctly restricts Project list results."""
-
     def test_public_project_visible_to_anonymous(self):
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
         resp = APIClient().get(reverse("api:project-list"))
@@ -56,7 +46,6 @@ class TestVisibilityFilterProjects:
         assert str(proj.uuid) in uuids
 
     def test_mixed_queryset_no_duplicates(self):
-        """Public objects visible WITHOUT guardian entry must not be duplicated."""
         user = UserFactory()
         pub = ProjectFactory(visibility=Visibility.PUBLIC)
         priv = ProjectFactory(visibility=Visibility.PRIVATE)
@@ -67,14 +56,11 @@ class TestVisibilityFilterProjects:
         resp = make_token_client(user).get(reverse("api:project-list"))
         results = resp.json()["results"]
         all_uuids = [p["uuid"] for p in results]
-        # No duplicates in response
         assert len(all_uuids) == len(set(all_uuids))
-        # Both projects present
         assert str(pub.uuid) in all_uuids
         assert str(priv.uuid) in all_uuids
 
     def test_anonymous_sees_multiple_public_projects(self):
-        """Verify the filter unions correctly across multiple public objects."""
         proj1 = ProjectFactory(visibility=Visibility.PUBLIC)
         proj2 = ProjectFactory(visibility=Visibility.PUBLIC)
         resp = APIClient().get(reverse("api:project-list"))
@@ -85,8 +71,6 @@ class TestVisibilityFilterProjects:
 
 @pytest.mark.django_db
 class TestVisibilityFilterDatasets:
-    """FairDMVisibilityFilter works the same way for Dataset."""
-
     def test_public_dataset_visible_to_anonymous(self):
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
         ds = DatasetFactory(project=pub_proj, visibility=Visibility.PUBLIC)
@@ -113,14 +97,9 @@ class TestVisibilityFilterDatasets:
 
 @pytest.mark.django_db
 class TestVisibilityFilterContributors:
-    """Contributor model has no visibility field â€” all records returned."""
-
     def test_all_contributors_visible_to_anonymous(self):
-        """Contributor endpoint bypasses visibility filter (no is_public / visibility field)."""
         resp = APIClient().get(reverse("api:contributor-list"))
         assert resp.status_code == 200
-        # At this point we only verify the endpoint works; explicit count is
-        # tested in test_router.py as part of the discovery catalog tests.
 
     def test_contributor_list_returns_200_for_authenticated(self):
         resp = make_token_client(UserFactory()).get(reverse("api:contributor-list"))

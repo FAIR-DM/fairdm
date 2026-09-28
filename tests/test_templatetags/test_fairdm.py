@@ -1,7 +1,4 @@
-"""Tests for ``fairdm/templatetags/fairdm.py``'s ``safe_markdown`` filter —
-the template-layer entry point to ``fairdm.utils.markdown.markdownify``
-(issue #266, replacing martor's ``martortags``).
-"""
+"""Tests for the ``safe_markdown`` filter in ``fairdm/templatetags/fairdm.py`` (#266)."""
 
 import pytest
 from django.template import Context, Template
@@ -27,17 +24,17 @@ class TestSafeMarkdown:
 
 @pytest.mark.django_db
 class TestHasPermissionTag:
-    """T018, FR-019: a rights decision made by asking the permission system, not by
-    matching a group's name. Has no call site in this repository (a public template tag
-    for a consuming portal), so exercised directly rather than through a page."""
-
     def test_a_permission_named_in_the_context_list_is_admitted(self):
-        assert has_permission({"user_permissions": ["dataset.change_dataset"]}, "dataset.change_dataset")
+        assert has_permission(
+            {"user_permissions": ["dataset.change_dataset"]}, "dataset.change_dataset"
+        )
 
     def test_no_user_in_context_is_refused(self):
         assert not has_permission({}, "dataset.change_dataset")
 
-    def test_belonging_to_a_group_named_data_administrators_grants_nothing_on_its_own(self):
+    def test_belonging_to_a_group_named_data_administrators_grants_nothing_on_its_own(
+        self,
+    ):
         from django.contrib.auth.models import Group
 
         legacy_named_group = Group.objects.create(name="Data Administrators")

@@ -1,7 +1,4 @@
-"""
-Tests for ``fairdm/conf/settings/apps.py`` — the baseline application stack
-composition (FR-005).
-"""
+"""Tests for ``fairdm/conf/settings/apps.py``."""
 
 import os
 import subprocess
@@ -10,12 +7,8 @@ from pathlib import Path
 
 
 class TestInstalledApps:
-    """Portal apps are composed ahead of FairDM's own apps and the
-    third-party set, while staying behind the Django contrib apps that must
-    load first (FR-005)."""
-
     def test_portal_apps_precede_fairdm_core(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        os.environ["DJANGO_ENV"] = "qa"
 
         module = settings_module(
             setup_call="fairdm.setup(apps=['a_portal_app'])",
@@ -55,17 +48,10 @@ class TestInstalledApps:
     def test_no_apps_argument_still_boots(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"
 
-        settings_module()  # must not raise
+        settings_module()
 
 
 class TestContributorsAppRegistration:
-    """T002: the account model's own app is installed, and system checks pass
-    with it in its current position — the generic relations the core apps
-    (project/dataset/sample/measurement) hold back to it are declared as
-    string references (``GenericRelation("contributors.Contribution")``), so
-    Django resolves them once the whole registry is populated rather than at
-    import time, and app order does not gate that resolution."""
-
     def test_contributors_app_is_installed(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"
 
@@ -87,16 +73,6 @@ class TestContributorsAppRegistration:
 
 
 class TestTemplateAndStaticPrecedence:
-    """When a portal and FairDM both define a template or static file at the
-    same path, the portal's earlier app position makes its file win
-    (FR-005, scenario 3).
-
-    Run out-of-process, like ``TestBundledPortalBoots`` — swapping
-    ``INSTALLED_APPS`` in the live test-session app registry runs every
-    app's ``ready()`` against a portal it doesn't recognise (django-cleanup's
-    among them), which fails for reasons unrelated to template resolution.
-    """
-
     def test_portal_template_wins_over_fairdm_template_at_the_same_path(
         self, isolated_env, tmp_path
     ):
@@ -132,13 +108,11 @@ class TestTemplateAndStaticPrecedence:
             )
         }
         env |= {
-            "DJANGO_ENV": "qa",  # no override module — baseline stands
+            "DJANGO_ENV": "qa",
             "DJANGO_SETTINGS_MODULE": "config.settings",
             "PYTHONPATH": f"{tmp_path}{os.pathsep}{repo_root}",
-            # "qa" ships no override module, so this boots on the production
-            # baseline and the production-critical guard applies to it (D21).
-            # The guard reads configuration, never connects, so these only have
-            # to be well-formed.
+            # "qa" ships no override module, so it boots on the production baseline and the guard applies.
+            # The guard reads configuration and never connects, so the values only have to be well-formed.
             "DJANGO_SECRET_KEY": "x" * 64,
             "DJANGO_ALLOWED_HOSTS": "portal.example.org",
             "DJANGO_DEBUG": "False",
@@ -165,10 +139,6 @@ class TestTemplateAndStaticPrecedence:
 
 
 class TestGroupsFixtureRemoved:
-    """FR-036: the three empty legacy groups a portal used to get from a fixture are
-    replaced by `PortalRoles.reconcile()` (`fairdm/portal_roles.py`), so a first-time
-    setup must no longer load one."""
-
     def test_the_groups_fixture_file_is_gone(self):
         repo_root = Path(__file__).resolve().parents[3]
 

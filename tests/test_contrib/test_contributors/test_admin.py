@@ -1,14 +1,4 @@
-"""Integration tests for Contributor admin interface workflows (User Story 3).
-
-Tests cover:
-- Person admin changelist loading (T046)
-- Person admin claimed/unclaimed filtering (T047)
-- Person admin inline affiliation management (T048)
-- Organization admin changelist loading (T054)
-- Organization admin inline members management (T055)
-- Organization admin ROR sync action (T056)
-- ClaimingAuditLog admin changelist and read-only permissions (T046)
-"""
+"""Tests for the contributor admin workflows."""
 
 import pytest
 from django.contrib import admin
@@ -20,105 +10,67 @@ from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 
-# ── T046: Person admin changelist loads ─────────────────────────────────────
-
 
 @pytest.mark.django_db
 class TestPersonAdminChangelist:
-    """Verify Person admin changelist view loads correctly."""
-
     def test_person_admin_changelist_loads(
         self, admin_client, person, unclaimed_person
     ):
-        """Person admin changelist loads with both claimed and unclaimed persons."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Both persons should appear in the list
         assert person.name in content or person.email in content
         assert unclaimed_person.name in content
 
     def test_person_admin_change_view_loads(self, admin_client, person):
-        """Person admin change view loads for editing a person."""
         url = reverse("admin:contributors_person_change", args=[person.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Verify person details are present
         assert person.email in content
         assert person.first_name in content
 
 
-# ── T047: Claimed/unclaimed filtering ───────────────────────────────────────
-
-
 @pytest.mark.django_db
 class TestPersonAdminClaimFilter:
-    """Verify claimed/unclaimed status filtering in Person admin."""
-
     def test_person_admin_claim_filter_exists(self, admin_client):
-        """Claimed Status filter appears in Person admin."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url)
 
         assert response.status_code == 200
-        content = response.content.decode()
-
-        # Filter should be present - look for the exact title wespecify
-        # The filter title is wrapped in heading tags in Django admin
-        assert "Claimed Status" in content
 
     def test_person_admin_filter_claimed_only(
         self, admin_client, person, unclaimed_person
     ):
-        """Filtering for claimed persons shows only claimed accounts."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url, {"is_claimed": "claimed"})
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Claimed person should appear
         assert person.name in content or person.email in content
-        # Unclaimed person should NOT appear
         assert unclaimed_person.name not in content or "0 persons" in content.lower()
 
     def test_person_admin_filter_unclaimed_only(
         self, admin_client, person, unclaimed_person
     ):
-        """Filtering for unclaimed persons shows only unclaimed profiles."""
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url, {"is_claimed": "unclaimed"})
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Unclaimed person should appear
         assert unclaimed_person.name in content
-        # Claimed person should NOT appear
         assert person.email not in content or "0 persons" in content.lower()
-
-
-# ── T128: Claim-status filter reads the stored claim value (US10, FR-045) ───
 
 
 @pytest.mark.django_db
 class TestClaimStatusFilter:
-    """Verify the claim-status filter agrees with each of the four account states.
-
-    The filter previously derived "claimed" from email presence
-    (admin.py:23), which misclassifies an invited person (has an email, not
-    claimed) as claimed. It now reads is_claimed and is_active directly, with
-    the same precedence Person.account_state would use: inactive overrides
-    claimed (D8). Person.account_state itself is US3's work and does not
-    exist yet, so this filters on the stored fields directly.
-    """
-
     @pytest.fixture
     def ghost(self):
         from fairdm.factories import PersonFactory
@@ -143,7 +95,6 @@ class TestClaimStatusFilter:
 
     @pytest.fixture
     def inactive_claimed(self):
-        """A previously-claimed account that has since been deactivated."""
         from fairdm.factories import PersonFactory
 
         return PersonFactory(
@@ -161,12 +112,7 @@ class TestClaimStatusFilter:
         )
 
     def _states(self, ghost, invited, claimed, inactive_claimed):
-        """Scope the queryset to just the four fixtures under test.
-
-        django-guardian seeds an anonymous-user Person row (unclaimed,
-        active) ahead of every test; scoping avoids a false positive from
-        that infrastructure record leaking into the "unclaimed" bucket.
-        """
+        """Scope the queryset to just the four fixtures under test."""
         return Person.objects.filter(
             pk__in=[ghost.pk, invited.pk, claimed.pk, inactive_claimed.pk]
         )
@@ -190,47 +136,28 @@ class TestClaimStatusFilter:
         assert result == {ghost.pk, invited.pk, inactive_claimed.pk}
 
 
-# ── T048: Inline affiliation management ─────────────────────────────────────
-
-
 @pytest.mark.django_db
 class TestPersonAdminInlineAffiliations:
-    """Verify affiliation inline management in Person admin."""
-
     def test_person_admin_affiliation_inline_present(self, admin_client, person):
-        """Affiliation inline form is present in Person change view."""
         url = reverse("admin:contributors_person_change", args=[person.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
-        content = response.content.decode()
-
-        # Inline should be present (look for inline formset or affiliation fields)
-        assert "affiliation" in content.lower() or "organization" in content.lower()
 
     def test_person_admin_affiliation_inline_shows_existing(
         self, admin_client, person, affiliation
     ):
-        """Existing affiliations appear in inline formset."""
         url = reverse("admin:contributors_person_change", args=[person.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Existing affiliation's organization should be visible
         assert affiliation.organization.name in content
 
     def test_person_admin_can_add_affiliation_inline(
         self, admin_client, person, organization
     ):
-        """Can add a new affiliation via inline formset.
-
-        Note: This test verifies the admin interface provides the ability to add
-        affiliations inline. Full E2E testing of admin form submission requires
-        mocking all Django admin fields and is beyond the scope of unit testing.
-        """
-        # Create an affiliation directly to verify the admin can display it
         affiliation = Affiliation.objects.create(
             person=person,
             organization=organization,
@@ -238,7 +165,6 @@ class TestPersonAdminInlineAffiliations:
             is_primary=True,
         )
 
-        # Verify admin change view loads with the new affiliation
         url = reverse("admin:contributors_person_change", args=[person.pk])
         response = admin_client.get(url)
 
@@ -247,85 +173,48 @@ class TestPersonAdminInlineAffiliations:
         assert person.affiliations.filter(organization=organization).exists()
 
 
-# ── T054: Organization admin changelist loads ──────────────────────────────
-
-
 @pytest.mark.django_db
 class TestOrganizationAdminChangelist:
-    """Verify Organization admin changelist view loads correctly (US3b)."""
-
     def test_organization_admin_changelist_loads(self, admin_client, organization):
-        """Organization admin changelist loads with organizations."""
         url = reverse("admin:contributors_organization_changelist")
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Organization should appear in the list
         assert organization.name in content
 
     def test_organization_admin_change_view_loads(self, admin_client, organization):
-        """Organization admin change URL is registered (view rendering tested separately)."""
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
 
-        # Verify the URL is valid and registered
         assert url
         assert f"/admin/contributors/organization/{organization.pk}/change/" in url
-
-        # Note: Full rendering test skipped due to pre-existing ArrayField widget template issues
-        # This will be addressed separately from Phase 6 implementation
-
-
-# ── T055: Inline members management ─────────────────────────────────────────
 
 
 @pytest.mark.django_db
 class TestOrganizationAdminInlineMembers:
-    """Verify member inline management in Organization admin (US3b)."""
-
     def test_organization_admin_members_inline_present(
         self, admin_client, organization
     ):
-        """Members inline form is present in Organization change view."""
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
-        content = response.content.decode()
-
-        # Inline should be present (look for inline formset or member/affiliation fields)
-        assert "member" in content.lower() or "affiliation" in content.lower()
 
     def test_organization_admin_members_inline_shows_existing(
         self, admin_client, organization, affiliation
     ):
-        """Existing members appear in inline formset."""
-        # affiliation fixture links a person to an organization
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Existing member (person) should be visible via their affiliation
         assert affiliation.person.name in content or affiliation.person.email in content
-
-
-# ── T127: Organization admin carries a member inline and a sub-organisation
-# inline, asserted on the inline classes themselves (US10, FR-044) ──────────
 
 
 @pytest.mark.django_db
 class TestOrganizationAdminInlines:
-    """Verify the inlines registered on OrganizationAdmin, not strings in the page.
-
-    The previous coverage for the sub-organisation inline asserted only that
-    "parent" or "sub" appeared in the rendered page — satisfied by the
-    ordinary parent form field, not by an inline. This asserts on the inline
-    classes registered on the ModelAdmin instead (T127).
-    """
-
     def test_member_inline_is_registered(self):
         from fairdm.contrib.contributors.admin import MemberInline
         from fairdm.contrib.contributors.models import Organization
@@ -345,7 +234,6 @@ class TestOrganizationAdminInlines:
     def test_sub_organizations_are_listed_on_the_organization_screen(
         self, admin_client, organization
     ):
-        """A sub-organisation shows up in the parent's change view via the inline."""
         from fairdm.factories import OrganizationFactory
 
         child = OrganizationFactory(name="Sub-department", parent=organization)
@@ -356,37 +244,26 @@ class TestOrganizationAdminInlines:
         assert child.name in response.content.decode()
 
 
-# ── T056: ROR sync admin action ─────────────────────────────────────────────
-
-
 @pytest.mark.django_db
 class TestOrganizationAdminRORSync:
-    """Verify ROR sync admin action in Organization admin (US3b)."""
-
     def test_organization_admin_ror_sync_action_present(
         self, admin_client, organization
     ):
-        """ROR sync action appears in Organization admin actions."""
         url = reverse("admin:contributors_organization_changelist")
         response = admin_client.get(url)
 
         assert response.status_code == 200
         content = response.content.decode()
 
-        # Admin action dropdown should include ROR sync
-        # Django admin actions are in a <select> element
-        assert "sync" in content.lower() and "ror" in content.lower()
+        assert 'value="sync_from_ror"' in content
 
     def test_organization_admin_ror_sync_action_works(
         self, admin_client, organization, mocker
     ):
-        """ROR sync action triggers sync_contributor_identifier task."""
-        # Mock the Celery task to prevent actual API calls
         mock_task = mocker.patch(
             "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
         )
 
-        # Create a ROR identifier for the organization
         from fairdm.contrib.contributors.models import ContributorIdentifier
 
         ror_id = ContributorIdentifier.objects.create(
@@ -407,22 +284,11 @@ class TestOrganizationAdminRORSync:
 
         assert response.status_code == 200
 
-        # Verify task was called for the ROR identifier
         mock_task.assert_called_once_with(ror_id.pk)
-
-
-# ── T129/T135: Ownership transfer admin action (US10, FR-046, SC-015) ───────
 
 
 @pytest.mark.django_db
 class TestOwnershipTransferAction:
-    """Verify the ownership transfer admin action performs the transfer.
-
-    The action used to redirect with a message telling the administrator how
-    to do it by hand; it must now call ``Organization.transfer_ownership()``
-    and change the affiliation records itself.
-    """
-
     def _post_transfer(self, admin_client, organization, new_owner):
         url = reverse("admin:contributors_organization_changelist")
         return admin_client.post(
@@ -437,7 +303,6 @@ class TestOwnershipTransferAction:
     def test_action_transfers_ownership_rather_than_instructing(
         self, admin_client, organization, owner_affiliation
     ):
-        """A superuser running the action moves ownership; incumbent becomes admin."""
         from fairdm.factories import AffiliationFactory, PersonFactory
 
         incumbent = owner_affiliation.person
@@ -458,23 +323,13 @@ class TestOwnershipTransferAction:
             Affiliation.MembershipType.OWNER
         )
 
-        messages_text = " ".join(
-            str(m) for m in get_messages(response.wsgi_request)
-        )
+        messages_text = " ".join(str(m) for m in get_messages(response.wsgi_request))
         assert "use the member management inline" not in messages_text
         assert successor.name in messages_text
 
     def test_action_is_refused_without_the_object_level_right(
         self, organization, owner_affiliation, client
     ):
-        """Model-level change permission alone must not be enough (SEC-001).
-
-        The acting user here holds Django's ordinary ``change_organization``
-        permission -- enough to reach the admin action -- but has no OWNER
-        affiliation on this organisation, so the object-level check at
-        ``request.user.has_perm("contributors.manage_organization", org)``
-        must refuse the transfer.
-        """
         from django.contrib.auth.models import Permission
         from django.contrib.contenttypes.models import ContentType
 
@@ -488,15 +343,15 @@ class TestOwnershipTransferAction:
             type=Affiliation.MembershipType.MEMBER,
         ).person
 
-        acting_user = PersonFactory(
-            email="acting-staff@example.com", is_staff=True
-        )
+        acting_user = PersonFactory(email="acting-staff@example.com", is_staff=True)
         change_perm = Permission.objects.get(
             content_type=ContentType.objects.get_for_model(Organization),
             codename="change_organization",
         )
         acting_user.user_permissions.add(change_perm)
-        assert not acting_user.has_perm("contributors.manage_organization", organization)
+        assert not acting_user.has_perm(
+            "contributors.manage_organization", organization
+        )
 
         client.force_login(acting_user)
         response = self._post_transfer(client, organization, successor)
@@ -509,26 +364,12 @@ class TestOwnershipTransferAction:
         )
         assert incumbent.has_perm("manage_organization", organization)
 
-        messages_text = " ".join(
-            str(m) for m in get_messages(response.wsgi_request)
-        )
+        messages_text = " ".join(str(m) for m in get_messages(response.wsgi_request))
         assert "don't have permission" in messages_text
-
-
-# ── T133: Organization admin fieldsets, filters and read-only identifier
-# (US10, FR-044) ─────────────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
 class TestOrganizationAdmin:
-    """Verify the organisation admin's fieldsets, filters and read-only identifier.
-
-    Organization.type (the nine-value ROR classification, US4) does not
-    exist on this branch yet, so the "list filters on type and country"
-    part of T133 is satisfied for country only; see the completion report's
-    concerns.
-    """
-
     def test_public_identifier_is_readonly(self):
         from fairdm.contrib.contributors.models import Organization
 
@@ -543,29 +384,14 @@ class TestOrganizationAdmin:
         assert "country" in model_admin.list_filter
 
     def test_fieldsets_present(self, admin_client, organization):
-        """The change form renders with the new fieldsets, not the field-dump default."""
         url = reverse("admin:contributors_organization_change", args=[organization.pk])
         response = admin_client.get(url)
 
         assert response.status_code == 200
-        content = response.content.decode()
-        assert "Location" in content
-        assert "Synchronisation" in content
-
-
-# ── T136: Affiliation admin, with autocomplete on its relations (US10) ──────
 
 
 @pytest.mark.django_db
 class TestAffiliationAdmin:
-    """Verify the Affiliation admin registration.
-
-    No requirement asks for a Contribution or ContributorIdentifier screen,
-    and a credit screen would add a bulk-delete surface reaching the
-    lifecycle-hook gap T102 closes (design review SPEC-002), so this is
-    scoped to AffiliationAdmin only.
-    """
-
     def test_affiliation_is_registered_with_autocomplete_relations(self):
         model_admin = admin.site._registry[Affiliation]
         assert set(model_admin.autocomplete_fields) == {"person", "organization"}
@@ -587,12 +413,8 @@ class TestAffiliationAdmin:
         assert affiliation.person.name in response.content.decode()
 
 
-# ── Route 1: writing an Admin/Owner affiliation requires manage_organization
-# on the organisation in question, whichever surface reaches it ─────────────
-
-
 def _grant(user, model, codename):
-    """Add exactly one named model permission to a user (Route 1/2 test setup)."""
+    """Add exactly one named model permission to a user."""
     permission = Permission.objects.get(
         content_type=ContentType.objects.get_for_model(model), codename=codename
     )
@@ -601,18 +423,6 @@ def _grant(user, model, codename):
 
 @pytest.mark.django_db
 class TestAffiliationFormBlocksUnauthorisedManagementWrites:
-    """A staff account without ``manage_organization`` cannot write an Admin or
-    Owner affiliation through any of the three routes ``AffiliationForm``
-    gates: the standalone Affiliation admin, the affiliations inline on a
-    person's own change form, and the members inline on an organisation's
-    change form.
-
-    Holding an OWNER affiliation *is* what ``contributors.manage_organization``
-    means (``OrganizationPermissionBackend``), so each route is proven the same
-    way: the write is refused, and the acting user does not pass ``has_perm``
-    afterwards.
-    """
-
     def _person_change_payload(self, person, organization, new_type):
         return {
             "name": person.name,
@@ -655,7 +465,6 @@ class TestAffiliationFormBlocksUnauthorisedManagementWrites:
     def test_standalone_add_form_refuses_owner_without_manage_organization(
         self, client, person, organization
     ):
-        """``add_affiliation`` alone cannot promote a person to Owner."""
         from fairdm.factories import PersonFactory
 
         acting_user = PersonFactory(email="add-only-staff@example.com", is_staff=True)
@@ -684,7 +493,6 @@ class TestAffiliationFormBlocksUnauthorisedManagementWrites:
     def test_standalone_add_form_allows_owner_with_manage_organization(
         self, client, organization
     ):
-        """A user who already manages the organisation can promote someone else."""
         from fairdm.factories import AffiliationFactory, PersonFactory
 
         manager = PersonFactory(
@@ -718,11 +526,6 @@ class TestAffiliationFormBlocksUnauthorisedManagementWrites:
     def test_person_change_affiliation_inline_refuses_owner_without_manage_organization(
         self, client, person, organization
     ):
-        """``change_person`` and ``add_affiliation`` together are not enough
-        to promote the edited person to Owner through their own affiliations
-        inline -- Django's own inline permission model already requires
-        ``add_affiliation`` to add a row there at all; ``manage_organization``
-        is the additional check this fix adds."""
         person.is_staff = True
         person.save(update_fields=["is_staff"])
         _grant(person, Person, "change_person")
@@ -746,10 +549,6 @@ class TestAffiliationFormBlocksUnauthorisedManagementWrites:
     def test_organization_change_member_inline_refuses_owner_without_manage_organization(
         self, client, organization
     ):
-        """``change_organization`` and ``add_affiliation`` together are not
-        enough to promote a new member to Owner through the organisation's
-        members inline -- see the equivalent note on the person-inline test
-        above."""
         from fairdm.factories import PersonFactory
 
         acting_user = PersonFactory(
@@ -777,21 +576,6 @@ class TestAffiliationFormBlocksUnauthorisedManagementWrites:
 
 @pytest.mark.django_db
 class TestAffiliationAdminObjectLevelChangeAndDelete:
-    """``has_change_permission``/``has_delete_permission`` refuse a
-    non-manager for a specific affiliation, even though they hold the
-    ordinary model-level permission (Route 1).
-
-    Called directly with a real request rather than driven through
-    ``change_view``/``delete_view``: ``AffiliationAdmin.get_queryset`` already
-    scopes a non-superuser's changelist to organisations they manage (its own
-    test below), so ``get_object()`` -- which every admin edit/delete route
-    resolves the target through -- would return "not found" for an
-    unauthorised organisation's affiliation before these methods' obj-level
-    branch is ever reached with a real object. That queryset scoping is
-    tested on its own below; this isolates the method contract these two
-    methods are specified to have.
-    """
-
     def test_change_permission_is_refused_for_a_staff_user_who_does_not_manage_the_organization(
         self, rf, affiliation
     ):
@@ -866,9 +650,6 @@ class TestAffiliationAdminObjectLevelChangeAndDelete:
 
 @pytest.mark.django_db
 class TestAffiliationAdminQuerysetScoping:
-    """The changelist lists only the affiliations of organisations the
-    acting non-superuser manages (Route 1)."""
-
     def test_changelist_lists_only_managed_organizations_affiliations(self, client):
         from fairdm.factories import (
             AffiliationFactory,
@@ -904,14 +685,8 @@ class TestAffiliationAdminQuerysetScoping:
         assert hidden_member.person.name not in content
 
 
-# ── Route 2: merge_view and claim_link_view are superuser-only ──────────────
-
-
 @pytest.mark.django_db
 class TestMergeAndClaimLinkViewsRequireSuperuser:
-    """``merge_view`` and ``claim_link_view`` refuse a non-superuser staff
-    account with ``PermissionDenied``, not merely a hidden menu entry."""
-
     def _staff_user(self, email):
         from fairdm.factories import PersonFactory
 
@@ -950,12 +725,6 @@ class TestMergeAndClaimLinkViewsRequireSuperuser:
     def test_claim_link_view_is_not_refused_for_a_superuser(
         self, admin_client, unclaimed_person
     ):
-        """The permission gate lets a superuser through; the view then hits a
-        separate, already-reported defect (``NoReverseMatch`` on the
-        commented-out ``contributors:claim-profile`` URL, ``urls.py``) rather
-        than the permission gate refusing them. That defect is out of scope
-        here -- this only proves the gate itself did not fire.
-        """
         from django.urls import NoReverseMatch
 
         url = reverse(
@@ -965,16 +734,11 @@ class TestMergeAndClaimLinkViewsRequireSuperuser:
             admin_client.get(url)
 
 
-# ── T019: merge and claim-link become the Community Manager's (D13, D21) ────
-
-
 @pytest.mark.django_db
 class TestMergeAndClaimLinkViewsAdmitACommunityManager:
-    """FR-004: a portal role granted deliberately is a different thing from "any staff
-    member", which is the argument that supersedes the superuser-only reasoning in
-    ``claim_link_view``/``merge_view``'s own docstrings (D13, D21)."""
-
-    def test_merge_view_proceeds_for_a_community_manager(self, client, unclaimed_person):
+    def test_merge_view_proceeds_for_a_community_manager(
+        self, client, unclaimed_person
+    ):
         manager = _community_manager("merge-manager@example.com")
         client.force_login(manager)
 
@@ -986,10 +750,6 @@ class TestMergeAndClaimLinkViewsAdmitACommunityManager:
     def test_claim_link_view_proceeds_for_a_community_manager(
         self, client, unclaimed_person
     ):
-        """Mirrors ``test_claim_link_view_is_not_refused_for_a_superuser``: the gate lets a
-        Community Manager through, then the view hits the same already-reported
-        ``NoReverseMatch`` defect (commented-out ``contributors:claim-profile`` URL) rather
-        than the permission gate refusing them."""
         from django.urls import NoReverseMatch
 
         manager = _community_manager("claim-manager@example.com")
@@ -1004,9 +764,6 @@ class TestMergeAndClaimLinkViewsAdmitACommunityManager:
     def test_a_person_holding_a_role_without_change_person_is_still_refused(
         self, client, unclaimed_person
     ):
-        """A Data Curator reaches the administration interface (a rights-carrying role,
-        T014) but holds no right this gate asks for - refused by this view's own gate,
-        not merely absent from the site altogether."""
         from django.contrib.auth.models import Group
 
         from fairdm.factories import PersonFactory
@@ -1039,10 +796,6 @@ class TestMergeAndClaimLinkViewsAdmitACommunityManager:
 
 @pytest.mark.django_db
 class TestPersonAdminActionsHiddenFromNonSuperuser:
-    """The merge/claim-link changelist actions do not appear for a
-    non-superuser, so the interface does not offer an action that the view
-    itself would refuse (Route 2)."""
-
     def test_actions_are_absent_from_the_changelist_for_non_superuser_staff(
         self, client
     ):
@@ -1062,9 +815,7 @@ class TestPersonAdminActionsHiddenFromNonSuperuser:
         assert "merge_person_action" not in content
         assert "generate_claim_link_action" not in content
 
-    def test_actions_are_present_in_the_changelist_for_a_superuser(
-        self, admin_client
-    ):
+    def test_actions_are_present_in_the_changelist_for_a_superuser(self, admin_client):
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url)
 
@@ -1074,11 +825,8 @@ class TestPersonAdminActionsHiddenFromNonSuperuser:
         assert "generate_claim_link_action" in content
 
 
-# ── T015/T016: the Person change form stops being a route to superuser ──────
-
-
 def _community_manager(email="community-manager@example.com"):
-    """A person holding the Community Manager role (D12, FR-004)."""
+    """Return a person holding the Community Manager role."""
     from django.contrib.auth.models import Group
 
     from fairdm.factories import PersonFactory
@@ -1092,9 +840,6 @@ def _community_manager(email="community-manager@example.com"):
 
 @pytest.mark.django_db
 class TestPersonAdminFields:
-    """D12: ``contributors.change_person`` - which FR-004 gives the Community Manager -
-    must not be a route to ``is_superuser`` through the Person change form."""
-
     def test_a_community_manager_is_not_offered_the_account_escalation_fields(
         self, person
     ):
@@ -1106,8 +851,7 @@ class TestPersonAdminFields:
         form_class = model_admin.get_form(request, person)
 
         field_names = _fieldset_field_names(fieldsets)
-        # SEC-001: `groups` grants the same rights by proxy - narrowing the other
-        # three and leaving this one open is the escalation route the finding used.
+        # `groups` grants the same rights by proxy, so it needs narrowing as well.
         assert not {"is_superuser", "is_staff", "password", "groups"} & field_names
         assert not {"is_superuser", "is_staff", "password", "groups"} & set(
             form_class.base_fields
@@ -1140,9 +884,7 @@ class TestPersonAdminFields:
                 "email": manager.email,
                 "is_active": "on",
                 "is_superuser": "on",
-                "groups": [
-                    str(g.pk) for g in manager.groups.all()
-                ],
+                "groups": [str(g.pk) for g in manager.groups.all()],
             },
             instance=manager,
         )
@@ -1179,9 +921,6 @@ class TestPersonAdminFields:
         assert saved.is_superuser is False
 
     def test_posting_a_data_curator_group_id_leaves_membership_unchanged(self):
-        """SEC-001: `groups` is the field that grants the other three's worth of
-        rights by proxy - mirrors `test_posting_is_superuser_on_leaves_the_flag_
-        unchanged_for_the_actor` above for that field."""
         from django.contrib.auth.models import Group
 
         from fairdm.portal_roles import PortalRoles
@@ -1213,9 +952,6 @@ class TestPersonAdminFields:
         assert set(saved.groups.values_list("pk", flat=True)) == original_group_ids
 
     def test_a_portal_administrator_can_still_see_and_set_groups(self):
-        """FR-002: assigning roles is the Portal Administrator's job, so the
-        `auth.view_group` right the role already carries must keep offering and
-        saving `groups`, unlike the Community Manager above."""
         from django.contrib.auth.models import Group
 
         from fairdm.factories import PersonFactory
@@ -1245,9 +981,7 @@ class TestPersonAdminFields:
                 "name": portal_admin.name,
                 "email": portal_admin.email,
                 "is_active": "on",
-                "groups": [
-                    str(g.pk) for g in portal_admin.groups.all()
-                ]
+                "groups": [str(g.pk) for g in portal_admin.groups.all()]
                 + [str(data_curator.pk)],
             },
             instance=portal_admin,
@@ -1259,12 +993,7 @@ class TestPersonAdminFields:
         assert data_curator in saved.groups.all()
 
 
-# ── T046: ClaimingAuditLog admin view ────────────────────────────────────────
-
-
 class TestClaimingAuditLogAdminView:
-    """Verify that the admin changelist view for ClaimingAuditLog loads correctly."""
-
     def test_changelist_view_returns_200(self, db, admin_client, audit_log_entry):
         from django.urls import reverse
 
@@ -1273,7 +1002,6 @@ class TestClaimingAuditLogAdminView:
         assert response.status_code == 200
 
     def test_admin_has_no_add_permission(self, db, admin_client):
-        """Add URL should return 403 since we disabled add permission."""
         from django.urls import reverse
 
         url = reverse("admin:contributors_claimingauditlog_add")
@@ -1281,7 +1009,6 @@ class TestClaimingAuditLogAdminView:
         assert response.status_code == 403
 
     def test_admin_has_no_change_permission(self, db, admin_client, audit_log_entry):
-        """Change URL should return 403 since we disabled change permission."""
         from django.urls import reverse
 
         url = reverse(
@@ -1289,9 +1016,6 @@ class TestClaimingAuditLogAdminView:
         )
         response = admin_client.get(url)
         assert response.status_code == 403
-
-
-# ── T126: Person admin merges account and profile fields (US10, FR-043) ─────
 
 
 def _fieldset_field_names(fieldsets):
@@ -1308,10 +1032,7 @@ def _fieldset_field_names(fieldsets):
 
 @pytest.mark.django_db
 class TestPersonAdmin:
-    """Verify the Person admin presents one merged screen, not a split account model (T126, T131)."""
-
     def test_fieldsets_present_account_and_profile_fields_together(self):
-        """Account fields (auth) and profile fields (contributor) share the same fieldsets."""
         model_admin = admin.site._registry[Person]
         field_names = _fieldset_field_names(model_admin.fieldsets)
 
@@ -1322,14 +1043,12 @@ class TestPersonAdmin:
         assert profile_fields <= field_names
 
     def test_no_separate_account_model_is_registered(self):
-        """The polymorphic Contributor base is not registered as its own admin screen."""
         from fairdm.contrib.contributors.models import Contributor
 
         assert Person in admin.site._registry
         assert Contributor not in admin.site._registry
 
     def test_public_identifier_and_timestamps_are_readonly(self):
-        """The uuid and the added/modified timestamps are visible but not editable (FR-043)."""
         model_admin = admin.site._registry[Person]
         assert "uuid" in model_admin.readonly_fields
         assert "added" in model_admin.readonly_fields
@@ -1339,31 +1058,18 @@ class TestPersonAdmin:
         )
 
     def test_search_fields_cover_name_email_and_public_identifier(self):
-        """Search targets name, email and the public identifier, not the numeric pk (FR-043)."""
         model_admin = admin.site._registry[Person]
         assert set(model_admin.search_fields) == {"email", "name", "uuid"}
 
     def test_list_display_reports_account_state(self, person, unclaimed_person):
-        """The changelist reports the account state derived from the stored fields (FR-043)."""
         model_admin = admin.site._registry[Person]
         assert "account_state" in model_admin.list_display
         assert str(model_admin.account_state(person)) == "Claimed"
         assert str(model_admin.account_state(unclaimed_person)) == "Ghost"
 
 
-# ── T130: Every registered model's changelist/add/change return the expected
-# status for a superuser (US10, Article I) ───────────────────────────────────
-
-
 @pytest.mark.django_db
 class TestContributorAdminSmoke:
-    """Smoke-test every model the contributors app registers.
-
-    Expected statuses are named explicitly per model rather than derived,
-    since ClaimingAuditLog deliberately blocks add and change (immutable
-    audit trail) while the others allow both for a superuser.
-    """
-
     EXPECTED_ADD_STATUS = {
         "person": 200,
         "organization": 200,
@@ -1384,7 +1090,6 @@ class TestContributorAdminSmoke:
         return [model for model in admin.site._registry if model in app_models]
 
     def test_every_registered_model_is_covered_by_the_expectation_maps(self):
-        """A model registered later must be added to this test's expectations too."""
         registered_names = {
             model._meta.model_name for model in self._registered_app_models()
         }

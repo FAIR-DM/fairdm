@@ -1,5 +1,4 @@
-"""Setup module for mutating_broken_addon — appends to INSTALLED_APPS in
-place, then raises (T113)."""
+"""Setup module that appends to INSTALLED_APPS in place, then raises."""
 
 INSTALLED_APPS += ["tests.test_conf.mutating_broken_addon"]
 

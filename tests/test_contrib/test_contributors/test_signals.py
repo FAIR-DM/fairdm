@@ -1,9 +1,4 @@
-"""Tests for the email_confirmed signal handler.
-
-Verifies that handle_email_confirmed triggers claim_via_email() when an
-email address matching an unclaimed Person is confirmed, and is a no-op
-when the conditions are not met.
-"""
+"""Tests for the email_confirmed signal handler."""
 
 from unittest.mock import MagicMock, patch
 
@@ -12,7 +7,6 @@ import pytest
 
 @pytest.fixture
 def unclaimed_person_with_email(db):
-    """An unclaimed Person (Ghost/Invited state) with a known email address."""
     from fairdm.contrib.contributors.models import Person
 
     person = Person.objects.create_unclaimed(first_name="Signal", last_name="Test")
@@ -25,7 +19,6 @@ class TestHandleEmailConfirmed:
     def test_email_confirmed_triggers_claim_when_mandatory(
         self, db, unclaimed_person_with_email, settings
     ):
-        """When ACCOUNT_EMAIL_VERIFICATION='mandatory' and email matches, claim is triggered."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed
 
@@ -46,7 +39,6 @@ class TestHandleEmailConfirmed:
     def test_email_confirmed_no_op_when_not_mandatory(
         self, db, unclaimed_person_with_email, settings
     ):
-        """When ACCOUNT_EMAIL_VERIFICATION != 'mandatory', no claim is attempted."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed
 
@@ -66,7 +58,6 @@ class TestHandleEmailConfirmed:
     def test_email_confirmed_no_op_when_no_matching_unclaimed_person(
         self, db, settings
     ):
-        """When the confirmed email doesn't match any unclaimed Person, nothing happens."""
         from allauth.account.models import EmailAddress
         from allauth.account.signals import email_confirmed
 

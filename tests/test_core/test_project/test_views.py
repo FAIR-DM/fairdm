@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from django import forms
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.views.generic import CreateView
 from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains, assertNotContains
@@ -1332,3 +1332,24 @@ class TestProjectCardEmitsNoTemplateComments:
         assert "{#" not in html
         assert "#}" not in html
         assert "{%" not in html
+
+
+@pytest.mark.django_db
+class TestDeletionPageBackControl:
+    def test_the_back_control_is_a_non_empty_link_that_resolves(self, client):
+        project = ProjectFactory(name="Has A Back Link")
+        user = UserFactory()
+        assign_perm("delete_project", user, project)
+        client.force_login(user)
+        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+
+        response = client.get(url)
+        content = response.content.decode()
+
+        match = re.search(
+            r'<a[^>]*href="([^"]*)"[^>]*><i class="bi bi-arrow-left"', content
+        )
+        assert match is not None, "the back control is not rendered as a link"
+        back_href = match.group(1)
+        assert back_href != ""
+        resolve(back_href)

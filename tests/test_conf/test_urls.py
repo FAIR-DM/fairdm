@@ -1,17 +1,9 @@
-"""Route smoke tests for the ``markdownx/`` routes in ``fairdm/conf/urls.py``,
-which replace the ``martor/`` include they superseded (issue #266).
-"""
+"""Route smoke tests for the ``markdownx/`` routes in ``fairdm/conf/urls.py`` (#266)."""
 
 from django.urls import reverse
 
 
 class TestAccountCenterRoutes:
-    """T038 (django-accounts-center 0.8 BREAKING 3): the Account Center landing
-    page is now served by django-mvp's own ``mvp.urls``, mounted beside
-    ``dac.urls`` at the same ``account-center/`` prefix so the address and the
-    ``account-center`` URL name are unchanged, while the allauth management
-    pages ``dac.urls`` still authors keep rendering under that prefix too."""
-
     def test_reverse_account_center_still_resolves_to_the_same_address(self):
         assert reverse("account-center") == "/account-center/"
 
@@ -48,8 +40,9 @@ class TestMarkdownxRoutes:
         assert response.status_code == 405
 
     def test_image_upload_endpoint_is_not_exposed(self, db, client):
-        """The editor offers no image upload, and the library's upload view writes
-        to media storage without authenticating anyone, so it must not be routable."""
-        response = client.post("/markdownx/upload/", {}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        # The library's upload view writes to media storage without authenticating anyone.
+        response = client.post(
+            "/markdownx/upload/", {}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
 
         assert response.status_code == 404
