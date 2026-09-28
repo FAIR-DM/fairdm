@@ -1,19 +1,18 @@
-"""Create the five development accounts FairDM ships (FR-022 to FR-029, D7).
+"""Create the five development accounts FairDM ships.
 
 Nothing in the framework otherwise creates a *named* account: there is the one
 superuser a portal's environment variables produce, and a fake-data command for
 records. This command creates one account per shipped portal role and one
-holding none, through the ORM rather than a fixture - ``Person`` subclasses a
+holding none, through the ORM rather than a fixture. ``Person`` subclasses a
 polymorphic ``Contributor``, so a fixture row would need a content-type primary
-key that differs between databases, and a fixture cannot refuse to load at all
-(D7).
+key that differs between databases, and a fixture cannot refuse to load at all.
 
 The accounts share a published password (``password``, also written down in
-``docs/portal-development/development_accounts.md``), so the refusal below -
-not secrecy - is their whole safety outside development. ``fairdm.E501``
+``docs/portal-development/development_accounts.md``), so the refusal below, not
+secrecy, is their whole safety outside development. ``fairdm.E501``
 (``fairdm/conf/checks.py``) is the second line of defence: it reports any of
 these five addresses found on a portal this command never ran against, such as
-one restored from a production database copy (D16).
+one restored from a production database copy.
 """
 
 from django.apps import apps
@@ -24,12 +23,10 @@ from django.db import transaction
 
 from fairdm.portal_roles import PortalRoles
 
-#: The password every development account shares (FR-025). Published
-#: deliberately - see the module docstring - so this is not a secret to guard.
+#: The password every development account shares. Published deliberately, so not a secret.
 DEV_ACCOUNT_PASSWORD = "password"  # noqa: S105 - published development password, not a secret
 
-#: The five accounts the specification's *Key entities* table names, in table
-#: order: one per shipped role, and one holding none (FR-023, FR-024).
+#: One account per shipped role, and one holding none.
 DEV_ACCOUNTS = (
     {
         "first_name": "Portal",
@@ -63,12 +60,13 @@ DEV_ACCOUNTS = (
     },
 )
 
-#: The five addresses alone, for ``fairdm.E501`` to look for on a portal this
-#: command never ran against (D16).
+#: The five addresses alone, for ``fairdm.E501`` to look for.
 DEV_ACCOUNT_EMAILS = frozenset(account["email"] for account in DEV_ACCOUNTS)
 
 
 class Command(BaseCommand):
+    """Create the development accounts, one per portal role and one holding none."""
+
     help = (
         "Create the five development accounts (one per portal role, one "
         "holding none) so anyone building a portal on FairDM can sign in as "
@@ -77,12 +75,11 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        """Create the accounts, refusing outside an environment FairDM ships a non-production override for."""
         environment = apps.get_app_config("fairdm").resolved_environment()
 
-        # Deferred: fairdm.apps imports fairdm.conf.checks at module level,
-        # which is the pattern this check module follows too - a top-level
-        # import here would be circular the moment checks.py imports this
-        # command back for DEV_ACCOUNT_EMAILS.
+        # Deferred: `fairdm.apps` imports `fairdm.conf.checks`, which imports this module
+        # back for DEV_ACCOUNT_EMAILS, so a top-level import would be circular.
         from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
 
         if environment not in NON_PRODUCTION_ENVIRONMENTS:
@@ -99,6 +96,14 @@ class Command(BaseCommand):
                 self._create_or_reuse(account)
 
     def _create_or_reuse(self, account: dict) -> None:
+        """Create the account, or reuse the one already holding its address, and give it its role.
+
+        Args:
+            account: One entry of ``DEV_ACCOUNTS``.
+
+        Raises:
+            CommandError: The address already belongs to a person with a different name.
+        """
         from allauth.account.models import EmailAddress
 
         Person = get_user_model()
@@ -126,9 +131,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f"{email} already exists; left unchanged.")
 
-        # Marks the address confirmed so allauth's mandatory verification
-        # lets the account straight in (FR-026) - idempotent, and re-affirmed
-        # on every run regardless of how the account got here.
+        # Confirmed on every run so allauth's mandatory verification admits the account.
         EmailAddress.objects.update_or_create(
             user=person,
             email=email,

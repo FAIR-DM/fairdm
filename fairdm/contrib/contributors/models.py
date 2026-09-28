@@ -1,3 +1,5 @@
+"""Models for people, organisations, their identifiers and their credits on research objects."""
+
 import json
 import logging
 
@@ -28,8 +30,6 @@ from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
-
-# from polymorphic.models import PolymorphicModel
 from fairdm.db.models import PolymorphicModel
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
@@ -42,47 +42,37 @@ logger = logging.getLogger(__name__)
 
 
 def contributor_permissions_default() -> dict:
-    """Default permissions for contributions. Referenced by migration 0001."""
+    """Return the empty default permissions dict, which migration 0001 references.
+
+    Returns:
+        An empty dict.
+    """
     return {}
 
 
 class Contributor(PolymorphicMixin, PolymorphicModel):
-    """
-    Base model for contributors to research data.
+    """A person or organisation credited on projects, datasets, samples or measurements.
 
-    A Contributor represents a person or organization that makes contributions to
-    projects, datasets, samples, or measurements within the database. This model stores
-    publicly available information for proper attribution and formal publication, aligned
-    with DataCite Contributor schema.
-
-    This is a polymorphic model with two concrete implementations:
-    - Person: Individual contributors
-    - Organization: Institutional contributors
+    Holds the public information needed for attribution and publication, aligned with the
+    DataCite contributor schema. The model is polymorphic, with :class:`Person` and
+    :class:`Organization` as its concrete types, and :class:`Contribution` links a
+    contributor to a research object.
 
     Attributes:
-        uuid (ShortUUIDField): Public identifier for the contributor
-        image (ThumbnailerImageField): Profile image
-        name (CharField): Preferred name of the contributor
-        alternative_names (JSONField): Other names by which the contributor is known
-        profile (TextField): Free-text description
-        links (JSONField): URLs to related online resources
-        lang (JSONField): ISO 639-1 language preferences
-        location (ForeignKey): Geographic location
-        last_synced (DateField): Last synchronization timestamp
-        synced_data (JSONField): Raw data from external identifier sync
-        config (JSONField): General-purpose configuration data; this specification does
-            not define its contents
-        added (DateTimeField): Record creation timestamp
-        modified (DateTimeField): Record modification timestamp
-
-    Abstract Methods (implemented by subclasses):
-        - icon: Returns the icon identifier
-        - default_identifier: Returns the primary external identifier
-
-    See Also:
-        - Person: Individual contributor implementation
-        - Organization: Institutional contributor implementation
-        - Contribution: Links contributors to research objects
+        uuid: Public identifier.
+        image: Profile image.
+        name: Preferred name.
+        alternative_names: Other names by which the contributor is known.
+        profile: Free-text description.
+        links: URLs of related online resources.
+        lang: ISO 639-1 language codes.
+        last_synced: When the contributor was last synced with an external provider.
+        synced_data: Raw data from the external provider.
+        location: Geographic location.
+        config: General-purpose configuration data.
+        added: When the record was created.
+        modified: When the record was last modified.
+        tracker: Tracks field changes, used to stamp ``last_synced``.
     """
 
     uuid = ShortUUIDField(
@@ -208,43 +198,55 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default_related_name = "contributors"
 
     def save(self, *args, **kwargs):
-        """
-        Save the contributor instance.
-
-        Automatically updates the last_synced field when synced_data changes,
-        tracking when the contributor was last synchronized with external
-        providers (ORCID, ROR).
-        """
+        """Stamp ``last_synced`` when ``synced_data`` has changed, then save."""
         if self.tracker.has_changed("synced_data"):
             self.last_synced = timezone.now().date()
         super().save(*args, **kwargs)
 
     @staticmethod
     def base_class():
-        # this is required for many of the class methods in PolymorphicMixin
+        """Return ``Contributor``, which ``PolymorphicMixin`` needs as the base class."""
         return Contributor
 
     def __str__(self):
+        """Return the contributor's name."""
         return self.name
 
     def get_absolute_url(self):
+        """Return the URL of the contributor's overview page."""
         return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
+        """Return the URL of the contributor's edit page."""
         return reverse("contributor-update", kwargs={"uuid": self.uuid})
 
     def get_identifier_icon(self):
+        """Return the icon for the contributor's default identifier scheme.
+
+        Returns:
+            The rendered icon.
+        """
         return icon(self.DEFAULT_IDENTIFIER)
 
     def get_default_identifier(self):
+        """Return the contributor's identifier of the default scheme.
+
+        Returns:
+            The identifier, or None when there is none.
+        """
         return self.identifiers.filter(type=self.DEFAULT_IDENTIFIER).first()
 
     @property
     def default_identifier(self):
-        """Returns the default identifier for this contributor."""
+        """The contributor's identifier of the default scheme, or None."""
         return self.identifiers.filter(type=self.DEFAULT_IDENTIFIER).first()
 
     def profile_image(self):
+        """Return the URL of the profile image, or of the brand icon when there is none.
+
+        Returns:
+            The image URL.
+        """
         if self.image:
             return self.image.url
         return static("img/brand/icon.svg")
@@ -262,23 +264,29 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     @classproperty
     def type_of(cls):
-        # this is required for many of the class methods in PolymorphicMixin
+        """``Contributor``, which ``PolymorphicMixin`` needs as the base type."""
         return Contributor
 
     def type(self):
+        """Return the name of the concrete model, such as ``person``.
+
+        Returns:
+            The model name of the polymorphic content type.
+        """
         return self.polymorphic_ctype.model
 
     def credited_object_ids(self, base_model):
-        """Object ids of this contributor's credits whose content type is ``base_model``
-        or one of its polymorphic subclasses.
+        """Return the object ids of this contributor's credits on ``base_model`` or a subclass.
 
-        Django's multi-table inheritance gives every polymorphic subclass row the same
-        primary key as its base row, so these ids double as ``base_model`` primary keys
-        directly. That's what lets ``samples`` and ``measurements`` below find a credit
-        recorded against a concrete specimen or measurement type - ``Sample`` and
-        ``Measurement`` can never be instantiated directly, so every real credit is
-        stored under a subclass's own content type, which a ``GenericRelation`` reverse
-        query from the polymorphic base alone cannot match (FR-034).
+        Subclass rows share their base row's primary key, so the ids are also ``base_model``
+        primary keys. Credits on samples and measurements are stored under the concrete
+        subclass's content type, which a reverse ``GenericRelation`` from the base cannot match.
+
+        Args:
+            base_model: The polymorphic base model, such as ``Sample``.
+
+        Returns:
+            The credited objects' ids.
         """
         content_type_ids = self.contributions.values_list(
             "content_type_id", flat=True
@@ -297,37 +305,33 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
     @property
     def projects(self):
+        """The projects this contributor is credited on."""
         Project = apps.get_model("project.Project")
         return Project.objects.filter(contributors__contributor=self)
 
     @property
     def datasets(self):
+        """The datasets this contributor is credited on."""
         Dataset = apps.get_model("dataset.Dataset")
         return Dataset.objects.filter(contributors__contributor=self)
 
     @property
     def samples(self):
-        """Every specimen this contributor is credited on, resolved through the concrete
-        type each contribution actually names (FR-034; see ``credited_object_ids``)."""
+        """The samples this contributor is credited on, whatever their concrete type."""
         Sample = apps.get_model("sample.Sample")
         return Sample.objects.filter(pk__in=self.credited_object_ids(Sample))
 
     @property
     def measurements(self):
-        """Every measurement this contributor is credited on - see ``samples`` above."""
+        """The measurements this contributor is credited on, whatever their concrete type."""
         Measurement = apps.get_model("measurement.Measurement")
         return Measurement.objects.filter(pk__in=self.credited_object_ids(Measurement))
 
     def get_credit_counts(self):
-        """Report this contributor's credit count for each kind of research output
-        (FR-034).
-
-        Resolved in a bounded number of queries: one to group and count credits by
-        content type, plus one more per distinct content type encountered - at most
-        four, one for each of project, dataset, sample and measurement.
+        """Count this contributor's credits for each kind of research output.
 
         Returns:
-            dict: Mapping of each credited model's plural verbose name to its count.
+            A map of each credited model's plural verbose name to its count.
         """
         counts_by_type = self.contributions.values("content_type").annotate(
             total=Count("id")
@@ -342,53 +346,44 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return result
 
     def to_datacite(self):
-        """
-        Export contributor metadata in DataCite JSON format.
-
-        Returns DataCite-compatible creator/contributor object following
-        the DataCite Metadata Schema 4.4.
+        """Export the contributor as a DataCite 4.4 creator or contributor object.
 
         Returns:
-            dict: DataCite-formatted contributor metadata
+            The DataCite metadata.
         """
         from .utils.transforms import contributor_to_datacite
 
         return contributor_to_datacite(self)
 
     def to_schema_org(self):
-        """
-        Export contributor metadata in Schema.org JSON-LD format.
-
-        Returns Schema.org-compatible Person or Organization object.
+        """Export the contributor as a Schema.org ``Person`` or ``Organization``.
 
         Returns:
-            dict: Schema.org JSON-LD formatted contributor metadata
+            The JSON-LD metadata.
         """
         from .utils.transforms import contributor_to_schema_org
 
         return contributor_to_schema_org(self)
 
     def get_recent_contributions(self, limit: int = 5):
-        """
-        Get the most recent contributions by this contributor.
+        """Return the contributor's most recent contributions.
 
         Args:
-            limit: Maximum number of contributions to return (default: 5)
+            limit: Maximum number of contributions to return.
 
         Returns:
-            QuerySet: Recent Contribution objects ordered by creation date
+            Contributions, newest first.
         """
         return self.contributions.select_related("content_type").order_by("-id")[:limit]
 
     def get_contributions_by_type(self, model_name: str):
-        """
-        Get all contributions to a specific type of object (project, dataset, sample, measurement).
+        """Return the contributor's contributions to one type of object.
 
         Args:
-            model_name: Name of the model (e.g., 'project', 'dataset', 'sample', 'measurement')
+            model_name: The model name, such as ``project``, ``dataset``, ``sample`` or ``measurement``.
 
         Returns:
-            QuerySet: Contribution objects filtered by content type
+            Contributions to that type.
 
         Example:
             >>> person.get_contributions_by_type("project")
@@ -405,14 +400,13 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         )
 
     def has_contribution_to(self, obj) -> bool:
-        """
-        Check if this contributor has contributed to a specific object.
+        """Check whether this contributor is credited on an object.
 
         Args:
-            obj: A Project, Dataset, Sample, or Measurement instance
+            obj: A Project, Dataset, Sample or Measurement instance.
 
         Returns:
-            bool: True if contributor has contributed to the object, False otherwise
+            True when the contributor is credited on the object.
 
         Example:
             >>> person.has_contribution_to(my_project)
@@ -424,22 +418,18 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         ).exists()
 
     def get_co_contributors(self, limit: int | None = None):
-        """
-        Get other contributors who have contributed to the same objects as this contributor.
-
-        Returns contributors ordered by frequency of co-contribution (most frequent first).
+        """Return other contributors credited on the same objects, most frequent first.
 
         Args:
-            limit: Maximum number of co-contributors to return (default: all)
+            limit: Maximum number of co-contributors to return. Defaults to all.
 
         Returns:
-            QuerySet: Contributor objects ordered by co-contribution count
+            Contributors annotated with ``collaboration_count``.
 
         Example:
             >>> person.get_co_contributors(limit=5)
             <QuerySet [<Person: Jane Smith>, <Person: Bob Wilson>, ...]>
         """
-        # The (content_type, object_id) pairs this contributor is actually credited on.
         my_contributions = list(
             self.contributions.values_list("content_type_id", "object_id")
         )
@@ -448,10 +438,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
         from django.db.models import Count, Q
 
-        # Matches a contribution sharing one of *my* exact (content_type, object_id)
-        # pairs - not merely any of my content types together with any of my object
-        # ids, which two separate filter() calls would allow to pair up across
-        # different objects entirely.
+        # Match exact (content_type, object_id) pairs; separate filters could pair across objects.
         shared_credit = Q()
         for content_type_id, object_id in my_contributions:
             shared_credit |= Q(
@@ -475,7 +462,15 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return co_contributors
 
     def add_to(self, obj, roles=None):
-        """Adds the contributor to a project, dataset, sample or measurement."""
+        """Credit the contributor on an object, adding roles to any already recorded.
+
+        Args:
+            obj: A project, dataset, sample or measurement.
+            roles: Names of roles in the roles vocabulary.
+
+        Returns:
+            The contribution, created if it did not exist.
+        """
         if roles is None:
             roles = []
         contribution, _ = Contribution.objects.get_or_create(
@@ -489,20 +484,30 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            # accumulate, don't replace (FR-031, design review SPEC-001): a second
-            # credit under a new role must add to the roles already recorded, not
-            # discard them.
             contribution.roles.add(*roles_qs)
         return contribution
 
 
 class Person(AbstractUser, Contributor):
+    """An individual contributor who can also sign in as a user.
+
+    A person may be a ghost (no email), invited (email, unclaimed), claimed, or inactive.
+    See :attr:`account_state`.
+
+    Attributes:
+        DEFAULT_IDENTIFIER: The identifier scheme shown by default.
+        objects: The person manager.
+        email: Login address, null for an unclaimed profile created for attribution alone.
+        is_claimed: Whether the person has claimed the account.
+        USERNAME_FIELD: The field used to sign in, which is the email.
+        REQUIRED_FIELDS: Fields required by ``createsuperuser``, which is none.
+        username: Removed, as people sign in by email.
+    """
+
     DEFAULT_IDENTIFIER = "ORCID"
 
     objects = UserManager()  # type: ignore[var-annotated]
 
-    # null is allowed for the email field, as a Person object/User account can be created by someone else. E.g. when
-    # adding a new contributor to a database entry.
     email = models.EmailField(
         _("email address"),
         help_text=_(
@@ -511,11 +516,7 @@ class Person(AbstractUser, Contributor):
         ),
         null=True,
         blank=True,
-        # Django's auth checks require the field named by USERNAME_FIELD to be
-        # unique (auth.W004), and they read this flag rather than Meta.constraints.
-        # The case-insensitive constraint in Meta is the stronger rule and the one
-        # that actually stops two people sharing an address; this keeps Django's own
-        # contract satisfied rather than silencing the check that states it.
+        # auth.W004 reads this flag, not Meta.constraints. The case-insensitive constraint is the real rule.
         unique=True,
     )
 
@@ -548,26 +549,24 @@ class Person(AbstractUser, Contributor):
         ]
 
     def __str__(self):
+        """Return the person's name."""
         return self.name
 
     def save(self, *args, **kwargs):
-        """Save Person, auto-populating name from first/last if blank."""
+        """Fill a blank name from the first and last names, then save."""
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
 
     @property
     def account_state(self) -> AccountState:
-        """The person's account state, derived rather than stored (decisions.md D8).
+        """The person's account state, derived from ``is_active``, ``is_claimed`` and ``email``.
 
-        Computed from `is_active`, `is_claimed` and `email` in a fixed
-        precedence, so it can never disagree with the fields it reads:
-        inactive if the account is deactivated, otherwise claimed, otherwise
-        invited if an email address is present, otherwise ghost.
-        `PersonQuerySet`'s four state filters mirror this exact ordering.
+        The precedence is inactive, then claimed, then invited when there is an email, then ghost.
+        The ``PersonQuerySet`` state filters mirror this order.
 
         Returns:
-            AccountState: exactly one of INACTIVE, CLAIMED, INVITED or GHOST.
+            Exactly one of INACTIVE, CLAIMED, INVITED or GHOST.
         """
         if not self.is_active:
             return AccountState.INACTIVE
@@ -578,7 +577,7 @@ class Person(AbstractUser, Contributor):
         return AccountState.GHOST
 
     def clean(self):
-        """Validate Person fields including email, URLs, and ORCID format."""
+        """Normalise the email and validate it, the links and the ORCID iD."""
         import re
 
         from django.core.exceptions import ValidationError
@@ -586,21 +585,14 @@ class Person(AbstractUser, Contributor):
 
         super().clean()
 
-        # Clean empty email to None
         if self.email == "":
             self.email = None
 
-        # Prevent claimed users from nulling their email. Reads the stored claim
-        # value (is_claimed) rather than has_usable_password()/is_active - those
-        # describe something else and reading them here was a fourth site
-        # deciding claim status from the wrong thing (design review RECON-001,
-        # decisions.md D8, D21).
         if self.pk and self.is_claimed and self.email is None:
             raise ValidationError(
                 {"email": _("Claimed users cannot remove their email address.")}
             )
 
-        # Validate and normalize email if provided
         if self.email:
             try:
                 validate_email(self.email)
@@ -608,10 +600,9 @@ class Person(AbstractUser, Contributor):
                 raise ValidationError(
                     {"email": _("Enter a valid email address.")}
                 ) from None
-            # Fully lowercase the email (Django only lowercases domain)
+            # Django's normalisation lowercases only the domain.
             self.email = self.email.lower()
 
-        # Validate URLs in links array
         if self.links:
             url_validator = URLValidator()
             for url in self.links:
@@ -622,7 +613,6 @@ class Person(AbstractUser, Contributor):
                         {"links": _("Invalid URL: %(url)s") % {"url": url}}
                     ) from None
 
-        # Validate ORCID format if present
         if self.pk and (orcid := self.identifiers.filter(type="ORCID").first()):
             orcid_pattern = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
             if not re.match(orcid_pattern, orcid.value):
@@ -637,17 +627,30 @@ class Person(AbstractUser, Contributor):
                 )
 
     def orcid(self):
+        """Return the person's ORCID identifier.
+
+        Returns:
+            The identifier, or None when there is none.
+        """
         return self.identifiers.filter(type="ORCID").first()
 
     def get_provider(self, provider: str):
+        """Return the person's social account for a provider.
+
+        Args:
+            provider: The allauth provider id, such as ``orcid``.
+
+        Returns:
+            The social account, or None when there is none.
+        """
         qs = self.socialaccount_set.filter(provider=provider)  # type: ignore[attr-defined]
         return qs.get() if qs else None
 
     def primary_affiliation(self):
-        """Returns the primary affiliation for the contributor.
+        """Return the person's primary affiliation.
 
         Returns:
-            Affiliation or None: The primary organizational affiliation, or None if not set.
+            The primary affiliation, or None when none is set.
         """
         return (
             self.affiliations.select_related("organization")
@@ -656,12 +659,10 @@ class Person(AbstractUser, Contributor):
         )
 
     def current_affiliations(self):
-        """Get all current affiliations for this person.
-
-        Returns affiliations that have no end_date (active) and are verified (type >= MEMBER).
+        """Return the person's verified affiliations that have not ended.
 
         Returns:
-            QuerySet: Current Affiliation objects.
+            Affiliations with no end date and a type of member or above.
         """
         return self.affiliations.select_related("organization").filter(
             end_date__isnull=True, type__gte=1
@@ -669,27 +670,24 @@ class Person(AbstractUser, Contributor):
 
     @property
     def given(self):
-        """Alias for self.first_name."""
+        """The person's first name."""
         return self.first_name
 
     @property
     def family(self):
-        """Alias for self.last_name."""
+        """The person's last name."""
         return self.last_name
 
     def get_full_name_display(self, name_format: str = "given_family") -> str:
-        """
-        Get formatted full name with various display options.
+        """Format the person's name.
 
         Args:
-            name_format: Display format - one of:
-                - "given_family": "John Doe" (default)
-                - "family_given": "Doe, John"
-                - "family_initial": "Doe, J."
-                - "initials_family": "J. Doe"
+            name_format: One of ``given_family`` ("John Doe"), ``family_given`` ("Doe, John"),
+                ``family_initial`` ("Doe, J.") or ``initials_family`` ("J. Doe").
+                Any other value is treated as ``given_family``.
 
         Returns:
-            str: Formatted full name, falls back to self.name if components missing
+            The formatted name, or ``name`` when the first and last names are both empty.
         """
         if not self.first_name and not self.last_name:
             return self.name
@@ -712,41 +710,42 @@ class Person(AbstractUser, Contributor):
             initial = f"{first[0]}." if first else ""
             parts = [p for p in [initial, last] if p]
             return " ".join(parts) if parts else self.name
-        else:  # given_family (default)
+        else:
             parts = [p for p in [first, last] if p]
             return " ".join(parts) if parts else self.name
 
     @property
     def orcid_is_authenticated(self):
+        """Whether the person has signed in with ORCID."""
         return self.get_provider("orcid") is not None
 
     def icon(self):
+        """Return the icon name, showing whether the ORCID iD is authenticated.
+
+        Returns:
+            ``orcid`` or ``orcid_unauthenticated``.
+        """
         if self.orcid_is_authenticated:
             return "orcid"
         return "orcid_unauthenticated"
 
     @classmethod
     def from_orcid(cls, orcid_id):
-        """Create a person from ORCID data.
-
-        Creates the Person instance synchronously using ORCIDTransform,
-        then schedules async task for full ORCID data sync.
+        """Create or update a person from ORCID data and schedule a full sync after commit.
 
         Args:
-            orcid_id: ORCID identifier (e.g., '0000-0002-1825-0097')
+            orcid_id: The ORCID iD, such as ``0000-0002-1825-0097``.
 
         Returns:
-            Person: Created or updated Person instance
+            The created or updated person.
         """
         from django.db import transaction
 
         from .tasks import sync_contributor_identifier
         from .utils.transforms import ORCIDTransform
 
-        # Create/update person synchronously
         person = ORCIDTransform.update_or_create(orcid_id)
 
-        # Schedule async sync task after commit
         if person and person.pk:
             orcid_identifier = person.identifiers.filter(type="ORCID").first()
             if orcid_identifier:
@@ -757,7 +756,11 @@ class Person(AbstractUser, Contributor):
         return person
 
     def as_geojson(self):
-        """Returns the organization as a GeoJSON object."""
+        """Return the primary affiliation's organisation location as a GeoJSON feature.
+
+        Returns:
+            The feature as a JSON string, or None when there is no located affiliation.
+        """
         aff = self.primary_affiliation()
         if aff and aff.organization.location:
             org = aff.organization
@@ -780,7 +783,11 @@ class Person(AbstractUser, Contributor):
         return None
 
     def get_location_display(self):
-        """Get a human-readable location string."""
+        """Return the primary affiliation's organisation city and country.
+
+        Returns:
+            The location text, or None when there is no primary affiliation.
+        """
         aff = self.primary_affiliation()
         if aff and aff.organization:
             org = aff.organization
@@ -794,34 +801,29 @@ class Person(AbstractUser, Contributor):
 
 
 class Affiliation(models.Model):
-    """An affiliation linking a person to an organization with time bounds and verification state.
+    """A person's membership of an organisation, with time bounds and a verification state.
 
-    The type field implements a security state machine:
-        PENDING (0): User-declared, awaiting verification
-        MEMBER (1): Verified by existing member
-        ADMIN (2): Can manage organization and approve pending members
-        OWNER (3): Full management rights, maps to manage_organization permission
-
-    Setting ``end_date`` ends any rights the affiliation's type would
-    otherwise confer - an OWNER affiliation with an end_date no longer
-    grants ``manage_organization``, for example - because rights derived
-    from an affiliation are read off its *current* state, not its type
-    alone (see ``AffiliationQuerySet.owners()``).
+    The type runs from pending (declared, unverified) through member and admin to owner,
+    which maps to ``manage_organization``. Setting ``end_date`` ends the rights the type
+    confers, as ``AffiliationQuerySet.owners()`` reads only current affiliations.
 
     Attributes:
+        objects: The affiliation manager.
+        tracker: Tracks field changes.
         person: The affiliated person.
-        organization: The organization.
-        type: Security/verification state (0-3).
+        organization: The organisation.
+        type: The verification state and role, from 0 to 3.
         is_primary: Whether this is the person's primary affiliation for citation.
-        start_date: When the affiliation began (PartialDateField for variable precision).
-        end_date: When it ended; NULL means active. Ends any rights the
-            affiliation's type conferred.
+        start_date: When the affiliation began, with variable precision.
+        end_date: When it ended. Null means it is still active.
     """
 
     objects = AffiliationManager()  # type: ignore[var-annotated]
     tracker = FieldTracker()
 
     class MembershipType(models.IntegerChoices):
+        """Verification state and role within an organisation."""
+
         PENDING = 0, _("Pending")
         MEMBER = 1, _("Member")
         ADMIN = 2, _("Admin")
@@ -898,9 +900,7 @@ class Affiliation(models.Model):
         ]
 
     def clean(self):
-        """Refuse a second membership of the same organisation with a readable
-        message, rather than leaving the person to discover it as a database
-        error (FR-021)."""
+        """Refuse a second membership of the same organisation with a readable message."""
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -921,13 +921,7 @@ class Affiliation(models.Model):
                 )
 
     def save(self, *args, **kwargs):
-        """Ensure only one primary affiliation per person.
-
-        The demotion of any other primary affiliation and this save happen
-        inside one transaction (FR-024): if the save fails, the demotion is
-        rolled back too, rather than leaving the person with none marked
-        primary.
-        """
+        """Demote the person's other primary affiliation in the same transaction, then save."""
         if self.is_primary:
             from django.db import transaction
 
@@ -940,17 +934,25 @@ class Affiliation(models.Model):
             super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return the person and organisation."""
         return f"{self.person} - {self.organization}"
 
 
-# Backward-compatible alias
 OrganizationMember = Affiliation
 
 
 class Organization(Contributor):
-    """An organization is a contributor that represents a group of people, such as a university, research institute,
-    company or government agency. Organizations can have multiple members and can be affiliated with other organizations.
-    Organizations can also have sub-organizations, such as departments or research groups.
+    """A contributor that represents a group of people, such as a university, institute, company or agency.
+
+    An organisation can have members and sub-organisations, such as departments or research groups.
+
+    Attributes:
+        DEFAULT_IDENTIFIER: The identifier scheme shown by default.
+        type: The kind of institution, from ROR's organisation types.
+        members: The people affiliated with the organisation.
+        parent: The organisation this one is part of.
+        city: The city where the organisation is based.
+        country: The country where the organisation is based.
     """
 
     DEFAULT_IDENTIFIER = "ROR"
@@ -1008,12 +1010,12 @@ class Organization(Contributor):
 
     @property
     def lat(self):
-        """Backwards-compatible property for latitude."""
+        """The location's latitude, or None without a location."""
         return self.location.latitude if self.location else None
 
     @property
     def lon(self):
-        """Backwards-compatible property for longitude."""
+        """The location's longitude, or None without a location."""
         return self.location.longitude if self.location else None
 
     class Meta:
@@ -1022,16 +1024,16 @@ class Organization(Contributor):
         default_related_name = "organizations"
 
     def __str__(self):
+        """Return the organisation's name."""
         return self.name
 
     def clean(self):
-        """Validate Organization fields including URLs and ROR format."""
+        """Validate the links and the ROR identifier."""
         from django.core.exceptions import ValidationError
         from django.core.validators import URLValidator
 
         super().clean()
 
-        # Validate URLs in links array
         if self.links:
             url_validator = URLValidator()
             for url in self.links:
@@ -1042,9 +1044,8 @@ class Organization(Contributor):
                         {"links": _("Invalid URL: %(url)s") % {"url": url}}
                     ) from None
 
-        # Validate ROR format if present (only if saved - identifiers don't exist before save)
+        # Identifiers exist only after the first save.
         if self.pk and (ror := self.identifiers.filter(type="ROR").first()):
-            # ROR IDs are alphanumeric strings starting with 0
             ror_pattern = r"^0[a-z0-9]{6}[0-9]{2}$"
             import re
 
@@ -1060,14 +1061,7 @@ class Organization(Contributor):
 
     @hook(AFTER_CREATE)
     def update_identifier(self):
-        """
-        Extract and create ROR identifier after organization creation.
-
-        This lifecycle hook automatically creates a ContributorIdentifier
-        record when an organization is created with ROR data in synced_data.
-        This ensures proper external identifier linking for organizations
-        imported from ROR.
-        """
+        """Create the ROR identifier from ``synced_data`` after the organisation is created."""
         if self.synced_data:
             ror = self.synced_data.get("id")
             if ror:
@@ -1075,27 +1069,22 @@ class Organization(Contributor):
 
     @classmethod
     def from_ror(cls, ror, commit=True):
-        """Create an organization from a ROR ID.
-
-        Creates the Organization instance synchronously using RORTransform,
-        then schedules async task for full ROR data sync if commit=True.
+        """Create or update an organisation from a ROR record and, when committing, schedule a full sync after commit.
 
         Args:
-            ror: ROR identifier (e.g., 'https://ror.org/04aj4c181')
-            commit: Whether to save the instance (default: True)
+            ror: The ROR identifier, such as ``https://ror.org/04aj4c181``.
+            commit: Whether to save the instance.
 
         Returns:
-            Organization: Created or updated Organization instance
+            The created or updated organisation.
         """
         from django.db import transaction
 
         from .tasks import sync_contributor_identifier
         from .utils.transforms import RORTransform
 
-        # Create/update organization synchronously
         org = RORTransform.update_or_create(ror, commit)
 
-        # Schedule async sync task after commit (only if committing)
         if commit and org and org.pk:
             ror_identifier = org.identifiers.filter(type="ROR").first()
             if ror_identifier:
@@ -1106,58 +1095,44 @@ class Organization(Contributor):
         return org
 
     def icon(self):
+        """Return the icon name.
+
+        Returns:
+            ``organization``.
+        """
         return "organization"
 
     def get_memberships(self):
-        """
-        Returns a queryset of all memberships related to this instance, with related 'person' objects fetched efficiently using select_related.
+        """Return the organisation's affiliations with their people loaded.
 
         Returns:
-            QuerySet: A queryset of Membership objects associated with this instance, with related Person objects prefetched.
+            Affiliations with ``person`` selected.
         """
         return self.affiliations.select_related("person").all()
 
     def owner(self):
-        """Returns the organization's current owner, or None if it has none.
+        """Return the organisation's current owner, derived through ``AffiliationQuerySet.owners()``.
 
-        Derived through ``AffiliationQuerySet.owners()`` - a current
-        (``end_date`` is NULL) affiliation of type OWNER - so an OWNER
-        affiliation whose end_date has been set no longer counts, even
-        though its type still reads OWNER (Defect A).
+        Returns:
+            The owner, or None when there is none.
         """
         if membership := self.get_memberships().owners().first():
             return membership.person
         return None
 
     def transfer_ownership(self, new_owner):
-        """Transfer ownership of this organization to an existing member.
+        """Make an existing member the owner, demoting each current owner to admin, atomically.
 
-        Demotes each *current* incumbent owner to administrator and promotes
-        ``new_owner`` to owner in one atomic operation (FR-029). Management
-        rights are derived from the affiliation's type at check time (D13)
-        rather than stored, so this method changes only the affiliation
-        records: no permission is granted, revoked or written anywhere.
-        Only current OWNER affiliations (``AffiliationQuerySet.owners()``)
-        are demoted - an affiliation that already carries an end date is
-        history and is left exactly as it is (Defect A).
-
-        ``new_owner`` must hold a current (no end_date) affiliation of type
-        MEMBER or higher, and must be an active, claimed person. A pending,
-        self-declared affiliate; an affiliation that has already ended; an
-        unclaimed profile nobody controls; or a deactivated account would
-        each hand control of the organization to someone who cannot be the
-        intended new owner (Defect C), so each is refused with its own
-        message.
+        Only affiliation records change, as management rights are derived from them.
+        Ended affiliations are left as they are.
 
         Args:
-            new_owner: The Person to become the organization's owner. Must
-                already hold a current, verified affiliation with this
-                organization, and be an active, claimed account.
+            new_owner: The person to become owner. Must be an active, claimed account with a
+                current affiliation of member type or above.
 
         Raises:
-            ValidationError: If ``new_owner`` is not a member of this
-                organization, holds only a pending or already-ended
-                affiliation, or is an unclaimed or deactivated account.
+            ValidationError: The person is not a member, holds a pending or ended affiliation,
+                or is an unclaimed or deactivated account.
         """
         from django.core.exceptions import ValidationError
         from django.db import transaction
@@ -1196,7 +1171,11 @@ class Organization(Contributor):
             new_owner_affiliation.save()
 
     def as_geojson(self):
-        """Returns the organization as a GeoJSON object."""
+        """Return the organisation's location as a GeoJSON feature.
+
+        Returns:
+            The feature as a JSON string, or None when there is no location.
+        """
         if not self.location:
             return None
         return json.dumps(
@@ -1217,7 +1196,11 @@ class Organization(Contributor):
         )
 
     def get_location_display(self):
-        """Get a human-readable location string."""
+        """Return the organisation's city and country.
+
+        Returns:
+            The location text, or None when both are empty.
+        """
         parts = []
         if self.city:
             parts.append(self.city)
@@ -1226,24 +1209,28 @@ class Organization(Contributor):
         return ", ".join(parts) if parts else None
 
 
-# Shared by Contribution.Meta's UniqueConstraint and Contribution.clean(), so a form
-# validating before save and a raw insert refuse a duplicate credit with the same wording.
 CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
     "This contributor is already credited on this object."
 )
 
-# Shared by Contribution.clean() and refuse_off_vocabulary_role (the m2m_changed
-# receiver in receivers.py that actually enforces this - see that module for why
-# clean() alone never runs on a write), so both refuse an off-vocabulary role with the
-# same wording.
 CONTRIBUTION_ROLES_VOCABULARY_MESSAGE = _(
     "A contribution's roles must be drawn from the framework's roles vocabulary."
 )
 
 
 class Contribution(LifecycleModelMixin, OrderedModel):
-    """A contributor is a person or organisation that has contributed to the project or
-    dataset. This model is based on the Datacite schema for contributors."""
+    """A contributor's credit on a project, dataset, sample or measurement, based on the DataCite contributor schema.
+
+    Attributes:
+        ROLES_VOCAB: The roles vocabulary.
+        objects: The contribution manager.
+        content_type: The type of the credited object.
+        object_id: The id of the credited object.
+        content_object: The credited object.
+        contributor: The person or organisation credited.
+        roles: The roles held on this credit.
+        affiliation: The organisation the contributor is affiliated with for this credit.
+    """
 
     ROLES_VOCAB = FairDMRoles()
     objects = ContributionManager()
@@ -1285,7 +1272,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         related_name="+",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,  # Prevent deletion of the Organization if there are contributions associated with it
+        on_delete=models.PROTECT,
     )
 
     class Meta:
@@ -1307,28 +1294,12 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         ordering = ["object_id", "order"]
 
     def clean(self):
-        """Refuse a second credit for the same contributor/object pairing, with the same
-        message the named UniqueConstraint carries (FR-031, Article IX), and refuse a role
-        drawn from any vocabulary other than the framework's roles vocabulary (FR-032,
-        design review SPEC-001).
-
-        The roles check below is not what actually enforces FR-032 - Django never
-        validates many-to-many data in full_clean(), self.roles on a saved instance
-        reads what is already stored rather than what a caller is about to write, and
-        no write path calls full_clean() before writing anyway. The real enforcement is
-        refuse_off_vocabulary_role, an m2m_changed receiver on Contribution.roles.through
-        (receivers.py, registered in apps.py), which sees every add()/set() before it
-        commits. This stays because it costs nothing and documents the rule at the model,
-        and because it does catch a role already stored by some means that bypassed the
-        receiver (a fixture, a raw SQL load, a future direct through-table write).
-        """
+        """Refuse a duplicate credit and any stored role outside the roles vocabulary."""
         from django.core.exceptions import ValidationError
 
         super().clean()
 
-        # clean() also runs on partially-bound instances — a generic inline formset
-        # validates its forms before the parent object supplies the content type — so
-        # the pairing can only be checked once all three of its parts are present.
+        # Inline formsets validate before the parent supplies the content type, so wait for all three parts.
         if self.content_type_id and self.object_id and self.contributor_id:
             duplicate = (
                 Contribution.objects.exclude(pk=self.pk)
@@ -1342,12 +1313,23 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             if duplicate:
                 raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
 
+        # Many-to-many data is not validated on save; `refuse_off_vocabulary_role` is the real enforcement.
         if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
             raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
 
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
-        """Add a contributor to an object with specified roles and affiliation."""
+        """Credit a contributor on an object, adding roles to any already recorded.
+
+        Args:
+            contributor: The person or organisation to credit.
+            obj: The project, dataset, sample or measurement.
+            roles: Names of roles in the roles vocabulary.
+            affiliation: The organisation to set on a newly created credit.
+
+        Returns:
+            The contribution, created if it did not exist.
+        """
         contribution, _created = cls.objects.get_or_create(
             contributor=contributor,
             content_type=ContentType.objects.get_for_model(obj),
@@ -1360,19 +1342,16 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             roles_qs = Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             )
-            # accumulate, don't replace (FR-031, design review SPEC-001): a second
-            # credit under a new role must add to the roles already recorded, not
-            # discard them.
             contribution.roles.add(*roles_qs)
         return contribution
 
     def save(self, *args, **kwargs):
+        """Refuse to credit a superuser outside debug mode, then save."""
         if (
             self.contributor.type_of == Person
             and self.contributor.is_superuser
             and settings.DEBUG is False
         ):
-            # disallow superusers from being contributors
             raise ValueError(
                 _(
                     "Superusers cannot be contributors. Please remove the superuser status or use a different account."
@@ -1382,37 +1361,34 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         return super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return the credited contributor."""
         return force_str(self.contributor)
 
     def __repr__(self):
+        """Return the contributor and roles."""
         return f"<{self.contributor}: {self.roles}>"
 
     @hook(BEFORE_CREATE)
     def set_default_affiliation(self):
-        """
-        Automatically set affiliation for person contributors.
-
-        If a contribution is being created by a Person and no affiliation
-        is specified, this hook will use the person's primary organizational
-        affiliation as the default. This ensures proper attribution and
-        organizational linking for contributions.
-
-        Only runs before contribution creation and only for Person contributors.
-        """
+        """Default a new person's credit to their primary affiliation."""
         if not self.affiliation and self.is_person():  # noqa: SIM102
-            # Set the users primary_affiliation as default
             if org := self.contributor.affiliations.filter(is_primary=True).first():
                 self.affiliation = org.organization
 
     def is_person(self):
-        """Check if the contributor is a person."""
+        """Check whether the contributor is a person.
+
+        Returns:
+            True when the contributor is a ``Person``.
+        """
         return isinstance(self.contributor, Person)
 
     def get_absolute_url(self):
-        """Returns the absolute url of the contributor's profile."""
+        """Return the URL of the contributor's profile."""
         return self.contributor.get_absolute_url()
 
     def get_update_url(self):
+        """Return the URL of the edit page for the credited object's contributors."""
         related_name = self.content_object._meta.model_name
         letter = related_name[0]
         return reverse(
@@ -1422,12 +1398,14 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
 
 class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
-    """External identifiers for a Contributor (``Person`` or ``Organization``).
+    """An external identifier of a contributor, such as an ORCID iD or a ROR id.
 
-    Drawn from the contributor identifier collection
-    (``FairDMIdentifiers.from_collection("Contributor")``), the union of the
-    person and organisation collections rather than the unscoped vocabulary -
-    a person cannot hold a specimen identifier such as IGSN (005 F1/F2).
+    Types are drawn from the contributor identifier collection, so a person cannot hold a
+    specimen identifier such as an IGSN.
+
+    Attributes:
+        VOCABULARY: The identifier types a contributor may hold.
+        related: The contributor the identifier belongs to.
     """
 
     VOCABULARY = FairDMIdentifiers.from_collection("Contributor")
@@ -1439,12 +1417,7 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
     )
 
     def clean(self):
-        """A contributor must not carry two identifiers of the same type (FR-038).
-
-        The database constraint (``contributoridentifier_unique_type``) already
-        refuses this; this adds a message naming the type so a form or admin caller
-        sees why, ahead of the constraint's own generic message.
-        """
+        """Refuse a second identifier of the same type, with a message naming the type."""
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -1467,11 +1440,7 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
 
     @hook(AFTER_CREATE)
     def dispatch_sync_task(self):
-        """Dispatch async Celery task to sync data from external API.
-
-        Uses transaction.on_commit() to ensure the identifier is visible
-        in the database before the task runs.
-        """
+        """Queue a sync with the external provider once the transaction commits."""
         from django.db import transaction
 
         def _dispatch():
@@ -1488,6 +1457,8 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
 
 
 class ClaimMethod(models.TextChoices):
+    """The ways a profile can be claimed."""
+
     ORCID = "orcid", _("ORCID Social Login")
     EMAIL = "email", _("Email Verification")
     TOKEN = "token", _("Claim Token Link")
@@ -1496,18 +1467,49 @@ class ClaimMethod(models.TextChoices):
 
 
 class ClaimingAuditLogManager(models.Manager):
+    """Manager with filters for the claiming audit log."""
+
     def for_person(self, pk):
+        """Filter to events where the person was the source or the target.
+
+        Args:
+            pk: The person's primary key.
+
+        Returns:
+            Matching log entries.
+        """
         return self.filter(
             models.Q(source_person_id=pk) | models.Q(target_person_id=pk)
         )
 
     def failures(self):
+        """Filter to failed claim attempts.
+
+        Returns:
+            Log entries where ``success`` is false.
+        """
         return self.filter(success=False)
 
     def by_method(self, method: str):
+        """Filter to one claiming method.
+
+        Args:
+            method: A :class:`ClaimMethod` value.
+
+        Returns:
+            Matching log entries.
+        """
         return self.filter(method=method)
 
     def recent(self, days: int = 30):
+        """Filter to events within the last few days.
+
+        Args:
+            days: How many days back to include.
+
+        Returns:
+            Matching log entries.
+        """
         from datetime import timedelta
 
         from django.utils import timezone as tz
@@ -1517,10 +1519,19 @@ class ClaimingAuditLogManager(models.Manager):
 
 
 class ClaimingAuditLog(models.Model):
-    """Immutable audit trail for all profile claiming events.
+    """Immutable audit trail of profile claiming events, created once and never updated.
 
-    Records are never modified or deleted — only created. The save() override
-    enforces immutability at the application layer.
+    Attributes:
+        objects: The audit log manager.
+        timestamp: When the event happened.
+        method: How the profile was claimed.
+        source_person: The unclaimed person being claimed.
+        target_person: The resulting claimed person.
+        initiated_by: The admin who started the claim, when admin-driven.
+        ip_address: The requester's IP address.
+        success: Whether the claim succeeded.
+        failure_reason: Why the claim failed.
+        details: Extra structured details.
     """
 
     objects = ClaimingAuditLogManager()
@@ -1584,6 +1595,7 @@ class ClaimingAuditLog(models.Model):
         ordering = ["-timestamp"]
 
     def save(self, *args, **kwargs):
+        """Refuse to update an existing entry, then save."""
         if self.pk:
             raise ValueError(
                 "ClaimingAuditLog records are immutable and cannot be updated."
@@ -1591,10 +1603,12 @@ class ClaimingAuditLog(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return the method, both people and the outcome."""
         return f"{self.method} | {self.source_person} → {self.target_person} | {'✓' if self.success else '✗'}"
 
 
 def forwards():
+    """Keep one primary email address for each user with several, preferring the one matching the user's email."""
     EmailAddress = apps.get_model("account.EmailAddress")
     User = apps.get_model(settings.AUTH_USER_MODEL)
     user_email_field = getattr(settings, "ACCOUNT_USER_MODEL_EMAIL_FIELD", "email")

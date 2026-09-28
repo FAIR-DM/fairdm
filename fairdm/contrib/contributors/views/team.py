@@ -1,3 +1,5 @@
+"""Public team page listing the people who hold portal roles."""
+
 from django.contrib.auth.models import Group
 from django.db.models import Prefetch
 from django.utils.translation import gettext_lazy as _
@@ -9,11 +11,9 @@ from ..models import Person
 
 
 class TeamView(FairDMTemplateView):
-    """Who runs the portal, grouped by the portal role each person holds.
+    """Public page listing the active holders of each portal role, leaving out roles nobody holds.
 
-    Public (FR-031), lists active holders only (FR-030), a role nobody holds
-    is left off (FR-034), and shows portal roles only - never a
-    `Contribution`'s role (FR-035).
+    Only portal roles are shown, never a contribution's role.
     """
 
     template_name = "contributors/team.html"
@@ -39,6 +39,7 @@ class TeamView(FairDMTemplateView):
     grid_config = {"cols": 1, "md": 2, "lg": 4, "gap": 4}
 
     def get_context_data(self, **kwargs):
+        """Add the roles with their holders and the grid settings."""
         context = super().get_context_data(**kwargs)
         context["roles"] = self.get_roles()
         context["list_item_template"] = self.list_item_template
@@ -46,11 +47,12 @@ class TeamView(FairDMTemplateView):
         return context
 
     def get_roles(self):
-        """Each shipped role paired with its active holders, in declaration order.
+        """Pair each shipped role with its active holders, in declaration order.
 
-        One query for the role groups and one more, via `Prefetch`, for their
-        members - the same two queries however many roles or holders exist, so
-        the page's query count does not grow with the number of holders.
+        Uses two queries however many roles or holders there are.
+
+        Returns:
+            One ``{"role": role, "holders": [people]}`` dict per role that has holders.
         """
         active_holders = Person.objects.filter(is_active=True).order_by("name")
         groups = {

@@ -1,11 +1,8 @@
-"""REST API Settings
+"""REST API settings: Django REST Framework, drf-spectacular and CORS.
 
-Owns: Django REST Framework, drf-spectacular (OpenAPI schema) and CORS
-configuration, including the SPECTACULAR_SETTINGS title/description
-finalisation — performed entirely within this module, not the entry point
-(FR-002, FR-003, D10). Leaves to a portal: everything below, via ordinary
-assignment after ``fairdm.setup()`` returns, the same mechanism as any other
-FairDM-owned setting::
+Owns the Django REST Framework, drf-spectacular (OpenAPI schema) and CORS
+configuration, including the SPECTACULAR_SETTINGS title and description. A portal
+overrides any of it by assignment after ``fairdm.setup()`` returns::
 
     REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {"anon": "50/hour", "user": "500/hour"}
     SPECTACULAR_SETTINGS["TITLE"] = "My Portal API"
@@ -28,7 +25,7 @@ from fairdm.api.settings import (
     SPECTACULAR_SETTINGS,
 )
 
-# Re-export so split_settings include() picks them up in the caller's namespace
+# Re-exported so `include()` picks them up in the caller's namespace.
 __all__ = [
     "CORS_ALLOWED_ORIGINS",
     "CORS_ALLOW_ALL_ORIGINS",

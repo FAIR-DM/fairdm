@@ -1,51 +1,14 @@
-/* FairDM's own stylesheet.
- *
- * Linked once from `fairdm/templates/base.html`, after django-mvp's build, so
- * every page gets it — including plugin views, which render inside the same
- * base template and have no way to add a `<link>` of their own.
- *
- * What belongs here: styles FairDM needs that django-mvp's build does not
- * carry. FairDM has no Tailwind build of its own — no package.json, no config,
- * no input stylesheet — so a utility class absent from
- * `mvp/static/css/django-mvp.css` cannot be generated, only written out.
- *
- * Every colour is read from the active DaisyUI theme's custom properties.
- * Nothing here is hard-coded, so the styles follow the theme and dark mode with
- * no build step. A literal colour would be a component whose text goes
- * invisible the first time someone switches themes.
- */
+/* FairDM's own stylesheet, linked from `fairdm/templates/base.html` after django-mvp's build.
+ * FairDM has no Tailwind build, so a utility absent from django-mvp's CSS has to be written here.
+ * Colours come from the DaisyUI theme's custom properties so the styles follow dark mode. */
 
-/* ---------------------------------------------------------------------------
- * Record card — projects (issue #330) and datasets (issue #333)
- *
- * One block, drawn by both listings, so the two cards are identical by
- * construction rather than by two sets of rules kept in step by hand. Only the
- * accent colour differs, and it differs through a modifier.
- *
- * Three things this card needs are absent from django-mvp 0.20's build: every
- * `line-clamp-*` utility, every `aspect-*` utility, and container queries.
- *
- * The breakpoints are `@container`, not `@media`: the card reflows on its own
- * width rather than the viewport's, so it stays correct wherever it is placed —
- * a full-width listing row, a narrower plugin panel, or a future two-column
- * grid.
- * ------------------------------------------------------------------------- */
+/* Record card, drawn by both the project (#330) and dataset (#333) listings.
+ * Container queries and the `line-clamp-*` and `aspect-*` utilities are absent from django-mvp's build. */
 
-/* The card establishes the container; `.record-card__layout` does the
- * reflowing. The two cannot be the same element: a container query is answered
- * by an ANCESTOR container, never by the element's own `container-type`, so a
- * `flex-direction` written here would be matched by nothing and the card would
- * stay stacked while its media block shrank to the side-by-side width. */
-/* The accent is the colour reserved for the record type on the card. Each core
- * type carries its own, so a mixed listing can be read by colour before it is
- * read by word. Every one is a theme custom property rather than a literal, so
- * they follow dark mode.
- *
- * The base value is the Project colour and a per-type modifier overrides it,
- * rather than every card naming its own: a card that forgets its modifier
- * still draws a legible stripe and badge. Declared on the card rather than in a
- * global block because nothing outside these cards reads them yet. Move them to
- * `:root` beside the other types the first time a third component needs one. */
+/* The card is the container and `.record-card__layout` reflows: a container query is answered
+ * by an ancestor, never by the element's own `container-type`. */
+/* The accent colour is reserved for the record type. The base is the Project colour and a
+ * modifier overrides it, so a card without a modifier still draws a legible stripe and badge. */
 .record-card {
   --record-accent: var(--color-info);
   container-type: inline-size;
@@ -82,9 +45,7 @@
   outline-offset: 2px;
 }
 
-/* Media — a 2:1 banner while the card is stacked. `aspect-ratio` rather than a
- * fixed height, so the banner keeps its shape at every card width. Once the
- * image moves beside the body it fills the card's height instead. */
+/* A 2:1 banner while the card is stacked, by `aspect-ratio` so it keeps its shape at any width. */
 .record-card__media {
   flex: none;
   aspect-ratio: 2 / 1;
@@ -99,9 +60,7 @@
   display: block;
 }
 
-/* No image: the block keeps its size and holds the record's own icon, so a listing
- * of mixed cards keeps one alignment down the page. Quiet enough not to read
- * as content — it says "nothing here", not "look at this". */
+/* No image: the block keeps its size so a listing of mixed cards stays aligned. */
 .record-card__placeholder {
   display: flex;
   align-items: center;
@@ -120,9 +79,6 @@
   gap: 0.5rem;
   padding: 1rem;
   min-width: 0;
-  /* The type stripe, in the record type's own colour, on whichever edge faces
-   * the image: the top while the card is stacked, the left once the image
-   * moves beside the body. */
   border-top: 3px solid var(--record-accent);
 }
 
@@ -142,11 +98,7 @@
   min-width: 0;
 }
 
-/* The type badge is drawn from the same custom property as the stripe, rather
- * than a `badge-*` theme class. Two reasons: the pair has to stay the same
- * colour as each other, and a solid theme badge here would sit beside the
- * status badge in the same weight and compete with it. Tinted, it reads as a
- * label; the status badge stays the loudest thing in the row. */
+/* Drawn from the stripe's custom property, tinted, so the status badge stays the loudest thing in the row. */
 .record-card__type {
   display: inline-flex;
   align-items: center;
@@ -157,13 +109,7 @@
   font-weight: 600;
 }
 
-/* What the record holds — one count for a project, two for a dataset.
- *
- * `flex-basis: 100%` puts the counts on a row of their own beneath the badges
- * while the card is stacked, rather than squeezing two numbers in beside them
- * at phone width; the 30rem rule below hands the row back once there is room.
- * A project's single count follows the same rule, so the two cards keep the
- * same shape at every width. */
+/* `flex-basis: 100%` gives the counts a row of their own at phone width. The 30rem rule hands it back. */
 .record-card__counts {
   display: inline-flex;
   align-items: center;
@@ -189,7 +135,6 @@
   font-weight: 600;
   line-height: 1.35;
   color: var(--color-base-content);
-  /* No `line-clamp-2` utility exists in the loaded stylesheet. */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -197,13 +142,7 @@
   overflow: hidden;
 }
 
-/* The project a dataset sits beneath, in the slot the project card gives its
- * owning organization. Body text colour, not the project accent: a second
- * coloured mark competes with the type stripe and badge, which are what colour
- * is reserved to say on this card. Drawn on a span rather than an anchor,
- * because the whole card is already a link and an anchor inside an anchor is
- * invalid markup the browser un-nests, which would split the card into two
- * overlapping click targets. */
+/* A span, not an anchor: the whole card is a link, and the browser un-nests an anchor inside one. */
 .record-card__parent {
   display: inline-flex;
   align-items: center;
@@ -218,8 +157,6 @@
   white-space: nowrap;
 }
 
-/* The rule divides the project from the contributors beside it, so it is drawn
- * only when there are contributors to divide it from. */
 .record-card__names + .record-card__parent {
   padding-left: 0.5rem;
   border-left: 1px solid var(--color-base-300);
@@ -243,8 +180,6 @@
   min-width: 0;
 }
 
-/* The owning organization is redundant beside the contributor names on a
- * narrow card and useful once there is a second line of room for it. */
 .record-card__owner {
   display: none;
   padding-left: 0.5rem;
@@ -262,9 +197,7 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
-  /* One card per row reaches ~1500px on a wide screen. Prose set that wide is
-   * unreadable, so the abstract stops at a normal measure and leaves the rest
-   * of the row to whitespace. */
+  /* A card can reach ~1500px, too wide to read prose at. */
   max-width: 90ch;
 }
 
@@ -274,8 +207,7 @@
   gap: 0.25rem;
 }
 
-/* The identifier is 23 characters (`ShortUUIDField`, one prefix letter per
- * record type), too long to share the top row with the counts at phone width. */
+/* The identifier is 23 characters, too long to share the top row with the counts at phone width. */
 .record-card__footer {
   display: flex;
   align-items: center;
@@ -312,9 +244,7 @@
   color: var(--color-primary);
 }
 
-/* The licence a dataset publishes its data under, beside the last-modified
- * date in the footer. Kept on one line: a licence name is short and breaking
- * "CC BY 4.0" across two lines reads as two licences. */
+/* One line: a break inside "CC BY 4.0" reads as two licences. */
 .record-card__license {
   display: inline-flex;
   align-items: center;
@@ -326,7 +256,6 @@
   white-space: nowrap;
 }
 
-/* Image moves beside the body. */
 @container (min-width: 30rem) {
   .record-card__layout {
     flex-direction: row;
@@ -334,11 +263,7 @@
 
   .record-card__media {
     width: 14rem;
-    /* Beside the body the image fills the card's full height: a fixed column
-     * whose height is whatever the body next to it comes to. `aspect-ratio`
-     * has to be cleared for that — left at 2:1 it sets the height itself and
-     * leaves a gap under the image. The `object-fit: cover` on the `img`
-     * crops to fill rather than distorting. */
+    /* Cleared so the image fills the body's height. At 2:1 it would set its own and leave a gap. */
     aspect-ratio: auto;
     align-self: stretch;
   }
@@ -349,7 +274,6 @@
     border-left: 3px solid var(--record-accent);
   }
 
-  /* Back onto the badges' row: the body is wide enough for both now. */
   .record-card__counts {
     flex-basis: auto;
   }
@@ -359,7 +283,6 @@
   }
 }
 
-/* More room for the image and the body, and a third line of abstract. */
 @container (min-width: 46rem) {
   .record-card__media {
     width: 18rem;

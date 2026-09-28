@@ -90,7 +90,7 @@ which is why validation belongs at registration and not in a check. This settled
 ## Presentation is not this feature's concern
 
 The previous specification required Bootstrap 5 and a `django_tables2/bootstrap5.html` template. The
-framework depends on `crispy-tailwind` and the constitution's Article XV requires the shared
+framework depends on `crispy-tailwind` and the constitution's Article XIV requires the shared
 application shell built on Tailwind and daisyUI. Rather than restate the requirement for Tailwind,
 the rewritten specification says nothing about styling, because pinning a stylesheet here would make
 a theme change a registry change. Recorded as D7.

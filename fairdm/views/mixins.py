@@ -1,3 +1,5 @@
+"""Mixins for views nested behind the detail page of a core model."""
+
 from __future__ import annotations
 
 from functools import cached_property
@@ -8,18 +10,16 @@ from django.shortcuts import get_object_or_404
 from fairdm.core.utils import get_non_polymorphic_instance
 from fairdm.utils import get_model_class
 
-# =============================================================================
-# VIEW MIXINS
-# =============================================================================
-
 
 class RelatedObjectMixin:
-    """Mixin to fetch and add a related object to the context for views behind the detail view of core models.
+    """Fetch a related object from the URL and add it to the context.
 
-    This mixin is primarily used in plugins but can be applied to other views where a related object needs to be
-    fetched based on a URL parameter. The related object is retrieved using the URL parameter specified by
-    `base_object_url_kwarg` (defaults to `base_uuid`). The related object is then added to the context with additional
-    useful information about the related model.
+    Meant for views behind the detail page of a core model, such as plugins. The
+    object is looked up by the URL keyword named in ``base_object_url_kwarg``.
+
+    Attributes:
+        base_model: The model class the related object is fetched from.
+        base_object_url_kwarg: Name of the URL keyword holding the object's uuid.
 
     Example:
         class SampleListView(RelatedObjectMixin, ListView):
@@ -31,33 +31,30 @@ class RelatedObjectMixin:
     base_object_url_kwarg = "uuid"
 
     def get_related_model(self):
-        """Retrieve the related model class.
-
-        Uses the URL parameter specified by `base_object_url_kwarg` to fetch the related model class.
+        """Resolve the related model class from the uuid in the URL.
 
         Returns:
-            model: The model class corresponding to the related object.
+            The model class the uuid belongs to.
         """
         return get_model_class(self.kwargs.get(self.base_object_url_kwarg))
 
     @cached_property
     def base_object(self):
-        """Fetch the related object based on the primary key in the URL.
+        """Fetch the related object named by the uuid in the URL.
 
-        If the related model is polymorphic, the method fetches a non-polymorphic version of the object.
+        Responds with a 404 when no such object exists.
+
+        Returns:
+            The instance of ``base_model`` with that uuid.
         """
         uuid = self.kwargs.get(self.base_object_url_kwarg)
         obj = get_object_or_404(self.base_model, uuid=uuid)
         if hasattr(obj, "polymorphic_model_marker"):
-            # If the object is polymorphic, get the non-polymorphic instance
             self.non_polymorphic = get_non_polymorphic_instance(obj)
         return obj
 
     def get_context_data(self, **kwargs):
-        """Add the related object and related model information to the context.
-
-        Adds the `base_object` (related object), related model class, and model metadata to the context dictionary.
-        """
+        """Add the related object, its model and the model name to the context."""
         context = super().get_context_data(**kwargs)
         context["base_object"] = self.base_object
         context["base_model"] = self.base_model

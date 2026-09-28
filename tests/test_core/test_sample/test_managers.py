@@ -1,8 +1,4 @@
-"""T007: SampleQuerySet.published() decides presence by the sample's own dataset.
-
-New file mirroring fairdm/core/sample/managers.py (craft-tdd's "mirror the source tree"
-rule) - tests/test_core/test_sample/ carried no test_managers.py before this task.
-"""
+"""Tests for the sample queryset's published() presence rule."""
 
 import pytest
 
@@ -13,8 +9,6 @@ from fairdm.factories import DatasetFactory
 
 @pytest.mark.django_db
 class TestPublished:
-    """FR-011: a sample is present in `published()` if and only if its own dataset is."""
-
     def test_published_includes_a_sample_whose_dataset_is_published(self):
         sample = RockSampleFactory(dataset=DatasetFactory(published=True))
 

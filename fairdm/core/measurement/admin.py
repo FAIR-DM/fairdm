@@ -1,4 +1,4 @@
-"""Admin configuration for the Measurement app."""
+"""Django admin configuration for measurements."""
 
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
@@ -20,19 +20,15 @@ from .models import (
 
 
 class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
-    """A `dataset` list filter offering every dataset, private ones included.
+    """A ``dataset`` list filter offering every dataset, private ones included.
 
-    `Dataset`'s default manager excludes private datasets (FR-019, see
-    `fairdm.core.dataset.models.DatasetManager`), and the built-in related
-    field filter draws its choices from that manager - so without this
-    override, filtering by a private dataset (the model's own default, see
-    `tests/test_core/test_measurement/conftest.py`) would silently be
-    unavailable. The administrative interface is where a portal is repaired
-    and needs to see everything, the same reasoning `DatasetAdmin.get_queryset`
-    already applies (FR-019a).
+    ``Dataset``'s default manager excludes private datasets and the built-in filter draws its
+    choices from it, so filtering by a private dataset would otherwise be unavailable. The admin
+    needs to see everything, as in ``DatasetAdmin.get_queryset``.
     """
 
     def field_choices(self, field, request, model_admin):
+        """List every dataset as a choice, using ``all_objects`` to include private ones."""
         ordering = self.field_admin_ordering(field, request, model_admin)
         return [
             (obj.pk, str(obj))
@@ -41,12 +37,7 @@ class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
 
 
 class MeasurementDescriptionInline(admin.StackedInline):
-    """Inline admin for measurement descriptions.
-
-    Capped to the number of members its vocabulary carries: a description's
-    type is drawn from `MeasurementDescription.VOCABULARY`, so no measurement
-    can ever need more rows than that vocabulary has types.
-    """
+    """Inline admin for measurement descriptions, capped at one row per vocabulary type."""
 
     model = MeasurementDescription
     extra = 0
@@ -54,11 +45,7 @@ class MeasurementDescriptionInline(admin.StackedInline):
 
 
 class MeasurementDateInline(admin.StackedInline):
-    """Inline admin for measurement dates.
-
-    Capped to the number of members its vocabulary carries, for the same
-    reason as `MeasurementDescriptionInline`.
-    """
+    """Inline admin for measurement dates, capped at one row per vocabulary type."""
 
     model = MeasurementDate
     extra = 0
@@ -66,11 +53,7 @@ class MeasurementDateInline(admin.StackedInline):
 
 
 class MeasurementIdentifierInline(admin.StackedInline):
-    """Inline admin for measurement identifiers.
-
-    Capped to the number of members its vocabulary carries, for the same
-    reason as `MeasurementDescriptionInline`.
-    """
+    """Inline admin for measurement identifiers, capped at one row per vocabulary type."""
 
     model = MeasurementIdentifier
     extra = 0
@@ -78,12 +61,7 @@ class MeasurementIdentifierInline(admin.StackedInline):
 
 
 class MeasurementContributionInline(GenericTabularInline):
-    """Inline admin for measurement contributions.
-
-    Deliberately uncapped: a contribution credits a person or organisation,
-    not a vocabulary member, and a measurement may credit any number of
-    contributors, one row each (design review correction).
-    """
+    """Inline admin for measurement contributions, uncapped because each row credits a contributor."""
 
     model = Contribution
     extra = 0
@@ -91,16 +69,9 @@ class MeasurementContributionInline(GenericTabularInline):
     ct_fk_field = "object_id"
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        """Narrow ``roles`` to the framework's roles vocabulary.
-
-        ``ConceptManyToManyField`` does not restrict its own queryset, so without
-        this the widget offers every ``Concept`` in the database, from every
-        vocabulary - and `refuse_off_vocabulary_role` (an ``m2m_changed`` receiver,
-        see receivers.py) refuses an off-vocabulary choice uncaught, turning what
-        should be an ordinary field error into a 500. Mirrors the narrowing
-        `UpdateContributionForm` already does for the one form that had it
-        (`fairdm/contrib/contributors/forms/contribution.py`).
-        """
+        """Narrow ``roles`` to the roles vocabulary."""
+        # Otherwise the widget offers every Concept, and an off-vocabulary choice is refused
+        # by the `m2m_changed` receiver uncaught, which turns a field error into a 500.
         if db_field.name == "roles":
             kwargs["queryset"] = Concept.get_for_vocabulary(
                 Contribution.roles_vocab.__class__
@@ -109,26 +80,11 @@ class MeasurementContributionInline(GenericTabularInline):
 
 
 class MeasurementChildAdmin(PolymorphicChildModelAdmin):
-    """Base admin interface for Measurement child models.
+    """Base admin for measurement child models, with inlines for their related records.
 
-    This class is designed to be inherited by domain-specific measurement admin classes.
-    It provides a standard interface for managing measurements with related objects
-    (descriptions, dates, identifiers, and contributors).
-
-    All child measurement models should inherit from this class and set their base_model
-    attribute to enable proper polymorphic admin functionality.
-
-    See Also:
-        - Developer Guide: docs/portal-development/measurements.md#step-3-create-custom-admin
-        - Admin Guide (Portal Administrators): docs/portal-administration/managing-measurements.md
-        - Registry Guide: docs/portal-development/using_the_registry.md#polymorphic-admin-validation-rules
-
-    Note:
-        Child models inherit from PolymorphicChildModelAdmin to work properly
-        with the polymorphic parent admin interface.
-
-        Use base_fieldsets instead of fieldsets to allow polymorphic admin
-        to automatically add subclass-specific fields.
+    Subclass it for each measurement type and set ``base_model``. Declare ``base_fieldsets``
+    rather than ``fieldsets`` so the polymorphic admin can add the subclass's own fields. See
+    docs/portal-development/measurements.md.
     """
 
     list_display = [
@@ -151,8 +107,6 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
         MeasurementContributionInline,
     ]
 
-    # Use base_fieldsets (tuple) instead of fieldsets (list) for polymorphic admin
-    # This allows polymorphic admin to automatically add subclass-specific fields
     base_fieldsets = (
         (
             None,
@@ -179,7 +133,7 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
     )
 
     def measurement_type(self, obj):
-        """Display the polymorphic type of the measurement."""
+        """Return the verbose name of the measurement's concrete class."""
         return obj.get_real_instance_class()._meta.verbose_name
 
     measurement_type.short_description = "Measurement Type"  # type: ignore[attr-defined]
@@ -187,25 +141,10 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
 
 @admin.register(Measurement)
 class MeasurementParentAdmin(PolymorphicParentModelAdmin):
-    """Polymorphic parent admin for the Measurement model.
+    """Polymorphic parent admin registered for ``Measurement``.
 
-    This admin handles the type selection when creating new measurements and
-    routes to the appropriate child admin for editing existing measurements.
-    It automatically discovers all registered Measurement subclasses.
-
-    Features:
-        - Type selection interface when adding new measurements
-        - Automatic routing to correct child admin for editing
-        - List filtering by polymorphic type
-        - Display of measurement type in list view
-
-    See Also:
-        - Admin Guide (Portal Administrators): docs/portal-administration/managing-measurements.md#understanding-the-type-selection-interface
-        - Registry Guide: docs/portal-development/using_the_registry.md#polymorphic-admin-validation-rules
-
-    Note:
-        This is the admin that gets registered with admin.site for the Measurement model.
-        Individual child models are registered separately with their own child admins.
+    It offers the type selection when adding a measurement and routes to the child admin of each
+    registered subclass for editing. See docs/portal-administration/managing-measurements.md.
     """
 
     base_model = Measurement
@@ -226,13 +165,13 @@ class MeasurementParentAdmin(PolymorphicParentModelAdmin):
     search_fields = ["name", "uuid"]
 
     def measurement_type(self, obj):
-        """Display the polymorphic type of the measurement."""
+        """Return the verbose name of the measurement's concrete class."""
         return obj.get_real_instance_class()._meta.verbose_name
 
     measurement_type.short_description = "Measurement Type"  # type: ignore[attr-defined]
 
     def get_child_models(self):
-        """Dynamically get all registered Measurement subclasses."""
+        """Return every registered Measurement subclass."""
         from fairdm.registry import registry
 
         return registry.measurements

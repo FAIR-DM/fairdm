@@ -1,3 +1,4 @@
+{# @description A link to a contributor's default identifier, showing its icon and value. Renders nothing when the contributor has no default identifier. Reads the context variables `contributor` and `hide_url`, which hides the value from sighted users when true. #}
 {% if contributor.get_default_identifier %}
    <a class="link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover text-muted"
       href="{{ contributor.get_default_identifier.get_absolute_url }}">{% icon contributor.icon height="1em" %}

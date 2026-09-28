@@ -9,20 +9,16 @@ register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def plugin_url(context, view_name, *args, **kwargs):
-    """Generate URL for a plugin view within the current object's namespace.
-
-    Usage in templates:
-        {% plugin_url 'view-name' %}
-        {% plugin_url 'view-name' pk=123 %}
+    """Generate the URL for a plugin view of the current object.
 
     Args:
-        context: Template context
-        view_name: Name of the plugin view
-        *args: Positional arguments for URL reversal
-        **kwargs: Keyword arguments for URL reversal
+        context: The template context.
+        view_name: The plugin's URL name.
+        *args: Positional arguments for URL reversal.
+        **kwargs: Keyword arguments for URL reversal.
 
     Returns:
-        Resolved URL string for the plugin view
+        The resolved URL, or an empty string when the context has no object.
 
     Example:
         {% plugin_url 'contributors' %}

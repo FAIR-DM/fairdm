@@ -1,9 +1,13 @@
+"""The controlled vocabularies of identifiers, descriptions, dates, roles and sample status."""
+
 from django.utils.translation import gettext_lazy as _
 from research_vocabs.builder.skos import Collection, Concept
 from research_vocabs.vocabularies import VocabularyBuilder
 
 
 class FairDMIdentifiers(VocabularyBuilder):
+    """Vocabulary of the identifier types, with a collection scoped to each record type."""
+
     ORCID = {
         "skos:prefLabel": _("ORCID iD"),
         "skos:definition": _(
@@ -27,15 +31,6 @@ class FairDMIdentifiers(VocabularyBuilder):
         ),
         "dcterms:source": "https://ror.org/",
     }
-
-    # No longer used.
-    # GRID = {
-    #     "skos:prefLabel": _("GRID"),
-    #     "skos:definition": _(
-    #         "A global database of research institution identifiers, now succeeded by ROR."
-    #     ),
-    #     "dcterms:source": "https://www.grid.ac/",
-    # }
 
     WIKIDATA = {
         "skos:prefLabel": _("Wikidata"),
@@ -94,27 +89,10 @@ class FairDMIdentifiers(VocabularyBuilder):
 
     @property
     def choices(self):
-        """Work around a `research_vocabs` defect that only surfaces on a
-        single-member collection.
-
-        `VocabularyBuilder.choices` (`research_vocabs/core.py:205`) reads a
-        `from_collection`-scoped vocabulary's members off
-        ``collection.attrs["skos:member"]``. That attribute is built from
-        RDF triples, and a predicate with exactly one triple collapses to a
-        bare ``Concept`` rather than a one-item list - the two-or-more-item
-        case returns a list, as `Concept.attrs` promotes a repeated
-        predicate to one on its second occurrence, never on its first.
-        Iterating the bare ``Concept`` then raises ``TypeError: 'Concept'
-        object is not iterable``.
-
-        The "Dataset" collection below is exactly that case - `DOI` alone
-        (D-003, research.md R3). Rather than patching the third-party
-        library, this re-derives the same `from_collection` branch with the
-        single-member case normalised first. For every collection with two
-        or more members - every other collection on this vocabulary - the
-        result is identical to `super().choices`, since `members` is
-        already a list there and no wrapping happens.
-        """
+        """Return the choices, handling a collection with a single member."""
+        # `research_vocabs` collapses a one-member `skos:member` to a bare Concept, and
+        # iterating it raises TypeError. The "Dataset" collection (DOI alone) hits this,
+        # so wrap the lone member in a list before building the choices.
         if self._choices:
             return self._choices
         if coll := self._meta.from_collection:
@@ -188,13 +166,8 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "CROSSREF_FUNDER_ID",
                 ],
             ),
-            # `Contributor` is the polymorphic base `Person` and `Organization` both
-            # inherit, so its identifier collection is the union of the two - not a
-            # fresh, independently-chosen list (005 F1/F2). Adding IGSN to the
-            # sample-only "Sample" collection above must never widen this one; without
-            # a scoped collection of its own, `ContributorIdentifier` bound the
-            # unscoped vocabulary and picked up every member added anywhere, IGSN
-            # included, offering a specimen identifier to a person or organisation.
+            # The union of the Person and Organization collections. It needs its own scope,
+            # or a member added for another record type (such as IGSN) would leak into it.
             "Contributor": Collection(
                 prefLabel=_("Contributor Identifiers"),
                 definition=_(
@@ -211,11 +184,8 @@ class FairDMIdentifiers(VocabularyBuilder):
                     "CROSSREF_FUNDER_ID",
                 ],
             ),
-            # No member yet identifies a measurement specifically - DOI is the only
-            # candidate in the vocabulary that is not scoped to a person, an
-            # organisation or a project (005 F1/F2). Scoped rather than left on the
-            # unscoped vocabulary for the same reason "Contributor" is: a member added
-            # for another record type must not silently become available here.
+            # Scoped for the same reason as "Contributor": members added for other record
+            # types must not become available here.
             "Measurement": Collection(
                 prefLabel=_("Measurement Identifiers"),
                 definition=_("Persistent identifiers for research measurements."),
@@ -228,6 +198,8 @@ class FairDMIdentifiers(VocabularyBuilder):
 
 
 class FairDMDescriptions(VocabularyBuilder):
+    """Vocabulary of the description types, with a collection scoped to each record type."""
+
     Abstract = Concept(
         prefLabel=_("Abstract"),
         definition=_(
@@ -355,7 +327,6 @@ class FairDMDescriptions(VocabularyBuilder):
                     "Background",
                     "Objectives",
                     "ExpectedOutput",
-                    # "Methods",
                     "Conclusions",
                     "Other",
                 ],
@@ -405,6 +376,8 @@ class FairDMDescriptions(VocabularyBuilder):
 
 
 class FairDMDates(VocabularyBuilder):
+    """Vocabulary of the date types, with a collection scoped to each record type."""
+
     Available = {
         "skos:prefLabel": _("Date Available"),
         "skos:definition": _(
@@ -422,7 +395,6 @@ class FairDMDates(VocabularyBuilder):
         "skos:definition": _("The date on which the data collection process ended."),
     }
 
-    # Generic date types
     Start = {
         "skos:prefLabel": _("Start Date"),
         "skos:definition": _("The official start date of the project."),
@@ -433,7 +405,6 @@ class FairDMDates(VocabularyBuilder):
         "skos:definition": _("The official end date of the project."),
     }
 
-    # Dataset date types
     Submitted = {
         "skos:prefLabel": _("Submission Date"),
         "skos:definition": _(
@@ -453,7 +424,6 @@ class FairDMDates(VocabularyBuilder):
         ),
     }
 
-    # Sample date types
     Created = {
         "skos:prefLabel": _("Creation date"),
         "skos:definition": _("The date on which the sample was created"),
@@ -489,7 +459,6 @@ class FairDMDates(VocabularyBuilder):
         "skos:definition": _("The date on which the sample was restored"),
     }
 
-    # Measurement date types
     Setup = {
         "skos:prefLabel": _("Setup date"),
         "skos:definition": _("The date on which the measurement setup was completed"),
@@ -570,6 +539,8 @@ class FairDMDates(VocabularyBuilder):
 
 
 class FairDMRoles(VocabularyBuilder):
+    """Vocabulary of the contributor roles, with a collection scoped to each record type."""
+
     Creator = Concept(
         prefLabel=_("Creator"),
         definition=_(
@@ -601,7 +572,6 @@ class FairDMRoles(VocabularyBuilder):
         definition=_("The person to contact for information about the resource."),
     )
 
-    # Dataset roles
     DataCollector = Concept(
         prefLabel=_("Data Collector"),
         definition=_("The person(s) who collected the data."),
@@ -677,7 +647,6 @@ class FairDMRoles(VocabularyBuilder):
         definition=_("The sponsor of the project."),
     )
 
-    # Sample roles
     Collection = {
         "skos:prefLabel": _("Collector"),
         "skos:definition": _("The person who collected the sample."),
@@ -703,7 +672,6 @@ class FairDMRoles(VocabularyBuilder):
         "skos:definition": _("The person who restored the sample."),
     }
 
-    # Measurement roles
     MeasurementPreparation = Concept(
         prefLabel=_("Preparation"),
         definition=_(
@@ -813,11 +781,9 @@ class FairDMRoles(VocabularyBuilder):
 class FairDMSampleStatus(VocabularyBuilder):
     """Custody states for a physical specimen.
 
-    Replaces the vocabulary previously fetched from ``vocabulary.odm2.org``, which named
-    the state of a data-collection activity (Complete, Ongoing, Planned, Unknown) rather
-    than the physical custody of a specimen - calling a rock "ongoing" carries no meaning
-    (D-002, research.md R3). Declared locally, with no remote source, so a core model
-    field no longer depends on a third-party host being reachable at import time.
+    Declared locally, with no remote source, so a core model field does not depend on a
+    third-party host being reachable at import time. It names the physical custody of a
+    specimen rather than the state of a data-collection activity.
 
     The ``unknown`` member's attribute name is lower case deliberately: a ``ConceptField``
     stores the concept's attribute name as the value, and ``Sample.status``'s default

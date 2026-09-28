@@ -131,7 +131,7 @@ deletes". So the deletion page sets that attribute and supplies nothing of its o
 
 The earlier plan here had `Delete` counting samples and measurements itself and a per-model template
 rendering them, on the reasoning that FR-046 asked for counts and the shell offers names. That was
-backwards. FR-046 is my own text, written before I had read the shell properly, and Article XIV says
+backwards. FR-046 is my own text, written before I had read the shell properly, and Article XIII says
 the requirement is to use the facility rather than to build an equivalent — which is the rule this
 feature applies to identifiers, dates and descriptions without hesitating. **FR-046 is amended to ask
 for the substance and to name the shell's facility**, and SC-005 with it.

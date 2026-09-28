@@ -1,11 +1,4 @@
-"""Tests for measurement factories.
-
-Covers the metadata factories declared in ``fairdm/factories/core.py``
-(``MeasurementDescriptionFactory``, ``MeasurementDateFactory``,
-``MeasurementIdentifierFactory``), the abstract ``MeasurementFactory`` base, the
-concrete demo measurement factories in ``demo/factories.py``, and their
-exports from ``fairdm.factories``.
-"""
+"""Tests for measurement factories."""
 
 import factory
 import pytest
@@ -33,8 +26,6 @@ from fairdm.factories.core import (
 
 @pytest.mark.django_db
 class TestMeasurementDescriptionFactory:
-    """T001 - MeasurementDescriptionFactory defaults to a real vocabulary member."""
-
     def test_default_type_is_a_measurement_description_vocabulary_member(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
@@ -63,8 +54,6 @@ class TestMeasurementDescriptionFactory:
 
 @pytest.mark.django_db
 class TestMeasurementDateFactory:
-    """T001 - MeasurementDateFactory defaults to a real vocabulary member."""
-
     def test_default_type_is_a_measurement_date_vocabulary_member(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
@@ -84,8 +73,6 @@ class TestMeasurementDateFactory:
 
 @pytest.mark.django_db
 class TestMeasurementIdentifierFactory:
-    """T001 - MeasurementIdentifierFactory defaults to a real vocabulary member."""
-
     def test_default_type_is_a_measurement_identifier_vocabulary_member(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
@@ -107,9 +94,6 @@ class TestMeasurementIdentifierFactory:
 
 @pytest.mark.django_db
 class TestMeasurementFactoryIsAbstract:
-    """T002 - MeasurementFactory refuses direct use; the bare Measurement record is
-    what FR-011 forbids."""
-
     def test_calling_it_directly_refuses(self):
         with pytest.raises(factory.errors.FactoryError):
             MeasurementFactory(sample=RockSampleFactory())
@@ -117,9 +101,6 @@ class TestMeasurementFactoryIsAbstract:
 
 @pytest.mark.django_db
 class TestConcreteMeasurementFactories:
-    """T003 - each demo measurement type's factory produces a valid instance of that
-    type, with its own required fields supplied, given no arguments beyond a sample."""
-
     def test_example_measurement_factory_produces_an_example_measurement(self):
         from demo.models import ExampleMeasurement
 
@@ -146,9 +127,6 @@ class TestConcreteMeasurementFactories:
 
 
 class TestFairdmFactoriesExports:
-    """T004 - every measurement factory declared in fairdm/factories/core.py is
-    importable from fairdm.factories and appears in __all__."""
-
     def test_measurement_factories_are_importable_from_the_package(self):
         from fairdm.factories import (
             MeasurementDateFactory,
@@ -176,10 +154,6 @@ class TestFairdmFactoriesExports:
 
 @pytest.mark.django_db
 class TestMeasurementFixtures:
-    """T005 - the measurement fixture yields a concrete measurement type, never a bare
-    Measurement, and fixtures exist for a second dataset with its own sample, and for a
-    user holding no rights at all."""
-
     def test_measurement_fixture_yields_a_concrete_type_not_a_bare_measurement(
         self, measurement
     ):
@@ -193,9 +167,7 @@ class TestMeasurementFixtures:
         assert second_sample.dataset == second_dataset
 
     def test_user_no_rights_fixture_holds_no_rights(self, measurement, user_no_rights):
-        assert not user_no_rights.has_perm(
-            "measurement.view_measurement", measurement
-        )
+        assert not user_no_rights.has_perm("measurement.view_measurement", measurement)
         assert not user_no_rights.has_perm(
             "measurement.change_measurement", measurement
         )

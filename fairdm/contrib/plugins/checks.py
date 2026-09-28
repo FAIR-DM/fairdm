@@ -1,14 +1,7 @@
-"""Registration-time validation.
+"""Registration-time validation that refuses a plugin registration that cannot work.
 
-A registration that cannot work is refused when it is made, naming what is wrong. The alternative
-is what this replaces: two plugins claiming one address and the framework serving whichever
-imported first, and five plugins registered against a record that has no page, inert for months
-with nothing to say so.
-
-Validation runs in the decorator rather than through Django's check framework because checks only
-run from management commands, so one never fires on a production boot. Registration happens at
-import, so it fails on every start. That is the same reasoning already settled for the model
-registry.
+Validation runs in the decorator rather than in Django's check framework, because checks only run
+from management commands and would never fire on a production boot.
 """
 
 from __future__ import annotations
@@ -28,7 +21,16 @@ class PluginRegistrationError(ImproperlyConfigured):
 
 
 def _fail(plugin: Any, model: Any, problem: str) -> None:
-    """Every refusal names the plugin, the record type and the problem."""
+    """Raise a registration error naming the plugin, the record type and the problem.
+
+    Args:
+        plugin: The plugin class being registered.
+        model: The record type it is registered against.
+        problem: What is wrong.
+
+    Raises:
+        PluginRegistrationError: Always.
+    """
     plugin_name = getattr(plugin, "__name__", repr(plugin))
     model_name = getattr(model, "__name__", repr(model))
     msg = f"{plugin_name} registered against {model_name}: {problem}"
@@ -36,7 +38,14 @@ def _fail(plugin: Any, model: Any, problem: str) -> None:
 
 
 def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None:
-    """The decorator must name at least one record type, and they must be models."""
+    """Require at least one model and that each is a Django model class.
+
+    Refusal raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        models: The values given to the decorator.
+    """
     if not models:
         _fail(plugin_class, "nothing", "no model was given to register against")
     for model in models:
@@ -49,11 +58,15 @@ def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None
 
 
 def validate_check(plugin_class: type[Plugin], model: Any) -> None:
-    """A predicate must be something the access decision can evaluate.
+    """Require ``check`` to be a bool or a callable the access decision can evaluate.
 
-    A ``classmethod`` is the case worth refusing: it survives attribute lookup unchanged, it is not
-    callable, and it is truthy — so a guard of the shape ``if callable(check)`` falls through to
-    ``bool(check)`` and publishes the page its author wrote it to hide.
+    A ``classmethod`` is refused because it is truthy but not callable, so it would permit every request.
+
+    A failing check raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
     """
     from .access import check_is_valid, resolve_check
 
@@ -69,11 +82,16 @@ def validate_check(plugin_class: type[Plugin], model: Any) -> None:
 
 
 def validate_segment(plugin_class: type[Plugin], model: Any, segment: str) -> None:
-    """A path segment must be usable in a route.
+    """Require a path segment to be usable in a route.
 
-    Built with ``path()`` rather than parsed, so an unknown converter is reported by Django itself
-    and the route syntax an additional view needs — ``<int:pk>/edit`` — keeps working.
+    A segment Django rejects raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
+        segment: The URL path segment.
     """
+    # Built with `path()` so Django reports unknown converters and `<int:pk>/edit` stays valid.
     try:
         path(f"{segment}/", lambda request: None)
     except Exception as exc:
@@ -81,7 +99,14 @@ def validate_segment(plugin_class: type[Plugin], model: Any, segment: str) -> No
 
 
 def validate_extra_views(plugin_class: type[Plugin], model: Any) -> None:
-    """Additional views must be plugins, must not collide, and must not nest."""
+    """Require additional views to be plugins that do not collide, nest or claim the plugin's own address.
+
+    A violation raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
+    """
     from .base import Plugin as PluginBase
 
     extras = plugin_class.get_extra_views()
@@ -121,7 +146,14 @@ def validate_extra_views(plugin_class: type[Plugin], model: Any) -> None:
 
 
 def url_names_for(plugin_class: type[Plugin]) -> list[str]:
-    """Every URL name this plugin will generate."""
+    """List every URL name the plugin will generate.
+
+    Args:
+        plugin_class: The plugin.
+
+    Returns:
+        The plugin's own name followed by one name per additional view.
+    """
     base = plugin_class.get_name()
     return [base, *(f"{base}-{e.get_name()}" for e in plugin_class.get_extra_views())]
 
@@ -131,12 +163,16 @@ def validate_against_existing(
     model: Any,
     existing: list[tuple[type[Plugin], dict]],
 ) -> None:
-    """Names, segments and generated URL names must all be unique for one record type.
+    """Require names, segments and generated URL names to be unique for one record type.
 
-    Names and segments are not enough on their own: a plugin ``a`` owning a child ``b`` and a
-    separate plugin ``a-b`` produce the same reverse name from different paths, and Django keeps
-    the last one silently.
+    A clash raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
+        existing: The ``(plugin class, options)`` entries already registered for it.
     """
+    # Names alone are not enough: plugin `a` with child `b` and plugin `a-b` reverse to the same name.
     name = plugin_class.get_name()
     segment = plugin_class.get_url_path()
     new_url_names = set(url_names_for(plugin_class))
@@ -167,7 +203,15 @@ def validate_registration(
     model: Any,
     existing: list[tuple[type[Plugin], dict]],
 ) -> None:
-    """Everything checkable at the moment a plugin is registered against one record type."""
+    """Run every check possible when a plugin is registered against one record type.
+
+    A registration that cannot work raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
+        existing: The ``(plugin class, options)`` entries already registered for it.
+    """
     validate_check(plugin_class, model)
     segment = plugin_class.get_url_path()
     if segment is not None:

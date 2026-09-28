@@ -1,12 +1,4 @@
-"""Fixtures for contributor system tests.
-
-Provides factories and commonly-used instances for testing:
-- Person (claimed and unclaimed)
-- Organization
-- Affiliation
-- Contribution
-- ContributorIdentifier
-"""
+"""Fixtures for contributor system tests."""
 
 from types import SimpleNamespace
 
@@ -27,20 +19,9 @@ from fairdm.factories import (
     UserFactory,
 )
 
-# ── Roles Vocabulary Fixture ─────────────────────────────────────────────────
-
 
 @pytest.fixture
 def contribution_roles(db):
-    """The framework's controlled roles vocabulary (``fairdm-roles``,
-    ``fairdm.core.vocabularies.FairDMRoles``), as a plain queryset of its
-    concepts, so credit tests have real concepts to attach without repeating
-    the vocabulary name.
-
-    The concepts themselves are already seeded once per session by
-    ``Concept.preload()`` (``tests/conftest.py``); this fixture only names
-    that queryset for tests in this module.
-    """
     from research_vocabs.models import Concept
 
     return Concept.objects.filter(vocabulary__name="fairdm-roles")
@@ -48,8 +29,6 @@ def contribution_roles(db):
 
 @pytest.fixture
 def off_vocabulary_role(db):
-    """A concept from a vocabulary that is not ``fairdm-roles`` (FR-032) - the shape a
-    credit's roles must always refuse, whichever write path attaches it."""
     from research_vocabs.models import Concept, Vocabulary
 
     vocabulary = Vocabulary.objects.create(
@@ -65,12 +44,8 @@ def off_vocabulary_role(db):
     )
 
 
-# ── Person Fixtures ──────────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def person(db):
-    """A claimed person (has email, is_active=True, is_claimed=True)."""
     p = PersonFactory(email="claimed@example.com", is_active=True, is_claimed=True)
     p.set_password("testpass123")
     p.save()
@@ -79,7 +54,6 @@ def person(db):
 
 @pytest.fixture
 def unclaimed_person(db):
-    """An unclaimed person (no email, is_active=True, is_claimed=False)."""
     return Person.objects.create_unclaimed(
         first_name="Jane",
         last_name="Doe",
@@ -88,7 +62,6 @@ def unclaimed_person(db):
 
 @pytest.fixture
 def superuser(db):
-    """A superuser for admin tests."""
     return UserFactory(
         email="admin@example.com",
         is_staff=True,
@@ -99,23 +72,17 @@ def superuser(db):
 
 @pytest.fixture
 def admin_client(client, superuser):
-    """An authenticated client with superuser privileges."""
     client.force_login(superuser)
     return client
 
 
-# ── Organization Fixtures ────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def organization(db):
-    """A basic organization."""
     return OrganizationFactory(name="Test University")
 
 
 @pytest.fixture
 def organization_with_members(db, organization, person, unclaimed_person):
-    """An organization with two members: one claimed, one unclaimed."""
     AffiliationFactory(
         person=person,
         organization=organization,
@@ -130,12 +97,8 @@ def organization_with_members(db, organization, person, unclaimed_person):
     return organization
 
 
-# ── Affiliation Fixtures ─────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def affiliation(db, person, organization):
-    """A standard member affiliation."""
     return AffiliationFactory(
         person=person,
         organization=organization,
@@ -145,7 +108,6 @@ def affiliation(db, person, organization):
 
 @pytest.fixture
 def owner_affiliation(db, person, organization):
-    """An owner-level affiliation."""
     return AffiliationFactory(
         person=person,
         organization=organization,
@@ -154,30 +116,21 @@ def owner_affiliation(db, person, organization):
     )
 
 
-# ── Contribution Fixtures ───────────────────────────────────────────────────
-
-
 @pytest.fixture
 def project_for_contributions(db):
-    """A project to use for contribution tests."""
     return ProjectFactory()
 
 
 @pytest.fixture
 def contribution(db, person, project_for_contributions):
-    """A contribution linking a person to a project."""
     return ContributionFactory(
         contributor=person,
         content_object=project_for_contributions,
     )
 
 
-# ── Identifier Fixtures ─────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def orcid_identifier(db, person):
-    """A person with an ORCID identifier."""
     return ContributorIdentifier.objects.create(
         related=person,
         type="ORCID",
@@ -187,15 +140,11 @@ def orcid_identifier(db, person):
 
 @pytest.fixture
 def ror_identifier(db, organization):
-    """An organization with a ROR identifier."""
     return ContributorIdentifier.objects.create(
         related=organization,
         type="ROR",
         value="https://ror.org/02nr0ka47",
     )
-
-
-# ── Claiming Audit Log Fixtures ──────────────────────────────────────────────
 
 
 @pytest.fixture
@@ -224,18 +173,8 @@ def audit_log_entry(db, person_a, person_b):
     )
 
 
-# ── Contributor Population Fixture (US9) ─────────────────────────────────────
-
-
 @pytest.fixture
 def contributor_population(db):
-    """One population covering every case FR-041 and FR-042 distinguish.
-
-    A superuser and the django-guardian anonymous placeholder alongside a
-    real person in each of the four account states (ghost, invited, claimed,
-    inactive), an organisation with one current and one ended membership,
-    and credits under two different roles (SC-014).
-    """
     from research_vocabs.models import Concept
 
     superuser = UserFactory(
@@ -246,9 +185,7 @@ def contributor_population(db):
     )
     anonymous = get_anonymous_user()
 
-    ghost = Person.objects.create_unclaimed(
-        first_name="Ghost", last_name="Population"
-    )
+    ghost = Person.objects.create_unclaimed(first_name="Ghost", last_name="Population")
 
     invited = PersonFactory(
         email="population-invited@example.com",

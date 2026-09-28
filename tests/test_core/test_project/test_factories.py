@@ -1,9 +1,4 @@
-"""Tests for the project-related factory exports (T001).
-
-Covers the package's own export surface (``fairdm/factories/__init__.py``),
-not the factory definitions themselves - those already have coverage under
-``fairdm/factories/core.py``.
-"""
+"""Tests for the project-related factory exports of ``fairdm.factories``."""
 
 import pytest
 
@@ -12,9 +7,6 @@ from fairdm.utils.choices import Visibility
 
 
 class TestProjectRelatedRecordFactoryExports:
-    """The package exports all three project related-record factories, the
-    same way it already exports the dataset, sample and measurement ones."""
-
     def test_package_exports_project_description_date_and_identifier_factories(self):
         from fairdm.factories import (
             ProjectDateFactory,

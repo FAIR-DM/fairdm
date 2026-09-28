@@ -1,3 +1,5 @@
+"""Registered pages for a sample: overview, edit, descriptions, keywords and key dates."""
+
 from typing import Any
 
 from django.utils.translation import gettext_lazy as _
@@ -18,17 +20,16 @@ from .models import Sample
 
 @plugins.register(Sample, label=_("Overview"), icon="view", order=0)
 class Overview(OverviewPlugin):
-    # Was declared at module scope, outside the class it belongs to, so it configured nothing.
+    """The sample's overview page."""
+
     fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
 
-# ======== Management Plugins ======== #
-# Each of these is an editing surface. A plugin with no declared `permission` admits every
-# request, anonymous included (FR-033a) - so, matching the dataset plugins one app over
-# (`fairdm/core/dataset/plugins.py`), each names the right it needs.
+# A plugin with no declared `permission` admits every request, anonymous included, so each
+# editing page below names the right it needs.
 @plugins.register(Sample, label=_("Edit"), icon="pencil", order=10)
 class Edit(UpdatePlugin):
-    """Plugin for editing basic sample information."""
+    """Edit the sample's name and image."""
 
     permission = "sample.change_sample"
     title = _("Basic Information")
@@ -43,18 +44,21 @@ class Edit(UpdatePlugin):
 
 @plugins.register(Sample, label=_("Descriptions"), icon="description", order=510)
 class Descriptions(DescriptionsPlugin):
+    """Edit the sample's descriptions."""
+
     permission = "sample.change_sample"
     name = "basic-information"
     title = _("Basic Information")
     learn_more = user_guide("dataset/basic-information")
-    # SingleObjectMixin.get_queryset() needs this to resolve the record; Edit above declares it,
-    # this and KeyDates below never did (issue #280).
+    # SingleObjectMixin.get_queryset() needs this to resolve the record (#280).
     model = Sample
     inline_model = SampleDescription
 
 
 @plugins.register(Sample, label=_("Keywords"), icon="keywords", order=520)
 class Keywords(KeywordsPlugin):
+    """Edit the sample's keywords."""
+
     permission = "sample.change_sample"
     heading_config = {
         "description": _(
@@ -66,6 +70,8 @@ class Keywords(KeywordsPlugin):
 
 @plugins.register(Sample, label=_("Key Dates"), icon="date", order=530)
 class KeyDates(KeyDatesPlugin):
+    """Edit the sample's key dates."""
+
     permission = "sample.change_sample"
     model = Sample
     inline_model = SampleDate

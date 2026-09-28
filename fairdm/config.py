@@ -1,10 +1,7 @@
-"""
-Re-export registry configuration classes for convenient imports.
+"""Re-export the registry configuration classes from a single import point.
 
-This module provides a convenient single import point for configuration classes.
-Instead of importing from fairdm.registry.config, users can import from fairdm.config.
-
-Note: Imports are deferred to avoid circular dependencies during Django setup.
+Instead of importing from ``fairdm.registry.config``, users can import from
+``fairdm.config``. Imports are deferred to avoid circular dependencies during Django setup.
 """
 
 from typing import TYPE_CHECKING
@@ -20,7 +17,17 @@ if TYPE_CHECKING:
 else:
 
     def __getattr__(name):
-        """Lazy import to avoid circular dependencies."""
+        """Import the requested configuration class on first access.
+
+        Args:
+            name: The attribute being looked up on this module.
+
+        Returns:
+            The registry class or the ``register`` decorator of that name.
+
+        Raises:
+            AttributeError: ``name`` is not one of the re-exported names.
+        """
         if name in ("Authority", "Citation", "ModelConfiguration", "ModelMetadata"):
             from fairdm.registry.config import (
                 Authority,

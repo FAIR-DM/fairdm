@@ -1,44 +1,29 @@
-"""
-Base registry configuration for Measurement subclasses.
+"""Base registry configuration for measurement types.
 
-Provides a base configuration class that measurement type subclasses can inherit from.
-Do NOT register the base Measurement model - only polymorphic subclasses should be registered.
-
-Example usage in custom measurement models:
-    ```python
-    from fairdm.core.measurement.config import BaseMeasurementConfiguration
-    from fairdm.registry import registry
-
-
-    class XRFMeasurementConfiguration(BaseMeasurementConfiguration):
-        model = XRFMeasurement
-        fields = ["name", "sample", "dataset", "element", "concentration_ppm"]
-
-
-    registry.register(XRFMeasurementConfiguration)
-    ```
+Do not register the base ``Measurement`` model, only its polymorphic subclasses.
 """
 
 from fairdm.registry.config import ModelConfiguration, flatten_fields
 
-#: Components whose generated class must carry a registered type's own fields
-#: (``self.fields``) alongside the fields every measurement has. Excludes
-#: ``admin``, whose generated ``list_display`` already draws from ``fields``
-#: directly because ``BaseMeasurementConfiguration`` declares no
-#: ``admin_list_display`` of its own.
+#: Components whose generated class carries a registered type's own fields as well as the common
+#: ones. Excludes ``admin``, whose ``list_display`` already draws from ``fields``.
 COMPONENTS_ADDING_OWN_FIELDS = ("form", "table", "filterset")
 
 
 class BaseMeasurementConfiguration(ModelConfiguration):
-    """Base registry configuration for Measurement subclasses to inherit from.
+    """Base registry configuration for measurement types, with the common field lists.
 
-    This configuration provides common field setup for all measurement types.
-    Subclasses should override the model attribute and customize fields as needed.
+    A subclass sets ``model`` and lists its own ``fields``. Do not register the base
+    ``Measurement`` model. See docs/portal-development/measurements.md.
 
-    See Also:
-        - Developer Guide: docs/portal-development/measurements.md#step-2-register-your-measurement
-        - Registry Guide: docs/portal-development/using_the_registry.md#base-measurement-configuration-fields
-        - Data Model: docs/overview/data_model.md#measurement-model
+    Attributes:
+        fields: Fields for all generated components.
+        table_fields: Table columns for list views.
+        form_fields: Form fields for create and edit views.
+        filterset_fields: Filterset fields for search and filtering.
+        serializer_fields: Serializer fields for the API.
+        display_name: The name shown for the measurement type.
+        description: A one-line description of the measurement type.
 
     Example:
         ```python
@@ -53,14 +38,8 @@ class BaseMeasurementConfiguration(ModelConfiguration):
             display_name = "XRF Measurement"
             description = "X-ray fluorescence elemental analysis"
         ```
-
-    WARNING: Do NOT register the base Measurement model. Only register polymorphic subclasses.
     """
 
-    # A subclass supplies `model`. The base class already defaults it to None, so
-    # restating that here would only add a line to keep in step.
-
-    # Fields for all auto-generated components
     fields = [
         "name",
         "sample",
@@ -68,7 +47,6 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         "image",
     ]
 
-    # Table columns for list views
     table_fields = [
         "name",
         "sample",
@@ -77,7 +55,6 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         "modified",
     ]
 
-    # Form fields for create/edit views
     form_fields = [
         "name",
         "sample",
@@ -85,14 +62,12 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         "image",
     ]
 
-    # FilterSet fields for search/filter functionality
     filterset_fields = [
         "sample",
         "dataset",
         "added",
     ]
 
-    # Serializer fields for API (when implemented)
     serializer_fields = [
         "id",
         "uuid",
@@ -103,21 +78,21 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         "modified",
     ]
 
-    # Display metadata
     display_name = "Measurement"
     description = "Observation or calculation recorded from a sample"
 
     def resolve_fields(self, component: str) -> list[str]:
-        """The fields every measurement has, followed by this type's own.
+        """Return the fields every measurement has, followed by this type's own.
 
-        The base class above declares a fixed field list per component, so a
-        subclass's own ``fields`` (e.g. ``XRFMeasurementConfig.fields``) never
-        reaches ``ModelConfiguration.resolve_fields`` for form, table or
-        filterset - that method only falls back to ``self.fields`` when the
-        component's own list is undeclared, and here it always is declared.
-        Appending the type's own fields here is what lets a registered type's
-        form, table and filterset carry its own fields as well as the common
-        ones, without every type author repeating the common list.
+        ``ModelConfiguration.resolve_fields`` only falls back to ``self.fields`` when a component's
+        own list is undeclared, and here it always is declared. Appending the type's own fields
+        lets its form, table and filterset carry them without repeating the common list.
+
+        Args:
+            component: The component being generated, such as ``form`` or ``table``.
+
+        Returns:
+            The field names for the component.
         """
         common = super().resolve_fields(component)
         if component not in COMPONENTS_ADDING_OWN_FIELDS:

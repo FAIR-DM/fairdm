@@ -1,3 +1,5 @@
+"""App configuration for collections."""
+
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
@@ -13,33 +15,20 @@ class CollectionsConfig(AppConfig):
     verbose_name = _("Collections")
 
     def ready(self) -> None:
-        """Initialize the collections app."""
+        """Add the sample and measurement listings to the data menu."""
         self.populate_data_collection_menu()
         return super().ready()
 
     def populate_data_collection_menu(self):
-        """
-        Populates the data collection menu with sample and measurement collection links.
-        This function is called during the `CollectionsConfig.ready` method.
-        """
+        """Add a menu entry for every registered sample and measurement type."""
         from flex_menu import MenuItem
         from mvp.menus import MenuCollapse
 
         from fairdm.registry import registry
 
-        # Get-or-create, mirroring fairdm/contrib/plugins/registration.py:148-157 - a
-        # renamed or absent node must not raise here (research.md R8).
-        # A node declared in `fairdm/menus/menus.py` already carries its own
-        # emptiness check, which is where the guarantee has to live because that
-        # module loads whether or not this app is installed (FR-040, FR-041). A
-        # node created here is one this portal renamed or removed, so it needs
-        # the check supplying.
-        #
-        # `_check`, not `check`: `check` is a bound method on MenuItem, and the
-        # per-request copy flex_menu builds reads `_check`, not `check` - assigning to
-        # `check` would shadow the method rather than feed the copy. A childless
-        # container is not auto-hidden by flex_menu (it only suppresses a parent that
-        # HAD children which all resolved invisible).
+        # A node declared in `fairdm/menus/menus.py` carries its own emptiness check. One created
+        # here is a node the portal renamed or removed, so it needs the check supplied.
+        # `_check`, not `check`: flex_menu's per-request copy reads `_check`.
         sample_menu = AppMenu.get("Samples")
         if sample_menu is None:
             sample_menu = MenuCollapse(name=_("Samples"))

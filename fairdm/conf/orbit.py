@@ -14,6 +14,12 @@ def dashboard_access(request):
     In development (``DEBUG=True``) the dashboard is open for convenience. In
     production it is restricted to authenticated superusers. Override
     ``ORBIT_CONFIG["AUTH_CHECK"]`` in your own project to change this policy.
+
+    Args:
+        request: The incoming request.
+
+    Returns:
+        ``True`` when the request may view the dashboard.
     """
     if settings.DEBUG:
         return True

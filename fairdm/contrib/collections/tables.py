@@ -1,3 +1,5 @@
+"""Table classes and column helpers for sample and measurement listings."""
+
 import django_tables2 as tables
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.html import format_html
@@ -10,8 +12,13 @@ from fairdm.utils.choices import Visibility
 
 
 def render_concept_many_to_many(value):
-    """
-    Custom render function for ConceptManyToManyField to display concepts.
+    """Render a concept many-to-many value as comma-separated links.
+
+    Args:
+        value: The related manager for the concept field.
+
+    Returns:
+        HTML with one link per concept, or an empty string when there are none.
     """
     if not value:
         return ""
@@ -39,18 +46,25 @@ field_map = {
 
 
 class BaseTable(tables.Table):
-    """Base table class for all FairDM tables."""
+    """Base table for all listings, adding type-based column classes and header tooltips.
+
+    Args:
+        *args: Passed to ``django_tables2.Table``.
+        **kwargs: Passed to ``django_tables2.Table``.
+
+    Attributes:
+        id: The hidden UUID column.
+        dataset: The dataset icon column.
+    """
 
     id = tables.Column(verbose_name="UUID", visible=False)
     dataset = tables.Column(orderable=False, verbose_name="")
 
     def render_dataset(self, value):
-        """Link the dataset icon only where its own page would not refuse the visitor.
+        """Link the dataset icon unless the dataset is private.
 
-        Publication and visibility are independent (D1, FR-003), so a published-but-
-        private dataset is the ordinary state, not an edge case - its records still
-        belong in the listing, but this column carries no link to a page it cannot
-        read (D3, extended at design review).
+        A published dataset can still be private, and its records stay in the listing
+        without a link to a page the visitor cannot read.
         """
         if value.visibility != Visibility.PRIVATE:
             return format_html(
@@ -59,17 +73,13 @@ class BaseTable(tables.Table):
         return icon("dataset")
 
     def render_location(self, value):
-        """Link the location icon to the location's own page.
-
-        django-tables2 never calls this at all when the accessor resolves to
-        `None` (`Column.empty_values`) - it substitutes the column's `default`
-        instead - so this only runs where a location genuinely exists.
-        """
+        """Link the location icon to the location's own page."""
         return format_html(
             '<a href="{}">{}</a>', value.get_absolute_url(), icon("location")
         )
 
     def value_dataset(self, value):
+        """Export the dataset's UUID."""
         return value.uuid
 
     def __init__(self, *args, **kwargs):
@@ -81,18 +91,13 @@ class BaseTable(tables.Table):
         self.update_concept_field_render_methods()
 
     def configure_column_attrs(self):
-        """Resolve each column's underlying model field, once, and use it to set
-        both the type/name CSS classes and the header tooltip."""
+        """Set each column's type and name CSS classes and its header tooltip from the model field."""
         model = getattr(self._meta, "model", None)
 
-        # Iterate over bound columns (safer) and update/ensure the nested 'td' dict exists.
-        # Use setdefault so we mutate the actual attrs mapping instead of a temporary dict.
         for bound_col in self.columns:
-            # Get the underlying Column definition if present
             col = getattr(bound_col, "column", bound_col)
 
-            # Determine accessor/name to use for field lookup; if accessor contains
-            # dotted lookups (e.g. 'sample.location.x') use the first part for model field.
+            # A dotted accessor such as 'sample.location.x' looks up its first part.
             fname = getattr(col, "accessor", None) or getattr(col, "name", "")
             field_name_for_lookup = fname.split(".")[0] if fname else ""
 
@@ -113,8 +118,6 @@ class BaseTable(tables.Table):
             current = td.get("class", "")
             td["class"] = f"{classes} {current if current else ''}".strip()
 
-            # Also update the header cell classes (`th`) in the same way so
-            # both header and data cells receive the same type-based classes.
             th = col.attrs.setdefault("th", {})
             current_th = th.get("class", "")
             th["class"] = f"{classes} {current_th if current_th else ''}".strip()
@@ -124,10 +127,7 @@ class BaseTable(tables.Table):
                 th["title"] = str(help_text)
 
     def update_concept_field_render_methods(self):
-        """
-        Update the render methods for ConceptManyToManyField in the table.
-        This is called in the constructor to ensure all fields are set up correctly.
-        """
+        """Render concept many-to-many columns as links."""
         for c in self.columns.columns.values():
             try:
                 field = self._meta.model._meta.get_field(c.accessor)
@@ -138,7 +138,7 @@ class BaseTable(tables.Table):
 
 
 class SampleTable(BaseTable):
-    """Table class for Sample models."""
+    """Listing table for samples."""
 
     name = tables.Column(linkify=True)
     latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
@@ -151,19 +151,13 @@ class SampleTable(BaseTable):
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
-        # The dataset and location icons lead every sample listing, ahead of
-        # whatever fields the registered type declares.
         sequence = ("dataset", "location", "...")
-        # `Sample.Meta.ordering` (`["added"]`) is a single non-unique field, so
-        # paging can repeat or skip rows without a tie-break (D5, FR-033). `id`
-        # is always a column here - declared on `BaseTable` - so it survives
-        # `order_by`'s column-membership check even for a type whose own
-        # fields never name `added`.
+        # `added` is not unique, so paging needs `id` as a tie-break. `id` is always a column.
         order_by = ("added", "id")
 
 
 class MeasurementTable(BaseTable):
-    """Table class for Measurement models."""
+    """Listing table for measurements."""
 
     name = tables.Column(linkify=True, verbose_name=_("Name"))
     sample = tables.Column()
@@ -177,11 +171,11 @@ class MeasurementTable(BaseTable):
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
-        # `Measurement.Meta.ordering` (`["-modified"]`) is a single non-unique
-        # field; see `SampleTable.Meta.order_by` (D5, FR-033).
+        # `modified` is not unique, so paging needs `id` as a tie-break.
         order_by = ("-modified", "id")
 
     def render_sample(self, value):
+        """Link the sample only when its dataset is published."""
         if value.dataset.published:
             return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
         return _("Unpublished")

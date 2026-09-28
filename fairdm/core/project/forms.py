@@ -1,3 +1,5 @@
+"""Forms for creating and editing projects."""
+
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper, Layout
 from django import forms
@@ -14,10 +16,18 @@ from .models import Project
 
 
 class ProjectForm(ModelForm):
-    """Base form for Project instances.
+    """Form for editing a project, and the base of ``ProjectCreateForm``.
 
-    Centralises all field declarations, help_texts, and widgets. Used directly
-    by the update view and subclassed by ProjectCreateForm.
+    Args:
+        *args: Positional arguments passed to ``ModelForm``.
+        **kwargs: Keyword arguments passed to ``ModelForm``.
+
+    Attributes:
+        image: Optional cover image.
+        name: The project's name.
+        status: The project's stage, from concept to complete.
+        visibility: Who can view the project.
+        owner: The organization that owns the project.
     """
 
     image = forms.ImageField(
@@ -52,7 +62,7 @@ class ProjectForm(ModelForm):
     )
     owner: forms.ModelChoiceField = forms.ModelChoiceField(
         label=_("Owner organization"),
-        queryset=None,  # Set in __init__
+        queryset=None,
         help_text=_("The organization that owns this project."),
         widget=forms.Select(attrs={"class": "form-control"}),
         required=False,
@@ -63,7 +73,6 @@ class ProjectForm(ModelForm):
         fields = ["image", "name", "status", "visibility", "owner"]
 
     def __init__(self, *args, **kwargs):
-        """Initialize form and set owner queryset if the field is present."""
         super().__init__(*args, **kwargs)
         if "owner" in self.fields:
             self.fields["owner"].queryset = Organization.objects.all()
@@ -80,10 +89,13 @@ class ProjectForm(ModelForm):
 
 
 class ProjectCreateForm(ProjectForm):
-    """Streamlined form for creating new Project instances.
+    """Form for creating a project, asking only for name, status and visibility.
 
-    Restricts fields to the minimum required for project creation. Users can
-    add detailed metadata through the edit interface after creation.
+    The other fields are available after creation on the update page.
+
+    Args:
+        *args: Positional arguments passed to ``ProjectForm``.
+        **kwargs: Keyword arguments passed to ``ProjectForm``.
     """
 
     class Meta(ProjectForm.Meta):
@@ -94,7 +106,6 @@ class ProjectCreateForm(ProjectForm):
         self.helper.layout = Layout(
             "name",
             "status",
-            InlineRadios(
-                "visibility"
-            ),  # BUG: Inline radios is causing a layout error with crispy forms. Submit buttons render inside the radio group. Need to investigate and fix this issue.
+            # BUG: InlineRadios makes crispy render the submit buttons inside the radio group.
+            InlineRadios("visibility"),
         )

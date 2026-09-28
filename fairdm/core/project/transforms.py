@@ -1,14 +1,8 @@
-"""Metadata export for the Project model (US-5, FR-023 to FR-026).
+"""Metadata export for the Project model.
 
-Two transform classes map a :class:`~fairdm.core.project.models.Project` to
-an external metadata form, mirroring the shape of
-:mod:`fairdm.contrib.contributors.utils.transforms` one model up:
-:class:`ProjectDataCiteTransform` for DataCite's JSON form and
-:class:`ProjectSchemaOrgTransform` for schema.org JSON-LD. The module-level
-:func:`to_datacite` and :func:`to_json_ld` are thin convenience wrappers, the
-same way :func:`contributor_to_datacite` wraps :class:`DataCiteTransform` at
-the bottom of that module - the administrative actions call these rather
-than re-deriving the mapping.
+:class:`ProjectDataCiteTransform` maps a project to DataCite's JSON form and
+:class:`ProjectSchemaOrgTransform` to schema.org JSON-LD. The module-level
+:func:`to_datacite` and :func:`to_json_ld` wrap them for the administrative actions.
 """
 
 from fairdm.contrib.contributors.utils.transforms import BaseTransform
@@ -19,7 +13,7 @@ from fairdm.core.choices import PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES
 #: carries its own type alongside so it is not lost.
 _DATACITE_ABSTRACT_TYPE = "Abstract"
 
-#: A project's own identifier vocabulary names a DOI this way (FR-025).
+#: A project's own identifier vocabulary names a DOI this way.
 _DOI_IDENTIFIER_TYPE = "DOI"
 
 #: The FairDM role that becomes a DataCite creator rather than a contributor.
@@ -27,21 +21,23 @@ _CREATOR_ROLE = "Creator"
 
 
 class ProjectDataCiteTransform(BaseTransform):
-    """Maps a Project to DataCite's JSON metadata form (FR-023).
+    """Map a project to DataCite's JSON metadata form.
 
-    `BaseTransform.export()` is typed on `Contributor`. Generalising it to
-    cover a project too is filed separately as issue #176 and is out of
-    scope here, so this override narrows the parameter type instead of
-    widening the base class's.
+    ``BaseTransform.export()`` is typed on ``Contributor``, and generalising it is out of scope
+    (#176), so this override narrows the parameter type instead.
     """
 
     def export(self, project) -> dict:
-        """Map ``project`` to DataCite's JSON metadata form.
+        """Map a project to DataCite's JSON metadata form.
 
-        Carries the project's own fields plus its descriptions, dates,
-        identifiers, contributions and funding (FR-023). Absent optional
-        metadata is omitted rather than emitted as an empty structure
-        (FR-026).
+        Carries the project's name plus its descriptions, dates, identifiers, contributions and
+        funding. Absent optional metadata is omitted rather than emitted as an empty structure.
+
+        Args:
+            project: The project to export.
+
+        Returns:
+            The DataCite metadata dictionary.
         """
         data = {
             "titles": [{"title": project.name}],
@@ -67,26 +63,23 @@ class ProjectDataCiteTransform(BaseTransform):
             data["contributors"] = contributors
 
         if project.funding:
-            # A shallow copy - a caller mutating the returned list must not
-            # mutate `project.funding` in memory.
+            # A copy, so a caller mutating the result does not mutate `project.funding`.
             data["fundingReferences"] = list(project.funding)
 
         return data
 
     def _contributor_type(self, role_name: str) -> str:
-        """The DataCite ``contributorType`` for a FairDM project contribution role.
+        """Return the DataCite ``contributorType`` for a project contribution role.
 
-        ``PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES`` names the equivalent
-        ``DataciteContributorRoles`` member by its Python attribute name
-        (e.g. ``"PROJECT_LEADER"``). DataCite's own vocabulary spells that
-        ``"ProjectLeader"``, so the constant name is converted directly
-        rather than read off the concept's (translatable) label.
+        The equivalent member is named by its Python attribute (``"PROJECT_LEADER"``), which is
+        converted to DataCite's spelling (``"ProjectLeader"``) rather than read off the
+        translatable label.
         """
         member_name = PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES.get(role_name, "OTHER")
         return "".join(part.capitalize() for part in member_name.split("_"))
 
     def _descriptions(self, project) -> list:
-        """Each of the project's descriptions, in DataCite's description shape."""
+        """Return each of the project's descriptions in DataCite's description shape."""
         entries = []
         for description in project.descriptions.all():
             if description.type == _DATACITE_ABSTRACT_TYPE:
@@ -104,11 +97,9 @@ class ProjectDataCiteTransform(BaseTransform):
         return entries
 
     def _dates(self, project) -> list:
-        """Each of the project's dates as its own entry, named via ``dateInformation``.
+        """Return each of the project's dates as its own entry, named via ``dateInformation``.
 
-        DataCite has no start/end pair, and a project date's value is a
-        ``PartialDate`` that may carry year, year-month or day precision -
-        ``str()`` formats it at whichever precision it carries.
+        DataCite has no start/end pair. ``str()`` formats a ``PartialDate`` at its own precision.
         """
         return [
             {"date": str(date.value), "dateType": "Other", "dateInformation": date.type}
@@ -116,11 +107,10 @@ class ProjectDataCiteTransform(BaseTransform):
         ]
 
     def _identifiers(self, project) -> tuple:
-        """The project's identifiers split into DataCite's primary and alternate forms.
+        """Split the project's identifiers into DataCite's primary and alternate forms.
 
-        A DOI becomes the record's primary identifier (FR-025); every other
-        identifier type becomes an alternate identifier carrying its own
-        type.
+        A DOI becomes the primary identifier. Every other type becomes an alternate identifier
+        carrying its own type.
         """
         primary = []
         alternate = []
@@ -142,11 +132,10 @@ class ProjectDataCiteTransform(BaseTransform):
         return primary, alternate
 
     def _contributions(self, project) -> tuple:
-        """The project's contributions split into DataCite's creators and contributors.
+        """Split the project's contributions into DataCite's creators and contributors.
 
-        The ``Creator`` role becomes a creator; every other role becomes a
-        contributor carrying a ``contributorType``. Each contributor's own
-        representation comes from ``Contributor.to_datacite()``.
+        The ``Creator`` role becomes a creator. Every other role becomes a contributor carrying a
+        ``contributorType``.
         """
         creators = []
         contributors = []
@@ -154,10 +143,7 @@ class ProjectDataCiteTransform(BaseTransform):
             if contribution.contributor is None:
                 continue
             representation = contribution.contributor.to_datacite()
-            # `.all()` rather than `.values_list()` - the latter always
-            # issues its own query, bypassing a
-            # `prefetch_related("contributors__roles")` the caller may have
-            # applied to avoid a query per contribution.
+            # `.all()` reads the prefetch cache; `.values_list()` would query per contribution.
             for role_name in (role.name for role in contribution.roles.all()):
                 if role_name == _CREATOR_ROLE:
                     creators.append(representation)
@@ -172,22 +158,23 @@ class ProjectDataCiteTransform(BaseTransform):
 
 
 class ProjectSchemaOrgTransform(BaseTransform):
-    """Maps a Project to schema.org JSON-LD (FR-024).
+    """Map a project to schema.org JSON-LD.
 
-    `BaseTransform.export()` is typed on `Contributor`. Generalising it to
-    cover a project too is filed separately as issue #176 and is out of
-    scope here, so this override narrows the parameter type instead of
-    widening the base class's.
+    ``BaseTransform.export()`` is typed on ``Contributor``, and generalising it is out of scope
+    (#176), so this override narrows the parameter type instead.
     """
 
     def export(self, project) -> dict:
-        """Map ``project`` to schema.org JSON-LD, carrying an explicit context (FR-024).
+        """Map a project to schema.org JSON-LD, carrying an explicit context.
 
-        Contributors come from ``Contributor.to_schema_org()``, with the
-        ``email`` key dropped from each representation here - that
-        transform is shared with other callers who need the address, so the
-        key is removed at the export boundary rather than in the transform
-        itself.
+        The ``email`` key is dropped from each contributor here. The contributor transform is
+        shared with callers who need the address, so it is removed at the export boundary.
+
+        Args:
+            project: The project to export.
+
+        Returns:
+            The JSON-LD dictionary.
         """
         data = {
             "@context": {"@vocab": "https://schema.org/"},
@@ -195,9 +182,7 @@ class ProjectSchemaOrgTransform(BaseTransform):
             "name": project.name,
         }
 
-        # `.all()` rather than `.filter()` - the latter always issues its
-        # own query, bypassing a `prefetch_related("descriptions")` the
-        # caller may have applied.
+        # `.all()` reads the prefetch cache; `.filter()` would always query.
         abstract = next(
             (
                 description
@@ -226,10 +211,24 @@ class ProjectSchemaOrgTransform(BaseTransform):
 
 
 def to_datacite(project) -> dict:
-    """Map ``project`` to DataCite's JSON metadata form."""
+    """Map a project to DataCite's JSON metadata form.
+
+    Args:
+        project: The project to export.
+
+    Returns:
+        The DataCite metadata dictionary.
+    """
     return ProjectDataCiteTransform().export(project)
 
 
 def to_json_ld(project) -> dict:
-    """Map ``project`` to schema.org JSON-LD."""
+    """Map a project to schema.org JSON-LD.
+
+    Args:
+        project: The project to export.
+
+    Returns:
+        The JSON-LD dictionary.
+    """
     return ProjectSchemaOrgTransform().export(project)

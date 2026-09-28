@@ -1,3 +1,5 @@
+"""Admin for contributors, affiliations, claiming and the claiming audit log."""
+
 from allauth.account.models import EmailAddress
 from dal import autocomplete
 from django import forms
@@ -23,20 +25,17 @@ from .resources import PersonResource
 
 
 class AffiliationForm(forms.ModelForm):
-    """The single place that gates writing an Admin/Owner affiliation (Route 1).
+    """Gate writing an Admin or Owner affiliation on ``manage_organization``.
 
-    Holding an OWNER affiliation *is* what ``contributors.manage_organization``
-    means (``OrganizationPermissionBackend``), so setting an affiliation's
-    ``type`` to ADMIN or OWNER -- or changing one that already carries one of
-    those types, including demoting, deleting, or merely editing its end date
-    -- is itself a management act. Each requires ``manage_organization`` on the
-    organisation in question. Superusers already hold that permission through
-    ``has_perm``, so no separate superuser branch is needed here.
+    Setting a type to ADMIN or OWNER, or changing an affiliation that already has one, is a
+    management act, so it needs ``manage_organization`` on the organisation. Superusers hold
+    that permission already. The admin and both inlines bind the acting user through
+    ``bind_affiliation_form_user``, so every route that writes a type reaches this rule.
 
-    ``AffiliationAdmin``, ``AffiliationInline`` and ``MemberInline`` each build
-    a per-request subclass of this form via ``bind_affiliation_form_user`` so
-    the rule is written once and reached from every route that can write a
-    ``type``.
+    Args:
+        *args: Passed to ``ModelForm``.
+        user: The user submitting the form.
+        **kwargs: Passed to ``ModelForm``.
     """
 
     class Meta:
@@ -53,6 +52,7 @@ class AffiliationForm(forms.ModelForm):
         )
 
     def clean(self):
+        """Refuse setting or changing an Admin or Owner affiliation without ``manage_organization``."""
         cleaned_data = super().clean()
 
         management_types = (
@@ -101,13 +101,19 @@ class AffiliationForm(forms.ModelForm):
 def bind_affiliation_form_user(form_class, user):
     """Return a subclass of ``form_class`` with ``user`` bound as its default.
 
-    ``AffiliationForm.clean()`` needs the acting user to evaluate
-    ``manage_organization``. The standalone admin and both inlines each build
-    one of these per request -- in ``get_form``/``get_formset`` -- so the check
-    always runs against whoever actually submitted the form.
+    Built per request so the permission check runs against whoever submitted the form.
+
+    Args:
+        form_class: The affiliation form class.
+        user: The requesting user.
+
+    Returns:
+        The bound form class.
     """
 
     class BoundAffiliationForm(form_class):
+        """Affiliation form with the requesting user preset."""
+
         def __init__(self, *args, **kwargs):
             kwargs.setdefault("user", user)
             super().__init__(*args, **kwargs)
@@ -116,29 +122,24 @@ def bind_affiliation_form_user(form_class, user):
 
 
 class ClaimedStatusFilter(admin.SimpleListFilter):
-    """Filter persons by claimed/unclaimed status.
+    """Filter people by claimed or unclaimed status.
 
-    Reads the stored claim value (``is_claimed``), not the email address
-    (D8): an invited person has an email but has not claimed their account,
-    so email presence alone misclassifies them. "Claimed" also respects the
-    same precedence Person.account_state would use -- an account that has
-    since been deactivated no longer counts as claimed, even though
-    is_claimed is still True. Person.account_state itself is US3's work and
-    does not exist yet, so this reads is_claimed/is_active directly.
+    Reads ``is_claimed`` rather than the email, since an invited person has an email but
+    has not claimed. A deactivated account no longer counts as claimed.
     """
 
     title = _("Claimed Status")
     parameter_name = "is_claimed"
 
     def lookups(self, request, model_admin):
-        """Return filter options."""
+        """Offer claimed and unclaimed."""
         return (
             ("claimed", _("Claimed")),
             ("unclaimed", _("Unclaimed")),
         )
 
     def queryset(self, request, queryset):
-        """Apply filter to queryset."""
+        """Narrow to claimed or unclaimed people."""
         if self.value() == "claimed":
             return queryset.filter(is_active=True, is_claimed=True)
         elif self.value() == "unclaimed":
@@ -147,60 +148,69 @@ class ClaimedStatusFilter(admin.SimpleListFilter):
 
 
 class AccountEmailInline(admin.TabularInline):
+    """Inline for a person's email addresses."""
+
     model = EmailAddress
     fields = ["email", "primary", "verified"]
     extra = 0
 
 
 class ContributionInline(admin.StackedInline):
-    # model = Contribution
+    """Inline for contributions."""
+
     extra = 1
     fields = ("profile", "roles")
 
 
 class ContributorInline(admin.StackedInline):
+    """Inline for a contributor's profile."""
+
     model = Contributor
     fields = ["profile"]
     extra = 0
 
 
 class AffiliationInline(admin.StackedInline):
+    """Inline for a person's affiliations, gated by ``AffiliationForm``."""
+
     model = Affiliation
     form = AffiliationForm
     fields = [("organization", "type", "is_primary")]
     extra = 0
 
     def get_formset(self, request, obj=None, **kwargs):
-        """Bind the requesting user into ``AffiliationForm`` (Route 1)."""
+        """Bind the requesting user into ``AffiliationForm``."""
         kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
         return super().get_formset(request, obj, **kwargs)
 
 
 class MemberInline(admin.StackedInline):
-    """Inline for managing organization members (from Organization perspective)."""
+    """Inline for an organisation's members, gated by ``AffiliationForm``."""
 
     model = Affiliation
     form = AffiliationForm
-    fk_name = "organization"  # Specify which FK to use (Affiliation -> Organization)
+    fk_name = "organization"
     fields = [("person", "type", "is_primary")]
     extra = 0
     verbose_name = "Member"
     verbose_name_plural = "Members"
 
     def get_formset(self, request, obj=None, **kwargs):
-        """Bind the requesting user into ``AffiliationForm`` (Route 1)."""
+        """Bind the requesting user into ``AffiliationForm``."""
         kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
         return super().get_formset(request, obj, **kwargs)
 
 
 class IdentifierInline(admin.StackedInline):
+    """Inline for a contributor's identifiers."""
+
     model = ContributorIdentifier
     fields = ["type", "value"]
     extra = 0
 
 
 class SubOrganizationInline(admin.TabularInline):
-    """Inline listing an organization's sub-organizations (self-referencing parent FK)."""
+    """Inline for an organisation's sub-organisations."""
 
     model = Organization
     fk_name = "parent"
@@ -212,6 +222,8 @@ class SubOrganizationInline(admin.TabularInline):
 
 @admin.register(Person)
 class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
+    """Admin for people, with import, claim links, merging and duplicate suggestions."""
+
     base_model = Contributor
     show_in_index = True
     change_form_template = "contributors/admin/change_form.html"
@@ -238,19 +250,8 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         models.ManyToManyField: {
             "widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")
         },
-        # models.ImageField: {
-        #     "widget": ClientsideCroppingWidget(
-        #         width=1200,
-        #         height=1200,
-        #         preview_width=150,
-        #         preview_height=150,
-        #         # format="webp",  # "jpeg", "png", "webp
-        #     )
-        # },
-        # models.JSONField: {"widget": FlatJSONWidget},
     }
     readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
-    # fieldsets for modifying user
     fieldsets = (
         (
             "Basic info",
@@ -260,8 +261,6 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     ("first_name", "last_name"),
                     "name",
                     "email",
-                    # "alternative_names",
-                    # "links",
                     "profile",
                     "uuid",
                     "last_synced",
@@ -282,16 +281,10 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         ),
         (
             "Permissions",
-            {
-                "fields": (
-                    "groups",
-                    # "user_permissions",
-                )
-            },
+            {"fields": ("groups",)},
         ),
     )
 
-    # fieldsets for creating new user
     add_fieldsets = (
         (
             None,
@@ -310,19 +303,14 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     ordering = ("last_name",)
     actions = ["generate_claim_link_action", "merge_person_action"]
 
-    #: D12 - `contributors.change_person`, which FR-004 gives the Community Manager, would
-    #: otherwise be a three-click route to superuser: `UserAdmin`'s stock fieldsets put these
-    #: on the change form with no permission gate of their own.
+    # Without hiding these, `contributors.change_person` would be a route to superuser.
     _SUPERUSER_ONLY_FIELDS = ("is_superuser", "is_staff", "password")
 
     def get_fieldsets(self, request, obj=None):
-        """Drop the account-escalation fields for a request whose user is not a superuser.
+        """Drop the account-escalation fields for a non-superuser.
 
-        SEC-001: `groups` grants the same rights as `is_superuser`/`is_staff` by proxy -
-        setting a person's membership in Data Curator or Portal Administrator hands them
-        that role's rights. `auth.view_group` is the discriminator FR-002/FR-004 already
-        supply: the Portal Administrator holds it (assigning roles is their job) and the
-        Community Manager does not.
+        ``groups`` is dropped too unless the user holds ``auth.view_group``, as a group
+        membership grants a role's rights.
         """
         fieldsets = super().get_fieldsets(request, obj)
         if request.user.is_superuser:
@@ -340,35 +328,26 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         return narrowed
 
     def get_form(self, request, obj=None, **kwargs):
-        """Drop ``password`` from the built form for a non-superuser.
-
-        ``is_superuser`` and ``is_staff`` are excluded by ``get_fieldsets`` alone, which
-        ``ModelAdmin.get_form`` reads to build its field list. ``password`` is not a plain
-        model field on the base ``UserChangeForm`` - it is declared directly
-        (``ReadOnlyPasswordHashField``), and Django's ``ModelFormMetaclass`` always re-adds a
-        declared field to ``base_fields`` regardless of the fields list, so excluding it from
-        the fieldsets alone is not enough.
-        """
+        """Drop ``password`` from the built form for a non-superuser."""
+        # `password` is a declared form field, which the metaclass re-adds whatever the fieldsets say.
         form = super().get_form(request, obj, **kwargs)
         if not request.user.is_superuser:
             form.base_fields.pop("password", None)
         return form
 
     def _may_manage_persons(self, request):
-        """D13/D21: profile claims and merges are the Community Manager's, through the
-        same ``contributors.change_person`` right FR-004 already gives that role - not
-        "any staff member", which is what the superseded reasoning on ``claim_link_view``
-        and ``merge_view`` was written against."""
+        """Check whether the user may claim or merge profiles, which needs ``contributors.change_person``.
+
+        Args:
+            request: The current request.
+
+        Returns:
+            True when the user holds the permission.
+        """
         return request.user.has_perm("contributors.change_person")
 
     def get_actions(self, request):
-        """Drop the merge/claim-link actions for anyone the views themselves would
-        refuse (Route 2).
-
-        ``merge_view`` and ``claim_link_view`` themselves are the load-bearing
-        gate -- this only keeps the interface from offering an action that
-        would redirect somebody into a page that refuses them.
-        """
+        """Drop the merge and claim-link actions for users the views would refuse."""
         actions = super().get_actions(request)
         if not self._may_manage_persons(request):
             actions.pop("merge_person_action", None)
@@ -377,17 +356,12 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
     @admin.display(description=_("Account state"))
     def account_state(self, obj):
-        """Report the account state derived from the stored claim and active fields (D8).
-
-        Reads the state off the person rather than working it out again here, so this
-        column cannot come to disagree with what the rest of the application means by
-        claimed, invited, ghost or inactive.
-        """
+        """Show the person's derived account state."""
         return obj.account_state.label
 
     @admin.action(description=_("Merge selected Person into another"))
     def merge_person_action(self, request, queryset):
-        """Redirect to a merge confirmation page for the selected Person(s)."""
+        """Redirect to the merge page for the one selected person."""
         from django.shortcuts import redirect
         from django.urls import reverse
 
@@ -405,7 +379,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
     @admin.action(description=_("Generate claim link for selected Person"))
     def generate_claim_link_action(self, request, queryset):
-        """Generate a shareable one-time claim link for an unclaimed Person."""
+        """Redirect to the claim-link page for the one selected person."""
         from django.shortcuts import redirect
         from django.urls import reverse
 
@@ -421,14 +395,10 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         url = reverse("admin:contributors_person_claim_link", args=[person.pk])
         return redirect(url)
 
-    # ------------------------------------------------------------------
-    # Fuzzy match panel
-    # ------------------------------------------------------------------
-
     _DISMISSED_KEY = "contributors_dismissed_candidates"
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        """Inject fuzzy-match duplicate candidates into the change-form context."""
+        """Add possible duplicates, minus those dismissed this session, to the change form."""
         from fairdm.contrib.contributors.services.matching import (
             find_duplicate_candidates,
         )
@@ -446,7 +416,16 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         return super().change_view(request, object_id, form_url, extra_context)
 
     def dismiss_candidate_view(self, request, pk, candidate_pk):
-        """Store a dismissed candidate in the session and redirect back to change page."""
+        """Dismiss a duplicate candidate for this session and return to the change page.
+
+        Args:
+            request: The current request.
+            pk: The person being edited.
+            candidate_pk: The candidate to dismiss.
+
+        Returns:
+            A redirect to the person's change page.
+        """
         from django.shortcuts import redirect
         from django.urls import reverse
 
@@ -456,6 +435,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         return redirect(reverse("admin:contributors_person_change", args=[pk]))
 
     def get_urls(self):
+        """Add the claim-link, merge and dismiss-candidate routes."""
         from django.urls import path as url_path
 
         urls = super().get_urls()
@@ -479,20 +459,19 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         return custom_urls + urls
 
     def claim_link_view(self, request, pk):
-        """Render the claim link page for a Person.
+        """Render the claim link page for a person.
 
-        Superuser-only (Route 2): a claim token is a credential, and minting
-        one is not an ordinary staff operation. Gated first, before anything
-        else in this view -- including the reverse() call for
-        "contributors:claim-profile", which currently raises NoReverseMatch
-        for an unrelated, already-reported reason (that URL is commented out
-        in ``urls.py``). Refusing here first keeps this permission check
-        observable on its own.
+        A claim token is a credential, so the permission check comes first.
 
-        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
-        only alternative to "superuser" was "any staff member". A portal role granted
-        deliberately -- the Community Manager, through ``contributors.change_person``,
-        which FR-004 already gives it -- is a third thing, and now gates this instead.
+        Args:
+            request: The current request.
+            pk: The person's primary key.
+
+        Returns:
+            The rendered page.
+
+        Raises:
+            PermissionDenied: The user may not manage people.
         """
         if not self._may_manage_persons(request):
             raise PermissionDenied
@@ -529,17 +508,20 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         )
 
     def merge_view(self, request, pk):
-        """Render the merge confirmation/execution page for a Person.
+        """Render the merge page for a person and merge them into the chosen person on POST.
 
-        Superuser-only (Route 2): merging destroys the discarded person's
-        identity and moves their affiliations (including any OWNER one),
-        object-level permissions, confirmed emails and social account onto
-        the surviving record. That is not an ordinary staff operation.
+        Merging deletes the discarded person and moves their affiliations, permissions, emails
+        and social account, so the permission check comes first.
 
-        Superseded by D13/D21 (017-portal-roles US-2): that reasoning was written when the
-        only alternative to "superuser" was "any staff member". A portal role granted
-        deliberately -- the Community Manager, through ``contributors.change_person``,
-        which FR-004 already gives it -- is a third thing, and now gates this instead.
+        Args:
+            request: The current request.
+            pk: The primary key of the person to discard.
+
+        Returns:
+            The rendered page, or a redirect to the surviving person after a merge.
+
+        Raises:
+            PermissionDenied: The user may not manage people.
         """
         if not self._may_manage_persons(request):
             raise PermissionDenied
@@ -589,12 +571,12 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
 
 class OrganizationActionForm(ActionForm):
-    """Adds the new-owner selector to the organisation changelist's action bar (T135, FR-046).
+    """Add a new-owner selector to the organisation changelist's action bar.
 
-    Django renders every visible field on ``action_form`` alongside the action dropdown
-    (``admin/actions.html``), so this needs no new template. The transfer action reads the
-    value straight off ``request.POST`` rather than validating the form, matching how the
-    Django admin's own action-form examples do it.
+    The transfer action reads the value from ``request.POST`` without validating this form.
+
+    Attributes:
+        new_owner: The person to become owner.
     """
 
     new_owner = forms.ModelChoiceField(
@@ -606,6 +588,8 @@ class OrganizationActionForm(ActionForm):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
+    """Admin for organisations, with ROR sync and ownership transfer actions."""
+
     base_model = Contributor
     show_in_index = True
     inlines = [MemberInline, SubOrganizationInline]
@@ -614,8 +598,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_filter = ["country"]
     search_fields = ["name"]
     readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
-    # alternative_names, links and lang are JSON array fields that trigger widget
-    # issues; they are simply left out of the fieldsets below rather than excluded.
+    # `alternative_names`, `links` and `lang` are JSON arrays that break the widget, so they are left out.
     fieldsets = (
         (
             None,
@@ -633,9 +616,10 @@ class OrganizationAdmin(admin.ModelAdmin):
     actions = [
         "sync_from_ror",
         "transfer_ownership_action",
-    ]  # Add ROR sync and ownership transfer actions
+    ]
 
     def get_readonly_fields(self, request, obj: Organization | None = None):
+        """Make the synced fields read-only once the organisation has synced data."""
         if obj and obj.synced_data:
             return [
                 "name",
@@ -653,16 +637,14 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Sync from ROR")
     def sync_from_ror(self, request, queryset):
-        """Trigger ROR sync for selected organizations."""
+        """Queue a ROR sync for each selected organisation that has a ROR identifier."""
         from fairdm.contrib.contributors.tasks import sync_contributor_identifier
 
         synced_count = 0
         for org in queryset:
-            # Find ROR identifier for this organization
             ror_identifier = org.identifiers.filter(type="ROR").first()
 
             if ror_identifier:
-                # Trigger async sync task
                 sync_contributor_identifier.delay(ror_identifier.pk)
                 synced_count += 1
 
@@ -681,18 +663,9 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     @admin.action(description="Transfer Ownership")
     def transfer_ownership_action(self, request, queryset):
-        """Transfer ownership of the selected organization to the chosen member (FR-046).
-
-        The affiliation-record change (demoting the incumbent, promoting the new owner) is
-        ``Organization.transfer_ownership()``'s job, not this action's -- it is not
-        reimplemented here (T135). The object-level ``manage_organization`` check below must
-        run, and must run before the transfer: without it, any account holding the
-        model-level ``change_organization`` permission could transfer any organisation
-        (design review SEC-001).
-        """
+        """Transfer the selected organisation to the member chosen in the action bar."""
         from django.core.exceptions import ValidationError
 
-        # Validate single selection
         if queryset.count() != 1:
             self.message_user(
                 request,
@@ -703,7 +676,6 @@ class OrganizationAdmin(admin.ModelAdmin):
 
         org = queryset.first()
 
-        # Check if organization has members
         if not org.members.exists():
             self.message_user(
                 request,
@@ -712,8 +684,7 @@ class OrganizationAdmin(admin.ModelAdmin):
             )
             return
 
-        # Check user has manage_organization permission -- object-level, not the model-level
-        # change permission that merely got them into this action (SEC-001).
+        # Object-level: the model-level change permission alone would let anyone transfer any organisation.
         if not request.user.has_perm("contributors.manage_organization", org):
             self.message_user(
                 request,
@@ -750,15 +721,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(Affiliation)
 class AffiliationAdmin(admin.ModelAdmin):
-    """Administer affiliations directly, outside the person/organisation inlines (US10).
-
-    Writing ``type`` is gated by ``AffiliationForm`` (Route 1): a non-superuser
-    lacking ``manage_organization`` on the affiliation's organisation cannot set
-    it to Admin or Owner, and cannot change one that already is. That covers
-    the write; ``has_change_permission``/``has_delete_permission`` below cover
-    the surrounding change/delete routes for an existing Admin or Owner row the
-    same way, and ``get_queryset`` scopes the changelist itself.
-    """
+    """Administer affiliations directly, gated by ``manage_organization`` on each organisation."""
 
     form = AffiliationForm
     list_display = ["person", "organization", "type", "is_primary"]
@@ -766,16 +729,12 @@ class AffiliationAdmin(admin.ModelAdmin):
     autocomplete_fields = ["person", "organization"]
 
     def get_form(self, request, obj=None, **kwargs):
+        """Bind the requesting user into ``AffiliationForm``."""
         kwargs["form"] = bind_affiliation_form_user(self.form, request.user)
         return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
-        """Scope a non-superuser to affiliations of organisations they manage.
-
-        Expressed as a subquery through ``AffiliationQuerySet.owners()`` --
-        the single place the "current OWNER" rule lives -- rather than a
-        Python loop that resolves each organisation in turn.
-        """
+        """Limit a non-superuser to affiliations of organisations they own."""
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
@@ -787,14 +746,7 @@ class AffiliationAdmin(admin.ModelAdmin):
         return qs.filter(organization_id__in=managed_organization_ids)
 
     def has_change_permission(self, request, obj=None):
-        """Refuse changing a given affiliation without ``manage_organization``
-        on its organisation -- whatever the affiliation's own type is,
-        since a non-manager should not be able to reach the change form for
-        someone else's row and, via ``AffiliationForm``, promote it there.
-
-        ``obj is None`` (the changelist's own permission check) is left to the
-        ordinary model-level permission so the changelist still works.
-        """
+        """Refuse changing an affiliation without ``manage_organization`` on its organisation."""
         if obj is not None and not request.user.has_perm(
             "contributors.manage_organization", obj.organization
         ):
@@ -802,8 +754,7 @@ class AffiliationAdmin(admin.ModelAdmin):
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        """Refuse deleting a given affiliation without ``manage_organization``
-        on its organisation. See ``has_change_permission`` above."""
+        """Refuse deleting an affiliation without ``manage_organization`` on its organisation."""
         if obj is not None and not request.user.has_perm(
             "contributors.manage_organization", obj.organization
         ):
@@ -813,10 +764,7 @@ class AffiliationAdmin(admin.ModelAdmin):
 
 @admin.register(ClaimingAuditLog)
 class ClaimingAuditLogAdmin(admin.ModelAdmin):
-    """Read-only admin view for ClaimingAuditLog entries.
-
-    All claim events are immutable by design — add, change, and delete are disabled.
-    """
+    """Read-only list of claiming audit log entries, which are immutable."""
 
     list_display = [
         "timestamp",
@@ -832,16 +780,19 @@ class ClaimingAuditLogAdmin(admin.ModelAdmin):
     ordering = ["-timestamp"]
 
     def has_add_permission(self, request):
+        """Never allow adding an entry."""
         return False
 
     def has_view_permission(self, request, obj=None):
-        # Allow changelist (obj is None) but block the change detail page.
+        """Allow the list but not an entry's detail page."""
         if obj is not None:
             return False
         return super().has_view_permission(request, obj)
 
     def has_change_permission(self, request, obj=None):
+        """Never allow changing an entry."""
         return False
 
     def has_delete_permission(self, request, obj=None):
+        """Never allow deleting an entry."""
         return False

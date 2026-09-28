@@ -1,3 +1,4 @@
+{# @description A contributor's name as a link to their profile, after their identifier icon. Reads the context variables `contributor`, a contribution, and `after`, text shown straight after the name. #}
 <c-contributor.icon :contributor="contributor.contributor" />
 <a class="text-reset link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover"
    href="{{ contributor.get_absolute_url }}">{{ contributor }}</a>{{ after }}

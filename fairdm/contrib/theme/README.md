@@ -18,8 +18,8 @@ The theme app is automatically included in FairDM projects. It's added to `INSTA
 ```python
 INSTALLED_APPS = [
     # ...
-    'fairdm.contrib.theme',
-    'fairdm',
+    "fairdm.contrib.theme",
+    "fairdm",
     # ...
 ]
 ```

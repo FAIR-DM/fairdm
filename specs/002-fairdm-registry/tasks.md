@@ -20,7 +20,7 @@ passing test that covers it.
 ## Phase 1: Setup
 
 - [x] T001 [US1] Create `fairdm/registry/` with `__init__.py` exporting `register`, `registry` and `ModelConfiguration` as the package's public surface.
-- [x] T002 [US1] Create `tests/test_registry/` with `__init__.py`, mirroring the source path per Article X.
+- [x] T002 [US1] Create `tests/test_registry/` with `__init__.py`, mirroring the source path per Article I.
 - [x] T003 [P] [US1] Define the suite's test models in `tests/test_registry/conftest.py`: a concrete `Sample` subclass, a concrete `Measurement` subclass, a related model reachable by a path, and a model carrying a many-to-many field with an explicit through model.
 - [x] T004 [P] [US1] Add one `DjangoModelFactory` per test model in `tests/test_registry/conftest.py`, using `factory.Sequence` for uniqueness-guarded fields and `factory.SubFactory` for relations. Expose thin fixtures over them.
 
@@ -202,7 +202,7 @@ T039 was previously filed here as blocked on issue #140. That issue closed on 20
 `fairdm/apps.py:65`. The deletion is now T039's own work, not a dependency.
 
 Worth naming among those: there are no `factory_boy` factories in `tests/test_registry/conftest.py`
-at all, so T003 and T004 are an Article X gap the suite has carried since it was written. Test models
+at all, so T003 and T004 are an Article I gap the suite has carried since it was written. Test models
 are declared inline inside test methods instead.
 
 **Built without a test** (2):
@@ -264,7 +264,7 @@ Per story, counting the setup and polish tasks against the story each one serves
 Introspection is complete. Refusing bad configuration is 1 of 13. The override tier is 0 of 5 and has
 never been exercised by anything. Two of the six generators ship with no test at all *and* emit a
 field they were never asked for, and the test suite has no `factory_boy` factories, which is an
-Article X gap older than this audit.
+Article I gap older than this audit.
 
 The tasks in the Setup and Foundational phases serve more than one story. Each is assigned to the
 story it most unblocks, so that the ledger has one home per task: the exception handling and path

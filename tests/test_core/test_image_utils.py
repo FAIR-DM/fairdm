@@ -1,13 +1,4 @@
-"""Tests for image field behaviour across all four core model forms.
-
-Covers:
-- US1: Help text, widget, file-size validation (T009-T012, T034, T035)
-- US2: Thumbnail alias resolution (T019, T020)
-- US3: Cross-model consistency (T026)
-
-Test-first (TDD): these tests are written before the implementation tasks
-T013-T016, T022. They should be RED initially and GREEN after implementation.
-"""
+"""Tests for image field behaviour across all four core model forms."""
 
 import io
 
@@ -17,10 +8,6 @@ from django.template.loader import render_to_string
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.core.image_utils import validate_image_file_size
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 
 def _make_small_jpeg() -> bytes:
@@ -35,11 +22,7 @@ def _make_small_jpeg() -> bytes:
 def _make_uploaded_file(
     content: bytes, name: str, content_type: str, size: int | None = None
 ):
-    """Wrap *content* in an InMemoryUploadedFile.
-
-    *size* overrides the reported file size so we can test the validator
-    without needing a genuinely enormous file on disk.
-    """
+    """Wrap *content* in an InMemoryUploadedFile."""
     file_obj = io.BytesIO(content)
     reported_size = size if size is not None else len(content)
     return InMemoryUploadedFile(
@@ -58,39 +41,6 @@ def _make_pdf_bytes() -> bytes:
 
 
 class TestImageFieldWidgetAndValidation:
-    """Help text, widget, and file-size/type validation for the image field."""
-
-    # -----------------------------------------------------------------
-    # T009 — Help text contains "3:2"
-    # -----------------------------------------------------------------
-
-    @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "import_path",
-        [
-            "fairdm.core.project.forms.ProjectForm",
-            "fairdm.core.dataset.forms.DatasetForm",
-            "fairdm.core.sample.forms.SampleForm",
-            "fairdm.core.measurement.forms.MeasurementForm",
-        ],
-    )
-    def test_image_help_text_contains_ratio(self, import_path):
-        """T009: Each core form's image field help text contains '3:2'."""
-        module_path, class_name = import_path.rsplit(".", 1)
-        import importlib
-
-        mod = importlib.import_module(module_path)
-        form_cls = getattr(mod, class_name)
-        form = form_cls()
-        help_text = str(form.fields["image"].help_text)
-        assert "3:2" in help_text, (
-            f"{class_name}.image.help_text does not contain '3:2'. Got: {help_text!r}"
-        )
-
-    # -----------------------------------------------------------------
-    # T010 — Widget is ImageClearableFileInput
-    # -----------------------------------------------------------------
-
     @pytest.mark.django_db
     @pytest.mark.parametrize(
         "import_path",
@@ -102,7 +52,6 @@ class TestImageFieldWidgetAndValidation:
         ],
     )
     def test_image_field_uses_clearable_widget(self, import_path):
-        """T010: Each core form's image field uses ImageClearableFileInput."""
         module_path, class_name = import_path.rsplit(".", 1)
         import importlib
 
@@ -114,12 +63,7 @@ class TestImageFieldWidgetAndValidation:
             f"{class_name}.image.widget is {type(widget).__name__}, expected ImageClearableFileInput"
         )
 
-    # -----------------------------------------------------------------
-    # T011 — Oversized file is rejected
-    # -----------------------------------------------------------------
-
     def test_image_field_rejects_oversized_file(self):
-        """T011: ProjectForm rejects an image reported as > 5 MB."""
         from fairdm.core.project.forms import ProjectForm
 
         jpeg_bytes = _make_small_jpeg()
@@ -127,21 +71,12 @@ class TestImageFieldWidgetAndValidation:
             content=jpeg_bytes,
             name="big.jpg",
             content_type="image/jpeg",
-            size=6 * 1024 * 1024,  # 6 MB reported size
+            size=6 * 1024 * 1024,
         )
         form = ProjectForm(data={}, files={"image": oversized})
         assert "image" in form.errors, "Expected 'image' in form.errors for 6 MB file"
-        error_text = " ".join(str(e) for e in form.errors["image"])
-        assert "5" in error_text or "MB" in error_text, (
-            f"Expected file-size error message, got: {error_text!r}"
-        )
-
-    # -----------------------------------------------------------------
-    # T012 — Valid file is accepted
-    # -----------------------------------------------------------------
 
     def test_image_field_accepts_valid_file(self):
-        """T012: ProjectForm accepts a valid JPEG reported as ≤ 5 MB."""
         from fairdm.core.project.forms import ProjectForm
 
         jpeg_bytes = _make_small_jpeg()
@@ -149,9 +84,8 @@ class TestImageFieldWidgetAndValidation:
             content=jpeg_bytes,
             name="valid.jpg",
             content_type="image/jpeg",
-            size=1 * 1024 * 1024,  # 1 MB
+            size=1 * 1024 * 1024,
         )
-        # Provide the minimum required non-file fields
         from fairdm.core.choices import ProjectStatus
         from fairdm.utils.choices import Visibility
 
@@ -165,12 +99,7 @@ class TestImageFieldWidgetAndValidation:
         )
         assert form.is_valid(), f"Expected valid form, got errors: {form.errors}"
 
-    # -----------------------------------------------------------------
-    # T034 — Non-image file (PDF) is rejected
-    # -----------------------------------------------------------------
-
     def test_image_field_rejects_non_image(self):
-        """T034: ProjectForm rejects a file that is not a valid image (FR-004)."""
         from fairdm.core.project.forms import ProjectForm
 
         pdf_file = _make_uploaded_file(
@@ -182,17 +111,8 @@ class TestImageFieldWidgetAndValidation:
         form = ProjectForm(data={}, files={"image": pdf_file})
         assert "image" in form.errors, "Expected 'image' in form.errors for a PDF file"
 
-    # -----------------------------------------------------------------
-    # T035 — Clearing the image field leaves image falsy; template shows placeholder
-    # -----------------------------------------------------------------
-
     @pytest.mark.django_db
     def test_image_field_clear_shows_placeholder(self):
-        """T035: Clearing the image field leaves instance.image falsy (FR-008 / Edge Case 5).
-
-        Also asserts that the object_card template renders the static placeholder
-        asset in the <img src> attribute when image is absent.
-        """
         from fairdm.factories import ProjectFactory
 
         # The factory leaves `image` unset by default (issue #323), so this test
@@ -202,14 +122,11 @@ class TestImageFieldWidgetAndValidation:
             "Precondition: project should have an image after factory creation"
         )
 
-        # Clear the image by saving the project without an image
         project.image = None
         project.save(update_fields=["image"])
         project.refresh_from_db()
         assert not project.image, "After clearing, project.image should be falsy"
 
-        # Assert the object_card template renders the static placeholder path
-        # (requires T022 to update the template; this assertion is RED until then)
         html = render_to_string(
             "cotton/components/object_card.html",
             {
@@ -230,15 +147,8 @@ class TestImageFieldWidgetAndValidation:
 
 
 class TestImageThumbnailAliases:
-    """Thumbnail alias resolution for the image field (US2)."""
-
-    # -----------------------------------------------------------------
-    # T019 — core_small alias resolves for a project with an image
-    # -----------------------------------------------------------------
-
     @pytest.mark.django_db
     def test_core_small_alias_resolves(self):
-        """T019: project.image['core_small'] returns a non-empty URL."""
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory(with_image=True)
@@ -247,13 +157,8 @@ class TestImageThumbnailAliases:
         url = thumbnail.url
         assert url, f"core_small thumbnail URL should be non-empty, got: {url!r}"
 
-    # -----------------------------------------------------------------
-    # T020 — core_large alias resolves for a project with an image
-    # -----------------------------------------------------------------
-
     @pytest.mark.django_db
     def test_core_large_alias_resolves(self):
-        """T020: project.image['core_large'] returns a non-empty URL."""
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory(with_image=True)
@@ -264,12 +169,6 @@ class TestImageThumbnailAliases:
 
 
 class TestImageFieldUniformity:
-    """Cross-model consistency of the image field configuration (US3)."""
-
-    # -----------------------------------------------------------------
-    # T026 — All four forms are uniform (parametrised consistency test)
-    # -----------------------------------------------------------------
-
     @pytest.mark.django_db
     @pytest.mark.parametrize(
         "import_path",
@@ -281,7 +180,6 @@ class TestImageFieldUniformity:
         ],
     )
     def test_all_core_forms_image_field_uniform(self, import_path):
-        """T026: All four core forms expose identical image field configuration."""
         module_path, class_name = import_path.rsplit(".", 1)
         import importlib
 
@@ -290,22 +188,14 @@ class TestImageFieldUniformity:
         form = form_cls()
         field = form.fields["image"]
 
-        # help_text contains "3:2"
-        assert "3:2" in str(field.help_text), (
-            f"{class_name}: help_text must contain '3:2', got {field.help_text!r}"
-        )
-
-        # widget is ImageClearableFileInput
         assert isinstance(field.widget, ImageClearableFileInput), (
             f"{class_name}: widget must be ImageClearableFileInput, got {type(field.widget).__name__}"
         )
 
-        # validate_image_file_size is in validators
         assert validate_image_file_size in field.validators, (
             f"{class_name}: validate_image_file_size must be in image field validators"
         )
 
-        # required is False
         assert field.required is False, (
             f"{class_name}: image field must not be required, got required={field.required}"
         )

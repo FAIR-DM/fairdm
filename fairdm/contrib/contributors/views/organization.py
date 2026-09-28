@@ -1,3 +1,5 @@
+"""Views for listing and creating organisations."""
+
 from django.utils.translation import gettext as _
 
 from fairdm.views import FairDMCreateView, FairDMListView
@@ -8,7 +10,7 @@ from ..models import Organization
 
 
 class OrganizationListView(FairDMListView):
-    """List of organizations that the user is a member of."""
+    """List organisations."""
 
     model = Organization
     filterset_class = OrganizationFilter
@@ -37,6 +39,6 @@ class OrganizationCreateView(FairDMCreateView):
     form_class = OrganizationCreateForm
 
     def form_valid(self, form):
-        """Handle form submission."""
+        """Save the organisation."""
         response = super().form_valid(form)
         return response

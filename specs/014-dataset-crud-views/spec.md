@@ -297,7 +297,7 @@ Separately confirm a mistyped name stops the deletion.
 
 Requirements state what a person can do and what the portal guarantees. Where the application shell
 already provides a facility, the requirement is to use it rather than to build an equivalent, per
-Article XIV. Where the project's pages already established an arrangement, this feature adopts it
+Article XIII. Where the project's pages already established an arrangement, this feature adopts it
 rather than inventing a second one.
 
 ### The dataset listing
@@ -395,7 +395,7 @@ rather than inventing a second one.
 - **FR-046**: The deletion page MUST state what will be deleted along with the dataset, before the
   confirmation is offered — the samples and measurements held beneath it, and its descriptions,
   dates and identifiers. This MUST use the application shell's own facility for previewing what a
-  deletion would take, per Article XIV, rather than a hand-written equivalent. *(Amended 2026-08-25:
+  deletion would take, per Article XIII, rather than a hand-written equivalent. *(Amended 2026-08-25:
   originally required the two counts and a warning of this feature's own making, written before the
   shell's facility had been read properly.)*
 - **FR-047**: Where a dataset holds no samples and no measurements, the page MUST NOT warn about

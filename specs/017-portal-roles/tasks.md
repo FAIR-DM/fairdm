@@ -29,7 +29,7 @@ task below, not a manual step.
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: no ordering dependency on its siblings. Test tasks marked `[P]` often share a module,
-  because Article X puts several `Test*` classes in one file by design.
+  because Article I puts several `Test*` classes in one file by design.
 - **[Story]**: US1–US5, or `SETUP` / `POLISH`.
 
 ## Phase 1: Setup
@@ -46,7 +46,7 @@ task below, not a manual step.
       edit what any role may do. Covers FR-001 to FR-005.
 - [ ] T003 [US1] `fairdm/portal_roles.py` — one class, `PortalRoles`, holding the four declarations
       as class-level data with `shipped_names()`, `rights_carrying()` and `reconcile()` as its
-      methods (Article XI). The module is named `portal_roles`, not `roles`, because this codebase
+      methods (Article X). The module is named `portal_roles`, not `roles`, because this codebase
       already spends the bare word on contribution roles. Each declaration is a stored name, a
       translated display label, and an explicit list of `app_label.codename` permissions:
       - **Portal Administrator** — `auth.view_group`, `contributors.view_person`,

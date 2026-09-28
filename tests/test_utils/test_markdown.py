@@ -1,20 +1,9 @@
-"""Tests for ``fairdm/utils/markdown.py`` — the sanitising markdown renderer
-that replaces martor (issue #266, GPL-3.0 incompatible with the MIT license).
-
-django-markdownx's own ``markdownx.utils.markdownify`` is bare
-``markdown.markdown(...)`` with no sanitisation, so this module supplies its
-own. These tests are the point of the whole change: stored user markdown
-(profile biographies, dataset/project/sample descriptions) must never carry
-an executable payload into rendered HTML.
-"""
+"""Tests for the sanitising markdown renderer in ``fairdm/utils/markdown.py`` (#266)."""
 
 from fairdm.utils.markdown import markdownify
 
 
 class TestSanitisation:
-    """Each case is a payload markdown can legitimately produce, that must
-    not survive rendering with its executable part intact."""
-
     def test_script_tag_is_stripped(self):
         html = markdownify("Hello <script>alert('xss')</script> world")
 
@@ -33,9 +22,7 @@ class TestSanitisation:
 
 
 class TestOrdinaryMarkdownRenders:
-    """The sanitiser must not be so tight that it strips ordinary markdown
-    output — this is what stops TestSanitisation from passing by accident."""
-
+    # Stops TestSanitisation passing by accident when the sanitiser strips everything.
     def test_heading(self):
         html = markdownify("# Title")
 

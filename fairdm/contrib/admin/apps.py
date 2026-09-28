@@ -1,20 +1,17 @@
+"""App configuration for the portal admin."""
+
 from django.apps import AppConfig
 from django.contrib.admin import apps
 
 
 class FairDMAdminConfig(AppConfig):
-    # default_site = "fairdm.contrib.admin.sites.CustomAdminSite"
+    """Configuration for the portal admin app."""
+
     name = "fairdm.contrib.admin"
     label = "fairdm_admin"
 
 
 class FairDMAdminSite(apps.AdminConfig):
+    """Admin config that swaps in the portal's custom admin site."""
+
     default_site = "fairdm.contrib.admin.sites.CustomAdminSite"
-
-    # def ready(self):
-    #     super().ready()
-    #     from django.contrib.admin import site
-
-    #     site.add_action(actions.export_as_fixture, "export_as_fixture")
-    #     site.add_action(actions.find_duplicates_action, "find_duplicates_action")
-    #     site.add_action(actions.merge, "merge_selected")

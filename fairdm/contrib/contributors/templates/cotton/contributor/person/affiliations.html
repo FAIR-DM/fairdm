@@ -1,3 +1,5 @@
+{# @description A person's primary affiliation as a link to its organisation. Reads the context variable `contributor`, the person. #}
+{# @prop :show_location:boolean | default:False | description:"Add the organisation's city and country after its name." #}
 <c-vars :show_location="False" />
 <div>
    {% for membership in contributor.affiliations.all %}

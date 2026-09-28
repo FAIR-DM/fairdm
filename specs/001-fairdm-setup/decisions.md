@@ -509,7 +509,7 @@ added. Three whole classes go: `TestDevelopmentSetup`, `TestProductionSetup` and
 function they were written against, and deleting those without replacement would have dropped real
 guarantees while the gate stayed green.
 
-They were not dropped. The coverage moved into modules that mirror the source tree per Article X, and
+They were not dropped. The coverage moved into modules that mirror the source tree per Article I, and
 grew doing so: `tests/test_conf/test_environment.py` for the security-critical variables,
 `test_development.py` for the development override, and `tests/test_conf/test_settings/` with a module
 per baseline concern. `test_production_requires_secret_key` is now four tests across

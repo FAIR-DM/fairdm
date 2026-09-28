@@ -1,3 +1,5 @@
+"""URL routes for the project list, create and record pages."""
+
 from django.urls import include, path
 
 from fairdm.plugins import registry
@@ -7,8 +9,7 @@ from .views import ProjectCreateView, ProjectListView
 
 urlpatterns = [
     path("projects/", ProjectListView.as_view(), name="project-list"),
-    # Declared ahead of the record include below: Django matches in declaration order, and a
-    # route declared after it would have `create` swallowed as a `uuid` (T093, 013 plan P5).
+    # Declared before the record include, or `create` would be matched as a `uuid`.
     path("projects/create/", ProjectCreateView.as_view(), name="project-create"),
     path(
         "projects/<str:uuid>/",

@@ -1,47 +1,17 @@
 {% load i18n static thumbnail %}
 {% comment %}
-  The project card on the public listing (issue #330).
-
-  Rendered directly rather than through `cotton/components/object_card.html`:
-  that component is Bootstrap-era markup and none of its classes resolve
-  against `mvp/static/css/django-mvp.css`, the only stylesheet the portal
-  loads.
-
-  The `record-card` classes are shared with the dataset card, which mirrors
-  this template element for element. A change here changes both, which is the
-  point: the two listings are meant to draw the same card. Only the accent
-  colour differs, through the `record-card--<type>` modifier.
-
-  The card reflows on its OWN width, not the viewport's — `record-card` sets
-  `container-type: inline-size` and the breakpoints in `css/fairdm.css` are
-  `@container` queries. Viewport breakpoints would be wrong the moment the card
-  is drawn anywhere narrower than a full listing row, such as a plugin panel.
-  That stylesheet is linked once per page from `fairdm/templates/base.html`,
-  never from here: a `<link>` in this template would be emitted once per card.
-
-  Everything the card draws is loaded by `ProjectQuerySet.with_list_data()`
-  and `with_contributors()`; adding a field here that neither prefetches puts
-  one query per card back on the page.
+  Project card for the public listing (#330), drawn directly because `cotton/components/object_card.html` uses Bootstrap-era classes that no longer resolve.
+  The `record-card` classes are shared with the dataset card, so change both together. The card reflows on its own width (`@container`), and its stylesheet is linked once from base.html, never here.
+  Data comes from `ProjectQuerySet.with_list_data()` and `with_contributors()`; a field that neither prefetches adds a query per card.
 {% endcomment %}
 <a href="{{ object.get_absolute_url }}"
    class="record-card"
    aria-label="{% blocktrans with name=object.title %}Open project {{ name }}{% endblocktrans %}">
 
-  {% comment %}
-    The reflow lives on this wrapper, not on `.record-card` itself. A
-    container query is answered by an ancestor container, so the element
-    carrying `container-type` can never respond to its own width.
-  {% endcomment %}
+  {# The reflow lives on this wrapper: a container query is answered by an ancestor, so `.record-card` cannot respond to its own width. #}
   <div class="record-card__layout">
 
-    {% comment %}
-      Every card carries a media block, image or not, so a listing keeps one
-      alignment the whole way down. A project without an image gets a tinted
-      panel holding the project icon, NOT a placeholder file:
-      `object_card.html` points at `fairdm/img/placeholder-3x2.png`, which is
-      not in the repository, so every imageless card there requests a file
-      that 404s.
-    {% endcomment %}
+    {# Every card has a media block so listings stay aligned. An imageless project gets a tinted icon panel, not a placeholder file, which would 404. #}
     <div class="record-card__media">
       {% if object.image %}
         <img src="{{ object.image|thumbnail_url:'core_small' }}"
@@ -57,11 +27,6 @@
     <div class="record-card__body">
 
       <div class="record-card__meta">
-        {% comment %}
-          The record type, then its lifecycle status. The type badge repeats
-          the colour of the stripe down the left of the body, so the two read
-          as one signal rather than two.
-        {% endcomment %}
         <span class="record-card__badges">
           <span class="badge badge-sm record-card__type">
             <c-icon name="project" />
@@ -92,11 +57,7 @@
       <div class="record-card__people">
         {% if object.contributors.all %}
           <div class="avatar-group -space-x-4">
-            {% comment %}
-              `for` is passed explicitly as well as `src`: the component
-              otherwise falls back to `request.user`, which would draw the
-              visitor's own avatar in a contributor's place.
-            {% endcomment %}
+            {# `for` is passed explicitly, or the component falls back to `request.user` and draws the visitor's avatar. #}
             {% for contribution in object.contributors.all|slice:":4" %}
               <c-avatar :for="contribution.contributor"
                         src="{% if contribution.contributor.image %}{{ contribution.contributor.image|thumbnail_url:'thumb' }}{% endif %}"
@@ -117,22 +78,14 @@
 
       {% with summary=object.get_abstract_summary %}
         {% if summary %}
-          {% comment %}
-            Plain text from `BaseModel.get_abstract_summary()`, escaped here like
-            any other string. Never `|safe`: the markdown it came from is
-            user-authored.
-          {% endcomment %}
+          {# Plain text, escaped like any string. Never `|safe`: the source markdown is user-authored. #}
           <p class="record-card__abstract">{{ summary }}</p>
         {% endif %}
       {% endwith %}
 
       {% if object.keywords.all %}
         <div class="record-card__keywords">
-          {% comment %}
-            Badges, not links: `ProjectFilter` names its keyword filters
-            `keywords_<VocabularyClassName>` from a setting, so there is no
-            stable query parameter to build a href from.
-          {% endcomment %}
+          {# Badges, not links: keyword filters are named from a setting, so there is no stable query parameter. #}
           {% for keyword in object.keywords.all %}
             <span class="badge badge-ghost badge-sm">{{ keyword.label }}</span>
           {% endfor %}
@@ -142,10 +95,7 @@
       <div class="record-card__footer">
         <span class="record-card__uuid font-mono">
           {{ object.uuid }}
-          {% comment %}
-            The link wraps the whole card, so the copy control has to stop the
-            click reaching it, or copying the identifier would navigate away.
-          {% endcomment %}
+          {# The card is one link, so the copy control must stop the click reaching it. #}
           <button type="button"
                   class="record-card__copy"
                   title="{% translate 'Copy project identifier' %}"

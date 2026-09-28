@@ -1,3 +1,4 @@
+{# @description A person card for a contribution's contributor, with an edit and remove menu for users who can modify contributors. Reads the context variables `obj`, the contribution, and `can_modify_contributor`, which shows the menu when true. #}
 {% load fairdm guardian_tags plugin_tags %}
 
 <c-contributor.card.person-alt :obj="obj.contributor">

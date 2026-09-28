@@ -72,7 +72,6 @@
   </c-card>
 {% endblock page_content %}
 
-{# Sidebar #}
 {% block page_sidebar %}
   <c-card title="{% trans "Affiliations" %}"
           icon="organization"
@@ -110,16 +109,6 @@
           edit_url="{% if object == request.user %}{% plugin_url "identifiers" %}{% endif %}">
     <dl class="mb-0">
       {% for identifier in object.identifiers.all %}
-        {% comment %} <c-info-item label="{{ identifier.type }}">
-                  {% if identifier.get_absolute_url %}
-                    <a href="{{ identifier.get_absolute_url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-                      {{ identifier.value }}
-                      <c-icon name="external_link" size="12" class="ms-1" />
-                    </a>
-                  {% else %}
-                    {{ identifier.value }}
-                  {% endif %}
-        </c-info-item> {% endcomment %}
       {% empty %}
         <p class="text-muted small mb-0">{{ empty_text }}</p>
       {% endfor %}
@@ -155,7 +144,6 @@
       {% endfor %}
     </div>
   </c-card>
-  {# Alternative Names #}
   {% if object.alternative_names %}
     <c-card title="{% trans "Also Known As" %}"
             icon="person-badge">
@@ -168,29 +156,14 @@
       </div>
     </c-card>
   {% endif %}
-  {# Account Status (only visible to the person themselves) #}
   {% if object == request.user %}
     <c-card title="{% trans "Account Status" %}"
             icon="shield-check">
       <dl class="mb-0">
-        {% comment %} <c-info-item label="{% trans "Account Type" %}">
-                  {% if object.is_staff %}
-                    <c-badge variant="danger" :text="{% trans "Staff" %}" />
-                  {% elif object.is_active %}
-                    <c-badge variant="success" :text="{% trans "Active" %}" />
-                  {% else %}
-                    <c-badge variant="secondary" :text="{% trans "Inactive" %}" />
-                  {% endif %}
-                </c-info-item>
-                <c-info-item label="{% trans "Member Since" %}" text="{{ object.date_joined|date:'F Y' }}" />
-                {% if object.last_login %}
-                  <c-info-item label="{% trans "Last Login" %}" text="{{ object.last_login|naturaltime }}" />
-        {% endif %} {% endcomment %}
       </dl>
     </c-card>
   {% endif %}
   {% block sync_info %}
-    {# Sync Information (only visible to the person themselves) #}
     {% if object == request.user and object.last_synced %}
       <c-card title="{% trans "Data Synchronization" %}"
               icon="arrow-repeat">

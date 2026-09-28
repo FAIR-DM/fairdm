@@ -1,14 +1,19 @@
+"""App configuration for contributors."""
+
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
 
 class ContributorsConfig(AppConfig):
+    """Configuration for the contributors app."""
+
     default_auto_field = "django.db.models.BigAutoField"
     name = "fairdm.contrib.contributors"
     label = "contributors"
     verbose_name = _("Community")
 
     def ready(self):
+        """Connect the signal receivers for claiming and for protecting roles and credit."""
         from allauth.account.signals import email_confirmed
         from django.contrib.auth.models import Group
         from django.db.models.signals import (

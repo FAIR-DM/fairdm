@@ -1,3 +1,9 @@
+{# @description A link styled with a Bootstrap link colour variant, optionally underlined only on hover. Any other attribute is passed to the anchor. #}
+{# @prop href:text | description:"The link target." #}
+{# @prop subtle:boolean | description:"Underline the link only when it is hovered." #}
+{# @prop variant:text | default:"default" | description:"The Bootstrap link colour variant, applied as the class `link-<variant>`." #}
+{# @prop class:text | description:"Extra CSS classes for the anchor." #}
+{# @slot Read the docs — The link content. #}
 <c-vars href subtle variant="default" class />
 <a href="{{ href }}"
    class="link-{{ variant }} {% if subtle %}link-underline link-underline-opacity-0 link-underline-opacity-75-hover{% endif %} {{ class }}"

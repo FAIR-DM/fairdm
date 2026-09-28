@@ -20,13 +20,21 @@ FUNDER_IDENTIFIER_TYPES = ("ISNI", "GRID", "Crossref Funder ID", "ROR", "Other")
 
 
 def validate_funding(value):
-    """Validate that ``value`` is a list of DataCite funding references.
+    """Validate that a value is a list of DataCite funding references.
 
     A project may carry several funding records, so the stored value must be
     a list. Each member must be an object carrying only keys from
     ``FUNDING_REFERENCE_KEYS``, with ``funderName`` required and every other
     key optional. A ``funderIdentifierType``, when present, must be one of
     DataCite's identifier schemes.
+
+    Args:
+        value: The funding value to validate.
+
+    Raises:
+        ValidationError: The value is not a list of funding reference objects. The error code
+            is ``funding_not_list``, ``funding_unknown_key``, ``funding_missing_funder_name``,
+            ``funding_invalid_type`` or ``funding_invalid_identifier_type``.
     """
     if not isinstance(value, list):
         raise ValidationError(

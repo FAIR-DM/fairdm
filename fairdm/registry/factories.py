@@ -1,18 +1,7 @@
-"""
-Component Factories for FairDM ModelConfiguration.
+"""Factories that generate Django components from a ModelConfiguration.
 
-This module provides factory classes that generate Django components (Forms, Tables,
-Filters, Admin, Serializers, Resources) from ModelConfiguration settings using intelligent
-field introspection.
-
-Features:
-- Smart field type detection and widget/column/filter mapping
-- Crispy-forms integration for better form layouts
-- Bootstrap 5 styling for tables
-- Nested serializers for ForeignKey relationships
-- Natural key support for import/export resources
-
-Updated Tasks: T024-T029
+Each factory builds one component (form, table, filter set, admin, serializer or
+resource), choosing widgets, columns and filters from the model's field types.
 """
 
 from typing import Any, cast
@@ -33,72 +22,65 @@ class ComponentFactory:
 
     This abstract base class provides common functionality for all component factories.
     Subclasses implement specific generation logic for Forms, Tables, Filters, etc.
+
+    Args:
+        model: The Django model class to generate components for.
+        fields: Field names to use. ``None`` uses the model's safe fields.
     """
 
     def __init__(self, model: type[models.Model], fields: list[str] | None = None):
-        """Initialize the factory.
-
-        Args:
-            model: The Django model class to generate components for
-            fields: List of field names to use (None = use smart defaults)
-        """
         self.model = model
         self.fields = fields
         self.inspector = FieldInspector(model)
 
     def get_fields(self) -> list[str]:
-        """Get fields to use, with intelligent fallback chain.
+        """Return the fields to use.
 
-        Resolution order:
-        1. Explicitly provided fields
-        2. Auto-detected safe fields (inspector.get_safe_fields())
+        Explicitly provided fields win, then the model's safe fields as found by
+        ``inspector.get_safe_fields()``.
 
         Returns:
-            List of field names to use
+            The field names to use.
         """
         if self.fields is not None:
             return self.fields
 
-        # Use safe fields as default
         return cast(list[str], self.inspector.get_safe_fields())
 
     def generate(self) -> Any:
-        """Generate the component.
-
-        This method must be implemented by subclasses.
+        """Generate the component. Subclasses must implement it.
 
         Returns:
-            The generated component class
+            The generated component class.
+
+        Raises:
+            NotImplementedError: Always, on the base class.
         """
         raise NotImplementedError("Subclasses must implement generate()")
 
 
 class FormFactory(ComponentFactory):
-    """Factory for generating ModelForm classes with smart widgets and crispy-forms layout.
+    """Factory for generating ModelForm classes with smart widgets.
 
-    Features (T024):
-    - Field type to widget mapping (DateInput for dates, Textarea for large text)
-    - Crispy-forms FormHelper for Bootstrap 5 styling
-    - Smart widget choices based on field characteristics
+    Dates, large text, email and URL fields get a matching widget, and the form
+    carries a crispy-forms helper with a submit button.
     """
 
     def generate(self) -> type[ModelForm]:
         """Generate a ModelForm class with smart widgets.
 
         Returns:
-            ModelForm subclass with smart widgets and crispy-forms configuration
+            A ModelForm subclass with smart widgets and a crispy-forms helper.
         """
         from crispy_forms.helper import FormHelper
         from crispy_forms.layout import Submit
 
         fields = self.get_fields()
 
-        # Build widgets dict with smart defaults
         widgets = self._get_smart_widgets()
 
-        # Build form using Django's modelform_factory, on the mixin base FR-037
-        # requires (a specimen type supplying no form of its own still gets
-        # `SampleFormMixin`'s widgets, dataset scoping and guidance text).
+        # Built on the sample or measurement form mixin so a type with no form of
+        # its own keeps the mixin's widgets, dataset scoping and guidance text.
         form_class = modelform_factory(
             self.model,
             form=self.get_base_form_class(),
@@ -106,7 +88,6 @@ class FormFactory(ComponentFactory):
             widgets=widgets,
         )
 
-        # Add crispy-forms helper
         original_init = form_class.__init__
 
         def __init__(self, *args, **kwargs):
@@ -120,10 +101,10 @@ class FormFactory(ComponentFactory):
         return form_class
 
     def _get_smart_widgets(self) -> dict[str, Any]:
-        """Generate smart widget choices based on field types.
+        """Choose a widget for each field by its type.
 
         Returns:
-            Dictionary mapping field names to widget instances
+            A dict mapping field names to widget instances.
         """
         from django import forms
 
@@ -134,50 +115,44 @@ class FormFactory(ComponentFactory):
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # Date fields get DateInput with HTML5 type
                 if isinstance(field, models.DateField) and not isinstance(
                     field, models.DateTimeField
                 ):
                     widgets[field_name] = forms.DateInput(attrs={"type": "date"})
 
-                # DateTime fields get DateTimeInput with HTML5 type
                 elif isinstance(field, models.DateTimeField):
                     widgets[field_name] = forms.DateTimeInput(
                         attrs={"type": "datetime-local"}
                     )
 
-                # Large text fields get Textarea
                 elif isinstance(field, models.TextField) or (
                     isinstance(field, models.CharField)
                     and getattr(field, "max_length", 0) > 200
                 ):
                     widgets[field_name] = forms.Textarea(attrs={"rows": 4})
 
-                # Email fields get EmailInput
                 elif isinstance(field, models.EmailField):
                     widgets[field_name] = forms.EmailInput()
 
-                # URL fields get URLInput
                 elif isinstance(field, models.URLField):
                     widgets[field_name] = forms.URLInput()
 
-                # File/Image fields already have good defaults
-
             except Exception:  # noqa: S110
-                # Skip fields that can't be resolved
                 pass
 
         return widgets
 
     def get_base_form_class(self) -> type[ModelForm]:
-        """The base ModelForm class to build a specimen or measurement type's
-        form on.
+        """Return the base ModelForm to build the form on.
 
-        Mirrors `TableFactory.get_base_table_class()`: a specimen or
-        measurement type supplying no form of its own still gets
-        `SampleFormMixin`'s or `MeasurementFormMixin`'s widget configuration,
-        dataset scoping and guidance text (FR-037) rather than a bare
-        `ModelForm`.
+        Mirrors `TableFactory.get_base_table_class()`: a sample or measurement type
+        supplying no form of its own still gets `SampleFormMixin`'s or
+        `MeasurementFormMixin`'s widget configuration, dataset scoping and guidance
+        text rather than a bare `ModelForm`.
+
+        Returns:
+            A form class carrying the mixin for the model's hierarchy, or
+            ``ModelForm`` for any other model.
         """
         from fairdm.core.measurement.forms import MeasurementFormMixin
         from fairdm.core.measurement.models import Measurement
@@ -200,47 +175,37 @@ class FormFactory(ComponentFactory):
 
 
 class TableFactory(ComponentFactory):
-    """Factory for generating Table classes with smart column types and Bootstrap 5 styling.
+    """Factory for generating Table classes with smart column types.
 
-    Features (T025):
-    - Field type to column mapping (DateColumn for dates, EmailColumn for emails)
-    - Bootstrap 5 template
-    - Filters large text fields to prevent display issues
-    - Smart column ordering and formatting
+    Dates, emails, URLs and booleans get a matching column. Large text fields are
+    left out of the table.
     """
 
     def generate(self) -> type[Table]:
         """Generate a django-tables2 Table class with smart columns.
 
         Returns:
-            Table subclass configured with Bootstrap 5 styling and smart columns
+            A Table subclass with smart columns.
         """
-
         fields = self.get_fields()
 
-        # Filter out large text fields that shouldn't be in tables
         filtered_fields = self._filter_table_fields(fields)
 
-        # Build column overrides with smart types
         extra_columns = self._get_smart_columns(filtered_fields)
 
-        # Create a base table with extra columns as class attributes
         base_table = self.get_base_table_class()
         if extra_columns:
-            # Create intermediate class with column definitions
             table_attrs = extra_columns.copy()
             base_table = type("SmartTable", (base_table,), table_attrs)
 
-        # Generate table using django-tables2's table_factory
         table_class = table_factory(
             self.model,
             table=base_table,
             fields=filtered_fields,
         )
 
-        # No template or CSS classes are set here. Which stylesheet a generated
-        # table renders under belongs to the theme, and the project's
-        # DJANGO_TABLES2_TEMPLATE setting decides it (decision D7).
+        # No template or CSS classes: the project's DJANGO_TABLES2_TEMPLATE setting
+        # decides how a generated table is styled.
         return cast(type[Table], table_class)
 
     def _filter_table_fields(self, fields: list[str]) -> list[str]:
@@ -250,14 +215,13 @@ class TableFactory(ComponentFactory):
             fields: List of field names
 
         Returns:
-            Filtered list of field names suitable for table display
+            The field names suitable for a table, or all of them if none are.
         """
         filtered = []
         for field_name in fields:
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # Skip TextField and long CharField
                 if isinstance(field, models.TextField):
                     continue
                 if (
@@ -269,13 +233,12 @@ class TableFactory(ComponentFactory):
                 filtered.append(field_name)
 
             except Exception:
-                # Include field if we can't determine its type
                 filtered.append(field_name)
 
-        return filtered or fields  # Return original if all filtered out
+        return filtered or fields
 
     def _get_smart_columns(self, fields: list[str]) -> dict[str, Any]:
-        """Generate smart column types based on field types.
+        """Choose a column type for each field by its type.
 
         Args:
             fields: List of field names
@@ -291,39 +254,34 @@ class TableFactory(ComponentFactory):
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # Date fields get DateColumn
                 if isinstance(field, models.DateField) and not isinstance(
                     field, models.DateTimeField
                 ):
                     columns[field_name] = tables.DateColumn(format="Y-m-d")
 
-                # DateTime fields get DateTimeColumn
                 elif isinstance(field, models.DateTimeField):
                     columns[field_name] = tables.DateTimeColumn(format="Y-m-d H:i")
 
-                # Email fields get EmailColumn
                 elif isinstance(field, models.EmailField):
                     columns[field_name] = tables.EmailColumn()
 
-                # URL fields get URLColumn
                 elif isinstance(field, models.URLField):
                     columns[field_name] = tables.URLColumn()
 
-                # Boolean fields get BooleanColumn
                 elif isinstance(field, models.BooleanField):
                     columns[field_name] = tables.BooleanColumn()
 
             except Exception:  # noqa: S110
-                # Skip fields that can't be resolved
                 pass
 
         return columns
 
     def get_base_table_class(self) -> type[Table]:
-        """Get the base table class to use.
+        """Return the base table class for the model.
 
         Returns:
-            Base Table subclass
+            The sample or measurement table for those hierarchies, otherwise
+            ``Table``.
         """
         from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
         from fairdm.core.models import Measurement, Sample
@@ -337,12 +295,11 @@ class TableFactory(ComponentFactory):
 
 
 def published_related_queryset(related_model: type[models.Model]) -> Any:
-    """The published records of `related_model`, or `None` where publication has
-    nothing to say about that model (FR-030, SC-002, D3).
+    """Return the published records of a model, or ``None`` when publication is moot.
 
     The dataset branch goes through `Dataset.all_objects`, never
     `Dataset.objects`: the default manager excludes PRIVATE datasets, and a
-    published-but-private dataset is the ordinary state (D1, FR-003), so
+    published-but-private dataset is the ordinary state, so
     `Dataset.objects.published()` would leave a filter offering nothing while
     the table shows that dataset's rows. Publication is the only test a listing
     applies.
@@ -350,6 +307,13 @@ def published_related_queryset(related_model: type[models.Model]) -> Any:
     `None` rather than an unscoped queryset, so a caller can tell "every
     published one" from "not this model's question" - a content-type filter
     already scoped to the registered types must not be widened back out.
+
+    Args:
+        related_model: The model whose records a filter offers.
+
+    Returns:
+        A queryset of the published records for a Dataset, Sample or Measurement
+        model, otherwise ``None``.
     """
     from fairdm.core.dataset.models import Dataset
     from fairdm.core.measurement.models import Measurement
@@ -366,7 +330,7 @@ class PublishedChoicesMixin:
     """Narrow every related-record filter to published records, last.
 
     Scoping filters as the factory builds them is not enough, in two ways that
-    both leaked (FR-030, SC-002).
+    both leaked.
 
     A generated filter set inherits `SampleFilterMixin` or
     `MeasurementFilterMixin`, and both assign their own hand-declared `dataset`
@@ -387,8 +351,7 @@ class PublishedChoicesMixin:
     and a relation publication says nothing about is left alone.
 
     It applies to the listings and to nothing else. Every other page that
-    builds a filter on those two core mixins keeps their behaviour, which is
-    what FR-006 requires.
+    builds a filter on those two core mixins keeps their behaviour.
     """
 
     def __init__(self, *args, **kwargs):
@@ -403,9 +366,18 @@ class PublishedChoicesMixin:
 
     @classmethod
     def applied_to(cls, filterset_class: type) -> type:
-        """`filterset_class` with this mixin in front, or unchanged if it is
-        already there. Idempotent, because a listing resolves its filter set on
-        every request and a fresh subclass per request would leak classes."""
+        """Put this mixin in front of a filter set, unless it is already there.
+
+        Idempotent, because a listing resolves its filter set on every request and a
+        fresh subclass per request would leak classes.
+
+        Args:
+            filterset_class: The filter set to scope.
+
+        Returns:
+            ``filterset_class`` itself if it already has the mixin, otherwise a
+            subclass with the mixin first.
+        """
         if issubclass(filterset_class, cls):
             return filterset_class
         return type(
@@ -416,46 +388,46 @@ class PublishedChoicesMixin:
 
 
 class FilterFactory(ComponentFactory):
-    """Factory for generating FilterSet classes with smart filter types and crispy-forms styling.
+    """Factory for generating FilterSet classes with smart filter types.
 
-    Features (T026):
-    - Field type to filter mapping (DateFromToRangeFilter for dates, ChoiceFilter for choices)
-    - Crispy-forms styling integration
-    - Smart filter selection based on field characteristics
+    Dates get range filters, choice fields a choice filter, foreign keys a model
+    choice filter, numbers a range filter and text a case-insensitive contains filter.
     """
 
     def generate(self) -> type[FilterSet]:
         """Generate a django-filter FilterSet class with smart filters.
 
+        Fields django-filter cannot resolve are dropped one at a time until it
+        accepts the rest.
+
         Returns:
-            FilterSet subclass with smart filters and crispy-forms styling
+            A FilterSet subclass with smart filters.
+
+        Raises:
+            AssertionError: django-filter rejected the fields for a reason other
+                than an unresolved field name.
         """
         import re
 
         fields = self.get_fields()
 
-        # Validate fields - django-filter is strict about field names and types
+        # django-filter rejects names that are not model fields.
         model_field_names = {f.name for f in self.model._meta.get_fields()}
         fields = [f for f in fields if f in model_field_names]
 
-        # Build custom filter dict with smart types
         filter_overrides = self._get_smart_filters(fields)
 
-        # A specimen type supplying no filter set of its own still gets
-        # `SampleFilterMixin`'s declared filters (FR-037), because the class
-        # built below inherits from this base rather than a bare `FilterSet`.
+        # Built on the sample or measurement filter mixin so a type with no filter
+        # set of its own keeps the mixin's declared filters.
         base_filterset = self.get_base_filterset_class()
 
-        # Try generating filterset with smart filters
         try:
-            # Create Meta class
             meta_attrs = {
                 "model": self.model,
                 "fields": fields,
             }
             Meta = type("Meta", (), meta_attrs)
 
-            # Create FilterSet class with overrides
             filterset_attrs = {"Meta": Meta}
             filterset_attrs.update(filter_overrides)
 
@@ -468,12 +440,10 @@ class FilterFactory(ComponentFactory):
             return cast(type[FilterSet], filterset_class)
 
         except Exception:
-            # Fallback to basic filterset_factory with error recovery. The
-            # base class is threaded through here too - a model that trips
-            # into this branch would otherwise silently lose the mixin.
+            # The base class is passed here too, or a model landing in this branch
+            # would lose the mixin.
             fields = [f for f in fields if f in model_field_names]
 
-            # Remove problematic fields iteratively
             max_attempts = len(fields)
             attempt = 0
 
@@ -498,14 +468,13 @@ class FilterFactory(ComponentFactory):
                             continue
                     raise
 
-            # Return minimal filterset if all else fails
             return cast(
                 type[FilterSet],
                 filterset_factory(self.model, filterset=base_filterset, fields=[]),
             )
 
     def _get_smart_filters(self, fields: list[str]) -> dict[str, Any]:
-        """Generate smart filter types based on field types.
+        """Choose a filter type for each field by its type.
 
         Args:
             fields: List of field names
@@ -521,58 +490,53 @@ class FilterFactory(ComponentFactory):
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # Date fields get DateFromToRangeFilter
                 if isinstance(field, models.DateField) and not isinstance(
                     field, models.DateTimeField
                 ):
                     filter_overrides[field_name] = filters.DateFromToRangeFilter()
 
-                # DateTime fields get DateTimeFromToRangeFilter
                 elif isinstance(field, models.DateTimeField):
                     filter_overrides[field_name] = filters.DateTimeFromToRangeFilter()
 
-                # Boolean fields get BooleanFilter
                 elif isinstance(field, models.BooleanField):
                     filter_overrides[field_name] = filters.BooleanFilter()
 
-                # Choice fields get ChoiceFilter
                 elif hasattr(field, "choices") and field.choices:
                     filter_overrides[field_name] = filters.ChoiceFilter(
                         choices=field.choices
                     )
 
-                # ForeignKey fields get ModelChoiceFilter, scoped to published
-                # records when the relation is to Sample, Measurement or
-                # Dataset (T040, FR-030, D3)
                 elif isinstance(field, models.ForeignKey):
                     filter_overrides[field_name] = filters.ModelChoiceFilter(
                         queryset=self._published_related_queryset(field.related_model)
                     )
 
-                # Numeric fields get RangeFilter
                 elif isinstance(
                     field, (models.IntegerField, models.FloatField, models.DecimalField)
                 ):
                     filter_overrides[field_name] = filters.RangeFilter()
 
-                # Text fields get CharFilter with icontains lookup
                 elif isinstance(field, (models.CharField, models.TextField)):
                     filter_overrides[field_name] = filters.CharFilter(
                         lookup_expr="icontains"
                     )
 
             except Exception:  # noqa: S110
-                # Skip fields that can't be resolved
                 pass
 
         return filter_overrides
 
     def _published_related_queryset(self, related_model: type[models.Model]) -> Any:
-        """A related-record filter's choice list, scoped to published records
-        (T040, FR-030, D3).
+        """Return a related-record filter's choices, scoped to published records.
 
         Falls back to the model's own default manager for a relation
         publication says nothing about, such as a content type.
+
+        Args:
+            related_model: The model on the other end of the relation.
+
+        Returns:
+            A queryset of the records to offer.
         """
         scoped = published_related_queryset(related_model)
         if scoped is None:
@@ -580,15 +544,17 @@ class FilterFactory(ComponentFactory):
         return scoped
 
     def get_base_filterset_class(self) -> type[FilterSet]:
-        """The base FilterSet class to build a specimen or measurement
-        type's filter set on.
+        """Return the base FilterSet to build the filter set on.
 
-        Mirrors `TableFactory.get_base_table_class()`: a specimen or
-        measurement type's generated filter set carries `SampleFilterMixin`'s
-        or `MeasurementFilterMixin`'s declared filters rather than a bare
-        `FilterSet`. Both mixins are already `FilterSet` subclasses (D-008),
-        so - unlike the form factory, whose mixins need `ModelForm` mixed in
-        - no wrapping is needed here.
+        Mirrors `TableFactory.get_base_table_class()`: a sample or measurement
+        type's generated filter set carries `SampleFilterMixin`'s or
+        `MeasurementFilterMixin`'s declared filters rather than a bare
+        `FilterSet`. Both mixins are already `FilterSet` subclasses, so, unlike the
+        form factory, no wrapping is needed here.
+
+        Returns:
+            The mixin for the model's hierarchy, or ``FilterSet`` for any other
+            model.
         """
         from fairdm.core.measurement.filters import MeasurementFilterMixin
         from fairdm.core.measurement.models import Measurement
@@ -607,11 +573,9 @@ class FilterFactory(ComponentFactory):
 class AdminFactory(ComponentFactory):
     """Factory for generating Django Admin ModelAdmin classes.
 
-    Features (T029):
-    - Auto-generated list_display, search_fields, list_filter
-    - Smart field grouping for fieldsets
-    - Readonly fields for timestamps and IDs
-    - Date hierarchy for date fields
+    Generates ``list_display``, ``search_fields`` and ``list_filter``, groups fields
+    into fieldsets, marks timestamps and ids read-only and adds a date hierarchy
+    where the model has a date field.
     """
 
     def generate(self) -> type[admin.ModelAdmin]:
@@ -623,11 +587,8 @@ class AdminFactory(ComponentFactory):
         fields = self.get_fields()
         inspector = FieldInspector(self.model)
 
-        # Determine the correct admin base class for polymorphic models first
-        # as this affects what attributes we set
         admin_base = self._get_admin_base_class()
 
-        # Build admin class attributes
         attrs = {
             "model": self.model,
             "list_display": self._get_list_display(fields, inspector),
@@ -635,42 +596,34 @@ class AdminFactory(ComponentFactory):
             "list_filter": self._get_list_filter(fields, inspector),
         }
 
-        # Handle readonly_fields - merge with base class if inheriting from polymorphic admin
         if admin_base is not admin.ModelAdmin:
-            # Merge base class readonly_fields with auto-generated ones
             base_readonly = getattr(admin_base, "readonly_fields", [])
             auto_readonly = self._get_readonly_fields(inspector)
-            # Combine and deduplicate
             merged_readonly = list(dict.fromkeys(list(base_readonly) + auto_readonly))
             attrs["readonly_fields"] = merged_readonly
         else:
             attrs["readonly_fields"] = self._get_readonly_fields(inspector)
 
-        # Add date hierarchy if model has date fields
         date_hierarchy = self._get_date_hierarchy(inspector)
         if date_hierarchy:
             attrs["date_hierarchy"] = date_hierarchy
 
-        # Add required attrs for polymorphic child admins
         if admin_base is not admin.ModelAdmin:
             attrs["base_model"] = self.model
             attrs["show_in_index"] = True
-            # Don't add fields/fieldsets - the base class already has them
-            # and Django doesn't allow both to be set
+            # The base class already sets fields and fieldsets,
+            # and Django rejects both.
         else:
-            # For standard ModelAdmin, add fieldsets or fields
             if len(fields) > 6:
                 attrs["fieldsets"] = self._get_fieldsets(fields, inspector)
             else:
                 attrs["fields"] = fields
 
-        # Determine app_label based on model inheritance
         app_label = self._get_admin_app_label()
         if app_label:
             meta_attrs = {"app_label": app_label}
             attrs["Meta"] = type("Meta", (), meta_attrs)
 
-        # Create the admin class
         admin_class_name = f"{self.model.__name__}Admin"
         admin_class = type(admin_class_name, (admin_base,), attrs)
 
@@ -688,20 +641,16 @@ class AdminFactory(ComponentFactory):
         Returns:
             List of field names for list_display (max 5)
         """
-        # Prioritize: id, name/title, important fields, first 5 total
         display_fields = []
 
-        # Always include ID if present
         if "id" in fields:
             display_fields.append("id")
 
-        # Add name or title if present
         for name_field in ["name", "title", "label"]:
             if name_field in fields and name_field not in display_fields:
                 display_fields.append(name_field)
                 break
 
-        # Add remaining fields up to 5 total, excluding large text fields
         for field_name in fields:
             if len(display_fields) >= 5:
                 break
@@ -709,7 +658,6 @@ class AdminFactory(ComponentFactory):
                 continue
 
             field = inspector.get_field(field_name)
-            # Skip TextField and large CharField
             if isinstance(field, models.TextField):
                 continue
             if (
@@ -740,11 +688,9 @@ class AdminFactory(ComponentFactory):
         for field_name in fields:
             field = inspector.get_field(field_name)
 
-            # Include text fields
             if isinstance(field, (models.CharField, models.TextField)):
                 search_fields.append(field_name)
 
-            # Include email fields
             if isinstance(field, models.EmailField):
                 search_fields.append(field_name)
 
@@ -769,20 +715,14 @@ class AdminFactory(ComponentFactory):
             if field is None:
                 continue
 
-            # Include boolean fields
             if isinstance(field, models.BooleanField):
                 filter_fields.append(field_name)
 
-            # Include choice fields
             if hasattr(field, "choices") and field.choices:
                 filter_fields.append(field_name)
 
-            # Include foreign key fields
             if isinstance(field, models.ForeignKey):
                 filter_fields.append(field_name)
-
-            # Include date fields (use date hierarchy instead)
-            # Commenting out as we use date_hierarchy for this
 
         return filter_fields
 
@@ -797,7 +737,6 @@ class AdminFactory(ComponentFactory):
         """
         readonly = []
 
-        # Common readonly patterns
         for field_name in ["id", "created", "modified", "created_at", "updated_at"]:
             if inspector.has_field(field_name):
                 readonly.append(field_name)
@@ -813,7 +752,6 @@ class AdminFactory(ComponentFactory):
         Returns:
             Field name or None
         """
-        # Prioritize common date fields
         for field_name in ["created", "modified", "date", "created_at", "updated_at"]:
             if inspector.has_field(field_name):
                 field = inspector.get_field(field_name)
@@ -836,7 +774,6 @@ class AdminFactory(ComponentFactory):
         """
         fieldsets: list[tuple[str | None, dict[str, Any]]] = []
 
-        # Group 1: Basic information
         basic_fields = []
         for field_name in ["name", "title", "label", "description"]:
             if field_name in fields:
@@ -845,7 +782,6 @@ class AdminFactory(ComponentFactory):
         if basic_fields:
             fieldsets.append((None, {"fields": basic_fields}))
 
-        # Group 2: Data fields (everything else except metadata)
         data_fields = []
         metadata_fields = ["id", "created", "modified", "created_at", "updated_at"]
 
@@ -856,7 +792,6 @@ class AdminFactory(ComponentFactory):
         if data_fields:
             fieldsets.append(("Data", {"fields": data_fields}))
 
-        # Group 3: Metadata (collapsed)
         meta_fields = []
         for field_name in metadata_fields:
             if field_name in fields:
@@ -867,7 +802,7 @@ class AdminFactory(ComponentFactory):
                 ("Metadata", {"fields": meta_fields, "classes": ["collapse"]})
             )
 
-        # Convert to tuple - django-polymorphic requires tuples for fieldsets concatenation
+        # django-polymorphic concatenates fieldsets, so they must be tuples.
         return tuple(fieldsets) if fieldsets else ((None, {"fields": fields}),)
 
     def _get_admin_app_label(self) -> str | None:
@@ -902,13 +837,11 @@ class AdminFactory(ComponentFactory):
             from fairdm.core.measurement.models import Measurement
             from fairdm.core.sample.models import Sample
 
-            # Check if this is a Sample subclass (but not the base Sample itself)
             if issubclass(self.model, Sample) and self.model is not Sample:
                 from fairdm.core.sample.admin import SampleChildAdmin
 
                 return SampleChildAdmin
 
-            # Check if this is a Measurement subclass (but not the base Measurement itself)
             if issubclass(self.model, Measurement) and self.model is not Measurement:
                 from fairdm.core.measurement.admin import MeasurementChildAdmin
 
@@ -917,44 +850,36 @@ class AdminFactory(ComponentFactory):
         except (ImportError, TypeError):
             pass
 
-        # Default to standard ModelAdmin
         return admin.ModelAdmin
 
 
 class SerializerFactory(ComponentFactory):
-    """Factory for generating DRF ModelSerializer classes with nested serializers.
+    """Factory for generating DRF ModelSerializer classes.
 
-    Features (T027):
-    - Nested serializers for ForeignKey relationships
-    - Smart field configuration for DRF
-    - Depth control for nested relationships
+    Foreign keys are represented by their string form.
     """
 
     def generate(self) -> type:
-        """Generate a DRF ModelSerializer class with nested serializers.
+        """Generate a DRF ModelSerializer class.
 
         Returns:
-            ModelSerializer subclass with nested relationships
+            A ModelSerializer subclass that shows foreign keys as strings.
         """
         from rest_framework import serializers
 
         fields = self.get_fields()
 
-        # Build nested serializers for ForeignKey fields
         nested_serializers = self._get_nested_serializers()
 
-        # Create Meta class
         meta_attrs = {
             "model": self.model,
             "fields": list(fields),
         }
         Meta = type("Meta", (), meta_attrs)
 
-        # Build serializer attributes
         serializer_attrs = {"Meta": Meta}
         serializer_attrs.update(nested_serializers)
 
-        # Create serializer class
         serializer_class_name = f"{self.model.__name__}Serializer"
         serializer_class = type(
             serializer_class_name,
@@ -965,7 +890,7 @@ class SerializerFactory(ComponentFactory):
         return serializer_class
 
     def _get_nested_serializers(self) -> dict[str, Any]:
-        """Generate nested serializers for ForeignKey relationships.
+        """Build a string-related field for each ForeignKey.
 
         Returns:
             Dictionary mapping field names to nested serializer fields
@@ -979,38 +904,32 @@ class SerializerFactory(ComponentFactory):
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # ForeignKey fields get nested serializers
                 if isinstance(field, models.ForeignKey):
-                    # Use StringRelatedField for simple nesting
                     nested[field_name] = serializers.StringRelatedField()
 
             except Exception:  # noqa: S110
-                # Skip fields that can't be resolved
                 pass
 
         return nested
 
 
 class ResourceFactory(ComponentFactory):
-    """Factory for generating import/export Resource classes with natural key support.
+    """Factory for generating import/export Resource classes.
 
-    Features (T028):
-    - Natural key support for related models
-    - Smart import/export configuration
-    - CSV/Excel format support
+    Foreign keys are matched on the related model's natural key where it has one,
+    otherwise on its primary key.
     """
 
     def generate(self) -> type:
         """Generate an import/export Resource class.
 
         Returns:
-            ModelResource subclass with natural key support
+            A ModelResource subclass with foreign key widgets.
         """
         from import_export import resources
 
         fields = self.get_fields()
 
-        # Create Meta class
         meta_attrs = {
             "model": self.model,
             "fields": list(fields),
@@ -1018,14 +937,11 @@ class ResourceFactory(ComponentFactory):
         }
         Meta = type("Meta", (), meta_attrs)
 
-        # Build resource attributes
         resource_attrs = {"Meta": Meta}
 
-        # Add natural key support for ForeignKey fields
         fk_widgets = self._get_fk_widgets()
         resource_attrs.update(fk_widgets)
 
-        # Create resource class
         resource_class_name = f"{self.model.__name__}Resource"
         resource_class = type(
             resource_class_name,
@@ -1050,9 +966,7 @@ class ResourceFactory(ComponentFactory):
             try:
                 field = self.model._meta.get_field(field_name)
 
-                # ForeignKey fields get ForeignKeyWidget
                 if isinstance(field, models.ForeignKey):
-                    # Use natural_key if available, otherwise pk
                     if hasattr(field.related_model, "natural_key"):
                         fk_widgets[field_name] = widgets.ForeignKeyWidget(
                             field.related_model, "natural_key"
@@ -1063,13 +977,11 @@ class ResourceFactory(ComponentFactory):
                         )
 
             except Exception:  # noqa: S110
-                # Skip fields that can't be resolved
                 pass
 
         return fk_widgets
 
 
-# Export factory classes
 __all__ = [
     "AdminFactory",
     "ComponentFactory",

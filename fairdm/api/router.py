@@ -1,10 +1,6 @@
-"""FairDM API router.
+"""The central DRF router that wires registry-registered models to URL prefixes.
 
-This module creates and auto-populates the ``fairdm_api_router`` — the central
-DRF router that wires all registry-registered models to URL prefixes.
-
-Auto-registration happens when this module is imported (triggered by
-:meth:`~fairdm.api.apps.FairDMApiConfig.ready`).
+Auto-registration happens when this module is imported.
 
 Portal developers can extend the router *before* or *after* Django startup::
 
@@ -30,10 +26,6 @@ from fairdm.api.viewsets import (
     generate_viewset,
 )
 
-# ---------------------------------------------------------------------------
-# Custom router class
-# ---------------------------------------------------------------------------
-
 
 class FairDMAPIRouter(DefaultRouter):
     """DefaultRouter subclass that includes discovery endpoint links in the API root.
@@ -41,34 +33,29 @@ class FairDMAPIRouter(DefaultRouter):
     Overrides :meth:`get_api_root_view` to inject the ``sample-types`` and
     ``measurement-types`` links so that :class:`~fairdm.api.viewsets.SampleDiscoveryView`
     and :class:`~fairdm.api.viewsets.MeasurementDiscoveryView` appear in the DRF
-    browsable API root listing — satisfying FR-003 and FR-004.
+    browsable API root listing.
     """
 
     def get_api_root_view(self, api_urls=None):
-        """Return the API root view with discovery endpoint links injected."""
+        """Add the discovery endpoint links to the API root view."""
         api_root_dict = OrderedDict()
         list_name = self.routes[0].name
         for prefix, _viewset, basename in self.registry:
             api_root_dict[prefix] = list_name.format(basename=basename)
-        # Inject discovery endpoint URL names so they appear in the browsable API root.
         api_root_dict["sample-types"] = "api-sample-discovery"
         api_root_dict["measurement-types"] = "api-measurement-discovery"
         return self.APIRootView.as_view(api_root_dict=api_root_dict)
 
 
-# Public router instance — importable by portal developers
 fairdm_api_router = FairDMAPIRouter()
 
-# ── 1. Core model endpoints ────────────────────────────────────────────────
 fairdm_api_router.register(r"projects", ProjectViewSet, basename="project")
 fairdm_api_router.register(r"datasets", DatasetViewSet, basename="dataset")
 fairdm_api_router.register(r"contributors", ContributorViewSet, basename="contributor")
 
 _logger = logging.getLogger(__name__)
 
-# ── 2. Registry-registered Sample types ───────────────────────────────────
-# Samples and measurements use separate try/except so a failure in one
-# doesn't prevent the other from registering.
+# Separate try/except blocks so a failure in one does not stop the other registering.
 try:
     from fairdm.registry import registry as _registry
 
@@ -86,7 +73,6 @@ except Exception as _e:
         "FairDM API: failed to register sample viewsets: %s", _e, exc_info=True
     )
 
-# ── 3. Registry-registered Measurement types ───────────────────────────────
 try:
     from fairdm.registry import registry as _registry
 

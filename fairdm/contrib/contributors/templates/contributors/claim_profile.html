@@ -9,7 +9,6 @@
     <div class="col-md-8 col-lg-6">
 
       {% if error %}
-      {# Error state — invalid/expired/banned token #}
       <div class="card border-danger">
         <div class="card-header bg-danger text-white">
           <h4 class="mb-0">{% trans "Cannot Claim Profile" %}</h4>
@@ -23,7 +22,6 @@
       </div>
 
       {% elif unclaimed_person %}
-      {# Confirmation state #}
       <div class="card">
         <div class="card-header">
           <h4 class="mb-0">{% trans "Claim Profile" %}</h4>
@@ -57,7 +55,6 @@
       </div>
 
       {% else %}
-      {# Fallback — should not normally be reached #}
       <div class="alert alert-warning">
         {% trans "Something went wrong. Please try again or contact support." %}
       </div>

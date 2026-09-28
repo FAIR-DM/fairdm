@@ -1,3 +1,5 @@
+"""Filter sets for the contributor listings."""
+
 import django_filters as df
 from django import forms
 from django.utils.translation import gettext_lazy as _
@@ -6,6 +8,8 @@ from .models import Contributor
 
 
 class PersonFilter(df.FilterSet):
+    """Filter people by status, name, city, country and affiliation."""
+
     is_active = df.BooleanFilter(
         label=_("Active Only"),
         initial=False,
@@ -36,6 +40,8 @@ class PersonFilter(df.FilterSet):
 
 
 class OrganizationFilter(df.FilterSet):
+    """Filter organisations by name, city and country."""
+
     name = df.CharFilter(lookup_expr="icontains", label=_("Name"))
 
     city = df.CharFilter(
@@ -53,6 +59,8 @@ class OrganizationFilter(df.FilterSet):
 
 
 class ContributorFilter(df.FilterSet):
+    """Filter contributors by name and by type."""
+
     name = df.CharFilter(
         lookup_expr="icontains",
         widget=forms.TextInput(attrs={"placeholder": "Find a contributor..."}),
@@ -75,6 +83,16 @@ class ContributorFilter(df.FilterSet):
         fields = ["name", "type"]
 
     def filter_type(self, queryset, name, value):
+        """Narrow to active contributors, people or organisations.
+
+        Args:
+            queryset: The contributors to filter.
+            name: The filter's field name.
+            value: ``active``, ``persons`` or ``organizations``.
+
+        Returns:
+            The narrowed queryset, or the original for any other value.
+        """
         if value == "active":
             return queryset.active()
         elif value == "persons":

@@ -3,7 +3,6 @@
 
 {% block overview_main %}
   {{ block.super }}
-  {# Measurement Value #}
   <c-card title="{% trans 'Measurement Value' %}"
           icon="speedometer2">
     <div class="p-4 bg-light rounded text-center">
@@ -11,7 +10,6 @@
       <div class="text-muted">{{ measurement.get_polymorphic_type_name }}</div>
     </div>
   </c-card>
-  {# Sample Information #}
   {% if measurement.sample %}
     <c-card title="{% trans 'Sample' %}" icon="box-seam">
       <div class="d-flex align-items-center">
@@ -40,7 +38,6 @@
       </div>
     </c-card>
   {% endif %}
-  {# Dataset & Project Information #}
   <c-card title="{% trans 'Dataset & Project' %}"
           icon="project">
     <div class="mb-3">
@@ -80,7 +77,6 @@
       </div>
     {% endif %}
   </c-card>
-  {# Measurement Method/Protocol (if available) #}
   {% if measurement.method or measurement.protocol %}
     <c-card title="{% trans 'Method & Protocol' %}"
             icon="journal-text">
@@ -113,7 +109,6 @@
 
 {% block overview_sidebar %}
   {{ block.super }}
-  {# Measurement Metadata (if available) #}
   {% if measurement.uncertainty or measurement.unit or measurement.precision %}
     <c-card title="{% trans 'Measurement Details' %}"
             icon="analytics">

@@ -1,3 +1,5 @@
+"""Singleton models holding the portal's branding and governing authority."""
+
 from django.contrib import admin
 from django.db import models
 from django.utils.text import slugify
@@ -8,40 +10,28 @@ from solo.models import SingletonModel
 
 
 def brand_asset_path(instance, filename: str) -> str:
-    """
-    Generate upload paths for brand assets (logos and icons).
-
-    Creates predictable paths for identity branding files to enable
-    reliable URL resolution in templates and settings.
+    """Return the upload path for a brand asset (logo or icon).
 
     Args:
-        instance: The model instance (Authority or Identity)
-        filename: The original uploaded filename
+        instance: The Authority or Identity being saved.
+        filename: The uploaded file's name.
 
     Returns:
-        Path in format: identity/{model_name}_{field}.{ext}
-        Example: identity/portal_logo_light.svg
+        ``identity/<model name>_<filename>``, for example ``identity/portal-identity_logo.svg``.
     """
-    # Get the field name that's being saved (e.g., 'logo_light', 'icon_dark')
-    # This is a bit tricky since we don't have direct access to the field name
-    # We'll use a simpler approach: slugify model name + filename
+    # `upload_to` does not receive the field name, so the path uses the model name.
     model_name = slugify(instance._meta.verbose_name)
     return f"identity/{model_name}_{filename}"
 
 
 class BrandAssets(models.Model):
-    """
-    Abstract mixin providing brand asset fields for light/dark theme variants.
+    """Abstract model adding light and dark theme variants of a logo and an icon.
 
-    Provides logo and icon fields with theme-specific variants to support
-    both light and dark color schemes. Uses ThumbnailerImageField for
-    automatic thumbnail generation.
-
-    Fields:
-        logo_light: Logo optimized for light theme backgrounds
-        logo_dark: Logo optimized for dark theme backgrounds
-        icon_light: Small icon/favicon for light theme
-        icon_dark: Small icon/favicon for dark theme
+    Attributes:
+        logo_light: Logo for light theme backgrounds.
+        logo_dark: Logo for dark theme backgrounds.
+        icon_light: Small icon or favicon for the light theme.
+        icon_dark: Small icon or favicon for the dark theme.
     """
 
     logo_light = ThumbnailerImageField(
@@ -104,9 +94,6 @@ class Authority(BrandAssets, SingletonModel, TranslatableModel):
     class Meta:
         verbose_name = _("Governing Authority")
 
-    # def __str__(self):
-    #     return force_str(self.name)
-
 
 class Identity(BrandAssets, SingletonModel, TranslatableModel):
     """Portal identity configuration including branding and metadata."""
@@ -129,38 +116,16 @@ class Identity(BrandAssets, SingletonModel, TranslatableModel):
     )
 
     class Meta:
-        db_table = "identity_database"  # Preserve existing table name
+        db_table = "identity_database"
         verbose_name = _("Portal Identity")
 
     def save(self, *args, **kwargs):
+        """Save, then use the portal name as the admin site header and title."""
         super().save(*args, **kwargs)
-        # Update admin site branding with portal name
         name = self.safe_translation_getter("name", default="FairDM")
         admin.site.site_header = name
         admin.site.site_title = name
 
     def __str__(self):
+        """Return a fixed label, since the portal has one identity."""
         return "Portal Identity"
-
-
-# class Configuration(SingletonModel):
-#     logo = models.ImageField(
-#         _("Logo"),
-#         null=True,
-#         blank=True,
-#     )
-#     icon = models.ImageField(
-#         _("Icon"),
-#         null=True,
-#         blank=True,
-#     )
-#     theme = models.JSONField(
-#         _("theme"),
-#         default=dict,
-#     )
-
-#     class Meta:
-#         verbose_name = _("Site Configuration")
-
-#     def __str__(self):
-#         return force_str(_("Site Configuration"))

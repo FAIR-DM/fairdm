@@ -303,7 +303,7 @@ describes the code as it now stands, and that the test suite and the demo applic
 
 Requirements state what a person can do and what the portal guarantees. Where the application shell
 already provides a facility, the requirement is to use it rather than to build an equivalent, per
-Article XIV.
+Article XIII.
 
 ### The published flag
 
@@ -478,7 +478,7 @@ Article XIV.
 - A dataset's metadata visibility, its two values and its existing behaviour are as
   `014-dataset-crud-views` left them, and are untouched here.
 - The demo application is where registered types are exercised, and it is updated in the same pull
-  request, per Article XVIII.
+  request, per Article XVII.
 - Sample and measurement records already have pages of their own to link a row to. Where a
   measurement's page is a placeholder, linking to it is still correct and completing it is the
   remainder of R16.

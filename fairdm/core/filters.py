@@ -1,14 +1,12 @@
-# import django_filters as df
+"""Base filter set shared by the core list pages."""
+
 import django_filters
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as df
 
 
 class BaseListFilter(df.FilterSet):
-    """Filter that includes a title and ordering field which can be used to filter a list. These two filters are
-    displayed at the top of the list itself and will not be displayed in the sidebar. A second form helper is used to
-    render the top filters. This class should be used as a base class for all list filters in the project.
-    """
+    """Base filter set for the core list pages, adding a "has image" filter."""
 
     image = django_filters.BooleanFilter(
         field_name="image",

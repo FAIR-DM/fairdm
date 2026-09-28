@@ -1,19 +1,4 @@
-"""
-Settings for the from-empty migration test: real migrations, throwaway databases.
-
-``tests.settings`` disables migrations so the suite can build its database
-straight from the models. This module is the same configuration with that
-disabling left off, pointed at SQLite files under the directory named by
-``FAIRDM_MIGRATION_TEST_DIR``. It exists so ``manage.py migrate`` can be run the
-way a new installation runs it.
-
-There are two databases on purpose. A data migration that queries through the
-ORM without routing to ``schema_editor.connection.alias`` reads ``default``
-instead of the database being migrated, which is a failure no single-database
-run can show. The test migrates ``default`` first and ``migration_check``
-second, so an unrouted query in the second run meets a database that is already
-past the migration doing the asking.
-"""
+"""Settings for the from-empty migration test: real migrations, throwaway databases."""
 
 import os
 from pathlib import Path

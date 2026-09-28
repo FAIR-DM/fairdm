@@ -1,3 +1,5 @@
+"""URL routes for the core record types."""
+
 from django.urls import include, path
 
 urlpatterns = [

@@ -1,11 +1,4 @@
-"""Tests for FairDM API viewsets (Feature 011 â€” US1).
-
-Covers:
-- List and detail endpoints for Project, Dataset, Contributor
-- Visibility filtering: public vs private access (anonymous + authenticated)
-- Ordering filter: ?ordering=field and ?ordering=-field
-- CRUD write-protection (unauthenticated writes return 401)
-"""
+"""Tests for FairDM API viewsets (Feature 011 â€” US1)."""
 
 import pytest
 from django.urls import reverse
@@ -15,15 +8,9 @@ from fairdm.core.project.models import Project
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
-# ---------------------------------------------------------------------------
-# Project list
-# ---------------------------------------------------------------------------
-
 
 @pytest.mark.django_db
 class TestProjectListEndpoint:
-    """GET /api/v1/projects/"""
-
     def test_returns_200(self, api_client):
         response = api_client.get(reverse("api:project-list"))
         assert response.status_code == 200
@@ -59,7 +46,6 @@ class TestProjectListEndpoint:
         assert str(private_project.uuid) not in uuids
 
     def test_ordering_ascending(self, api_client, db):
-        """?ordering=name returns names in A->Z order."""
         ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
         ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
         response = api_client.get(reverse("api:project-list"), {"ordering": "name"})
@@ -68,7 +54,6 @@ class TestProjectListEndpoint:
         assert names == sorted(names)
 
     def test_ordering_descending(self, api_client, db):
-        """?ordering=-name returns names in Z->A order."""
         ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
         ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
         response = api_client.get(reverse("api:project-list"), {"ordering": "-name"})
@@ -83,15 +68,8 @@ class TestProjectListEndpoint:
         assert response.status_code in (401, 403)
 
 
-# ---------------------------------------------------------------------------
-# Project detail
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestProjectDetailEndpoint:
-    """GET /api/v1/projects/{uuid}/"""
-
     def test_public_project_returns_200(self, api_client, public_project):
         url = reverse("api:project-detail", kwargs={"uuid": public_project.uuid})
         response = api_client.get(url)
@@ -127,15 +105,8 @@ class TestProjectDetailEndpoint:
         assert response.status_code in (401, 403)
 
 
-# ---------------------------------------------------------------------------
-# Dataset list
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDatasetListEndpoint:
-    """GET /api/v1/datasets/"""
-
     def test_returns_200(self, api_client):
         response = api_client.get(reverse("api:dataset-list"))
         assert response.status_code == 200
@@ -171,15 +142,8 @@ class TestDatasetListEndpoint:
         assert names == sorted(names)
 
 
-# ---------------------------------------------------------------------------
-# Dataset detail
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDatasetDetailEndpoint:
-    """GET /api/v1/datasets/{uuid}/"""
-
     def test_public_dataset_returns_200(self, api_client, public_dataset):
         url = reverse("api:dataset-detail", kwargs={"uuid": public_dataset.uuid})
         response = api_client.get(url)
@@ -198,29 +162,11 @@ class TestDatasetDetailEndpoint:
         assert response.status_code == 404
 
 
-# ---------------------------------------------------------------------------
-# Dataset creator (parity with ProjectViewSet.perform_create)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDatasetCreatorParity:
-    """POST /api/v1/datasets/ - `created_by` (US7).
-
-    `Dataset.created_by` mirrors `Project.created_by` field-for-field, and
-    `DatasetViewSet.perform_create` now mirrors `ProjectViewSet.perform_create`
-    too - the dataset viewset previously fell through to `BaseViewSet`'s
-    unadorned `serializer.save()` and never recorded a creator at all.
-    """
-
     def test_created_by_is_set_server_side_and_cannot_be_spoofed(
         self, authenticated_client, user
     ):
-        """The creator is taken from the request user, and a client-supplied
-        `created_by` value is never honoured.
-
-        Requirement: FR-021.
-        """
         other_user = UserFactory()
 
         response = authenticated_client.post(
@@ -232,23 +178,15 @@ class TestDatasetCreatorParity:
         assert response.status_code == 201
         assert "created_by" not in response.json()
 
-        # `all_objects`: a dataset created with no visibility stated is
-        # PRIVATE (FR-004), so the privacy-first default manager would
-        # exclude it here regardless of who created it.
+        # Use `all_objects`: a dataset created with no visibility stated is PRIVATE, so the privacy-first
+        # default manager would exclude it here.
         dataset = Dataset.all_objects.get(uuid=response.json()["uuid"])
         assert dataset.created_by == user
         assert dataset.created_by != other_user
 
 
-# ---------------------------------------------------------------------------
-# Contributor list
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestContributorListEndpoint:
-    """GET /api/v1/contributors/ â€” read-only, all contributors publicly accessible."""
-
     def test_returns_200(self, api_client):
         response = api_client.get(reverse("api:contributor-list"))
         assert response.status_code == 200
@@ -259,7 +197,6 @@ class TestContributorListEndpoint:
             assert key in data
 
     def test_post_not_allowed(self, authenticated_client):
-        """ContributorViewSet is read-only; POST must be rejected (405 or 403)."""
         response = authenticated_client.post(
             reverse("api:contributor-list"), {"name": "New"}, format="json"
         )
@@ -268,17 +205,9 @@ class TestContributorListEndpoint:
         assert response.status_code in (403, 405)
 
 
-# ---------------------------------------------------------------------------
-# Project CRUD (authenticated write operations)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestProjectCRUD:
-    """Authenticated create / update / delete for Project (US3)."""
-
     def test_authenticated_post_creates_project(self, authenticated_client):
-        """POST /api/v1/projects/ with valid payload -> 201 + object in DB."""
         response = authenticated_client.post(
             reverse("api:project-list"),
             {"name": "New API Project"},
@@ -290,7 +219,6 @@ class TestProjectCRUD:
         assert "uuid" in data
 
     def test_created_project_appears_in_list(self, authenticated_client):
-        """Created project appears in the list endpoint immediately after POST."""
         post_resp = authenticated_client.post(
             reverse("api:project-list"),
             {"name": "Listed Project"},
@@ -303,9 +231,6 @@ class TestProjectCRUD:
         assert uuid in uuids
 
     def test_authenticated_patch_updates_project(self, authenticated_client, user):
-        """PATCH /api/v1/projects/{uuid}/ with partial data -> 200 + updated field."""
-
-        # Create the project via POST so permissions are auto-assigned
         post_resp = authenticated_client.post(
             reverse("api:project-list"),
             {"name": "Patch Target"},
@@ -322,8 +247,6 @@ class TestProjectCRUD:
         assert patch_resp.json()["name"] == "Updated Name"
 
     def test_authenticated_delete_removes_project(self, authenticated_client, user):
-        """DELETE /api/v1/projects/{uuid}/ -> 204, subsequent GET -> 404."""
-        # Create via POST so permissions are auto-assigned
         post_resp = authenticated_client.post(
             reverse("api:project-list"),
             {"name": "Delete Target"},
@@ -340,7 +263,6 @@ class TestProjectCRUD:
         assert get_resp.status_code == 404
 
     def test_unauthenticated_post_returns_401(self, api_client):
-        """POST without credentials -> 401 (per contract Â§3)."""
         response = api_client.post(
             reverse("api:project-list"),
             {"name": "Should Fail"},
@@ -349,7 +271,6 @@ class TestProjectCRUD:
         assert response.status_code == 401
 
     def test_post_missing_required_field_returns_400(self, authenticated_client):
-        """POST with empty payload -> 400 with field-level validation errors."""
         response = authenticated_client.post(
             reverse("api:project-list"),
             {},
@@ -361,11 +282,6 @@ class TestProjectCRUD:
     def test_created_by_is_set_server_side_and_cannot_be_spoofed(
         self, authenticated_client, user
     ):
-        """The creator is taken from the request user, and a client-supplied
-        `created_by` value is never honoured.
-
-        Requirement: FR-017 - The creator is recorded server-side only.
-        """
         other_user = UserFactory()
 
         response = authenticated_client.post(
@@ -382,24 +298,12 @@ class TestProjectCRUD:
         assert project.created_by != other_user
 
 
-# ---------------------------------------------------------------------------
-# Rate limiting / throttling (US5)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestRateLimiting:
-    """Verify DRF throttling behaviour for anonymous and authenticated users.
-
-    Test settings use DummyCache which never stores throttle counts.  We patch
-    ``SimpleRateThrottle.cache`` with a real LocMemCache for these tests, and
-    patch ``get_rate()`` on the specific throttle class to inject tiny limits
-    so we can exhaust the quota in a few requests.
-    """
-
+    # Test settings use DummyCache, which never stores throttle counts, so the throttle gets a real
+    # LocMemCache and a patched rate.
     @pytest.fixture(autouse=True)
     def _throttle_setup(self):
-        """Replace the dummy cache with LocMemCache for throttle count storage."""
         from unittest.mock import patch
 
         from django.core.cache.backends.locmem import LocMemCache
@@ -412,7 +316,6 @@ class TestRateLimiting:
         test_cache.clear()
 
     def test_anonymous_throttled_after_limit(self, api_client):
-        """Anonymous user exceeds limit -> 429."""
         from unittest.mock import patch
 
         from rest_framework.throttling import AnonRateThrottle
@@ -424,7 +327,6 @@ class TestRateLimiting:
             assert api_client.get(url).status_code == 429
 
     def test_throttled_response_has_retry_after_header(self, api_client):
-        """Throttled responses include the ``Retry-After`` header."""
         from unittest.mock import patch
 
         from rest_framework.throttling import AnonRateThrottle
@@ -437,7 +339,6 @@ class TestRateLimiting:
             assert "Retry-After" in resp
 
     def test_throttled_response_has_detail_message(self, api_client):
-        """429 response body includes a human-readable ``detail`` message."""
         from unittest.mock import patch
 
         from rest_framework.throttling import AnonRateThrottle
@@ -450,7 +351,6 @@ class TestRateLimiting:
             assert "detail" in resp.json()
 
     def test_authenticated_gets_higher_limit(self, api_client, authenticated_client):
-        """Authenticated user's higher cap is respected when anon is already throttled."""
         from unittest.mock import patch
 
         from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
@@ -460,22 +360,17 @@ class TestRateLimiting:
             patch.object(UserRateThrottle, "get_rate", return_value="3/minute"),
         ):
             url = reverse("api:project-list")
-            # exhaust anon quota
             api_client.get(url)
             assert api_client.get(url).status_code == 429
-            # authenticated user still has headroom
             for _ in range(3):
                 assert authenticated_client.get(url).status_code == 200
 
     def test_throttle_rates_configurable(self, settings):
-        """Default throttle rates are present and portal-overridable via settings."""
         rates = settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {})
         assert "anon" in rates
         assert "user" in rates
-        # Verify the shipping defaults
         assert rates["anon"] == "100/hour"
         assert rates["user"] == "1000/hour"
-        # Simulate portal override â€” new values are picked up
         settings.REST_FRAMEWORK = {
             **settings.REST_FRAMEWORK,
             "DEFAULT_THROTTLE_RATES": {"anon": "50/hour", "user": "500/hour"},

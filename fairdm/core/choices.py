@@ -1,3 +1,5 @@
+"""Choice enumerations and vocabularies shared by the core records."""
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from research_vocabs.builder.skos import Collection, Concept
@@ -5,6 +7,8 @@ from research_vocabs.vocabularies import VocabularyBuilder
 
 
 class ProjectStatus(models.IntegerChoices):
+    """The stages a project moves through, from idea to completion."""
+
     CONCEPT = 0, _("Concept")
     PLANNING = 1, _("Planning")
     IN_PROGRESS = 2, _("In progress")
@@ -45,6 +49,8 @@ class RAiDRoles(models.TextChoices):
 
 
 class DatasetDescriptions(VocabularyBuilder):
+    """Vocabulary of the description types a dataset can carry."""
+
     Abstract = Concept(
         prefLabel=_("Abstract"),
         definition=_(
@@ -87,6 +93,8 @@ class DatasetDescriptions(VocabularyBuilder):
 
 
 class DataciteContributorRoles(VocabularyBuilder):
+    """Vocabulary of the DataCite contributor types, split into personal and organizational roles."""
+
     CONTACT_PERSON = Concept(
         prefLabel=_("Contact Person"),
         definition=_("The main contact person for the dataset."),
@@ -103,18 +111,6 @@ class DataciteContributorRoles(VocabularyBuilder):
         prefLabel=_("Data Manager"),
         definition=_("The person(s) who managed the data."),
     )
-    # EDITOR = Concept(
-    #     prefLabel=_("Editor"),
-    #     definition=_("The person(s) who edited the data."),
-    # )
-    # PRODUCER = Concept(
-    #     prefLabel=_("Producer"),
-    #     definition=_("The person(s) who produced the data."),
-    # )
-    # RELATED_PERSON = Concept(
-    #     prefLabel=_("Related Person"),
-    #     definition=_("A person who is related to the dataset."),
-    # )
     RESEARCHER = Concept(
         prefLabel=_("Researcher"),
         definition=_("The person(s) who conducted the research."),
@@ -135,11 +131,6 @@ class DataciteContributorRoles(VocabularyBuilder):
         prefLabel=_("Supervisor"),
         definition=_("The person(s) who supervised the project."),
     )
-    # WORK_PACKAGE_LEADER = Concept(
-    #     prefLabel=_("Work Package Leader"),
-    #     definition=_("The person(s) who led the work package."),
-    # )
-    # ORGANISATIONAL ROLES
     HOSTING_INSTITUTION = Concept(
         prefLabel=_("Hosting Institution"),
         definition=_("The institution hosting the dataset."),
@@ -152,10 +143,6 @@ class DataciteContributorRoles(VocabularyBuilder):
         prefLabel=_("Sponsor"),
         definition=_("The sponsor of the project."),
     )
-    # RIGHTS_HOLDER = Concept(
-    #     prefLabel=_("Rights Holder"),
-    #     definition=_("The person(s) who hold the rights to the data."),
-    # )
     OTHER = Concept(
         prefLabel=_("Other"),
         definition=_("A person who contributed to the dataset in another way."),
@@ -211,10 +198,9 @@ class DataciteContributorRoles(VocabularyBuilder):
         }
 
 
-#: Maps each member of the project role vocabulary
-#: (``FairDMRoles.from_collection("Project")``) to its equivalent member of
-#: ``DataciteContributorRoles``, so that an export needs no further
-#: translation to name a DataCite contributor type. FR-014.
+#: Maps each member of the project role vocabulary (``FairDMRoles.from_collection("Project")``)
+#: to its equivalent member of ``DataciteContributorRoles``, so an export names the DataCite
+#: contributor type without further translation.
 PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES = {
     "Creator": "CREATOR",
     "ProjectLeader": "PROJECT_LEADER",
@@ -226,7 +212,7 @@ PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES = {
 
 
 class DataCiteDateTypes(models.TextChoices):
-    """DataCite date types as per https://schema.datacite.org/meta/kernel-4.4/doc/DataCite-MetadataKernel_v4.4.pdf#page=46"""
+    """The DataCite date types (Metadata Kernel 4.4, page 46)."""
 
     ACCEPTED = "Accepted", _("Accepted")
     AVAILABLE = "Available", _("Available")
@@ -241,7 +227,7 @@ class DataCiteDateTypes(models.TextChoices):
 
 
 class DataCiteRelationTypes(models.TextChoices):
-    """DataCite relation types as per https://schema.datacite.org/meta/kernel-4.4/doc/DataCite-MetadataKernel_v4.4.pdf#page=58"""
+    """The DataCite relation types (Metadata Kernel 4.4, page 58)."""
 
     IsCitedBy = "IsCitedBy", _("Is Cited By")
     Cites = "Cites", _("Cites")
@@ -280,7 +266,7 @@ class DataCiteRelationTypes(models.TextChoices):
 
 
 class DataCiteIdentifiers(models.TextChoices):
-    """DataCite identifier types as per https://schema.datacite.org/meta/kernel-4.4/doc/DataCite-MetadataKernel_v4.4.pdf#page=54"""
+    """The DataCite identifier types (Metadata Kernel 4.4, page 54)."""
 
     ARK = "ARK", "ARK"
     ARXIV = "arXiv", "arXiv"
@@ -303,19 +289,17 @@ class DataCiteIdentifiers(models.TextChoices):
 
 
 class SampleStatus(VocabularyBuilder):
-    """Retired (D-002, research.md R3). No model field points at this class any more -
-    ``fairdm.core.sample.models.Sample.status`` uses
-    ``fairdm.core.vocabularies.FairDMSampleStatus`` instead, a local vocabulary of custody
-    states rather than this one's data-collection states.
+    """Retired vocabulary of data-collection states, kept so historical migrations import.
 
-    This stub is kept only because ``fairdm/core/sample/migrations/0001_initial.py`` and
-    ``0007_alter_sample_status_alter_sample_uuid_and_more.py`` deconstruct their historical
-    ``ConceptField(vocabulary=SampleStatus, ...)`` by importing this class name, so deleting it
-    would make those migration files unimportable and break migrating from an empty database.
-    Its remote source (``vocabulary.odm2.org``, fetched over plain HTTP) is removed - rebuilt
-    locally from the same four terms instead, so replaying migration history never depends on a
-    third-party host being reachable. Do not add members here or point a field at this
-    vocabulary.
+    No model field points at this class any more. ``fairdm.core.sample.models.Sample.status``
+    uses ``fairdm.core.vocabularies.FairDMSampleStatus`` instead, a local vocabulary of custody
+    states.
+
+    ``fairdm/core/sample/migrations/0001_initial.py`` and
+    ``0007_alter_sample_status_alter_sample_uuid_and_more.py`` import this class name, so
+    deleting it would make those migrations unimportable. The four terms are defined locally
+    so replaying migration history never depends on a third-party host being reachable. Do not
+    add members here or point a field at this vocabulary.
     """
 
     complete = {

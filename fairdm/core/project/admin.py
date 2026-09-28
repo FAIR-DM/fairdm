@@ -1,3 +1,5 @@
+"""Django admin configuration for projects."""
+
 import json
 
 from django.contrib import admin
@@ -12,7 +14,7 @@ from .transforms import to_datacite, to_json_ld
 
 
 class DescriptionInline(admin.StackedInline):
-    """Inline admin for Project descriptions."""
+    """Inline admin for project descriptions."""
 
     model = ProjectDescription
     extra = 0
@@ -27,7 +29,7 @@ DateInlineFormSet = date_ordering_formset(
 
 
 class DateInline(admin.TabularInline):
-    """Inline admin for Project dates."""
+    """Inline admin for project dates."""
 
     model = ProjectDate
     formset = DateInlineFormSet
@@ -36,7 +38,7 @@ class DateInline(admin.TabularInline):
 
 
 class IdentifierInline(admin.TabularInline):
-    """Inline admin for Project identifiers."""
+    """Inline admin for project identifiers."""
 
     model = ProjectIdentifier
     extra = 0
@@ -45,26 +47,12 @@ class IdentifierInline(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    """Admin interface for Project model.
+    """Admin for projects, with bulk status changes and JSON and DataCite export."""
 
-    Provides comprehensive search, filtering, inline editing, and bulk
-    operations for project management through the Django admin interface.
-
-    **Features:**
-    - Search by name, UUID, and owner
-    - Filter by status, visibility, and date added
-    - Inline editing of descriptions, dates, and identifiers
-    - Bulk status change operations
-    - Bulk export as JSON or DataCite format
-    """
-
-    # Search configuration
     search_fields = ("uuid", "name", "owner__name", "identifiers__value")
 
-    # Inline editors
     inlines = (DescriptionInline, DateInline, IdentifierInline)
 
-    # List view configuration
     list_display = (
         "name",
         "status",
@@ -78,13 +66,8 @@ class ProjectAdmin(admin.ModelAdmin):
     list_per_page = 50
 
     def get_queryset(self, request):
-        """Annotate the abstract/start-date flags on the queryset itself.
-
-        `list_per_page` is 50, and without this the two display methods
-        below would each run a `.exists()` query per row - 100 extra
-        queries on a full page. `Exists()` subqueries fold both checks into
-        the single query the changelist already runs.
-        """
+        """Annotate the abstract and start-date flags on the queryset itself."""
+        # Without the annotations, each display method runs an `.exists()` query per row.
         return (
             super()
             .get_queryset(request)
@@ -104,15 +87,14 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.display(boolean=True, description=_("Abstract"))
     def has_abstract(self, obj):
-        """Whether the project carries an abstract description (FR-021)."""
+        """Return whether the project carries an abstract description."""
         return obj._has_abstract
 
     @admin.display(boolean=True, description=_("Start date"))
     def has_start_date(self, obj):
-        """Whether the project carries a start date (FR-021)."""
+        """Return whether the project carries a start date."""
         return obj._has_start_date
 
-    # Fieldsets for organized form display
     fieldsets = (
         (
             None,
@@ -147,7 +129,6 @@ class ProjectAdmin(admin.ModelAdmin):
         ),
     )
 
-    # Bulk actions
     actions = [
         "make_concept",
         "make_active",
@@ -158,7 +139,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Mark selected projects as Concept"))
     def make_concept(self, request, queryset):
-        """Bulk action to set projects to Concept status."""
+        """Set the selected projects to Concept status."""
         updated = queryset.update(status=ProjectStatus.CONCEPT)
         self.message_user(
             request, _("%(count)d project(s) marked as Concept.") % {"count": updated}
@@ -166,11 +147,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Mark selected projects as Active"))
     def make_active(self, request, queryset):
-        """Bulk action to set projects to Active status.
-
-        "Active" maps to `ProjectStatus.IN_PROGRESS`: work is under way,
-        as distinct from `PLANNING`, which precedes it.
-        """
+        """Set the selected projects to In progress, which the admin labels Active."""
         updated = queryset.update(status=ProjectStatus.IN_PROGRESS)
         self.message_user(
             request, _("%(count)d project(s) marked as Active.") % {"count": updated}
@@ -178,7 +155,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Mark selected projects as Completed"))
     def make_completed(self, request, queryset):
-        """Bulk action to set projects to Completed status."""
+        """Set the selected projects to Complete status."""
         updated = queryset.update(status=ProjectStatus.COMPLETE)
         self.message_user(
             request, _("%(count)d project(s) marked as Completed.") % {"count": updated}
@@ -186,14 +163,8 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Export selected projects as JSON"))
     def export_json(self, request, queryset):
-        """Bulk action to export projects as schema.org JSON-LD (FR-024).
-
-        An admin action can apply to the whole filtered queryset, and
-        `to_json_ld` walks each project's descriptions, dates, identifiers
-        and contributors - plus a roles query per contribution - with no
-        prefetching of its own, so the selection is prefetched here before
-        mapping over it.
-        """
+        """Export the selected projects as schema.org JSON-LD."""
+        # `to_json_ld` does no prefetching of its own, and an action can cover the whole changelist.
         queryset = queryset.prefetch_related(
             "descriptions",
             "dates",
@@ -211,11 +182,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
     @admin.action(description=_("Export selected projects as DataCite JSON"))
     def export_datacite(self, request, queryset):
-        """Bulk action to export projects in DataCite JSON format (FR-023).
-
-        Same reasoning as `export_json` above - prefetch the selection
-        before mapping `to_datacite` over it.
-        """
+        """Export the selected projects as DataCite JSON."""
         queryset = queryset.prefetch_related(
             "descriptions",
             "dates",

@@ -3,7 +3,7 @@
 This guide explains how to use FairDM's factory-boy factories in your own research data portal project. If you're building a portal using FairDM, you can import and reuse FairDM's test factories to simplify your test development.
 
 :::{seealso}
-**For FairDM Contributors**: If you're contributing to the FairDM framework itself, see [Testing Strategy](../contributing/testing/index.md) instead.
+**For FairDM Contributors**: If you're contributing to the FairDM framework itself, see [Running the tests](../contributing/testing/index.md) and the [testing standard](../contributing/standards/testing.md) instead.
 :::
 
 ## Why Use FairDM Factories?
@@ -626,9 +626,7 @@ def shared_project(django_db_blocker):
 
 ## Next Steps
 
-- **Learn more**: Read [FairDM Testing Strategy](../contributing/testing/index.md) for advanced patterns
-- **Factory patterns**: See [Fixture Factory Examples](../contributing/testing/examples/fixture-factory-example.md)
-- **Integration testing**: Read [Integration Test Guide](../contributing/testing/examples/integration-test-example.md)
+- **Learn more**: Read the [testing standard](../contributing/standards/testing.md) FairDM's own suite follows
 
 ## Getting Help
 

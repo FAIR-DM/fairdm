@@ -1,3 +1,7 @@
+{# @description A lead paragraph listing contributors' names as profile links. Any other attribute is passed to the paragraph. #}
+{# @prop contributors:text | description:"The contributions to list." #}
+{# @prop :role:text | default:"None" | description:"Only list contributions holding this role, or any of several given as a comma-separated string. Empty lists all." #}
+{# @prop separator:text | default:"," | description:"Text shown after every name except the last." #}
 {% load contributor_tags %}
 
 <c-vars contributors :role="None" separator="," />

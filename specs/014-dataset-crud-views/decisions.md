@@ -238,7 +238,7 @@ in. One required an override to be removed.
 
 **Settled**: rewritten to state what a person can do and what the portal guarantees. Where the
 requirement really is to use an existing facility rather than build a second one, it says so in
-those terms, per Article XIV.
+those terms, per Article XIII.
 
 **Why**: 013's D8, unchanged. A requirement naming a class is satisfied by a view that inherits it
 and does nothing, and is broken by a rename that changes no behaviour. It also pre-empts the design

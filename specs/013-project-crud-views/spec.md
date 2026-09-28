@@ -279,7 +279,7 @@ succeeds, and separately confirm a mistyped name stops the deletion.
 
 Requirements state what a person can do and what the portal guarantees. Where the application shell
 already provides a facility, the requirement is to use it rather than to build an equivalent, per
-Article XIV.
+Article XIII.
 
 ### The project listing
 

@@ -1,9 +1,4 @@
-"""
-Fuzzy name matching service for identifying potential duplicate Person records.
-
-Uses rapidfuzz token_sort_ratio so that name-token reordering (e.g. "Smith, John"
-vs "John Smith") does not lower the similarity score.
-"""
+"""Fuzzy name matching that finds potential duplicate people."""
 
 from __future__ import annotations
 
@@ -16,21 +11,18 @@ if TYPE_CHECKING:
 
 
 def find_duplicate_candidates(person: Person, threshold: float = 0.85) -> list[dict]:
-    """Return a list of potential duplicate Person records for *person*.
+    """Find people whose names closely match this person's name.
 
-    Each entry in the returned list is a dict with keys:
-        - ``person``:  the candidate :class:`Person` instance
-        - ``score``:   normalised similarity score in the range [0, 1]
-
-    Only entries with ``score >= threshold`` are included.  The list is sorted
-    by score descending. *person* itself is always excluded.
+    Scores use rapidfuzz ``token_sort_ratio``, so reordered names such as
+    "Smith, John" and "John Smith" score alike.
 
     Args:
-        person: The Person to find duplicates for.
-        threshold: Minimum similarity score (0-1). Defaults to 0.85.
+        person: The person to find duplicates for.
+        threshold: Minimum similarity score between 0 and 1.
 
     Returns:
-        List of ``{"person": Person, "score": float}`` dicts, sorted by score desc.
+        ``{"person": Person, "score": float}`` dicts with a score from 0 to 1, highest
+        first. The person itself is excluded.
     """
     from fairdm.contrib.contributors.models import Person as PersonModel
 
@@ -43,7 +35,6 @@ def find_duplicate_candidates(person: Person, threshold: float = 0.85) -> list[d
         candidate_name = (candidate.name or "").strip()
         if not candidate_name:
             continue
-        # token_sort_ratio returns 0-100; normalise to 0-1
         raw_score = token_sort_ratio(query_name, candidate_name)
         score = raw_score / 100.0
         if score >= threshold:

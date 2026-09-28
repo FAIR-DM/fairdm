@@ -1,3 +1,5 @@
+"""Model for a location given by its coordinates."""
+
 from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
@@ -10,13 +12,20 @@ X_OPTS = settings.FAIRDM_X_COORD
 Y_OPTS = settings.FAIRDM_Y_COORD
 
 
-# 6 decimal places is accurate to within ~0.11 meters
 X_MAX_DIGITS = X_OPTS.get("max_digits") or X_OPTS["decimal_places"] + 3
 
 Y_MAX_DIGITS = Y_OPTS.get("max_digits") or Y_OPTS["decimal_places"] + 2
 
 
 class Point(models.Model):
+    """A location given by its x and y coordinates and their coordinate reference system.
+
+    Attributes:
+        x: The x-coordinate (longitude).
+        y: The y-coordinate (latitude).
+        crs: The coordinate reference system, set from the ``FAIRDM_CRS`` setting.
+    """
+
     x = models.DecimalField(
         verbose_name=_("x"),
         help_text=_("The x-coordinate of the location."),
@@ -43,16 +52,21 @@ class Point(models.Model):
         unique_together = ("x", "y")
 
     def __str__(self):
-        """Returns the string representation of this site"""
+        """Return the latitude and longitude."""
         return f"{self.latitude}, {self.longitude}"
 
     def point2d(self):
+        """Return the location as a GeoJSON ``Point`` dict.
+
+        Returns:
+            A dict with the ``Point`` type and the ``[x, y]`` coordinates.
+        """
         return {"type": "Point", "coordinates": [self.x, self.y]}
 
     @property
     @admin.display(description=_("latitude"))
     def latitude(self):
-        """Convenience method for retrieving the site's latitude ordinate."""
+        """Return the latitude, which is the y-coordinate."""
         return self.y
 
     @latitude.setter
@@ -62,7 +76,7 @@ class Point(models.Model):
     @property
     @admin.display(description=_("longitude"))
     def longitude(self):
-        """Convenience method for retrieving the site's longitude ordinate."""
+        """Return the longitude, which is the x-coordinate."""
         return self.x
 
     @longitude.setter
@@ -70,11 +84,15 @@ class Point(models.Model):
         self.x = val
 
     def measurements(self):
-        """Returns the measurements associated with this site"""
+        """Return the measurements of samples at this location.
+
+        Returns:
+            A queryset of measurements.
+        """
         return Measurement.objects.filter(sample__location=self)
 
     def get_absolute_url(self):
-        """Returns the absolute URL for this site"""
+        """Return the URL of the location's detail page."""
         return reverse(
             "point-detail", kwargs={"lon": self.longitude, "lat": self.latitude}
         )

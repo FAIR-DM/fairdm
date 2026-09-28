@@ -1,18 +1,4 @@
-"""Integration tests for FairDM base view classes in ``fairdm/views/base.py``.
-
-Each test class exercises one FairDM view by instantiating a minimal concrete
-subclass via Django's ``RequestFactory``.  Tests verify:
-
-- HTTP 200 responses (checked on the lazily-rendered ``TemplateResponse``
-  before the template is actually rendered, so no template-engine dependencies
-  are introduced here)
-- ``meta`` context key injected by ``MetadataMixin``
-- View-specific context keys documented in each class docstring
-  (``grid_config``, ``form``, ``object``, ``table``, ``filter``)
-
-Fixtures ``rf`` (RequestFactory) and ``user`` / ``authenticated_client`` come
-from pytest-django and the project's root ``conftest.py`` respectively.
-"""
+"""Integration tests for FairDM base view classes in ``fairdm/views/base.py``."""
 
 import django_tables2 as tables
 import pytest
@@ -31,21 +17,12 @@ from fairdm.views.base import (
     FairDMUpdateView,
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 def _add_messages(request):
     """Attach a message storage to *request* so SuccessMessageMixin works."""
     request.session = "session"
     storage = FallbackStorage(request)
     request._messages = storage
-
-
-# ---------------------------------------------------------------------------
-# Minimal concrete subclasses (defined once, shared across test classes)
-# ---------------------------------------------------------------------------
 
 
 class ConcreteTemplateView(FairDMTemplateView):
@@ -58,8 +35,8 @@ class ConcreteListView(FairDMListView):
     """Minimal ListView subclass using the Project model."""
 
     model = Project
-    # Prevent django_filters from auto-generating a filterset from all Project
-    # fields (which includes ThumbnailerImageField, an unsupported type).
+    # Stop django_filters generating a filterset from every Project field, which includes
+    # ThumbnailerImageField, an unsupported type.
     filterset_fields = []
 
 
@@ -109,15 +86,8 @@ class ConcreteTableView(FairDMTableView):
     filterset_fields = []
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMTemplateView (T018)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMTemplateView:
-    """Tests for FairDMTemplateView."""
-
     def test_get_returns_200(self, rf):
         request = rf.get("/")
         request.user = AnonymousUser()
@@ -131,15 +101,8 @@ class TestFairDMTemplateView:
         assert "meta" in response.context_data
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMListView (T019)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMListView:
-    """Tests for FairDMListView."""
-
     def test_get_returns_200(self, rf):
         request = rf.get("/")
         request.user = AnonymousUser()
@@ -159,15 +122,8 @@ class TestFairDMListView:
         assert "grid_config" in response.context_data
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMDetailView (T020)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMDetailView:
-    """Tests for FairDMDetailView."""
-
     def test_get_returns_200(self, rf):
         project = ProjectFactory()
         request = rf.get("/")
@@ -190,15 +146,8 @@ class TestFairDMDetailView:
         assert response.context_data["object"] == project
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMCreateView (T021)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMCreateView:
-    """Tests for FairDMCreateView."""
-
     def test_get_returns_200(self, rf, user):
         request = rf.get("/")
         request.user = user
@@ -228,15 +177,8 @@ class TestFairDMCreateView:
         assert Project.objects.count() == initial_count + 1
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMUpdateView (T022)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMUpdateView:
-    """Tests for FairDMUpdateView."""
-
     def test_get_returns_200(self, rf, user):
         project = ProjectFactory()
         request = rf.get("/")
@@ -266,15 +208,8 @@ class TestFairDMUpdateView:
         assert response.context_data["object"] == project
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMDeleteView (T023)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMDeleteView:
-    """Tests for FairDMDeleteView."""
-
     def test_get_returns_200(self, rf, user):
         project = ProjectFactory()
         request = rf.get("/")
@@ -297,15 +232,8 @@ class TestFairDMDeleteView:
         assert response.context_data["object"] == project
 
 
-# ---------------------------------------------------------------------------
-# TestFairDMTableView (T024)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestFairDMTableView:
-    """Tests for FairDMTableView."""
-
     def test_get_returns_200(self, rf):
         request = rf.get("/")
         request.user = AnonymousUser()
@@ -321,15 +249,6 @@ class TestFairDMTableView:
 
 @pytest.mark.django_db
 class TestFairDMTableViewPagination:
-    """T086: a table view pages at 100 rows without declaring anything.
-
-    `MVPTableViewMixin` treats an unset `paginate_by` as "do not paginate", so
-    a base class that names no page size leaves every subclass unpaginated
-    unless it names one itself. `paginate_by` is also the only control that
-    reaches the table: the mixin passes it explicitly, ahead of
-    `Table.Meta.per_page`.
-    """
-
     def test_a_subclass_that_declares_no_page_size_pages_at_100(self, rf):
         request = rf.get("/")
         request.user = AnonymousUser()

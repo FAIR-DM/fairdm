@@ -1,3 +1,5 @@
+"""Base form classes configured through options on their ``Meta``."""
+
 from typing import Any
 
 from crispy_forms.helper import FormHelper
@@ -14,18 +16,19 @@ from .fields import PartialDateField
 
 
 class BaseMetaClass:
-    """
-    Base metaclass for FairDM forms and model forms that adds custom behavior.
+    """Metaclass mixin that collects FairDM options from a form's ``Meta``.
+
+    The options are merged with those of the base classes and stored on the form
+    class as ``_custom_conf``. They are removed from ``Meta`` so Django never sees
+    them. ``Meta.fields`` is flattened, or taken from ``Meta.fieldsets`` when set.
     """
 
     def __new__(cls, name, bases, attrs):
-        # Let Django do its normal processing first
-
+        """Build the form class with its merged FairDM options attached."""
         meta = attrs.get("Meta", None)
 
         meta_fields = getattr(meta, "fields", [])
 
-        # Initialize the config dict with inherited values
         custom_conf = {
             "formfield_overrides": {},
             "field_overrides": {},
@@ -36,7 +39,6 @@ class BaseMetaClass:
             "help_text": None,
         }
 
-        # Merge inherited _custom_conf from base classes (in MRO order)
         for base in reversed(bases):
             base_conf = getattr(base, "_custom_conf", {})
             for key, value in base_conf.items():
@@ -45,7 +47,6 @@ class BaseMetaClass:
                 elif value is not None:
                     custom_conf[key] = value
 
-        # Now apply any values defined in the current class's Meta
         if meta := attrs.get("Meta", None):
             for key in custom_conf:
                 val = cls._get_conf_and_remove(meta, key)
@@ -54,27 +55,22 @@ class BaseMetaClass:
                 elif val:
                     custom_conf[key] = val
 
-            custom_conf["fields"] = (
-                meta_fields  # preserve fields in case they are nested
-            )
+            # The nested form is kept for get_layout(); Meta.fields is flattened below.
+            custom_conf["fields"] = meta_fields
 
             if custom_conf["fieldsets"]:
                 meta.fields = flatten_fieldsets(custom_conf["fieldsets"])
             else:
-                # if meta.fields is declared as a nested list, flatten it
                 meta.fields = flatten(meta_fields)
 
         new_class = super().__new__(cls, name, bases, attrs)
 
-        # ✅ Attach to the form class
         new_class._custom_conf = custom_conf
 
         return new_class
 
     def _get_conf_and_remove(meta, attr):
-        """
-        Helper method to get a configuration value and remove it from the attributes.
-        """
+        """Pop an option off ``Meta``, returning ``None`` when it is not defined."""
         if hasattr(meta, attr):
             value = getattr(meta, attr)
             delattr(meta, attr)
@@ -82,26 +78,31 @@ class BaseMetaClass:
 
 
 class FairDMModelFormMetaclass(BaseMetaClass, ModelFormMetaclass):
-    """
-    Metaclass for BaseModelForm that allows for custom field declarations.
-    This can be extended to add common fields or behaviors to all model forms.
-    """
+    """Metaclass for :class:`ModelForm` that reads FairDM ``Meta`` options."""
 
     pass
 
 
 class FairDMFormMetaclass(BaseMetaClass, DeclarativeFieldsMetaclass):
-    """
-    Metaclass for BaseForm that allows for custom field declarations.
-    This can be extended to add common fields or behaviors to all forms.
-    """
+    """Metaclass for :class:`Form` that reads FairDM ``Meta`` options."""
 
     pass
 
 
 class FairDMFormMixin:
-    """
-    Mixin class that can be
+    """Mixin that applies the FairDM ``Meta`` options to a form.
+
+    The options are read by :class:`BaseMetaClass` into ``_custom_conf``:
+
+    - ``formfield_overrides``: maps a model field type to the form field class
+      used for it. Fields declared on the form are left alone.
+    - ``field_overrides``: maps a field name to a dict of attributes set on that
+      field.
+    - ``explicit_fields``: when ``True``, drop every field not in ``Meta.fields``.
+    - ``fieldsets``: grouped fields, used for the crispy layout and ``Meta.fields``.
+    - ``form_attrs``: HTML attributes for the ``<form>`` element.
+    - ``helper_attrs``: attributes set on the crispy ``FormHelper``.
+    - ``help_text``: HTML shown above the form fields.
     """
 
     _custom_conf: dict[str, Any] = {}
@@ -117,17 +118,15 @@ class FairDMFormMixin:
         if formfield_overrides := self._custom_conf["formfield_overrides"]:
             for name in self.fields:
                 if name in self.declared_fields:
-                    continue  # respect manual declarations
+                    continue
 
                 model_field = self._meta.model._meta.get_field(name)
 
                 for model_field_type, form_class in formfield_overrides.items():
                     if isinstance(model_field, model_field_type):
-                        # Get default kwargs from formfield() and inject form_class
                         self.fields[name] = model_field.formfield(form_class=form_class)
                         break
 
-        # Apply field overrides if specified
         for name, kwargs in self._custom_conf.get("field_overrides").items():
             for key, value in kwargs.items():
                 setattr(self.fields[name], key, value)
@@ -135,9 +134,10 @@ class FairDMFormMixin:
         self.helper = self._helper()
 
     def _helper(self):
-        """
-        Returns the FormHelper instance for this form.
-        This can be used to customize the form's layout and attributes.
+        """Build the crispy ``FormHelper`` for this form.
+
+        Returns:
+            A helper carrying the configured attributes, form id and layout.
         """
         helper = FormHelper()
         for key, value in self._custom_conf.get("helper_attrs", {}).items():
@@ -155,9 +155,13 @@ class FairDMFormMixin:
         return helper
 
     def get_layout(self):
-        """
-        Returns the layout for the form.
-        This can be overridden in subclasses to provide custom layouts.
+        """Build the crispy layout for this form.
+
+        Uses ``fieldsets`` when configured, then the configured ``fields``, then
+        ``Meta.fields``. Override it to provide a custom layout.
+
+        Returns:
+            The layout, empty when the form declares no fields.
         """
         if fieldsets := self._custom_conf.get("fieldsets"):
             return fieldsets_to_crispy_layout(fieldsets)
@@ -165,40 +169,40 @@ class FairDMFormMixin:
             return fields_to_crispy_layout(fields)
 
         if hasattr(self, "_meta") and hasattr(self._meta, "fields"):  # noqa: SIM102
-            # If _meta.fields is defined, use it
             if isinstance(self._meta.fields, list | tuple):
                 return fields_to_crispy_layout(self._meta.fields)
 
         return Layout()
 
     def get_help_text(self):
-        """
-        Returns the help text for a specific field.
-        This can be overridden in subclasses to provide custom help texts.
+        """Build the help text block shown above the form fields.
+
+        Override it to provide custom help text.
+
+        Returns:
+            A crispy element wrapping the configured ``help_text``, or ``None``
+            when none is configured.
         """
         if help_text := self._custom_conf.get("help_text"):
-            # Ensure help text is HTML-safe
-            # return HTML(help_text)
             return Div(HTML(help_text), css_class="mb-3")
         return None
 
     def get_form_id(self):
-        """
-        Returns the form ID.
-        This can be overridden in subclasses to provide custom form IDs.
+        """Return the form's HTML id, the lowercased class name by default.
+
+        Override it to provide a custom id.
+
+        Returns:
+            The id used for the crispy helper's ``form_id``.
         """
         return f"{self.__class__.__name__.lower()}"
 
 
 class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
-    """
-    Base form class that can be extended for custom forms.
-    This class can be used to define common behavior or attributes for all forms.
-    """
+    """Base form for FairDM, configured through options on its ``Meta``."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add any common initialization logic here
 
     class Meta:
         formfield_overrides = {
@@ -211,10 +215,7 @@ class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
 
 
 class ModelForm(FairDMFormMixin, forms.ModelForm, metaclass=FairDMModelFormMetaclass):
-    """
-    Base model form class that can be extended for custom model forms.
-    This class can be used to define common behavior or attributes for all model forms.
-    """
+    """Base model form for FairDM, configured through options on its ``Meta``."""
 
     class Meta:
         formfield_overrides = {

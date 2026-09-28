@@ -1,14 +1,4 @@
-"""Django forms for Dataset models.
-
-This module provides forms for creating and editing Dataset instances with:
-- Request-based queryset filtering (user permissions)
-- Internationalized help text using gettext_lazy
-- License field defaulting to CC BY 4.0
-- Visibility field presented as a radio choice, pre-selecting Public
-- Form-specific help text (not copied from model)
-
-The forms follow Django best practices and integrate with FairDM's permission system.
-"""
+"""Forms for creating and editing datasets."""
 
 from django import forms
 from django.conf import settings
@@ -25,48 +15,25 @@ from .models import Dataset
 
 
 class DatasetForm(ModelForm):
-    """Form for creating and editing Dataset instances.
+    """Form for creating and editing a dataset.
 
-    This form provides a user-friendly interface for dataset creation and editing
-    with the following features:
+    With a request, the project field offers only the authenticated user's own projects, and an
+    anonymous user sees none. Without one, every project is offered. The licence defaults to
+    CC BY 4.0, or the ``FAIRDM_DEFAULT_LICENSE`` setting. External identifiers are edited as rows
+    on the update page, not through a field here.
 
-    **Request Parameter:**
-    The form accepts an optional `request` parameter in __init__() to enable
-    user-specific queryset filtering. When provided, only projects accessible
-    to the authenticated user are shown in the project field.
+    Args:
+        request: The current request, used to limit the project choices.
+        *args: Positional arguments passed to ``ModelForm``.
+        **kwargs: Keyword arguments passed to ``ModelForm``, such as ``instance``.
 
-    Usage:
-        ```python
-        # In a view
-        form = DatasetForm(request=request, data=request.POST)
-
-        # For editing
-        form = DatasetForm(request=request, instance=dataset)
-        ```
-
-    **User Permissions:**
-    Project queryset is automatically filtered based on user permissions when
-    request parameter is provided. Anonymous users see no projects, authenticated
-    users see only their accessible projects.
-
-    **License Default:**
-    License field defaults to CC BY 4.0 (or FAIRDM_DEFAULT_LICENSE setting).
-    This encourages open licensing consistent with FAIR principles.
-
-    **Identifiers:**
-    External identifiers, including a DOI, are edited as rows on the update page's
-    identifiers row set (014 plan P3), not through a field on this form.
-
-    **Internationalization:**
-    All user-facing strings use gettext_lazy for translation support.
-
-    **Widgets:**
-    - Plain select on the project and reference (data publication) fields
-    - Image upload with preview (optional)
-
-    See Also:
-        - docs/portal-development/forms/dataset-forms.md
-        - tests/unit/core/dataset/test_form.py
+    Attributes:
+        image: Optional cover image.
+        name: The dataset's name.
+        project: The project the dataset belongs to.
+        license: The licence the dataset's data is published under.
+        reference: The literature item that is the dataset's data publication.
+        visibility: Whether the dataset's metadata may be read by anyone using the portal.
     """
 
     image = forms.ImageField(
@@ -110,9 +77,9 @@ class DatasetForm(ModelForm):
         ),
     )
 
-    # Note: reference field queryset is set in __init__ to avoid AppRegistryNotReady
+    # The queryset is set in __init__ to avoid AppRegistryNotReady.
     reference: forms.ModelChoiceField = forms.ModelChoiceField(
-        queryset=None,  # Set in __init__
+        queryset=None,
         label=_("Data Publication"),
         help_text=_(
             "Link to the primary data publication (paper, report, or other literature) "
@@ -137,28 +104,14 @@ class DatasetForm(ModelForm):
     class Meta:
         model = Dataset
         fields = ["image", "name", "project", "license", "reference", "visibility"]
-        # The shared render tag emits its own `<form>` whenever a crispy helper is
-        # present, which nests a second one inside the one the update page already
-        # opened. Every other core form sets this; the dataset form is the last to
-        # (014 plan P4). Set through `helper_attrs` rather than replacing the helper
-        # in `__init__` (`ProjectForm`'s approach), which keeps the derived layout,
-        # the form id and the interaction attributes this metaclass builds.
+        # The update page already opens a `<form>`, so the crispy helper must not nest another.
         helper_attrs = {"form_tag": False}
 
     def __init__(self, request=None, *args, **kwargs):
-        """Initialize form with optional request parameter for permission filtering.
-
-        Args:
-            request: Optional HttpRequest object for user context
-            *args: Variable length argument list
-            **kwargs: Arbitrary keyword arguments (including 'instance' for editing)
-        """
         super().__init__(*args, **kwargs)
         self.request = request
 
-        # Set license default to the portal's configured default licence. Read at call time,
-        # not as a module-level constant, so `override_settings` and per-portal configuration
-        # are both honoured (014 T025/FR-014) — mirrors `models.get_default_license_pk`.
+        # Read at call time, not as a module constant, so `override_settings` is honoured.
         license_field = self.fields.get("license")
         if license_field:
             default_license_name = getattr(
@@ -168,24 +121,18 @@ class DatasetForm(ModelForm):
                 name=default_license_name
             ).first()
 
-        # Filter project queryset based on user permissions
         project_field = self.fields.get("project")
         if project_field and self.request:
-            # Only filter if request is provided
             if (
                 hasattr(self.request, "user")
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                # Show only user's accessible projects
                 project_field.queryset = self.request.user.projects.all()
             else:
-                # Anonymous user - show no projects (prevents data leakage)
                 project_field.queryset = Project.objects.none()
-        # If no request provided, leave queryset as-is (all projects)
 
-        # Set reference queryset (literature items)
-        # Note: literature app is optional, handle gracefully if not installed
+        # The literature app is optional.
         reference_field = self.fields.get("reference")
         if reference_field:
             try:
@@ -193,16 +140,13 @@ class DatasetForm(ModelForm):
 
                 reference_field.queryset = LiteratureItem.objects.all()
             except (ImportError, LookupError):
-                # Literature app not installed - try via apps registry
                 from django.apps import apps
 
                 try:
                     LiteratureItem = apps.get_model("literature", "LiteratureItem")
                     reference_field.queryset = LiteratureItem.objects.all()
                 except LookupError:
-                    # Model doesn't exist - remove field and update Meta.fields
                     del self.fields["reference"]
-                    # Update Meta.fields to exclude reference
                     if hasattr(self.Meta, "fields") and "reference" in self.Meta.fields:
                         self.Meta.fields = [
                             f for f in self.Meta.fields if f != "reference"
@@ -210,18 +154,14 @@ class DatasetForm(ModelForm):
 
 
 class DatasetCreateForm(DatasetForm):
-    """Restricted form for initial dataset creation.
+    """Form for creating a dataset, asking only for name, project, licence and visibility.
 
-    Narrows the update page's declared ``DatasetForm`` (014 plan FR-022) to the four fields the
-    creation page asks for: name, visibility, licence and project. All other fields (image,
-    reference, descriptions) are available after creation via the full ``DatasetForm`` on the
-    update page.
+    The other fields are available after creation on the update page.
 
-    Usage:
-        ```python
-        # In a create view
-        form = DatasetCreateForm(request=request, data=request.POST)
-        ```
+    Args:
+        request: The current request, used to limit the project choices.
+        *args: Positional arguments passed to ``DatasetForm``.
+        **kwargs: Keyword arguments passed to ``DatasetForm``.
     """
 
     class Meta(DatasetForm.Meta):

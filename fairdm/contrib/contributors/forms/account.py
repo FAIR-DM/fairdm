@@ -1,3 +1,5 @@
+"""allauth forms customised for FairDM."""
+
 from allauth.account import forms as account_forms
 from allauth.account.utils import filter_users_by_email
 from allauth.socialaccount import forms as social_forms
@@ -7,10 +9,11 @@ from django.utils.translation import gettext as _
 
 
 class LoginForm(account_forms.LoginForm):
-    """Custom login form for FairDM.
+    """allauth login form with a crispy helper.
 
-    Extends the default allauth LoginForm with custom form metadata.
-    Additional validation or fields can be added as needed.
+    Args:
+        *args: Passed to the allauth form.
+        **kwargs: Passed to the allauth form.
     """
 
     def __init__(self, *args, **kwargs):
@@ -22,10 +25,11 @@ class LoginForm(account_forms.LoginForm):
 
 
 class SignupForm(account_forms.SignupForm):
-    """Custom signup form for FairDM.
+    """allauth signup form with a crispy helper.
 
-    Extends the default allauth SignupForm with custom form metadata.
-    Additional validation or fields can be added as needed.
+    Args:
+        *args: Passed to the allauth form.
+        **kwargs: Passed to the allauth form.
     """
 
     def __init__(self, *args, **kwargs):
@@ -37,12 +41,17 @@ class SignupForm(account_forms.SignupForm):
 
 
 class SocialSignupForm(social_forms.SignupForm):
-    """Social authentication signup form (ORCID, etc.).
+    """Social signup form that lets an ORCID signup claim an inactive contributor account.
 
-    Includes special logic to allow ORCID signups to claim inactive accounts.
-    Inactive accounts are created when contributors are added manually without
-    user accounts. When they later sign up via ORCID, we link their ORCID to
-    the existing contributor record.
+    Contributors added by hand get an inactive account. When they later sign up with ORCID,
+    the signup links to that record instead of creating a duplicate.
+
+    Args:
+        *args: Passed to the allauth form.
+        **kwargs: Passed to the allauth form.
+
+    Attributes:
+        name: The display name.
     """
 
     name = forms.CharField(
@@ -60,17 +69,7 @@ class SocialSignupForm(social_forms.SignupForm):
         self.helper.form_id = "social-signup-form"
 
     def try_save(self, request):
-        """Allow ORCID signups to claim inactive contributor accounts.
-
-        When a contributor is added manually to the system, they get an inactive
-        account. If they later sign up via ORCID, this method links their ORCID
-        to that existing contributor record instead of creating a duplicate.
-
-        This bypasses the default email conflict check for ORCID signups when
-        an inactive account with the same email exists.
-        """
-        # NOTE: this exists only to bypass the default try_save method IF the sociallogin is for ORCID and the account
-        # is not marked as inactive (default for user-added contributors).
+        """Reuse an inactive account with the same email for an ORCID signup, skipping the email conflict."""
         if self.account_already_exists and self.sociallogin.account.provider == "orcid":
             existing = filter_users_by_email(self.cleaned_data["email"])
             if existing and not existing[0].is_active:

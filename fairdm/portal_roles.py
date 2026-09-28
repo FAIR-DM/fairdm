@@ -1,8 +1,7 @@
 """The four roles FairDM ships, declared once, and their installation into every portal.
 
-The module is named ``portal_roles``, not ``roles``: this codebase already spends the bare
-word "role" on a :class:`~fairdm.contrib.contributors.models.Contribution`'s role, and the two
-are distinct terms (see CONTEXT.md).
+The module is named ``portal_roles``, not ``roles``, because the bare word "role" already
+names a :class:`~fairdm.contrib.contributors.models.Contribution`'s role (see CONTEXT.md).
 """
 
 from typing import NamedTuple
@@ -14,8 +13,13 @@ from django.utils.translation import gettext_lazy as _
 
 
 class PortalRole(NamedTuple):
-    """One shipped role: its stored name, its display label, and the exact
-    permissions it holds, each an explicit ``app_label.codename``."""
+    """One shipped role: its stored name, its display label, and the exact permissions it holds.
+
+    Attributes:
+        name: The stored name of the role's group.
+        label: The role's display label.
+        permissions: The permissions the role holds, each an explicit ``app_label.codename``.
+    """
 
     name: str
     label: str | Promise
@@ -23,7 +27,7 @@ class PortalRole(NamedTuple):
 
 
 class PortalRoles:
-    """The roles FairDM ships, and the methods that read and install them (Article XI)."""
+    """The roles FairDM ships, and the methods that read and install them."""
 
     PORTAL_ADMINISTRATOR = PortalRole(
         name="Portal Administrator",
@@ -40,7 +44,6 @@ class PortalRoles:
         name="Data Curator",
         label=_("Data Curator"),
         permissions=(
-            # Project
             "project.view_project",
             "project.add_project",
             "project.change_project",
@@ -53,7 +56,6 @@ class PortalRoles:
             "project.add_projectdate",
             "project.change_projectdate",
             "project.delete_projectdate",
-            # Dataset
             "dataset.view_dataset",
             "dataset.add_dataset",
             "dataset.change_dataset",
@@ -68,7 +70,6 @@ class PortalRoles:
             "dataset.delete_datasetdate",
             "dataset.import_data",
             "dataset.can_publish",
-            # Sample
             "sample.view_sample",
             "sample.add_sample",
             "sample.change_sample",
@@ -81,7 +82,6 @@ class PortalRoles:
             "sample.add_sampledate",
             "sample.change_sampledate",
             "sample.delete_sampledate",
-            # Measurement
             "measurement.view_measurement",
             "measurement.add_measurement",
             "measurement.change_measurement",
@@ -94,7 +94,6 @@ class PortalRoles:
             "measurement.add_measurementdate",
             "measurement.change_measurementdate",
             "measurement.delete_measurementdate",
-            # Contribution
             "contributors.view_contribution",
             "contributors.add_contribution",
             "contributors.change_contribution",
@@ -119,8 +118,7 @@ class PortalRoles:
 
     DEVELOPER = PortalRole(name="Developer", label=_("Developer"), permissions=())
 
-    #: Declaration order. Every method below reads this, so the order named here is the
-    #: order the whole feature presents the roles in.
+    #: Declaration order, which every method below follows.
     ROLES: tuple[PortalRole, ...] = (
         PORTAL_ADMINISTRATOR,
         DATA_CURATOR,
@@ -128,9 +126,8 @@ class PortalRoles:
         DEVELOPER,
     )
 
-    #: The three pre-existing `auth.Group` rows a portal set up before this feature already
-    #: has, mapped to the shipped role each becomes. Renamed in place rather than replaced, so
-    #: their membership carries across (D10, research R10).
+    #: Legacy `auth.Group` names mapped to the shipped role each becomes. Renamed in place
+    #: rather than replaced, so their membership carries across.
     LEGACY_NAMES = {
         "Portal Administrators": "Portal Administrator",
         "Data Administrators": "Data Curator",
@@ -139,15 +136,22 @@ class PortalRoles:
 
     @classmethod
     def shipped_names(cls) -> list[str]:
-        """The stored name of every role FairDM ships, in declaration order."""
+        """Return the stored name of every role FairDM ships, in declaration order.
+
+        Returns:
+            The role names.
+        """
         return [role.name for role in cls.ROLES]
 
     @classmethod
     def rights_carrying(cls) -> list[str]:
-        """The stored names of the roles that hold at least one permission.
+        """Return the stored names of the roles that hold at least one permission.
 
-        Holding any of these gives access to the administration interface (FR-006, FR-008);
-        holding only a role absent from this list does not.
+        Holding any of these gives access to the administration interface. Holding only a role
+        absent from this list does not.
+
+        Returns:
+            The names of the roles with at least one permission.
         """
         return [role.name for role in cls.ROLES if role.permissions]
 
@@ -155,9 +159,9 @@ class PortalRoles:
     def _rename_legacy_groups(cls) -> None:
         """Rename a legacy group row in place, and only when its target name is free.
 
-        A rename carries the membership rows across; a fresh create does not (D10). Renaming
-        onto a name already taken would raise `IntegrityError` on `Group.name`'s uniqueness,
-        so a legacy row is left alone once its target already exists.
+        A rename carries the membership rows across, a fresh create does not. Renaming onto a name
+        already taken would raise `IntegrityError` on `Group.name`'s uniqueness, so a legacy row is
+        left alone once its target already exists.
         """
         existing = set(Group.objects.values_list("name", flat=True))
         for legacy_name, shipped_name in cls.LEGACY_NAMES.items():
@@ -168,17 +172,21 @@ class PortalRoles:
 
     @classmethod
     def _permissions_for(cls, role: PortalRole) -> list[Permission]:
-        """The `Permission` rows a role's declaration resolves to right now, in one query.
+        """Return the `Permission` rows a role's declaration resolves to right now, in one query.
 
-        A declared permission that has no matching row yet is skipped rather than raised on:
-        `INSTALLED_APPS` lists `fairdm` before the apps whose permissions these roles need, so
-        an early `post_migrate` pass sees an incomplete set, and a later pass converges
-        (research R5). `dataset.can_publish` currently has no model declaring it at all and is
-        skipped the same way, for the same reason: nothing here may raise on a missing right.
+        A declared permission with no matching row yet is skipped rather than raised on:
+        `INSTALLED_APPS` lists `fairdm` before the apps whose permissions these roles need, so an
+        early `post_migrate` pass sees an incomplete set and a later pass converges.
+        `dataset.can_publish` currently has no model declaring it and is skipped the same way.
 
-        A role with no declared permissions (the Developer) returns early rather than reaching
-        the query below: an empty `Q()` has no conditions and matches every `Permission` row in
-        the database, not none of them.
+        A role with no declared permissions (the Developer) returns early, because an empty `Q()`
+        matches every `Permission` row rather than none.
+
+        Args:
+            role: The role whose permissions to resolve.
+
+        Returns:
+            The existing permissions the role declares.
         """
         if not role.permissions:
             return []
@@ -190,13 +198,12 @@ class PortalRoles:
 
     @classmethod
     def reconcile(cls) -> None:
-        """Install the four roles into the database (FR-009 to FR-011).
+        """Install the four roles into the database.
 
-        Renames the legacy rows first, so their membership carries across, then creates
-        whatever role is still missing and sets each role's permissions to exactly its
-        declaration - restoring a permission removed by hand and removing one added by hand.
-        Membership is never touched, and a group this method did not create or rename is never
-        looked at.
+        Renames the legacy rows first, so their membership carries across, then creates whatever
+        role is still missing and sets each role's permissions to exactly its declaration,
+        restoring a permission removed by hand and removing one added by hand. Membership is never
+        touched, and a group this method did not create or rename is never looked at.
         """
         cls._rename_legacy_groups()
 

@@ -17,7 +17,7 @@ complete without both.
 - **T001** Create the `fairdm.contrib.plugins` app: `apps.py` with an `AppConfig`, `__init__.py`
   exporting the public surface, registered in the settings app list.
 - **T002** Create the test package mirroring the source tree —
-  `tests/test_contrib/test_plugins/{__init__,conftest}.py` — per Article X.
+  `tests/test_contrib/test_plugins/{__init__,conftest}.py` — per Article I.
 - **T003** Write factories for every core record a plugin can attach to (project, dataset, sample,
   contributor, location), one factory per model, in the project's factory module.
 - **T004** Write `conftest.py` fixtures: a request factory, an anonymous user, an authenticated user

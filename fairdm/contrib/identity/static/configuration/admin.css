@@ -2,7 +2,6 @@
     flex-grow: 1;
 }
 
-/* make admin forms more like bootstrap */
 .flex-container {
     flex-wrap: wrap;
 }
@@ -16,12 +15,10 @@ form .aligned p.help, form .aligned div.help, form .aligned ul {
     padding-left: 0;
 }
 
-/* better whitespace around multi-widget input elements (e.g. PartialDate fields) */
 .flex-container select:not(:first-of-type) {
-    margin-left: .5em; /* Adjust the margin value as needed */
+    margin-left: .5em;
 }
 
-/* remove form row border */
 .form-row {
     border-bottom: none;
 }

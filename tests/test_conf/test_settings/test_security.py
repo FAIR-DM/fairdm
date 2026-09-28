@@ -1,20 +1,13 @@
-"""
-Tests for ``fairdm/conf/settings/security.py`` — the baseline security
-headers configuration (FR-002, FR-003).
-"""
+"""Tests for ``fairdm/conf/settings/security.py``."""
 
 import os
 
 
 class TestSecurity:
-    """The baseline sets production-grade security headers unconditionally —
-    no branching on environment-derived state such as ``DJANGO_SECURE``
-    (FR-002, FR-003)."""
-
     def test_ssl_and_cookie_security_apply_unconditionally(
         self, isolated_env, settings_module
     ):
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        os.environ["DJANGO_ENV"] = "qa"
 
         module = settings_module()
 
@@ -27,9 +20,6 @@ class TestSecurity:
     def test_security_headers_are_not_gated_by_django_secure(
         self, isolated_env, settings_module
     ):
-        """Setting DJANGO_SECURE=False no longer disables production
-        security headers in the baseline — that variable is vestigial once
-        the baseline stops branching on it (FR-003)."""
         os.environ["DJANGO_ENV"] = "qa"
         os.environ["DJANGO_SECURE"] = "False"
 
@@ -41,10 +31,8 @@ class TestSecurity:
     def test_baseline_keeps_the_browser_enforced_cookie_name_prefixes(
         self, isolated_env, settings_module
     ):
-        """The prefix is what stops a network attacker overwriting these
-        cookies from a plain-HTTP subdomain, so relaxing it for local
-        development must not reach the baseline every deployment gets."""
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        # The prefix stops a network attacker overwriting these cookies from a plain-HTTP subdomain.
+        os.environ["DJANGO_ENV"] = "qa"
 
         module = settings_module()
 
@@ -56,15 +44,12 @@ class TestSecurity:
     ):
         os.environ["DJANGO_ENV"] = "qa"
 
-        settings_module()  # must not raise
+        settings_module()
 
 
 class TestAllowedHostsComposition:
-    """``ALLOWED_HOSTS`` composes from truthy entries only, so an unset
-    domain yields ``[]`` rather than ``[""]`` — otherwise
-    ``check_allowed_hosts_configured``'s emptiness test can never fire
-    (FR-004, SC-006, research R6, T055)."""
-
+    # Only truthy entries compose, so an unset domain gives [] rather than [""]. Otherwise the
+    # emptiness check could never fire.
     def test_unset_site_domain_and_allowed_hosts_yields_empty_list(
         self, isolated_env, settings_module
     ):
@@ -77,8 +62,6 @@ class TestAllowedHostsComposition:
     def test_check_allowed_hosts_configured_fires_when_everything_unset(
         self, isolated_env, settings_module
     ):
-        """The emptiness check FR-004/SC-006 depends on is reachable now
-        that an unset domain does not smuggle in a truthy empty string."""
         from django.test import override_settings
 
         from fairdm.conf.checks import check_allowed_hosts_configured

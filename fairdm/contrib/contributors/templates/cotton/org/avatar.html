@@ -1,3 +1,7 @@
+{# @description An organisation's logo, or a placeholder organisation icon, in a box with a fixed aspect ratio. Any other attribute is passed to the box. #}
+{# @prop aspect_ratio:text | default:"66%" | description:"The box's aspect ratio as a percentage. Empty for no fixed ratio." #}
+{# @prop class:text | description:"Extra CSS classes for the outer element." #}
+{# @prop organization:text | description:"The organisation to show." #}
 {% load easy_icons easy_thumbnails_tags %}
 
 <c-vars aspect_ratio="66%" class organization />

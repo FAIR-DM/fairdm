@@ -1,3 +1,5 @@
+"""Views for creating and listing projects."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
@@ -14,18 +16,11 @@ from .models import ProjectQuerySet
 
 
 class ProjectListView(FairDMListView):
-    """List view for displaying publicly visible projects.
-
-    Shows all projects with public visibility in a card layout, with
-    filtering and sorting capabilities. Contributors are prefetched
-    for optimal performance.
-    """
+    """List the public projects as cards, with filtering and sorting."""
 
     model = Project
     filterset_class = ProjectFilter
     list_item_template = "project/project_card.html"
-    # One project per row at every width. The card reflows on its own width, so
-    # a wide row gets the side-by-side layout rather than a second column.
     grid = {"cols": 1, "gap": 4}
     search_fields = ["uuid", "name", "identifiers__value"]
     order_by = [
@@ -35,72 +30,31 @@ class ProjectListView(FairDMListView):
         ("-added", _("Date created (newest first)"), "-added"),
     ]
     image = static("img/stock/project.jpg")
-    show_list_action = True  # All users can view the list of public projects
+    show_list_action = True
 
     def show_create_action(self, user):
-        """The listing offers its own creation link to a signed-in user, and none to an
-        anonymous visitor (013 plan P5, US-5 T073). ``ProjectCreateView`` itself already
-        requires authentication; this only decides whether the link is drawn — see
-        ``mvp.views.detail.CRUDDirectoryMixin``'s own class docstring on that distinction."""
+        """Offer the create link only to a signed-in user."""
         return user.is_authenticated
 
     def get_queryset(self) -> QuerySet[Project]:
-        """Return the public projects, loaded with everything a card draws.
-
-        `with_list_data()` carries the owner, the keyword badges, the
-        descriptions the abstract summary is taken from, and the public dataset
-        count; `with_contributors()` carries the contributor stack. Both are
-        needed, so both are composed - the card renders in a constant number of
-        queries whether the page holds one project or twenty.
-
-        Returns:
-            QuerySet: Filtered and optimized Project queryset.
-        """
+        """Limit to public projects and load everything a card draws, in a constant number of queries."""
         qs: ProjectQuerySet = super().get_queryset()
         return qs.get_visible().with_list_data().with_contributors()
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
-    """View for creating new Project instances.
-
-    Provides a streamlined project creation form with minimal required fields.
-    Users can add detailed metadata through the edit interface after creation.
-
-    Automatically assigns full permissions to the creating user including:
-    - view_project
-    - change_project
-    - delete_project
-    - change_project_metadata
-    - change_project_settings
-
-    Usage:
-        URL: /projects/create/
-        Login required: Yes
-        Permissions: Authenticated users can create projects
-    """
+    """Create a project, granting the creating user every project permission and crediting them."""
 
     model = Project
     form_class = ProjectCreateForm
     page_title = _("Create a project")
 
     def form_valid(self, form: ProjectCreateForm) -> HttpResponse:
-        """Handle successful form submission and assign permissions.
-
-        Automatically assigns full project permissions to the creating user and
-        adds them as a contributor with Creator, ProjectMember, and ContactPerson roles.
-
-        Args:
-            form: The validated ProjectCreateForm instance.
-
-        Returns:
-            HttpResponse: Redirect to project detail page.
-        """
-        # Set the creator before saving so `created_by` is written with the
-        # rest of the record in one save, from the request user only.
+        """Record the creator, grant them the project permissions and credit them as Creator, ProjectMember and ContactPerson."""
+        # `created_by` is editable=False, so it is set from the request user, never the form.
         form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
-        # Assign full permissions to creator
         user = self.request.user
         project = self.object
 
@@ -115,7 +69,6 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         for perm in permissions:
             assign_perm(perm, user, project)
 
-        # Add creator as contributor
         project.add_contributor(
             user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
         )
@@ -123,9 +76,5 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         return response
 
     def get_success_url(self) -> str:
-        """Return URL to redirect to after successful creation.
-
-        Returns:
-            str: URL to the project's own page.
-        """
+        """Redirect to the new project's own page."""
         return str(self.object.get_absolute_url())

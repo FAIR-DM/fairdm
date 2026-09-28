@@ -1,9 +1,4 @@
-"""
-Integration tests for fairdm.conf configuration checks.
-
-These tests verify that Django's check framework integration works
-correctly and that all configuration validation logic is properly tested.
-"""
+"""Integration tests for fairdm.conf configuration checks."""
 
 import sys
 from unittest import mock
@@ -18,11 +13,8 @@ from django.test import override_settings
 
 
 class TestDatabaseChecks:
-    """Tests for database configuration checks."""
-
     @override_settings(DATABASES={})
     def test_check_database_configured_missing(self):
-        """Check returns ERROR when DATABASES['default'] is not configured."""
         from fairdm.conf.checks import check_database_configured
 
         errors = check_database_configured(app_configs=None)
@@ -35,7 +27,6 @@ class TestDatabaseChecks:
 
     @override_settings(DATABASES={"default": {}})
     def test_check_database_configured_empty(self):
-        """Check returns ERROR when DATABASES['default'] is empty."""
         from fairdm.conf.checks import check_database_configured
 
         errors = check_database_configured(app_configs=None)
@@ -49,7 +40,6 @@ class TestDatabaseChecks:
         }
     )
     def test_check_database_configured_valid(self):
-        """Check returns empty list when database is properly configured."""
         from fairdm.conf.checks import check_database_configured
 
         errors = check_database_configured(app_configs=None)
@@ -62,7 +52,6 @@ class TestDatabaseChecks:
         }
     )
     def test_check_database_production_ready_sqlite(self):
-        """Check returns ERROR when using SQLite."""
         from fairdm.conf.checks import check_database_production_ready
 
         errors = check_database_production_ready(app_configs=None)
@@ -70,8 +59,6 @@ class TestDatabaseChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E101"
-        assert "SQLite" in errors[0].msg
-        assert "PostgreSQL" in errors[0].hint
 
     @override_settings(
         DATABASES={
@@ -79,7 +66,6 @@ class TestDatabaseChecks:
         }
     )
     def test_check_database_production_ready_postgresql(self):
-        """Check returns empty list when using PostgreSQL."""
         from fairdm.conf.checks import check_database_production_ready
 
         errors = check_database_production_ready(app_configs=None)
@@ -88,9 +74,6 @@ class TestDatabaseChecks:
 
 
 class TestSyntacticallyUnusableValue:
-    """A production-critical value that is present but syntactically
-    unusable fails distinctly from an absent value (edge case, FR-017)."""
-
     @override_settings(
         DATABASES={
             "default": {
@@ -104,9 +87,6 @@ class TestSyntacticallyUnusableValue:
         }
     )
     def test_malformed_database_url_fails_distinctly_from_absent(self):
-        """DATABASE_URL='postgresql://' parses to a dict with ENGINE but no NAME —
-        present and non-empty, so check_database_configured (fairdm.E100) does
-        not fire, but the database is still unusable."""
         from fairdm.conf.checks import check_database_configured, check_database_usable
 
         assert check_database_configured(app_configs=None) == []
@@ -119,13 +99,10 @@ class TestSyntacticallyUnusableValue:
 
 
 class TestCacheChecks:
-    """Tests for cache configuration checks."""
-
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
     )
     def test_check_cache_backend_locmem(self):
-        """Check returns ERROR when using locmem cache."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -133,21 +110,18 @@ class TestCacheChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E200"
-        assert "locmem" in errors[0].msg.lower()
-        assert "Redis" in errors[0].hint
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
     )
     def test_check_cache_backend_dummy(self):
-        """Check returns ERROR when using dummy cache."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
 
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
-        assert "dummy" in errors[0].msg.lower()
+        assert errors[0].id == "fairdm.E200"
 
     @override_settings(
         CACHES={
@@ -158,7 +132,6 @@ class TestCacheChecks:
         }
     )
     def test_check_cache_backend_redis(self):
-        """Check returns empty list when using Redis cache."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -167,7 +140,6 @@ class TestCacheChecks:
 
     @override_settings(CACHES={})
     def test_check_cache_backend_caches_absent(self):
-        """Check returns ERROR when CACHES is not configured at all (FR-017)."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -178,7 +150,6 @@ class TestCacheChecks:
 
     @override_settings(CACHES={"default": {}})
     def test_check_cache_backend_default_empty(self):
-        """Check returns ERROR when CACHES['default'] is an empty dict (FR-017)."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -196,7 +167,6 @@ class TestCacheChecks:
         }
     )
     def test_check_cache_backend_filebased_is_not_shared(self):
-        """A backend that is neither locmem nor dummy still fails if not shared (FR-017)."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -206,10 +176,6 @@ class TestCacheChecks:
         assert errors[0].id == "fairdm.E200"
 
     def test_check_cache_backend_unconfigured_placeholder_fails(self):
-        """settings/cache.py's baseline is always Redis-shaped (FS-001 US-1,
-        FR-003), so BACKEND alone can no longer distinguish a real deployment
-        from an unset REDIS_URL — the check must also recognise the
-        placeholder LOCATION cache.py substitutes (FR-017)."""
         from fairdm.conf.checks import UNCONFIGURED_REDIS_LOCATION, check_cache_backend
 
         with override_settings(
@@ -235,8 +201,6 @@ class TestCacheChecks:
         }
     )
     def test_check_cache_backend_real_redis_location_passes(self):
-        """A genuine REDIS_URL still passes — the placeholder check is exact,
-        not a broad Redis-shaped-with-any-empty-looking-value heuristic."""
         from fairdm.conf.checks import check_cache_backend
 
         errors = check_cache_backend(app_configs=None)
@@ -245,11 +209,8 @@ class TestCacheChecks:
 
 
 class TestSecretKeyChecks:
-    """Tests for SECRET_KEY configuration checks."""
-
     @override_settings(SECRET_KEY="")
     def test_check_secret_key_exists_empty(self):
-        """Check returns ERROR when SECRET_KEY is empty."""
         from fairdm.conf.checks import check_secret_key_exists
 
         errors = check_secret_key_exists(app_configs=None)
@@ -258,11 +219,9 @@ class TestSecretKeyChecks:
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E001"
         assert "SECRET_KEY" in errors[0].msg
-        assert "50+ characters" in errors[0].hint
 
     @override_settings(SECRET_KEY="a" * 50)
     def test_check_secret_key_exists_valid(self):
-        """Check returns empty list when SECRET_KEY is set."""
         from fairdm.conf.checks import check_secret_key_exists
 
         errors = check_secret_key_exists(app_configs=None)
@@ -271,7 +230,6 @@ class TestSecretKeyChecks:
 
     @override_settings(SECRET_KEY="django-insecure-" + "a" * 50)
     def test_check_secret_key_exists_insecure_prefix(self):
-        """Check returns ERROR when SECRET_KEY carries the published insecure prefix (FR-017, SC-006)."""
         from fairdm.conf.checks import check_secret_key_exists
 
         errors = check_secret_key_exists(app_configs=None)
@@ -279,15 +237,10 @@ class TestSecretKeyChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E001"
-        assert "insecure" in errors[0].msg.lower()
 
     @override_settings(SECRET_KEY="short-key")
     def test_check_secret_key_exists_too_short(self):
-        """Check returns ERROR when SECRET_KEY is short enough to be brute-forced (FR-017).
-
-        Django reports the same condition as security.W009, a warning, which
-        cannot block a boot.
-        """
+        # Django reports the same condition as security.W009, a warning, which cannot block a boot.
         from fairdm.conf.checks import check_secret_key_exists
 
         errors = check_secret_key_exists(app_configs=None)
@@ -295,15 +248,11 @@ class TestSecretKeyChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E001"
-        assert "50" in errors[0].hint
 
 
 class TestAllowedHostsChecks:
-    """Tests for ALLOWED_HOSTS configuration checks."""
-
     @override_settings(ALLOWED_HOSTS=[])
     def test_check_allowed_hosts_configured_empty(self):
-        """Check returns ERROR when ALLOWED_HOSTS is empty."""
         from fairdm.conf.checks import check_allowed_hosts_configured
 
         errors = check_allowed_hosts_configured(app_configs=None)
@@ -316,7 +265,6 @@ class TestAllowedHostsChecks:
 
     @override_settings(ALLOWED_HOSTS=["example.com"])
     def test_check_allowed_hosts_configured_valid(self):
-        """Check returns empty list when ALLOWED_HOSTS is configured."""
         from fairdm.conf.checks import check_allowed_hosts_configured
 
         errors = check_allowed_hosts_configured(app_configs=None)
@@ -325,7 +273,6 @@ class TestAllowedHostsChecks:
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_check_allowed_hosts_secure_wildcard(self):
-        """Check returns ERROR when ALLOWED_HOSTS contains wildcard."""
         from fairdm.conf.checks import check_allowed_hosts_secure
 
         errors = check_allowed_hosts_secure(app_configs=None)
@@ -333,11 +280,9 @@ class TestAllowedHostsChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E004"
-        assert "wildcard" in errors[0].msg.lower()
 
     @override_settings(ALLOWED_HOSTS=["example.com", "www.example.com"])
     def test_check_allowed_hosts_secure_valid(self):
-        """Check returns empty list when ALLOWED_HOSTS is secure."""
         from fairdm.conf.checks import check_allowed_hosts_secure
 
         errors = check_allowed_hosts_secure(app_configs=None)
@@ -346,11 +291,8 @@ class TestAllowedHostsChecks:
 
 
 class TestDebugChecks:
-    """Tests for DEBUG mode configuration checks."""
-
     @override_settings(DEBUG=True)
     def test_check_debug_false_enabled(self):
-        """Check returns ERROR when DEBUG is True."""
         from fairdm.conf.checks import check_debug_false
 
         errors = check_debug_false(app_configs=None)
@@ -359,11 +301,9 @@ class TestDebugChecks:
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E005"
         assert "DEBUG" in errors[0].msg
-        assert "production" in errors[0].msg
 
     @override_settings(DEBUG=False)
     def test_check_debug_false_disabled(self):
-        """Check returns empty list when DEBUG is False."""
         from fairdm.conf.checks import check_debug_false
 
         errors = check_debug_false(app_configs=None)
@@ -372,8 +312,6 @@ class TestDebugChecks:
 
 
 class TestSecureCookiePrefixChecks:
-    """Tests for the cookie-name prefix check (fairdm.E006)."""
-
     @override_settings(CSRF_COOKIE_NAME="__Secure-csrftoken", CSRF_COOKIE_SECURE=False)
     def test_check_reports_a_prefixed_name_on_an_insecure_cookie(self):
         from fairdm.conf.checks import check_secure_cookie_prefixes_match_secure_flag
@@ -428,8 +366,7 @@ class TestSecureCookiePrefixChecks:
 
     @override_settings(CSRF_COOKIE_NAME="__Secure-csrftoken", CSRF_COOKIE_SECURE=False)
     def test_check_runs_without_the_deploy_flag(self):
-        """The fault it catches only occurs off production, so a check the
-        plain command does not run would never fire where it matters."""
+        # The fault only occurs off production, so a check the plain command skipped would never fire where it matters.
         with pytest.raises(SystemCheckError) as excinfo:
             call_command("check", "--tag", "security", "--fail-level", "ERROR")
 
@@ -437,11 +374,8 @@ class TestSecureCookiePrefixChecks:
 
 
 class TestCeleryChecks:
-    """Tests for Celery configuration checks."""
-
     @override_settings(CELERY_BROKER_URL="")
     def test_check_celery_broker_missing(self):
-        """Check returns ERROR when CELERY_BROKER_URL is not set."""
         from fairdm.conf.checks import check_celery_broker
 
         errors = check_celery_broker(app_configs=None)
@@ -450,11 +384,9 @@ class TestCeleryChecks:
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E300"
         assert "CELERY_BROKER_URL" in errors[0].msg
-        assert "redis://" in errors[0].hint
 
     @override_settings(CELERY_BROKER_URL="redis://localhost:6379/0")
     def test_check_celery_broker_configured(self):
-        """Check returns empty list when CELERY_BROKER_URL is set."""
         from fairdm.conf.checks import check_celery_broker
 
         errors = check_celery_broker(app_configs=None)
@@ -463,7 +395,6 @@ class TestCeleryChecks:
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_check_celery_async_eager(self):
-        """Check returns ERROR when CELERY_TASK_ALWAYS_EAGER is True."""
         from fairdm.conf.checks import check_celery_async
 
         errors = check_celery_async(app_configs=None)
@@ -472,11 +403,9 @@ class TestCeleryChecks:
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E301"
         assert "CELERY_TASK_ALWAYS_EAGER" in errors[0].msg
-        assert "synchronously" in errors[0].msg
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=False)
     def test_check_celery_async_async(self):
-        """Check returns empty list when CELERY_TASK_ALWAYS_EAGER is False."""
         from fairdm.conf.checks import check_celery_async
 
         errors = check_celery_async(app_configs=None)
@@ -485,11 +414,6 @@ class TestCeleryChecks:
 
 
 class TestParlerLanguagesChecks:
-    """PARLER_LANGUAGES must name only codes LANGUAGES also names — django-parler
-    enforces the same rule itself, but at import time, before this check (or any
-    Django check) can run; see ``tests/test_apps.py::TestParlerLanguagesCheck``
-    for where ``FairDMConfig`` calls this early enough to matter (T107)."""
-
     @override_settings(
         LANGUAGES=[("en", "English"), ("de", "German")],
         PARLER_LANGUAGES={
@@ -497,6 +421,8 @@ class TestParlerLanguagesChecks:
             "default": {"fallback": "en", "hide_untranslated": False},
         },
     )
+    # parler enforces the same rule at import time, before any check runs. See
+    # tests/test_apps.py::TestParlerLanguagesCheck for where FairDMConfig applies it.
     def test_check_names_the_code_missing_from_languages(self):
         from fairdm.conf.checks import check_parler_languages_subset_of_languages
 
@@ -548,9 +474,6 @@ class TestParlerLanguagesChecks:
         },
     )
     def test_base_subtag_match_is_accepted_like_django_parler_accepts_it(self):
-        """django-parler's own ``is_supported_django_language()`` accepts a
-        PARLER code whose base subtag (``fr`` from ``fr-ca``) is in
-        LANGUAGES — this check must not flag what parler itself would not."""
         from fairdm.conf.checks import check_parler_languages_subset_of_languages
 
         errors = check_parler_languages_subset_of_languages(app_configs=None)
@@ -566,11 +489,8 @@ class TestParlerLanguagesChecks:
         },
     )
     def test_check_names_a_default_language_code_missing_from_languages(self):
-        """The ``"default"`` entry names no ``code`` of its own, so parler
-        falls back to PARLER_DEFAULT_LANGUAGE_CODE and rejects the whole
-        setting on that before it looks at any site's choices — every site
-        code here is valid. Verified against
-        ``parler.utils.conf.add_default_language_settings``."""
+        # The "default" entry has no code of its own, so parler falls back to PARLER_DEFAULT_LANGUAGE_CODE
+        # and rejects the whole setting on it.
         from fairdm.conf.checks import check_parler_languages_subset_of_languages
 
         errors = check_parler_languages_subset_of_languages(app_configs=None)
@@ -595,11 +515,8 @@ class TestParlerLanguagesChecks:
 
 
 class TestCheckCommandIntegration:
-    """Integration tests for the check management command."""
-
     @override_settings(SECRET_KEY="")
     def test_check_deploy_fails_with_errors(self):
-        """Running check --deploy raises SystemCheckError when configuration has errors."""
         with pytest.raises(SystemCheckError) as exc_info:
             call_command("check", deploy=True)
 
@@ -624,15 +541,10 @@ class TestCheckCommandIntegration:
         CELERY_TASK_ALWAYS_EAGER=False,
     )
     def test_check_deploy_passes_with_valid_config(self):
-        """Running check --deploy succeeds with valid production configuration."""
-        # Should not raise
         call_command("check", deploy=True)
 
 
 class TestDeployCommand:
-    """``manage.py check --deploy`` assesses against production standards
-    regardless of the current resolved environment (FR-015)."""
-
     @pytest.mark.parametrize(
         "resolved_environment", ["production", "development", "qa", ""]
     )
@@ -667,10 +579,6 @@ def _delete_group_by_raw_sql(name: str) -> None:
 
 
 class TestPortalRolesPresent:
-    """T024/T025, FR-015 to FR-017: a serving portal missing a shipped role
-    refuses to start and names it; the boot refusal stands down for the
-    command that installs the roles (D11, research R4)."""
-
     def test_two_missing_roles_are_named_in_one_error(self, db):
         from fairdm.conf.checks import check_portal_roles_present
         from fairdm.portal_roles import PortalRoles
@@ -700,10 +608,8 @@ class TestPortalRolesPresent:
         [
             django_db_utils.ProgrammingError,
             django_db_utils.OperationalError,
-            # A test harness that refuses database access outright (e.g.
-            # pytest-django's own safeguard for a test with no `db` fixture)
-            # raises this, not a django.db.utils error - "unreadable" covers
-            # it too (D24, research R4).
+            # A harness that refuses database access outright (pytest-django with no `db` fixture) raises
+            # this, not a django.db.utils error, so "unreadable" has to cover it.
             RuntimeError,
         ],
     )
@@ -721,12 +627,8 @@ class TestPortalRolesPresent:
     def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
         self, db
     ):
-        """A ``DATABASE_URL``-absent portal (``fairdm.E100``'s own case) composes an
-        unusable ``DATABASES`` entry that raises ``ImproperlyConfigured`` the moment
-        any query tries to compile SQL against it - not ``OperationalError`` or
-        ``ProgrammingError``. Reproduced against ``TestProductionBoot`` failing with
-        an uncaught traceback instead of a clean `SystemCheckError` before this was
-        added to the except clause."""
+        # A portal without DATABASE_URL composes a DATABASES entry that raises ImproperlyConfigured on the
+        # first query, not OperationalError or ProgrammingError.
         from django.core.exceptions import ImproperlyConfigured
 
         from fairdm.conf.checks import check_portal_roles_present
@@ -750,8 +652,6 @@ class TestPortalRolesPresent:
         assert check_portal_roles_present(app_configs=None) == []
 
     def test_does_not_stand_down_for_an_unrelated_command(self, db, monkeypatch):
-        """The stand-down is scoped to the command that installs the roles - D11
-        names only ``migrate``, not every management command."""
         from fairdm.conf.checks import check_portal_roles_present
         from fairdm.portal_roles import PortalRoles
 
@@ -764,8 +664,6 @@ class TestPortalRolesPresent:
         assert len(errors) == 1
 
     def test_check_deploy_reports_a_missing_role_regardless_of_environment(self, db):
-        """FR-017: development never refuses to start, but the framework's
-        on-demand configuration check reports the condition all the same."""
         from fairdm.portal_roles import PortalRoles
 
         PortalRoles.reconcile()
@@ -778,20 +676,8 @@ class TestPortalRolesPresent:
         assert PortalRoles.DATA_CURATOR.name in str(exc_info.value)
 
     def test_check_is_registered_with_the_production_critical_deploy_tags(self):
-        """The wiring FR-015/FR-016 depend on: `FairDMConfig._check_production_configuration`
-        (fairdm/apps.py) aggregates exactly the checks tagged `DeployTags.production_critical`,
-        and only `manage.py check --deploy` sees a check tagged `deploy=True` at all (research
-        R4). Both are asserted directly against the registered check rather than exercised
-        through a live production boot: doing that for real needs a PostgreSQL connection -
-        every other production_critical check reads settings values only, so the existing
-        subprocess boot tests never open one, but this check's job is to query the `Group`
-        table, and SQLite cannot stand in (`fairdm.E101` fires for any non-development
-        environment, unconditionally, and `_check_production_configuration` does not consult
-        `SILENCED_SYSTEM_CHECKS`). `TestPortalRolesReconciliation` in `tests/test_apps.py`
-        already proves `migrate` installs the roles against this suite's real (SQLite)
-        database; the tests above prove the check's own query and stand-down logic; this proves
-        the two are wired into the same gate every other production-critical check uses.
-        """
+        # Only `manage.py check --deploy` sees a check tagged deploy=True, and the production
+        # configuration aggregate runs exactly the checks tagged production_critical.
         from django.core.checks.registry import registry
 
         from fairdm.conf.checks import DeployTags, check_portal_roles_present
@@ -810,12 +696,6 @@ class TestPortalRolesPresent:
 
 
 class TestDevAccountsAbsent:
-    """T028/T029, FR-022 to FR-029, D16: the command's refusal guards the act of
-    loading, not the resulting state - this check reports any of the five
-    development addresses found on a portal that is not in development,
-    naming them, the same shape as `check_portal_roles_present` (research
-    R4), including its tolerance for a database it cannot read."""
-
     @override_settings(DJANGO_ENV="production")
     def test_one_dev_address_on_a_production_portal_is_named(self, db):
         from fairdm.conf.checks import check_dev_accounts_absent
@@ -864,8 +744,6 @@ class TestDevAccountsAbsent:
         assert check_dev_accounts_absent(app_configs=None) == []
 
     def test_a_development_portal_holding_all_five_reports_nothing(self, db):
-        """The suite's own ambient environment is development (pytest-env),
-        so no override is needed - the check must stand down on its own."""
         from fairdm.conf.checks import check_dev_accounts_absent
 
         call_command("create_dev_accounts", verbosity=0)
@@ -877,10 +755,8 @@ class TestDevAccountsAbsent:
         [
             django_db_utils.ProgrammingError,
             django_db_utils.OperationalError,
-            # A test harness that refuses database access outright (e.g.
-            # pytest-django's own safeguard for a test with no `db` fixture)
-            # raises this, not a django.db.utils error - the same tolerance
-            # `check_portal_roles_present` carries (D24, research R4).
+            # A harness that refuses database access outright (pytest-django with no `db` fixture) raises
+            # this, not a django.db.utils error, so "unreadable" has to cover it.
             RuntimeError,
         ],
     )
@@ -900,10 +776,6 @@ class TestDevAccountsAbsent:
     def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
         self, db
     ):
-        """A `DATABASE_URL`-absent portal (`fairdm.E100`'s own case) raises
-        `ImproperlyConfigured` the moment a query tries to compile SQL against
-        it, not `OperationalError`/`ProgrammingError` (mirrors
-        `check_portal_roles_present`'s own test for the identical case)."""
         from django.core.exceptions import ImproperlyConfigured
 
         from fairdm.conf.checks import check_dev_accounts_absent

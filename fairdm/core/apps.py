@@ -1,3 +1,5 @@
+"""App configuration for the core record types."""
+
 from django.apps import AppConfig, apps
 from django.utils.translation import gettext_lazy as _
 
@@ -5,6 +7,8 @@ from fairdm.config import Authority, Citation
 
 
 class FairDMCoreConfig(AppConfig):
+    """Configuration for the ``fairdm.core`` app."""
+
     name = "fairdm.core"
     label = "fairdm_core"
     verbose_name = _("FairDM")
@@ -20,6 +24,7 @@ class FairDMCoreConfig(AppConfig):
     repository_url = "https://github.com/FAIR-DM/fairdm"
 
     def register_core_models(self):
+        """Register every concrete Sample and Measurement subclass with the registry."""
         from fairdm.core.models import Measurement, Sample
         from fairdm.registry import registry
 
@@ -31,7 +36,5 @@ class FairDMCoreConfig(AppConfig):
                 registry.register(model)
 
     def register_sample_children(self):
+        """Do nothing: child models register through their own app's admin or the registry."""
         pass
-
-        # Child models should be registered individually with their own admin classes
-        # (either in their app's admin.py or via the registry system)

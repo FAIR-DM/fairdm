@@ -1,3 +1,5 @@
+"""Generic portal views."""
+
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 from mvp.views import MVPHomeView
@@ -11,22 +13,27 @@ FAIRDM_LANDING_PAGE_HERO = {
 
 
 class FairDMHomeView(MVPHomeView):
+    """Portal home page, a landing page for visitors and a dashboard for users."""
+
     page_subtitle = "Welcome"
     page_title = "Getting started"
     dashboard_template_name = "fairdm/dashboard.html"
     landing_template_name = "fairdm/landing.html"
 
     def get_context_data(self, **kwargs):
+        """Add the landing-page hero content."""
         context = super().get_context_data(**kwargs)
         context["hero_content"] = FAIRDM_LANDING_PAGE_HERO
         return context
 
     def get_page_subtitle(self):
+        """Greet a signed-in user by first name, falling back to the username."""
         if self.request.user.is_authenticated:
             return f"Welcome, {self.request.user.first_name or self.request.user.username}!"
         return self.page_subtitle
 
     def get_page_title(self):
+        """Title a signed-in user's page as their dashboard."""
         if self.request.user.is_authenticated:
             return _("My Dashboard")
         return self.page_title

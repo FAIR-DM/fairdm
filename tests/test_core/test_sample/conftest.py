@@ -1,8 +1,4 @@
-"""
-Test fixtures for Sample model tests.
-
-Provides reusable fixtures for testing the Sample model and related functionality.
-"""
+"""Test fixtures for Sample model tests."""
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -23,32 +19,23 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    """Create a test user.
-
-    ``is_active`` pinned to ``True``: ``PersonFactory`` draws it from
-    ``Faker("boolean", chance_of_getting_true=80)`` for realism elsewhere, but an inactive user is
-    refused every permission check regardless of what is granted (``guardian.core.ObjectPermissionChecker.has_perm``),
-    which made every permission test in this package that expects a grant to hold flake at
-    roughly the factory's 1-in-5 rate.
-    """
+    # PersonFactory leaves about 1 in 5 users inactive, and guardian denies an inactive
+    # user every object permission.
     return PersonFactory(is_active=True)
 
 
 @pytest.fixture
 def project(db):
-    """Create a test project."""
     return ProjectFactory()
 
 
 @pytest.fixture
 def dataset(db, project):
-    """Create a test dataset linked to a project."""
     return DatasetFactory(project=project)
 
 
 @pytest.fixture
 def rock_sample(db, dataset):
-    """Create a test RockSample (polymorphic subclass)."""
     from demo.models import RockSample
 
     return RockSample.objects.create(
@@ -61,7 +48,6 @@ def rock_sample(db, dataset):
 
 @pytest.fixture
 def water_sample(db, dataset):
-    """Create a test WaterSample (polymorphic subclass)."""
     from demo.models import WaterSample
 
     return WaterSample.objects.create(
@@ -75,11 +61,6 @@ def water_sample(db, dataset):
 
 @pytest.fixture
 def each_registered_sample_type(db, dataset):
-    """One saved specimen of every currently-registered Sample subclass.
-
-    T008. Used by tests that must hold for every registered type rather than one hand-picked
-    example - e.g. that querying the base model returns each row as its own type.
-    """
     from demo.factories import (
         CustomParentSampleFactory,
         CustomSampleFactory,
@@ -100,11 +81,6 @@ def each_registered_sample_type(db, dataset):
 
 @pytest.fixture
 def sample_with_all_related(db, rock_sample):
-    """A specimen carrying one of every related record: description, date, identifier and
-    contributor.
-
-    T008.
-    """
     SampleDescriptionFactory(related=rock_sample, type="SampleCollection")
     SampleDateFactory(related=rock_sample, type="Created")
     SampleIdentifierFactory(related=rock_sample, type="DOI")
@@ -114,11 +90,6 @@ def sample_with_all_related(db, rock_sample):
 
 @pytest.fixture
 def sample_hierarchy_chain(db, dataset):
-    """A three-deep provenance chain: grandparent <- parent <- child, each ``child_of`` the
-    previous.
-
-    T008.
-    """
     from demo.factories import RockSampleFactory
 
     grandparent = RockSampleFactory(dataset=dataset, name="Grandparent")
@@ -131,15 +102,8 @@ def sample_hierarchy_chain(db, dataset):
 
 @pytest.fixture
 def clean_registry():
-    """Clean the registry before and after each test.
-
-    This ensures tests don't interfere with each other by leaving
-    registered models in the registry.
-    """
-    # Store original state
     original_registry = registry._registry.copy()
 
     yield
 
-    # Restore original state
     registry._registry = original_registry

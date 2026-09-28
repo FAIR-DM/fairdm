@@ -7,18 +7,8 @@ from django.db.migrations.state import ProjectState
 
 
 class TestFundingShapeMigrationIsIrreversible:
-    """0008 converts stored funding into DataCite's shape and declares no
-    reverse (D-013 in specs/003-core-projects/decisions.md).
-
-    `amount` has no destination in DataCite's schema and is dropped on the
-    way in, and a reverse built from `funderName`/`awardNumber` alone would
-    also drop `funderIdentifier`, `funderIdentifierType`, `awardTitle` and
-    `awardURI` from any record carrying them - and cannot distinguish a
-    record this migration produced from a project created directly in the
-    new shape afterwards. Declaring no reverse makes a rollback fail loudly
-    instead of silently destroying data.
-    """
-
+    # Reversing 0008 would silently drop `amount` and the other DataCite funder fields,
+    # so a rollback has to fail loudly.
     @staticmethod
     def _operation():
         module = importlib.import_module(

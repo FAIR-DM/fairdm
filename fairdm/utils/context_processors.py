@@ -1,3 +1,5 @@
+"""Context processor that exposes FairDM configuration to templates."""
+
 import json
 
 from django.conf import settings
@@ -7,16 +9,23 @@ from fairdm.registry import registry
 
 
 def fairdm(request):
-    """A context processor that adds the following variables to the context:"""
-    # Get singleton instances
+    """Return the FairDM template context.
+
+    The page config is the ``PAGE_CONFIG`` setting with the portal's uploaded brand assets and
+    name layered over it.
+
+    Args:
+        request: The current request.
+
+    Returns:
+        A dict with ``config``, ``identity``, ``theme_options``, ``registry``, ``page_config``
+        and ``json_config`` entries.
+    """
     identity = Identity.get_solo()
     authority = Authority.get_solo()
 
-    # Build hybrid page_config by merging database brand assets with settings
+    page_config = dict(settings.PAGE_CONFIG)
 
-    page_config = dict(settings.PAGE_CONFIG)  # Copy settings config
-
-    # Override brand configuration with uploaded assets if available
     brand = page_config.get("brand", {})
     if identity.logo_light:
         brand["image_light"] = identity.logo_light.url
@@ -27,7 +36,6 @@ def fairdm(request):
     if identity.icon_dark:
         brand["icon_dark"] = identity.icon_dark.url
 
-    # Use portal name from database if available
     portal_name = identity.safe_translation_getter("name")
     if portal_name:
         brand["text"] = portal_name
@@ -42,12 +50,13 @@ def fairdm(request):
             "portal_description": getattr(settings, "PORTAL_DESCRIPTION", None),
         },
         "identity": {
-            "dataset": identity,  # Keep 'dataset' key for template compatibility
+            # Templates still read the identity under the `dataset` key.
+            "dataset": identity,
             "authority": authority,
         },
         "theme_options": settings.FAIRDM_CONFIG,
         "registry": registry,
-        "page_config": page_config,  # Add page_config to context
+        "page_config": page_config,
     }
     context["json_config"] = json.dumps(context["config"])
     return context

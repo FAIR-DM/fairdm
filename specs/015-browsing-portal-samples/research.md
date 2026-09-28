@@ -134,7 +134,7 @@ two. Add
 `get_search_fields()` returning `self.search_fields or ["name"]` (FR-024). `DataTableView` sets
 `self.search_fields = self.model_config.get_search_fields()` in `get_queryset()`/`setup()` before
 calling `super()`, which is how `SearchMixin` (`mvp/views/list.py:57,65`) already expects to receive
-per-view configuration — no shell change needed, per Article XIV.
+per-view configuration — no shell change needed, per Article XIII.
 
 ## R5 — The index requirement (FR-027, SC-007)
 

@@ -1,3 +1,5 @@
+"""Plugins for editing keywords, descriptions and key dates."""
+
 from crispy_forms.helper import FormHelper
 from django.utils.translation import gettext_lazy as _
 from extra_views import InlineFormSetView
@@ -14,7 +16,7 @@ from fairdm.views import FairDMUpdateView
 
 
 class KeywordsPlugin(Plugin, FairDMUpdateView):
-    """Base plugin class for managing keywords on FairDM objects."""
+    """Plugin for managing keywords on an object."""
 
     name = "keywords"
     title = _("Manage Keywords")
@@ -24,10 +26,9 @@ class KeywordsPlugin(Plugin, FairDMUpdateView):
 
 
 class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
-    """Base plugin class for managing descriptions on FairDM objects using inline formsets."""
+    """Plugin for managing descriptions on an object with an inline formset."""
 
-    # Without this, template resolution fell through to InlineFormSetView's inherited "_detail"
-    # suffix, which resolved to the record's own detail template (issue #280).
+    # Without it InlineFormSetView's "_detail" suffix resolves to the record's own detail template (#280).
     template_name = "plugins/descriptions.html"
     form_class = DescriptionForm
     formset_class = CoreInlineFormset
@@ -40,6 +41,7 @@ class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
     page_info_modal_target = "#descriptionsInfoModal"
 
     def get_context_data(self, **kwargs):
+        """Expose the formset as ``form`` with a crispy helper, and add the page-info button settings."""
         context = super().get_context_data(**kwargs)
         formset = context.get("formset")
         if formset:
@@ -47,7 +49,6 @@ class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
             formset.helper.form_id = "descriptions-form"
             context["form"] = formset
 
-        # Add page header configuration
         context["show_page_info_button"] = self.show_page_info_button
         context["page_info_modal_target"] = self.page_info_modal_target
 
@@ -55,7 +56,7 @@ class DescriptionsPlugin(Plugin, PageMixin, InlineFormSetView):
 
 
 class KeyDatesPlugin(Plugin, InlineFormSetView):
-    """Base plugin class for managing key dates on FairDM objects using inline formsets."""
+    """Plugin for managing key dates on an object with an inline formset."""
 
     name = "key-dates"
     title = _("Key Dates")
@@ -66,6 +67,7 @@ class KeyDatesPlugin(Plugin, InlineFormSetView):
     slug_field = "uuid"
 
     def get_context_data(self, **kwargs):
+        """Expose the formset as ``form`` with a crispy helper."""
         context = super().get_context_data(**kwargs)
         formset = context.get("formset")
         if formset:

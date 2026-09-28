@@ -1,42 +1,30 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.0 → 2.0.1
-- PATCH: the reference application moved from `fairdm_demo/` to `demo/`, so every
-  mention of it here names the new path. Articles I, XVI and XVIII, the workflow
-  quality checkpoints and the governance scope clause are affected.
-- No principle, obligation or piece of guidance changed. Only the name of the
-  directory the rules point at is different.
+- Version change: 2.0.1 → 3.0.0
+- MAJOR: Article X (Test structure & fixtures) is removed. Its rules now live in
+  docs/contributing/standards/testing.md, which Article I points to. Articles XI-XVIII
+  are renumbered X-XVII.
+- Article I is now a pointer to the testing standard. The URL smoke-test rule moved to
+  that document's project additions.
+- Article VI points docstrings, component annotations and comments at
+  docs/contributing/standards/code-documentation.md.
+- Testing rules repeated in the sustainability article, Architecture & Stack
+  Constraints and Development Workflow are replaced with references to Article I.
 -->
 
 # FairDM Constitution
 
 ## Core articles
 
-<!-- Articles I-XI are the organisation-wide standard, materialized from the shared
+<!-- Articles I-X are the organisation-wide standard, materialized from the shared
      constitution template. Keep them unless one is explicitly struck under
-     "Articles not adopted". Articles XII+ are FairDM's own. -->
+     "Articles not adopted". Articles XI+ are FairDM's own. -->
 
-### Article I — Test-First
+### Article I — Testing
 
-Every behaviour change follows the traffic-light cycle: **Red** — write a test and watch it fail;
-**Green** — write the least code that makes it pass; **Refactor** — clean up with the tests staying
-green. No implementation before a failing test exists for the behaviour. Pre-existing tests are
-never modified or deleted without a recorded decision.
-
-- All new or changed Python behaviour MUST have pytest coverage, and Django integration behaviour
-  MUST have pytest-django coverage with an appropriate test database strategy.
-- Pull requests MUST NOT merge with failing tests, or without new or updated tests for a behaviour
-  change. The only exception is a docs-only change with no runtime impact.
-
-**URL smoke coverage.** Any app registering new URL patterns (including `demo` and any
-contrib app) MUST include at least one smoke test per new route, asserting the expected status
-code. Smoke tests need not assert page content; their purpose is to catch broken URL patterns,
-missing templates, template syntax errors, context exceptions, queryset errors, middleware and
-auth problems, and bad redirects. This applies regardless of app size.
-
-**Test quality over coverage percentage.** Coverage finds gaps; it does not certify them. Tests
-MUST be meaningful (verifying behaviour, not syntactic presence), maintainable, and reliable.
-Reviewers assess test quality, not just the number.
+Every change follows [`docs/contributing/standards/testing.md`](docs/contributing/standards/testing.md):
+what gets a test and what does not, the test-first cycle, test structure and fixtures, and the
+coverage floors.
 
 ### Article II — Simplicity
 
@@ -67,8 +55,10 @@ features.
 
 ### Article VI — Documentation
 
-Public API changes ship their docs in the same pull request: README and CHANGELOG updated,
-docstrings on public surfaces. The built docs must build clean. As a package, the README follows
+Public API changes ship their docs in the same pull request: README and CHANGELOG updated.
+Docstrings, component annotations and code comments follow
+[`docs/contributing/standards/code-documentation.md`](docs/contributing/standards/code-documentation.md).
+The built docs must build clean. As a package, the README follows
 the organisation README standard.
 
 Documentation is part of the framework's surface area and carries the same rigour as code:
@@ -114,30 +104,7 @@ into as few files as possible before submission (branch-local and unapplied, so 
 release stage). Data migrations (`RunPython` / `RunSQL`) are exempt from auto-regeneration — keep
 them via `squashmigrations` or standalone.
 
-### Article X — Test structure & fixtures (Django)
-
-Tests are organised for fast, targeted discovery. These rules are the standard regardless of the
-suite's current layout — where an existing suite diverges, the divergence is the thing to fix.
-
-- **Mirror the source tree.** Every test module mirrors the path of the module it exercises:
-  `fairdm/core/project/models.py` → `tests/test_core/test_project/test_models.py`. Test
-  subpackages carry `__init__.py` to match. Where one source module defines several units, it
-  stays one test module — the per-unit split is expressed with classes, not extra files.
-- **Group related tests into classes.** Within a module, tests are grouped into `Test<Subject>`
-  classes so one area can be targeted when debugging.
-- **One factory per model.** Each model has exactly one `factory_boy` `DjangoModelFactory`, using
-  `factory.Sequence` for uniqueness-guarded fields and `factory.SubFactory` for relations.
-  Variants are never new factory subclasses; they are expressed by overriding fields at the call
-  site.
-- **Fixtures wrap the factory; shared setup lives in conftest.** Reusable object fixtures are thin
-  wrappers over the model's factory. A one-off variation needs no fixture — call the factory
-  inline. Test modules hold assertions, not construction boilerplate.
-- **Use the pytest-django toolchain.** DB access via the `db` / `transactional_db` fixtures or
-  `@pytest.mark.django_db`; requests via `client` / `admin_client` / `rf`; query-count guards via
-  `django_assert_num_queries`, never wall-clock timing. Tests use transaction rollback for
-  isolation and the test database is created once per session.
-
-### Article XI — Cohesion (Python)
+### Article X — Cohesion (Python)
 
 Related behaviour is grouped in a class, not scattered across module-level functions.
 
@@ -167,7 +134,7 @@ exist.
 ## Project articles (FairDM-specific)
 
 
-### Article XII — FAIR-First research portals
+### Article XI — FAIR-First research portals
 
 FairDM exists to make it easy to build research data portals that embody the FAIR principles: Findable, Accessible, Interoperable, and Reusable.
 
@@ -177,7 +144,7 @@ FairDM exists to make it easy to build research data portals that embody the FAI
 - Public read access, when enabled, MUST not depend on custom client code; users and machines MUST be able to discover and access information via documented web endpoints.
 - FAIR compliance is a NON-NEGOTIABLE goal of the framework: a minimally configured portal MUST be able to meet FAIR expectations using core functionality and recommended practices.
 
-### Article XIII — Domain-driven, declarative modelling
+### Article XII — Domain-driven, declarative modelling
 
 FairDM is a framework, not a single portal. Its core obligation is to let research communities declaratively define domain-specific schemas while sharing a common, stable backbone.
 
@@ -186,7 +153,7 @@ FairDM is a framework, not a single portal. Its core obligation is to let resear
 - Schema declarations MUST be the primary source of truth; auto-generated forms, tables, filters, serializers, and APIs MUST derive from registered models and configuration, not from hand-wired view logic.
 - Extensions (e.g., custom measurement types, research-specific fields, vocabularies) MUST be expressed as reusable, documented modules so they can be adopted by multiple portals where appropriate.
 
-### Article XIV — Configuration over custom plumbing
+### Article XIII — Configuration over custom plumbing
 
 Portal developers should focus on modeling their domain and configuring behavior, not recreating web plumbing, routing, or boilerplate frontend code.
 
@@ -195,7 +162,7 @@ Portal developers should focus on modeling their domain and configuring behavior
 - New features to the framework MUST prefer declarative, documented configuration (e.g., settings, registries, plugin metadata) over one-off hard-coded behaviors.
 - User-facing portals SHOULD be functional without custom templates or JavaScript; HTMX, Alpine.js, and bespoke UI code are used to enhance, not to gate, core functionality.
 
-### Article XV — Opinionated, production-grade defaults
+### Article XIV — Opinionated, production-grade defaults
 
 FairDM provides a coherent, modern stack so that a new portal is deployable, maintainable, and reproducible with minimal choices.
 
@@ -207,49 +174,15 @@ FairDM provides a coherent, modern stack so that a new portal is deployable, mai
 
 In the near term (while FairDM is primarily used by its original author), stability of core behavior through tests and documentation is the top priority; feature velocity and advanced capabilities SHOULD be delivered primarily through addons.
 
-### Article XVI — Sustainability and community obligations
+### Article XV — Sustainability and community obligations
 
 FairDM is intended for long-lived research infrastructure. All behavior changes MUST be driven by tests written first, and code, documentation, and community processes must reflect that responsibility.
 
-**Test-First Discipline**:
-
-- Tests MUST be written and observed failing before implementation work begins (Red → Green → Refactor).
-- All new or changed Python behavior MUST have pytest coverage.
-- Django integration behavior MUST have pytest-django coverage with appropriate test database strategies.
-- Pull requests MUST NOT be merged with failing tests, or without new/updated tests for behavior changes.
-- The only acceptable exception is a docs-only change (no runtime behavior impact).
-
-**URL Smoke Test Coverage**:
-
-- Any Django app within the FairDM project (including `demo` and any contrib app) that registers new URL
-  patterns MUST include at minimum one smoke test per new route.
-- A smoke test MUST assert that the HTTP response status code is as expected (e.g., `200` for public pages,
-  `302` for auth redirects, `403` for permission-denied responses) — for example:
-
-  ```python
-  def test_home_page(self):
-      response = self.client.get(reverse("home"))
-      self.assertEqual(response.status_code, 200)
-  ```
-
-- Smoke tests do NOT need to assert page content. Their purpose is to catch: broken URL patterns, missing
-  templates, template syntax errors, context variable exceptions, queryset errors, middleware/auth issues, and
-  bad redirects.
-- Smoke tests MUST be co-located in the app's own test suite (e.g., `fairdm/contrib/my_app/tests/test_views.py`
-  or `demo/tests/test_views.py`).
-- This requirement applies to all URL-registering apps regardless of size; even a single-view app MUST have its
-  route covered by at least one smoke test.
+Testing, including the URL smoke tests every URL-registering app carries, follows Article I.
 
 **Code Quality & Tooling**:
 
 - Type hints, static analysis, and style rules (e.g., Ruff, mypy) are REQUIRED for core framework code except where explicitly exempted in project-wide configuration.
-- Test organization MUST mirror the source code structure as documented in "Architecture & Stack Constraints > Testing & Tooling", with unit and integration tests living together in a flat structure rather than separated into subdirectories.
-- **Test quality over coverage targets**: Coverage metrics are a guide, not a goal. Tests MUST be:
-  - **Meaningful**: Verify behavior and critical functionality, not just syntactical presence
-  - **Maintainable**: Easy to update when underlying code changes
-  - **Reliable**: Consistently pass or fail based on actual code correctness
-- Coverage tools SHOULD be used to identify untested code paths, but high coverage percentages alone do NOT guarantee quality.
-- New features SHOULD aim for thorough test coverage of critical paths and edge cases; reviewers MUST assess test quality and completeness, not just coverage numbers.
 
 **Documentation & Community**:
 
@@ -258,7 +191,7 @@ FairDM is intended for long-lived research infrastructure. All behavior changes 
 - Community contributions MUST respect this constitution and the published User Guidelines; maintainers MUST clearly communicate rationale for accepting or rejecting proposals with reference to these principles.
 - Privacy and protection of sensitive research data MUST be treated as first-class concerns: portals MUST be able to restrict access appropriately and MUST NOT require public exposure of data to use core features.
 
-### Article XVII — Documentation as framework surface
+### Article XVI — Documentation as framework surface
 
 Documentation is part of the framework surface area and MUST be treated with the same rigor as code.
 
@@ -269,7 +202,7 @@ Documentation is part of the framework surface area and MUST be treated with the
 - Breaking changes MUST include migration guides that provide concrete, step-by-step instructions for users upgrading from previous versions.
 - Documentation MUST be versioned alongside code releases so users can reference docs appropriate to their deployed version.
 
-### Article XVIII — Living demo and reference implementation
+### Article XVII — Living demo and reference implementation
 
 FairDM maintains a reference application (`demo`) that serves as executable documentation, a testing ground for new features, and a model for portal developers.
 
@@ -308,12 +241,7 @@ This section defines the non-negotiable architectural boundaries and technology 
   - Environment-based configuration (e.g., django-environ) is REQUIRED for secrets and deployment-specific settings.
   - Project scaffolding MUST favor patterns that are 12-factor compatible and reproducible via containerization.
 - **Testing & Tooling**:
-  - pytest and pytest-django are the canonical testing stack.
-  - Test organization MUST mirror the `fairdm/` source code structure with `test_` prefixes at each level (e.g., `fairdm/core/project/models.py` → `tests/test_core/test_project/test_models.py`).
-  - Fixture factories MUST use pytest fixtures and/or factory-boy for reusable test data.
-  - Tests MUST use transaction rollback for isolation; test database MUST be created once per session.
-  - Performance tests MUST NOT use wall-clock timing assertions; use deterministic guards (e.g., query-count assertions via `django_assert_num_queries`) instead.
-  - Coverage measurement SHOULD use coverage.py to identify untested code paths; coverage is a guide to find gaps, not a gate to merge.
+  - pytest and pytest-django are the canonical testing stack. Test structure, fixtures and coverage follow Article I.
   - Static analysis and formatting tooling (e.g., Ruff, mypy, djlint) as defined in pyproject.toml MUST be used for core development.
 - **Core MUST include**:
   - The canonical data model backbone (Project, Dataset, Sample, Measurement, Contributor, Organization and closely related entities).
@@ -343,11 +271,7 @@ This section governs how new capabilities are proposed, designed, and implemente
 - **Task Breakdown**:
   - Tasks (tasks.md) MUST be grouped by user story and structured so that each story can be implemented and tested independently where feasible.
   - Shared foundational work (infrastructure, core models) MUST be captured as explicit blocking tasks before story-specific implementation.
-- **Test-First Discipline**:
-  - Tests MUST be written and observed failing before implementation work begins (Red → Green → Refactor) as defined in Principle V.
-  - Contract/integration tests SHOULD be written before or alongside implementation for critical user journeys.
-  - No change MAY be merged that causes the agreed test suite for the touched areas to fail.
-  - Pull requests without appropriate test coverage for behavior changes MUST NOT be merged (except docs-only changes).
+- **Testing**: every change follows Article I.
 - **Implementation Validation & Quality Checkpoints**:
   - **Django System Checks**: `python manage.py check` MUST be run and pass between completing user stories or major implementation phases to catch configuration errors (model validation, admin field references, vocabulary collection references, etc.) before they surface as runtime errors.
   - **Demo App Testing**: When changes affect core models, admin classes, registry behavior, or recommended patterns, the demo app implementation MUST be tested after the changes:
@@ -363,7 +287,7 @@ This section governs how new capabilities are proposed, designed, and implemente
     - When a phase modifies models, admin, or registry, test the demo app immediately to catch integration issues early.
     - Update documentation incrementally as capabilities are added, ensuring docs reflect the current state of the implementation.
 - **Documentation Critical**:
-  - Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways, as defined in Principle VI.
+  - Developer, admin, and contributor documentation MUST be updated when behavior, configuration, or workflows change in user-visible ways, as defined in Article VI.
   - Public APIs, settings, template blocks, and Cotton components MUST include usage examples.
   - Breaking changes MUST include migration guides.
   - Speckit templates (plan-template, spec-template, tasks-template, checklist-template, command templates when present) MUST remain consistent with this constitution; any divergence MUST be corrected as part of the change.
@@ -415,4 +339,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 2.0.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-09-15
+**Version**: 3.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-09-28

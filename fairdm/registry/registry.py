@@ -1,9 +1,4 @@
-"""
-FairDM Registry - Model registration and discovery system.
-
-This module provides the FairDMRegistry class and registration decorators for
-managing Sample and Measurement models in the FairDM framework.
-"""
+"""The registry of Sample and Measurement models, and the ``register`` decorator."""
 
 import inspect
 from typing import TYPE_CHECKING
@@ -16,20 +11,22 @@ if TYPE_CHECKING:
     from fairdm.core.measurement.models import Measurement
     from fairdm.core.sample.models import Sample
 
-# Import configuration classes from fairdm.registry.config
 from fairdm.registry.config import ModelConfiguration
 
 
 def _caller_location() -> str:
-    """The module and qualified name that called into the registry.
+    """Return the module and qualified name that called into the registry.
 
     Import order decides which registration of a model arrives first, and that
     order is not visible from either file, so a duplicate-registration error has to
     say where the first one was.
+
+    Returns:
+        The caller as ``module.qualname``, the bare module for module-level code,
+        or ``"an unknown module"`` when no caller outside the registry is found.
     """
     frame = inspect.currentframe()
     try:
-        # Walk out of this helper and out of the registry module itself.
         while frame is not None:
             module = frame.f_globals.get("__name__", "")
             if not module.startswith("fairdm.registry"):
@@ -42,12 +39,10 @@ def _caller_location() -> str:
 
 
 class FairDMRegistry:
-    """
-    A registry to manage Sample and Measurement subclass registration with auto-generated configurations.
+    """Registry of Sample and Measurement models and their configurations.
 
-    This registry implements the FairDM registration API that allows Sample and Measurement
-    subclasses to be registered with configuration classes that auto-generate forms,
-    serializers, filters, and tables when not explicitly provided.
+    A model is registered with a configuration class that auto-generates forms,
+    serializers, filters and tables when they are not given explicitly.
 
     Usage:
         @fairdm.register
@@ -65,10 +60,17 @@ class FairDMRegistry:
         self._locations: dict[type[Model], str] = {}
 
     def _validate_model_is_registrable(self, model_class: type[Model]) -> None:
-        """Only a concrete subclass of one of the two hierarchies may register.
+        """Require a concrete subclass of Sample or Measurement.
 
         Registering a polymorphic base would generate six components for a class no
         portal stores rows in, and register a second admin against it.
+
+        Args:
+            model_class: The model to check.
+
+        Raises:
+            ConfigurationError: The model is abstract, is one of the two polymorphic
+                bases, or is not a subclass of either.
         """
         from fairdm.registry.exceptions import ConfigurationError
 
@@ -96,35 +98,28 @@ class FairDMRegistry:
             )
 
     def get_for_model(self, model_reference: type[Model] | str) -> ModelConfiguration:
-        """
-        Retrieve the registered configuration for a model.
-
-        This method can accept either a model class directly or a string reference
-        in the format "app_label.model_name" (compatible with apps.get_model).
+        """Return the registered configuration for a model.
 
         Args:
-            model_reference: Either a Django model class or a string in format "app_label.model_name"
-                            Note: Use the actual Django app name and lowercase model name,
-                            e.g., "sample.sample" for the Sample model in the sample app
+            model_reference: A Django model class, or a string in the format
+                ``"app_label.model_name"`` as accepted by ``apps.get_model``. Use
+                the Django app label and the lowercase model name, for example
+                ``"sample.sample"`` for the core Sample model.
 
         Returns:
-            ModelConfiguration: The configuration instance for the model.
+            The configuration instance for the model.
 
         Raises:
-            KeyError: If the model is not registered with the registry
-            ValueError: If the string format is invalid (must be "app_label.model_name")
-            LookupError: If the model cannot be found in Django apps
+            NotRegisteredError: The model is not registered. It is also a
+                ``KeyError``.
+            ValueError: The string is not in the format ``"app_label.model_name"``.
+            LookupError: The model cannot be found in the Django apps.
 
-        Examples:
-            # Using model class
+        Example:
             config = registry.get_for_model(MySample)
-
-            # Using string reference (note lowercase model name)
             config = registry.get_for_model("myapp.mysample")
-            config = registry.get_for_model("sample.sample")  # for core Sample model
         """
         if isinstance(model_reference, str):
-            # Handle string format: "app_label.ModelName"
             try:
                 app_label, model_name = model_reference.split(".", 1)
             except ValueError as err:
@@ -139,10 +134,8 @@ class FairDMRegistry:
                     f"Model '{model_reference}' not found in Django apps"
                 ) from err
         else:
-            # Assume it's a model class
             model_cls = model_reference
 
-        # Check if model is registered
         if model_cls not in self._registry:
             from fairdm.registry.exceptions import NotRegisteredError
 
@@ -151,23 +144,19 @@ class FairDMRegistry:
         return self._registry[model_cls]
 
     def is_registered(self, model_reference: type[Model] | str) -> bool:
-        """
-        Check if a model is registered with the registry.
+        """Report whether a model is registered.
 
         Args:
-            model_reference: Either a Django model class or a string in format "app_label.model_name"
+            model_reference: A Django model class, or a string in the format
+                ``"app_label.model_name"``.
 
         Returns:
-            bool: True if the model is registered, False otherwise
+            ``True`` if the model is registered, ``False`` otherwise, including when
+            the reference does not resolve to a model.
 
-        Examples:
-            # Using model class
-            if registry.is_registered(MySample):
-                print("MySample is registered")
-
-            # Using string reference
+        Example:
             if registry.is_registered("myapp.mysample"):
-                print("MySample is registered")
+                ...
         """
         try:
             self.get_for_model(model_reference)
@@ -177,68 +166,50 @@ class FairDMRegistry:
 
     @property
     def samples(self) -> list[type["Sample"]]:
-        """
-        Retrieves all registered Sample models.
-
-        Returns:
-            list[type]: A list of registered Sample model classes.
-        """
+        """Return the registered Sample model classes."""
         from fairdm.core.sample.models import Sample
 
         return [model for model in self._registry if issubclass(model, Sample)]
 
     @property
     def measurements(self) -> list[type["Measurement"]]:
-        """
-        Retrieves all registered Measurement models.
-
-        Returns:
-            list[type]: A list of registered Measurement model classes.
-        """
+        """Return the registered Measurement model classes."""
         from fairdm.core.measurement.models import Measurement
 
         return [model for model in self._registry if issubclass(model, Measurement)]
 
     @property
     def models(self) -> list[type[Model]]:
-        """
-        Retrieves all registered models (Samples + Measurements).
-
-        Returns:
-            list[type]: A combined list of all registered Sample and Measurement model classes.
-        """
+        """Return every registered model class, Samples and Measurements together."""
         return list(self._registry.keys())
 
     def get_all_configs(self) -> list[ModelConfiguration]:
-        """
-        Retrieve all registered ModelConfiguration instances.
+        """Return every registered configuration.
 
         Returns:
-            list[ModelConfiguration]: A list of all ModelConfiguration instances
-                                     in registration order.
+            The ``ModelConfiguration`` instances in registration order.
 
-        Examples:
-            # Iterate over all registered configurations
+        Example:
             for config in registry.get_all_configs():
-                print(f"Model: {config.model.__name__}")
-                print(f"Fields: {config.fields}")
+                print(config.model.__name__, config.fields)
         """
         return list(self._registry.values())
 
     def register(
         self, model_class: type[Model], config: ModelConfiguration | None = None
     ) -> None:
-        """
-        Registers a Sample or Measurement subclass with associated configuration.
+        """Register a Sample or Measurement subclass with its configuration.
+
+        A model that is not a concrete Sample or Measurement subclass raises
+        ``ConfigurationError``.
 
         Args:
-            model_class (django.db.models.Model): The Django model class to register.
-                Must be a subclass of Sample or Measurement.
-            config (type, optional): Configuration class for the model.
+            model_class: The model class to register.
+            config: The configuration instance for the model. A default one is
+                built when omitted.
 
         Raises:
-            ConfigurationError: If model_class is not a Sample or Measurement subclass.
-            DuplicateRegistrationError: If model_class is already registered.
+            DuplicateRegistrationError: The model is already registered.
         """
         from fairdm.registry.exceptions import DuplicateRegistrationError
 
@@ -251,10 +222,8 @@ class FairDMRegistry:
                 new_location=_caller_location(),
             )
 
-        # Get or create configuration instance
         config_instance = self.get_config(model_class, config)
 
-        # Register admin using the config
         self.register_admin(model_class, config_instance)
 
         self._registry[model_class] = config_instance
@@ -266,14 +235,15 @@ class FairDMRegistry:
         """Register the model's admin class with the Django admin site.
 
         A model already present in the admin site is left alone. A portal that wrote
-        `@admin.register(RockSample)` has said which admin class it wants, and the
+        ``@admin.register(RockSample)`` has said which admin class it wants, and the
         registry does not overrule that. Autodiscovery runs before registration, so
         this is the normal path for any portal with a hand-written admin.
 
-        Every other failure propagates. The previous implementation wrapped the whole
-        method in `except Exception: pass`, which did express the rule above, but
-        expressed it as a swallowed exception -- so a genuinely broken admin class
-        registered as nothing, and looked identical to a model nobody registered.
+        Every other failure propagates.
+
+        Args:
+            model_class: The model to register.
+            config_instance: The configuration that supplies the admin class.
         """
         if model_class in admin.site._registry:
             return
@@ -285,44 +255,37 @@ class FairDMRegistry:
         model_class: type[Model],
         config: ModelConfiguration | type[ModelConfiguration] | None = None,
     ) -> ModelConfiguration:
-        """
-        Builds a configuration instance from the registered config class.
-        Handles auto-generation of forms, serializers, filters, and tables.
+        """Build the configuration instance for a model.
 
         Args:
-            model_class: The Django model class
-            config: Either a config class or instance, or None for default
+            model_class: The Django model class.
+            config: A configuration class, an instance, or ``None`` for the
+                registered configuration or a default one.
 
         Returns:
-            ModelConfiguration: The configuration instance
+            The configuration instance.
         """
         if config is None:
-            # Check if already registered
             if model_class in self._registry:
                 return self._registry[model_class]
 
-            # Create default config with auto-generation
             return ModelConfiguration(model_class)
 
         if isinstance(config, type):
-            # Instantiate the config class
             return config(model_class)
 
-        # Assume it's already an instance
         return config
 
 
-# Global registry instance
 registry = FairDMRegistry()
 
 
 def register(config_cls: type) -> type:
-    """
-    Decorator to register a Sample or Measurement model with its configuration.
+    """Register a Sample or Measurement model with its configuration.
 
-    This decorator provides a consistent API for registering models with the FairDM framework.
-    The configuration class must specify a 'model' attribute pointing to the Sample or
-    Measurement subclass to register.
+    The configuration class must have a ``model`` attribute pointing to the Sample or
+    Measurement subclass to register. A model that is not a concrete subclass of
+    either raises ``ConfigurationError``.
 
     Usage:
         @fairdm.register
@@ -332,16 +295,14 @@ def register(config_cls: type) -> type:
             list_fields = ["name", "created"]
 
     Args:
-        config_cls: Configuration class inheriting from BaseModelConfig
+        config_cls: The configuration class to register.
 
     Returns:
-        The configuration class (for chaining)
+        The configuration class, unchanged.
 
     Raises:
-        ValueError: If config_cls doesn't specify a model attribute
-        TypeError: If the model is not a Sample or Measurement subclass
+        ValueError: The configuration class has no ``model`` attribute.
     """
-    # Validate that the config class has a model attribute
     if not hasattr(config_cls, "model") or not config_cls.model:
         raise ValueError(
             f"Configuration class {config_cls.__name__} must specify a 'model' attribute "
@@ -350,14 +311,12 @@ def register(config_cls: type) -> type:
 
     model_class = config_cls.model
 
-    # Register the model with the configuration instance (not class)
     config_instance = config_cls() if isinstance(config_cls, type) else config_cls
     registry.register(model_class, config_instance)
 
     return config_cls
 
 
-# Export the main classes and objects that should be publicly available
 __all__ = [
     "FairDMRegistry",
     "register",

@@ -1,6 +1,4 @@
-"""
-Tests for the ``show_config`` management command (FR-019, FR-020).
-"""
+"""Tests for the ``show_config`` management command (FR-019, FR-020)."""
 
 from io import StringIO
 
@@ -8,9 +6,6 @@ from django.core.management import call_command
 
 
 class TestShowConfigCommand:
-    """``manage.py show_config`` lists every layer in application order,
-    marked found or absent (FR-019)."""
-
     def test_lists_every_layer_in_order_marked_found_or_absent(self, provenance_record):
         provenance_record.reset()
         provenance_record.add_layer(
@@ -42,8 +37,6 @@ class TestShowConfigCommand:
 
 
 class TestShowConfigNamedSetting:
-    """``manage.py show_config SETTING_NAME`` (FR-020)."""
-
     def test_reports_resolved_value_and_producing_layer(
         self, provenance_record, settings
     ):

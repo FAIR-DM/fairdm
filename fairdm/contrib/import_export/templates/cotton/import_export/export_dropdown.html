@@ -1,6 +1,8 @@
+{# @description One list item per export format, each a form with a download button. Posts rather than links so that crawlers and bots do not follow it. Reads the context variables `formats` and `dataset`. #}
+{# @prop :template_only:boolean | default:False | description:"Export only the column headings, as a template to fill in." #}
+{# @prop action:text | default:"dataset-export-view" | description:"The URL name of the export view, reversed with the dataset's uuid." #}
 <c-vars :template_only="False"
         action="dataset-export-view" />
-{% comment %} USING FORMS WITH POST HERE TO PREVENT WEB CRAWLERS/BOTS SUBMITTING LINKS {% endcomment %}
 {% for format in formats %}
   <li>
     <form method="post"

@@ -1,3 +1,5 @@
+"""Abstract base models shared by the core records and their related rows."""
+
 import re
 from html import unescape
 
@@ -6,8 +8,6 @@ from django.core.validators import MaxLengthValidator
 from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
-
-# from rest_framework.authtoken.models import Token
 from django.utils.functional import cached_property
 from django.utils.html import strip_tags
 from django.utils.text import Truncator
@@ -28,6 +28,8 @@ from fairdm.utils.markdown import markdownify
 
 
 class BaseModel(models.Model):
+    """Abstract base for the core records, adding an image, name, keywords, tags and options."""
+
     image = ThumbnailerImageField(
         verbose_name=_("image"),
         blank=True,
@@ -57,30 +59,37 @@ class BaseModel(models.Model):
         abstract = True
 
     def __str__(self):
+        """Use the record's name."""
         return f"{self.name}"
 
     @property
     def icon(self):
-        """Returns the icon for the model."""
+        """Return the icon name for the model."""
         if hasattr(self, "polymorphic_model_marker"):
             return self.type_of._meta.model_name
         return self._meta.model_name
 
     @property
     def title(self):
+        """Return the record's name as its title."""
         return self.name
 
     def get_non_polymorphic_instance(self):
-        """Returns the non-polymorphic version of a given instance. If the model is not polymorphic, simple returns the
-        instance."""
+        """Return the non-polymorphic version of this instance, or the instance itself if it is not polymorphic.
+
+        Returns:
+            The non-polymorphic instance.
+        """
         from .utils import get_non_polymorphic_instance
 
         return get_non_polymorphic_instance(self)
 
     def get_absolute_url(self):
+        """Return the URL of the record's detail page."""
         return reverse(f"{self._meta.model_name}-detail", kwargs={"uuid": self.uuid})
 
     def get_api_url(self):
+        """Return the URL of the record's API detail endpoint."""
         return reverse(
             f"api:{self._meta.model_name}-detail", kwargs={"uuid": self.uuid}
         )
@@ -93,6 +102,13 @@ class BaseModel(models.Model):
         recorded rather than starting a second one. This matches
         ``Contributor.add_to`` and ``Contribution.add_to``, the other two ways to record
         a credit.
+
+        Args:
+            contributor: The contributor to credit.
+            with_roles: Names of the ``fairdm-roles`` concepts to add to the credit.
+
+        Returns:
+            The contributor's credit on this object.
         """
         contribution, _created = self.contributors.get_or_create(
             contributor=contributor
@@ -106,18 +122,32 @@ class BaseModel(models.Model):
         return contribution
 
     def is_contributor(self, user):
-        """Returns true if the user is a contributor."""
+        """Return whether the user is credited as a contributor.
 
+        Args:
+            user: The user to look for.
+
+        Returns:
+            True when the user has a credit on this object.
+        """
         return self.contributors.filter(contributor=user).exists()
 
     def get_direct_contributors(self):
-        """Get all people and organizations who are directly listed as contributors."""
+        """Return the people and organizations directly listed as contributors.
+
+        Returns:
+            A queryset of contributors with a credit on this object.
+        """
         from fairdm.contrib.contributors.models import Contributor
 
         return Contributor.objects.filter(contributions__object_id=self.pk).distinct()
 
     def get_affiliated_organizations(self):
-        """Get all organizations that appear as affiliations in person contributions."""
+        """Return the organizations that appear as affiliations in person contributions.
+
+        Returns:
+            A queryset of organizations.
+        """
         from fairdm.contrib.contributors.models import Organization, Person
 
         return Organization.objects.filter(
@@ -127,7 +157,11 @@ class BaseModel(models.Model):
         ).distinct()
 
     def get_all_contributors(self):
-        """Get combined queryset of all direct contributors and affiliated organizations."""
+        """Return every direct contributor together with the organizations they are affiliated with.
+
+        Returns:
+            A queryset of contributors.
+        """
         from fairdm.contrib.contributors.models import Contributor
 
         direct = self.contributors.values_list("contributor_id", flat=True)
@@ -139,16 +173,13 @@ class BaseModel(models.Model):
         return Contributor.objects.filter(pk__in=all_ids).distinct()
 
     def get_abstract(self):
-        """Returns the abstract description of the project, or ``None``.
+        """Return the Abstract description, or ``None``.
 
-        Scans ``descriptions.all()`` rather than filtering in the database.
-        Filtering a related manager always issues a fresh query, prefetched or
-        not, so the previous ``descriptions.filter(type="Abstract")`` cost one
-        query per record on any page that shows several - the project listing
-        shows twenty-five. Reading from ``all()`` is served out of the prefetch
-        cache when the caller has one, and costs the same single query when it
-        does not.
+        Returns:
+            The description of type ``Abstract``, if the record has one.
         """
+        # Filtering a related manager always queries, even when prefetched. `all()` reads the
+        # prefetch cache, so a list page does not cost one query per record.
         for description in self.descriptions.all():
             if description.type == "Abstract":
                 return description
@@ -159,37 +190,31 @@ class BaseModel(models.Model):
 
         ``AbstractDescription.value`` is markdown, so a template that prints it
         directly shows the reader ``##`` and ``**``. This renders it through the
-        portal's own sanitising renderer, drops the tags, collapses the
-        whitespace those block elements leave behind, and caps the result at 400
-        characters so one long abstract cannot set the height of a card.
+        portal's sanitising renderer, drops the tags, collapses whitespace and
+        caps the result at 400 characters so one long abstract cannot set the
+        height of a card.
 
-        The return value is plain text, not markup: it carries no tags and is
-        escaped by the template layer like any other string. Never mark it safe.
+        Returns:
+            Plain text, not markup. The template layer escapes it like any
+            other string, so never mark it safe.
         """
         abstract = self.get_abstract()
         if not abstract or not abstract.value:
             return ""
         html = markdownify(abstract.value)
-        # A heading carries no terminal punctuation, so stripping the tags runs
-        # it straight into the paragraph below it: "## Background" followed by
-        # "Borehole temperature logs ..." reads as one broken sentence on the
-        # card. Paragraphs need no separator - they already end in a full stop.
+        # A heading has no terminal punctuation, so stripping tags would run it into the next paragraph.
         html = re.sub(r"</h[1-6]>", " — ", html, flags=re.IGNORECASE)
-        # `strip_tags` leaves entities behind, and `&amp;` printed to a card is
-        # as wrong as `**` was - the summary is escaped again on output.
+        # `strip_tags` leaves entities behind, and the summary is escaped again on output.
         text = unescape(strip_tags(html))
         return Truncator(" ".join(text.split())).chars(400, truncate="…")
 
     def get_meta_description(self):
-        """Return the Abstract description's full text for `_metadata`'s page
-        description, or `None`.
+        """Return the Abstract's full text for the page meta description, or ``None``.
 
-        `AbstractDescription` declares `type` and `value`, not `description`;
-        reading `.description` raised `AttributeError` for every record that
-        actually had an Abstract (issue #331). This is the full text, unlike
-        `get_abstract_summary()`, which truncates to 400 characters for the
-        card - the two serve different pages and neither should be collapsed
-        into the other.
+        Unlike ``get_abstract_summary()``, the text is not truncated (#331).
+
+        Returns:
+            The abstract's value, if the record has an abstract.
         """
         abstract = self.get_abstract()
         if abstract:
@@ -199,26 +224,46 @@ class BaseModel(models.Model):
 
     @cached_property
     def get_descriptions(self):
+        """Return the record's descriptions as a list, cached on first access.
+
+        Returns:
+            The list of descriptions.
+        """
         descriptions = list(self.descriptions.all())
-        # descriptions.sort(key=lambda x: self.DESCRIPTION_TYPES.values.index(x.type))
         return descriptions
 
     def verbose_name(self):
+        """Return the model's singular verbose name.
+
+        Returns:
+            The verbose name from the model options.
+        """
         return self._meta.verbose_name
 
     def verbose_name_plural(self):
+        """Return the model's plural verbose name.
+
+        Returns:
+            The plural verbose name from the model options.
+        """
         return self._meta.verbose_name_plural
 
 
-# WARNING: PolymorphicModel must always be listed first in the inheritance list to ensure
-# proper polymorphic behavior across relations and queries.
-# SEE: https://github.com/jazzband/django-polymorphic/issues/437#issuecomment-677638021
+# PolymorphicModel must be listed first, or polymorphic behaviour breaks across relations and queries.
 class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
+    """Abstract base for the polymorphic core records (samples and measurements)."""
+
     @classonlymethod
     def get_inheritance_chain(cls):
+        """Return the chain of classes from the concrete model up to its polymorphic base.
+
+        Returns:
+            The classes in the inheritance chain.
+        """
         return get_inheritance_chain(cls, cls.type_of)
 
     def get_absolute_url(self):
+        """Return the URL of the record's overview page."""
         type_of = self.type_of.__name__.lower()
         return reverse(f"{type_of}:overview", kwargs={"uuid": self.uuid})
 
@@ -227,14 +272,18 @@ class BasePolymorphicModel(PolymorphicModel, BaseModel):  # type: ignore[misc]
 
 
 class GenericModelQuerySet(QuerySet):
-    """Custom QuerySet for GenericModel subclasses that provides vocabulary-based ordering."""
+    """QuerySet for GenericModel subclasses that provides vocabulary-based ordering."""
 
     def in_order(self):
-        """
-        Orders the queryset by the order defined in the model's VOCABULARY attribute.
+        """Order the rows by the order defined in the model's VOCABULARY attribute.
+
+        Rows whose type is not in the vocabulary sort to the end.
 
         Returns:
-            List of instances ordered according to VOCABULARY.values
+            A list of instances ordered according to ``VOCABULARY.values``.
+
+        Raises:
+            ValueError: The model defines no ``VOCABULARY``.
 
         Example:
             # Get dataset descriptions in vocabulary order
@@ -248,101 +297,92 @@ class GenericModelQuerySet(QuerySet):
             msg = f"{model.__name__} does not define a VOCABULARY attribute"
             raise ValueError(msg)
 
-        # Get the ordering from the vocabulary
         vocabulary_order = model.VOCABULARY.values
-
-        # Convert queryset to list and sort by vocabulary order
-        # Items not in vocabulary_order go to the end
         items = list(self)
 
         def sort_key(item):
             try:
                 return vocabulary_order.index(item.type)
             except ValueError:
-                # If type not in vocabulary, sort to end
                 return len(vocabulary_order)
 
         return sorted(items, key=sort_key)
 
 
 class GenericModelManager(Manager):
-    """Custom Manager for GenericModel subclasses."""
+    """Manager for GenericModel subclasses."""
 
     def get_queryset(self):
+        """Return a ``GenericModelQuerySet``."""
         return GenericModelQuerySet(self.model, using=self._db)
 
     def in_order(self):
-        """Shortcut to get all objects in vocabulary order."""
+        """Return every object in vocabulary order.
+
+        Returns:
+            A list of instances ordered according to ``VOCABULARY.values``.
+        """
         return self.get_queryset().in_order()
 
 
 class GenericModel(Model):
-    """A model that can be used to store generic information."""
+    """Abstract base for the typed rows attached to a record, such as descriptions and dates."""
 
     VOCABULARY: VocabularyBuilder | None = None
     modified = None
     added = None
-    # FOR = None
 
     objects = GenericModelManager()
 
     class Meta:
         abstract = True
 
-    # def __new__(cls, *args, **kwargs):
-    #     new_class = super().__new__(cls, *args, **kwargs)
-
-    #     if new_class.VOCABULARY is not None:
-    #         new_class.type.field.choices = cls.VOCABULARY.choices
-
-    #     if new_class.FOR is not None:
-    #         new_class.related = models.ForeignKey(cls.FOR, on_delete=models.CASCADE)
-
-    #         # if not hasattr(cls._meta, "db_table") or cls._meta.db_table is None:
-    #         new_class._meta.db_table = f"{cls.FOR._meta.db_table}_{cls.__name__.lower()}"
-
-    #     return new_class
-
     def __init_subclass__(cls):
+        """Limit the ``type`` choices to the subclass's vocabulary."""
         if cls.VOCABULARY is not None:
             cls.type.field.choices = cls.VOCABULARY.choices
-
-        # if cls.FOR is not None:
-        #     # if not hasattr(cls._meta, "db_table") or cls._meta.db_table is None:
-        #     cls._meta.db_table = f"{cls.FOR._meta.db_table}_{cls.__name__.lower()}"
 
         return super().__init_subclass__()
 
     def __str__(self):
-        return (
-            f"{self.type}: {self.value}"  # Display the type and a preview of the text
-        )
+        """Show the type and value."""
+        return f"{self.type}: {self.value}"
 
     def __repr__(self):
+        """Wrap the string form in angle brackets."""
         return f"<{self}>"
 
     def get_update_url(self):
+        """Return the URL of the page that edits this row."""
         return reverse(
             f"{self._meta.model_name}-update",
             kwargs={"uuid": self.uuid, "object_id": self.object_id},
         )
 
     def verbose_name(self):
+        """Return the model's singular verbose name.
+
+        Returns:
+            The verbose name from the model options.
+        """
         return self._meta.verbose_name
 
     def verbose_name_plural(self):
+        """Return the model's plural verbose name.
+
+        Returns:
+            The plural verbose name from the model options.
+        """
         return self._meta.verbose_name_plural
 
 
-# Generous on purpose: several times the length of any abstract in the wild (a
-# structured journal abstract runs 250-500 words, this allows roughly 3,000), so it
-# stops a pasted thesis chapter or a machine-generated payload without rejecting a
-# real one (issue #329). One ceiling for every description type - there is no
-# evidence a methods note needs a different limit than an abstract.
+# Roughly 3,000 words: several times any real abstract, but stops a pasted thesis chapter (#329).
 DESCRIPTION_MAX_LENGTH = 20000
 
 
 class AbstractDescription(GenericModel):
+    """Abstract base for a typed free-text description of a record."""
+
     type = models.CharField(max_length=50)
     value = models.TextField(validators=[MaxLengthValidator(DESCRIPTION_MAX_LENGTH)])
 
@@ -360,6 +400,8 @@ class AbstractDescription(GenericModel):
 
 
 class AbstractDate(GenericModel):
+    """Abstract base for a typed partial date on a record."""
+
     type = models.CharField(max_length=50)
     value = PartialDateField(_("date"))
 
@@ -407,9 +449,7 @@ class AbstractIdentifier(GenericModel):
         default_related_name = "identifiers"
 
     def clean(self):
-        """An identifier value must be unique across every record that carries
-        identifiers, not merely within this subclass's own table.
-        """
+        """Reject an identifier value already used by any identifier model."""
         super().clean()
         if not self.value:
             return
@@ -426,9 +466,15 @@ class AbstractIdentifier(GenericModel):
                 )
 
     def get_root_url(self):
+        """Return the base URL of the identifier's resolver.
+
+        Returns:
+            The resolver URL registered for the identifier's type.
+        """
         return IdentifierLookup.get(self.type)
 
     def get_absolute_url(self):
+        """Return the URL of the identifier's resolver page."""
         value = (
             func()
             if (func := getattr(self, f"slugify_{self.type.lower()}", None))
@@ -437,4 +483,9 @@ class AbstractIdentifier(GenericModel):
         return f"{self.get_root_url()}{value}"
 
     def slugify_isni(self):
+        """Return the ISNI value with its spaces removed.
+
+        Returns:
+            The value as it appears in an ISNI URL.
+        """
         return self.value.replace(" ", "")

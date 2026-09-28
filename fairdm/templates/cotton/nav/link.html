@@ -1,4 +1,10 @@
-{% comment %} Override cotton-bs5 component to allow icons in nav links {% endcomment %}
+{# @description A navigation link that shows its slot, then an icon, then its text. Overrides the cotton-bs5 component to allow icons in nav links. Any other attribute is passed to the anchor. #}
+{# @prop text:text | description:"Text shown after the icon." #}
+{# @prop active:boolean | description:"Mark the link as the current page." #}
+{# @prop disabled:boolean | description:"Mark the link as disabled. Ignored when the link is active." #}
+{# @prop class:text | description:"Extra CSS classes for the anchor." #}
+{# @prop icon:text | description:"The name of the icon shown before the text." #}
+{# @slot Home — Content shown before the icon and text. #}
 <c-vars text active disabled class icon />
 <a class="nav-link{% if active %} active{% elif disabled %} disabled{% endif %} {{ class }}"
    {% if active %} aria-current="page" {% elif disabled %} aria-disabled="true"{% endif %}

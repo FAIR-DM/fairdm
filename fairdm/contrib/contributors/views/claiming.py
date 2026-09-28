@@ -1,8 +1,4 @@
-"""Views for the token-based profile claiming flow (US3).
-
-GET  /claim/<token>/         — Show confirmation page (or error/merge page)
-POST /claim/<token>/confirm/ — Execute the claim (requires auth + CSRF)
-"""
+"""Views for the token-based profile claiming flow."""
 
 from __future__ import annotations
 
@@ -21,29 +17,25 @@ _CLAIM_TOKEN_SESSION_KEY = "claim_token"  # noqa: S105
 
 
 class ClaimProfileView(TemplateView):
-    """Claim Profile landing page.
+    """Show the unclaimed profile a claim token names, for the user to confirm.
 
-    GET: Always renders a read-only confirmation page showing the unclaimed profile.
-         No claim or merge is ever executed on GET.
+    Nothing is claimed on GET. An anonymous visitor is sent to sign in with the token kept
+    in the session, and an invalid token or a deactivated profile renders an error.
 
-         Four user states:
-           (a) Unauthenticated       → save token in session, redirect to login
-           (b) Authenticated, simple → show standard claim confirmation
-           (c) Authenticated, merge  → show merge confirmation (Phase 6)
-           (d) Banned target         → render error page
-           Invalid/expired token    → render error page
-
-    POST: Executes the claim.  Requires authentication + CSRF.
-          Routes to claim_via_token() for state (b), merge_persons() for state (c).
+    Attributes:
+        template_name: The confirmation template.
     """
 
     template_name = "contributors/claim_profile.html"
 
     def _resolve_token(self, token: str) -> tuple:
-        """Resolve a token to a Person and an optional error message.
+        """Resolve a token to a person or an error message.
+
+        Args:
+            token: The signed claim token.
 
         Returns:
-            (person_or_None, error_message_or_None)
+            A ``(person, None)`` or ``(None, error message)`` pair.
         """
         from fairdm.contrib.contributors.utils.tokens import validate_claim_token
 
@@ -54,9 +46,9 @@ class ClaimProfileView(TemplateView):
         return person, None
 
     def get(self, request, *args, **kwargs):
+        """Render the confirmation page, or an error, or send an anonymous visitor to sign in."""
         token = kwargs["token"]
 
-        # (a) Unauthenticated — redirect to login, preserving token in session
         if not request.user.is_authenticated:
             request.session[_CLAIM_TOKEN_SESSION_KEY] = token
             from django.conf import settings
@@ -73,7 +65,6 @@ class ClaimProfileView(TemplateView):
             context["token"] = token
             return self.render_to_response(context)
 
-        # (d) Banned target
         if not person.is_active:
             context["error_message"] = _(
                 "This profile is banned and cannot be claimed."
@@ -88,14 +79,16 @@ class ClaimProfileView(TemplateView):
 
 
 class ClaimProfileConfirmView(LoginRequiredMixin, TemplateView):
-    """Execute the profile claim via POST.
+    """Claim the profile a token names, for the signed-in user.
 
-    Requires authentication and CSRF protection.
+    Attributes:
+        template_name: The template rendered when the claim fails.
     """
 
     template_name = "contributors/claim_profile.html"
 
     def post(self, request, *args, **kwargs):
+        """Claim the profile and redirect to the user's page, or re-render with the error."""
         token = kwargs["token"]
         user = request.user
 

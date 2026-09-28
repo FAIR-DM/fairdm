@@ -1,6 +1,6 @@
-"""Core model factories for FairDM testing.
+"""Factories for FairDM's core models.
 
-This module provides factory_boy factories for creating test instances of FairDM's
+These factory_boy factories create test instances of FairDM's
 core models: Project, Dataset, Sample, and Measurement. These factories follow an
 **opt-in pattern** for creating related metadata objects (descriptions and dates).
 
@@ -122,7 +122,7 @@ from fairdm.core.sample.models import (
 from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
 from .contributors import (
     OrganizationFactory,
-)  # Import OrganizationFactory for Project.owner
+)
 
 
 class ProjectDescriptionFactory(DjangoModelFactory):
@@ -131,7 +131,7 @@ class ProjectDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = ProjectDescription
 
-    type = "Abstract"  # Default description type
+    type = "Abstract"
     value = Faker("text", max_nb_chars=300)
 
 
@@ -141,7 +141,7 @@ class ProjectDateFactory(DjangoModelFactory):
     class Meta:
         model = ProjectDate
 
-    type = "Start"  # Default date type - a member of the project date collection
+    type = "Start"
     value = Faker("partial_date")
 
 
@@ -151,9 +151,8 @@ class ProjectIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = ProjectIdentifier
 
-    type = "DOI"  # Default identifier type
+    type = "DOI"
     value = Faker("bothify", text="10.####/project-?????")
-    # related field will be set by the caller
 
 
 class ProjectFactory(DjangoModelFactory):
@@ -177,22 +176,17 @@ class ProjectFactory(DjangoModelFactory):
         model = Project
 
     class Params:
-        # No image unless a test asks for one — a real JPEG written on every
-        # instantiation left a file behind under whatever MEDIA_ROOT was
-        # active (issue #323). `with_image=True` produces the image this
-        # factory used to generate unconditionally; `image=<file>` still
-        # takes a specific one, since the field carries no declaration
-        # unless the trait switches it on.
+        # No image unless a test asks for one: an image written on every build left
+        # files under MEDIA_ROOT (#323).
         with_image = factory.Trait(
             image=factory.django.ImageField(width=800, height=600),
         )
 
-    # Basic fields
     name = Faker("sentence", nb_words=4, variable_nb_words=True)
     # visibility defaults to PRIVATE per model definition
     status = FuzzyChoice(ProjectStatus.values)
 
-    # JSON fields - a list of DataCite funding references (FR-015)
+    # A list of DataCite funding references.
     funding = LazyAttribute(
         lambda obj: [
             {
@@ -202,22 +196,11 @@ class ProjectFactory(DjangoModelFactory):
         ]
     )
 
-    # Relations - owner required for Project (Organization, not Person)
     owner = SubFactory(OrganizationFactory)
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
-        """Create descriptions.
-
-        Args:
-            extracted: Number of descriptions to create (int), or False/None to skip
-            **kwargs: Additional parameters:
-                - types: List of description types to use
-
-        Examples:
-            ProjectFactory(descriptions=2)  # 2 descriptions with default types from model VOCABULARY
-            ProjectFactory(descriptions=3, descriptions__types=["Abstract", "Methods", "Objectives"])
-        """
+        """Create descriptions. Pass count as int and optionally types via descriptions__types."""
         if not create or not extracted:
             return
 
@@ -226,11 +209,9 @@ class ProjectFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = ProjectDescription.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -249,28 +230,16 @@ class ProjectFactory(DjangoModelFactory):
 
     @factory.post_generation
     def dates(obj, create, extracted, **kwargs):
-        """Create dates.
-
-        Args:
-            extracted: Number of dates to create (int), or False/None to skip
-            **kwargs: Additional parameters:
-                - types: List of date types to use
-
-        Examples:
-            ProjectFactory(dates=1)  # 1 date with default type from model VOCABULARY
-            ProjectFactory(dates=2, dates__types=["Start", "End"])
-        """
+        """Create dates. Pass count as int and optionally types via dates__types."""
         if not create or not extracted:
             return
 
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = ProjectDate.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -294,7 +263,7 @@ class DatasetDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = DatasetDescription
 
-    type = "Abstract"  # Default description type
+    type = "Abstract"
     value = Faker("text", max_nb_chars=300)
 
 
@@ -304,11 +273,7 @@ class DatasetDateFactory(DjangoModelFactory):
     class Meta:
         model = DatasetDate
 
-    # "Created" is not a member of the dataset date vocabulary (Available,
-    # CollectionStart, CollectionEnd, Submitted, Published, Withdrawn) - it
-    # previously saved without complaint because Django does not validate
-    # `choices` on save.
-    type = "Available"  # Default date type - a member of the dataset date collection
+    type = "Available"
     value = Faker("partial_date")
 
 
@@ -318,9 +283,8 @@ class DatasetIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = DatasetIdentifier
 
-    type = "DOI"  # Default identifier type - the only member of the dataset collection
+    type = "DOI"
     value = factory.Sequence(lambda n: f"10.{1000 + n}/dataset-{n}")
-    # related field will be set by the caller
 
 
 class LiteratureItemFactory(DjangoModelFactory):
@@ -355,7 +319,7 @@ class DatasetLiteratureRelationFactory(DjangoModelFactory):
 
     dataset = SubFactory("fairdm.factories.core.DatasetFactory")
     literature_item = SubFactory("fairdm.factories.core.LiteratureItemFactory")
-    relationship_type = "IsCitedBy"  # A member of DATACITE_RELATIONSHIP_TYPES
+    relationship_type = "IsCitedBy"
 
 
 class DatasetFactory(DjangoModelFactory):
@@ -376,30 +340,25 @@ class DatasetFactory(DjangoModelFactory):
         model = Dataset
 
     class Params:
-        # No image unless a test asks for one — see ProjectFactory above
-        # (issue #323).
+        # No image unless a test asks for one (#323).
         with_image = factory.Trait(
             image=factory.django.ImageField(width=800, height=600),
         )
 
-    # Basic fields
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
     # visibility defaults to PRIVATE per model definition
 
-    # Relations - project can be passed in or auto-created
     project = SubFactory(ProjectFactory)
 
-    # Simplified license handling
     @LazyAttribute
     def license(self):
+        """Use the first existing license, creating "CC BY 4.0" when there is none."""
         from licensing.models import License
 
-        # Try to get the first existing license, or create a simple one
         existing_license = License.objects.first()
         if existing_license:
             return existing_license
 
-        # Create a minimal license with only the required fields
         license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
         return license_obj
 
@@ -414,11 +373,9 @@ class DatasetFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = DatasetDescription.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -444,11 +401,9 @@ class DatasetFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = DatasetDate.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -472,7 +427,7 @@ class SampleDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = SampleDescription
 
-    type = "SampleCollection"  # Default description type - a member of the sample collection
+    type = "SampleCollection"
     value = Faker("text", max_nb_chars=300)
 
 
@@ -482,7 +437,7 @@ class SampleDateFactory(DjangoModelFactory):
     class Meta:
         model = SampleDate
 
-    type = "Created"  # Default date type - a member of the sample date collection
+    type = "Created"
     value = Faker("partial_date")
 
 
@@ -492,10 +447,9 @@ class SampleIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = SampleIdentifier
 
-    type = "DOI"  # Default identifier type
+    type = "DOI"
     # AbstractIdentifier.value is unique across every record that carries identifiers.
     value = factory.Sequence(lambda n: f"10.{2000 + n}/sample-{n}")
-    # related field will be set by the caller
 
 
 class SampleFactory(DjangoModelFactory):
@@ -517,14 +471,12 @@ class SampleFactory(DjangoModelFactory):
         model = Sample
         abstract = True
 
-    # Basic fields
     name = Faker("word")
     local_id = Faker("bothify", text="SAMPLE-####")
-    status = "unknown"  # Default from the model
+    status = "unknown"
 
-    # Relations - dataset can be passed in or auto-created
     dataset = SubFactory(DatasetFactory)
-    location = None  # Optional field
+    location = None
 
     @factory.post_generation
     def descriptions(obj, create, extracted, **kwargs):
@@ -537,11 +489,9 @@ class SampleFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = SampleDescription.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -567,11 +517,9 @@ class SampleFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = SampleDate.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -595,13 +543,8 @@ class MeasurementDescriptionFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDescription
 
-    # "Abstract" is not a member of the measurement description vocabulary
-    # (MeasurementConditions, MeasurementSetup, MeasurementTearDown, Other) - it
-    # previously saved without complaint because Django does not validate
-    # `choices` on save.
-    type = "MeasurementConditions"  # Default description type - a member of the measurement description collection
+    type = "MeasurementConditions"
     value = Faker("text", max_nb_chars=300)
-    # related field will be set by the caller
 
 
 class MeasurementDateFactory(DjangoModelFactory):
@@ -610,12 +553,8 @@ class MeasurementDateFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementDate
 
-    # "Created" is not a member of the measurement date vocabulary (Setup,
-    # TearDown) - it previously saved without complaint because Django does
-    # not validate `choices` on save.
-    type = "Setup"  # Default date type - a member of the measurement date collection
+    type = "Setup"
     value = Faker("partial_date")
-    # related field will be set by the caller
 
 
 class MeasurementIdentifierFactory(DjangoModelFactory):
@@ -624,12 +563,8 @@ class MeasurementIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = MeasurementIdentifier
 
-    type = (
-        "DOI"  # Default identifier type - the only member of the measurement collection
-    )
-    # AbstractIdentifier.value is unique across every record that carries identifiers.
+    type = "DOI"
     value = factory.Sequence(lambda n: f"10.{4000 + n}/measurement-{n}")
-    # related field will be set by the caller
 
 
 class MeasurementFactory(DjangoModelFactory):
@@ -659,10 +594,8 @@ class MeasurementFactory(DjangoModelFactory):
         model = Measurement
         abstract = True
 
-    # Basic fields
     name = Faker("word")
 
-    # Relations - dataset is auto-created; sample has no default (see class docstring)
     dataset = SubFactory(DatasetFactory)
 
     @factory.post_generation
@@ -676,11 +609,9 @@ class MeasurementFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = MeasurementDescription.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -706,11 +637,9 @@ class MeasurementFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        # Get types from kwargs or use defaults from model VOCABULARY
         valid_types = MeasurementDate.VOCABULARY.values
         types = kwargs.get("types", valid_types)
 
-        # Validate user-provided types
         if "types" in kwargs:
             invalid_types = [t for t in types if t not in valid_types]
             if invalid_types:
@@ -740,7 +669,7 @@ class SampleRelationFactory(DjangoModelFactory):
     class Meta:
         model = SampleRelation
 
-    type = "child_of"  # Default relationship type
+    type = "child_of"
 
 
 class PointFactory(DjangoModelFactory):

@@ -1,19 +1,13 @@
-"""
-Tests for ``fairdm/conf/settings/static_media.py`` — the baseline static and
-media file configuration (FR-002, FR-003).
-"""
+"""Tests for ``fairdm/conf/settings/static_media.py``."""
 
 import os
 
 
 class TestStaticMedia:
-    """The baseline configures static and media handling from the
-    environment (FR-002, FR-003)."""
-
     def test_local_filesystem_storage_when_s3_unconfigured(
         self, isolated_env, settings_module
     ):
-        os.environ["DJANGO_ENV"] = "qa"  # no override module — baseline stands
+        os.environ["DJANGO_ENV"] = "qa"
 
         module = settings_module()
 
@@ -45,4 +39,4 @@ class TestStaticMedia:
     ):
         os.environ["DJANGO_ENV"] = "qa"
 
-        settings_module()  # must not raise
+        settings_module()

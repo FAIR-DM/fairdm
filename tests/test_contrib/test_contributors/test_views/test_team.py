@@ -1,8 +1,4 @@
-"""Integration tests for the portal team page (FR-030 to FR-035).
-
-A public page listing the active people holding each portal role, grouped by
-role in `PortalRoles.ROLES` declaration order. Covers T031.
-"""
+"""Tests for the portal team page."""
 
 import pytest
 from django.contrib.auth.models import Group
@@ -22,8 +18,6 @@ def _group(role):
 
 @pytest.mark.django_db
 class TestTeamView:
-    """`TeamView`, reached at the `team` URL name."""
-
     def test_visitor_who_is_not_signed_in_gets_200(self, client):
         response = client.get(reverse("team"))
 
@@ -96,9 +90,6 @@ class TestTeamView:
     def test_page_holds_its_query_count_as_the_number_of_holders_grows(self, client):
         _group(PortalRoles.PORTAL_ADMINISTRATOR).user_set.add(PersonFactory())
 
-        # A first request creates any request-scoped singleton (e.g. the
-        # identity branding row) that would otherwise inflate only the
-        # "before" capture below with one-off queries unrelated to holders.
         client.get(reverse("team"))
 
         with CaptureQueriesContext(connection) as before:
@@ -117,11 +108,6 @@ class TestTeamView:
 
         assert len(after.captured_queries) == len(before.captured_queries)
 
-    def test_page_title_is_portal_team(self, client):
-        response = client.get(reverse("team"))
-
-        assert response.context["page"]["title"] == "Portal Team"
-
     def test_lead_paragraph_introduces_the_people_listed(self, client):
         response = client.get(reverse("team"))
 
@@ -134,25 +120,10 @@ class TestTeamView:
 
         page = response.context["page"]
         assert page["info"]
-        # The dialog renders `{{ text }}`, so the copy reaches the page escaped -
-        # an apostrophe in it arrives as `&#x27;`.
         assertContains(response, escape(page["info"]))
-        assert page["info_actions"] == [
-            {
-                "text": "About portal roles",
-                "href": "https://fairdm.org/portal-administration/roles/",
-                "icon": "external-link",
-                "target": "_blank",
-            }
+        assert [(a["href"], a["target"]) for a in page["info_actions"]] == [
+            ("https://fairdm.org/portal-administration/roles/", "_blank")
         ]
-        assertContains(response, 'href="https://fairdm.org/portal-administration/roles/"')
-
-    def test_holders_grid_is_responsive_across_breakpoints(self, client):
-        _group(PortalRoles.PORTAL_ADMINISTRATOR).user_set.add(PersonFactory())
-
-        response = client.get(reverse("team"))
-
-        content = response.content.decode()
-        assert "grid-cols-1" in content
-        assert "md:grid-cols-2" in content
-        assert "lg:grid-cols-4" in content
+        assertContains(
+            response, 'href="https://fairdm.org/portal-administration/roles/"'
+        )

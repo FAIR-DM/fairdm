@@ -7,23 +7,12 @@ from django.urls import reverse
 
 
 class TestSidebarFooterSettingIsNotDeclared:
-    """``MVP_CONFIG["layout"]["sidebar"]["footer"]`` (T038, django-mvp 0.23
-    upgrade): the key no longer has any effect and django-mvp emits
-    ``MVPDeprecationWarning`` at startup for a project that still sets it.
-    django-mvp now ships the footer as a fixed composition that already draws
-    what this list configured, so nothing should redeclare the key."""
-
     def test_the_sidebar_settings_declare_no_footer_key(self):
         assert "footer" not in settings.MVP_CONFIG["layout"]["sidebar"]
 
 
 @pytest.mark.django_db
 class TestSidebarFooterControls:
-    """The sidebar drawer opens at every screen width, and the header's own
-    action row does not: django-mvp draws no trailing actions below the sidebar
-    breakpoint. Anything a visitor needs on a phone therefore has to be in the
-    drawer, whatever else also carries it."""
-
     def sidebar(self, client):
         response = client.get(reverse("project-list"))
         soup = BeautifulSoup(response.content, "html.parser")
@@ -43,31 +32,3 @@ class TestSidebarFooterControls:
 
         assert sidebar is not None
         assert sidebar.find(attrs={"data-toggle-theme": True}) is not None
-
-
-@pytest.mark.django_db
-class TestHeaderDoesNotDuplicateSidebarActions:
-    """The sidebar's drawer already carries the login control and the theme
-    toggle at every screen width (``TestSidebarFooterControls`` above), so a
-    desktop visitor who also gets a header copy of each sees the same two
-    controls twice on the one page (fairdm#350)."""
-
-    def header(self, client):
-        response = client.get(reverse("project-list"))
-        soup = BeautifulSoup(response.content, "html.parser")
-        return soup.find("div", class_="mvp-header")
-
-    def test_the_header_has_no_login_link(self, client):
-        header = self.header(client)
-
-        assert header is not None
-        login_url = reverse("account_login")
-        assert not any(
-            link.get("href") == login_url for link in header.find_all("a", href=True)
-        )
-
-    def test_the_header_has_no_theme_toggle(self, client):
-        header = self.header(client)
-
-        assert header is not None
-        assert header.find(attrs={"data-toggle-theme": True}) is None

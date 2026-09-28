@@ -1,13 +1,9 @@
-"""The vocabulary-driven descriptions form shared across the core record
-types (plan P2).
+"""The vocabulary-driven descriptions form shared across the core record types.
 
 A related model carries at most one description of each vocabulary type, so
-this is a single form with one field per concept rather than a row set -
-driving the field set off the vocabulary is what lets the descriptions page
-grow with no code change.
-
-This module is not itself a page, view or URL - later stories register those
-and use the form declared here.
+this is a single form with one field per concept rather than a row set.
+Driving the field set off the vocabulary lets the descriptions page grow with
+no code change.
 """
 
 from django import forms
@@ -16,8 +12,18 @@ from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 
 
 class VocabularyDescriptionsForm(forms.Form):
-    """One text area per concept in ``related_model``'s vocabulary, labelled
-    with the concept's name and helped by its definition."""
+    """One text area per concept in a related model's vocabulary.
+
+    Each field is labelled with the concept's name and helped by its
+    definition.
+
+    Args:
+        *args: Positional arguments passed to ``forms.Form``.
+        related_model: The description model whose ``VOCABULARY`` defines the
+            fields and which stores the rows.
+        instance: The record the descriptions belong to.
+        **kwargs: Keyword arguments passed to ``forms.Form``.
+    """
 
     def __init__(self, *args, related_model, instance, **kwargs):
         self.related_model = related_model
@@ -40,9 +46,7 @@ class VocabularyDescriptionsForm(forms.Form):
             )
 
     def save(self):
-        """Write, update or delete one row per area: a non-blank area
-        becomes one row of its type, blank (including whitespace-only)
-        removes any row already stored for that type."""
+        """Write, update or delete one row per area, deleting the row when the area is blank."""
         for type_value in self.related_model.VOCABULARY.values:
             value = (self.cleaned_data.get(type_value) or "").strip()
             row = self.related_model._default_manager.filter(

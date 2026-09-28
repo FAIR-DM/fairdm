@@ -1,4 +1,4 @@
-"""Site navigation menu for FairDM."""
+"""Declares the site navigation menu."""
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
@@ -7,20 +7,22 @@ from mvp.menus import AppMenu, MenuCollapse, MenuGroup
 
 
 def _has_registered(kind):
-    """A visibility check for a heading that holds one entry per registered type.
+    """Return a visibility check for a heading that holds one entry per registered type.
 
-    Declared here rather than left to whichever app fills the heading: this
-    module is imported by `fairdm.apps` so the navigation exists whatever else
-    a portal installs (FR-041), which means the heading also exists when the
-    app that fills it does not. flex_menu defaults a node to visible and only
-    auto-hides a container whose children all resolved invisible, so a heading
-    with no children at all renders empty without this (FR-040).
+    Declared here rather than left to whichever app fills the heading, because this module is
+    imported by `fairdm.apps` and so the heading exists even when that app is not installed.
+    flex_menu only auto-hides a container whose children all resolved invisible, so a heading
+    with no children would otherwise render empty.
 
-    The registry is imported inside the check because this module is loaded
-    while the app registry is still being populated.
+    Args:
+        kind: The registry attribute to test, such as ``"samples"``.
+
+    Returns:
+        A check callable that is true when anything of that kind is registered.
     """
 
     def check(request, **kwargs):
+        # Imported here because this module loads while the app registry is populating.
         from fairdm.registry import registry
 
         return bool(getattr(registry, kind))
@@ -29,10 +31,19 @@ def _has_registered(kind):
 
 
 def _can_reach_administration(request, **kwargs):
-    """COR-002: whoever can open the administration interface should see the link to its
-    documentation - not only somebody carrying `is_staff`, since `CustomAdminSite.
-    has_permission` (`fairdm/contrib/admin/sites.py`) also admits a rights-carrying role
-    holder. Calls the site's own method rather than re-deriving the rule a second time.
+    """Return whether the request's user may open the administration interface.
+
+    Whoever can open it should see the link to its documentation, not only somebody carrying
+    `is_staff`, since `CustomAdminSite.has_permission` (`fairdm/contrib/admin/sites.py`) also
+    admits a rights-carrying role holder. Calls the site's own method rather than re-deriving
+    the rule.
+
+    Args:
+        request: The current request.
+        **kwargs: Unused menu check keyword arguments.
+
+    Returns:
+        ``True`` when the user may open the administration interface.
     """
     if not (hasattr(request, "user") and request.user):
         return False

@@ -1,3 +1,5 @@
+"""App configuration for the demo application."""
+
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
@@ -5,6 +7,8 @@ from fairdm.registry.config import Authority, Citation
 
 
 class DemoConfig(AppConfig):
+    """Register the demo app with its authority, citation and repository."""
+
     name = "demo"
     authority = Authority(
         name=_("FairDM Core Development"),

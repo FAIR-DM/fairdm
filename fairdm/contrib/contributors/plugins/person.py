@@ -1,3 +1,5 @@
+"""Plugins for contributor pages: overview, projects, datasets, statistics and network."""
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.utils.translation import gettext as _
@@ -14,7 +16,7 @@ from ..models import Contributor, Person
 
 @plugins.register(Contributor, label=_("About"), icon="overview", order=0)
 class Overview(OverviewPlugin):
-    """Overview plugin for Contributor detail pages (Person and Organization)."""
+    """Overview page for a person or organisation."""
 
     url_path = None
 
@@ -24,7 +26,6 @@ class Overview(OverviewPlugin):
         context["contributions_by_type"] = self.get_contribution_counts()
         context["object"] = self.base_object
 
-        # Add ORCID identifier if available (for Person objects)
         if isinstance(self.base_object, Person):
             orcid = self.base_object.identifiers.filter(type="ORCID").first()
             context["orcid_identifier"] = orcid
@@ -32,12 +33,10 @@ class Overview(OverviewPlugin):
         return context
 
     def get_contribution_counts(self):
-        """
-        Calculate contribution counts by content type.
+        """Count the contributor's contributions by type.
 
         Returns:
-            dict: Mapping of model verbose names to contribution counts
-                  (e.g., {"Projects": 5, "Datasets": 3})
+            A map of title-cased model plural names to counts, such as ``{"Projects": 5}``.
         """
         contributions_by_type = self.base_object.contributions.values(
             "content_type"
@@ -56,15 +55,16 @@ class Overview(OverviewPlugin):
 
 @plugins.register(Contributor, label=_("Projects"), icon="project", order=100)
 class ContributorProjects(Plugin, ProjectListView):
-    """Projects plugin for Contributor model - shows all projects a contributor is associated with."""
+    """List the projects a contributor is credited on."""
 
     page_title = _("Projects")
 
     def get_queryset(self, *args, **kwargs):
-        """Filter projects to only those associated with this contributor."""
+        """Limit to this contributor's projects."""
         return self.base_object.projects.all()
 
     def get_page_title(self):
+        """Title the page "My Projects" on the user's own profile."""
         if self.request.user == self.base_object:
             return _("My Projects")
         return super().get_page_title()
@@ -72,13 +72,14 @@ class ContributorProjects(Plugin, ProjectListView):
 
 @plugins.register(Contributor, label=_("Datasets"), icon="dataset", order=200)
 class ContributorDatasets(Plugin, DatasetListView):
-    """Datasets plugin for Contributor model - shows all datasets a contributor is associated with."""
+    """List the datasets a contributor is credited on."""
 
     def get_queryset(self, *args, **kwargs):
-        """Filter datasets to only those associated with this contributor."""
+        """Limit to this contributor's datasets."""
         return self.base_object.datasets.all()
 
     def get_page_title(self):
+        """Title the page "My Datasets" on the user's own profile."""
         if self.request.user == self.base_object:
             return _("My Datasets")
         return super().get_page_title()
@@ -86,14 +87,14 @@ class ContributorDatasets(Plugin, DatasetListView):
 
 @plugins.register(Contributor, label=_("Statistics"), icon="statistics", order=300)
 class Statistics(Plugin, FairDMTemplateView):
-    """Plugin showing detailed contribution statistics."""
+    """Show the contributor's contribution counts."""
 
     page_title = _("Statistics")
 
     def get_context_data(self, **kwargs):
+        """Add the total number of contributions and the counts by type."""
         context = super().get_context_data(**kwargs)
 
-        # Get contribution counts by type
         contributions_by_type = {}
         for entry in self.base_object.contributions.values("content_type").annotate(
             count=Count("id")
@@ -117,7 +118,7 @@ class Statistics(Plugin, FairDMTemplateView):
 
 @plugins.register(Contributor, label=_("Network"), icon="people", order=400)
 class Network(Plugin, FairDMTemplateView):
-    """Plugin showing frequent collaborators."""
+    """Show the contributor's frequent collaborators."""
 
     page_title = _("Network")
     model = Contributor

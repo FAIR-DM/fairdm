@@ -1,5 +1,3 @@
-"""Rename OrganizationMember model to Affiliation."""
-
 from django.conf import settings
 from django.db import migrations
 
@@ -10,7 +8,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Rename the model (auto-updates FK references and table name)
         migrations.RenameModel(
             old_name="OrganizationMember",
             new_name="Affiliation",

@@ -11,8 +11,6 @@
         {% trans "Synced" %}
       </c-components.badge>
     {% endif %}
-    {% comment %} <c-contributor.person.identifier /> {% endcomment %}
-    {% comment %} <c-contributor.person.affiliations /> {% endcomment %}
   </div>
   <div class="hstack gap-2 mb-3">
     <c-components.badge style="secondary"
@@ -23,7 +21,6 @@
                         label="{% trans "Members" %}"
                         message="{% trans "The number of community members associated with this organization." %}"
                         value="{{ object.members.count }}" />
-    {% comment %} THIS NEEDS A BETTER METHOD FOR DETERMINING VISIBILITY {% endcomment %}
     <c-components.badge style="success"
                         label="{% trans "Active" %}"
                         message="{% trans "This contributor is an active member of this online community." %}"

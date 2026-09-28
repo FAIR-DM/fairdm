@@ -20,8 +20,7 @@
   {% partial name_identifier %}
 {% endfor %}
 {% with contributor.get_default_affiliation as affiliation %}
-  {% comment %} WARNING: this needs to be re-thought. The affiliation of the contributor AT THE TIME OF CREATION should be used.
-  Therefore we probably need to store this info on the Contribution object. {% endcomment %}
+  {# Known limitation: this should be the affiliation at the time of creation, which would need storing on the Contribution. #}
   {% if affiliation %}
     {% partial affiliation %}
   {% endif %}
@@ -34,10 +33,6 @@
   <resourceType resourceTypeGeneral="Dataset"></resourceType>
   <language>{{ dataset.lang }}</language>
   <version>{{ dataset.version|default:1.0 }}</version>
-  {% comment %} <sizes>
-    <size>{{ dataset.samples.count }} Samples</size>
-    <size>{{ dataset.locations.distinct.count }} Geographic Locations</size>
-  </sizes> {% endcomment %}
   <formats>
     <format>csv</format>
   </formats>
@@ -93,20 +88,8 @@
   </dates>
   {% endif %}
 
-  {% comment %} <alternateIdentifiers>
-    <alternateIdentifier alternateIdentifierType="URL">{{ uri }}</alternateIdentifier>
-    {% block alternate_identifiers %}{% endblock %}
-  </alternateIdentifiers> {% endcomment %}
   <relatedIdentifiers>
     <relatedIdentifier relatedIdentifierType="URL" relationType="IsVariantFormOf">{{ uri }}</relatedIdentifier>
-    {% comment %} <relatedIdentifier relatedIdentifierType="DOI" relationType="IsSupplementTo">{{ dataset.reference.doi }}</relatedIdentifier> {% endcomment %}
-
-    {% comment %} <relatedIdentifier relatedIdentifierType="DOI" relationType="Cites">{{ dataset.reference.doi }}</relatedIdentifier> {% endcomment %}
-
-
-
-    {% comment %} <relatedIdentifier relatedIdentifierType="URL" relationType="HasMetadata" relatedMetadataScheme="citeproc+json" schemeURI="https://github.com/citation-style-language/schema/raw/master/csl-data.json">https://data.datacite.org/application/citeproc+json/10.5072/example-full</relatedIdentifier>
-    <relatedIdentifier relatedIdentifierType="arXiv" relationType="IsReviewedBy" resourceTypeGeneral="Text">arXiv:0706.0001</relatedIdentifier> {% endcomment %}
   </relatedIdentifiers>
 
   {% if dataset.license %}
@@ -122,7 +105,6 @@
   {% if dataset.bbox or dataset.centroid %}
   <geoLocations>
     <geoLocation>
-      {% comment %} <geoLocationPlace>Not sure how to handle this</geoLocationPlace> {% endcomment %}
       {% if dataset.centroid %}
       <geoLocationPoint>{% with dataset.centroid as point %}
         <pointLongitude>{{ point.x }}</pointLongitude>
@@ -151,18 +133,6 @@
     </fundingReference>{% endfor %}
   </fundingReferences>
   {% endif %}
-  {% comment %} <relatedItems>
-    <relatedItem relationType="IsPublishedIn" relatedItemType="Journal">
-      <relatedItemIdentifier relatedItemIdentifierType="ISSN">0370-2693</relatedItemIdentifier>
-      <titles>
-        <title>Physics letters B</title>
-      </titles>
-      <publicationYear>2018</publicationYear>
-      <volume>776</volume>
-      <firstPage>249</firstPage>
-      <lastPage>264</lastPage>
-    </relatedItem>
-  </relatedItems> {% endcomment %}
 
 </resource>
 

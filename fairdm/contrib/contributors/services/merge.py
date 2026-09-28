@@ -1,10 +1,4 @@
-"""Person merge service (US4).
-
-Provides merge_persons() which transfers all data from person_discard
-to person_keep inside a single atomic transaction, then deletes person_discard.
-
-All private helper functions are prefixed with _ and are not part of the public API.
-"""
+"""Person merge service that moves one person's data to another and deletes the first."""
 
 from __future__ import annotations
 
@@ -22,27 +16,21 @@ logger = logging.getLogger(__name__)
 
 
 def merge_persons(person_keep: Person, person_discard: Person) -> Person:
-    """Merge person_discard into person_keep, transferring all related data.
+    """Merge ``person_discard`` into ``person_keep`` in one atomic transaction.
 
-    The entire operation runs inside a single atomic transaction.  Any
-    unexpected error causes a full rollback — partial merges are impossible.
-
-    Post-merge:
-      - person_keep holds all unique Contributions, Identifiers, Affiliations,
-        allauth EmailAddress records, and guardian permissions from person_discard.
-      - person_keep.is_claimed = True  (it is now the single surviving profile)
-      - person_discard is permanently deleted.
+    The kept person receives the discarded person's unique contributions, identifiers,
+    affiliations, email addresses and object permissions, is marked claimed and active,
+    and the discarded person is deleted. Any error rolls the whole merge back.
 
     Args:
-        person_keep:    The Person that survives the merge.
-        person_discard: The Person that is deleted after the merge.
+        person_keep: The person that survives.
+        person_discard: The person that is deleted.
 
     Returns:
-        The updated person_keep instance.
+        The updated ``person_keep``.
 
     Raises:
-        ClaimingError: If person_keep == person_discard.
-        Exception:     Any unexpected error (transaction is rolled back).
+        ClaimingError: Both arguments are the same person.
     """
     if person_keep.pk == person_discard.pk:
         raise ClaimingError("Cannot merge a Person with itself.")
@@ -56,7 +44,6 @@ def merge_persons(person_keep: Person, person_discard: Person) -> Person:
         _merge_profile_fields(person_keep, person_discard)
         _invalidate_sessions(person_discard)
 
-        # Log the merge
         from fairdm.contrib.contributors.models import ClaimMethod
         from fairdm.contrib.contributors.utils.audit import log_claiming_event
 
@@ -71,18 +58,13 @@ def merge_persons(person_keep: Person, person_discard: Person) -> Person:
             },
         )
 
-        # Ensure person_keep is marked as claimed
         person_keep.is_claimed = True
         person_keep.is_active = True
         person_keep.save(update_fields=["is_claimed", "is_active"])
 
-        # Delete the discarded person
         person_discard.delete()
 
     return person_keep
-
-
-# ─── Private helpers ─────────────────────────────────────────────────────────
 
 
 def _reassign_contributions(keep: Person, discard: Person) -> None:
@@ -99,7 +81,6 @@ def _reassign_contributions(keep: Person, discard: Person) -> None:
             contrib.contributor = keep
             contrib.save(update_fields=["contributor"])
         else:
-            # Discard duplicate — keep the existing contribution
             contrib.delete()
 
 
@@ -108,8 +89,7 @@ def _reassign_identifiers(keep: Person, discard: Person) -> None:
     from fairdm.contrib.contributors.models import ContributorIdentifier
 
     for identifier in ContributorIdentifier.objects.filter(related=discard):
-        # Check for exact value match (value is globally unique — can't have 2 with same value)
-        # Also check for same (related, type) combo on keep
+        # `value` is globally unique, and a contributor holds one identifier per type.
         value_exists = (
             ContributorIdentifier.objects.filter(value=identifier.value)
             .exclude(pk=identifier.pk)
@@ -120,10 +100,9 @@ def _reassign_identifiers(keep: Person, discard: Person) -> None:
         ).exists()
 
         if value_exists or type_exists_on_keep:
-            # Skip — would violate uniqueness constraints
             identifier.delete()
         else:
-            # Use update() to bypass AFTER_CREATE lifecycle hook (sync task dispatch)
+            # `update()` skips the AFTER_CREATE hook that would queue a sync task.
             ContributorIdentifier.objects.filter(pk=identifier.pk).update(
                 related_id=keep.pk
             )
@@ -160,13 +139,12 @@ def _reassign_allauth_records(keep: Person, discard: Person) -> None:
         else:
             email_addr.delete()
 
-    # Transfer social accounts (ORCID etc.)
     try:
         from allauth.socialaccount.models import SocialAccount
 
         SocialAccount.objects.filter(user=discard).update(user=keep)
     except ImportError:
-        pass  # Social accounts not installed
+        pass
 
 
 def _transfer_permissions(keep: Person, discard: Person) -> None:
@@ -200,7 +178,7 @@ def _invalidate_sessions(person: Person) -> None:
             except Exception:
                 logger.debug("Skipping corrupted session during invalidation")
     except ImportError:
-        pass  # Session backend not available
+        pass
 
 
 def _merge_profile_fields(keep: Person, discard: Person) -> None:

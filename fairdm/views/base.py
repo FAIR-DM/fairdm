@@ -1,3 +1,5 @@
+"""Base views that add SEO metadata to the django-mvp views."""
+
 from __future__ import annotations
 
 from django.db.models import RestrictedError
@@ -45,9 +47,8 @@ class FairDMTemplateView(MetadataMixin, MVPTemplateView):
             description = "Learn about our research data portal."
     """
 
-    # A default template name is set here to act as a placeholder to avoid 500 errors
-    # due to this attribute being missing.
-    # Can be removed after https://github.com/django-mvp/django-mvp/issues/187 is merged and released.
+    # Placeholder so a missing template_name does not 500. Remove once
+    # https://github.com/django-mvp/django-mvp/issues/187 is released.
     template_name = "page_view.html"
 
 
@@ -228,32 +229,20 @@ class FairDMDeleteView(MetadataMixin, MVPDeleteView):
     """
 
     def _collect_deletion_data(self):
-        """Treat a restricted relation as a refusal, the same as a protected one.
-
-        ``MVPDeleteView`` catches ``ProtectedError`` and turns it into the refusal the template
-        already draws — the blocking records listed, no submit button. It does not catch
-        ``RestrictedError``, which is a sibling under ``IntegrityError`` rather than a subclass,
-        so a ``RESTRICT`` relation raises straight out of the page instead. ``Measurement.sample``
-        is one, so a dataset whose samples are measured by another dataset reaches this.
-
-        Remove once django-mvp#308 lands.
-        """
+        """Treat a restricted relation as a refusal, like a protected one."""
+        # MVPDeleteView catches ProtectedError only. RestrictedError is a sibling, so a
+        # RESTRICT relation such as Measurement.sample raises out of the page.
+        # Remove once django-mvp#308 is released.
         try:
             return super()._collect_deletion_data()
         except RestrictedError as exc:
             return {}, list(exc.restricted_objects)
 
     def get_back_url(self) -> str:
-        """``MVPDeleteView``'s own "Back", with its destination behind an overridable hook.
-
-        The upstream method reads ``?back``, validates it against the current host, and then
-        falls back to the list page in the same body. A page that wants a different fallback
-        has nowhere to say so, so it has to restate the query-string handling — including the
-        open-redirect guard — to change the last line. Splitting the two means the guard is
-        written once and a subclass overrides :meth:`get_back_url_fallback` alone.
-
-        Remove once django-mvp#309 lands.
-        """
+        """Return a safe ``?back`` URL, else :meth:`get_back_url_fallback`."""
+        # Upstream fuses the ?back guard and the fallback, so overriding the fallback
+        # means restating the open-redirect check. Remove once django-mvp#309
+        # is released.
         candidate: str | None = self.request.GET.get("back")
         if candidate and url_has_allowed_host_and_scheme(
             url=candidate,
@@ -264,10 +253,7 @@ class FairDMDeleteView(MetadataMixin, MVPDeleteView):
         return self.get_back_url_fallback()
 
     def get_back_url_fallback(self) -> str:
-        """Where "Back" points when the request carries no usable ``?back``.
-
-        Keeps ``MVPDeleteView``'s own answer — the registered list page.
-        """
+        """Point "Back" at the registered list page when ``?back`` is unusable."""
         return self.resolve_crud_url("list") or ""
 
 

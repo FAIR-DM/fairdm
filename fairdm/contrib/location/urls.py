@@ -1,3 +1,5 @@
+"""URL configuration for locations."""
+
 from django.urls import include, path
 
 from fairdm.plugins import registry
@@ -5,8 +7,7 @@ from fairdm.plugins import registry
 from .models import Point
 from .views import PointDetailView
 
-# A location has no uuid; it is identified by its coordinate pair. Declaring that here is what lets
-# the plugin machinery resolve and reverse it without knowing the word "uuid".
+# A location has no uuid, so its coordinate pair is declared as its address for the plugin routes.
 registry.declare_addressing(
     Point,
     route="<str:lon>/<str:lat>",

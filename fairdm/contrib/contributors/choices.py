@@ -1,26 +1,15 @@
-"""Contributor choice enumerations.
-
-``OrganizationType`` is drawn from ROR schema 2.1's ``types`` enumeration —
-the ``items.enum`` array in ``ror-community/ror-schema/ror_schema_v2_1.json`` —
-read from the schema itself rather than from documentation about it.
-"""
+"""Choice enumerations and identifier lookups for contributors."""
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from research_vocabs.builder.skos import Concept
 from research_vocabs.vocabularies import VocabularyBuilder
 
-# ================== DATACITE ROLES ==================
-# https://support.datacite.org/docs/schema-43-attributes#section-contributor
-# https://schema.datacite.org/meta/kernel-4.3/doc/DataCite-MetadataKernel_v4.3.pdf
-
 
 class OrganizationType(models.TextChoices):
-    """An organisation's institutional kind, per ROR schema 2.1.
+    """An organisation's institutional kind, drawn from the ``types`` enumeration of ROR schema 2.1.
 
-    ROR permits an organisation several types at once; this vocabulary
-    deliberately narrows that to a single selection (see decisions.md D6 and
-    research.md R1 in the 009-fairdm-contributors specification).
+    ROR permits several types at once. This vocabulary narrows that to a single selection.
     """
 
     EDUCATION = "education", _("Education")
@@ -35,11 +24,15 @@ class OrganizationType(models.TextChoices):
 
 
 class PersonalIdentifiers(models.TextChoices):
+    """Identifier schemes for a person."""
+
     ORCID = "ORCID", "ORCID"
     RESEARCHER_ID = "ResearcherID", "ResearcherID"
 
 
 class OrganizationalIdentifiers(models.TextChoices):
+    """Identifier schemes for an organisation."""
+
     ROR = "ROR", "ROR"
     GRID = "GRID", "GRID"
     WIKIDATA = "Wikidata", "Wikidata"
@@ -48,12 +41,10 @@ class OrganizationalIdentifiers(models.TextChoices):
 
 
 class AccountState(models.TextChoices):
-    """The four states a Person's account can be in (decisions.md D8).
+    """The four states a Person's account can be in.
 
-    Never stored: `Person.account_state` derives one of these members from
-    `is_active`, `is_claimed` and `email`, and `PersonQuerySet` carries a
-    matching filter for each. "Inactive" takes precedence over every other
-    signal, "banned" having been reworded to describe what the flag means.
+    Never stored: `Person.account_state` derives one from `is_active`, `is_claimed` and
+    `email`, and `PersonQuerySet` has a matching filter for each. "Inactive" takes precedence.
     """
 
     GHOST = "ghost", _("Ghost")
@@ -63,6 +54,8 @@ class AccountState(models.TextChoices):
 
 
 class FairDMIdentifiers(VocabularyBuilder):
+    """Vocabulary of identifier schemes."""
+
     ORCID = Concept(
         prefLabel=_("ORCID"),
         definition=_("Open Researcher and Contributor ID."),

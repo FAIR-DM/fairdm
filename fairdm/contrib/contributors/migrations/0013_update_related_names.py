@@ -1,5 +1,3 @@
-"""Update related_names and Organization meta options."""
-
 import auto_prefetch
 import django.db.models.deletion
 from django.conf import settings
@@ -12,7 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Update person FK related_name from "organization_memberships" to "affiliations"
         migrations.AlterField(
             model_name="affiliation",
             name="person",
@@ -24,7 +21,6 @@ class Migration(migrations.Migration):
                 verbose_name="person",
             ),
         ),
-        # Update Organization.members M2M to use Affiliation through model
         migrations.AlterField(
             model_name="organization",
             name="members",
@@ -36,7 +32,6 @@ class Migration(migrations.Migration):
                 verbose_name="members",
             ),
         ),
-        # Add manage_organization permission to Organization
         migrations.AlterModelOptions(
             name="organization",
             options={

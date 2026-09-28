@@ -1,3 +1,5 @@
+"""Small helpers for models, settings, documentation URLs and crispy layouts."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,12 +16,10 @@ if TYPE_CHECKING:
     pass
 
 DOCUMENTATION_BASE_URL = "https://www.fairdm.org/en/latest/user-guide/"
-# DOCUMENTATION_BASE_URL = "http://localhost:5000/user-guide/"
 
 
 def user_guide(name: str) -> str:
-    """
-    Returns the documentation URL for a given name.
+    """Return the documentation URL for a given name.
 
     Args:
         name: The name of the documentation section.
@@ -31,33 +31,30 @@ def user_guide(name: str) -> str:
 
 
 def get_setting(name: str, key: str):
-    """
-    Return a setting from the Django settings module.
+    """Return a value from a FAIRDM dictionary setting.
 
     Args:
         name: The name of the FAIRDM setting (without FAIRDM_ prefix).
         key: The key within the setting dictionary.
 
     Returns:
-        The setting value or None if not found.
+        The setting value or None if the key is not found.
     """
     settings_dict = getattr(settings, f"FAIRDM_{name}")
     return settings_dict.get(key)
 
 
 def get_subclasses(model):
-    """
-    Retrieve all registered Django model subclasses of a given model.
+    """Return the registered Django model subclasses of a given model.
 
-    This function iterates through all models registered in the Django app registry
-    and returns a list of models that are subclasses of the specified `model`,
+    Iterates the app registry's models and keeps those that are subclasses of ``model``,
     excluding the model itself.
 
     Args:
-        model (type): The Django model class for which to find subclasses.
+        model: The Django model class for which to find subclasses.
 
     Returns:
-        list[type]: A list of model classes that are direct or indirect subclasses of `model`.
+        The direct and indirect subclasses of ``model``.
 
     Example:
         >>> class A(models.Model):
@@ -69,24 +66,22 @@ def get_subclasses(model):
         >>> get_subclasses(A)
         [B, C]
     """
-    models = apps.get_models()  # Get all registered Django models
+    models = apps.get_models()
     return [m for m in models if issubclass(m, model) and m != model]
 
 
 def get_inheritance_chain(model, base_model):
-    """
-    Retrieve the inheritance chain of a given model up to a specified base model.
+    """Return the inheritance chain of a model up to a base model.
 
-    This function traverses the method resolution order (MRO) of a Django model class
-    and collects all classes in the hierarchy that are subclasses of `base_model`.
+    Walks the model's method resolution order and collects every model class that is a subclass
+    of ``base_model``.
 
     Args:
-        model (type): The Django model class for which to determine the inheritance chain.
-        base_model (type): The base model class that serves as the stopping point for traversal.
+        model: The Django model class for which to determine the inheritance chain.
+        base_model: The base model class where the chain ends.
 
     Returns:
-        list[type]: A list of model classes in the inheritance chain, starting from `model`
-                    and ending at `base_model`, inclusive.
+        The model classes in the chain, starting from ``model`` and ending at ``base_model``.
 
     Example:
         >>> class A(models.Model):
@@ -99,42 +94,55 @@ def get_inheritance_chain(model, base_model):
         [C, B, A]
     """
     chain = []
-    for base in model.__mro__:  # Traverse the Method Resolution Order (MRO)
+    for base in model.__mro__:
         if hasattr(base, "_meta") and issubclass(base, base_model):
             chain.append(base)
     return chain
 
 
 def get_model_class(uuid: str):
-    """Return a model class from a given UUID."""
+    """Return the core model class a UUID belongs to.
+
+    The UUID's first character identifies the model.
+
+    Args:
+        uuid: A core object's shortuuid primary key.
+
+    Returns:
+        The model class.
+    """
     return apps.get_model(CORE_MAPPING[uuid[0]])
 
 
 def get_core_object_or_none(uuid: str) -> tuple:
-    """
-    Retrieves the model class and the object instance matching the given UUID. If no instance is found,
-    it returns None.
+    """Return the model class and the object matching a UUID.
 
     Args:
-        uuid (str): The UUID of the object to retrieve.
+        uuid: The UUID of the object to retrieve.
 
     Returns:
-        tuple: A tuple containing the model class and the first object instance with the specified UUID,
-               or None if no such object exists.
+        A tuple of the model class and the first object with that UUID, or ``None`` in place of
+        the object when none exists.
     """
     model = get_model_class(uuid)
     return model, model.objects.filter(uuid=uuid).first()
 
 
 def get_core_object_or_404(uuid: str):
-    """Accepts a shortuuid primary key (as assigned to core data models) and returns the object or raises a 404."""
+    """Return the core object with a shortuuid primary key, or raise a 404.
+
+    Args:
+        uuid: A core object's shortuuid primary key.
+
+    Returns:
+        The matching object. ``Http404`` is raised when no object has that UUID.
+    """
     model = get_model_class(uuid)
     return get_object_or_404(model, uuid=uuid)
 
 
 def default_image_path(instance, filename: str) -> str:
-    """
-    Generates file paths for images.
+    """Generate the upload path for an image.
 
     Args:
         instance: The model instance the image is being uploaded to.
@@ -148,21 +156,21 @@ def default_image_path(instance, filename: str) -> str:
 
 
 def fieldsets_to_crispy_layout(fieldsets):
-    """
-    Convert Django fieldsets into a crispy-forms Layout.
+    """Convert Django fieldsets into a crispy-forms Layout.
 
-    This function takes a list of fieldsets (typically defined in Django's `admin.py`)
-    and transforms them into a crispy-forms `Layout`. It supports grouping fields
-    into `Fieldset` containers and organizing grouped fields into `Row` and `Column` structures.
+    Takes fieldsets typically defined in Django's `admin.py` and transforms them into a
+    crispy-forms `Layout`, grouping fields into `Fieldset` containers and organizing grouped
+    fields into `Row` and `Column` structures. The ``fields`` and ``help_text`` entries are popped
+    from each options dict, so the input is modified.
 
     Args:
-        fieldsets (list[tuple[str, dict]]): A list of tuples, where each tuple contains:
+        fieldsets: A list of tuples, each containing:
             - `legend` (str or None): The title of the fieldset.
-            - `options` (dict): A dictionary containing the key `"fields"` which is a list
-              of field names or tuples/lists of field names to be grouped.
+            - `options` (dict): A dictionary holding `"fields"`, a list of field names or
+              tuples/lists of field names to be grouped, and optionally `"help_text"`.
 
     Returns:
-        Layout: A crispy-forms `Layout` object representing the given fieldsets.
+        A crispy-forms `Layout` representing the given fieldsets.
 
     Example:
         >>> fieldsets = [
@@ -178,34 +186,30 @@ def fieldsets_to_crispy_layout(fieldsets):
     crispy_layout = []
 
     for legend, options in fieldsets:
-        layout = [legend]  # Stores fields formatted as Row/Column structures
+        layout = [legend]
         help_text = options.pop("help_text", None)
         if help_text:
             layout.append(HTML(f"<p class='help-text'>{help_text}</p>"))
 
         fields = options.pop("fields", [])
-        # Convert fields to layout items and add them individually
         field_layout = fields_to_crispy_layout(fields)
         layout.extend(field_layout.fields)
-        # for field in fields:
-        #     if isinstance(field, (tuple, list)):  # If a tuple/list, group them in a Row
-        #         inner_row = [Column(f) for f in field]  # Wrap each field in a Column
-        #         layout.append(Row(*inner_row))  # Create a Row with the Columns
-        #     else:
-        #         layout.append(field)  # Add a standalone field
-
-        # Wrap fields in a Fieldset (with or without a legend)
         crispy_layout.append(Fieldset(*layout, **options))
 
     return Layout(*crispy_layout)
 
 
 def fields_to_crispy_layout(fields):
-    """
-    Convert a flat list of fields or tuples/lists of fields into crispy-forms layout.
+    """Convert a flat list of fields, or tuples and lists of fields, into a crispy-forms Layout.
 
-    - Single field names are added directly.
-    - Tuples/lists of field names are wrapped in Columns inside a Row.
+    Single field names are added directly. Tuples and lists of field names are wrapped in Columns
+    inside a Row.
+
+    Args:
+        fields: Field names, or tuples or lists of field names to place side by side.
+
+    Returns:
+        A crispy-forms `Layout`.
     """
     layout = []
     for field in fields:
@@ -218,5 +222,12 @@ def fields_to_crispy_layout(fields):
 
 
 def fairdm_fieldsets_to_django(fieldsets):
-    """Converts the FairDM style fieldsets to Django style fieldsets."""
+    """Convert FairDM-style fieldsets to Django-style fieldsets.
+
+    Args:
+        fieldsets: A dict mapping each legend to its options dict.
+
+    Returns:
+        A tuple of ``(legend, options)`` pairs.
+    """
     return tuple((key, value) for key, value in fieldsets.items())

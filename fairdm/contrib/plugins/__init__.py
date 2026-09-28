@@ -7,17 +7,8 @@
 - ``is_instance_of`` — narrows a plugin to one subtype of a polymorphic record
 - ``reverse`` — resolves a plugin address for a record
 
-Attributes are resolved on first access rather than at import. This package is listed in
-``INSTALLED_APPS``, so Django imports it during ``apps.populate()`` — before the app registry is
-ready. ``Plugin`` inherits from ``PermissionRequiredMixin``, whose module pulls in
-``django.contrib.auth.models``, and importing that during ``populate()`` raises
-``AppRegistryNotReady``. Deferring keeps ``from fairdm.contrib.plugins import Plugin`` working for
-callers while giving Django an empty module at startup.
-
-The registry lives in ``registration.py`` rather than ``registry.py`` because a submodule binds its
-own name onto the package once imported, and a submodule binding wins over ``__getattr__`` — so a
-module named ``registry`` would shadow the ``registry`` instance exported here, silently and only
-after something happened to import it.
+Attributes are resolved on first access because Django imports this package during
+``apps.populate()``, before ``Plugin``'s auth imports are safe.
 """
 
 from typing import TYPE_CHECKING
@@ -51,6 +42,18 @@ _LAZY = {
 
 
 def __getattr__(name: str):
+    """Resolve a public name on first access.
+
+    Args:
+        name: The attribute being looked up.
+
+    Returns:
+        The named object from its submodule.
+
+    Raises:
+        AttributeError: The name is not part of the public API.
+    """
+    # The registry lives in `registration.py` because a submodule named `registry` would shadow the instance.
     from importlib import import_module
 
     if name == "register":
@@ -63,4 +66,5 @@ def __getattr__(name: str):
 
 
 def __dir__() -> list[str]:
+    """List the public names."""
     return sorted(__all__)

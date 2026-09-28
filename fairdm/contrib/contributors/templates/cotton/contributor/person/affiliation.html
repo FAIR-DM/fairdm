@@ -1,3 +1,5 @@
+{# @description A link to an organisation, with its icon and name and optionally its city and country. Reads the context variable `org`, the organisation. #}
+{# @prop :show_location:boolean | default:False | description:"Add the organisation's city and country after its name." #}
 <c-vars :show_location="False" />
 <a class="link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover text-muted"
    href="{{ org.get_absolute_url }}">{% icon "organization" %}

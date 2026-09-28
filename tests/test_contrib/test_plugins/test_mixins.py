@@ -1,13 +1,4 @@
-"""Tests for the shared refusal-shape mixins (T089).
-
-Source: ``fairdm/contrib/plugins/mixins.py``
-
-Exercised directly against minimal stand-in classes rather than through the dataset
-or project pages that consume them: a component built from one consumer's own shape
-proves nothing about the other, and the wiring itself is proven by the dataset and
-project test suites continuing to pass unchanged (`tests/test_core/test_dataset`,
-`tests/test_core/test_project`).
-"""
+"""Tests for the shared refusal-shape mixins."""
 
 import pytest
 from django.http import Http404, HttpResponse
@@ -21,9 +12,7 @@ from fairdm.utils.choices import Visibility
 
 
 class _StubPermissionRequiredMixin:
-    """Stands in for ``django.contrib.auth.mixins.PermissionRequiredMixin``: any
-    class the real mixin sits ahead of in the MRO, so a test can prove the real
-    mixin's ``handle_no_permission`` wins without a full view/request cycle."""
+    """Stand in for ``PermissionRequiredMixin``."""
 
     handle_no_permission_called = False
 
@@ -33,14 +22,15 @@ class _StubPermissionRequiredMixin:
 
 
 class _StubFairDMDeleteView:
-    """Stands in for ``fairdm.views.FairDMDeleteView``, the other class that
-    defines ``get_back_url_fallback`` in a real consumer's MRO."""
+    """Stand in for ``FairDMDeleteView``."""
 
     def get_back_url_fallback(self) -> str:
         return "/list/"
 
 
-class _PageWithNoPermissionMixin(PrivateRecordNotFoundMixin, _StubPermissionRequiredMixin):
+class _PageWithNoPermissionMixin(
+    PrivateRecordNotFoundMixin, _StubPermissionRequiredMixin
+):
     registered_model = None
 
     def __init__(self, base_object):
@@ -55,10 +45,7 @@ class _PageWithBackFallbackMixin(RecordOwnPageBackFallbackMixin, _StubFairDMDele
 @pytest.mark.django_db
 class TestPrivateRecordNotFoundMixin:
     def test_wins_over_permission_required_mixin_in_the_mro(self):
-        """The mixin must be listed ahead of the class supplying the stock
-        ``handle_no_permission`` for its override to take effect at all - proven here
-        rather than trusted, per the story's own instruction."""
-        private = DatasetFactory()  # private, per the model default
+        private = DatasetFactory()
         page = _PageWithNoPermissionMixin(private)
 
         with pytest.raises(Http404):
@@ -76,8 +63,6 @@ class TestPrivateRecordNotFoundMixin:
         assert page.handle_no_permission_called is True
 
     def test_a_missing_record_falls_through_to_the_stock_behaviour(self):
-        """``base_object`` is ``None`` when the plugin's own lookup already raised - not
-        this mixin's concern, so it defers rather than raising a second 404 of its own."""
         page = _PageWithNoPermissionMixin(None)
 
         response = page.handle_no_permission()
@@ -86,9 +71,6 @@ class TestPrivateRecordNotFoundMixin:
         assert page.handle_no_permission_called is True
 
     def test_the_404_message_names_the_registered_models_own_kind(self):
-        """T090's requirement in miniature: a project's page must not say 'dataset', and
-        vice versa - proven generically here by parameterising the stand-in's own
-        ``registered_model`` rather than by any one consumer's wiring."""
         from fairdm.core.project.models import Project
 
         private = DatasetFactory()

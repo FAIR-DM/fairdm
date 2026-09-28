@@ -1,3 +1,5 @@
+"""Re-exports of the four core record models."""
+
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project

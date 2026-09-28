@@ -1,14 +1,4 @@
-"""Tests for the object-level permission backend that carries a model-level
-permission held through a portal role down to individual records (FR-018,
-FR-020).
-
-``ModelBackend`` answers every object-level question with ``False``
-(``django/contrib/auth/backends.py``), so a person holding ``change_dataset``
-at the model level cannot in fact change a dataset until something derives
-the object-level answer from it. See ``fairdm/portal_roles.py`` for how the
-four shipped roles use this, and ``fairdm/core/permissions.py:44-53`` for the
-``contributors.manage_organization`` exclusion this backend must also carry.
-"""
+"""Tests for the object-level permission backend that carries role permissions down to records."""
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -26,9 +16,6 @@ def _permission(app_label, codename):
 
 @pytest.mark.django_db
 class TestPortalRoleBackend:
-    """FR-018, FR-020: an object-level question answered from model-level rights held
-    through one of the four shipped portal roles, and only those (D20)."""
-
     def test_a_model_level_permission_held_through_a_shipped_role_answers_for_any_instance(
         self,
     ):
@@ -88,19 +75,13 @@ class TestPortalRoleBackend:
     def test_a_permission_string_with_no_app_label_answers_false_rather_than_raising(
         self,
     ):
-        """Some callers (``guardian``-style object checks - see
-        ``tests/test_core/test_project/conftest.py``) ask with a bare codename and no
-        app label, e.g. ``user.has_perm("change_project", project)``. Every backend in
-        the chain is still consulted when an earlier one answers ``False``, so this
-        backend must answer ``False`` for that shape too, not raise."""
         person = PersonFactory()
         dataset = DatasetFactory()
 
         assert person.has_perm("change_dataset", dataset) is False
 
     def test_has_perm_with_no_object_answers_false_from_this_backend_directly(self):
-        """The chain cannot recurse into this backend: it must answer ``False``
-        on its own before ever asking ``user.has_perm(perm)`` again."""
+        # The backend must answer False itself, or the chain recurses into user.has_perm(perm).
         person = PersonFactory()
         person.user_permissions.add(_permission("dataset", "change_dataset"))
         backend = PortalRolePermissionBackend()
@@ -108,20 +89,15 @@ class TestPortalRoleBackend:
         assert backend.has_perm(person, "dataset.change_dataset", None) is False
 
     def test_registering_the_backend_does_not_break_authenticate(self):
-        """``django.contrib.auth.authenticate()`` introspects every configured backend's
-        ``authenticate`` signature before calling it (``django/contrib/auth/__init__.py``
-        ``_get_compatible_backends``), so a backend with no ``authenticate`` method at all
-        breaks sign-in for every account, not only one this backend cares about."""
+        # authenticate() inspects each backend's `authenticate` signature, so a backend without that
+        # method breaks sign-in for every user.
         from django.contrib.auth import authenticate
 
         assert authenticate(email="nobody@example.com", password="wrong") is None
 
     def test_manage_organization_is_never_answered_by_this_backend(self):
-        """D14: a stale ``Permission`` row for it survives in migrated databases -
-        the model no longer declares it (``fairdm/contrib/contributors/migrations/
-        0017_remove_manage_organization_permission.py``), but an upgraded portal's
-        row is never deleted - and this right comes from a current owner
-        affiliation and nothing else (``fairdm/core/permissions.py:44-53``)."""
+        # A stale Permission row survives in migrated databases, because the migration that removed the
+        # permission never deleted rows.
         person = PersonFactory()
         organization = OrganizationFactory()
         stale_permission, _ = Permission.objects.get_or_create(
@@ -136,18 +112,11 @@ class TestPortalRoleBackend:
 
 @pytest.mark.django_db
 class TestImportAndPublishGatePermissions:
-    """COR-001: the import and publish plugin gates in `fairdm/contrib/import_export/
-    views.py` ask `user.has_perm(f"{instance._meta.app_label}.import_data", instance)`
-    and the `can_publish` equivalent - the dotted spelling this backend requires
-    (`PortalRolePermissionBackend.has_perm` above refuses a bare codename by design).
-    `fairdm.contrib.import_export.views` cannot be imported directly to exercise
-    `DataImportView.check`/`DatasetPublishConfirm.check` themselves - a pre-existing,
-    unrelated defect predating this story (see `specs/017-portal-roles/progress.md`'s
-    T017/T018 concerns) - so this proves the exact permission strings those two call
-    sites now ask with, the same way `TestPortalRoleBackend` above proves
-    `dataset.change_dataset`."""
-
-    def test_a_data_curator_is_admitted_to_import_on_a_dataset_they_did_not_create(self):
+    # The import and publish gates ask has_perm(f"{app_label}.import_data", instance), the dotted
+    # spelling this backend requires. A bare codename is refused by design.
+    def test_a_data_curator_is_admitted_to_import_on_a_dataset_they_did_not_create(
+        self,
+    ):
         curator = PersonFactory()
         curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
         dataset = DatasetFactory()
@@ -169,7 +138,9 @@ class TestImportAndPublishGatePermissions:
 
         assert contributor.has_perm("dataset.import_data", dataset)
 
-    def test_a_data_curator_is_admitted_to_publish_on_a_dataset_they_did_not_create(self):
+    def test_a_data_curator_is_admitted_to_publish_on_a_dataset_they_did_not_create(
+        self,
+    ):
         curator = PersonFactory()
         curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
         dataset = DatasetFactory()

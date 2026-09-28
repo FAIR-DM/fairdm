@@ -1,17 +1,6 @@
-# Generated for FS-003 US-4 - convert stored funding from the retired flat
-# shape ({"agency", "grant_number", "amount"}) to DataCite's funding
-# reference shape (a list of {"funderName", "awardNumber", ...} objects).
-#
-# Rows already in the new shape (a list) and rows that match neither shape
-# are left untouched. `amount` has no destination in DataCite's schema and
-# is dropped (see D-013 in specs/003-core-projects/decisions.md), so this
-# migration is irreversible: a reverse built from `funderName` and
-# `awardNumber` alone would drop `funderIdentifier`, `funderIdentifierType`,
-# `awardTitle` and `awardURI` from any record that carries them, and it
-# cannot distinguish a record this migration produced from a project
-# created directly in the new shape afterwards - either way it would
-# rewrite data it has no business touching. No reverse is declared, so
-# rolling back this migration fails loudly instead.
+# Converts stored funding from the retired flat shape ({"agency", "grant_number", "amount"}) to
+# DataCite's list of funding references (FS-003). Rows in neither shape are left untouched.
+# Irreversible: `amount` has no DataCite destination, and a reverse cannot tell rows apart.
 
 from django.db import migrations
 
@@ -51,6 +40,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             convert_flat_funding_to_datacite_shape,
-            # No reverse: see the module docstring above.
+            # No reverse is declared, so rolling back fails loudly.
         ),
     ]

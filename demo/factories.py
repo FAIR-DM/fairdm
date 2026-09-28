@@ -1,5 +1,4 @@
-"""
-FairDM Demo App - Factory Examples
+"""Factories for the demo models, with examples of common factory patterns.
 
 This module demonstrates best practices for creating test factories in FairDM
 portals using factory_boy. These factories are used in tests and for generating
@@ -58,7 +57,6 @@ import factory
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import MeasurementFactory, SampleFactory
 
-# Import dataset-specific factories from core
 from .models import (
     CustomParentSample,
     CustomSample,
@@ -70,14 +68,9 @@ from .models import (
     XRFMeasurement,
 )
 
-# ============================================================================
-# Example 1: Basic Sample Factory
-# ============================================================================
-
 
 class CustomParentSampleFactory(SampleFactory):
-    """
-    Basic sample factory demonstrating minimal configuration.
+    """Basic sample factory demonstrating minimal configuration.
 
     This is the simplest factory pattern - just specify fake data for
     your custom fields. The parent SampleFactory handles all base fields
@@ -90,14 +83,8 @@ class CustomParentSampleFactory(SampleFactory):
         model = CustomParentSample
 
 
-# ============================================================================
-# Example 2: Comprehensive Sample Factory with All Field Types
-# ============================================================================
-
-
 class CustomSampleFactory(SampleFactory):
-    """
-    Comprehensive sample factory showing all common field types.
+    """Comprehensive sample factory showing all common field types.
 
     This factory demonstrates how to use Faker providers for different
     Django field types. Use this as a reference when creating factories
@@ -124,14 +111,8 @@ class CustomSampleFactory(SampleFactory):
         model = CustomSample
 
 
-# ============================================================================
-# Example 3: Measurement Factory
-# ============================================================================
-
-
 class ExampleMeasurementFactory(MeasurementFactory):
-    """
-    Measurement factory demonstrating measurement-specific patterns.
+    """Measurement factory demonstrating measurement-specific patterns.
 
     Measurement factories inherit from MeasurementFactory which provides
     base fields. Always ensure measurements are linked to samples.
@@ -158,8 +139,7 @@ class ExampleMeasurementFactory(MeasurementFactory):
 
 
 class XRFMeasurementFactory(MeasurementFactory):
-    """
-    Factory for XRFMeasurement, an X-ray fluorescence (XRF) spectroscopy measurement.
+    """Factory for XRFMeasurement, an X-ray fluorescence (XRF) spectroscopy measurement.
 
     ``element`` and ``concentration_ppm`` are required (non-null) fields on the model, so the
     factory always supplies them.
@@ -177,9 +157,7 @@ class XRFMeasurementFactory(MeasurementFactory):
 
 
 class ICP_MS_MeasurementFactory(MeasurementFactory):
-    """
-    Factory for ICP_MS_Measurement, an Inductively Coupled Plasma Mass Spectrometry
-    (ICP-MS) measurement.
+    """Factory for ICP_MS_Measurement, an ICP mass spectrometry measurement.
 
     ``isotope`` and ``counts_per_second`` are required (non-null) fields on the model, so the
     factory always supplies them.
@@ -197,11 +175,10 @@ class ICP_MS_MeasurementFactory(MeasurementFactory):
 
 
 class RockSampleFactory(SampleFactory):
-    """
-    Factory for RockSample demonstrating geological sample data patterns.
+    """Factory for RockSample demonstrating geological sample data patterns.
 
     This factory shows how to create rock samples with realistic test data
-    for geological studies. Used in Feature 007 tests and demo data generation.
+    for geological studies. Used in tests and demo data generation.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -241,11 +218,10 @@ class RockSampleFactory(SampleFactory):
 
 
 class WaterSampleFactory(SampleFactory):
-    """
-    Factory for WaterSample demonstrating water quality measurement patterns.
+    """Factory for WaterSample demonstrating water quality measurement patterns.
 
     This factory creates water samples with realistic environmental monitoring
-    data. Used in Feature 007 tests and for generating demo datasets.
+    data. Used in tests and for generating demo datasets.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -275,8 +251,7 @@ class WaterSampleFactory(SampleFactory):
 
 
 class SoilSampleFactory(SampleFactory):
-    """
-    Factory for SoilSample demonstrating component-specific field configuration.
+    """Factory for SoilSample demonstrating component-specific field configuration.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -285,11 +260,7 @@ class SoilSampleFactory(SampleFactory):
         "random_element",
         elements=["clay", "sand", "silt", "loam", "peat"],
     )
-    # left_digits=2, not 1: max_value=14 needs two integer digits (Faker's
-    # pydecimal raises "Max value must fit within left digits" otherwise, a
-    # pre-existing defect this story's TestSamplePolymorphism (T024) exposed
-    # via the every-registered-type fixture, which had never exercised this
-    # factory's defaults before.
+    # left_digits=2: max_value=14 needs two integer digits or Faker's pydecimal raises.
     ph_level = factory.Faker(
         "pydecimal", left_digits=2, right_digits=2, min_value=0, max_value=14
     )
@@ -306,14 +277,8 @@ class SoilSampleFactory(SampleFactory):
         model = SoilSample
 
 
-# ============================================================================
-# Example 4: Contributor Factories (Feature 009)
-# ============================================================================
-
-
 class PersonFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Person (AUTH_USER_MODEL) demonstrating claimed/unclaimed patterns.
+    """Factory for Person (AUTH_USER_MODEL) demonstrating claimed/unclaimed patterns.
 
     FairDM uses Person as AUTH_USER_MODEL. There are two patterns:
     1. Claimed users (email + password) for interactive portal access
@@ -327,7 +292,7 @@ class PersonFactory(factory.django.DjangoModelFactory):
     email = factory.LazyAttribute(
         lambda obj: f"{obj.first_name.lower()}.{obj.last_name.lower()}@example.com"
     )
-    is_active = True  # Claimed users are active by default
+    is_active = True
 
     class Meta:
         model = Person
@@ -337,14 +302,12 @@ class PersonFactory(factory.django.DjangoModelFactory):
         """Set a usable password for claimed users."""
         if not create:
             return
-        # For claimed users, set a default password
         obj.set_password("password123")
         obj.save()
 
 
 class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for unclaimed Person instances (provenance-only records).
+    """Factory for unclaimed Person instances (provenance-only records).
 
     Unclaimed persons have:
     - No email address (email=None)
@@ -365,8 +328,7 @@ class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
 
 
 class OrganizationFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Organization demonstrating organizational structures.
+    """Factory for Organization demonstrating organizational structures.
 
     Organizations can have:
     - ROR identifiers for institutional lookup
@@ -384,8 +346,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
 
 
 class AffiliationFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Affiliation demonstrating membership patterns.
+    """Factory for Affiliation demonstrating membership patterns.
 
     Affiliation type field determines permissions:
     - PENDING (0): Awaiting verification
@@ -406,7 +367,7 @@ class AffiliationFactory(factory.django.DjangoModelFactory):
 
     person = factory.SubFactory(PersonFactory)
     organization = factory.SubFactory(OrganizationFactory)
-    type = 1  # MembershipType.MEMBER by default
+    type = 1  # Affiliation.MembershipType.MEMBER
     is_primary = False
 
     class Meta:

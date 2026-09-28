@@ -1,3 +1,5 @@
+"""Root URL configuration for a FairDM portal."""
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
@@ -20,17 +22,13 @@ urlpatterns = [
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
-    # path("", include("dac.allauth")),
     path("account-center/", include("mvp.urls")),
     path("account-center/", include("dac.urls")),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    # Only the preview endpoint is exposed. django-markdownx also ships an
-    # image upload view, which writes to media storage with no authentication
-    # check of any kind; the editor here has no image upload, so that route is
-    # deliberately left out rather than included and then guarded.
+    # Preview only: django-markdownx also ships an unauthenticated image upload view.
     path(
         "markdownx/markdownify/",
         MarkdownifyView.as_view(),
@@ -38,7 +36,6 @@ urlpatterns = [
     ),
     path("hijack/", include("hijack.urls")),
     path("orbit/", include("orbit.urls")),
-    # REST API — Feature 011 (namespaced to prevent URL name collision with portal UI routes)
 ]
 
 if addon_urls:
@@ -47,7 +44,6 @@ if addon_urls:
             path("", include(addon_url)),
         ]
 
-# serve media and static files directly during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
@@ -78,6 +74,3 @@ if settings.DEBUG:
         urlpatterns += [
             path("__reload__/", include("django_browser_reload.urls")),
         ]
-
-
-# urlpatterns += [path("", include("cms.urls"))]  # must be last

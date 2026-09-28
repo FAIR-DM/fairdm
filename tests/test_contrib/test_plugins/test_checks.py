@@ -81,12 +81,6 @@ class TestUniqueness:
                 url_path = "shared-segment"
 
     def test_a_generated_address_name_cannot_collide(self):
-        """Names and segments alone are not enough.
-
-        Plugin ``a`` owning a child ``b`` generates the name ``a-b``, and so does a separate plugin
-        named ``a-b``. The paths differ, so no segment check catches it, and Django keeps the last
-        registration for reverse without a word.
-        """
 
         class B(Plugin, TemplateView):
             name = "b"
@@ -113,7 +107,6 @@ class TestRoutes:
                 url_path = "<nosuchconverter:thing>"
 
     def test_a_route_converter_is_allowed(self):
-        """An additional view needs this to address its own target."""
 
         class Editor(Plugin, TemplateView):
             url_path = "<int:pk>/edit"
@@ -128,7 +121,6 @@ class TestRoutes:
 
 class TestPredicates:
     def test_a_classmethod_predicate_is_refused(self):
-        """Truthy but not callable, so a naive guard would publish the page."""
         with pytest.raises(PluginRegistrationError, match="cannot be called"):
 
             @plugins.register(Sample)
@@ -196,12 +188,6 @@ class TestExtraViews:
 
 class TestRefusalHappensAtRegistration:
     def test_the_decorator_itself_raises(self):
-        """Not at first request, and not from a management command.
-
-        Registration runs at import, so it fails on every start including a production boot. The
-        check framework only runs from management commands, which is a weaker guarantee than it
-        looks.
-        """
         with pytest.raises(PluginRegistrationError):
             plugins.register(Sample)(
                 type("Dup", (Plugin, TemplateView), {"name": "at-import"})

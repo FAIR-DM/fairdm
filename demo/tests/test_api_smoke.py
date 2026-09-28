@@ -1,13 +1,4 @@
-"""
-FairDM Demo App — API Smoke Tests (Feature 011 T048)
-
-Verifies that demo app Sample and Measurement models registered via the FairDM
-registry get correctly auto-generated API endpoints, appear in the discovery
-catalogs, and return sensible data from list/detail endpoints.
-
-These tests serve as a live sanity check that the framework's API generation
-pipeline works end-to-end with real models defined by a portal developer.
-"""
+"""FairDM Demo App — API Smoke Tests (Feature 011 T048)."""
 
 import pytest
 from django.urls import reverse
@@ -15,31 +6,19 @@ from rest_framework.test import APIClient
 
 from fairdm.utils.choices import Visibility
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 
 @pytest.fixture()
 def api_client():
     return APIClient()
 
 
-# ---------------------------------------------------------------------------
-# Discovery catalog smoke tests
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDemoSampleDiscovery:
-    """Demo Sample types appear correctly in the discovery catalog."""
-
     def test_sample_discovery_returns_200(self, api_client):
         resp = api_client.get(reverse("api:api-sample-discovery"))
         assert resp.status_code == 200
 
     def test_demo_samples_in_catalog(self, api_client):
-        """All registered demo sample types appear in the discovery catalog."""
         from fairdm.registry import registry
 
         resp = api_client.get(reverse("api:api-sample-discovery"))
@@ -53,7 +32,6 @@ class TestDemoSampleDiscovery:
             )
 
     def test_catalog_entries_have_required_keys(self, api_client):
-        """Each catalog entry has name, endpoint, fields, and count keys."""
         resp = api_client.get(reverse("api:api-sample-discovery"))
         for entry in resp.json().get("types", []):
             for key in ("name", "endpoint", "fields", "count"):
@@ -62,14 +40,11 @@ class TestDemoSampleDiscovery:
 
 @pytest.mark.django_db
 class TestDemoMeasurementDiscovery:
-    """Demo Measurement types appear correctly in the discovery catalog."""
-
     def test_measurement_discovery_returns_200(self, api_client):
         resp = api_client.get(reverse("api:api-measurement-discovery"))
         assert resp.status_code == 200
 
     def test_demo_measurements_in_catalog(self, api_client):
-        """All registered demo measurement types appear in the discovery catalog."""
         from fairdm.registry import registry
 
         resp = api_client.get(reverse("api:api-measurement-discovery"))
@@ -83,15 +58,8 @@ class TestDemoMeasurementDiscovery:
             )
 
 
-# ---------------------------------------------------------------------------
-# List endpoint smoke tests
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.django_db
 class TestDemoSampleListEndpoints:
-    """Auto-generated list endpoints for demo Sample types return valid responses."""
-
     def test_custom_parent_sample_list_returns_200(self, api_client):
         resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
         assert resp.status_code == 200
@@ -103,7 +71,6 @@ class TestDemoSampleListEndpoints:
             assert key in data
 
     def test_public_sample_visible_to_anonymous(self, api_client, db):
-        """A public sample appears in the list for anonymous users."""
         from demo.factories import CustomParentSampleFactory
         from fairdm.factories import DatasetFactory, ProjectFactory
 
@@ -114,10 +81,9 @@ class TestDemoSampleListEndpoints:
         resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
         assert resp.status_code == 200
         results = resp.json()["results"]
-        assert len(results) >= 1  # At least our sample appears
+        assert len(results) >= 1
 
     def test_sample_count_in_discovery_reflects_public_records(self, api_client, db):
-        """Discovery catalog count for anonymous user matches public-only records."""
         from demo.factories import CustomParentSampleFactory
         from fairdm.factories import DatasetFactory, ProjectFactory
 
@@ -134,8 +100,6 @@ class TestDemoSampleListEndpoints:
 
 @pytest.mark.django_db
 class TestDemoMeasurementListEndpoints:
-    """Auto-generated list endpoint for ExampleMeasurement returns valid response."""
-
     def test_example_measurement_list_returns_200(self, api_client):
         resp = api_client.get(reverse("api:measurements-example-measurements-list"))
         assert resp.status_code == 200

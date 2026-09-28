@@ -452,10 +452,10 @@ from the models regardless. No code change was made for T073; `feature-state.jso
 ## 2026-08-20T15:00:00Z · Implementer US5 · T074
 
 Did: `AffiliationFactory` now declares `type = Affiliation.MembershipType.MEMBER` explicitly
-(matching the model's own default, made explicit per Article X) and `start_date = "2020"` so the
+(matching the model's own default, made explicit per Article I) and `start_date = "2020"` so the
 factory default is a current membership (a start date, no end date) rather than a bare row with
 neither declared. Added `TestAffiliationFactory` to `tests/test_factories/test_contributors.py`
-(mirrors `fairdm/factories/contributors.py`, Article X).
+(mirrors `fairdm/factories/contributors.py`, Article I).
 
 Verified: `poetry run pytest tests/test_factories/test_contributors.py::TestAffiliationFactory -q -p no:randomly` → 2 passed. `poetry run pytest tests/test_contrib/test_contributors tests/test_factories -q -p no:randomly` → 328 passed (no regression from the new factory defaults).
 

@@ -1,1 +1,1 @@
-"""Unit tests for Dataset models and related functionality."""
+"""Tests for the dataset app."""

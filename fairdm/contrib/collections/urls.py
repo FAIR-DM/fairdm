@@ -1,3 +1,5 @@
+"""URL configuration for collections."""
+
 from django.urls import include, path
 
 from .views import DataTableView

@@ -1,4 +1,4 @@
-"""FairDM API ViewSets and discovery views.
+"""API viewsets and discovery views.
 
 This module provides:
 
@@ -34,10 +34,6 @@ from fairdm.api.serializers import (
 from fairdm.contrib.contributors.models import Contributor
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 
-# ---------------------------------------------------------------------------
-# Base viewset
-# ---------------------------------------------------------------------------
-
 
 class BaseViewSet(ModelViewSet):
     """Internal base class — see generated subclasses for API documentation.
@@ -49,24 +45,22 @@ class BaseViewSet(ModelViewSet):
     lookup_field = "uuid"
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
+        """Require an authenticated user before saving."""
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to create objects.")
         serializer.save()
 
     def perform_update(self, serializer: serializers.BaseSerializer) -> None:
+        """Require an authenticated user before saving."""
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to update objects.")
         serializer.save()
 
     def perform_destroy(self, instance) -> None:
+        """Require an authenticated user before deleting."""
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to delete objects.")
         instance.delete()
-
-
-# ---------------------------------------------------------------------------
-# Core model viewsets
-# ---------------------------------------------------------------------------
 
 
 class ProjectViewSet(BaseViewSet):
@@ -79,12 +73,15 @@ class ProjectViewSet(BaseViewSet):
 
     @property
     def queryset(self):
+        """Return all projects."""
         return Project.objects.all()
 
     def get_queryset(self):
+        """Return all projects."""
         return Project.objects.all()
 
     def get_serializer_class(self):
+        """Build the project serializer once and reuse it."""
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -95,16 +92,9 @@ class ProjectViewSet(BaseViewSet):
         return self._serializer_class
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
-        """Save a new project, recording the request user as its creator.
-
-        Overridden here rather than on `BaseViewSet` because `created_by` is
-        a field only `Project` carries — the dataset, sample and measurement
-        viewsets inherit `BaseViewSet.perform_create` unchanged, and passing
-        the keyword there would break their creates. The permission check
-        mirrors `BaseViewSet.perform_create` so the creator can be set in the
-        same save rather than a second write that would re-fire post-save
-        signals.
-        """
+        """Save a new project, recording the request user as its creator."""
+        # `created_by` is set in the same save, not a second
+        # write that re-fires signals.
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to create objects.")
         serializer.save(created_by=self.request.user)
@@ -119,18 +109,17 @@ class DatasetViewSet(BaseViewSet):
 
     @property
     def queryset(self):
-        # `all_objects` here, not `objects`: the visibility gate for this
-        # endpoint is `FairDMVisibilityFilter` (list) and
-        # `FairDMObjectPermissions.has_object_permission` (detail), both of
-        # which union in guardian-permitted private datasets. Starting from
-        # the privacy-first default manager would pre-empt that union and
-        # hide a private dataset from a user who holds `view_dataset` on it.
+        """Return all datasets, including private ones the visibility filter admits."""
+        # `all_objects`, not `objects`: the default manager would hide a private
+        # dataset from a user who holds `view_dataset` before the filter can admit it.
         return Dataset.all_objects.all()
 
     def get_queryset(self):
+        """Return all datasets, including private ones the visibility filter admits."""
         return Dataset.all_objects.all()
 
     def get_serializer_class(self):
+        """Build the dataset serializer once and reuse it."""
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -141,13 +130,7 @@ class DatasetViewSet(BaseViewSet):
         return self._serializer_class
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
-        """Save a new dataset, recording the request user as its creator.
-
-        Mirrors `ProjectViewSet.perform_create` - `Dataset.created_by` is the
-        same field, copied field-for-field from `Project.created_by` (D-015),
-        and needs the same server-side assignment `BaseViewSet.perform_create`
-        does not give it.
-        """
+        """Save a new dataset, recording the request user as its creator."""
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to create objects.")
         serializer.save(created_by=self.request.user)
@@ -164,12 +147,15 @@ class ContributorViewSet(ReadOnlyModelViewSet):
 
     @property
     def queryset(self):
+        """Return all contributors."""
         return Contributor.objects.all()
 
     def get_queryset(self):
+        """Return all contributors."""
         return Contributor.objects.all()
 
     def get_serializer_class(self):
+        """Build the contributor serializer once and reuse it."""
         if hasattr(self, "_serializer_class"):
             return self._serializer_class
         self._serializer_class = build_model_serializer(
@@ -180,15 +166,10 @@ class ContributorViewSet(ReadOnlyModelViewSet):
         return self._serializer_class
 
 
-# ---------------------------------------------------------------------------
-# Viewset factory
-# ---------------------------------------------------------------------------
-
-
 def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     """Generate a :class:`ModelViewSet` subclass from a registry config.
 
-    Three-tier serializer resolution (per spec FR-016/US6):
+    The serializer is resolved in this order:
 
     1. ``config.serializer_class`` set → use it directly (custom serializer).
     2. ``config.serializer_fields`` set → auto-generate serializer with those fields.
@@ -206,31 +187,24 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     model = config.model
     model_name = model.__name__
 
-    # Determine serializer using three-tier resolution
     if config.serializer_class is not None:
-        # Tier 3: explicit custom serializer_class — validate base class constraint
         serializer_cls = config._get_class(config.serializer_class)
-        # Enforce inheritance from the correct base serializer
         if issubclass(model, Sample):
             _validate_sample_serializer(serializer_cls)
         elif issubclass(model, Measurement):
             _validate_measurement_serializer(serializer_cls)
     else:
-        # Tier 1/2: serializer_fields overrides fields, both auto-generate
         fields: list[str] = list(config.serializer_fields or config.fields or [])
         if not fields:
-            # No field list declared, so use the framework's own choice — the same
-            # rule every generated component uses, from the one implementation.
+            # Same default-field rule every generated component uses.
             from fairdm.utils.inspection import FieldInspector
 
             fields = FieldInspector(model).get_default_fields()
         else:
-            # Flatten any grouped tuples used for form layout
             from fairdm.api.serializers import _flatten_fields
 
             fields = _flatten_fields(fields)
 
-        # Try to determine the DRF view_name for the URL field
         slug = _model_to_slug(model)
         if hasattr(model, "sample_ptr"):
             view_name = f"api:samples-{slug}-detail"
@@ -239,7 +213,6 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         else:
             view_name = f"api:{model._meta.model_name}-detail"
 
-        # Select the appropriate base serializer class for inheritance enforcement
         if issubclass(model, Sample):
             ser_base_class = BaseSampleSerializer
         elif issubclass(model, Measurement):
@@ -251,14 +224,11 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
             model, fields, view_name=view_name, base_class=ser_base_class
         )
 
-    # Determine filterset. Reached through the accessor, never through an
-    # attribute, so a configuration that overrides get_filterset_class() is
-    # honoured here as it is everywhere else.
+    # Via the accessor so a configuration overriding get_filterset_class() is honoured.
     filterset_class = None
     with contextlib.suppress(Exception):
         filterset_class = config.get_filterset_class()
 
-    # Build queryset attribute (evaluated lazily via lambda to avoid import order issues)
     _model = model
 
     class _GeneratedViewSet(base_class):
@@ -272,9 +242,8 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     if filterset_class is not None:
         _GeneratedViewSet.filterset_class = filterset_class
 
-    # Inject a consumer-facing description so drf-spectacular uses it as the
-    # Swagger operation description instead of inheriting BaseViewSet internals.
-    # Priority: config.description → config.metadata.description → model docstring → fallback
+    # drf-spectacular reads this as the operation description, so it is not
+    # BaseViewSet's docstring.
     description: str = ""
     if getattr(config, "description", None):
         description = config.description
@@ -292,41 +261,30 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
 
 def _model_to_slug(model) -> str:
-    """Derive URL-safe kebab-case slug from ``verbose_name_plural``.
+    """Derive a URL-safe kebab-case slug from ``verbose_name_plural``.
 
-    Uses ``model._meta.verbose_name_plural`` (lowercased and spaces replaced
-    with hyphens) to generate human-readable, stable URL prefixes.
+    Portal developers control the slug through the model's ``verbose_name_plural``.
+    Renaming it changes the URL prefix and basename of that model's API endpoints,
+    which is a breaking change for API consumers.
 
-    Portal developers can control the generated slug by setting a custom
-    ``verbose_name_plural`` in the model's ``Meta`` class::
+    Args:
+        model: The model class to derive the slug from.
 
-        class RockSample(Sample):
-            class Meta:
-                verbose_name_plural = "rock samples"  # → "rock-samples"
-
-    URL stability note: renaming ``verbose_name_plural`` changes the URL
-    prefix and basename for that model's API endpoints.  Communicate any
-    such change to API consumers as a breaking change.
-
-    Examples:
-        - ``verbose_name_plural="rock samples"`` → ``"rock-samples"``
-        - ``verbose_name_plural="ICP-MS measurements"`` → ``"icp-ms-measurements"``
+    Returns:
+        The lowercased plural name with spaces replaced by hyphens, for example
+        ``"rock-samples"`` for ``verbose_name_plural="rock samples"``.
     """
     return str(model._meta.verbose_name_plural).lower().replace(" ", "-")
-
-
-# ---------------------------------------------------------------------------
-# Discovery views
-# ---------------------------------------------------------------------------
 
 
 class _BaseDiscoveryView(APIView):
     """Shared base for sample/measurement discovery catalog views."""
 
-    permission_classes: list = []  # Public, no auth required
-    registry_attr: str = ""  # "samples" or "measurements"
-    url_prefix: str = ""  # "/api/v1/samples/" or "/api/v1/measurements/"
+    permission_classes: list = []
+    registry_attr: str = ""
+    url_prefix: str = ""
 
+    # No docstring: drf-spectacular would show it instead of each subclass's own.
     def get(self, request: Request) -> Response:
         from fairdm.registry import registry
 
@@ -336,15 +294,14 @@ class _BaseDiscoveryView(APIView):
             slug = _model_to_slug(model)
             endpoint = f"{request.scheme}://{request.get_host()}/api/v1/{self.url_prefix}/{slug}/"
 
-            # Count: public records only for anonymous, all accessible for authenticated
+            # Anonymous users are counted on public records only.
             try:
                 if request.user and request.user.is_authenticated:
                     count = model.objects.count()
                 else:
                     from fairdm.utils.choices import Visibility
 
-                    # Samples/Measurements cascade visibility via dataset;
-                    # fall back to total count if the field is absent
+                    # Samples and measurements inherit visibility from their dataset.
                     if hasattr(model, "visibility"):
                         count = model.objects.filter(
                             visibility=Visibility.PUBLIC
@@ -356,7 +313,6 @@ class _BaseDiscoveryView(APIView):
             except Exception:
                 count = 0
 
-            # Gather field metadata
             fields = list(config.fields or [])
             filterable = list(
                 getattr(config, "filter_fields", None)

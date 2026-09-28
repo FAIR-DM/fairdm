@@ -185,7 +185,7 @@ sections of the plugin documentation.
 
 ## Testing
 
-Mirrors the source tree per Article X, factories per model, fixtures in `conftest.py`.
+Mirrors the source tree per Article I, factories per model, fixtures in `conftest.py`.
 
 Three rules the current suite breaks and this one must not:
 

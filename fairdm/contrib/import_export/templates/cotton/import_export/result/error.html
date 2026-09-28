@@ -1,3 +1,4 @@
+{# @description One import error as a list item: the line number and message, the offending row, and for superusers the traceback. Reads the context variables `line`, `error` and `user`. #}
 <li class="import-error-li">
   <div class="import-error-display-message">{% trans "Line" %} {{ line }} - {{ error.error }}</div>
   <pre>
