@@ -61,9 +61,9 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Sample at a glance' %}">
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" />
-    <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" variant="secondary" />
-    <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" variant="secondary" icon="sample" />
+    <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}" icon="people" />
   </c-stats>
 {% endblock overview.figures %}
 

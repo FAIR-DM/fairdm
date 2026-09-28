@@ -6,16 +6,26 @@
     value  – the figure
     desc   – one qualifying line under the figure (or the `desc` slot)
     href   – makes the title a link to where the figure comes from
-    variant – colours the figure: the record type's colour (success, secondary, accent, …)
+    variant – colours the figure and its icon: the record type's colour (success, secondary,
+              accent, …). Without one both stay neutral.
+    icon    – an icon for what is counted, drawn in a tinted tile at the end of the stat
     class  – extra classes on the root
   Slots:
     figure – optional trailing element (daisyUI `stat-figure`)
 
   Candidate for django-mvp.
 {% endcomment %}
-<c-vars title value desc href variant class />
+<c-vars title value desc href variant icon class />
 <div class="stat {{ class }}" {{ attrs }}>
-  {% if figure %}<div class="stat-figure">{{ figure }}</div>{% endif %}
+  {% if figure %}
+    <div class="stat-figure">{{ figure }}</div>
+  {% elif icon %}
+    <div class="stat-figure">
+      <span class="stat-icon" {% if variant %}style="--stat-color: var(--color-{{ variant }})"{% endif %}>
+        <c-icon name="{{ icon }}" aria-hidden="true" only />
+      </span>
+    </div>
+  {% endif %}
   <div class="stat-title">
     {% if href %}<a href="{{ href }}" class="link link-hover">{{ title }}</a>{% else %}{{ title }}{% endif %}
   </div>

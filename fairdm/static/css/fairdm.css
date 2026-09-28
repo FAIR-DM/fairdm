@@ -385,3 +385,19 @@
 .aspect-video {
   aspect-ratio: 16 / 9;
 }
+
+/* The icon on a figure in a stats strip: a rounded tile tinted with the record type's colour,
+ * so the strip reads by colour and shape before the numbers are read. The colour comes from
+ * the stat's `variant` through --stat-color; without one the tile stays neutral. django-mvp's
+ * build ships no tinted-background utilities, which is why this is a rule here. */
+.stat-icon {
+  --stat-color: var(--color-base-content);
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-box, 1rem);
+  font-size: 1.5rem;
+  color: var(--stat-color);
+  background-color: color-mix(in oklch, var(--stat-color) 12%, transparent);
+}

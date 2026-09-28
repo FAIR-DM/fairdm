@@ -79,10 +79,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" />
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" />
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" icon="people" />
   </c-stats>
 {% endblock overview.figures %}
 
