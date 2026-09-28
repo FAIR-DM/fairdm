@@ -133,11 +133,11 @@
 
   {% block overview.siblings %}
     {% if siblings.total %}
-      <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100" tight>
+      <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100">
         <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
-        <ul class="list mt-2">
+        <ul class="list">
           {% for row in siblings.rows %}
-            <li class="list-row">
+            <li class="list-row px-0">
               <div class="list-col-grow min-w-0 flex flex-col gap-1">
                 <a href="{{ row.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ row.measurement.name }}</a>
                 <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
@@ -150,7 +150,7 @@
           {% endfor %}
         </ul>
         {% if siblings.more %}
-          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70 px-4 pb-4">
+          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
             {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
             {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a filterable table." as reason %}
             {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}

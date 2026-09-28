@@ -22,8 +22,8 @@
       {% translate "Copy" %}
       <span data-copied class="hidden text-success" role="status">{% translate "Copied" %}</span>
     </button>
-    {% translate "BibTeX and RIS" as formats %}
-    {% translate "APA, BibTeX and RIS formats, generated from the same record." as reason %}
-    {% include "overview/includes/pending_action.html" with label=formats icon="download" reason=reason %}
+    {% translate "Export" as label %}
+    {% translate "The citation in APA, BibTeX and other formats." as reason %}
+    {% include "overview/includes/pending_action.html" with label=label icon="download" reason=reason %}
   </c-slot>
 </c-card>

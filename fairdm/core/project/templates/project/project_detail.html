@@ -11,14 +11,12 @@
   `fairdm/core/project/overview.py`.
 
   Project blocks in the wide column: overview.about, overview.datasets, overview.charts,
-  overview.map, overview.activity. In the facts column: overview.funding.
+  overview.map, overview.activity. The timeline and funding sit in overview.details_extra.
 {% endcomment %}
 
 {% block overview.badges %}
   <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
-  {% if project.visibility == project.VISIBILITY.PUBLIC %}
-    <span class="badge badge-ghost badge-sm"><c-icon name="globe" aria-hidden="true" />{% translate "Public" %}</span>
-  {% else %}
+  {% if project.visibility != project.VISIBILITY.PUBLIC %}
     <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
   {% endif %}
 {% endblock overview.badges %}
@@ -36,7 +34,6 @@
       {{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}
     </span>
   {% endif %}
-  <span>{% blocktranslate with when=project.modified|naturalday:"j M Y" %}Updated {{ when }}{% endblocktranslate %}</span>
 {% endblock overview.meta %}
 
 {% block overview.actions %}
@@ -82,14 +79,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" desc="{{ counts.datasets_desc }}" href="{{ urls.datasets }}" />
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" desc="{{ counts.samples_desc }}" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" desc="{{ counts.measurements_desc }}" />
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}">
-      <c-slot name="desc">
-        {% blocktranslate count counter=team.people %}{{ counter }} person{% plural %}{{ counter }} people{% endblocktranslate %}{% if team.organizations %} · {% blocktranslate count counter=team.organizations %}{{ counter }} organisation{% plural %}{{ counter }} organisations{% endblocktranslate %}{% endif %}
-      </c-slot>
-    </c-stats.item>
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -99,7 +92,7 @@
       {% if descriptions|length > 1 %}
         <c-tabs group="project-about" label="{% translate 'Project descriptions' %}">
           {% for description in descriptions %}
-            <c-tabs.tab group="project-about" label="{{ description.label }}" :checked="forloop.first">
+            <c-tabs.tab group="project-about" label="{{ description.label }}" :checked="forloop.first" :flush="forloop.first">
               <div class="prose max-w-none">{{ description.value|safe_markdown }}</div>
             </c-tabs.tab>
           {% endfor %}
@@ -118,7 +111,7 @@
   {% endblock overview.about %}
 
   {% block overview.datasets %}
-    <c-card title="{% translate 'Datasets' %}" class="bg-base-100" tight>
+    <c-card title="{% translate 'Datasets' %}" class="bg-base-100">
       <c-slot name="badges">
         {% if counts.datasets %}<span class="badge badge-ghost badge-sm">{{ counts.datasets }}</span>{% endif %}
       </c-slot>
@@ -128,18 +121,16 @@
         {% endif %}
       </c-slot>
       {% if datasets_preview.rows %}
-        <c-list label="{% translate 'Most recently updated datasets' %}" class="mt-2">
+        <c-list label="{% translate 'Most recently updated datasets' %}">
           {% for dataset in datasets_preview.rows %}
-            <c-list.row>
+            <c-list.row class="px-0">
               <div class="list-col-grow min-w-0 flex flex-col gap-1">
                 <a href="{{ dataset.get_absolute_url }}" class="link link-hover font-medium break-words">{{ dataset.name }}</a>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/70">
                   {% if dataset.data_is_public %}
                     <span class="badge badge-soft badge-success badge-xs">{% translate "Published" %}</span>
-                  {% elif dataset.visibility == dataset.VISIBILITY_CHOICES.PUBLIC %}
-                    <span class="badge badge-soft badge-info badge-xs">{% translate "Public, data not yet published" %}</span>
                   {% else %}
-                    <span class="badge badge-ghost badge-xs"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
+                    <span class="badge badge-soft badge-neutral badge-xs">{% translate "Unpublished" %}</span>
                   {% endif %}
                   {% if dataset.license %}
                     <span class="badge badge-outline badge-xs" title="{% translate 'Licence' %}">{{ dataset.license.name }}</span>
@@ -150,21 +141,21 @@
                     {% blocktranslate count counter=dataset.n_samples %}{{ counter }} sample{% plural %}{{ counter }} samples{% endblocktranslate %}
                     · {% blocktranslate count counter=dataset.n_measurements %}{{ counter }} measurement{% plural %}{{ counter }} measurements{% endblocktranslate %}
                   </span>
-                  <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Updated {{ when }}{% endblocktranslate %}</span>
+                  <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Last updated {{ when }}{% endblocktranslate %}</span>
                 </div>
               </div>
             </c-list.row>
           {% endfor %}
         </c-list>
         {% if datasets_preview.more %}
-          <div class="px-4 pb-4">
+          <div>
             <a href="{{ urls.datasets }}" class="link link-primary text-sm">
               {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
             </a>
           </div>
         {% endif %}
       {% else %}
-        <div class="px-6 pb-6 pt-2 flex flex-col items-start gap-3">
+        <div class="flex flex-col items-start gap-3">
           {% if can_manage %}
             <p class="text-base-content/70">{% translate "Datasets hold this project's samples and measurements, and are what other researchers cite and reuse. Add the first one to start sharing data." %}</p>
             {% if urls.add_dataset %}
@@ -206,79 +197,58 @@
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Where the samples come from' %}"
+    <c-card.placeholder title="{% translate 'Map' %}"
                         icon="map"
+                        wide
                         message="{% translate "A map of every sample with a location, so you can see the project's spatial coverage before opening a dataset." %}" />
   {% endblock overview.map %}
 
   {% block overview.activity %}
     <c-card.placeholder title="{% translate 'Recent activity' %}"
                         icon="activity"
+                        wide
                         message="{% translate 'The latest changes to this project and its datasets: new samples, published datasets, people joining.' %}" />
   {% endblock overview.activity %}
 {% endblock overview.main %}
 
-{% block overview.identifiers %}
-  <c-card.identifiers :identifiers="identifiers" portal_id="{{ project.uuid }}" api_url="{{ api_url|default:'' }}">
-    <c-slot name="licenses">
-      {% for name, n in licenses.items %}
-        <span class="flex items-baseline gap-2">
-          <span class="badge badge-outline badge-sm">{{ name }}</span>
-          <span class="text-base-content/70">{% blocktranslate count counter=n %}{{ counter }} dataset{% plural %}{{ counter }} datasets{% endblocktranslate %}</span>
-        </span>
-      {% empty %}
-        <span class="text-base-content/70">{% translate "No public datasets yet, so no licence applies." %}</span>
-      {% endfor %}
-      {% if licenses.unlicensed %}
-        <span class="text-warning">{% blocktranslate count counter=licenses.unlicensed %}{{ counter }} public dataset has no licence and can't be reused safely.{% plural %}{{ counter }} public datasets have no licence and can't be reused safely.{% endblocktranslate %}</span>
-      {% endif %}
-    </c-slot>
-  </c-card.identifiers>
-{% endblock overview.identifiers %}
 
-{% block overview.record_facts %}
-  {% block overview.funding %}
-    {% if funding or can_manage %}
-      <c-card title="{% translate 'Funding' %}" class="bg-base-100">
-        {% if funding %}
-          <ul class="flex flex-col gap-3 text-sm">
-            {% for award in funding %}
-              <li class="flex flex-col">
-                {% if award.funderIdentifier %}
-                  <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium">{{ award.funderName }}</a>
-                {% else %}
-                  <span class="font-medium">{{ award.funderName }}</span>
-                {% endif %}
-                {% if award.awardTitle %}<span class="text-base-content/70">{{ award.awardTitle }}</span>{% endif %}
-                {% if award.awardNumber %}
-                  <span class="text-xs font-mono">
-                    {% if award.awardURI %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
-                  </span>
-                {% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="text-sm text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
-        {% endif %}
-      </c-card>
-    {% endif %}
-  {% endblock overview.funding %}
-{% endblock overview.record_facts %}
-
-{% block overview.dates %}
-  <c-card.dates :rows="details">
-    {% if timeline.start_date %}
-      <div class="flex flex-col gap-1 text-sm">
-        <div class="flex justify-between gap-3">
-          <span class="text-base-content/70">{% translate "Timeline" %}</span>
-          <span class="text-end">{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
-        </div>
-        {% if timeline.percent is not None %}
-          <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" />
-          <span class="text-xs text-base-content/70">{{ timeline.label }}</span>
-        {% endif %}
+{% block overview.details_extra %}
+  {% if timeline.start_date %}
+    <div class="flex flex-col gap-1 text-sm">
+      <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "Timeline" %}</h3>
+      <div class="flex justify-between gap-3">
+        <span>{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
+        {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
       </div>
-    {% endif %}
-  </c-card.dates>
-{% endblock overview.dates %}
+      {% if timeline.percent is not None %}
+        <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" />
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if funding or can_manage %}
+    <div class="flex flex-col gap-1 text-sm">
+      <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "Funding" %}</h3>
+      {% if funding %}
+        <ul class="flex flex-col gap-2">
+          {% for award in funding %}
+            <li class="flex flex-col">
+              {% if award.funderIdentifier %}
+                <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium">{{ award.funderName }}</a>
+              {% else %}
+                <span class="font-medium">{{ award.funderName }}</span>
+              {% endif %}
+              {% if award.awardTitle %}<span class="text-base-content/70">{{ award.awardTitle }}</span>{% endif %}
+              {% if award.awardNumber %}
+                <span class="text-xs font-mono">
+                  {% if award.awardURI %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
+                </span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock overview.details_extra %}

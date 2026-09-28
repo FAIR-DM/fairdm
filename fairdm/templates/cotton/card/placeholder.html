@@ -10,10 +10,11 @@
     title    – the card's title, as it will read once the feature exists
     icon     – an icon for the empty area
     message  – what the card will show
+    wide     – keep the empty area at 16:9, for cards that will hold a map or a chart
     class    – extra classes on the card
 {% endcomment %}
-<c-vars title icon message class />
+<c-vars title icon message wide=False class />
 <c-card title="{{ title }}" class="bg-base-100 {{ class }}" only>
   <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Planned" %}</span></c-slot>
-  <c-placeholder.card icon="{{ icon }}" message="{{ message }}" only />
+  <c-placeholder.card icon="{{ icon }}" message="{{ message }}" class="{% if wide %}aspect-video{% endif %}" only />
 </c-card>

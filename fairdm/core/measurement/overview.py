@@ -72,6 +72,15 @@ def build(request, measurement, can_manage):
     parents = [{"label": _("Dataset"), "record": measurement.dataset}]
     if project is not None:
         parents.append({"label": _("Project"), "record": project})
+    parents.append(shared.license_row(measurement.dataset.license, note=_("From its dataset")))
+    parents.append(
+        {
+            "label": _("Access"),
+            "text": _("Open to everyone")
+            if measurement.dataset.data_is_public
+            else _("Its dataset's team only, until the dataset is published"),
+        }
+    )
 
     return {
         "record": measurement,
@@ -90,15 +99,9 @@ def build(request, measurement, can_manage):
         "project": project,
         "citation": citation,
         "identifiers": identifiers,
-        "license": measurement.dataset.license,
-        "license_note": _("from its dataset"),
-        "access_text": _("Open to everyone.")
-        if measurement.dataset.data_is_public
-        else _("Its dataset's team only, until the dataset is published."),
         "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
         "people": shared.people(entries),
-        "parents": parents,
-        "details": [
+        "details": parents + [
             {"label": _("Type"), "text": measurement_type[:1].upper() + measurement_type[1:]},
             {"label": _("Added"), "date": measurement.added},
             {"label": _("Last updated"), "date": measurement.modified},

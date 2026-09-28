@@ -1,0 +1,97 @@
+{% load i18n %}
+{% comment %}
+  <c-card.details> — the record's metadata in one card: what it belongs to, its licence, who can
+  see its data, its status and dates, its identifiers, and how a machine reaches it.
+
+  Attributes:
+    rows         – [{label, text, url, record, date, until, note, badge, badge_variant, warning}]
+                   record       – a record, shown by name and linked by its own address
+                   text + url   – a value, linked when `url` is set
+                   date/until   – a date, or a date range; formatted here
+                   badge        – shown as a badge in `badge_variant`
+                   note         – a line under the row
+                   warning      – draws the value as a warning
+    identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
+    portal_id    – the record's portal ID, with a copy button
+    local_id     – the team's own ID for the record, if it has one
+    api_url      – the record's REST API address, if it has one
+    class        – extra classes on the card
+  Slots:
+    (default)    – sections after the rows, e.g. a project's timeline and funding
+{% endcomment %}
+<c-vars rows identifiers portal_id local_id api_url class />
+<c-card title="{% translate 'Details' %}" class="bg-base-100 {{ class }}" only>
+  <dl class="flex flex-col gap-2 text-sm">
+    {% for row in rows %}
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between items-baseline gap-3">
+          <dt class="text-base-content/70 shrink-0">{{ row.label }}</dt>
+          <dd class="text-end min-w-0 break-words {% if row.warning %}text-warning{% endif %}">
+            {% if row.record %}
+              <a href="{{ row.record.get_absolute_url }}" class="link link-hover">{{ row.record }}</a>
+            {% elif row.badge %}
+              <span class="badge badge-soft badge-{{ row.badge_variant|default:'neutral' }} badge-sm">{{ row.badge }}</span>
+            {% elif row.date %}
+              {{ row.date|date:"j M Y" }}{% if row.until %} – {{ row.until|date:"j M Y" }}{% endif %}
+            {% elif row.url %}
+              <a href="{{ row.url }}" class="link link-hover">{{ row.text }}</a>
+            {% else %}
+              {{ row.text }}
+            {% endif %}
+          </dd>
+        </div>
+        {% if row.note %}<dd class="text-xs text-base-content/70">{{ row.note }}</dd>{% endif %}
+      </div>
+    {% endfor %}
+  </dl>
+
+  {{ slot }}
+
+  <div class="flex flex-col gap-1">
+    <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "Identifiers" %}</h3>
+    <table class="table table-xs">
+      <caption class="sr-only">{% translate "Identifiers" %}</caption>
+      <tbody>
+        {% for identifier in identifiers %}
+          <tr>
+            <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{{ identifier.type }}</th>
+            <td class="pe-0 font-mono break-all">
+              {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary">{{ identifier.value }}</a>{% else %}{{ identifier.value }}{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        {% if local_id %}
+          <tr>
+            <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Local ID" %}</th>
+            <td class="pe-0 font-mono break-all">{{ local_id }}</td>
+          </tr>
+        {% endif %}
+        {% if portal_id %}
+          <tr>
+            <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
+            <td class="pe-0 font-mono break-all">
+              {{ portal_id }}
+              <button type="button" class="btn btn-ghost btn-xs"
+                      aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                      onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+                <c-icon name="copy" aria-hidden="true" only />
+              </button>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "For machines" %}</h3>
+    <div class="flex flex-wrap gap-2">
+      {% if api_url %}
+        <a href="{{ api_url }}" class="btn btn-xs btn-outline"><c-icon name="api" aria-hidden="true" only />{% translate "REST API" %}</a>
+      {% endif %}
+      {% translate "Metadata downloads" as downloads %}
+      {% translate "The DataCite JSON and schema.org JSON-LD records, served from this address." as reason %}
+      {% include "overview/includes/pending_action.html" with label=downloads icon="download" reason=reason size="xs" %}
+    </div>
+  </div>
+</c-card>

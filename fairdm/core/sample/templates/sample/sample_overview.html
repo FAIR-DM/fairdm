@@ -61,10 +61,9 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Sample at a glance' %}">
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" desc="{{ counts.measurements_desc }}" />
-    <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" desc="{{ counts.related_desc }}" />
-    <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}"
-                  desc="{% if lifecycle %}{% blocktranslate count counter=lifecycle|length %}{{ counter }} recorded event{% plural %}{{ counter }} recorded events{% endblocktranslate %}{% else %}{% translate 'No history recorded' %}{% endif %}" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" />
+    <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" variant="secondary" />
+    <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -89,15 +88,15 @@
   {% endblock overview.history %}
 
   {% block overview.measurements %}
-    <c-card title="{% translate 'Measurements' %}" class="bg-base-100" tight>
+    <c-card title="{% translate 'Measurements' %}" class="bg-base-100">
       <c-slot name="badges">{% if measurements.total %}<span class="badge badge-ghost badge-sm">{{ measurements.total }}</span>{% endif %}</c-slot>
       {% if measurements.types %}
-        <c-tabs group="sample-measurements" variant="border" label="{% translate 'Measurement types' %}" class="px-4 pt-2">
+        <c-tabs group="sample-measurements" variant="border" label="{% translate 'Measurement types' %}">
           {% for group in measurements.types %}
-            <c-tabs.tab group="sample-measurements" label="{{ group.label|capfirst }} ({{ group.count }})" :checked="forloop.first" class="pb-2">
+            <c-tabs.tab group="sample-measurements" label="{{ group.label|capfirst }} ({{ group.count }})" :checked="forloop.first" :flush="forloop.first">
               <ul class="list">
                 {% for entry in group.items %}
-                  <li class="list-row">
+                  <li class="list-row px-0">
                     <div class="list-col-grow min-w-0 flex flex-col gap-1">
                       <a href="{{ entry.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.measurement }}</a>
                       <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
@@ -111,7 +110,7 @@
                 {% endfor %}
               </ul>
               {% if group.count > group.items|length %}
-                <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70 px-4 pb-2">
+                <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
                   {% blocktranslate count counter=group.count|add:"-5" %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
                   {% translate "All measurements" as label %}{% translate "Every measurement of this type made on this sample, as a table." as reason %}
                   {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
@@ -121,19 +120,19 @@
           {% endfor %}
         </c-tabs>
       {% else %}
-        <p class="text-sm text-base-content/70 px-6 pb-6 pt-2">{% translate "No measurements have been made on this sample yet." %}</p>
+        <p class="text-sm text-base-content/70">{% translate "No measurements have been made on this sample yet." %}</p>
       {% endif %}
     </c-card>
   {% endblock overview.measurements %}
 
   {% block overview.samples %}
     {% if relations.parents or relations.children or relations.hidden %}
-      <c-card title="{% translate 'Related samples' %}" class="bg-base-100" tight>
+      <c-card title="{% translate 'Related samples' %}" class="bg-base-100">
         <ul class="list">
           {% if relations.parents %}
-            <li class="p-4 pb-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Taken from" %}</li>
+            <li class="pt-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Taken from" %}</li>
             {% for parent in relations.parents %}
-              <li class="list-row">
+              <li class="list-row px-0">
                 <div class="list-col-grow min-w-0">
                   <a href="{{ parent.sample.get_absolute_url }}" class="link link-hover font-medium">{{ parent.sample }}</a>
                   <span class="text-xs text-base-content/70 ms-2">{{ parent.type|capfirst }}</span>
@@ -142,9 +141,9 @@
             {% endfor %}
           {% endif %}
           {% if relations.children %}
-            <li class="p-4 pb-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Subsamples" %}</li>
+            <li class="pt-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Subsamples" %}</li>
             {% for child in relations.children %}
-              <li class="list-row">
+              <li class="list-row px-0">
                 <div class="list-col-grow min-w-0">
                   <a href="{{ child.sample.get_absolute_url }}" class="link link-hover font-medium">{{ child.sample }}</a>
                   <span class="text-xs text-base-content/70 ms-2">{{ child.type|capfirst }}</span>
@@ -154,7 +153,7 @@
           {% endif %}
         </ul>
         {% if relations.hidden %}
-          <p class="text-sm text-base-content/70 px-4 pb-4">
+          <p class="text-sm text-base-content/70">
             {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
           </p>
         {% endif %}

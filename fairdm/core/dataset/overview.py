@@ -101,11 +101,9 @@ def shared_context(request, dataset, context):
         "has_charts": bool(context["composition_chart"]),
         "citation": {"title": _("Cite this dataset"), "text": citation_["text"]},
         "identifiers": shared.identifiers(dataset),
-        "license": dataset.license,
-        "access_text": ACCESS_TEXT[context["access"]["state"]],
+        "api_url": context["api_url"],
         "people": shared.people(shared.credits(dataset), named_roles=ROLE_ORDER),
-        "parents": [],
-        "details": dataset_details(dataset, context["dates"]),
+        "details": [],
     }
     if citation_["from_reference"]:
         result["citation"]["note"] = _("Cite the data publication above rather than this page.")
@@ -117,20 +115,17 @@ def shared_context(request, dataset, context):
     info = context["project_info"]
     if info:
         project = info["project"]
-        parent = {
-            "label": _("Project"),
-            "record": project,
-            "badge": project.get_status_display(),
-            "badge_variant": project.status_badge_variant,
-        }
+        row = {"label": _("Project"), "record": project}
         if info["siblings"]:
-            parent["detail"] = ngettext(
+            row["note"] = ngettext(
                 "%(n)s other dataset in this project",
                 "%(n)s other datasets in this project",
                 info["siblings"],
             ) % {"n": info["siblings"]}
-            parent["detail_url"] = project.get_absolute_url()
-        result["parents"].append(parent)
+        result["details"].append(row)
+    result["details"].append(shared.license_row(dataset.license))
+    result["details"].append({"label": _("Access"), "text": ACCESS_TEXT[context["access"]["state"]]})
+    result["details"].extend(dataset_details(dataset, context["dates"]))
     if "readiness" in context:
         readiness_ = context["readiness"]
         readiness_["title"] = _("Ready to publish?")
@@ -171,7 +166,7 @@ def access(dataset):
         return {"state": "private", "label": _("Private")}
     if dataset.data_is_public:
         return {"state": "published", "label": _("Published")}
-    return {"state": "public", "label": _("Public, data not yet published")}
+    return {"state": "public", "label": _("Unpublished")}
 
 
 def descriptions(dataset):

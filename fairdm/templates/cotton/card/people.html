@@ -7,7 +7,8 @@
   count, for records with long credit lists.
 
   Attributes:
-    people     – {named: [{contributor, roles}], others: [...], total}
+    people     – {named: [{contributor, detail}], others: [...], total}
+                 `detail` is the line under a name: roles, or an affiliation
     all_url    – where the full list lives, shown as "See all"
     empty      – what to say when nobody is credited
     condensed  – show `others` as avatars and a count
@@ -26,7 +27,7 @@
             <c-avatar :for="entry.contributor" alt="" size="sm" only />
             <div class="min-w-0">
               <a href="{{ entry.contributor.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.contributor }}</a>
-              {% if entry.roles %}<p class="text-xs text-base-content/70">{{ entry.roles|join:", " }}</p>{% endif %}
+              {% if entry.detail %}<p class="text-xs text-base-content/70">{{ entry.detail }}</p>{% endif %}
             </div>
           </li>
         {% endfor %}
@@ -39,6 +40,13 @@
             {% for entry in people.others|slice:":6" %}
               <c-avatar :for="entry.contributor" alt="{{ entry.contributor }}" size="sm" only />
             {% endfor %}
+            {% if people.others|length > 6 %}
+              <div class="avatar avatar-placeholder">
+                <div class="w-8 rounded-full bg-neutral text-neutral-content text-xs">
+                  <span>+{{ people.others|length|add:"-6" }}</span>
+                </div>
+              </div>
+            {% endif %}
           </c-avatar.group>
           <span class="text-sm text-base-content/70">
             {% if people.named %}

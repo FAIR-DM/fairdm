@@ -375,3 +375,13 @@
     line-clamp: 3;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Overview pages
+ * ------------------------------------------------------------------------- */
+
+/* A 16:9 box, for the map and other wide placeholders on the overview pages.
+ * Named like Tailwind's utility so it can go once django-mvp's build ships it. */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}

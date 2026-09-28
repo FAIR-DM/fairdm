@@ -1,5 +1,5 @@
 {% extends "detail_view.html" %}
-{% load i18n static thumbnail %}
+{% load i18n static humanize thumbnail %}
 {% comment %}
   The overview page every core record shares: project, dataset, sample and measurement.
 
@@ -15,6 +15,7 @@
     overview.image          header: the record's image, or its icon
     overview.badges         header: status badges
     overview.meta           header: the line placing the record (parents, dates, IDs)
+    overview.updated        header: when the record last changed
     overview.byline         header: who made it
     overview.keywords       header: keywords
     overview.actions        header: buttons (Cite and Share by default)
@@ -23,12 +24,11 @@
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
       overview.readiness      what the team still has to add (team only)
-      overview.cite           how to cite it
-      overview.identifiers    licence, access, identifiers, API
+      overview.details        what it belongs to, licence, access, status, dates, identifiers
+        overview.details_extra  sections inside Details, e.g. a project's timeline and funding
       overview.people         everyone credited
-      overview.record_facts   cards particular to the record (funding, publications, versions)
-      overview.parent         what it belongs to
-      overview.dates          details and dates
+      overview.cite           how to cite it
+      overview.record_facts   cards particular to the record (publications, versions)
     overview.chart_library  the ECharts script; replace it to serve ECharts yourself
 
   The facts-column blocks draw the shared `c-card.*` components from the context every overview
@@ -74,6 +74,12 @@
 
           <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
             {% block overview.meta %}{% endblock overview.meta %}
+            {% block overview.updated %}
+              <span class="inline-flex items-center gap-1">
+                <c-icon name="time" aria-hidden="true" />
+                {% blocktranslate with when=record.modified|naturalday:"j M Y" %}Last updated {{ when }}{% endblocktranslate %}
+              </span>
+            {% endblock overview.updated %}
           </p>
 
           {% block overview.byline %}{% endblock overview.byline %}
@@ -83,7 +89,7 @@
               {% if keywords %}
                 <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
                   {% for keyword in keywords %}
-                    <li class="badge badge-outline badge-sm">{{ keyword.label }}</li>
+                    <li class="badge badge-primary badge-sm">{{ keyword.label }}</li>
                   {% endfor %}
                 </ul>
               {% endif %}
@@ -124,22 +130,15 @@
           {% endif %}
         {% endblock overview.readiness %}
 
-        {% block overview.cite %}
-          <c-card.citation title="{{ citation.title }}" text="{{ citation.text }}">
-            {{ citation.note }}
-            {% if citation.note_url %}<a href="{{ citation.note_url }}" class="link link-primary">{{ citation.note_link }}</a>{% endif %}
-          </c-card.citation>
-        {% endblock overview.cite %}
-
-        {% block overview.identifiers %}
-          <c-card.identifiers :identifiers="identifiers"
-                              portal_id="{{ record.uuid }}"
-                              local_id="{{ record.local_id|default:'' }}"
-                              :license="license"
-                              license_note="{{ license_note|default:'' }}"
-                              access="{{ access_text|default:'' }}"
-                              api_url="{{ api_url|default:'' }}" />
-        {% endblock overview.identifiers %}
+        {% block overview.details %}
+          <c-card.details :rows="details"
+                          :identifiers="identifiers"
+                          portal_id="{{ record.uuid }}"
+                          local_id="{{ record.local_id|default:'' }}"
+                          api_url="{{ api_url|default:'' }}">
+            {% block overview.details_extra %}{% endblock overview.details_extra %}
+          </c-card.details>
+        {% endblock overview.details %}
 
         {% block overview.people %}
           <c-card.people :people="people"
@@ -147,15 +146,14 @@
                          :condensed="people.condensed" />
         {% endblock overview.people %}
 
+        {% block overview.cite %}
+          <c-card.citation title="{{ citation.title }}" text="{{ citation.text }}">
+            {{ citation.note }}
+            {% if citation.note_url %}<a href="{{ citation.note_url }}" class="link link-primary">{{ citation.note_link }}</a>{% endif %}
+          </c-card.citation>
+        {% endblock overview.cite %}
+
         {% block overview.record_facts %}{% endblock overview.record_facts %}
-
-        {% block overview.parent %}
-          {% if parents %}<c-card.parent :parents="parents" />{% endif %}
-        {% endblock overview.parent %}
-
-        {% block overview.dates %}
-          <c-card.dates :rows="details" />
-        {% endblock overview.dates %}
 
       {% endblock overview.side %}
     </div>

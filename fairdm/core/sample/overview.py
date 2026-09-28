@@ -81,6 +81,15 @@ def build(request, sample, can_manage):
     parents = [{"label": _("Dataset"), "record": sample.dataset}]
     if project is not None:
         parents.append({"label": _("Project"), "record": project})
+    parents.append(shared.license_row(sample.dataset.license, note=_("From its dataset")))
+    parents.append(
+        {
+            "label": _("Access"),
+            "text": _("Open to everyone")
+            if sample.dataset.data_is_public
+            else _("Its dataset's team only, until the dataset is published"),
+        }
+    )
 
     citation_text = shared.citation(
         request,
@@ -120,15 +129,9 @@ def build(request, sample, can_manage):
         },
         "citation": citation,
         "identifiers": identifiers,
-        "license": sample.dataset.license,
-        "license_note": _("from its dataset"),
-        "access_text": _("Open to everyone.")
-        if sample.dataset.data_is_public
-        else _("Its dataset's team only, until the dataset is published."),
         "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
         "people": shared.people(entries),
-        "parents": parents,
-        "details": [
+        "details": parents + [
             {"label": _("Custody"), "text": status_["label"], "note": status_["meaning"]},
             {"label": _("Type"), "text": sample_type[:1].upper() + sample_type[1:]},
             {"label": _("Added"), "date": sample.added},

@@ -38,7 +38,7 @@ def contributions_of(obj):
     ``select_related`` stops at the polymorphic base, which has neither a person's name parts nor
     a way to tell the two apart, so the real instances are fetched in one extra query.
     """
-    contributions = list(obj.contributors.prefetch_related("roles"))
+    contributions = list(obj.contributors.select_related("affiliation").prefetch_related("roles"))
     real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
     for contribution in contributions:
         contribution.contributor = real[contribution.contributor_id]
@@ -127,24 +127,43 @@ def json_ld(data):
 
 
 def credits(obj):
-    """Everyone credited on ``obj``: each contributor as its own type, with its role labels.
+    """Everyone credited on ``obj``: each contributor as its own type, with its role labels and
+    the organisation they are credited under.
 
-    Returns ``[{"contributor", "roles": {name: label}}]`` in the record's own order.
+    The affiliation is the one recorded on the contribution itself, falling back to the person's
+    primary affiliation. Returns ``[{"contributor", "roles": {name: label}, "affiliation"}]`` in
+    the record's own order.
     """
-    return [
-        {"contributor": c.contributor, "roles": {r.name: r.label for r in c.roles.all()}}
-        for c in contributions_of(obj)
-    ]
+    result = []
+    for c in contributions_of(obj):
+        affiliation = c.affiliation
+        if affiliation is None and hasattr(c.contributor, "primary_affiliation"):
+            primary = c.contributor.primary_affiliation()
+            affiliation = primary.organization if primary else None
+        result.append(
+            {
+                "contributor": c.contributor,
+                "roles": {r.name: r.label for r in c.roles.all()},
+                "affiliation": affiliation,
+            }
+        )
+    return result
 
 
-def people(entries, named_roles=(), condensed=False):
+def people(entries, named_roles=(), condensed=False, detail="roles"):
     """Split credits into the people named in full and everyone else, as ``c-card.people`` draws
     them. With no ``named_roles`` everyone is named. Named people are ordered by the first of
-    ``named_roles`` they hold."""
+    ``named_roles`` they hold. ``detail`` is the line under each name: their ``"roles"``, or the
+    ``"affiliation"`` they are credited under."""
     order = list(named_roles)
     named, others = [], []
     for entry in entries:
-        item = {"contributor": entry["contributor"], "roles": list(entry["roles"].values())}
+        roles = list(entry["roles"].values())
+        if detail == "affiliation":
+            line = str(entry["affiliation"]) if entry["affiliation"] else ", ".join(roles)
+        else:
+            line = ", ".join(roles)
+        item = {"contributor": entry["contributor"], "roles": roles, "detail": line}
         held = [order.index(name) for name in entry["roles"] if name in order]
         if not order or held:
             named.append((min(held, default=0), item))
@@ -209,3 +228,22 @@ def timeline(steps, dates, descriptions, entries):
             )
     dated = sorted((s for s in result if s["date"]), key=lambda s: str(s["date"]))
     return dated + [s for s in result if not s["date"]]
+
+
+def license_row(license, note=None):
+    """The Details card's licence row: the licence linked to its text, or a warning."""
+    from django.utils.translation import gettext as _
+
+    if license is None:
+        return {
+            "label": _("Licence"),
+            "text": _("None chosen yet"),
+            "warning": True,
+            "note": _("Nobody can safely reuse this data until a licence is chosen."),
+        }
+    return {
+        "label": _("Licence"),
+        "text": license.name,
+        "url": license.canonical_url or "",
+        "note": note,
+    }

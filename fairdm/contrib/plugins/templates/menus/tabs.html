@@ -1,6 +1,9 @@
 {% load flex_menu %}
-
-<c-menu horizontal hx-boost="true">
+{% comment %}
+  A record's tabs. They never wrap: on a narrow screen the row scrolls sideways and is swiped
+  through. The bottom padding keeps the active tab off the edge of the header.
+{% endcomment %}
+<c-menu horizontal hx-boost="true" class="flex-nowrap overflow-x-auto whitespace-nowrap pb-2">
   {% for child in children %}
     {% render_item child renderer=renderer %}
   {% endfor %}

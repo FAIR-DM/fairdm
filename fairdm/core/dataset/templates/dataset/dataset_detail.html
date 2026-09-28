@@ -20,7 +20,7 @@
   {% if access.state == "published" %}
     <span class="badge badge-soft badge-success badge-sm"><c-icon name="success" aria-hidden="true" />{{ access.label }}</span>
   {% elif access.state == "public" %}
-    <span class="badge badge-soft badge-info badge-sm"><c-icon name="globe" aria-hidden="true" />{{ access.label }}</span>
+    <span class="badge badge-soft badge-neutral badge-sm">{{ access.label }}</span>
   {% else %}
     <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{{ access.label }}</span>
   {% endif %}
@@ -43,7 +43,6 @@
       {% translate "Collected" %} {{ dates.collection_start|date:"M Y" }}{% if dates.collection_end %} – {{ dates.collection_end|date:"M Y" }}{% endif %}
     </span>
   {% endif %}
-  <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Updated {{ when }}{% endblocktranslate %}</span>
 {% endblock overview.meta %}
 
 {% block overview.byline %}
@@ -104,15 +103,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Dataset at a glance' %}">
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" desc="{{ counts.samples_desc }}" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" desc="{{ counts.measurements_desc }}" />
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}">
-      <c-slot name="desc">
-        {% if team.total %}{% blocktranslate count counter=team.creators|length %}{{ counter }} creator{% plural %}{{ counter }} creators{% endblocktranslate %}{% else %}{% translate "None credited yet" %}{% endif %}
-      </c-slot>
-    </c-stats.item>
-    <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}"
-                  desc="{% if counts.publications %}{% translate 'Papers and reports' %}{% else %}{% translate 'None linked yet' %}{% endif %}" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" />
+    <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -122,7 +116,7 @@
       {% if descriptions|length > 1 %}
         <c-tabs group="dataset-about" label="{% translate 'Dataset descriptions' %}">
           {% for description in descriptions %}
-            <c-tabs.tab group="dataset-about" label="{{ description.label }}" :checked="forloop.first">
+            <c-tabs.tab group="dataset-about" label="{{ description.label }}" :checked="forloop.first" :flush="forloop.first">
               <div class="prose max-w-none">{{ description.value|safe_markdown }}</div>
             </c-tabs.tab>
           {% endfor %}
@@ -251,8 +245,9 @@
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Where the samples come from' %}"
+    <c-card.placeholder title="{% translate 'Map' %}"
                         icon="map"
+                        wide
                         message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
   {% endblock overview.map %}
 {% endblock overview.main %}

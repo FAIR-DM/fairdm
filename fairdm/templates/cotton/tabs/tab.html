@@ -5,15 +5,16 @@
     group   – shared by every tab in the set (required)
     label   – the tab's text
     checked – present on the tab shown first
+    flush   – no leading padding, so the first tab's text lines up with the content above it
     class   – extra classes on the panel
 
   Candidate for django-mvp.
 {% endcomment %}
-<c-vars group label checked class />
+<c-vars group label checked flush=False class />
 <input type="radio"
        name="{{ group }}"
        role="tab"
-       class="tab"
+       class="tab {% if flush %}ps-0{% endif %}"
        aria-label="{{ label }}"
        {% if checked %}checked{% endif %} />
 <div role="tabpanel" class="tab-content pt-4 {{ class }}">{{ slot }}</div>

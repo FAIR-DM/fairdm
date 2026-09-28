@@ -93,15 +93,10 @@ def shared_context(request, project, context):
         "citation": {"title": _("Cite this project"), "text": context["citation"]["text"]},
         "identifiers": shared.identifiers(project),
         "people": shared.people(
-            shared.credits(project), named_roles=[*LEAD_ROLES, "ContactPerson"], condensed=True
+            shared.credits(project), named_roles=LEAD_ROLES, condensed=True, detail="affiliation"
         ),
         "people_url": context["urls"]["contributors"],
-        "parents": [{"label": _("Organisation"), "record": project.owner}] if project.owner else [],
-        "details": [
-            {"label": _("Status"), "text": project.get_status_display()},
-            {"label": _("Added"), "date": project.added},
-            {"label": _("Last updated"), "date": project.modified},
-        ],
+        "details": project_details(project, context),
     }
     if not context["citation"]["has_doi"]:
         result["citation"]["note"] = _(
@@ -359,3 +354,32 @@ def readiness(project, context):
         "total": len(items),
         "percent": round(100 * done / len(items)),
     }
+
+
+def project_details(project, context):
+    rows = []
+    if project.owner:
+        rows.append({"label": _("Organisation"), "record": project.owner})
+    rows.append(
+        {
+            "label": _("Status"),
+            "badge": project.get_status_display(),
+            "badge_variant": project.status_badge_variant,
+        }
+    )
+    licenses_ = context["licenses"]
+    if licenses_["items"]:
+        text = ", ".join(f"{name} ({n})" for name, n in licenses_["items"])
+    else:
+        text = _("No public datasets yet")
+    row = {"label": _("Licences"), "text": text}
+    if licenses_["unlicensed"]:
+        row["note"] = ngettext(
+            "%(n)s public dataset has no licence and can't be reused safely.",
+            "%(n)s public datasets have no licence and can't be reused safely.",
+            licenses_["unlicensed"],
+        ) % {"n": licenses_["unlicensed"]}
+    rows.append(row)
+    rows.append({"label": _("Added"), "date": project.added})
+    rows.append({"label": _("Last updated"), "date": project.modified})
+    return rows

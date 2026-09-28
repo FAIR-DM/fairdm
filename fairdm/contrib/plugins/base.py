@@ -10,6 +10,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Model
 from django.forms.widgets import Media
 from django.urls import URLPattern, path
+from django.utils.text import capfirst
 from django.views.generic.base import View
 
 from .access import can_open
@@ -293,7 +294,7 @@ class Plugin(PermissionRequiredMixin, View):
 
         if self.registered_model:
             meta = self.registered_model._meta
-            entry: dict[str, Any] = {"text": meta.verbose_name_plural}
+            entry: dict[str, Any] = {"text": capfirst(meta.verbose_name_plural)}
             # A record type may have no list page; a trail entry that does not navigate is worse
             # than one that is plain text, so the link is added only when it resolves.
             for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
@@ -306,10 +307,9 @@ class Plugin(PermissionRequiredMixin, View):
 
         obj = self.base_object
         if obj is not None:
-            obj_str = str(obj)
-            if len(obj_str) > 50:
-                obj_str = obj_str[:47] + "..."
-            entry = {"text": obj_str}
+            # Not cut short here: the trail truncates with an ellipsis only when it runs out of
+            # room in the header.
+            entry = {"text": str(obj)}
             get_absolute_url = getattr(obj, "get_absolute_url", None)
             if callable(get_absolute_url):
                 with contextlib.suppress(Exception):
