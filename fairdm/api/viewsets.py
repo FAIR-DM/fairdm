@@ -285,7 +285,7 @@ class _BaseDiscoveryView(APIView):
     url_prefix: str = ""
 
     # No docstring: drf-spectacular would show it instead of each subclass's own.
-    def get(self, request: Request) -> Response:  # noqa: D102
+    def get(self, request: Request) -> Response:
         from fairdm.registry import registry
 
         types = []
