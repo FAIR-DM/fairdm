@@ -1,3 +1,5 @@
+"""Views for creating and listing datasets."""
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
@@ -12,12 +14,7 @@ from .models import Dataset, DatasetQuerySet
 
 
 class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
-    """View for creating new Dataset instances.
-
-    Handles dataset creation with automatic contributor assignment. The user
-    who creates the dataset is automatically added as a Creator, ProjectMember,
-    and ContactPerson.
-    """
+    """Create a dataset, crediting the creating user as Creator, ProjectMember and ContactPerson."""
 
     model = Dataset
     form_class = DatasetCreateForm
@@ -25,51 +22,25 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     default_roles = ["Creator", "ProjectMember", "ContactPerson"]
 
     def get_form_kwargs(self):
-        """Add request to form kwargs for user-specific filtering.
-
-        Returns:
-            dict: Form kwargs including the current request.
-        """
+        """Pass the request to the form for user-specific filtering."""
         kwargs = super().get_form_kwargs()
         kwargs["request"] = self.request
         return kwargs
 
     def get_success_url(self) -> str:
-        """Return URL to redirect to after successful creation.
-
-        ``Dataset.get_absolute_url()`` rather than a name reversed here: the dataset's own page
-        is a registration, not a standalone route, since 014 T057.
-
-        Returns:
-            str: URL to the dataset's own page.
-        """
+        """Redirect to the new dataset's own page."""
         return str(self.object.get_absolute_url())
 
     def form_valid(self, form) -> HttpResponse:
-        """Handle successful form submission and assign permissions.
-
-        Automatically assigns full dataset permissions to the creating user and
-        adds them as a contributor with Creator, ProjectMember, and ContactPerson roles.
-
-        Args:
-            form: The validated DatasetCreateForm instance.
-
-        Returns:
-            HttpResponse: Redirect to dataset detail page.
-        """
-        # Set the creator before saving so `created_by` is written with the rest of the
-        # record in one save, from the request user only — never through the form, which
-        # never declares this field (`created_by` is `editable=False`, models.py). Matches
-        # `ProjectCreateView.form_valid` (014 T031/FR-020).
+        """Record the creator, grant them the dataset permissions and credit them."""
+        # `created_by` is editable=False, so it is set from the request user, never the form.
         form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
         user = self.request.user
         dataset = self.object
 
-        # A dataset is private unless stated otherwise, so without these the
-        # creator cannot open, edit or delete the record they just made. The
-        # set and the order match `ProjectCreateView.form_valid`.
+        # A dataset is private by default, so the creator needs these to open, edit or delete it.
         permissions = [
             "view_dataset",
             "change_dataset",
@@ -89,20 +60,13 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
 
 
 class DatasetListView(FairDMListView):
-    """List view for displaying publicly visible datasets.
-
-    Shows all datasets with public visibility in a card layout, with
-    filtering and sorting capabilities. Contributors are prefetched
-    for optimal performance.
-    """
+    """List the visible datasets as cards, with filtering and sorting."""
 
     model = Dataset
     filterset_class = DatasetFilter
     page_title = _("Datasets")
     page_icon = "dataset"
     list_item_template = "dataset/dataset_card.html"
-    # One dataset per row at every width. The card reflows on its own width, so
-    # a wide row gets the side-by-side layout rather than a second column.
     grid = {"cols": 1, "gap": 4}
     order_by = [
         ("-added", _("Date created (newest first)"), "-added"),
@@ -120,22 +84,6 @@ class DatasetListView(FairDMListView):
     ]
 
     def get_queryset(self) -> QuerySet[Dataset]:
-        """Return the visible datasets, loaded with everything a card draws.
-
-        `Dataset.objects` (the base this view's `super().get_queryset()`
-        reads through) is privacy-first by default, so no separate
-        visibility filter is needed here any more (R1).
-
-        `with_list_data()` carries everything a card draws: the parent project,
-        the licence, the keyword badges, the descriptions the plain-text
-        abstract is taken from, the sample and measurement counts, and the
-        contributor stack reached through to the contributor itself. That last
-        prefetch subsumes `with_contributors()`, so composing both would only
-        name the same rows twice. The card renders in a constant number of
-        queries whether the page holds one dataset or twenty.
-
-        Returns:
-            QuerySet: Filtered and optimized Dataset queryset.
-        """
+        """Load everything a card draws, so the query count does not grow with the page."""
         qs: DatasetQuerySet = super().get_queryset()
         return qs.with_list_data()

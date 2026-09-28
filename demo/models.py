@@ -1,11 +1,4 @@
-from django.utils.translation import gettext_lazy as _
-
-from fairdm.core.models import Measurement, Sample
-from fairdm.db import models
-
-# T033: Demo models showcasing different field types and patterns
-
-"""FairDM Demo App Models
+"""Demo Sample and Measurement models showing recommended field and metadata patterns.
 
 This module demonstrates recommended patterns for defining custom Sample and
 Measurement models in FairDM portals. It showcases various field types, metadata
@@ -26,16 +19,14 @@ how to programmatically create metadata:
 
    # Create a literature reference
    paper = LiteratureItem.objects.create(
-       title=\"XRF Analysis Methods\",
-       authors=\"Smith, J.; Doe, A.\",
-       year=2024
+       title="XRF Analysis Methods", authors="Smith, J.; Doe, A.", year=2024
    )
 
    # Link to dataset with relationship type
    DatasetLiteratureRelation.objects.create(
        dataset=my_dataset,
        literature_item=paper,
-       relationship_type=\"IsDocumentedBy\"  # DataCite vocabulary
+       relationship_type="IsDocumentedBy",  # DataCite vocabulary
    )
 
    # Available relationship types (DataCite Metadata Schema 4.4):
@@ -57,19 +48,16 @@ how to programmatically create metadata:
 
    # Assign a DOI to a dataset
    doi = DatasetIdentifier.objects.create(
-       related=my_dataset,
-       type=\"DOI\",
-       value=\"10.5061/dryad.12345\"
+       related=my_dataset, type="DOI", value="10.5061/dryad.12345"
    )
 
    # Access DOI through convenience property
    if my_dataset.doi:
-       print(f\"Dataset DOI: {my_dataset.doi}\")
+       print(f"Dataset DOI: {my_dataset.doi}")
 
    # Query datasets by DOI
    dataset = Dataset.objects.filter(
-       identifiers__type=\"DOI\",
-       identifiers__value=\"10.5061/dryad.12345\"
+       identifiers__type="DOI", identifiers__value="10.5061/dryad.12345"
    ).first()
    ```
 
@@ -77,41 +65,36 @@ how to programmatically create metadata:
 
    ```python
    from fairdm.core.dataset.models import (
-       DatasetDescription, DatasetDate, DatasetIdentifier
+       DatasetDescription,
+       DatasetDate,
+       DatasetIdentifier,
    )
 
    # Rich descriptions (one per type)
    DatasetDescription.objects.create(
        related=my_dataset,
-       type=\"Abstract\",
-       value=\"This dataset contains XRF measurements...\"
+       type="Abstract",
+       value="This dataset contains XRF measurements...",
    )
    DatasetDescription.objects.create(
-       related=my_dataset,
-       type=\"Methods\",
-       value=\"Samples were analyzed using...\"
+       related=my_dataset, type="Methods", value="Samples were analyzed using..."
    )
 
    # Temporal metadata (one per type)
    DatasetDate.objects.create(
        related=my_dataset,
-       type=\"Available\",
-       value=\"2024-01-15\"  # PartialDate format: YYYY, YYYY-MM, or YYYY-MM-DD
+       type="Available",
+       value="2024-01-15",  # PartialDate format: YYYY, YYYY-MM, or YYYY-MM-DD
    )
-   DatasetDate.objects.create(
-       related=my_dataset,
-       type=\"Published\",
-       value=\"2024-06-01\"
-   )
+   DatasetDate.objects.create(related=my_dataset, type="Published", value="2024-06-01")
 
    # Additional identifiers (must be globally unique)
    DatasetIdentifier.objects.create(
-       related=my_dataset,
-       type=\"DOI\",
-       value=\"10.5194/essd-12-345-2024\"
+       related=my_dataset, type="DOI", value="10.5194/essd-12-345-2024"
    )
    ```
-**QuerySet Optimization Patterns (T145-T146):**
+
+**QuerySet Optimization Patterns:**
 
 FairDM provides optimized QuerySet methods to reduce N+1 query problems and
 improve performance. Use these patterns in your views and APIs:
@@ -129,6 +112,7 @@ improve performance. Use these patterns in your views and APIs:
 
    # The explicit unfiltered route - every dataset, whatever its visibility
    all_datasets = Dataset.all_objects.all()
+
 
    # Use in views, with the permission check deciding rather than the manager
    class DatasetListView(ListView):
@@ -192,18 +176,18 @@ improve performance. Use these patterns in your views and APIs:
    ```python
    # Chain methods for complex queries
    datasets = (
-       Dataset.all_objects  # Explicitly every dataset, private included
-       .filter(project=my_project)  # Filter by project
+       Dataset.all_objects.filter(  # Explicitly every dataset, private included
+           project=my_project
+       )  # Filter by project
        .with_related()  # Optimize queries
-       .order_by('-modified')  # Order by most recent
+       .order_by("-modified")  # Order by most recent
    )
 
    # Chain with search and filtering
    from fairdm.core.dataset.filters import DatasetFilter
 
    filterset = DatasetFilter(
-       data=request.GET,
-       queryset=Dataset.all_objects.with_related()
+       data=request.GET, queryset=Dataset.all_objects.with_related()
    )
    filtered_datasets = filterset.qs  # Filtered and optimized
    ```
@@ -215,11 +199,13 @@ improve performance. Use these patterns in your views and APIs:
    ```python
    # In development, enable query logging
    from django.conf import settings
+
    settings.DEBUG = True
 
    # Check query count with django.db.connection.queries
    from django.db import connection
    from django.test.utils import override_settings
+
 
    @override_settings(DEBUG=True)
    def view_datasets(request):
@@ -240,27 +226,30 @@ improve performance. Use these patterns in your views and APIs:
    ```python
    from django.db.models import QuerySet
 
+
    class RockSampleQuerySet(QuerySet):
-       \"\"\"Custom QuerySet with optimization methods.\"\"\"
+       '''Custom QuerySet with optimization methods.'''
 
        def with_location_data(self):
-           \"\"\"Prefetch location and related geographic data.\"\"\"
-           return self.select_related('location').prefetch_related(
-               'location__coordinates',
-               'location__region'
+           '''Prefetch location and related geographic data.'''
+           return self.select_related("location").prefetch_related(
+               "location__coordinates", "location__region"
            )
 
        def with_measurements(self):
-           \"\"\"Prefetch all related measurements.\"\"\"
-           return self.prefetch_related('measurements')
+           '''Prefetch all related measurements.'''
+           return self.prefetch_related("measurements")
+
 
    class RockSample(Sample):
        objects = RockSampleQuerySet.as_manager()
        # ... fields ...
 
+
    # Use in views
    samples = RockSample.objects.with_location_data().with_measurements()
    ```
+
 **Portal Developer Notes:**
 
 - All metadata models use the `related` field (not `dataset`) due to abstract
@@ -276,6 +265,11 @@ See Also:
     - Developer Guide > Registry > Metadata Configuration
     - specs/004-core-datasets/quickstart.md
 """
+
+from django.utils.translation import gettext_lazy as _
+
+from fairdm.core.models import Measurement, Sample
+from fairdm.db import models
 
 
 class RockSample(Sample):
@@ -417,10 +411,9 @@ class WaterSample(Sample):
         verbose_name_plural = "Water Samples"
 
 
-# Original demo models (kept for backward compatibility)
-
-
 class CustomParentSample(Sample):
+    """Sample with a single character field."""
+
     char_field = models.CharField(
         "Character Field",
         max_length=200,
@@ -429,6 +422,8 @@ class CustomParentSample(Sample):
 
 
 class CustomSample(Sample):
+    """Sample with one field of each common Django field type."""
+
     char_field = models.CharField(
         "Character Field",
         max_length=200,
@@ -502,7 +497,6 @@ class ExampleMeasurement(Measurement):
     See: Developer Guide > Models > Measurement Models
     """
 
-    # standard django fields
     char_field = models.CharField(
         "Character Field",
         max_length=200,

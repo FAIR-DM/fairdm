@@ -1,3 +1,5 @@
+"""Ordering filter for distance queries that requires the optional ``gis`` extra."""
+
 from django.core.exceptions import ImproperlyConfigured
 
 try:
@@ -10,7 +12,10 @@ except ModuleNotFoundError as exc:
 
 
 class DistanceToPointOrderingFilter(filters.DistanceToPointOrderingFilter):
+    """Distance-to-point ordering filter that documents its ordering parameter in the API schema."""
+
     def get_schema_operation_parameters(self, view):
+        """Add the ``asc``/``desc`` ordering parameter to the schema."""
         params = super().get_schema_operation_parameters(view)
         params.append(
             {

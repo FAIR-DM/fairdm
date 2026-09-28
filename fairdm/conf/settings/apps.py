@@ -1,15 +1,10 @@
-"""Application Stack Configuration
+"""Application stack settings: INSTALLED_APPS, MIDDLEWARE, TEMPLATES and core Django settings.
 
-Owns: INSTALLED_APPS (Django apps, third-party packages and FairDM modules,
-in an explicit declared order — FR-005), MIDDLEWARE, TEMPLATES, and core
-Django settings such as ROOT_URLCONF, SITE_ID and TIME_ZONE (FR-002, FR-003).
-A portal's ``apps=[...]`` are registered ahead of FairDM's own apps and the
-third-party set, so its templates and static files win at the same path —
-still behind the Django contrib apps that must load first (FR-005, D11).
-Leaves to a portal: its own middleware and template context processors,
-added after ``setup()`` returns.
-
-This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
+Owns INSTALLED_APPS, MIDDLEWARE, TEMPLATES and core Django settings such as ROOT_URLCONF,
+SITE_ID and TIME_ZONE. A portal's ``apps=[...]`` are registered ahead of FairDM's own apps
+and the third-party set, so its templates and static files win at the same path. They stay
+behind the Django contrib apps, which must load first. A portal adds its own middleware and
+template context processors after ``setup()`` returns.
 """
 
 import socket
@@ -18,22 +13,16 @@ from django.contrib.messages import constants as messages
 
 from fairdm.conf.environment import env
 
-# Access environment variables via shared env instance
-# env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
-# INSTALLED_APPS: Complete application stack
-# Order matters for some apps (e.g., admin must come before certain apps)
+# Order matters: the admin apps must come early.
 INSTALLED_APPS = [
-    # Admin apps (must come early)
     "adminactions",
     "admin_extra_buttons",
     "fairdm.contrib.admin.apps.FairDMAdminConfig",
     "dal",
     "dal_select2",
-    # DJANGO CORE
     "fairdm.contrib.admin.apps.FairDMAdminSite",
-    # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -41,15 +30,10 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
     "django.contrib.staticfiles",
     "django.contrib.messages",
-    # "django.contrib.gis",
     "django.contrib.humanize",
     "django_cleanup.apps.CleanupConfig",
-    # PORTAL APPS — ahead of FairDM's own apps and the third-party set, so a
-    # portal's template or static file at the same path as FairDM's wins
-    # (FR-005, D11, research R3). Still behind the Django contrib apps above,
-    # which must load first.
+    # Ahead of FairDM's own apps so a portal's template or static file at the same path wins.
     *globals().get("FAIRDM_APPS", []),
-    # FAIRDM CORE
     "fairdm",
     "fairdm.contrib.plugins",
     "fairdm.core.project",
@@ -66,10 +50,8 @@ INSTALLED_APPS = [
     "fairdm.contrib.identity",
     "fairdm.contrib.theme",
     "mvp",
-    # "configuration",
     "polymorphic",
     "parler",
-    # AUTHENTICATION AND USERS
     "dac",
     "dac.allauth",
     "allauth",
@@ -78,10 +60,9 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.orcid",
     "allauth.mfa",
     "allauth.usersessions",
-    # UTILITIES
     "compressor",
     "dbbackup",
-    "django_celery_beat",  # DB-backed periodic task scheduler (see CELERY_BEAT_SCHEDULER)
+    "django_celery_beat",
     "django_cotton",
     "django_extensions",
     "django_setup_tools",
@@ -89,36 +70,31 @@ INSTALLED_APPS = [
     "easy_icons",
     "easy_thumbnails",
     "flex_menu",
-    "meta",  # for seo optimization
-    # OTHERS
-    "solo",  # singleton model for storing dynamic global variables in the DB
-    "django_contact_form",  # for contact forms
-    "storages",  # for setting up backend storages
-    # building nice looking forms and filters
+    "meta",
+    "solo",
+    "django_contact_form",
+    "storages",
     "django_filters",
     "crispy_forms",
     "crispy_tailwind",
     "widget_tweaks",
     "django_select2",
-    # some other useful apps that are required by the default installation
-    "django_social_share",  # easy links to social sharing sites
+    "django_social_share",
     "django_htmx",
-    "orbit",  # AI agent-native observability & debugging dashboard (served at /orbit/)
+    "orbit",
     "literature",
     "licensing",
-    # "laboratory",
     "research_vocabs",
     "ordered_model",
     "taggit",
     "import_export",
     "django_addanother",
     "waffle",
-    "guardian",  # for object level permissions
+    "guardian",
     "django_countries",
-    "markdownx",  # markdown editor
+    "markdownx",
     "hijack",
     "hijack.contrib.admin",
-    # REST API (Feature 011)
     "fairdm.api",
     "rest_framework",
     "rest_framework.authtoken",
@@ -128,12 +104,11 @@ INSTALLED_APPS = [
     "dj_rest_auth",
 ]
 
-# MIDDLEWARE: Request/response processing pipeline
-# Order is critical - security and whitenoise must come early
+# Order is critical: security and whitenoise must come early.
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # Orbit observability — wraps the app stack to record requests, queries & exceptions
+    # Wraps the app stack to record requests, queries and exceptions.
     "orbit.middleware.OrbitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -149,7 +124,6 @@ MIDDLEWARE = [
     "hijack.middleware.HijackUserMiddleware",
 ]
 
-# TEMPLATES: Template engine configuration
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -176,34 +150,25 @@ TEMPLATES = [
     },
 ]
 
-# CORE DJANGO SETTINGS
-# These settings are required for Django to function properly
-
-# URL configuration
 ROOT_URLCONF = env("DJANGO_ROOT_URLCONF")
 
-# WSGI application (set by portal projects)
+# Set by portal projects.
 WSGI_APPLICATION = None
 
-# Site framework
 SITE_ID = env("DJANGO_SITE_ID")
 SITE_DOMAIN = env("DJANGO_SITE_DOMAIN")
 SITE_NAME = META_SITE_NAME = env("DJANGO_SITE_NAME")
 
-# Admin configuration
 ADMIN_URL = f"{env('DJANGO_ADMIN_URL')}"
 ADMINS = [("Super User", env("DJANGO_SUPERUSER_EMAIL"))]
 MANAGERS = ADMINS
 
-# Internationalization
 TIME_ZONE = env("DJANGO_TIME_ZONE", default="UTC")
 USE_TZ = True
 LANGUAGE_CODE = "en"
 USE_I18N = True
 USE_L10N = True
 
-# django-parler: Multi-language content
-# https://django-parler.readthedocs.io/
 PARLER_DEFAULT_LANGUAGE_CODE = "en"
 PARLER_LANGUAGES = {
     1: (
@@ -217,11 +182,9 @@ PARLER_LANGUAGES = {
     },
 }
 
-# Fixtures, Locales, and Static paths
 FIXTURE_DIRS = (str(BASE_DIR / "fixtures"),)
 LOCALE_PATHS = [str(BASE_DIR / "project" / "locale")]
 
-# Messages framework - colored message tags for Bootstrap 5
 MESSAGE_TAGS = {
     messages.DEBUG: "debug alert-secondary",
     messages.INFO: "info alert-info",
@@ -230,26 +193,18 @@ MESSAGE_TAGS = {
     messages.ERROR: "error alert-danger",
 }
 
-# Django Debug Toolbar - INTERNAL_IPS configuration
-# Gets local network IPs for debug toolbar access
+# The gateway address of each local network, for the debug toolbar.
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
-# THIRD-PARTY APP CONFIGURATIONS
-# Settings specific to installed third-party packages
-
-# django-crispy-forms: Tailwind form rendering (matches django-mvp's DaisyUI/Tailwind shell)
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
-# django-tables2: Table rendering template
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
-# django-accounts-center: Avatar URL retrieval
 ACCOUNT_MANAGEMENT_GET_AVATAR_URL = (
     "fairdm.contrib.contributors.utils.get_contributor_avatar"
 )
 
-# django-setup-tools: Deployment pipeline configuration
 DJANGO_SETUP_TOOLS = {
     "": {
         "on_initial": [
@@ -268,8 +223,8 @@ DJANGO_SETUP_TOOLS = {
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
-            ("preload",),  # django-research-vocabs
-            ("seed_licenses",),  # FairDM's recommended licences (FR-007a, D-018)
+            ("preload",),
+            ("seed_licenses",),
             "django_setup_tools.scripts.sync_site_id",
         ],
     },

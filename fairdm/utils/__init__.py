@@ -1,16 +1,22 @@
-"""FairDM Utilities Package
+"""Common utilities and helpers used throughout the FairDM framework.
 
-This package provides common utilities and helper functions used throughout
-the FairDM framework, including form helpers, permission utilities,
-and data processing functions.
-
-Import utilities as needed to avoid import cycles during Django startup.
+Includes form helpers, permission utilities and data processing functions. Names load lazily
+to avoid import cycles during Django startup.
 """
 
 
-# Lazy imports to avoid Django import cycle issues
 def __getattr__(name: str):
-    """Lazy import for utils package to avoid Django startup issues."""
+    """Import the requested utility on first access.
+
+    Args:
+        name: The attribute being looked up on the package.
+
+    Returns:
+        The utility of that name.
+
+    Raises:
+        AttributeError: ``name`` is not a utility this package exposes.
+    """
     if name == "DiscoveryTags":
         from .choices import DiscoveryTags
 

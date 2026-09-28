@@ -1,8 +1,12 @@
+"""App configuration for the sample app."""
+
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
 
 class FairDMSampleConfig(AppConfig):
+    """Configuration for the ``fairdm.core.sample`` app."""
+
     name = "fairdm.core.sample"
     label = "sample"
     verbose_name = _("Sample")

@@ -1,3 +1,5 @@
+"""Views for contributors."""
+
 from .organization import OrganizationCreateView, OrganizationListView
 from .person import PersonCreateView
 

@@ -168,12 +168,10 @@ class Migration(migrations.Migration):
                 verbose_name="literature item",
             ),
         ),
-        # Remove old related_literature M2M field (was ManyToManyField without through)
         migrations.RemoveField(
             model_name="dataset",
             name="related_literature",
         ),
-        # Add new related_literature field with through model
         migrations.AddField(
             model_name="dataset",
             name="related_literature",

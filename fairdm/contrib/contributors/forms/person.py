@@ -1,3 +1,5 @@
+"""Forms for signup, profile editing and merging people."""
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
@@ -9,7 +11,12 @@ User = get_user_model()
 
 
 class SignupExtraForm(forms.ModelForm):
-    """Form used by Django Allauth for collecting extra information during signup."""
+    """Collect first and last names during allauth signup.
+
+    Attributes:
+        first_name: The given name.
+        last_name: The family name.
+    """
 
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
@@ -27,17 +34,27 @@ class SignupExtraForm(forms.ModelForm):
         }
 
     def signup(self, request, user):
-        """Save the user's first and last name."""
+        """Save the user's first and last name.
+
+        Args:
+            request: The signup request.
+            user: The new user.
+        """
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.save()
 
 
 class UserProfileForm(ModelForm):
-    """Form for editing user profile information.
+    """Edit a person's image, names and biography.
 
-    Includes image cropping, name fields, and biographical profile.
-    Used in account management and contributor profile editing.
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        image: The profile image.
+        profile: The Markdown biography.
     """
 
     image = forms.ImageField(
@@ -72,10 +89,15 @@ class UserProfileForm(ModelForm):
 
 
 class MergePersonForm(forms.Form):
-    """Form for selecting a Person to merge another Person into.
+    """Choose the person that survives when another person is merged into them.
 
-    Used by the admin merge action. Allows staff to select the 'keep' Person
-    target when initiating a merge from an unclaimed Person's admin change page.
+    Args:
+        *args: Passed to ``Form``.
+        exclude_pk: Primary key of the person being merged, who is left out of the choices.
+        **kwargs: Passed to ``Form``.
+
+    Attributes:
+        merge_into: The person that survives.
     """
 
     merge_into = forms.ModelChoiceField(

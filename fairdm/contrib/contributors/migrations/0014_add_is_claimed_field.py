@@ -1,5 +1,3 @@
-# Generated migration for is_claimed BooleanField (Step 1 of 3)
-
 from django.db import migrations, models
 
 

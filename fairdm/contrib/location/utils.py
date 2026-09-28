@@ -1,3 +1,5 @@
+"""Coordinate and dataset-location helpers."""
+
 import json
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 
@@ -7,68 +9,82 @@ from django.db.models import F, Max, Min
 
 from .models import Point
 
-# from rest_framework_gis.filters import DistanceToPointFilter
-# from fairdm.contrib.samples.serializers import SampleGeojsonSerializer
-
 
 def normalize_coordinate(value, precision=5, coerce=str):
-    """Normalizes a coordinate value to a specified precision and type.
+    """Round a coordinate to five decimal places.
 
     Args:
-        value: The coordinate value to normalize. Can be any type convertible to Decimal.
-        precision (int, optional): The minimum number of decimal places required. Defaults to 5.
-        coerce (type, optional): The type to which the normalized value should be coerced. Defaults to str.
+        value: The coordinate, in any type convertible to ``Decimal``.
+        precision: Not used. The result always has five decimal places.
+        coerce: The type of the result. ``str`` gives a fixed-point string.
 
     Returns:
-        The normalized coordinate value, rounded to the specified precision and coerced to the requested type.
+        The rounded coordinate as ``coerce``.
 
     Raises:
-        ValidationError: If the input value is invalid or does not have at least the required number of decimal places.
+        ValidationError: The value cannot be converted to a ``Decimal``.
     """
     try:
         dec = Decimal(str(value))
     except Exception as err:
         raise ValidationError(f"Invalid coordinate value: {value}") from err
 
-    # Count number of actual decimal places
     -dec.as_tuple().exponent if dec.as_tuple().exponent < 0 else 0
 
-    # if decimal_places < 5:
-    # raise ValidationError("Coordinates must be at least 5 decimal places")
-
-    # Round to 5 decimal places (ROUND_HALF_UP)
     rounded = dec.quantize(Decimal("0.00001"), rounding=ROUND_HALF_UP)
-    # Return in the requested type
     if coerce is str:
         return f"{rounded:.5f}"
     return coerce(rounded)
 
 
 def serialize_dataset_samples(self, dataset):
+    """Return the dataset's samples serialized for the map, currently always empty.
+
+    Args:
+        self: Not used.
+        dataset: The dataset whose samples are serialized.
+
+    Returns:
+        A dict mapping the dataset's UUID to a JSON list, which is always empty.
+    """
     qs = dataset.samples.annotate(geom=F("location__point"))  # noqa: F841
-    # serializer = SampleGeojsonSerializer(qs, many=True)
-    # return {str(dataset.uuid): json.dumps(serializer.data)}
     return {str(dataset.uuid): json.dumps([])}
 
 
 def get_sites_within(location, radius=25):
-    """Gets nearby sites within {radius} km radius"""
+    """Build the query for points within a radius of a location, without returning it.
+
+    Args:
+        location: The location to search around.
+        radius: The search radius in kilometres.
+    """
     Point.objects.filter(point__distance_lt=(location.point, Distance(km=radius)))
 
 
 def locations_for_dataset(dataset):
-    """Get all locations for a dataset"""
+    """Return the locations of a dataset's samples.
+
+    Args:
+        dataset: The dataset to look up.
+
+    Returns:
+        A queryset of points.
+    """
     from .models import Point
 
-    # Get all points related to the dataset
     return Point.objects.filter(samples__dataset=dataset)
-
-    # # Serialize the points to GeoJSON
-    # serializer = SampleGeojsonSerializer(points, many=True)
-    # return json.dumps(serializer.data)
 
 
 def bbox_for_dataset(dataset):
+    """Return the bounding box of a dataset's locations.
+
+    Args:
+        dataset: The dataset to measure.
+
+    Returns:
+        A dict with ``min_x``, ``max_x``, ``min_y`` and ``max_y`` rounded down to five
+        decimal places, each None when the dataset has no locations.
+    """
     point_qs = locations_for_dataset(dataset)
 
     bounds = point_qs.aggregate(
@@ -77,8 +93,7 @@ def bbox_for_dataset(dataset):
         min_y=Min("y"),
         max_y=Max("y"),
     )
-    precision = Decimal("0.00001")  # 5 decimal places
-    # Round to 5 decimal places
+    precision = Decimal("0.00001")
     rounded_bounds = {
         key: (
             value.quantize(precision, rounding=ROUND_DOWN)
@@ -89,6 +104,3 @@ def bbox_for_dataset(dataset):
     }
 
     return rounded_bounds
-
-
-#

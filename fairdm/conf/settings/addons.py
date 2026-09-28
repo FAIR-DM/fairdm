@@ -1,35 +1,17 @@
-"""Third-Party Package and FairDM-Specific Configuration
+"""Third-party package settings and FairDM's own framework configuration.
 
-Owns: consolidated settings for third-party Django packages (activity
-stream, solo, waffle, flex-menus, easy-icons, import/export, django-markdownx, meta
-tags) and FairDM's own framework configuration (identifiers, coordinate
-fields, dataset/project keywords, the MVP page shell) — none of it
-environment-dependent (FR-002, FR-003). Leaves to a portal: its own
-``FAIRDM_CONFIG``/``PAGE_CONFIG`` branding, and any additional identifier
-schemes under ``FAIRDM_ALLOWED_IDENTIFIERS``.
+Owns the consolidated settings for activity stream, solo, waffle, flex-menus, easy-icons,
+import/export, django-markdownx and meta tags, plus FairDM's identifiers, coordinate fields,
+dataset and project keywords and the MVP page shell. A portal supplies its own
+``FAIRDM_CONFIG``/``PAGE_CONFIG`` branding and any additional identifier schemes under
+``FAIRDM_ALLOWED_IDENTIFIERS``.
 
-Not to be confused with ``fairdm/conf/addons.py``, the addon *discovery*
-mechanism (FR-021, FR-022) — this module's name predates that system.
-
-This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
+Not to be confused with ``fairdm/conf/addons.py``, which discovers addons.
 """
 
-# =============================================================================
-# ACTIVITY STREAM
-# https://django-activity-stream.readthedocs.io
-# =============================================================================
-
 ACTSTREAM_SETTINGS = {
-    # 'MANAGER': 'myapp.managers.MyActionManager',
-    # 'FETCH_RELATIONS': True,
     "USE_JSONFIELD": True,
 }
-
-# =============================================================================
-# CONFIGURATION & FEATURE FLAGS
-# https://django-solo.readthedocs.io
-# https://waffle.readthedocs.io
-# =============================================================================
 
 GET_SOLO_TEMPLATE_TAG_NAME = "site_config"
 """"""
@@ -49,12 +31,6 @@ WAFFLE_CREATE_MISSING_FLAGS = True
 WAFFLE_CREATE_MISSING_SAMPELS = True
 """"""
 
-# =============================================================================
-# NAVIGATION MENUS
-# https://django-flex-menus.readthedocs.io
-# =============================================================================
-
-# Custom renderers for FairDM navigation menus
 FLEX_MENUS = {
     "renderers": {
         "sidebar": "mvp.renderers.SidebarRenderer",
@@ -63,45 +39,25 @@ FLEX_MENUS = {
     }
 }
 
-# =============================================================================
-# APPLICATION SHELL
-# https://github.com/SamuelJennings/django-mvp
-# =============================================================================
-
 MVP_CONFIG = {
     "layout": {
         "sidebar": {
-            # Text shown beside the brand icon in the sidebar header.
             "title": "FairDM",
             "collapse": "icons",
         },
-        # The sidebar's own drawer already carries the login control and the
-        # theme toggle at every screen width (see
-        # TestSidebarFooterControls), so the package's default header copy
-        # of the same two controls only doubled them for a desktop visitor.
+        # The sidebar drawer already carries the login and theme controls, so the default
+        # navbar copies would double them.
         "navbar": {
             "desktop": {"end": []},
         },
     },
 }
 
-# =============================================================================
-# OBSERVABILITY
-# https://astro-stack.github.io/django-orbit
-# =============================================================================
-
-# Django Orbit records requests, queries and exceptions. Its dashboard (/orbit/)
-# defaults to open access when DEBUG is False; dashboard_access keeps it open in
-# development but restricts it to superusers in production. Override AUTH_CHECK in
-# your own project to change who can view the dashboard.
+# Orbit's dashboard defaults to open access when DEBUG is False; dashboard_access restricts
+# it to superusers in production. Override AUTH_CHECK to change who can view it.
 ORBIT_CONFIG = {
     "AUTH_CHECK": "fairdm.conf.orbit.dashboard_access",
 }
-
-# =============================================================================
-# ICON SYSTEM
-# https://django-easy-icons.readthedocs.io
-# =============================================================================
 
 EASY_ICONS = {
     "default": {
@@ -111,18 +67,11 @@ EASY_ICONS = {
         },
         "packs": [
             "mvp.utils.BS5_ICONS",
-            # django-accounts-center's allauth management pages (password,
-            # MFA, sessions, social connections, passkeys) draw their own
-            # icons from this pack. `account_center` and `overview` moved to
-            # django-mvp's own pack above when django-mvp took over the
-            # Account Center, so this line is no longer what keeps those two
-            # names resolving - but without it the management pages still
-            # raise `IconNotFoundError` the moment a signed-in visitor opens
-            # one.
+            # The allauth management pages draw their icons from this pack and raise
+            # `IconNotFoundError` without it.
             "dac.icons.DAC_ICONS",
         ],
         "icons": {
-            # Core Actions
             "add": "bi bi-plus-circle",
             "create": "bi bi-plus-circle",
             "edit": "bi bi-pencil",
@@ -136,7 +85,6 @@ EASY_ICONS = {
             "view": "bi bi-eye",
             "hide": "bi bi-eye-slash",
             "share": "bi bi-share",
-            # Navigation
             "menu_vertical": "bi bi-three-dots-vertical",
             "menu_horizontal": "bi bi-three-dots",
             "chevron_left": "bi bi-chevron-left",
@@ -148,11 +96,9 @@ EASY_ICONS = {
             "arrow_up": "bi bi-arrow-up",
             "arrow_down": "bi bi-arrow-down",
             "external_link": "bi bi-box-arrow-up-right",
-            # Search & Filter
             "filter_active": "bi bi-funnel-fill",
             "submit": "bi bi-check-lg",
             "funding": "bi bi-cash-coin",
-            # Data & Content Types
             "project": "bi bi-layers",
             "dataset": "bi bi-folder",
             "sample": "bi bi-droplet",
@@ -162,28 +108,23 @@ EASY_ICONS = {
             "analytics": "bi bi-graph-up",
             "activity": "bi bi-activity",
             "timeline": "bi bi-clock-history",
-            # Charts & Visualization
             "bar-chart": "bi bi-bar-chart",
             "line-chart": "bi bi-graph-up",
             "pie-chart": "bi bi-pie-chart",
             "scatter-plot": "bi bi-broadcast",
             "heatmap": "bi bi-grid-3x3-gap",
             "histogram": "bi bi-bar-chart-steps",
-            # File Operations
             "download": "bi bi-download",
             "upload": "bi bi-upload",
             "import": "bi bi-box-arrow-in-down",
             "export": "bi bi-box-arrow-up",
             "file": "bi bi-file-earmark",
             "file_text": "bi bi-file-text",
-            # People & Organizations
             "member": "bi bi-person-fill",
             "organization": "bi bi-building",
-            # Location & Geography
             "location": "bi bi-geo-alt",
             "map": "bi bi-map",
             "globe": "bi bi-globe",
-            # Metadata & Info
             "info": "bi bi-info-circle",
             "help": "bi bi-question-circle",
             "documentation": "bi bi-book",
@@ -198,7 +139,6 @@ EASY_ICONS = {
             "license": "bi bi-c-circle",
             "link": "bi bi-link-45deg",
             "relationships": "bi bi-diagram-3",
-            # Settings & Configuration
             "preferences": "bi bi-sliders",
             "administration": "bi bi-tools",
             "permissions": "bi bi-shield-check",
@@ -210,17 +150,14 @@ EASY_ICONS = {
             "expand": "bi bi-arrows-expand",
             "fullscreen": "bi bi-arrows-fullscreen",
             "fullscreen_exit": "bi bi-fullscreen-exit",
-            # Media
             "image": "bi bi-image",
             "images": "bi bi-images",
             "rotate": "bi bi-arrow-clockwise",
-            # Status & Indicators
             "success": "bi bi-check-circle",
             "error": "bi bi-x-circle",
             "warning": "bi bi-exclamation-triangle",
             "pending": "bi bi-clock",
             "loading": "bi bi-arrow-repeat",
-            # Misc
             "home": "bi bi-house",
             "dashboard": "bi bi-speedometer2",
             "email": "bi bi-envelope",
@@ -240,18 +177,13 @@ EASY_ICONS = {
             "cloud-check": "bi bi-cloud-check",
             "database_fill": "bi bi-database-fill",
             "database-fill": "bi bi-database-fill",
-            # Theme
-            # Social & External
             "linkedin": "bi bi-linkedin",
             "whatsapp": "bi bi-whatsapp",
             "x_twitter": "bi bi-twitter-x",
-            # API
             "api": "bi bi-braces",
-            # Auth
             "login": "bi bi-box-arrow-in-right",
             "logout": "bi bi-box-arrow-right",
             "signup": "bi bi-person-plus",
-            # UI feedback
             "check": "bi bi-check",
             "password": "bi bi-key",
             "mfa": "bi bi-shield-lock",
@@ -284,11 +216,6 @@ EASY_ICONS = {
     },
 }
 
-# =============================================================================
-# IMPORT/EXPORT
-# https://django-import-export.readthedocs.io
-# =============================================================================
-
 from import_export.formats.base_formats import CSV, DEFAULT_FORMATS, ODS, TSV, XLS, XLSX
 
 from fairdm.contrib.import_export.formats import LaTex
@@ -297,81 +224,35 @@ IMPORT_EXPORT_FORMATS = [LaTex, *DEFAULT_FORMATS]
 
 IMPORT_FORMATS = [CSV, TSV, XLS, XLSX, ODS]
 
-# =============================================================================
-# MARKDOWN EDITOR
-# https://django-markdownx.readthedocs.io
-# =============================================================================
-
-# Single source of truth for markdown rendering — read by both
-# fairdm.utils.markdown.markdownify (the sanitising renderer used at page
-# render time) and django-markdownx's live preview, via
-# MARKDOWNX_MARKDOWNIFY_FUNCTION below, so preview and page never diverge.
+# Read by both the page renderer and the live preview, so the two never diverge.
 FAIRDM_MARKDOWN_EXTENSIONS = [
     "markdown.extensions.extra",
     "markdown.extensions.nl2br",
     "markdown.extensions.smarty",
     "markdown.extensions.sane_lists",
-    "pymdownx.magiclink",  # bare-URL autolinking
-    "pymdownx.tilde",  # ~~strikethrough~~
+    "pymdownx.magiclink",
+    "pymdownx.tilde",
 ]
 
-# Routes the editor's live preview through the same sanitising renderer used
-# at page render time (fairdm.utils.markdown.markdownify).
 MARKDOWNX_MARKDOWNIFY_FUNCTION = "fairdm.utils.markdown.markdownify"
 
-# URL schemes that are allowed within links
 ALLOWED_URL_SCHEMES = [
-    # "file",
-    # "ftp",
-    # "ftps",
-    # "http",
     "https",
-    # "irc",
-    # "mailto",
-    # "sftp",
-    # "ssh",
-    # "tel",
-    # "telnet",
-    # "tftp",
-    # "vnc",
-    # "xmpp",
 ]
 
-# https://gist.github.com/mrmrs/7650266
 ALLOWED_HTML_TAGS = [
-    # "a",
     "abbr",
     "b",
     "blockquote",
     "br",
-    # "cite",
-    # "code",
-    # "command",
     "dd",
-    # "del",
     "dl",
     "dt",
     "em",
-    # "fieldset",
-    # "h1",
-    # "h2",
-    # "h3",
-    # "h4",
-    # "h5",
-    # "h6",
     "hr",
     "i",
-    # "iframe",
-    # "img",
-    # "input",
-    # "ins",
-    # "kbd",
-    # "label",
-    # "legend",
     "li",
     "ol",
-    # "optgroup",
-    # "option",
     "p",
     "pre",
     "small",
@@ -390,31 +271,7 @@ ALLOWED_HTML_TAGS = [
     "ul",
 ]
 
-# https://github.com/decal/werdlists/blob/master/html-words/html-attributes-list.txt
-ALLOWED_HTML_ATTRIBUTES = [
-    # "alt",
-    # "class",
-    # "color",
-    # "colspan",
-    # "datetime",  # "data",
-    # "height",
-    # "href",
-    # "id",
-    # "name",
-    # "reversed",
-    # "rowspan",
-    # "scope",
-    # "src",
-    # "style",
-    # "title",
-    # "type",
-    # "width",
-]
-
-# =============================================================================
-# SEO & META TAGS
-# https://django-meta.readthedocs.io
-# =============================================================================
+ALLOWED_HTML_ATTRIBUTES = []
 
 META_SITE_PROTOCOL = "https"
 """"""
@@ -426,26 +283,15 @@ META_USE_OG_PROPERTIES = True
 """"""
 META_USE_TWITTER_PROPERTIES = True
 """"""
-# META_INCLUDE_KEYWORDS = FAIRDM["database"]["keywords"]
 """"""
-# META_DEFAULT_KEYWORDS = FAIRDM["database"]["keywords"]
 """"""
-
-# =============================================================================
-# FAIRDM-SPECIFIC SETTINGS
-# FairDM framework configuration
-# =============================================================================
 
 FAIRDM_ALLOWED_IDENTIFIERS = {
     "samples.Sample": {
         "IGSN": "https://igsn.org/",
-        # "DOI": "https://doi.org/",
     },
     "contributors.Person": {
         "ORCID": "https://orcid.org/",
-        # "researcher_id": "https://app.geosamples.org/sample/researcher_id/",
-        # "scopus_id": "https://app.geosamples.org/sample/scopus_id/",
-        # "researchgate_id": "https://app.geosamples.org/sample/researchgate_id/",
     },
     "contributors.Organization": {
         "ROR": "https://ror.org/",
@@ -455,7 +301,6 @@ FAIRDM_ALLOWED_IDENTIFIERS = {
         "Crossref Funder ID": "https://doi.org/",
     },
 }
-
 
 FAIRDM_X_COORD = {
     "decimal_places": 5,
@@ -469,56 +314,34 @@ FAIRDM_Y_COORD = {
 
 FAIRDM_CRS = "EPSG:4326"
 
-
 FAIRDM_DATASET = {
-    "keyword_vocabularies": [
-        # "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
-        # "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
-    ],
+    "keyword_vocabularies": [],
 }
 
 FAIRDM_PROJECT = {
     "keywords": [
         "fairdm.core.vocabularies.FairDMRoles",
-        # "fairdm_geo.vocabularies.cgi.geosciml.SimpleLithology",
-        # "fairdm_geo.vocabularies.stratigraphy.GeologicalTimescale",
     ],
 }
 
-
 FAIRDM_DEFAULT_LICENSE = "CC BY 4.0"
 
-# =============================================================================
-# PAGE CONFIGURATION
-# django-mvp page-level settings
-# =============================================================================
-
-# Page configuration for django-mvp
 PAGE_CONFIG = {
-    # Site branding
     "brand": {
         "text": SITE_NAME,  # noqa: F821 - SITE_NAME is defined in apps.py
-        "image_light": "img/brand/logo.svg",  # Logo for light theme
-        # "image_dark": "img/brand/logo-dark.svg",  # Optional logo for dark theme
-        "icon_light": "img/brand/icon.svg",  # Favicon for light theme
-        # "icon_dark": "img/brand/icon-dark.svg",  # Optional favicon for dark theme
+        "image_light": "img/brand/logo.svg",
+        "icon_light": "img/brand/icon.svg",
     },
-    # Sidebar configuration
     "sidebar": {
-        "show_at": False,  # False = navbar-only mode (sidebar always offcanvas)
-        # Or set to 'sm', 'md', 'lg', 'xl', 'xxl' to show in-flow at that breakpoint
-        "collapsible": True,  # Whether sidebar can collapse to icon-only mode when visible
-        # "width": "280px",  # Optional: custom sidebar width (default: 260px)
+        # False is navbar-only mode; a breakpoint ('sm' to 'xxl') shows the sidebar in-flow.
+        "show_at": False,
+        "collapsible": True,
     },
-    # Navbar configuration
     "navbar": {
-        "fixed": False,  # Whether navbar is fixed to top
-        "menu_visible_at": "lg",  # Show navbar menu at this breakpoint (lg = 992px+)
-        # Only applies when sidebar.show_at is False (navbar-only mode)
-        # Set to False to never show navbar menu (sidebar toggle only)
-        # Options: 'sm', 'md', 'lg', 'xl', 'xxl', or False
+        "fixed": False,
+        # Only applies when sidebar.show_at is False. False hides the navbar menu.
+        "menu_visible_at": "lg",
     },
-    # Navigation bar actions (icons/links in the navbar)
     "actions": [
         {
             "icon": "theme_light",
@@ -540,11 +363,6 @@ PAGE_CONFIG = {
         },
     ],
 }
-
-# =============================================================================
-# THEME & UI
-# pydata-sphinx-theme inspired configuration
-# =============================================================================
 
 FAIRDM_CONFIG = {
     "colors": {
@@ -585,44 +403,18 @@ FAIRDM_CONFIG = {
         "image_light": "img/brand/fairdm.svg",
     },
     "announcement": "",
-    # "navbar_start": [
-    #     "pst.components.navbar-logo",
-    # ],
-    # "navbar_center": [
-    #     "pst.components.navbar-nav",
-    # ],
-    # "navbar_end": [
-    #     "pst.components.theme-switcher",
-    #     "pst.components.navbar-icon-links",
-    #     "dac.sections.user-sidebar.toggle",
-    # ],
-    # "primary_sidebar_end": ["custom-template", "sidebar-ethical-ads"],
-    # "article_footer_items": ["test", "test"],
-    # "content_footer_items": ["test", "test"],
     "footer_start": ["copyright"],
     "footer_center": ["sphinx-version"],
-    # "secondary_sidebar_items": {
-    #     "**/*": ["page-toc", "edit-this-page", "sourcelink"],
-    #     "examples/no-sidebar": [],
-    # },
-    # "switcher": {
-    #     "json_url": json_url,
-    #     "version_match": version_match,
-    # },
     "back_to_top_button": True,
-    # "search_bar": False,
-    # "search_as_you_type": False,
 }
 
 html_sidebars = {
     "community/index": [
         "sidebar-nav-bs",
         "custom-template",
-    ],  # This ensures we test for custom sidebars
-    "examples/no-sidebar": [],  # Test what page looks like with no sidebar items
+    ],
+    "examples/no-sidebar": [],
     "examples/persistent-search-field": ["search-field"],
-    # Blog sidebars
-    # ref: https://ablog.readthedocs.io/manual/ablog-configuration-options/#blog-sidebars
     "examples/blog/*": [
         "ablog/postcard.html",
         "ablog/recentposts.html",

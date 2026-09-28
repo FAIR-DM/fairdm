@@ -40,23 +40,16 @@ class Authority:
     """The authority that created or maintains a data model.
 
     Attributes:
-        name: The full name of the authority (required)
-        short_name: An abbreviated name for the authority
-        website: The authority's website URL
+        name: The full name of the authority. Required. Accepts a lazy translation
+            as well as a plain string, so an app config can declare its authority
+            with ``gettext_lazy`` before the translations load.
+        short_name: An abbreviated name for the authority.
+        website: The authority's website URL.
     """
 
     name: str | Promise
-    """The name of the authority that created this metadata. This is required.
-
-    Accepts a lazy translation as well as a plain string, so an app config can
-    declare its authority with ``gettext_lazy`` before the translations load.
-    """
-
     short_name: str = ""
-    """The short name of the authority that created this metadata."""
-
     website: str = ""
-    """The website of the authority that created this metadata."""
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -64,15 +57,12 @@ class Citation:
     """A citation for a data model.
 
     Attributes:
-        text: The full citation text
-        doi: The DOI for the citation
+        text: The full citation text.
+        doi: The DOI for the citation.
     """
 
     text: str = ""
-    """The citation for the data model."""
-
     doi: str = ""
-    """The DOI for the citation."""
 
 
 @dataclass
@@ -96,10 +86,10 @@ class Component(NamedTuple):
     """One row of the component table.
 
     Attributes:
-        fields_attr: the configuration attribute holding this component's own field list
-        class_attr: the configuration attribute holding a supplied class
-        base: the class a supplied class must subclass
-        factory: the name of the generator in ``fairdm.registry.factories``
+        fields_attr: The configuration attribute holding the component's own field list.
+        class_attr: The configuration attribute holding a supplied class.
+        base: The class a supplied class must subclass.
+        factory: The name of the generator in ``fairdm.registry.factories``.
     """
 
     fields_attr: str
@@ -135,6 +125,12 @@ def flatten_fields(fields: Sequence[Any] | None) -> list[str]:
 
     A grouped list and a plain one produce the same fields, so grouping is free
     for a portal to use and invisible to every generator.
+
+    Args:
+        fields: Field names, possibly grouped in tuples or nested lists.
+
+    Returns:
+        The flat list of field names, empty when ``fields`` is empty or ``None``.
     """
     if not fields:
         return []
@@ -149,7 +145,15 @@ def flatten_fields(fields: Sequence[Any] | None) -> list[str]:
 
 
 def _component_base(name: str) -> type | None:
-    """Resolve a component's base class, importing app code only when asked."""
+    """Resolve a component's base class, importing app code only when asked.
+
+    Args:
+        name: The component name, a key of ``COMPONENTS``.
+
+    Returns:
+        The class a supplied component class must subclass, or ``None`` when the
+        component has no base to enforce.
+    """
     declared = COMPONENTS[name].base
     if declared is not None:
         return declared
@@ -190,38 +194,60 @@ class ModelConfiguration:
 
     Declaring both a component's field list and its class is refused at
     registration, following Django's rule for ``fields`` and ``form_class``.
+
+    The configuration is validated when it is built, so a misconfigured portal stops
+    at import rather than serving a broken page.
+
+    Attributes:
+        model: The Django model this configures. A concrete Sample or Measurement
+            subclass. Declared non-optional because every method may rely on it:
+            the default of None exists only so that a subclass can supply it, and
+            ``_validate_model`` refuses a configuration that reaches the end of
+            construction without one.
+        metadata: Structured metadata about the model.
+        fields: Field list inherited by every component that declares none of its
+            own. Names may use Django's double-underscore paths, and may be grouped
+            in tuples for layout. An empty list means the framework decides.
+        exclude: Names to leave out of every component.
+        search_fields: Field paths ``SearchMixin`` searches with ``?q=``. ``None``
+            (the default) resolves to ``["name"]`` via ``get_search_fields()``.
+            Every entry must resolve to a text field, ``CharField`` or
+            ``TextField``, the same test ``AdminFactory._get_search_fields`` applies
+            when it picks the admin's own search fields. A numeric, boolean or date
+            field is refused at import rather than raising on a visitor's first
+            search.
+        form_fields: Field list for the form component alone.
+        table_fields: Field list for the table component alone.
+        filterset_fields: Field list for the filterset component alone.
+        serializer_fields: Field list for the serializer component alone.
+        resource_fields: Field list for the import and export resource alone.
+        admin_list_display: Field list for the admin component alone.
+        form_class: A form class, or its dotted path, replacing the generated one.
+        table_class: A table class, or its dotted path, replacing the generated one.
+        filterset_class: A filterset class, or its dotted path, replacing the
+            generated one.
+        serializer_class: A serializer class, or its dotted path, replacing the
+            generated one.
+        resource_class: A resource class, or its dotted path, replacing the
+            generated one.
+        admin_class: An admin class, or its dotted path, replacing the generated one.
+        display_name: Human-readable name, defaulting to the model's verbose name.
+        description: Description of this model type.
+
+    Args:
+        model: The model to configure. Passed positionally, as ``registry.register``
+            does, or by keyword alongside any other configuration attribute.
+        **overrides: Configuration attributes to set on this instance.
+
+    Raises:
+        TypeError: An override names an attribute that cannot be overridden.
     """
 
     model: "type[models.Model]" = None  # type: ignore[assignment]
-    """The Django model this configures. A concrete Sample or Measurement subclass.
-
-    Declared non-optional because every method may rely on it: the default of None
-    exists only so that a subclass can supply it, and ``_validate_model`` refuses a
-    configuration that reaches the end of construction without one.
-    """
-
     metadata: ModelMetadata | None = None
-    """Structured metadata about the model."""
-
     fields: list[Any] = []
-    """Field list inherited by every component that declares none of its own.
-
-    Names may use Django's double-underscore paths, and may be grouped in tuples
-    for layout. An empty list means the framework decides.
-    """
-
     exclude: list[str] = []
-    """Names to leave out of every component."""
-
     search_fields: list[str] | None = None
-    """Field paths `SearchMixin` searches with `?q=` (FR-024).
-
-    `None` (the default) resolves to `["name"]` via `get_search_fields()`. Every
-    entry must resolve to a text field - `CharField` or `TextField` - the same test
-    `AdminFactory._get_search_fields` applies when it picks the admin's own search
-    fields, so a numeric, boolean or date field is refused at import rather than
-    raising on a visitor's first search (FR-026, decisions.md D12).
-    """
 
     form_fields: list[Any] | None = None
     table_fields: list[Any] | None = None
@@ -238,10 +264,7 @@ class ModelConfiguration:
     admin_class: "type[ModelAdmin] | str | None" = None
 
     display_name: str = ""
-    """Human-readable name, defaulting to the model's verbose name."""
-
     description: str = ""
-    """Description of this model type."""
 
     #: Attributes a caller may set per instance.
     _OVERRIDABLE = (
@@ -256,11 +279,6 @@ class ModelConfiguration:
     )
 
     def __init__(self, model: "type[models.Model] | None" = None, **overrides: Any):
-        """Build a configuration, validating it before it can be registered.
-
-        ``model`` may be passed positionally, as ``registry.register`` does, or by
-        keyword alongside any other configuration attribute.
-        """
         if model is not None:
             self.model = model
 
@@ -291,13 +309,8 @@ class ModelConfiguration:
         self._validate_custom_classes()
         self._validate_admin_inheritance()
 
-    # Validation, all of it at construction time so that a misconfigured portal
-    # stops at import rather than serving a broken page.
-
     def _validate_model(self) -> None:
-        """A configuration needs a model. Whether that model may be *registered* is
-        the registry's decision, made in FairDMRegistry.register per FR-002.
-        """
+        """Require a model. Whether it may be registered is the registry's decision."""
         if self.model is None:
             raise ConfigurationError("ModelConfiguration.model is required")
 
@@ -321,7 +334,7 @@ class ModelConfiguration:
                 )
 
     def _field_lists(self) -> list[tuple[str, list[Any]]]:
-        """Every declared field list, by the attribute that declared it."""
+        """List every declared field list, by the attribute that declared it."""
         lists: list[tuple[str, list[Any]]] = [("fields", self.fields)]
         lists += [
             (spec.fields_attr, getattr(self, spec.fields_attr))
@@ -330,13 +343,21 @@ class ModelConfiguration:
         return [(name, value) for name, value in lists if value]
 
     def _validate_fields(self) -> None:
-        """Every name in every field list must resolve, path segments included."""
+        """Require every name in every field list to resolve, path segments included."""
         for attr, field_list in self._field_lists():
             for name in flatten_fields(field_list):
                 self._validate_field_path(name, attr)
 
     def _validate_field_path(self, path: str, attr: str) -> None:
-        """Refuse a path that does not resolve, naming why."""
+        """Refuse a path that does not resolve, naming why.
+
+        Args:
+            path: The field name or double-underscore path to check.
+            attr: The configuration attribute that declared it.
+
+        Raises:
+            FieldValidationError: The path does not resolve on the model.
+        """
         from fairdm.utils.inspection import FieldInspector
 
         inspector = FieldInspector(self.model)
@@ -357,14 +378,14 @@ class ModelConfiguration:
         )
 
     def _validate_search_fields(self) -> None:
-        """Every `search_fields` entry must resolve, and resolve to a text field.
+        """Require every `search_fields` entry to resolve to a text field.
 
-        Two passes (data-model.md, decisions.md D12): `_validate_field_path` decides
-        whether the path exists at all, the same test `fields` uses, then a positive
-        type check on the resolved final field - a `DecimalField`, `BooleanField` or
-        `DateField` resolves cleanly and would otherwise only raise on the first
-        search a visitor types. `icontains` is registered on `Field` itself, so
-        asking whether the field *has* the lookup would reject nothing.
+        Two passes: `_validate_field_path` decides whether the path exists at all,
+        the same test `fields` uses, then a positive type check on the resolved final
+        field - a `DecimalField`, `BooleanField` or `DateField` resolves cleanly and
+        would otherwise only raise on the first search a visitor types. `icontains`
+        is registered on `Field` itself, so asking whether the field *has* the lookup
+        would reject nothing.
         """
         from django.db import models as django_models
 
@@ -391,7 +412,7 @@ class ModelConfiguration:
                 )
 
     def _validate_custom_classes(self) -> None:
-        """A supplied class must subclass the base its component requires."""
+        """Require a supplied class to subclass the base its component requires."""
         for name, spec in COMPONENTS.items():
             declared = getattr(self, spec.class_attr)
             if declared is None:
@@ -409,7 +430,7 @@ class ModelConfiguration:
                 )
 
     def _validate_admin_inheritance(self) -> None:
-        """A supplied admin must use the child admin base for its hierarchy.
+        """Require a supplied admin to use the child admin base for its hierarchy.
 
         django-polymorphic's parent and child admins are not interchangeable, and a
         child registered against the parent base misbehaves in ways that are hard to
@@ -447,27 +468,35 @@ class ModelConfiguration:
                 f"class {admin_cls.__name__}(MeasurementChildAdmin): ..."
             )
 
-    # Field resolution and component production.
-
     @classmethod
     def get_default_fields(cls, model: "type[models.Model]") -> list[str]:
-        """The framework's own choice of fields for a model, per FR-011.
+        """Return the framework's own choice of fields for a model.
 
-        Delegates to ``FieldInspector``, which is the single implementation. Two
-        copies of this rule used to be live in the same request path and disagreed
-        on three points, so the API and the admin could show different default
-        fields for one model.
+        Delegates to ``FieldInspector`` so the API, the admin and every generated
+        component agree on one default.
+
+        Args:
+            model: The model to choose fields for.
+
+        Returns:
+            The default field names.
         """
         from fairdm.utils.inspection import FieldInspector
 
         return FieldInspector(model).get_default_fields()
 
     def resolve_fields(self, component: str) -> list[str]:
-        """The field list one component is built from.
+        """Return the field list one component is built from.
 
         A component's own list wins, then the shared list, then the framework's
         defaults. Grouping tuples are flattened, and anything in ``exclude`` is
         dropped.
+
+        Args:
+            component: The component name, a key of ``COMPONENTS``.
+
+        Returns:
+            The flat list of field names for that component.
         """
         spec = COMPONENTS[component]
         declared = getattr(self, spec.fields_attr)
@@ -480,13 +509,18 @@ class ModelConfiguration:
         return [name for name in flatten_fields(chosen) if name not in excluded]
 
     def get_search_fields(self) -> list[str]:
-        """The fields `SearchMixin` searches on `?q=`, defaulting to `["name"]`
-        when this configuration declares none (FR-024, data-model.md).
-        """
+        """Return the fields `SearchMixin` searches on `?q=`, `["name"]` by default."""
         return self.search_fields or ["name"]
 
     def _component_class(self, component: str) -> type:
-        """Resolve or build one component's class. Never cached."""
+        """Resolve or build one component's class, never cached.
+
+        Args:
+            component: The component name, a key of ``COMPONENTS``.
+
+        Returns:
+            The supplied class, or one generated from the resolved field list.
+        """
         spec = COMPONENTS[component]
         declared = getattr(self, spec.class_attr)
         if declared is not None:
@@ -501,60 +535,66 @@ class ModelConfiguration:
         return cast(type, generated)
 
     def get_form_class(self) -> type[ModelForm]:
-        """The ModelForm for this model. Override to build your own."""
+        """Return the ModelForm for this model. Override to build your own."""
         return self._component_class("form")
 
     def get_table_class(self) -> type[Table]:
-        """The django-tables2 Table for this model. Override to build your own."""
+        """Return the django-tables2 Table for this model. Override to replace it."""
         return self._component_class("table")
 
     def get_filterset_class(self) -> type[FilterSet]:
-        """The django-filter FilterSet for this model. Override to build your own."""
+        """Return the django-filter FilterSet for this model. Override to replace it."""
         return self._component_class("filterset")
 
     def get_serializer_class(self) -> "type[ModelSerializer]":
-        """The REST serializer for this model. Override to build your own."""
+        """Return the REST serializer for this model. Override to build your own."""
         return cast("type[ModelSerializer]", self._component_class("serializer"))
 
     def get_resource_class(self) -> type[ModelResource]:
-        """The import and export resource. Override to build your own."""
+        """Return the import and export resource. Override to build your own."""
         return cast(type[ModelResource], self._component_class("resource"))
 
     def get_admin_class(self) -> "type[ModelAdmin]":
-        """The Django admin class for this model. Override to build your own."""
+        """Return the Django admin class for this model. Override to build your own."""
         return cast("type[ModelAdmin]", self._component_class("admin"))
 
-    # Naming.
-
     def _get_class(self, class_or_path: str | type) -> type:
-        """Import a class from a dotted path, or return the class unchanged."""
+        """Import a class from a dotted path, or return the class unchanged.
+
+        Args:
+            class_or_path: A class, or the dotted path of one.
+
+        Returns:
+            The class.
+        """
         if isinstance(class_or_path, str):
             return cast(type, import_string(class_or_path))
         return cast(type, class_or_path)
 
     def get_display_name(self) -> str:
-        """The human-readable name for this model."""
+        """Return the human-readable name for this model."""
         return self.display_name or str(self.model._meta.verbose_name).title()
 
     def get_description(self) -> str:
-        """The description for this model."""
+        """Return the description for this model."""
         if self.metadata and self.metadata.description:
             return self.metadata.description
         return self.description or f"Configuration for {self.model.__name__}"
 
     def get_slug(self) -> str:
-        """The URL-safe name for this model, used in routes and view names."""
+        """Return the URL-safe name for this model, used in routes and view names."""
         return self.model._meta.model_name or ""
 
     def get_verbose_name(self) -> str:
-        """The model's singular verbose name."""
+        """Return the model's singular verbose name."""
         return str(self.model._meta.verbose_name)
 
     def get_verbose_name_plural(self) -> str:
-        """The model's plural verbose name."""
+        """Return the model's plural verbose name."""
         return str(self.model._meta.verbose_name_plural)
 
     def __repr__(self) -> str:
+        """Return the class name and the model label."""
         model = self.model._meta.label if self.model else None
         return f"<{type(self).__name__}: {model}>"
 

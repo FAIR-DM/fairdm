@@ -2,10 +2,8 @@
 {% load fairdm humanize i18n static easy_icons %}
 
 {% block page_header %}
-  {# Custom header for Organization with logo, name, and identifiers #}
   <div class="organization-header py-4 mb-4">
     <div class="d-flex flex-column flex-md-row align-items-center gap-3 gap-md-4">
-      {# Logo #}
       <div class="position-relative flex-shrink-0">
         {% if object.image %}
           <img src="{{ object.image.url }}"
@@ -23,10 +21,8 @@
           </div>
         {% endif %}
       </div>
-      {# Name and primary identifiers #}
       <div class="flex-grow-1 text-center text-md-start">
         <h4>{{ object.name }}</h4>
-        {# ROR Identifier - if available #}
         {% for identifier in object.identifiers.all %}
           {% if identifier.type == "ROR" %}
             <div>
@@ -41,7 +37,6 @@
             </div>
           {% endif %}
         {% endfor %}
-        {# Location #}
         {% if object.city or object.country %}
           <p class="text-muted mb-0">
             <c-icon name="location" class="me-1" />
@@ -52,7 +47,6 @@
             {% if object.country %}{{ object.country.name }}{% endif %}
           </p>
         {% endif %}
-        {# Alternative names preview #}
         {% if object.alternative_names %}
           <p class="text-muted mb-0 small">
             <c-icon name="organization" class="me-1" />
@@ -71,7 +65,6 @@
 {% block plugin %}
   {% trans "There's nothing here yet." as empty_text %}
   <div class="row g-4">
-    {# Main content area #}
     <div class="col-lg-8">
       {% block overview_main %}
         {% block description %}
@@ -85,7 +78,6 @@
         {% endblock description %}
 
         {% block contributions %}
-          {# Contributions Statistics #}
           <c-card title="{% trans "Contributions" %}"
                   icon="analytics">
             {% if contributions_by_type %}
@@ -106,7 +98,6 @@
         {% endblock contributions %}
 
         {% block research_areas %}
-          {# Research Areas / Focus Topics #}
           <c-card title="{% trans "Research Areas" %}"
                   icon="keywords">
             <div class="d-flex flex-wrap gap-2">
@@ -122,14 +113,12 @@
         {% endblock research_areas %}
 
         {% block members %}
-          {# Organization Members #}
           <c-card title="{% trans "Members" %}" icon="people">
             <c-list-group flush>
               {% for membership in object.members.all|slice:":10" %}
                 <c-list-group.item>
                   <div class="d-flex w-100 justify-content-between align-items-start">
                     <div class="d-flex align-items-center gap-3">
-                      {# Member avatar #}
                       {% if membership.person.image %}
                         <img src="{{ membership.person.image.url }}"
                              alt="{{ membership.person.name }}"
@@ -186,11 +175,9 @@
       {% endblock overview_main %}
 
     </div>
-    {# Sidebar #}
     <div class="col-lg-4">
       {% block overview_sidebar %}
         {% block organization_type %}
-          {# Organization Type/Category #}
           {% if object.type %}
             <c-card title="{% trans "Organization Type" %}"
                     icon="relationships">
@@ -200,7 +187,6 @@
         {% endblock organization_type %}
 
         {% block location %}
-          {# Location/Address Information #}
           {% if object.country or object.city %}
             <c-card title="{% trans "Location" %}" icon="location">
               <dl class="mb-0">
@@ -218,7 +204,6 @@
         {% endblock location %}
 
         {% block identifiers %}
-          {# External Identifiers #}
           <c-card title="{% trans "Identifiers" %}"
                   icon="identifier">
             <dl class="mb-0">
@@ -244,7 +229,6 @@
         {% endblock identifiers %}
 
         {% block external_links %}
-          {# External Links #}
           <c-card title="{% trans "Links" %}" icon="link">
             {% if object.links %}
               <div class="d-flex flex-column gap-2">
@@ -265,7 +249,6 @@
         {% endblock external_links %}
 
         {% block alternative_names %}
-          {# Alternative Names / Acronyms #}
           {% if object.alternative_names %}
             <c-card title="{% trans "Alternative Names" %}"
                     icon="organization">
@@ -281,7 +264,6 @@
         {% endblock alternative_names %}
 
         {% block parent_organization %}
-          {# Parent Organization (if applicable) #}
           {% if object.parent %}
             <c-card title="{% trans "Part Of" %}" icon="diagram-2">
               <div class="d-flex align-items-center gap-2">
@@ -306,7 +288,6 @@
         {% endblock parent_organization %}
 
         {% block established %}
-          {# Established Date #}
           {% if object.established %}
             <c-card title="{% trans "Established" %}"
                     icon="calendar-event">

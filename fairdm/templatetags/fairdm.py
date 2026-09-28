@@ -1,8 +1,8 @@
+"""Template tags and filters used across FairDM templates."""
+
 from django import template
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
-
-# import flatattrs
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -14,10 +14,11 @@ from fairdm.utils.markdown import markdownify
 
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
-# ureg.default_format = ".2f~P"
 
 
 class MyFormatter(PrettyFormatter):
+    """A pint formatter that prints quantities with two decimals and unit symbols."""
+
     default_format = ".2f~P"
 
     def format_uncertainty(
@@ -27,6 +28,7 @@ class MyFormatter(PrettyFormatter):
         sort_func=None,
         **babel_kwds,
     ) -> str:
+        """Format an uncertainty with spaces around the ``±`` sign."""
         unc_spec = unc_spec.replace("~", "")
         return format(uncertainty, unc_spec).replace("±", " ± ")
 
@@ -37,6 +39,7 @@ class MyFormatter(PrettyFormatter):
         sort_func=None,
         **babel_kwds,
     ) -> str:
+        """Format a measurement without the surrounding parentheses."""
         result = super().format_measurement(
             measurement, meas_spec, sort_func, **babel_kwds
         )
@@ -46,6 +49,15 @@ class MyFormatter(PrettyFormatter):
 
 @register.simple_tag(takes_context=True)
 def is_active(context, url):
+    """Return ``"active"`` when the current request path starts with ``url``.
+
+    Args:
+        context: The template context, which must hold ``request``.
+        url: The path prefix to compare against.
+
+    Returns:
+        ``"active"`` or an empty string.
+    """
     if context["request"].path.startswith(url):
         return "active"
     return ""
@@ -53,12 +65,17 @@ def is_active(context, url):
 
 @register.filter
 def unit(unit):
-    """Renders HTML of the specified unit"""
+    """Render the HTML of a unit.
+
+    Args:
+        unit: A unit, or a unit string such as ``"m"`` or ``"m/s"``.
+
+    Returns:
+        The unit formatted as HTML with symbols.
+    """
     if isinstance(unit, str):
-        # if a string is passed, create a unit from it (e.g. "m" or "m/s")
         u = ureg.Unit(unit)
     elif isinstance(unit, ureg.Unit):
-        # if a unit is passed, use it directly (e.g. calling the value directly on an instance instance.value.units)
         u = unit
 
     return f"{u:~H}"
@@ -66,11 +83,17 @@ def unit(unit):
 
 @register.simple_tag
 def get_registry_info(model_or_qs):
-    """The registry configuration for a model, an instance, or a queryset.
+    """Return the registry configuration for a model, an instance or a queryset.
 
-    Returns None when the model is not registered, because a template asking what
-    the registry knows about something is asking, not asserting. Python callers use
+    Returns ``None`` when the model is not registered, because a template asking what the
+    registry knows about something is asking, not asserting. Python callers use
     `registry.get_for_model()`, which raises.
+
+    Args:
+        model_or_qs: A model class, a model instance or a queryset.
+
+    Returns:
+        The model's registry configuration, or ``None`` when it is not registered.
     """
     from fairdm.registry import registry
     from fairdm.registry.exceptions import NotRegisteredError
@@ -90,11 +113,28 @@ def get_registry_info(model_or_qs):
 
 @register.simple_tag
 def display_url(url):
+    """Return a URL without its scheme and ``www.`` prefix, for display.
+
+    Args:
+        url: The URL to shorten.
+
+    Returns:
+        The shortened URL.
+    """
     return url.replace("https://", "").replace("http://", "").replace("www.", "")
 
 
 @register.simple_tag
 def get_field(obj, fname):
+    """Return a model field by name.
+
+    Args:
+        obj: A model instance or class.
+        fname: The field name.
+
+    Returns:
+        The field, or ``None`` when the model has no such field.
+    """
     try:
         return obj._meta.get_field(fname)
     except FieldDoesNotExist:
@@ -103,6 +143,15 @@ def get_field(obj, fname):
 
 @register.simple_tag
 def get_field_and_value(obj, fname):
+    """Return a model field together with its value on an instance.
+
+    Args:
+        obj: The model instance.
+        fname: The field name.
+
+    Returns:
+        A dict with the ``field`` and its ``value``.
+    """
     return {
         "field": obj._meta.get_field(fname),
         "value": getattr(obj, fname),
@@ -111,14 +160,30 @@ def get_field_and_value(obj, fname):
 
 @register.simple_tag
 def get_fields(obj, fields):
+    """Return the fields named, each paired with its value on an instance.
+
+    Args:
+        obj: The model instance.
+        fields: The field names.
+
+    Returns:
+        A list of ``(field, value)`` tuples in the order of ``fields``.
+    """
     return [(obj._meta.get_field(f), getattr(obj, f)) for f in fields]
 
 
 @register.simple_tag
 def edit_url(obj, fields=None):
-    url = reverse(
-        f"{obj._meta.model_name}-update", kwargs={"uuid": obj.uuid}
-    )  # Adjust the URL name as needed
+    """Return the update URL for an instance.
+
+    Args:
+        obj: The model instance, which needs a ``uuid``.
+        fields: Field names to restrict the form to, sent as a ``fields`` query parameter.
+
+    Returns:
+        The update URL, with the ``fields`` query parameter when ``fields`` is given.
+    """
+    url = reverse(f"{obj._meta.model_name}-update", kwargs={"uuid": obj.uuid})
     if fields:
         return f"{url}?fields={','.join(fields)}"
     return url
@@ -126,9 +191,16 @@ def edit_url(obj, fields=None):
 
 @register.simple_tag
 def avatar_url(contributor, **kwargs):
-    """Renders a default img tag for the given profile. If the profile.image is None, renders a default icon if no image is set."""
+    """Return the contributor's image URL, or the default user icon markup when there is none.
+
+    Args:
+        contributor: The contributor, or a falsy value for an anonymous user.
+        **kwargs: Ignored.
+
+    Returns:
+        The image URL, or the rendered default icon.
+    """
     if not contributor:
-        # for anonymous users
         return render_to_string("icons/user.svg")
 
     if contributor.image:
@@ -139,12 +211,19 @@ def avatar_url(contributor, **kwargs):
 
 @register.simple_tag(takes_context=True)
 def plugin_url(context, view_name, *args, **kwargs):
-    """DEPRECATED: Use {% load plugin_tags %} and {% plugin_url ... %} instead.
+    """Return the URL of a plugin view for the current object.
 
-    Returns a URL for a plugin view, using the base_object's model name as the namespace.
+    Deprecated: use ``{% plugin_url %}`` from ``fairdm.contrib.plugins.templatetags.plugin_tags``,
+    which replaces this tag.
 
-    This tag is deprecated and maintained for backward compatibility.
-    New code should use the plugin_url tag from fairdm.contrib.plugins.templatetags.plugin_tags.
+    Args:
+        context: The template context, which supplies the object.
+        view_name: The plugin view name.
+        *args: Positional arguments for the URL.
+        **kwargs: Keyword arguments for the URL.
+
+    Returns:
+        The URL, or an empty string when the context holds no object.
     """
     from fairdm.contrib.plugins.utils import reverse
 
@@ -167,7 +246,11 @@ def normalize_doi(doi):
         - "doi:10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
         - "https://doi.org/10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
 
-    Returns None if input does not look like a valid DOI.
+    Args:
+        doi: The DOI in any accepted form.
+
+    Returns:
+        The DOI URL, or ``None`` if the input does not look like a valid DOI.
     """
     if not doi:
         return None
@@ -176,25 +259,43 @@ def normalize_doi(doi):
 
 @register.filter
 def safe_markdown(content):
-    """Render markdown to sanitised HTML, safe to output without further escaping."""
+    """Render markdown to sanitised HTML, safe to output without further escaping.
+
+    Args:
+        content: The markdown source.
+
+    Returns:
+        The sanitised HTML, marked safe.
+    """
     return mark_safe(markdownify(content))
 
 
 @register.filter
 def has_perms(permission_obj, perms):
-    """Check if the user has the provided object permission or is a privileged user.
+    """Check whether any of the comma-separated permissions is in the permission object.
 
+    Args:
+        permission_obj: A collection of permission names.
+        perms: Comma-separated permission names.
+
+    Returns:
+        ``True`` when at least one of them is present.
     """
     return any(perm in permission_obj for perm in perms.split(","))
-    # is_privileged = (
-    #     permission_obj.user.is_superuser or permission_obj.user.groups.filter(name="Data Administrators").exists()
-    # )
-    # return has_obj_perms or is_privileged
 
 
 @register.simple_tag(takes_context=True)
 def has_permission(context, perms):
-    """Check if the user has the specified permission on the given object.
+    """Check whether the user holds any of the comma-separated permissions.
+
+    Checks the context's ``user_permissions`` first, then falls back to the user's own permissions.
+
+    Args:
+        context: The template context.
+        perms: Comma-separated permission names.
+
+    Returns:
+        ``True`` when at least one permission is held.
     """
     permission_obj = context.get("user_permissions", [])
     if any(perm in permission_obj for perm in perms.split(",")):
@@ -207,19 +308,17 @@ def has_permission(context, perms):
 
 @register.simple_tag
 def get_related_field(obj, field_name):
-    """Drill down into an object's attributes using Django-style double-underscore notation.
+    """Drill down an object's attributes using Django-style double-underscore notation.
 
     Args:
         obj: The root model instance.
-        attr_path: A string like "reference__publisher__name" (any depth).
+        field_name: A path such as ``"reference__publisher__name"``, of any depth.
 
     Returns:
-        A tuple (intermediate_obj, value):
-            - intermediate_obj: the object just before the final attribute
-            - value: the final attribute value (or method result if callable)
+        A tuple ``(final_obj, final_attr)``: the object holding the last attribute and that
+        attribute's name. ``(None, None)`` when an intermediate object is ``None``.
 
-    Raises:
-        AttributeError if any part of the path is invalid
+    An attribute missing from the path before the last part raises ``AttributeError``.
     """
     parts = field_name.split("__")
     current = obj
@@ -231,12 +330,5 @@ def get_related_field(obj, field_name):
 
     final_attr = parts[-1]
     final_obj = current
-
-    # try:
-    #     value = getattr(final_obj, final_attr)
-    #     if callable(value):
-    #         value = value()
-    # except AttributeError:
-    #     raise AttributeError(f"Failed to resolve final attribute: {final_attr} on {final_obj}")
 
     return final_obj, final_attr

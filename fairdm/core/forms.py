@@ -1,9 +1,19 @@
+"""Base form, Selectize widget and creators field shared by the core forms."""
+
 from django import forms
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
 
 class BaseForm(ModelForm):
+    """Model form that accepts the request and drops declared fields missing from ``Meta.fields``.
+
+    Args:
+        *args: Positional arguments passed to ``ModelForm``.
+        **kwargs: Keyword arguments passed to ``ModelForm``. ``request`` is removed first and
+            sets ``self.request`` and ``self.user``.
+    """
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
         self.user = None
@@ -11,7 +21,6 @@ class BaseForm(ModelForm):
             self.user = self.request.user
 
         super().__init__(*args, **kwargs)
-        # Remove explicitly declared fields if not in Meta.fields
         allowed = set(self._meta.fields)
         for name in list(self.fields):
             if name not in allowed:
@@ -19,16 +28,22 @@ class BaseForm(ModelForm):
 
 
 class SelectizeWidget(forms.SelectMultiple):
+    """Multiple select widget that renders as a Selectize control with remove and drag-drop plugins.
+
+    Args:
+        *args: Positional arguments passed to ``SelectMultiple``.
+        **kwargs: Keyword arguments passed to ``SelectMultiple``. ``selectize_options`` is
+            removed first and stored on the widget.
+    """
+
     def __init__(self, *args, **kwargs):
-        # You can pass any additional arguments here like the 'drag_drop' option, etc.
         self.selectize_options = kwargs.pop("selectize_options", {})
         super().__init__(*args, **kwargs)
 
     def render(self, name, value, attrs=None, renderer=None):
-        # First, render the standard SelectMultiple widget
+        """Append the script that initialises Selectize on the rendered select."""
         output = super().render(name, value, attrs, renderer)
 
-        # Add the Selectize initialization script to the output
         selectize_script = f"""
         <script type="text/javascript">
             $(document).ready(function() {{
@@ -42,20 +57,17 @@ class SelectizeWidget(forms.SelectMultiple):
         return mark_safe(output + selectize_script)
 
     def _generate_selectize_options(self):
-        # Convert the selectize_options dictionary into JavaScript-friendly format
         options = ["'plugins': ['remove_button', 'drag_drop']"]
-        # for key, value in self.selectize_options.items():
-        #     if isinstance(value, str):
-        #         options.append(f"'{key}': '{value}'")
-        #     else:
-        #         options.append(f"'{key}': {value}")
         return ", ".join(options)
 
 
 class CreatorsFormField(forms.ModelMultipleChoiceField):
+    """Ordered multiple choice field that grants and removes the Creator role as it is edited."""
+
     widget = SelectizeWidget
 
     def clean(self, value):
+        """Add the Creator role to new selections, remove it from dropped ones and order the rest."""
         value = super().clean(value)
         removed = [c for c in self.initial if c not in value]
 
@@ -66,17 +78,13 @@ class CreatorsFormField(forms.ModelMultipleChoiceField):
         for i, c in enumerate(value):
             if c not in self.initial:
                 c.add_roles(["Creator"])
-            # set order using django-ordered-model api
             c.to(i)
             c.save()
 
         return value
 
     def _check_values(self, value):
-        """Given a list of possible PK values, return a QuerySet of the
-        corresponding objects. Raise a ValidationError if a given value is
-        invalid (not a valid PK, not in the queryset, etc.)
-        """
+        """Return the objects matching each value on ``to_field_name`` (default ``uuid``), in order."""
         key = self.to_field_name or "uuid"
         qs = super()._check_values(value)
         result = []

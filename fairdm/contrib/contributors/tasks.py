@@ -1,10 +1,4 @@
-"""Celery tasks for contributor synchronization.
-
-Tasks:
-- sync_contributor_identifier: Fetch ORCID/ROR data for a ContributorIdentifier
-- refresh_all_contributors: Periodic task to refresh stale data
-- detect_duplicate_contributors: Periodic task to find potential duplicates
-"""
+"""Celery tasks that sync contributors with ORCID and ROR and look for duplicates."""
 
 import logging
 from datetime import timedelta
@@ -24,16 +18,15 @@ logger = logging.getLogger(__name__)
     rate_limit="10/m",
 )
 def sync_contributor_identifier(identifier_pk: int) -> bool:
-    """Fetch external data for a ContributorIdentifier.
+    """Fetch external data for a contributor identifier and store it on the contributor.
 
-    Determines API (ORCID/ROR) from identifier type.
-    Updates Contributor.synced_data and last_synced.
+    The ORCID or ROR API is chosen from the identifier's type.
 
     Args:
-        identifier_pk: Primary key of ContributorIdentifier instance.
+        identifier_pk: Primary key of the ``ContributorIdentifier``.
 
     Returns:
-        bool: True if sync succeeded, False otherwise.
+        True when the sync succeeded, False otherwise.
     """
     from .models import ContributorIdentifier
 
@@ -47,7 +40,6 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
 
     contributor = identifier.related
 
-    # Dispatch to appropriate sync function based on identifier type
     if identifier.type == "ORCID":
         return _sync_orcid(identifier, contributor)
     elif identifier.type == "ROR":
@@ -58,7 +50,18 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
 
 
 def _sync_orcid(identifier, contributor):
-    """Sync ORCID data for a person."""
+    """Sync ORCID data for a person.
+
+    Args:
+        identifier: The ORCID identifier.
+        contributor: The person it belongs to.
+
+    Returns:
+        True when the sync succeeded, False otherwise.
+
+    Raises:
+        requests.RequestException: The API request failed, so Celery retries it.
+    """
     orcid_id = identifier.value
     url = f"https://pub.orcid.org/v3.0/{orcid_id}"
 
@@ -76,11 +79,9 @@ def _sync_orcid(identifier, contributor):
         response.raise_for_status()
         data = response.json()
 
-        # Update contributor with synced data
         contributor.synced_data = data
         contributor.last_synced = timezone.now().date()
 
-        # Extract name if available and contributor name is empty
         person_data = data.get("person", {})
         if person_data.get("name"):
             name_data = person_data["name"]
@@ -100,7 +101,7 @@ def _sync_orcid(identifier, contributor):
         return False
     except requests.RequestException:
         logger.exception(f"Error syncing ORCID {orcid_id}")
-        raise  # Let Celery retry
+        raise
     except ValueError:
         logger.exception(f"Invalid JSON from ORCID API for {orcid_id}")
         return False
@@ -112,9 +113,19 @@ def _sync_orcid(identifier, contributor):
 
 
 def _sync_ror(identifier, contributor):
-    """Sync ROR data for an organization."""
+    """Sync ROR data for an organization.
+
+    Args:
+        identifier: The ROR identifier, as a bare id or a ``ror.org`` URL.
+        contributor: The organization it belongs to.
+
+    Returns:
+        True when the sync succeeded, False otherwise.
+
+    Raises:
+        requests.RequestException: The API request failed, so Celery retries it.
+    """
     ror_id = identifier.value
-    # Extract ROR ID from URL if needed
     if "ror.org/" in ror_id:
         ror_id = ror_id.split("ror.org/")[-1]
 
@@ -130,17 +141,14 @@ def _sync_ror(identifier, contributor):
         response.raise_for_status()
         data = response.json()
 
-        # Update organization with synced data
         contributor.synced_data = data
         contributor.last_synced = timezone.now().date()
 
-        # Extract location if available
         if data.get("addresses"):
             address = data["addresses"][0]
             if hasattr(contributor, "city") and address.get("city"):
                 contributor.city = address["city"]
 
-        # Extract name
         if data.get("name") and not contributor.name:
             contributor.name = data["name"]
 
@@ -152,7 +160,7 @@ def _sync_ror(identifier, contributor):
         return False
     except requests.RequestException:
         logger.exception(f"Error syncing ROR {ror_id}")
-        raise  # Let Celery retry
+        raise
     except ValueError:
         logger.exception(f"Invalid JSON from ROR API for {ror_id}")
         return False
@@ -165,19 +173,15 @@ def _sync_ror(identifier, contributor):
 
 @shared_task
 def refresh_all_contributors() -> int:
-    """Periodic task: refresh stale contributors.
-
-    Queries contributors where last_synced is older than 7 days or NULL.
-    Processes in batches with delays to respect rate limits.
+    """Queue a sync for up to 100 ORCID and ROR identifiers whose contributor is unsynced or older than 7 days.
 
     Returns:
-        int: Number of sync tasks queued.
+        The number of sync tasks queued.
     """
     from django.db.models import Q
 
     from .models import ContributorIdentifier
 
-    # Find identifiers that need refreshing
     stale_threshold = timezone.now().date() - timedelta(days=7)
     stale_identifiers = ContributorIdentifier.objects.filter(
         type__in=["ORCID", "ROR"],
@@ -187,7 +191,7 @@ def refresh_all_contributors() -> int:
     )
 
     count = 0
-    for identifier in stale_identifiers[:100]:  # Limit to 100 per run
+    for identifier in stale_identifiers[:100]:
         sync_contributor_identifier.delay(identifier.pk)
         count += 1
 
@@ -197,17 +201,13 @@ def refresh_all_contributors() -> int:
 
 @shared_task
 def detect_duplicate_contributors() -> dict:
-    """Periodic task: identify potential duplicate contributor profiles.
-
-    Uses name similarity and identifier matching to find duplicates.
+    """Group people who share a lowercased, trimmed name.
 
     Returns:
-        dict: {"groups_found": N, "total_duplicates": N}
+        A dict with ``groups_found`` and ``total_duplicates``.
     """
     from .models import Person
 
-    # Simple duplicate detection: find persons with same normalized name
-    # More sophisticated matching would use fuzzy string matching
     duplicates = {}
     persons = Person.objects.all().values("pk", "name", "email")
 
@@ -217,7 +217,6 @@ def detect_duplicate_contributors() -> dict:
             duplicates[normalized_name] = []
         duplicates[normalized_name].append(person["pk"])
 
-    # Filter to groups with 2+ members
     duplicate_groups = {k: v for k, v in duplicates.items() if len(v) >= 2}
 
     total_duplicates = sum(len(v) for v in duplicate_groups.values())

@@ -1,3 +1,5 @@
+"""URL routes for the sample record pages."""
+
 from django.urls import include, path
 
 from fairdm.plugins import registry

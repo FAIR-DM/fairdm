@@ -1,3 +1,5 @@
+"""Admin for the portal identity and governing authority singletons."""
+
 from django.contrib import admin
 from django.utils.html import format_html
 from parler.admin import TranslatableAdmin
@@ -42,7 +44,7 @@ class IdentityAdmin(TranslatableAdmin, SingletonModelAdmin):
     readonly_fields = ("authority_link",)
 
     def authority_link(self, obj):
-        """Provide a link to manage the Authority singleton."""
+        """Link to the Authority singleton's change page."""
         from django.urls import reverse
 
         authority_url = reverse("admin:identity_authority_change")
@@ -54,11 +56,11 @@ class IdentityAdmin(TranslatableAdmin, SingletonModelAdmin):
     authority_link.short_description = "Authority Management"
 
     def has_add_permission(self, request):
-        """Only one instance allowed (singleton)."""
+        """Withhold add permission, since the singleton always exists."""
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Cannot delete the singleton instance."""
+        """Withhold delete permission for the singleton."""
         return False
 
 
@@ -91,9 +93,9 @@ class AuthorityAdmin(TranslatableAdmin, SingletonModelAdmin):
     )
 
     def has_add_permission(self, request):
-        """Only one instance allowed (singleton)."""
+        """Withhold add permission, since the singleton always exists."""
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Cannot delete the singleton instance."""
+        """Withhold delete permission for the singleton."""
         return False

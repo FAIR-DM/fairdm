@@ -1,5 +1,3 @@
-"""Add start_date/end_date PartialDateFields to OrganizationMember, privacy_settings to Contributor, remove is_current."""
-
 import fairdm.db.fields
 from django.db import migrations, models
 
@@ -10,7 +8,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add privacy_settings to Contributor
         migrations.AddField(
             model_name="contributor",
             name="privacy_settings",
@@ -21,7 +18,6 @@ class Migration(migrations.Migration):
                 verbose_name="privacy settings",
             ),
         ),
-        # Add start_date to OrganizationMember
         migrations.AddField(
             model_name="organizationmember",
             name="start_date",
@@ -32,7 +28,6 @@ class Migration(migrations.Migration):
                 verbose_name="start date",
             ),
         ),
-        # Add end_date to OrganizationMember
         migrations.AddField(
             model_name="organizationmember",
             name="end_date",
@@ -43,12 +38,10 @@ class Migration(migrations.Migration):
                 verbose_name="end date",
             ),
         ),
-        # Remove is_current (replaced by end_date logic)
         migrations.RemoveField(
             model_name="organizationmember",
             name="is_current",
         ),
-        # Update type field help_text
         migrations.AlterField(
             model_name="organizationmember",
             name="type",

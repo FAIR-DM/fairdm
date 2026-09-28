@@ -1,3 +1,6 @@
+{# @description A card that shows one statistic as a large value above a muted caption. Any other attribute is passed to the card. #}
+{# @prop value:text | description:"The statistic, shown in large type." #}
+{# @prop message:text | description:"The muted caption shown below the value." #}
 <c-vars value message />
 <c-card :attrs="attrs">
   <c-text size="xl" tight>

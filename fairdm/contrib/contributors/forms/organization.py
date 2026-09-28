@@ -1,3 +1,5 @@
+"""Forms for creating and editing organisations."""
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
@@ -10,14 +12,17 @@ from .widgets import RORWidget
 
 
 class OrganizationCreateForm(ModelForm):
-    """Form for creating a new organization.
+    """Create an organisation by ROR lookup or by entering its details.
 
-    Provides two methods of creation:
-    1. Search ROR - Fetch organization data from Research Organization Registry
-    2. Add Manually - Enter organization information manually
+    Only the fields of the submitted ``action`` (``from_ror`` or ``from_form``) are required.
 
-    The form uses action-based validation to ensure only the active method's
-    fields are validated.
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        from_ror: The ROR record to look up.
+        country: The organisation's country.
     """
 
     from_ror = forms.CharField(
@@ -58,6 +63,7 @@ class OrganizationCreateForm(ModelForm):
         self.action = self.data.get("action") if self.data else None
 
     def clean_name(self):
+        """Require a name when adding manually."""
         name = self.cleaned_data.get("name")
         if self.action == "from_form" and not name:
             raise ValidationError(
@@ -66,32 +72,37 @@ class OrganizationCreateForm(ModelForm):
         return name
 
     def clean_country(self):
+        """Require a country when adding manually."""
         country = self.cleaned_data.get("country")
         if self.action == "from_form" and not country:
             raise ValidationError(_("Country is required when adding manually."))
         return country
 
     def clean_from_ror(self):
+        """Require a ROR id when searching ROR."""
         ror_id = self.cleaned_data.get("from_ror")
         if self.action == "from_ror" and not ror_id:
             raise ValidationError(_("ROR ID is required when searching ROR."))
         return ror_id
 
     def save(self, commit: bool = True):
+        """Create the organisation from ROR, or save the entered details."""
         if self.action == "from_ror":  # noqa: SIM102
             if ror_id := self.cleaned_data.get("from_ror"):
-                # Fetch organization data from ROR and populate the form fields
-                # This is a placeholder for the actual implementation
                 self.instance, _created = Organization.from_ror(ror_id, commit=commit)
                 return self.instance
         return super().save(commit)
 
 
 class OrganizationProfileForm(ModelForm):
-    """Form for editing an existing organization's profile.
+    """Edit an organisation's logo, name, country, location and profile.
 
-    Includes image upload, basic information (name, country, location),
-    and biographical profile.
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        country: The organisation's country.
     """
 
     country = forms.ChoiceField(

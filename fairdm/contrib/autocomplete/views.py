@@ -31,21 +31,13 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """Return concepts filtered by vocabulary and search term.
-
-        Filters:
-            - vocabulary: Filter by vocabulary name (from URL param or forwarded field)
-            - q: Search term to match against concept label/name
-
-        Note: When rendering initial values, DAL will pass IDs but no vocabulary param.
-        We need to allow fetching by ID even without vocabulary filter.
-        """
+        """Return concepts filtered by vocabulary and search term, for signed-in users only."""
         if not self.request.user.is_authenticated:
             return Concept.objects.none()
 
         qs = Concept.objects.all()
 
-        # Filter by vocabulary if specified (not present when loading initial values)
+        # No vocabulary is forwarded when DAL loads a field's initial values.
         vocabulary = self.forwarded.get("vocabulary", None)
         if not vocabulary:
             vocabulary = self.request.GET.get("vocabulary", None)
@@ -53,7 +45,6 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
         if vocabulary:
             qs = qs.filter(vocabulary__name=vocabulary)
 
-        # Filter by search term
         if self.q:
             qs = qs.filter(Q(label__icontains=self.q) | Q(name__icontains=self.q))
 
@@ -82,44 +73,30 @@ class ContributorAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """Return contributors filtered by search term and excluding existing ones.
-
-        Filters:
-            - q: Search term to match against contributor name
-            - object_id: Primary key of the object to exclude existing contributors from
-            - content_type_id: ContentType ID of the object
-
-        Note: When rendering initial values, DAL will pass IDs but no filter params.
-        We need to allow fetching by ID even without filters.
-        """
+        """Return contributors matching the search term, minus those already on the forwarded object."""
         if not self.request.user.is_authenticated:
             return Contributor.objects.none()
 
         qs = Contributor.objects.all()
 
-        # Filter by search term
         if self.q:
             qs = qs.filter(name__icontains=self.q)
 
-        # Debug: print forwarded parameters
         print(f"DEBUG: forwarded = {self.forwarded}")
         print(f"DEBUG: request.GET = {dict(self.request.GET)}")
 
-        # Exclude existing contributors if base object is specified
         object_id = self.forwarded.get("object_id", None)
         content_type_id = self.forwarded.get("content_type_id", None)
 
         print(f"DEBUG: object_id = {object_id}, content_type_id = {content_type_id}")
 
         if object_id and content_type_id:
-            # Get existing contributor IDs for this object
             existing_contributor_ids = Contribution.objects.filter(
                 object_id=object_id, content_type_id=content_type_id
             ).values_list("contributor_id", flat=True)
 
             print(f"DEBUG: existing_contributor_ids = {list(existing_contributor_ids)}")
 
-            # Exclude them from the results
             qs = qs.exclude(pk__in=existing_contributor_ids)
 
         return qs.order_by("name")
@@ -140,17 +117,12 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """Return organizations filtered by search term.
-
-        Filters:
-            - q: Search term to match against organization name
-        """
+        """Return organizations matching the search term, for signed-in users only."""
         if not self.request.user.is_authenticated:
             return Organization.objects.none()
 
         qs = Organization.objects.all()
 
-        # Filter by search term
         if self.q:
             qs = qs.filter(name__icontains=self.q)
 

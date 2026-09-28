@@ -1,16 +1,6 @@
-# FS-005 US-5 / D-002: the sample status vocabulary changed from the previous ODM2 terms
-# (complete, ongoing, planned, unknown) to a local vocabulary of custody states (available,
-# in_use, stored, destroyed, unknown). None of the previous terms describes a custody state, so
-# there is no mapping from old to new - every existing row is rewritten to unknown instead
-# (FR-025).
-#
-# Rewrites through `QuerySet.update()`, never by iterating instances or reading `status` back:
-# a `ConceptField` raises `ValueError` from `from_db_value` when a stored value is absent from
-# the field's current vocabulary, and every previous status term now is. `update()` builds its
-# `UPDATE` statement from the value passed in, not from a value read off any row, so it never
-# triggers that conversion.
-#
-# No reverse: the previous values are discarded here and cannot be reconstructed.
+# The status vocabulary changed to custody states, and no previous term maps to one, so every row
+# becomes unknown (FS-005). It uses `update()` because a `ConceptField` raises `ValueError` when a
+# stored value is outside the current vocabulary. No reverse: the previous values are discarded.
 
 from django.db import migrations
 

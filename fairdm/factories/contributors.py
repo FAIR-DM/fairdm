@@ -1,7 +1,7 @@
-"""Contributor model factories for FairDM testing.
+"""Factories for the contributors app's models.
 
-This module provides factory_boy factories for creating test instances of
-the contributors app's models: the account (``UserFactory``), the two
+These factory_boy factories create test instances of the contributors app's
+models: the account (``UserFactory``), the two
 concrete contributor types (``PersonFactory``, ``OrganizationFactory``) and
 the generic base (``ContributorFactory``), an organisation membership
 (``AffiliationFactory``), and a credit linking a contributor to a research
@@ -71,8 +71,7 @@ class ContributorFactory(DjangoModelFactory):
         model = Contributor
 
     class Params:
-        # No image unless a test asks for one — see fairdm.factories.core's
-        # ProjectFactory (issue #323).
+        # No image unless a test asks for one (#323).
         with_image = factory.Trait(
             image=factory.django.ImageField(width=400, height=400, color="blue"),
         )
@@ -124,14 +123,15 @@ class ContributorIdentifierFactory(DjangoModelFactory):
     ``AbstractIdentifier.value`` carries a database-level uniqueness constraint across
     every identifier-bearing record, not just other ContributorIdentifiers, so it is a
     sequence rather than a fixed or random value (Article I).
+
+    ``related`` has no default: pass ``ContributorIdentifierFactory(related=person)``.
     """
 
     class Meta:
         model = ContributorIdentifier
 
-    type = "ORCID"  # Default identifier type - a member of the contributor identifier collection
+    type = "ORCID"
     value = factory.Sequence(lambda n: f"0000-0001-{n:04d}-{n:04d}")
-    # related field has no default - pass e.g. ContributorIdentifierFactory(related=person)
 
 
 class AffiliationFactory(DjangoModelFactory):
@@ -157,6 +157,9 @@ class ContributionFactory(DjangoModelFactory):
     The content_object can optionally be provided when creating a Contribution.
     If not provided, a default Project will be created.
 
+    Attributes:
+        contributor: The contributor credited, a new Person by default.
+
     Example:
         contribution = ContributionFactory()  # Creates with default Project
         contribution = ContributionFactory(content_object=my_dataset)  # Custom object
@@ -168,22 +171,23 @@ class ContributionFactory(DjangoModelFactory):
 
     contributor = SubFactory(PersonFactory)
 
-    # Create a default Project if content_object is not provided
     @factory.lazy_attribute
     def content_object(self):
+        """Create a default Project as the credited object."""
         from fairdm.factories import ProjectFactory
 
         return ProjectFactory()
 
-    # These will be set based on content_object
     @factory.lazy_attribute
     def content_type(self):
+        """Use the content type of ``content_object``."""
         if self.content_object:
             return ContentType.objects.get_for_model(self.content_object)
         return None
 
     @factory.lazy_attribute
     def object_id(self):
+        """Use the id of ``content_object``."""
         if self.content_object:
             return self.content_object.id
         return None

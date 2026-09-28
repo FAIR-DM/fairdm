@@ -1,3 +1,5 @@
+"""Bundled first-party apps and the short-code map for core models."""
+
 CORE_MAPPING = {
     "p": "project.Project",
     "d": "dataset.Dataset",

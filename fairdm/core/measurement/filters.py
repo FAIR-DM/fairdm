@@ -1,13 +1,4 @@
-"""Measurement filtering and search functionality (T013, T014 - Phase 7).
-
-This module provides FilterSet classes for filtering Measurement models with support for:
-- Dataset filtering
-- Sample filtering
-- Polymorphic type filtering
-- Generic search across multiple fields
-- Cross-relationship filtering (descriptions, dates)
-- Reusable MeasurementFilterMixin for custom filters
-"""
+"""Filter sets for measurements, including the reusable ``MeasurementFilterMixin``."""
 
 import django_filters
 from django import forms
@@ -19,119 +10,96 @@ from fairdm.core.measurement.models import Measurement
 
 
 class PartialDateFilterField(forms.CharField):
-    """A `CharField` that validates its cleaned value as a partial date -
-    a year, a year and month, or a full date - using `PartialDate`'s own
-    parser rather than a second regex that could drift from it. Anything
-    else raises here, at clean time, and becomes a form error rather than
-    reaching the ORM unvalidated (T073 follow-up: a plain `CharFilter`
-    let any string through, and the request only failed later, with an
-    unhandled `ValidationError`, when the queryset was evaluated).
+    """A ``CharField`` that validates its value as a year, a year and month, or a full date.
+
+    It uses ``PartialDate``'s own parser rather than a second regex that could drift from it. A
+    plain ``CharFilter`` let any string through, and the request failed later with an unhandled
+    ``ValidationError`` when the queryset was evaluated.
     """
 
     def to_python(self, value):
+        """Raise a ``ValidationError`` unless the value is ``YYYY``, ``YYYY-MM`` or ``YYYY-MM-DD``."""
         value = super().to_python(value)
         if value:
-            # Raises django.core.exceptions.ValidationError (the same class
-            # as forms.ValidationError) for anything that isn't YYYY,
-            # YYYY-MM or YYYY-MM-DD; the parsed result itself is unused
-            # here - PartialDateField parses the string again at query time.
             PartialDate.parseDate(value)
         return value
 
 
 class PartialDateFilter(django_filters.CharFilter):
-    """A `CharFilter` whose form field validates a partial date string
-    before it reaches the ORM.
-    """
+    """A ``CharFilter`` whose form field validates a partial date string before it reaches the ORM."""
 
     field_class = PartialDateFilterField
 
 
 class MeasurementFilterMixin(django_filters.FilterSet):
-    """Reusable base carrying the filters every Measurement type inherits.
+    """Reusable base carrying the filters every measurement type inherits.
 
-    A `django_filters.FilterSet` subclass, not a plain mixin: django-filter's
-    metaclass only collects declared filters from the class body and from bases
-    that carry `declared_filters`, which a plain Python class never does (matches
-    `SampleFilterMixin`, D-008). `Meta` deliberately has no `model` - that is what
-    lets this class exist without a concrete model to generate implicit filters
-    from. Setting `model = Measurement` here would make the metaclass generate a
-    full, unused Measurement filter set every time this class (or any subclass)
-    is defined.
+    A ``FilterSet`` subclass rather than a plain mixin, because django-filter only collects
+    declared filters from bases that carry ``declared_filters``. ``Meta`` deliberately has no
+    ``model``, or the metaclass would generate a full, unused Measurement filter set whenever this
+    class or a subclass is defined. ``Meta.fields`` names only actual model fields, which a
+    subclass's own ``Meta`` can extend. See docs/portal-development/measurements.md.
 
-    `Meta.fields` stays as a convenience list naming only actual model fields, that
-    a subclass's own `Meta` (which does carry a `model`) can extend - the same shape
-    `SampleFilterMixin.Meta` uses.
+    The dataset choices are the datasets the requesting user may change, or the privacy-first
+    default manager's datasets when there is no authenticated user. ``Dataset.all_objects`` is
+    never offered unconditionally, as it would list every private dataset.
 
-    Provides filters for:
-    - dataset: Filter by parent dataset
-    - sample: Filter by associated sample
-    - polymorphic_ctype: Filter by measurement type (XRFMeasurement, ICP_MS_Measurement, etc.)
-    - search: Generic search across name and uuid
-    - description: Search in associated description text
-    - date_after/date_before: Filter by associated date ranges
+    Args:
+        *args: Positional arguments passed to ``FilterSet``.
+        **kwargs: Keyword arguments passed to ``FilterSet``.
 
-    See Also:
-        - Developer Guide: docs/portal-development/measurements.md#step-4-custom-forms-and-filters
-        - Filtering Documentation: docs/portal-development/forms-and-filters/
+    Attributes:
+        dataset: Filter by parent dataset.
+        sample: Filter by associated sample.
+        polymorphic_ctype: Filter by measurement type.
+        search: Search across name and uuid.
+        description: Search in the description text.
+        date_after: Filter to dates on or after a partial date.
+        date_before: Filter to dates on or before a partial date.
 
-    Usage:
-        class MyCustomMeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
-            # Add custom filters here
-            custom_field = django_filters.CharFilter(...)
-
+    Example:
+        ```python
+        class MyMeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
             class Meta(MeasurementFilterMixin.Meta):
-                model = MyCustomMeasurement
-                fields = MeasurementFilterMixin.Meta.fields + ['custom_field']
+                model = MyMeasurement
+                fields = MeasurementFilterMixin.Meta.fields + ["date_after"]
+        ```
     """
 
-    # Dataset filter - allow filtering by parent dataset
     dataset = django_filters.ModelChoiceFilter(
         field_name="dataset",
         label=_("Dataset"),
-        queryset=None,  # Will be set dynamically in __init__
+        queryset=None,
         empty_label=_("Any dataset"),
     )
 
-    # Sample filter - allow filtering by associated sample
     sample = django_filters.ModelChoiceFilter(
         field_name="sample",
         label=_("Sample"),
-        queryset=None,  # Will be set dynamically in __init__
+        queryset=None,
         empty_label=_("Any sample"),
     )
 
-    # Polymorphic type filter - filter by content type (measurement subclass)
     polymorphic_ctype = django_filters.ModelChoiceFilter(
         field_name="polymorphic_ctype",
         label=_("Measurement Type"),
-        queryset=None,  # Will be set dynamically in __init__
+        queryset=None,
         empty_label=_("Any type"),
     )
 
-    # Generic search filter - searches across multiple fields
     search = django_filters.CharFilter(
         method="filter_search",
         label=_("Search"),
     )
 
-    # Description filter - cross-relationship search
     description = django_filters.CharFilter(
         field_name="descriptions__value",
         lookup_expr="icontains",
         label=_("Description contains"),
     )
 
-    # Date range filters - cross-relationship filtering. `MeasurementDate.value`
-    # is a `fairdm.db.fields.PartialDateField`: a year, a year and month, or a
-    # full date, stored as a string it parses itself (`partial_date.PartialDate`).
-    # A `django_filters.DateFilter` cleans its input to a `datetime.date`, which
-    # the field's `to_python` refuses outright - that mismatch is what the skip
-    # on `test_filter_by_date_range` was hiding (T072/T073, plan.md R2).
-    # `PartialDateFilter` validates the string against the same parser the
-    # model field uses before it ever reaches the ORM, so a reader gets a
-    # form error rather than an unhandled `ValidationError` at query time
-    # (T073 follow-up).
+    # `MeasurementDate.value` is a PartialDateField, which refuses the `datetime.date` a
+    # `DateFilter` cleans to. `PartialDateFilter` validates against the model field's own parser.
     date_after = PartialDateFilter(
         field_name="dates__value",
         lookup_expr="gte",
@@ -145,15 +113,15 @@ class MeasurementFilterMixin(django_filters.FilterSet):
     )
 
     def filter_search(self, queryset, name, value):
-        """Filter by generic search across name and uuid fields.
+        """Filter by a search term matching the name or uuid.
 
         Args:
-            queryset: The queryset to filter
-            name: The filter name (unused)
-            value: The search term
+            queryset: The queryset to filter.
+            name: The filter name (unused).
+            value: The search term.
 
         Returns:
-            Filtered queryset matching name or uuid
+            The queryset matching the name or uuid, unchanged when there is no term.
         """
         if not value:
             return queryset
@@ -161,23 +129,6 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         return queryset.filter(Q(name__icontains=value) | Q(uuid__icontains=value))
 
     def __init__(self, *args, **kwargs):
-        """Initialise the filter and set the dynamic querysets.
-
-        On the mixin rather than on `MeasurementFilter` alone, because this is the
-        published extension point: a portal's own filter inherits this behaviour
-        directly, including a "dataset" choice field.
-
-        T115: `Dataset.all_objects` bypasses the privacy-first default manager
-        entirely, so assigning it unconditionally offered the title of every
-        private dataset in the portal to any reader who could reach this filter
-        set - and, once the registry builds every measurement type's filter set
-        on this mixin, that reached the whole portal. `FilterSet` accepts
-        `request` as a constructor keyword natively, so - matching
-        `MeasurementFormMixin`'s own dataset scoping (forms.py) - this scopes
-        through the requesting reader's entitlement when there is one, and
-        otherwise leaves the privacy-first default manager alone rather than
-        falling back to `all_objects`.
-        """
         super().__init__(*args, **kwargs)
 
         from django.contrib.contenttypes.models import ContentType
@@ -215,29 +166,12 @@ class MeasurementFilterMixin(django_filters.FilterSet):
             )
 
     class Meta:
-        """Field names a subclass's own `model`-bearing `Meta` may extend.
-
-        No `model` here - see the class docstring.
-        """
-
-        fields = ["dataset", "sample", "polymorphic_ctype"]  # Only actual model fields
+        fields = ["dataset", "sample", "polymorphic_ctype"]
 
 
 class MeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
-    """FilterSet for Measurement model with comprehensive filtering capabilities.
-
-    Every filter is inherited from `MeasurementFilterMixin`; this class only
-    supplies the concrete `model`.
-
-    Example:
-        # In a view
-        filterset = MeasurementFilter(request.GET, queryset=Measurement.objects.all())
-        if filterset.is_valid():
-            filtered_measurements = filterset.qs
-    """
+    """Filter set for ``Measurement``. Every filter comes from ``MeasurementFilterMixin``."""
 
     class Meta(MeasurementFilterMixin.Meta):
-        """Meta configuration for MeasurementFilter."""
-
         model = Measurement
         fields = [*MeasurementFilterMixin.Meta.fields, "date_after", "date_before"]

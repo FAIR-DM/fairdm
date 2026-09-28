@@ -1,5 +1,4 @@
-"""
-Configuration validation and service availability checks.
+"""System checks that validate the configuration and service availability.
 
 Provides fail-fast validation for production and graceful degradation for development.
 """
@@ -18,24 +17,14 @@ class DeployTags(Tags):
     """Custom tags for deployment-related checks."""
 
     deploy = "deploy"
-    #: The subset FairDMConfig.ready() runs and aggregates in production
-    #: (research R5) — withheld from the Celery checks, since a portal may
-    #: legitimately run without a worker (FR-013, FR-016).
+    #: The subset `FairDMConfig.ready()` aggregates in production. It excludes the Celery
+    #: checks, since a portal may run without a worker.
     production_critical = "production_critical"
-
-
-# =============================================================================
-# DATABASE CHECKS
-# =============================================================================
 
 
 @register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_configured(app_configs, **kwargs):
-    """
-    Check that DATABASES['default'] is configured.
-
-    Error ID: fairdm.E100
-    """
+    """Report fairdm.E100 when DATABASES['default'] is not configured."""
     errors = []
     databases = getattr(settings, "DATABASES", {})
     default_db = databases.get("default", {})
@@ -54,11 +43,7 @@ def check_database_configured(app_configs, **kwargs):
 
 @register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_production_ready(app_configs, **kwargs):
-    """
-    Check that production uses PostgreSQL, not SQLite.
-
-    Error ID: fairdm.E101
-    """
+    """Report fairdm.E101 when production uses SQLite instead of PostgreSQL."""
     errors = []
     databases = getattr(settings, "DATABASES", {})
     default_db = databases.get("default", {})
@@ -77,14 +62,7 @@ def check_database_production_ready(app_configs, **kwargs):
 
 @register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_usable(app_configs, **kwargs):
-    """
-    Check that DATABASES['default'] carries a usable database name — distinct
-    from being absent outright (fairdm.E100), this catches a syntactically
-    malformed DATABASE_URL that parses to a present dict with no NAME (e.g.
-    ``postgresql://`` with nothing after the scheme) (edge case, FR-017).
-
-    Error ID: fairdm.E102
-    """
+    """Report fairdm.E102 when DATABASES['default'] has no NAME, as a malformed DATABASE_URL leaves it."""
     errors = []
     databases = getattr(settings, "DATABASES", {})
     default_db = databases.get("default", {})
@@ -102,14 +80,8 @@ def check_database_usable(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# CACHE CHECKS
-# =============================================================================
-
-
-#: Backends shared across processes, suitable for production (FR-016, FR-017).
-#: Anything else — absent, empty, locmem, dummy, filebased, or unrecognised —
-#: is per-process or per-filesystem and fails the check.
+#: Backends shared across processes. Anything else (locmem, dummy, filebased, unset) is
+#: per-process or per-filesystem and fails the check.
 SHARED_CACHE_BACKENDS = frozenset(
     {
         "django_redis.cache.RedisCache",
@@ -118,24 +90,14 @@ SHARED_CACHE_BACKENDS = frozenset(
     }
 )
 
-#: settings/cache.py's baseline is unconditionally Redis-shaped (FR-003), so
-#: BACKEND alone can no longer distinguish a real deployment from an unset
-#: REDIS_URL — this placeholder LOCATION is what it substitutes, letting
-#: django_redis's client construct without raising at (eager) import time.
-#: A hostname no real deployment would use, so this check can still tell the
-#: two apart (FR-017).
+#: The baseline cache is always Redis-shaped, so BACKEND cannot tell a real deployment from
+#: an unset REDIS_URL. This unresolvable placeholder LOCATION stands in for the latter.
 UNCONFIGURED_REDIS_LOCATION = "redis://unconfigured.invalid:6379/0"
 
 
 @register(Tags.caches, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_cache_backend(app_configs, **kwargs):
-    """
-    Check that production uses a shared cache backend (e.g. Redis or
-    Memcached), not an absent, empty, or per-process backend such as locmem,
-    dummy or filebased — and not the baseline's own unconfigured placeholder.
-
-    Error ID: fairdm.E200
-    """
+    """Report fairdm.E200 when the cache is not a shared backend, or is the baseline's placeholder."""
     errors = []
     caches = getattr(settings, "CACHES", {})
     default_cache = caches.get("default", {})
@@ -154,14 +116,7 @@ def check_cache_backend(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# SECRET KEY CHECKS
-# =============================================================================
-
-
-#: Django's own generated-development-key prefix. FairDM's shipped fallback
-#: (fairdm/conf/environment.py) carries it too, so this also catches a
-#: portal that boots on FairDM's own published default (SC-006).
+#: Django's generated development-key prefix, which FairDM's shipped fallback also carries.
 INSECURE_SECRET_KEY_PREFIX = "django-insecure-"  # noqa: S105 — a prefix, not a password
 
 #: The length below which Django's own security.W009 calls a key too easily
@@ -171,19 +126,12 @@ MINIMUM_SECRET_KEY_LENGTH = 50
 
 @register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_secret_key_exists(app_configs, **kwargs):
-    """
-    Check that SECRET_KEY is set, non-empty, and not a published or
-    otherwise insecure value — FairDM's own error-severity check, kept
-    alongside Django's warning-severity security.W009 so this one can
-    actually block a boot (research R5).
-
-    Error ID: fairdm.E001
-    """
+    """Report fairdm.E001 when SECRET_KEY is empty, insecure or too short."""
     errors = []
     try:
         secret_key = getattr(settings, "SECRET_KEY", "")
     except ImproperlyConfigured:
-        # Django raises ImproperlyConfigured when SECRET_KEY is empty
+        # Django raises this when SECRET_KEY is empty.
         secret_key = ""
 
     if not secret_key:
@@ -217,18 +165,9 @@ def check_secret_key_exists(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# ALLOWED_HOSTS CHECKS
-# =============================================================================
-
-
 @register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_configured(app_configs, **kwargs):
-    """
-    Check that ALLOWED_HOSTS is not empty.
-
-    Error ID: fairdm.E003
-    """
+    """Report fairdm.E003 when ALLOWED_HOSTS is empty."""
     errors = []
     allowed_hosts = getattr(settings, "ALLOWED_HOSTS", [])
 
@@ -246,11 +185,7 @@ def check_allowed_hosts_configured(app_configs, **kwargs):
 
 @register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_allowed_hosts_secure(app_configs, **kwargs):
-    """
-    Check that ALLOWED_HOSTS doesn't contain wildcard '*'.
-
-    Error ID: fairdm.E004
-    """
+    """Report fairdm.E004 when ALLOWED_HOSTS contains the wildcard '*'."""
     errors = []
     allowed_hosts = getattr(settings, "ALLOWED_HOSTS", [])
 
@@ -266,18 +201,9 @@ def check_allowed_hosts_secure(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# DEBUG CHECKS
-# =============================================================================
-
-
 @register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_debug_false(app_configs, **kwargs):
-    """
-    Check that DEBUG is False in production.
-
-    Error ID: fairdm.E005
-    """
+    """Report fairdm.E005 when DEBUG is True."""
     errors = []
     debug = getattr(settings, "DEBUG", False)
 
@@ -293,18 +219,11 @@ def check_debug_false(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# COOKIE CHECKS
-# =============================================================================
-
-#: Cookie-name prefixes a browser only honours on a cookie actually sent with
-#: the ``Secure`` attribute (RFC 6265bis, section 4.1.3). A ``Set-Cookie``
-#: carrying one of these without that attribute is discarded outright, and
-#: nothing in the response says so.
+#: Cookie-name prefixes a browser silently discards unless the cookie is sent with
+#: ``Secure`` (RFC 6265bis, section 4.1.3).
 BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES = ("__Secure-", "__Host-")
 
-#: Each cookie-name setting beside the flag deciding whether that cookie is
-#: sent with ``Secure``. Django ships exactly these three pairs.
+#: Each cookie-name setting beside the flag that decides whether it is sent with ``Secure``.
 PREFIX_CHECKED_COOKIE_SETTINGS = (
     ("CSRF_COOKIE_NAME", "CSRF_COOKIE_SECURE"),
     ("SESSION_COOKIE_NAME", "SESSION_COOKIE_SECURE"),
@@ -314,17 +233,7 @@ PREFIX_CHECKED_COOKIE_SETTINGS = (
 
 @register(Tags.security)
 def check_secure_cookie_prefixes_match_secure_flag(app_configs, **kwargs):
-    """
-    Check that no cookie is named with a prefix the browser will not accept
-    for the way that cookie is actually sent.
-
-    Deliberately not a deployment check. The mismatch is harmless in
-    production, where these cookies are secure anyway, and breaks login
-    outright in any environment that serves plain HTTP — so a check only
-    ``--deploy`` runs would never fire where the fault occurs.
-
-    Error ID: fairdm.E006
-    """
+    """Report fairdm.E006 when a `__Secure-` or `__Host-` cookie name is paired with an insecure flag."""
     errors = []
 
     for name_setting, secure_setting in PREFIX_CHECKED_COOKIE_SETTINGS:
@@ -356,18 +265,9 @@ def check_secure_cookie_prefixes_match_secure_flag(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# CELERY CHECKS
-# =============================================================================
-
-
 @register(DeployTags.deploy, deploy=True)
 def check_celery_broker(app_configs, **kwargs):
-    """
-    Check that CELERY_BROKER_URL is configured.
-
-    Error ID: fairdm.E300
-    """
+    """Report fairdm.E300 when CELERY_BROKER_URL is not configured."""
     errors = []
     broker_url = getattr(settings, "CELERY_BROKER_URL", "")
 
@@ -385,11 +285,7 @@ def check_celery_broker(app_configs, **kwargs):
 
 @register(DeployTags.deploy, deploy=True)
 def check_celery_async(app_configs, **kwargs):
-    """
-    Check that CELERY_TASK_ALWAYS_EAGER is False (tasks run async).
-
-    Error ID: fairdm.E301
-    """
+    """Report fairdm.E301 when CELERY_TASK_ALWAYS_EAGER is True."""
     errors = []
     always_eager = getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False)
 
@@ -405,22 +301,13 @@ def check_celery_async(app_configs, **kwargs):
     return errors
 
 
-# =============================================================================
-# PORTAL ROLES CHECKS
-# =============================================================================
-
-#: The command that installs the portal roles, named here because the check for them
-#: stands down while it runs - ``sys.argv`` is already the real invocation by the time
-#: the check reads it, since this module is imported ahead of app-registry population.
+#: The command that installs the portal roles. The roles check stands down while it runs:
+#: `post_migrate` is the only thing that creates them, and the check fires before it.
 MIGRATE_COMMAND_NAME = "migrate"
 
-#: What "the database cannot be read" looks like, for a check that queries one. An
-#: unmigrated or absent table raises the first two, a database Django cannot resolve an
-#: engine for raises ``ImproperlyConfigured`` (the ``DATABASE_URL``-absent case
-#: ``fairdm.E100`` reports), and a test harness refusing database access outright raises
-#: ``RuntimeError``. None of them is a check's own fault to report, and telling them
-#: apart from a real finding is what keeps an unmigrated database from looking like a
-#: misconfigured portal.
+#: Exceptions that mean the database cannot be read (unmigrated table, no engine to resolve,
+#: a test harness refusing database access). A check that queries one treats them as
+#: "nothing to report", so an unmigrated database does not look like a misconfigured portal.
 UNREADABLE_DATABASE = (
     OperationalError,
     ProgrammingError,
@@ -431,28 +318,7 @@ UNREADABLE_DATABASE = (
 
 @register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_portal_roles_present(app_configs, **kwargs):
-    """
-    Check that every role ``fairdm.portal_roles.PortalRoles`` ships exists in the
-    database, naming every one missing at once (FR-015, research R4).
-
-    Tolerates a database that has not been migrated yet, or is not configured at
-    all: querying a group table that does not exist, cannot be read, belongs to
-    a database Django cannot even resolve an engine for (``ImproperlyConfigured`` -
-    the ``DATABASE_URL``-absent case ``fairdm.E100`` reports), or that database
-    access itself is refused outright (``RuntimeError`` - a test harness with no
-    database enabled raises this the same way) is not this check's job to report,
-    and is how an unmigrated, unconfigured or genuinely unreadable database is told
-    apart from a portal actually missing its roles (research R4, D24).
-
-    Stands down for ``migrate`` (D11): ``post_migrate`` is the only thing that
-    installs the roles, and this check runs in ``FairDMConfig.ready()``, which fires
-    before ``migrate`` does any work. Without the stand-down, a production portal
-    upgrading to this version - auth tables long since migrated, its roles not yet
-    created - could neither start nor migrate, with nothing inside it able to repair
-    that (a critical design-review finding).
-
-    Error ID: fairdm.E500
-    """
+    """Report fairdm.E500 when a shipped portal role is missing from the database."""
     import sys
 
     from django.contrib.auth.models import Group
@@ -486,39 +352,15 @@ def check_portal_roles_present(app_configs, **kwargs):
 
 @register(DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_dev_accounts_absent(app_configs, **kwargs):
-    """
-    Check that none of the five development accounts
-    ``manage.py create_dev_accounts`` ships exist on a portal that is not in
-    development, naming every one found at once (FR-027, D16).
-
-    The command that creates these accounts already refuses outside
-    development (``fairdm.apps.NON_PRODUCTION_ENVIRONMENTS``), but that
-    refusal guards the *act* of loading, not the resulting state: a database
-    copied down from production, a dump restored the wrong way round, or an
-    environment variable changed under a live database all produce accounts
-    the command would have refused to create. Unlike
-    ``check_portal_roles_present``, which leaves its own environment gating
-    entirely to ``FairDMConfig._check_production_configuration()``, this
-    check reads the resolved environment itself: `manage.py check --deploy`
-    runs every ``deploy=True`` check regardless of environment (FR-015), and
-    a development portal running it must still see nothing, since the whole
-    point of the accounts is to exist there.
-
-    Tolerates a database that cannot be read the same way
-    ``check_portal_roles_present`` does - an absent or unreadable user table,
-    a database Django cannot even resolve an engine for
-    (``ImproperlyConfigured``), or a test harness that refuses database
-    access outright (``RuntimeError``) - which is not this check's job to
-    report (research R4, D24).
-
-    Error ID: fairdm.E501
-    """
+    """Report fairdm.E501 when development accounts exist outside development."""
     from django.apps import apps
     from django.contrib.auth import get_user_model
 
     from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
     from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_EMAILS
 
+    # `check --deploy` runs every deploy check in any environment, and these accounts
+    # belong in development.
     if (
         apps.get_app_config("fairdm").resolved_environment()
         in NON_PRODUCTION_ENVIRONMENTS
@@ -553,23 +395,24 @@ def check_dev_accounts_absent(app_configs, **kwargs):
     ]
 
 
-# =============================================================================
-# TRANSLATION CHECKS
-# =============================================================================
-
-
 def _parler_languages_missing_from_languages(
     languages, parler_languages, parler_default_language_code=None
 ) -> set[str]:
-    """PARLER_LANGUAGES codes django-parler's own
-    ``parler.utils.i18n.is_supported_django_language`` would reject: present
-    under some site's language tuple but neither exactly, nor by their base
-    subtag (``fr-ca`` accepted when LANGUAGES has ``fr``), among LANGUAGES'
-    own codes. The ``"default"`` key holds PARLER_LANGUAGES' fallback
-    configuration rather than a site's choices, but parler validates its
-    ``code`` too — falling back to PARLER_DEFAULT_LANGUAGE_CODE when it does
-    not set one — and rejects that first of all, so it is checked here as
-    well (``parler.utils.conf.add_default_language_settings``)."""
+    """Return the PARLER_LANGUAGES codes django-parler would reject.
+
+    A code is rejected when it is neither a LANGUAGES code nor has a LANGUAGES code as its
+    base subtag (``fr-ca`` is accepted when LANGUAGES has ``fr``). The ``"default"`` key holds
+    fallback configuration rather than a site's choices, but parler validates its ``code`` too,
+    falling back to PARLER_DEFAULT_LANGUAGE_CODE, so it is checked as well.
+
+    Args:
+        languages: The LANGUAGES setting.
+        parler_languages: The PARLER_LANGUAGES setting.
+        parler_default_language_code: The PARLER_DEFAULT_LANGUAGE_CODE setting.
+
+    Returns:
+        The rejected language codes.
+    """
     language_codes = {code for code, _ in languages}
 
     def rejected(code):
@@ -596,10 +439,18 @@ def _parler_languages_missing_from_languages(
 def parler_languages_errors(
     languages, parler_languages, parler_default_language_code=None
 ) -> list[Error]:
-    """
-    ``fairdm.E400`` for the given setting *values*, so the same rule can be
-    applied before ``settings`` is loaded — see
-    ``raise_on_parler_languages_mismatch``.
+    """Return fairdm.E400 for the given setting values.
+
+    Takes values rather than reading ``settings`` so the rule can run before settings load,
+    as ``raise_on_parler_languages_mismatch`` does.
+
+    Args:
+        languages: The LANGUAGES setting.
+        parler_languages: The PARLER_LANGUAGES setting.
+        parler_default_language_code: The PARLER_DEFAULT_LANGUAGE_CODE setting.
+
+    Returns:
+        One error naming the missing codes, or an empty list when the settings agree.
     """
     missing = _parler_languages_missing_from_languages(
         languages or [], parler_languages or {}, parler_default_language_code
@@ -621,18 +472,20 @@ def parler_languages_errors(
 def raise_on_parler_languages_mismatch(
     languages, parler_languages, parler_default_language_code=None
 ) -> None:
-    """
-    Refuse to continue when the two settings disagree, naming both of them.
+    """Refuse to continue when PARLER_LANGUAGES and LANGUAGES disagree, naming both.
 
-    Called from two places, because neither alone covers every portal.
-    ``fairdm.conf.setup()`` calls it on the composed settings scope, which is
-    the only point ahead of *every* app's models — a portal's own apps are
-    registered before FairDM's (D11), so one of them importing
-    ``parler.models`` would otherwise hit parler's own check first.
-    ``FairDMConfig.import_models()`` calls it again on the loaded settings,
-    which is the only point after a portal's post-``setup()`` assignments
-    (layer 5, FR-012). A portal that does both — assigns LANGUAGES after the
-    call *and* ships a parler-model app — still gets parler's own error.
+    Called from ``fairdm.conf.setup()`` on the composed settings, the only point ahead of every
+    app's models, and again from ``FairDMConfig.import_models()`` on the loaded settings, which
+    sees assignments a portal makes after ``setup()``. A portal that does both still gets
+    parler's own error.
+
+    Args:
+        languages: The LANGUAGES setting.
+        parler_languages: The PARLER_LANGUAGES setting.
+        parler_default_language_code: The PARLER_DEFAULT_LANGUAGE_CODE setting.
+
+    Raises:
+        SystemCheckError: The two settings disagree.
     """
     from django.core.management.base import SystemCheckError
 
@@ -648,19 +501,7 @@ def raise_on_parler_languages_mismatch(
 
 @register(Tags.translation)
 def check_parler_languages_subset_of_languages(app_configs, **kwargs):
-    """
-    Every language code PARLER_LANGUAGES names for a site must also be a
-    code in LANGUAGES — a portal that narrows LANGUAGES has to narrow this
-    to match. django-parler enforces the identical rule itself, inside
-    ``parler.appsettings``, the moment any app whose models import
-    ``parler.models`` is imported — during ``apps.populate()``'s model-import
-    phase, before Django's own check framework ever gets a chance to run. So
-    the rule is also enforced ahead of that, by
-    ``raise_on_parler_languages_mismatch``, and registered here so
-    ``manage.py check`` reports it like any other (FR-012, US-5 T107).
-
-    Error ID: fairdm.E400
-    """
+    """Report fairdm.E400 when PARLER_LANGUAGES names a code LANGUAGES lacks."""
     return parler_languages_errors(
         getattr(settings, "LANGUAGES", []),
         getattr(settings, "PARLER_LANGUAGES", {}),
@@ -668,36 +509,30 @@ def check_parler_languages_subset_of_languages(app_configs, **kwargs):
     )
 
 
-# =============================================================================
-# ADDON VALIDATION
-# =============================================================================
-
-
 def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -> bool:
-    """
-    Validate that an addon's setup module can be found.
+    """Validate that an addon's setup module can be found.
 
-    Note: We only check if the module can be found, not imported, because
-    addon setup modules are designed to be executed via split_settings.include()
-    which provides them with the necessary scope (INSTALLED_APPS, etc.).
+    Only checks that the module can be found, not imported, because addon setup modules are
+    executed via ``split_settings.include()``, which supplies the scope they need.
 
     Args:
-        addon_name: The name of the addon package
-        module_path: The path to the addon's setup module
-        env_profile: The resolved environment name (e.g. "production", "development")
+        addon_name: The name of the addon package.
+        module_path: The path to the addon's setup module.
+        env_profile: The resolved environment name (e.g. "production", "development").
 
     Returns:
-        bool: True if the module is valid, False otherwise
+        ``True`` if the module is valid, ``False`` otherwise.
 
     Raises:
-        ImproperlyConfigured: In production if addon module is invalid
+        ImproperlyConfigured: The module is invalid and the environment is production.
+        ModuleNotFoundError: The module cannot be found. Handled inside this function, so
+            callers see ``False``, or ``ImproperlyConfigured`` in production.
     """
     is_production_like = env_profile == "production"
 
     try:
         import importlib.util
 
-        # Only check if the module spec can be found, don't actually import it
         spec = importlib.util.find_spec(module_path)
         if spec is None or spec.origin is None:
             raise ModuleNotFoundError(f"No module named '{module_path}'")

@@ -1,3 +1,5 @@
+"""FairDM view base classes."""
+
 from .base import (
     FairDMCreateView,
     FairDMDeleteView,

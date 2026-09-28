@@ -1,4 +1,4 @@
-"""FairDM Demo Portal - Admin Interface Examples
+"""Admin classes for the demo models, with examples of common admin patterns.
 
 This module demonstrates best practices for customizing Django admin interfaces
 in FairDM portals, including:
@@ -73,195 +73,8 @@ class MySampleConfig(ModelConfiguration):
 ```
 
 See `docs/portal-development/registry_integration.md` for details.
-"""
 
-from django.contrib import admin
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django_select2.forms import Select2MultipleWidget, Select2Widget
-
-from fairdm.core.dataset.models import DatasetDescription
-
-# ============================================================================
-# Example 1: Dynamic Inline Form Limits Based on Vocabulary Size
-# ============================================================================
-
-
-class RockSampleDescriptionInline(admin.StackedInline):
-    """Example inline with dynamic max_num based on vocabulary.
-
-    This inline demonstrates the pattern used in DatasetAdmin where max_num
-    is dynamically set based on the number of available choices in a vocabulary.
-    This prevents users from creating more forms than there are valid types.
-
-    Benefits:
-    - Improved UX (no unnecessary empty forms)
-    - Data quality (prevents validation errors)
-    - Clear feedback (users know the limit)
-
-    Implementation:
-    The get_formset() method in the parent ModelAdmin sets max_num at runtime.
-    """
-
-    model = DatasetDescription  # Example - replace with your inline model
-    extra = 0
-    # max_num set dynamically in parent ModelAdmin.get_formset()
-
-    class Meta:
-        verbose_name = "Description"
-        verbose_name_plural = "Descriptions"
-
-
-# Commented out example admin - uncomment and adapt for your models
-# @admin.register(RockSample)
-class RockSampleAdminExample(admin.ModelAdmin):
-    """Example admin showing dynamic inline limits and bulk export.
-
-    This admin class demonstrates:
-    1. Dynamic inline max_num based on vocabulary size
-    2. Bulk metadata export action
-    3. Security controls (no bulk visibility changes)
-    4. Comprehensive search and filtering
-
-    Pattern Usage:
-    Copy this pattern to your own Sample/Measurement admin classes,
-    adjusting the vocabulary references to match your model's fields.
-    """
-
-    # inlines = [RockSampleDescriptionInline]
-    search_fields = ("name", "uuid")
-    list_display = ("name", "added", "modified", "dataset")
-    list_filter = ("dataset", "added")
-    readonly_fields = ("uuid", "added", "modified")
-    # autocomplete_fields = ("dataset", "location")
-
-    # ============================================================================
-    # Dynamic Inline Form Limits
-    # ============================================================================
-
-    def get_formset(self, request, obj=None, **kwargs):
-        """Dynamically set max_num for inline formsets based on vocabulary size.
-
-        This method implements the same pattern as DatasetAdmin.get_formset().
-        When a model has a vocabulary-constrained field (e.g., description_type),
-        we limit the number of inline forms to match the vocabulary size.
-
-        Example:
-        If RockSample has 5 description types (Abstract, Methods, Results, etc.),
-        max_num will be set to 5, preventing users from adding a 6th description.
-
-        Args:
-            request: The current HTTP request
-            obj: The model instance being edited (None for add view)
-            **kwargs: Additional arguments including 'inline' for inline formsets
-
-        Returns:
-            The formset class with dynamically adjusted max_num
-        """
-        inline = kwargs.get("inline")
-        formset = super().get_formset(request, obj, **kwargs)
-
-        # Example: Adjust max_num for description inline
-        # if inline == RockSampleDescriptionInline:
-        #     # Get vocabulary size from model
-        #     vocabulary_size = len(RockSample.DESCRIPTION_TYPES.choices)
-        #     formset.max_num = vocabulary_size
-
-        return formset
-
-
-# ============================================================================
-# Example 2: Measurement Admin with Readonly Calculated Fields
-# ============================================================================
-
-
-# Commented out example - uncomment and adapt for your models
-# @admin.register(XRFMeasurement)
-class XRFMeasurementAdminExample(admin.ModelAdmin):
-    """Example admin for Measurement models with calculated fields.
-
-    This admin demonstrates:
-    1. Readonly fields for system-managed data (UUID, timestamps)
-    2. Readonly fields for calculated/derived values
-    3. Organized fieldsets with collapsible sections
-    4. Autocomplete widgets for foreign keys
-
-    Pattern Usage:
-    Use this pattern for Measurement models that have calculated fields
-    (e.g., ratios, totals, quality scores) that should not be manually edited.
-    """
-
-    search_fields = ("name", "uuid")
-    list_display = ("name", "dataset", "added", "modified")
-    list_filter = ("dataset", "added")
-    readonly_fields = (
-        "uuid",
-        "added",
-        "modified",
-        # Add calculated fields here
-        # "total_concentration",
-        # "quality_score",
-    )
-    # autocomplete_fields = ("dataset", "sample")
-
-    fieldsets = (
-        (
-            _("Basic Information"),
-            {
-                "fields": (
-                    "name",
-                    "uuid",
-                    "dataset",
-                    # "sample",
-                )
-            },
-        ),
-        (
-            _("Measurement Data"),
-            {
-                "fields": (
-                    # Add measurement-specific fields
-                    # "concentration_ppm",
-                    # "uncertainty",
-                    # "detection_limit",
-                )
-            },
-        ),
-        (
-            _("Calculated Values"),
-            {
-                "fields": (
-                    # "total_concentration",
-                    # "quality_score",
-                ),
-                "classes": ("collapse",),
-                "description": _(
-                    "These values are automatically calculated and cannot be edited manually."
-                ),
-            },
-        ),
-        (
-            _("Timestamps"),
-            {
-                "fields": ("added", "modified"),
-                "classes": ("collapse",),
-            },
-        ),
-    )
-
-    formfield_overrides = {
-        models.ManyToManyField: {"widget": Select2MultipleWidget},
-        models.ForeignKey: {"widget": Select2Widget},
-        models.OneToOneField: {"widget": Select2Widget},
-    }
-
-
-# ============================================================================
-# Best Practices Summary
-# ============================================================================
-
-"""
-## Admin Interface Best Practices for FairDM Portals
+## Best Practices
 
 ### 1. Dynamic Inline Limits
 - Set max_num based on vocabulary size to prevent validation errors
@@ -319,14 +132,133 @@ After customizing admin interfaces, test:
 4. Bulk export with large datasets (performance)
 5. Autocomplete response time with many records
 6. Mobile responsiveness (Django admin is mobile-friendly)
-
-See: `tests/integration/core/dataset/test_admin.py` for comprehensive admin tests.
 """
 
+from django.contrib import admin
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django_select2.forms import Select2MultipleWidget, Select2Widget
 
-# ============================================================================
-# Demo Sample Admin Classes
-# ============================================================================
+from fairdm.core.dataset.models import DatasetDescription
+
+
+class RockSampleDescriptionInline(admin.StackedInline):
+    """Example inline with dynamic max_num based on vocabulary.
+
+    This inline demonstrates the pattern used in DatasetAdmin where max_num
+    is dynamically set based on the number of available choices in a vocabulary.
+    This prevents users from creating more forms than there are valid types.
+
+    Benefits:
+    - Improved UX (no unnecessary empty forms)
+    - Data quality (prevents validation errors)
+    - Clear feedback (users know the limit)
+
+    Implementation:
+    The get_formset() method in the parent ModelAdmin sets max_num at runtime.
+    """
+
+    model = DatasetDescription
+    extra = 0
+
+    class Meta:
+        verbose_name = "Description"
+        verbose_name_plural = "Descriptions"
+
+
+class RockSampleAdminExample(admin.ModelAdmin):
+    """Example admin showing dynamic inline limits and bulk export.
+
+    Not registered. Copy it and register it for your own model.
+
+    This admin class demonstrates:
+    1. Dynamic inline max_num based on vocabulary size
+    2. Bulk metadata export action
+    3. Security controls (no bulk visibility changes)
+    4. Comprehensive search and filtering
+
+    Pattern Usage:
+    Copy this pattern to your own Sample/Measurement admin classes,
+    adjusting the vocabulary references to match your model's fields.
+    """
+
+    search_fields = ("name", "uuid")
+    list_display = ("name", "added", "modified", "dataset")
+    list_filter = ("dataset", "added")
+    readonly_fields = ("uuid", "added", "modified")
+
+    def get_formset(self, request, obj=None, **kwargs):
+        """Limit inline forms to the size of the vocabulary they are constrained by."""
+        inline = kwargs.get("inline")
+        formset = super().get_formset(request, obj, **kwargs)
+
+        return formset
+
+
+class XRFMeasurementAdminExample(admin.ModelAdmin):
+    """Example admin for Measurement models with calculated fields.
+
+    Not registered. Copy it and register it for your own model.
+
+    This admin demonstrates:
+    1. Readonly fields for system-managed data (UUID, timestamps)
+    2. Readonly fields for calculated/derived values
+    3. Organized fieldsets with collapsible sections
+    4. Autocomplete widgets for foreign keys
+
+    Pattern Usage:
+    Use this pattern for Measurement models that have calculated fields
+    (e.g., ratios, totals, quality scores) that should not be manually edited.
+    """
+
+    search_fields = ("name", "uuid")
+    list_display = ("name", "dataset", "added", "modified")
+    list_filter = ("dataset", "added")
+    readonly_fields = (
+        "uuid",
+        "added",
+        "modified",
+    )
+
+    fieldsets = (
+        (
+            _("Basic Information"),
+            {
+                "fields": (
+                    "name",
+                    "uuid",
+                    "dataset",
+                )
+            },
+        ),
+        (
+            _("Measurement Data"),
+            {"fields": ()},
+        ),
+        (
+            _("Calculated Values"),
+            {
+                "fields": (),
+                "classes": ("collapse",),
+                "description": _(
+                    "These values are automatically calculated and cannot be edited manually."
+                ),
+            },
+        ),
+        (
+            _("Timestamps"),
+            {
+                "fields": ("added", "modified"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    formfield_overrides = {
+        models.ManyToManyField: {"widget": Select2MultipleWidget},
+        models.ForeignKey: {"widget": Select2Widget},
+        models.OneToOneField: {"widget": Select2Widget},
+    }
 
 
 from fairdm.core.measurement.admin import MeasurementChildAdmin
@@ -361,21 +293,16 @@ class RockSampleAdmin(SampleChildAdmin):
     """
 
     base_model = RockSample
-    show_in_index = True  # Show in main admin index
+    show_in_index = True
 
-    # Add rock-specific fields to list display
     list_display = [*SampleChildAdmin.list_display, "rock_type", "mineral_content"]
 
-    # Add rock-specific filters
     list_filter = [*SampleChildAdmin.list_filter, "rock_type"]
 
-    # Add rock-specific search fields
     search_fields = [*SampleChildAdmin.search_fields, "mineral_content"]
 
-    # `base_fieldsets`, not `fieldsets` (see `SampleChildAdmin`'s docstring): polymorphic
-    # admin concatenates this onto the parent's `base_fieldsets`, whereas a plain
-    # `fieldsets` here replaces it outright and silently drops every base `Sample`
-    # field - name, dataset, status, location, uuid, added, modified - from the form.
+    # `base_fieldsets`, not `fieldsets`: a plain `fieldsets` replaces the parent's groups
+    # and drops every base `Sample` field from the form (see `SampleChildAdmin`).
     base_fieldsets = (
         (
             "Geological Properties",
@@ -412,9 +339,8 @@ class WaterSampleAdmin(SampleChildAdmin):
     """
 
     base_model = WaterSample
-    show_in_index = True  # Show in main admin index
+    show_in_index = True
 
-    # Add water-specific fields to list display
     list_display = [
         *SampleChildAdmin.list_display,
         "water_source",
@@ -422,16 +348,11 @@ class WaterSampleAdmin(SampleChildAdmin):
         "temperature_celsius",
     ]
 
-    # Add water-specific filters
     list_filter = [*SampleChildAdmin.list_filter, "water_source"]
 
-    # Add water-specific search fields
     search_fields = [*SampleChildAdmin.search_fields, "water_source"]
 
-    # `base_fieldsets`, not `fieldsets` (see `SampleChildAdmin`'s docstring): polymorphic
-    # admin concatenates this onto the parent's `base_fieldsets`, whereas a plain
-    # `fieldsets` here replaces it outright and silently drops every base `Sample`
-    # field - name, dataset, status, location, uuid, added, modified - from the form.
+    # `base_fieldsets`, not `fieldsets`; see the note on RockSampleAdmin.
     base_fieldsets = (
         (
             "Water Quality Parameters",
@@ -447,11 +368,6 @@ class WaterSampleAdmin(SampleChildAdmin):
             },
         ),
     )
-
-
-# ============================================================================
-# Measurement Admin Interfaces
-# ============================================================================
 
 
 @admin.register(ExampleMeasurement)
@@ -473,18 +389,14 @@ class ExampleMeasurementAdmin(MeasurementChildAdmin):
     """
 
     base_model = ExampleMeasurement
-    show_in_index = True  # Show in main admin index
+    show_in_index = True
 
-    # Add example-specific fields to list display
     list_display = [*MeasurementChildAdmin.list_display, "char_field", "integer_field"]
 
-    # Add example-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "char_field", "text_field"]
 
-    # Extend base_fieldsets to include example properties. Declaring `fieldsets`
-    # replaces the base groups rather than adding to them, so they are spliced
-    # back in around the custom group - the placement the polymorphic admin uses
-    # when a child model declares none.
+    # Declaring `fieldsets` replaces the base groups, so they are spliced back in around
+    # the custom group, matching the placement the polymorphic admin uses by default.
     fieldsets = (
         MeasurementChildAdmin.base_fieldsets[0],
         (
@@ -527,23 +439,19 @@ class XRFMeasurementAdmin(MeasurementChildAdmin):
     """
 
     base_model = XRFMeasurement
-    show_in_index = True  # Show in main admin index
+    show_in_index = True
 
-    # Add XRF-specific fields to list display
     list_display = [
         *MeasurementChildAdmin.list_display,
         "element",
         "concentration_ppm",
     ]
 
-    # Add XRF-specific filters
     list_filter = [*MeasurementChildAdmin.list_filter, "element"]
 
-    # Add XRF-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "element"]
 
-    # Extend base_fieldsets to include XRF analysis parameters. See the note on
-    # ExampleMeasurementAdmin for why the base groups are spliced back in.
+    # Base groups are spliced back in; see the note on ExampleMeasurementAdmin.
     fieldsets = (
         MeasurementChildAdmin.base_fieldsets[0],
         (
@@ -582,25 +490,20 @@ class ICP_MS_MeasurementAdmin(MeasurementChildAdmin):
     """
 
     base_model = ICP_MS_Measurement
-    show_in_index = True  # Show in main admin index
+    show_in_index = True
 
-    # Add ICP-MS-specific fields to list display
     list_display = [
         *MeasurementChildAdmin.list_display,
         "isotope",
         "concentration_ppb",
     ]
 
-    # Add ICP-MS-specific filters
     list_filter = [*MeasurementChildAdmin.list_filter, "isotope"]
 
-    # Add ICP-MS-specific search fields
     search_fields = [*MeasurementChildAdmin.search_fields, "isotope"]
 
-    # Extend base_fieldsets to include ICP-MS analysis parameters. See the note
-    # on ExampleMeasurementAdmin for why the base groups are spliced back in.
-    # `value` is here because this is the only demo type that declares one, and
-    # a measurement whose value cannot be entered is not a working example.
+    # Base groups are spliced back in; see the note on ExampleMeasurementAdmin.
+    # `value` is listed because this is the only demo type that declares one.
     fieldsets = (
         MeasurementChildAdmin.base_fieldsets[0],
         (

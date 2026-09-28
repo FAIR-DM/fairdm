@@ -1,46 +1,32 @@
-"""Custom permission backends for Sample model.
-
-Provides guardian integration with permission inheritance from Dataset.
-"""
+"""Permission backend for samples, inheriting permissions from the parent dataset."""
 
 from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
 class SamplePermissionBackend(PolymorphicObjectPermissionBackend):
-    """Custom permission backend for Sample model that inherits permissions from parent Dataset.
+    """Permission backend that lets a sample inherit permissions from its dataset.
 
-    This backend extends the shared ``PolymorphicObjectPermissionBackend`` (which normalises a
-    specimen instance to its base ``Sample`` before the object-level check, see
-    ``fairdm/core/permissions.py``) to support:
-    1. Object-level permissions on Sample instances (FR-032)
-    2. Permission inheritance from parent Dataset (FR-031)
+    A user without a direct permission on a sample is checked against the dataset:
 
-    Permission Mapping:
-    - view_dataset → view_sample
-    - change_dataset → change_sample, delete_sample, add_sample
+    - ``view_dataset`` gives ``view_sample``
+    - ``change_dataset`` gives ``change_sample``, ``delete_sample`` and ``add_sample``
+    - ``import_data`` on the dataset gives ``import_data`` on the sample
 
-    Usage:
-        Add to settings.AUTHENTICATION_BACKENDS:
-        ```python
-        AUTHENTICATION_BACKENDS = [
-            "django.contrib.auth.backends.ModelBackend",
-            "fairdm.core.sample.permissions.SamplePermissionBackend",
-        ]
-        ```
+    Changing a dataset confers deleting its samples, so a ``change_dataset``-only user can delete
+    a sample they can freely edit. A specimen type such as ``RockSample`` works the same as
+    ``Sample``, because ``assign_perm`` normalises it to the base instance that owns the
+    permission.
 
-    Examples:
+    Attributes:
+        supports_object_permissions: Object-level permissions are supported.
+        supports_anonymous_user: Anonymous users are passed to the backend.
+
+    Example:
         ```python
         from fairdm.core.utils import assign_perm
 
-        # Direct sample permission - a specimen type such as ``RockSample`` works the same as
-        # the base ``Sample``; ``assign_perm`` normalises it to the base instance that actually
-        # owns the permission (FR-033b).
-        assign_perm("view_sample", user, sample)
-        user.has_perm("sample.view_sample", sample)  # True
-
-        # Inherited from dataset
         assign_perm("view_dataset", user, dataset)
-        user.has_perm("sample.view_sample", sample)  # True (inherited)
+        user.has_perm("sample.view_sample", sample)  # True, inherited from the dataset
         ```
     """
 
@@ -48,54 +34,38 @@ class SamplePermissionBackend(PolymorphicObjectPermissionBackend):
     supports_anonymous_user = True
 
     def has_perm(self, user_obj, perm, obj=None):
-        """Check if user has permission on object.
-
-        For Sample objects, checks:
-        1. Direct sample-level permissions via guardian
-        2. Inherited dataset-level permissions
+        """Check the permission directly on the sample, then through its dataset.
 
         Args:
-            user_obj: User instance
-            perm: Permission string (e.g., 'sample.view_sample')
-            obj: Optional Sample instance
+            user_obj: The user to check.
+            perm: The permission, such as ``sample.view_sample``.
+            obj: The object the permission is checked on. Non-samples go to the parent backend.
 
         Returns:
-            bool: True if user has permission
+            True when the user holds the permission on the sample or its dataset.
         """
-        # Let parent backend handle non-Sample objects and global permissions
         if obj is None:
             return super().has_perm(user_obj, perm, obj)
 
-        # Import here to avoid circular imports
         from fairdm.core.sample.models import Sample
 
-        # Only handle Sample objects
         if not isinstance(obj, Sample):
             return super().has_perm(user_obj, perm, obj)
 
-        # Check direct sample permission first
         if super().has_perm(user_obj, perm, obj):
             return True
 
-        # Check inherited dataset permission
         if obj.dataset:
-            # Map sample permissions to dataset permissions
-            # FR-031: changing a dataset confers changing AND deleting its samples, and adding
-            # samples to it - not the dataset's own delete permission, which the specification
-            # never mentions and which would otherwise leave a change_dataset-only user unable
-            # to delete a sample they can freely edit.
             permission_map = {
                 "sample.view_sample": "dataset.view_dataset",
                 "sample.change_sample": "dataset.change_dataset",
                 "sample.delete_sample": "dataset.change_dataset",
-                "sample.add_sample": "dataset.change_dataset",  # Adding samples requires dataset change permission
+                "sample.add_sample": "dataset.change_dataset",
                 "sample.import_data": "dataset.import_data",
             }
 
-            # Get corresponding dataset permission
             dataset_perm = permission_map.get(perm)
             if dataset_perm:
-                # Check if user has permission on parent dataset
                 return super().has_perm(user_obj, dataset_perm, obj.dataset)
 
         return False

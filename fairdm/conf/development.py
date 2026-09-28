@@ -1,11 +1,8 @@
-"""
-Development configuration overrides.
+"""Development overrides for the production baseline.
 
-This file overrides the production baseline for local development convenience.
-Applied after loading settings/* modules when DJANGO_ENV=development.
+Applied after the settings modules load when ``DJANGO_ENV=development``.
 """
 
-# Access globals set by setup()
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
@@ -19,70 +16,26 @@ INSTALLED_APPS += [
 MIDDLEWARE += [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
-# =============================================================================
-# DEVELOPMENT CONVENIENCE OVERRIDES
-# =============================================================================
 
-# Enable debug mode for development
 DEBUG = True
 
-# Surface thumbnail generation failures instead of degrading to a blank image,
-# so a broken source file is visible while it is still cheap to fix (D21).
+# Surface thumbnail failures instead of degrading to a blank image.
 THUMBNAIL_DEBUG = True
 
-# Use a default insecure key for development (production will fail without proper key)
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
     default="django-insecure-dev-key-CHANGE-THIS-IN-PRODUCTION",
 )
 
-# Development-only allowed hosts — never "*" (FR-004, FR-009), and never
-# shipped in the production baseline (settings/security.py resolves to []
-# when DJANGO_SITE_DOMAIN is unset).
+# Never "*", and never in the production baseline, where an unset domain resolves to [].
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
-# =============================================================================
-# DATABASE (Degrade to SQLite if not configured)
-# =============================================================================
-
-# Try to use PostgreSQL if DATABASE_URL is set, otherwise fall back to SQLite
-# try:
-#     DATABASES = {
-#         "default": env.db("DATABASE_URL"),
-#     }
-# except Exception:
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-# =============================================================================
-# CACHE (Degrade to LocMem if Redis not configured)
-# =============================================================================
-
-# try:
-#     CACHES = {
-#         "default": env.cache("REDIS_URL"),
-#     }
-# except Exception:
-#     import warnings
-
-#     warnings.warn(
-#         "REDIS_URL not set. Using LocMemCache for development. " "Set REDIS_URL to test Redis functionality.",
-#         stacklevel=2,
-#     )
-#     CACHES = {
-#         "default": {
-#             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-#             "LOCATION": "unique-snowflake",
-#         }
-#     }
-
-# =============================================================================
-# CELERY (Degrade to eager execution if Redis not configured)
-# =============================================================================
 
 try:
     CELERY_BROKER_URL = env("REDIS_URL")
@@ -98,29 +51,15 @@ except Exception:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
-# =============================================================================
-# EMAIL (Console backend for development)
-# =============================================================================
-
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# Disable email verification in development so signup works without email confirmation
 ACCOUNT_EMAIL_VERIFICATION = "none"
-
-# =============================================================================
-# SECURITY (Relaxed for development)
-# =============================================================================
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
-# The baseline names these cookies with the ``__Secure-`` prefix, which a
-# browser only honours on a cookie actually sent with the ``Secure``
-# attribute (RFC 6265bis, section 4.1.3). Turning that attribute off above
-# without also dropping the prefix leaves a header every browser discards in
-# silence — the page still renders its hidden CSRF token, no cookie is ever
-# stored to match it, and the next POST is rejected as though the token were
-# missing. Relaxing the flag and relaxing the name are one change.
+# Browsers discard a `__Secure-` prefixed cookie sent without `Secure` (RFC 6265bis 4.1.3),
+# so the baseline's prefix has to go with the flag or every POST fails CSRF.
 CSRF_COOKIE_NAME = "csrftoken"
 SESSION_COOKIE_NAME = "sessionid"
 
@@ -128,10 +67,6 @@ SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
-
-# =============================================================================
-# STATIC FILES (Development)
-# =============================================================================
 
 STORAGES = {
     "default": {
@@ -142,14 +77,7 @@ STORAGES = {
     },
 }
 
-# Disable compression in development
 COMPRESS_ENABLED = False
-# COMPRESS_OFFLINE = False
-
-
-# =============================================================================
-# LOGGING (Verbose for development)
-# =============================================================================
 
 LOGGING = {
     "version": 1,
@@ -183,7 +111,7 @@ LOGGING = {
         },
         "django.db.backends": {
             "handlers": ["console"],
-            "level": "WARNING",  # Set to DEBUG to see SQL queries
+            "level": "WARNING",
             "propagate": False,
         },
         "fairdm": {

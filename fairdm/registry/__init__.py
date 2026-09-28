@@ -1,7 +1,7 @@
-"""FairDM Registry Package - Model registration and configuration system.
+"""Model registration and configuration for Sample and Measurement models.
 
-This package provides the core registration system for FairDM Sample and Measurement models,
-including configuration classes, component factories, and the global registry instance.
+This package provides the configuration classes, component factories and the
+global registry instance.
 """
 
 from fairdm.registry.config import (

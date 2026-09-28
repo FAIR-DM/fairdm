@@ -10,21 +10,29 @@ from research_vocabs.models import Concept
 
 
 class ConceptMixin:
+    """Configure a model choice field to autocomplete the concepts of one vocabulary.
+
+    Args:
+        vocabulary: A vocabulary builder class or the dotted path to one.
+        minimum_input_length: Characters typed before the autocomplete queries.
+        **kwargs: Passed to the model choice field. ``queryset``, ``widget`` and
+            ``label`` are filled in from the vocabulary when not given.
+
+    Attributes:
+        widget: The autocomplete widget class used when the caller passes none.
+    """
+
     widget: ClassVar[type[Any]]
 
     def __init__(self, vocabulary, minimum_input_length=2, **kwargs):
-        # Import vocabulary if it's a string
         if isinstance(vocabulary, str):
             vocabulary = import_string(vocabulary)
 
-        # Get vocabulary name from Meta or class name
         vocab_name = vocabulary._meta.name
 
-        # Set up queryset filtered by vocabulary
         if "queryset" not in kwargs:
             kwargs["queryset"] = Concept.objects.filter(vocabulary__name=vocab_name)
 
-        # Set up autocomplete widget
         if "widget" not in kwargs:
             kwargs["widget"] = self.widget(
                 url=reverse("autocomplete:concept"),
@@ -35,7 +43,6 @@ class ConceptMixin:
                 },
             )
 
-        # Set label if not provided
         if "label" not in kwargs:
             kwargs["label"] = vocabulary.__name__
 
@@ -43,16 +50,19 @@ class ConceptMixin:
 
 
 class ConceptSelect(ConceptMixin, forms.ModelChoiceField):
-    """A ModelChoiceField for selecting a single Concept with autocomplete.
+    """Select a single Concept with autocomplete.
 
-    This field automatically configures autocomplete for a specific vocabulary,
-    handling both VocabularyBuilder classes and string paths.
+    The field configures autocomplete for one vocabulary, given as a
+    VocabularyBuilder class or a string path.
 
     Args:
         vocabulary: Either a VocabularyBuilder class or a string path to one
                    (e.g., "my_app.vocabularies.ScienceKeywords")
         minimum_input_length: Minimum characters before autocomplete triggers (default: 2)
         **kwargs: Standard ModelChoiceField arguments
+
+    Attributes:
+        widget: The autocomplete widget class used when the caller passes none.
 
     Example:
         from fairdm.contrib.autocomplete.fields import ConceptSelect
@@ -72,16 +82,19 @@ class ConceptSelect(ConceptMixin, forms.ModelChoiceField):
 
 
 class ConceptMultiSelect(ConceptMixin, forms.ModelMultipleChoiceField):
-    """A ModelMultipleChoiceField for selecting multiple Concepts with autocomplete.
+    """Select multiple Concepts with autocomplete.
 
-    This field automatically configures autocomplete for a specific vocabulary,
-    handling both VocabularyBuilder classes and string paths.
+    The field configures autocomplete for one vocabulary, given as a
+    VocabularyBuilder class or a string path.
 
     Args:
         vocabulary: Either a VocabularyBuilder class or a string path to one
                    (e.g., "my_app.vocabularies.ScienceKeywords")
         minimum_input_length: Minimum characters before autocomplete triggers (default: 2)
         **kwargs: Standard ModelMultipleChoiceField arguments
+
+    Attributes:
+        widget: The autocomplete widget class used when the caller passes none.
 
     Example:
         from fairdm.contrib.autocomplete.fields import ConceptMultiSelect

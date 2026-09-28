@@ -1,12 +1,10 @@
+"""Helpers that assign and remove object-level permissions."""
+
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
-# `fairdm.core.utils`'s wrappers, not guardian's raw shortcuts (F3): a right granted through
-# `fairdm.core.utils.assign_perm` on a polymorphic subclass instance (e.g. a specimen) is filed
-# under the polymorphic base's content type, not the subclass's own. The raw guardian functions
-# only ever look under the object's own content type, so `remove_all_model_perms` - fired from
-# `Contribution.remove_user_perms` with a concrete specimen - found nothing there and silently
-# left the grant in place.
+# Not guardian's raw shortcuts: a grant on a polymorphic subclass instance is filed under the
+# base's content type, which the raw functions never look under, so removal would find nothing.
 from fairdm.core.utils import assign_perm, get_perms, remove_perm
 
 OBJECT_PERMS = [
@@ -22,6 +20,12 @@ OBJECT_PERMS = [
 
 
 def assign_all_model_perms(user, obj):
+    """Grant a user every permission defined for the object's model.
+
+    Args:
+        user: The user to grant permissions to.
+        obj: The object to grant them on.
+    """
     ctype = ContentType.objects.get_for_model(obj)
     perms = Permission.objects.filter(content_type=ctype).values_list(
         "codename", flat=True
@@ -31,5 +35,11 @@ def assign_all_model_perms(user, obj):
 
 
 def remove_all_model_perms(user, obj):
+    """Remove every object-level permission a user holds on the object.
+
+    Args:
+        user: The user whose permissions to remove.
+        obj: The object to remove them from.
+    """
     for perm in get_perms(user, obj):
         remove_perm(perm, user, obj)

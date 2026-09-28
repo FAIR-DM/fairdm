@@ -1,12 +1,8 @@
-"""Logging Configuration
+"""Logging settings: the LOGGING dict and Sentry initialisation.
 
-Owns: the LOGGING dict and Sentry error-tracking initialisation, read from the
-shared ``Env`` declaration with no branching on the resolved environment or on
-``DEBUG`` (FR-002, FR-003) — Sentry initialises whenever ``SENTRY_DSN`` is
-present, full stop. Leaves to a portal: its own logger entries, added by
-updating ``LOGGING["loggers"]`` after ``setup()``.
-
-This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
+Owns LOGGING and Sentry, read from the shared ``Env`` declaration without branching on the
+environment or on ``DEBUG``. Sentry initialises whenever ``SENTRY_DSN`` is present. A portal
+adds its own logger entries by updating ``LOGGING["loggers"]`` after ``setup()``.
 """
 
 import logging
@@ -17,7 +13,6 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
-# Access environment variables via shared env instance
 env = globals()["env"]
 
 SENTRY_DSN = env("SENTRY_DSN")
@@ -38,17 +33,8 @@ if SENTRY_DSN:
         traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
     )
 
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#logging
-# See https://docs.djangoproject.com/en/dev/topics/logging for
-# LOGGING
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#logging
-# See https://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
+# The only tangible logging here is an email to the site admins on every HTTP 500
+# when DEBUG=False.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

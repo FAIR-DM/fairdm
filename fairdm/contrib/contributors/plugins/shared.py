@@ -1,3 +1,5 @@
+"""Plugins for managing the contributors of an object."""
+
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
@@ -16,41 +18,39 @@ from ..models import Contribution
 
 
 class ContributionCreate(Plugin, FairDMCreateView):
-    """Quick add plugin for adding multiple contributors to an object."""
+    """Add several contributors to an object at once."""
 
     url_path = "add"
     template_name = "contributors/plugins/contribution_quick_add.html"
     form_class = QuickAddContributionForm
 
     def get_form_kwargs(self):
-        """Pass base_object to form for autocomplete filtering."""
+        """Pass the base object to the form."""
         kwargs = super().get_form_kwargs()
         kwargs["base_object"] = self.base_object
         return kwargs
 
     def get_context_data(self, **kwargs):
-        """Add base object verbose name to context."""
+        """Add the base object's verbose name."""
         context = super().get_context_data(**kwargs)
         context["base_object_verbose_name"] = self.base_object._meta.verbose_name
         return context
 
     def get_success_url(self):
-        """Return to the contributors page after successful add."""
+        """Return to the contributors page."""
         return reverse(self.base_object, "contribution-list")
 
     def form_valid(self, form):
-        """Add selected contributors to the base object."""
+        """Add the selected contributors to the base object, without roles."""
         contributors = form.cleaned_data["contributors"]
         for contributor in contributors:
-            # Use the Contribution.add_to classmethod for consistency
             Contribution.add_to(
                 contributor=contributor,
                 obj=self.base_object,
-                roles=None,  # Default roles can be set later via edit
+                roles=None,
                 affiliation=None,
             )
 
-        # For HTMX requests, return a success response
         if self.request.htmx:
             response = HttpResponse(status=204)
             response["HX-Trigger"] = "contributionUpdated"
@@ -60,7 +60,7 @@ class ContributionCreate(Plugin, FairDMCreateView):
 
 
 class ContributionUpdate(Plugin, FairDMUpdateView):
-    """Edit plugin for updating contribution roles and affiliation."""
+    """Edit a contribution's roles and affiliation."""
 
     url_path = "<int:pk>/edit"
     form_class = UpdateContributionForm
@@ -74,7 +74,7 @@ class ContributionUpdate(Plugin, FairDMUpdateView):
 
 
 class ContributionRemove(Plugin, FairDMDeleteView):
-    """Delete plugin for removing a contribution."""
+    """Remove a contribution."""
 
     url_path = "<int:pk>/remove"
     template_name = "contributors/plugins/contribution_confirm_delete.html"
@@ -83,8 +83,7 @@ class ContributionRemove(Plugin, FairDMDeleteView):
 
 @plugins.register(Project, label=_("Contributors"), icon="users", order=150)
 class ContributionList(Plugin, FairDMListView):
-    """Plugin for managing contributors on any model with a 'contributors' GenericRelation.
-    """
+    """List and manage the contributors of an object that has a ``contributors`` relation."""
 
     url_path = "contributors"
     model = Contribution
@@ -101,13 +100,12 @@ class ContributionList(Plugin, FairDMListView):
         js = ("contributors/js/contributor-filter.js",)
 
     def get_queryset(self, *args, **kwargs):
-        """Return contributors of type Person for the base object."""
+        """Limit to the base object's contributions."""
         return self.base_object.contributors.all()
 
     def get_context_data(self, **kwargs):
-        """Add available roles to the context for filtering."""
+        """Add the roles held on the listed contributions, for filtering."""
         context = super().get_context_data(**kwargs)
-        # Get all unique roles from the contributions grouped by contributor type
         person_roles = set()
         org_roles = set()
 
@@ -119,7 +117,6 @@ class ContributionList(Plugin, FairDMListView):
                 else:
                     org_roles.add((role.name, role.label, "organization"))
 
-        # Combine and sort all roles
         all_roles = list(person_roles) + list(org_roles)
         context["available_roles"] = sorted(all_roles, key=lambda x: (x[2], x[1]))
 

@@ -1,18 +1,10 @@
-"""Shared image upload utilities for core FairDM models.
-
-Provides the common help text, file-size validator, and upload constants
-used by Project, Dataset, Sample, and Measurement image fields.
-"""
+"""Shared image upload help text, size limit and validator for the core models."""
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-# Maximum allowed upload size for representative images (5 MB)
-MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024
 
-# Standard help text displayed on all four core model image fields.
-# Communicates the expected aspect ratio, accepted formats, size cap, and
-# the centre-crop behaviour applied when the source does not match 3:2.
 IMAGE_HELP_TEXT = _(
     "Upload a representative image (recommended 3:2 ratio, e.g. 1200x800 px). "
     "Accepted formats: JPEG, PNG, WebP. Maximum file size: 5 MB. "
@@ -21,14 +13,14 @@ IMAGE_HELP_TEXT = _(
 
 
 def validate_image_file_size(file):
-    """Raise ValidationError if *file* exceeds MAX_IMAGE_UPLOAD_BYTES.
+    """Reject an uploaded file larger than ``MAX_IMAGE_UPLOAD_BYTES``.
 
     Args:
         file: An uploaded file object with a ``size`` attribute (bytes).
 
     Raises:
-        ValidationError: When the uploaded file is larger than 5 MB, with a
-            human-readable message that includes the actual size in MB.
+        ValidationError: The uploaded file is larger than 5 MB. The message
+            includes the actual size in MB.
     """
     if file.size > MAX_IMAGE_UPLOAD_BYTES:
         actual_mb = file.size / (1024 * 1024)

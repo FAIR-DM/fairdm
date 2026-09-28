@@ -1,4 +1,4 @@
-"""Forms for the Measurement app (T011, T012 - Phase 6)."""
+"""Forms for creating and editing measurements."""
 
 from crispy_forms.helper import FormHelper
 from django import forms
@@ -14,47 +14,33 @@ from .models import Measurement
 
 
 class MeasurementFormMixin:
-    """Mixin providing pre-configured widgets and behavior for Measurement forms.
+    """Mixin giving measurement model forms Select2 widgets for dataset and sample.
 
-    This mixin provides standard widget configurations and request handling
-    for forms based on Measurement model. It's designed to be used with ModelForm
-    subclasses for concrete measurement types (XRFMeasurement, ICP_MS_Measurement, etc.).
+    Use it with the ``ModelForm`` of a concrete measurement type. The dataset choices are limited
+    to the datasets the requesting user may change. See docs/portal-development/measurements.md.
 
-    Features:
-        - Pre-configured widgets (Select2 for dataset and sample)
-        - Request parameter handling for queryset filtering
-        - Dataset-scoped sample selection
-        - Crispy forms integration
-        - Add another functionality for dataset field
+    Args:
+        *args: Positional arguments passed to ``ModelForm``.
+        **kwargs: Keyword arguments passed to ``ModelForm``. ``request`` is removed first and
+            is used to limit the dataset choices.
 
-    See Also:
-        - Developer Guide: docs/portal-development/measurements.md#step-4-custom-forms-and-filters
-        - Forms Documentation: docs/portal-development/forms-and-filters/
-
-    Usage:
+    Example:
+        ```python
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
                 model = XRFMeasurement
                 fields = ["name", "dataset", "sample", "element", "concentration_ppm"]
 
-        # In view:
+
         form = XRFMeasurementForm(request=request, data=request.POST)
+        ```
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize form with optional request context.
-
-        Args:
-            request: Optional request object for permission-based filtering
-            *args: Positional arguments passed to ModelForm
-            **kwargs: Keyword arguments passed to ModelForm
-        """
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
-        # Configure widgets for common Measurement fields
         if "dataset" in self.fields:
-            # Use Select2 with autocomplete and add another functionality
             select2_widget = ModelSelect2Widget(
                 search_fields=["name__icontains", "title__icontains"],
                 attrs={"data-placeholder": _("Select a dataset...")},
@@ -66,20 +52,14 @@ class MeasurementFormMixin:
 
             from fairdm.core.dataset.models import Dataset
 
-            # `all_objects` is only ever the base the permission check below narrows,
-            # never the queryset the form is left holding. `request` is optional on this
-            # mixin and nothing enforces it, so a caller that omits it has shown no
-            # subject to authorise - and is left with the queryset `ModelForm` built
-            # from the default manager, which is privacy-first. Assigning `all_objects`
-            # unconditionally would have offered every private dataset in the portal to
-            # a caller that had proven nothing.
+            # `all_objects` is only the base the permission check narrows. A caller that omits the
+            # optional `request` keeps the privacy-first default queryset, never every private dataset.
             if (
                 self.request
                 and hasattr(self.request, "user")
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                # Filter to datasets where the user holds change_dataset
                 from guardian.shortcuts import get_objects_for_user
 
                 self.fields["dataset"].queryset = get_objects_for_user(
@@ -89,38 +69,26 @@ class MeasurementFormMixin:
                 )
 
         if "sample" in self.fields:
-            # Use Select2 for sample with dataset-scoped filtering
-            # Note: This provides the widget; actual filtering is done via JavaScript
-            # based on the selected dataset value
+            # The sample choices are filtered by JavaScript, from the selected dataset.
             self.fields["sample"].widget = ModelSelect2Widget(
                 search_fields=["name__icontains"],
                 attrs={
                     "data-placeholder": _("Select a sample..."),
-                    "data-depends-on": "dataset",  # Hint for JavaScript filtering
+                    "data-depends-on": "dataset",
                 },
             )
 
-        # Initialize crispy forms helper
         self.helper = FormHelper()
         self.helper.form_tag = False
 
 
 class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
-    """Base form for creating and editing Measurement instances.
+    """Base form for measurements, which refuses to create a bare ``Measurement``.
 
-    This form should typically NOT be used directly. `Measurement` is a concrete
-    polymorphic base model, not a Django-abstract one - it has its own table and
-    can be queried - but direct instantiation is refused by validation, both here
-    and on the model itself (`Measurement.clean()`). Create forms for concrete
-    measurement types (XRFMeasurement, ICP_MS_Measurement, etc.) that inherit from
-    MeasurementFormMixin instead.
-
-    This class exists for registry auto-generation and as a reference
-    implementation.
-
-    Note:
-        Direct instantiation will fail validation since Measurement cannot be
-        instantiated directly. Use concrete subclass forms instead.
+    ``Measurement`` is a concrete polymorphic base with its own table, but direct instantiation
+    is refused here and in ``Measurement.clean()``. Build forms for concrete measurement types on
+    ``MeasurementFormMixin`` instead. This class exists for registry auto-generation and as a
+    reference implementation.
     """
 
     image = forms.ImageField(
@@ -160,14 +128,9 @@ class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
         }
 
     def clean(self):
-        """Validate form data.
-
-        Raises:
-            ValidationError: If attempting to create base Measurement instance
-        """
+        """Refuse to create a bare ``Measurement``."""
         cleaned_data = super().clean()
 
-        # Prevent direct Measurement instantiation
         if not self.instance.pk and self._meta.model == Measurement:
             raise forms.ValidationError(
                 _(

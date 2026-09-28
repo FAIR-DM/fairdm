@@ -6,11 +6,7 @@ from django.db import migrations
 
 
 def cleanup_duplicate_types(apps, schema_editor):
-    """Remove duplicate Description/Date/Identifier entries.
-    
-    For each (related, type) combination that has duplicates,
-    keep the most recently modified entry and delete the rest.
-    """
+    # Keep the most recently modified row per (related, type) and delete the rest.
     ProjectDescription = apps.get_model("project", "ProjectDescription")
     ProjectDate = apps.get_model("project", "ProjectDate")
     ProjectIdentifier = apps.get_model("project", "ProjectIdentifier")
@@ -26,7 +22,6 @@ def cleanup_duplicate_types(apps, schema_editor):
     total_deleted = 0
 
     for model_name, model in models_to_clean:
-        # Find all (related, type) combinations with duplicates
         from django.db.models import Count
         duplicates = (
             model.objects.using(db_alias)
@@ -36,13 +31,11 @@ def cleanup_duplicate_types(apps, schema_editor):
         )
 
         for dup in duplicates:
-            # Get all instances with this (related, type) combination
             instances = model.objects.using(db_alias).filter(
                 related_id=dup["related"],
                 type=dup["type"],
             ).order_by("-modified")
             
-            # Keep the first (most recent), delete the rest
             instances_to_delete = instances[1:]
             count = instances_to_delete.count()
             if count > 0:

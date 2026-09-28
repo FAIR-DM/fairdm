@@ -1,3 +1,7 @@
+{# @description A borderless card for a person with their avatar, an active or inactive badge, their name and ORCID iD. Reads the context variable `object`, the person. #}
+{# @prop class:text | description:"Extra CSS classes for the card." #}
+{# @prop text_light:boolean | description:"Use light text for the name and the ORCID link, for dark backgrounds." #}
+{# @slot:footer Last updated — Content for the card footer. The footer is left out when there is none. #}
 {% load i18n %}
 
 <c-vars class text_light />

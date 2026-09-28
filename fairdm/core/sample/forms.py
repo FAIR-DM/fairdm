@@ -18,43 +18,36 @@ logger = logging.getLogger(__name__)
 
 
 class SampleFormMixin:
-    """Mixin providing pre-configured widgets and behavior for Sample forms.
+    """Mixin giving sample model forms Select2 widgets for dataset and location.
 
-    This mixin provides standard widget configurations and request handling
-    for forms based on Sample model. It's designed to be used with ModelForm
-    subclasses for concrete sample types (RockSample, WaterSample, etc.).
+    Use it with the ``ModelForm`` of a concrete sample type. The dataset choices are the datasets
+    the requesting user may change. A form given no authenticated user offers no dataset at all,
+    which is the safe default, and logs a warning because a create form that can never validate
+    explains nothing on its own. The status defaults to ``unknown``, matching the model default,
+    so a form never asserts where a specimen is when nobody chose.
 
-    Features:
-        - Pre-configured widgets (Select2 for dataset, Select for status)
-        - Request parameter handling for queryset filtering
-        - Default status value ('available')
-        - Crispy forms integration
-        - Add another functionality for dataset field
+    Args:
+        *args: Positional arguments passed to ``ModelForm``.
+        **kwargs: Keyword arguments passed to ``ModelForm``. ``request`` is removed first and
+            is used to limit the dataset choices.
 
-    Usage:
+    Example:
+        ```python
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
                 model = RockSample
                 fields = ["name", "dataset", "rock_type"]
 
-        # In view:
+
         form = RockSampleForm(request=request, data=request.POST)
+        ```
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize form with optional request context.
-
-        Args:
-            request: Optional request object for permission-based filtering
-            *args: Positional arguments passed to ModelForm
-            **kwargs: Keyword arguments passed to ModelForm
-        """
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
 
-        # Configure widgets for common Sample fields
         if "dataset" in self.fields:
-            # Use Select2 with autocomplete and add another functionality
             select2_widget = ModelSelect2Widget(
                 search_fields=["name__icontains", "title__icontains"],
                 attrs={"data-placeholder": _("Select a dataset...")},
@@ -66,19 +59,13 @@ class SampleFormMixin:
 
             from fairdm.core.dataset.models import Dataset
 
-            # FR-036: a form given no user offers no dataset at all - the safe
-            # default for a published package, and the only offer nothing
-            # could satisfy or test. `all_objects` is only ever the base the
-            # permission check below narrows, never the queryset the form is
-            # left holding. Assigning `all_objects` unconditionally would have
-            # offered every private dataset in the portal to a caller that had
-            # proven nothing.
+            # `all_objects` is only the base the permission check narrows. Assigning it
+            # unconditionally would offer every private dataset to a caller that proved nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
                 and self.request.user.is_authenticated
             ):
-                # Filter to datasets where the user holds change_dataset
                 from guardian.shortcuts import get_objects_for_user
 
                 self.fields["dataset"].queryset = get_objects_for_user(
@@ -87,9 +74,6 @@ class SampleFormMixin:
                     klass=Dataset.all_objects.all(),
                 )
             else:
-                # F13: the security argument for offering nothing is right, but the failure
-                # mode - a create form that can never validate - explains nothing on its own.
-                # Loud rather than silent.
                 logger.warning(
                     "%s offers no dataset choices: no request (or no authenticated "
                     "user on it) was passed, so FR-036's safe default excludes every "
@@ -99,38 +83,24 @@ class SampleFormMixin:
                 self.fields["dataset"].queryset = Dataset.objects.none()
 
         if "status" in self.fields:
-            # Use Select widget for status
             self.fields["status"].widget = forms.Select(attrs={"class": "form-select"})
-            # F10: matches Sample.status's own model default ("unknown", FR-022) - a form
-            # must not assert where a specimen physically is on the strength of nobody
-            # having chosen.
             self.fields["status"].initial = "unknown"
 
         if "location" in self.fields:
-            # Use Select2 for location
             self.fields["location"].widget = ModelSelect2Widget(
                 search_fields=["name__icontains"],
                 attrs={"data-placeholder": _("Select a location...")},
             )
 
-        # Initialize crispy forms helper
         self.helper = FormHelper()
         self.helper.form_tag = False
 
 
 class SampleForm(SampleFormMixin, forms.ModelForm):
-    """Base form for creating and editing Sample instances.
+    """Base form for samples, which refuses to create a bare ``Sample``.
 
-    This form should typically NOT be used directly since Sample is an abstract
-    polymorphic model. Instead, create forms for concrete sample types
-    (RockSample, WaterSample, etc.) that inherit from SampleFormMixin.
-
-    This class exists for registry auto-generation and as a reference
-    implementation.
-
-    Note:
-        Direct instantiation will fail validation since Sample cannot be
-        instantiated directly. Use concrete subclass forms instead.
+    Build forms for concrete sample types on ``SampleFormMixin`` instead. This class exists for
+    registry auto-generation and as a reference implementation.
     """
 
     image = forms.ImageField(
@@ -182,14 +152,9 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         }
 
     def clean(self):
-        """Validate form data.
-
-        Raises:
-            ValidationError: If attempting to create base Sample instance
-        """
+        """Refuse to create a bare ``Sample``."""
         cleaned_data = super().clean()
 
-        # Prevent direct Sample instantiation
         if not self.instance.pk and self._meta.model == Sample:
             raise forms.ValidationError(
                 _(

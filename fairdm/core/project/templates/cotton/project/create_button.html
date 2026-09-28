@@ -1,3 +1,5 @@
+{# @description A link that opens the create-project page, swapping only the page's main content. Reads `create_url` from the template context. #}
+{# @prop create_url:text | description:"The URL of the create page. Passed through the template context, not as an attribute." #}
 <c-components.link href="{{ create_url }}"
                    hx-select="main"
                    hx-target="main"

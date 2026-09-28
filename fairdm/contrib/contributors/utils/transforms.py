@@ -93,7 +93,6 @@ class BaseTransform:
         Returns:
             bool: True if valid, False otherwise
         """
-        # Default implementation - subclasses can override
         return isinstance(data, dict)
 
 
@@ -122,7 +121,6 @@ class DataCiteTransform(BaseTransform):
             ),
         }
 
-        # Add name identifiers (ORCID/ROR)
         identifiers = []
         if default_id := contributor.get_default_identifier():
             identifiers.append(
@@ -138,14 +136,12 @@ class DataCiteTransform(BaseTransform):
         if identifiers:
             data["nameIdentifiers"] = identifiers
 
-        # Add person-specific fields
         if isinstance(contributor, Person):
             if hasattr(contributor, "given") and contributor.given:
                 data["givenName"] = contributor.given
             if hasattr(contributor, "family") and contributor.family:
                 data["familyName"] = contributor.family
 
-            # Add affiliation
             if affiliation := contributor.primary_affiliation():
                 affiliations = [
                     {
@@ -172,17 +168,13 @@ class DataCiteTransform(BaseTransform):
         Returns:
             Contributor: Created or updated instance
         """
-        # Determine type from nameType
         is_organization = data.get("nameType") == "Organizational"
 
         if instance is None:
-            # Create new instance of appropriate type
             instance = Organization() if is_organization else Person()
 
-        # Set basic fields
         instance.name = data.get("name", "")
 
-        # Set person-specific fields
         if isinstance(instance, Person):
             instance.first_name = data.get("givenName", "")
             instance.last_name = data.get("familyName", "")
@@ -190,7 +182,6 @@ class DataCiteTransform(BaseTransform):
         if save:
             instance.save()
 
-            # Handle identifiers
             if identifiers := data.get("nameIdentifiers"):
                 from fairdm.contrib.contributors.models import ContributorIdentifier
 
@@ -231,15 +222,12 @@ class SchemaOrgTransform(BaseTransform):
             if contributor.family:
                 data["familyName"] = contributor.family
 
-            # Add ORCID identifier
             if orcid := contributor.get_default_identifier():
                 data["@id"] = f"https://orcid.org/{orcid.value}"
 
-            # Add email if available
             if contributor.email:
                 data["email"] = contributor.email
 
-            # Add affiliation
             if affiliation := contributor.primary_affiliation():
                 data["affiliation"] = {
                     "@type": "Organization",
@@ -248,18 +236,15 @@ class SchemaOrgTransform(BaseTransform):
                 if ror_id := affiliation.organization.get_default_identifier():
                     data["affiliation"]["@id"] = f"https://ror.org/{ror_id.value}"
 
-        else:  # Organization
+        else:
             data = {
                 "@type": "Organization",
                 "name": contributor.name,
             }
 
-            # Add ROR identifier
             if ror := contributor.get_default_identifier():
                 data["@id"] = f"https://ror.org/{ror.value}"
 
-        # Add location if available (Organization-specific attributes)
-        # Type ignore needed because these attrs only exist on Organization subclass
         if hasattr(contributor, "location") and contributor.location:  # type: ignore[attr-defined]
             data["address"] = {
                 "@type": "PostalAddress",
@@ -269,7 +254,6 @@ class SchemaOrgTransform(BaseTransform):
             if contributor.country:  # type: ignore[attr-defined]
                 data["address"]["addressCountry"] = str(contributor.country.code)  # type: ignore[attr-defined]
         elif hasattr(contributor, "city") and contributor.city:  # type: ignore[attr-defined]
-            # Fallback for city without full location
             data["address"] = {
                 "@type": "PostalAddress",
                 "addressLocality": contributor.city,  # type: ignore[attr-defined]
@@ -277,7 +261,6 @@ class SchemaOrgTransform(BaseTransform):
             if contributor.country:  # type: ignore[attr-defined]
                 data["address"]["addressCountry"] = str(contributor.country.code)  # type: ignore[attr-defined]
 
-        # Add common fields
         if contributor.profile:
             data["description"] = contributor.profile
 
@@ -303,23 +286,19 @@ class SchemaOrgTransform(BaseTransform):
         Returns:
             Contributor: Created or updated instance
         """
-        # Determine type from @type
         is_organization = data.get("@type") == "Organization"
 
         if instance is None:
             instance = Organization() if is_organization else Person()
 
-        # Set basic fields
         instance.name = data.get("name", "")
 
-        # Set person-specific fields
         if isinstance(instance, Person):
             instance.first_name = data.get("givenName", "")
             instance.last_name = data.get("familyName", "")
             if email := data.get("email"):
                 instance.email = email
 
-        # Set common fields
         if description := data.get("description"):
             instance.profile = description
 
@@ -329,7 +308,6 @@ class SchemaOrgTransform(BaseTransform):
         if save:
             instance.save()
 
-            # Extract and save identifier from @id
             if id_url := data.get("@id"):
                 from fairdm.contrib.contributors.models import ContributorIdentifier
 
@@ -377,11 +355,9 @@ class CSLJSONTransform(BaseTransform):
                 "literal": contributor.name,
             }
 
-        # Add ORCID if available
         if (orcid := contributor.get_default_identifier()) and orcid.type == "ORCID":
             data["ORCID"] = f"https://orcid.org/{orcid.value}"
 
-        # Add affiliation for persons
         if isinstance(contributor, Person) and (
             affiliation := contributor.primary_affiliation()
         ):
@@ -402,10 +378,8 @@ class CSLJSONTransform(BaseTransform):
         Returns:
             Contributor: Created or updated instance
         """
-        # Check if this is an organization (has "literal") or person (has "given"/"family")
         is_person = "given" in data or "family" in data
 
-        # Try to find existing contributor by ORCID
         if instance is None and (orcid := data.get("ORCID")):
             orcid_value = (
                 orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
@@ -418,7 +392,6 @@ class CSLJSONTransform(BaseTransform):
         if instance is None:
             instance = Person() if is_person else Organization()
 
-        # Set fields
         if isinstance(instance, Person):
             instance.first_name = data.get("given", "")
             instance.last_name = data.get("family", "")
@@ -428,7 +401,6 @@ class CSLJSONTransform(BaseTransform):
         if save:
             instance.save()
 
-            # Save ORCID if provided
             if orcid := data.get("ORCID"):
                 from fairdm.contrib.contributors.models import ContributorIdentifier
 
@@ -510,7 +482,6 @@ class ORCIDTransform(BaseTransform):
             msg = "ORCID export only supports Person instances"
             raise TypeError(msg)
 
-        # Get ORCID identifier
         orcid = contributor.get_default_identifier()
         orcid_value = orcid.value if orcid and orcid.type == "ORCID" else None
 
@@ -540,7 +511,6 @@ class ORCIDTransform(BaseTransform):
             },
         }
 
-        # Add alternative names
         if contributor.alternative_names:
             data["person"]["other-names"] = {
                 "other-name": [
@@ -548,7 +518,6 @@ class ORCIDTransform(BaseTransform):
                 ]
             }
 
-        # Add researcher URLs
         if contributor.links:
             data["person"]["researcher-urls"] = {
                 "researcher-url": [
@@ -571,14 +540,11 @@ class ORCIDTransform(BaseTransform):
         Returns:
             Person: Created or updated Person instance
         """
-        # Extract ORCID ID
         orcid = self.dictget(data, ["orcid-identifier", "path"])
 
-        # Create or use provided instance
         person = instance or Person()
-        person.synced_data = data  # Store raw data
+        person.synced_data = data
 
-        # Extract name fields
         person.name = self.dictget(data, ["person", "name", "credit-name", "value"])
         person.first_name = self.dictget(
             data, ["person", "name", "given-names", "value"]
@@ -587,19 +553,16 @@ class ORCIDTransform(BaseTransform):
             data, ["person", "name", "family-name", "value"]
         )
 
-        # If name is not set, compute it from first/last name
         if not person.name:
             person.name = f"{person.first_name} {person.last_name}".strip()
 
         person.profile = self.dictget(data, ["person", "biography", "content"])
 
-        # Extract alternative names
         if other_names := self.dictget(
             data, ["person", "other-names", "other-name"], []
         ):
             person.alternative_names = [name["content"] for name in other_names]
 
-        # Extract researcher URLs
         if links := self.dictget(
             data, ["person", "researcher-urls", "researcher-url"], []
         ):
@@ -610,7 +573,6 @@ class ORCIDTransform(BaseTransform):
 
             with transaction.atomic():
                 person.save()
-                # Create/update ORCID identifier
                 if orcid:
                     ContributorIdentifier.objects.update_or_create(
                         type="ORCID",
@@ -648,7 +610,6 @@ class ORCIDTransform(BaseTransform):
 
         try:
             obj = Person.objects.get(Q(**kwargs) | Q(identifiers__value=orcid))
-            # Only fetch new data if last_synced is None or more than 1 day ago, unless force is True
             if (
                 force
                 or not obj.last_synced
@@ -733,7 +694,6 @@ class RORTransform(BaseTransform):
 
         import requests
 
-        # Clean the ROR ID if it's a full URL
         clean_id = RORTransform.clean_ror_id(ror_id)
         ror_api = f"https://api.ror.org/organizations/{clean_id}"
 
@@ -768,13 +728,12 @@ class RORTransform(BaseTransform):
             dict: ROR-formatted organization data
 
         Raises:
-            ValueError: If contributor is not an Organization instance
+            TypeError: If contributor is not an Organization instance
         """
         if not isinstance(contributor, Organization):
             msg = "ROR export only supports Organization instances"
             raise TypeError(msg)
 
-        # Get ROR identifier
         ror = contributor.get_default_identifier()
         ror_value = ror.value if ror and ror.type == "ROR" else None
         ror_url = f"https://ror.org/{ror_value}" if ror_value else None
@@ -784,7 +743,6 @@ class RORTransform(BaseTransform):
             "name": contributor.name,
         }
 
-        # Add aliases and acronyms
         if contributor.alternative_names:
             data["aliases"] = [
                 name for name in contributor.alternative_names if len(name) > 5
@@ -793,7 +751,6 @@ class RORTransform(BaseTransform):
                 name for name in contributor.alternative_names if len(name) <= 5
             ]
 
-        # Add location data
         addresses = []
         if hasattr(contributor, "city") and contributor.city:  # type: ignore[attr-defined]
             address = {"city": contributor.city}  # type: ignore[attr-defined]
@@ -807,13 +764,11 @@ class RORTransform(BaseTransform):
         if addresses:
             data["addresses"] = addresses
 
-        # Add country
         if hasattr(contributor, "country") and contributor.country:  # type: ignore[attr-defined]
             data["country"] = {
                 "country_code": str(contributor.country.code),  # type: ignore[attr-defined]
             }
 
-        # Add links
         links = list(contributor.links) if contributor.links else []
         data["links"] = links
 
@@ -832,28 +787,23 @@ class RORTransform(BaseTransform):
         Returns:
             Organization: Created or updated Organization instance
         """
-        # Extract ROR ID from URL
         ror_id = (
             self.dictget(data, ["id"]).split("/")[-1]
             if self.dictget(data, ["id"])
             else None
         )
 
-        # Create or use provided instance
         org = instance or Organization()
         org.synced_data = data
         org.name = self.dictget(data, ["name"])
 
-        # Combine aliases and acronyms
         org.alternative_names = self.dictget(data, ["aliases"], []) + self.dictget(
             data, ["acronyms"], []
         )
 
-        # Set location fields
         org.city = self.dictget(data, ["addresses", 0, "city"])
         org.country = self.dictget(data, ["country", "country_code"])
 
-        # Handle geographic coordinates
         lat = self.dictget(data, ["addresses", 0, "lat"])
         lon = self.dictget(data, ["addresses", 0, "lng"])
         if lat is not None and lon is not None:
@@ -865,7 +815,6 @@ class RORTransform(BaseTransform):
             )
             org.location = point
 
-        # Extract links
         links = self.dictget(data, ["links"], [])
         if wiki_url := self.dictget(data, ["wikipedia_url"]):
             links.append(wiki_url)
@@ -874,7 +823,6 @@ class RORTransform(BaseTransform):
 
         if save:
             org.save()
-            # Create/update ROR identifier
             if ror_id:
                 ContributorIdentifier.objects.update_or_create(
                     type="ROR",
@@ -914,7 +862,6 @@ class RORTransform(BaseTransform):
         clean_id = cls.clean_ror_id(ror_id)
         try:
             obj = Organization.objects.get(Q(**kwargs) | Q(identifiers__value=clean_id))
-            # Only fetch new data if last_synced is None or more than 1 day ago, unless force is True
             if (
                 force
                 or not obj.last_synced

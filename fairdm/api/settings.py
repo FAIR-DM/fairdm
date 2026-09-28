@@ -1,4 +1,4 @@
-"""FairDM API settings.
+"""Django REST Framework, OpenAPI and CORS settings for the FairDM API.
 
 These settings configure the Django REST Framework, drf-spectacular (OpenAPI),
 and CORS. They are merged into the main Django settings via fairdm/conf/settings/api.py.
@@ -10,10 +10,6 @@ Portal developers can override any of these in their own settings:
     FAIRDM_API_TITLE = "My Research Portal API"
     FAIRDM_API_DESCRIPTION = "A specialised API for geochemical data."
 """
-
-# ---------------------------------------------------------------------------
-# Human-readable API title and description
-# ---------------------------------------------------------------------------
 
 #: Title displayed in Swagger UI and OpenAPI schema ``info.title``.
 #: Override in your portal settings: ``FAIRDM_API_TITLE = "My Portal API"``
@@ -76,12 +72,8 @@ All list endpoints are paginated (default page size: 25, maximum: 100).
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # TokenAuthentication must come before SessionAuthentication so that
-        # authenticate_header() returns "Token" (truthy).  DRF maps
-        # NotAuthenticated/AuthenticationFailed to HTTP 403 instead of 401
-        # when the first authenticator's authenticate_header() returns None/empty
-        # (which SessionAuthentication does).  Putting TokenAuthentication first
-        # ensures these errors are consistently reported as 401.
+        # Token first: DRF answers 403 instead of 401 when the first authenticator
+        # (SessionAuthentication) has no authenticate_header().
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
@@ -120,22 +112,17 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": FAIRDM_API_DESCRIPTION,
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    # Use bundled sidecar dist — works in air-gapped environments
+    # Bundled assets, so the docs work in air-gapped environments.
     "SWAGGER_UI_DIST": "SIDECAR",
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "REDOC_DIST": "SIDECAR",
-    # Group endpoints by resource type tag
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
     "SORT_OPERATIONS": False,
 }
 
-# CORS: restrictive defaults; portal operators override for their origin lists
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS: list[str] = []
 CORS_URLS_REGEX = r"^/api/.*$"
 
-# URL pointing to the FairDM API documentation.  Portal operators can override
-# this in their own settings to point to custom documentation pages::
-#
-#     FAIRDM_API_DOCS_URL = "https://my-portal.example.com/docs/api/"
+#: URL of the API documentation. Override it in portal settings to point elsewhere.
 FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"

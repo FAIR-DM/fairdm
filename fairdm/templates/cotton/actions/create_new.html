@@ -1,3 +1,4 @@
+{# @description A dropdown button that offers to create a project or a dataset. Renders only for authenticated users, reading `user` from the template context. #}
 {% if user.is_authenticated %}
   <c-dropdown text="{% trans "Create new" %}"
               icon="plus"

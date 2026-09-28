@@ -1,4 +1,4 @@
-"""FairDM Demo App - Factory Examples
+"""Factories for the demo models, with examples of common factory patterns.
 
 This module demonstrates best practices for creating test factories in FairDM
 portals using factory_boy. These factories are used in tests and for generating
@@ -57,7 +57,6 @@ import factory
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import MeasurementFactory, SampleFactory
 
-# Import dataset-specific factories from core
 from .models import (
     CustomParentSample,
     CustomSample,
@@ -68,10 +67,6 @@ from .models import (
     WaterSample,
     XRFMeasurement,
 )
-
-# ============================================================================
-# Example 1: Basic Sample Factory
-# ============================================================================
 
 
 class CustomParentSampleFactory(SampleFactory):
@@ -86,11 +81,6 @@ class CustomParentSampleFactory(SampleFactory):
 
     class Meta:
         model = CustomParentSample
-
-
-# ============================================================================
-# Example 2: Comprehensive Sample Factory with All Field Types
-# ============================================================================
 
 
 class CustomSampleFactory(SampleFactory):
@@ -119,11 +109,6 @@ class CustomSampleFactory(SampleFactory):
 
     class Meta:
         model = CustomSample
-
-
-# ============================================================================
-# Example 3: Measurement Factory
-# ============================================================================
 
 
 class ExampleMeasurementFactory(MeasurementFactory):
@@ -172,8 +157,7 @@ class XRFMeasurementFactory(MeasurementFactory):
 
 
 class ICP_MS_MeasurementFactory(MeasurementFactory):
-    """Factory for ICP_MS_Measurement, an Inductively Coupled Plasma Mass Spectrometry
-    (ICP-MS) measurement.
+    """Factory for ICP_MS_Measurement, an ICP mass spectrometry measurement.
 
     ``isotope`` and ``counts_per_second`` are required (non-null) fields on the model, so the
     factory always supplies them.
@@ -194,7 +178,7 @@ class RockSampleFactory(SampleFactory):
     """Factory for RockSample demonstrating geological sample data patterns.
 
     This factory shows how to create rock samples with realistic test data
-    for geological studies. Used in Feature 007 tests and demo data generation.
+    for geological studies. Used in tests and demo data generation.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -237,7 +221,7 @@ class WaterSampleFactory(SampleFactory):
     """Factory for WaterSample demonstrating water quality measurement patterns.
 
     This factory creates water samples with realistic environmental monitoring
-    data. Used in Feature 007 tests and for generating demo datasets.
+    data. Used in tests and for generating demo datasets.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -276,11 +260,7 @@ class SoilSampleFactory(SampleFactory):
         "random_element",
         elements=["clay", "sand", "silt", "loam", "peat"],
     )
-    # left_digits=2, not 1: max_value=14 needs two integer digits (Faker's
-    # pydecimal raises "Max value must fit within left digits" otherwise, a
-    # pre-existing defect this story's TestSamplePolymorphism (T024) exposed
-    # via the every-registered-type fixture, which had never exercised this
-    # factory's defaults before.
+    # left_digits=2: max_value=14 needs two integer digits or Faker's pydecimal raises.
     ph_level = factory.Faker(
         "pydecimal", left_digits=2, right_digits=2, min_value=0, max_value=14
     )
@@ -295,11 +275,6 @@ class SoilSampleFactory(SampleFactory):
 
     class Meta:
         model = SoilSample
-
-
-# ============================================================================
-# Example 4: Contributor Factories (Feature 009)
-# ============================================================================
 
 
 class PersonFactory(factory.django.DjangoModelFactory):
@@ -317,7 +292,7 @@ class PersonFactory(factory.django.DjangoModelFactory):
     email = factory.LazyAttribute(
         lambda obj: f"{obj.first_name.lower()}.{obj.last_name.lower()}@example.com"
     )
-    is_active = True  # Claimed users are active by default
+    is_active = True
 
     class Meta:
         model = Person
@@ -327,7 +302,6 @@ class PersonFactory(factory.django.DjangoModelFactory):
         """Set a usable password for claimed users."""
         if not create:
             return
-        # For claimed users, set a default password
         obj.set_password("password123")
         obj.save()
 
@@ -393,7 +367,7 @@ class AffiliationFactory(factory.django.DjangoModelFactory):
 
     person = factory.SubFactory(PersonFactory)
     organization = factory.SubFactory(OrganizationFactory)
-    type = 1  # MembershipType.MEMBER by default
+    type = 1  # Affiliation.MembershipType.MEMBER
     is_primary = False
 
     class Meta:

@@ -1,3 +1,5 @@
+{# @description A compact row showing a contribution's contributor with their avatar and roles. #}
+{# @prop contribution:text | description:"The contribution whose contributor and roles are shown." #}
 <c-vars contribution />
 <div class="d-flex align-items-center gap-3">
   <c-avatar src="{{ contributor.get_profile_image }}"

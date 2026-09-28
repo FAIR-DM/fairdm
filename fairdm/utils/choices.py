@@ -1,8 +1,9 @@
+"""Choice lists and enumerations shared by FairDM models."""
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-# parsing the allowed identifiers from settings
 SchemeChoices = []
 for choices in getattr(settings, "FAIRDM_ALLOWED_IDENTIFIERS", {}).values():
     for val in choices.items():
@@ -12,6 +13,8 @@ for choices in getattr(settings, "FAIRDM_ALLOWED_IDENTIFIERS", {}).values():
 
 
 class Visibility(models.IntegerChoices):
+    """Whether a record is private or public."""
+
     PRIVATE = 0, _("Private")
     PUBLIC = 1, _("Public")
 
@@ -46,6 +49,7 @@ iso_639_1_languages = [
             ("ar", _("Arabic")),
         ],
     ),
+    # Languages listed under Common are not repeated here.
     (
         "Other",
         [
@@ -56,7 +60,6 @@ iso_639_1_languages = [
             ("ak", _("Akan")),
             ("am", _("Amharic")),
             ("an", _("Aragonese")),
-            # ("ar", _("Arabic")),
             ("as", _("Assamese")),
             ("av", _("Avaric")),
             ("ay", _("Aymara")),
@@ -81,14 +84,11 @@ iso_639_1_languages = [
             ("cv", _("Chuvash")),
             ("cy", _("Welsh")),
             ("da", _("Danish")),
-            # ("de", _("German")),
             ("dv", _("Divehi")),
             ("dz", _("Dzongkha")),
             ("ee", _("Ewe")),
             ("el", _("Greek")),
-            # ("en", _("English")),
             ("eo", _("Esperanto")),
-            # ("es", _("Spanish")),
             ("et", _("Estonian")),
             ("eu", _("Basque")),
             ("fa", _("Persian")),
@@ -96,7 +96,6 @@ iso_639_1_languages = [
             ("fi", _("Finnish")),
             ("fj", _("Fijian")),
             ("fo", _("Faroese")),
-            # ("fr", _("French")),
             ("fy", _("Western Frisian")),
             ("ga", _("Irish")),
             ("gd", _("Scottish Gaelic")),
@@ -121,9 +120,7 @@ iso_639_1_languages = [
             ("ik", _("Inupiaq")),
             ("io", _("Ido")),
             ("is", _("Icelandic")),
-            # ("it", _("Italian")),
             ("iu", _("Inuktitut")),
-            # ("ja", _("Japanese")),
             ("jv", _("Javanese")),
             ("ka", _("Georgian")),
             ("kg", _("Kongo")),
@@ -179,12 +176,10 @@ iso_639_1_languages = [
             ("pi", _("Pali")),
             ("pl", _("Polish")),
             ("ps", _("Pashto")),
-            # ("pt", _("Portuguese")),
             ("qu", _("Quechua")),
             ("rm", _("Romansh")),
             ("rn", _("Rundi")),
             ("ro", _("Romanian")),
-            # ("ru", _("Russian")),
             ("rw", _("Kinyarwanda")),
             ("sa", _("Sanskrit")),
             ("sc", _("Sardinian")),
@@ -231,7 +226,6 @@ iso_639_1_languages = [
             ("yi", _("Yiddish")),
             ("yo", _("Yoruba")),
             ("za", _("Zhuang")),
-            # ("zh", _("Chinese")),
             ("zu", _("Zulu")),
         ],
     ),

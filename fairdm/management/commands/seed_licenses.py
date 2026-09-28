@@ -1,29 +1,26 @@
-"""Seed the licences FairDM recommends (FR-007a, D-018, research.md R4).
+"""Seed the licences FairDM recommends.
 
 ``django-content-license`` ships the Creative Commons licence text and
-declines to load any of it - curating which licences a portal offers is a
-decision for the portal, not the library. Nothing in FairDM loaded that
-fixture either, so a freshly migrated portal had no ``License`` rows at
-all: ``FAIRDM_DEFAULT_LICENSE`` silently resolved to nothing, and any form
-built over ``License.objects.all()`` was a required field with an empty
-queryset.
+declines to load any of it, since curating which licences a portal offers is a
+decision for the portal. Nothing in FairDM loaded that fixture either, so a
+freshly migrated portal had no ``License`` rows: ``FAIRDM_DEFAULT_LICENSE``
+resolved to nothing, and any form built over ``License.objects.all()`` was a
+required field with an empty queryset.
 
-This command creates the three licences FairDM recommends - CC0 1.0,
-CC BY 4.0 and CC BY-SA 4.0 - reading their name, description, licence text
-and canonical URL straight out of ``django-content-license``'s own
-``fixtures/creativecommons.json.gz``, rather than retyping them. The NC and
-ND variants that fixture also carries are deliberately not seeded: they
-fail the Open Definition, and a framework named for reusability should not
-present "no derivatives" as a recommendation for research data. A portal
-that wants one adds it itself.
+This command creates the three licences FairDM recommends (CC0 1.0, CC BY 4.0
+and CC BY-SA 4.0), reading their name, description, licence text and canonical
+URL out of ``django-content-license``'s own ``fixtures/creativecommons.json.gz``
+rather than retyping them. The NC and ND variants that fixture also carries are
+not seeded: they fail the Open Definition, and a framework named for
+reusability should not present "no derivatives" as a recommendation for
+research data. A portal that wants one adds it itself.
 
 It runs in the deployment pipeline's ``always_run`` step
 (``fairdm/conf/settings/apps.py``, ``DJANGO_SETUP_TOOLS``), beside the
-vocabulary ``preload`` step, so an *existing* portal picks it up on its
-next deploy and not only a freshly created one. It is idempotent, keyed on
-``License.name`` (``unique=True`` on ``licensing.models.License``), and
-leaves alone a licence a portal has already edited under one of these
-three names.
+vocabulary ``preload`` step, so an existing portal picks it up on its next
+deploy. It is idempotent, keyed on ``License.name`` (``unique=True`` on
+``licensing.models.License``), and leaves alone a licence a portal has already
+edited under one of these three names.
 
 Usage::
 
@@ -38,24 +35,24 @@ import licensing
 from django.core.management.base import BaseCommand
 from licensing.models import License
 
-#: The names of the licences FairDM recommends. `django-content-license`'s
-#: fixture also carries the NC and ND variants under other names - see the
-#: module docstring for why those are excluded.
+#: The names of the licences FairDM recommends. The fixture's NC and ND variants are
+#: excluded for the reason in the module docstring.
 RECOMMENDED_LICENSE_NAMES = {"CC0 1.0", "CC BY 4.0", "CC BY-SA 4.0"}
 
 
 def _recommended_license_fields():
-    """Read the recommended licences' field values out of
-    `django-content-license`'s own fixture rather than retyping the licence
-    text and canonical URLs by hand.
+    """Read the recommended licences' field values from ``django-content-license``'s own fixture.
+
+    Reading them avoids retyping the licence text and canonical URLs by hand.
+
+    Returns:
+        The field dicts of the recommended licences, or ``None`` when the fixture cannot be read.
     """
     fixture_path = (
         Path(licensing.__file__).parent / "fixtures" / "creativecommons.json.gz"
     )
-    # That path is internal to `django-content-license`, so a release of it that moves
-    # or drops the file is a possibility this command has to survive. It runs on every
-    # deploy, and the licences it seeds are a recommendation a portal may decline
-    # (FR-007a), so a missing fixture is a degraded deploy rather than a failed one.
+    # The path is internal to `django-content-license` and this runs on every deploy, so a
+    # release that moves the file degrades the deploy instead of failing it.
     try:
         with gzip.open(fixture_path, "rt", encoding="utf-8") as fixture_file:
             rows = json.load(fixture_file)
@@ -70,9 +67,12 @@ def _recommended_license_fields():
 
 
 class Command(BaseCommand):
+    """Create the recommended licences that do not exist yet."""
+
     help = "Create the licences FairDM recommends (CC0 1.0, CC BY 4.0, CC BY-SA 4.0)."
 
     def handle(self, *args, **options):
+        """Create each recommended licence, leaving existing ones unchanged."""
         recommended = _recommended_license_fields()
         if recommended is None:
             self.stderr.write(

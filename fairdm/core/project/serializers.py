@@ -1,3 +1,5 @@
+"""DRF serializer for projects."""
+
 from rest_framework.fields import Field as Field
 from rest_framework.serializers import HyperlinkedIdentityField, ModelSerializer
 
@@ -5,15 +7,12 @@ from ..models import Project
 
 
 class ProjectSerializer(ModelSerializer):
-    """DRF serializer for Project model.
+    """Serialize a project for the REST API, with expandable related datasets.
 
-    Provides REST API representation of Project instances with expandable
-    fields for related datasets. Excludes internal fields like visibility
-    and options from API responses.
+    The ``visibility`` and ``options`` fields are excluded from the output.
     """
 
     web = HyperlinkedIdentityField(view_name="project:overview", lookup_field="uuid")
-    # dates = DateSerializer(many=True)
 
     class Meta:
         model = Project

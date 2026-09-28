@@ -1,3 +1,5 @@
+"""Helpers for plugin slugs, edit permission checks and address resolution."""
+
 from __future__ import annotations
 
 from django import urls
@@ -9,9 +11,11 @@ from django.utils.text import slugify as django_slugify
 def slugify(text: str) -> str:
     """Convert a class name or phrase to a URL-safe slug.
 
-    Django's own two helpers, rather than hand-rolled rules. The bespoke version inserted a hyphen
-    before every capital, so ``URLTestPlugin`` became ``u-r-l-test-plugin`` — and a test asserted
-    that as correct.
+    Args:
+        text: The class name or phrase.
+
+    Returns:
+        The slug.
 
     Example:
         >>> slugify("URLTestPlugin")
@@ -23,9 +27,13 @@ def slugify(text: str) -> str:
 
 
 def class_to_slug(name: str | object | type) -> str:
-    """Legacy function for backward compatibility.
+    """Convert a class, an instance or a string to a slug. Prefer ``slugify`` in new code.
 
-    Converts class names to slugs. Use slugify() for new code.
+    Args:
+        name: A string, or an object whose ``__name__`` is used.
+
+    Returns:
+        The slug.
     """
     name_str = (
         (name.__name__ if hasattr(name, "__name__") else str(name))
@@ -36,7 +44,17 @@ def class_to_slug(name: str | object | type) -> str:
 
 
 def check_has_edit_permission(request, instance, **kwargs):
-    """Check if the user has permission to edit the object."""
+    """Check whether the user may edit the object.
+
+    Args:
+        request: The current request.
+        instance: The object being edited.
+        **kwargs: Unused.
+
+    Returns:
+        True for a superuser or the object itself, otherwise the user's change permission
+        on the object. None when there is no object.
+    """
     if request.user.is_superuser:
         return True
 
@@ -50,25 +68,34 @@ def check_has_edit_permission(request, instance, **kwargs):
 
 
 def sample_check_has_edit_permission(request, instance, **kwargs):
-    """Check if the user has permission to edit the sample object."""
+    """Allow editing a sample.
+
+    Args:
+        request: The current request.
+        instance: The sample.
+        **kwargs: Unused.
+
+    Returns:
+        Always True.
+    """
     return True
 
 
 def reverse(instance, view_name, *args, **kwargs):
     """Resolve a plugin address for a record.
 
-    The kwargs come from the record's declared addressing. Hardcoding ``uuid`` here is what made a
-    record without one unreachable — and invisibly so, because the navigation package filters
-    kwargs and then swallows the failure, rendering an empty menu rather than raising.
+    Args:
+        instance: The record.
+        view_name: The plugin's URL name.
+        *args: Positional URL arguments.
+        **kwargs: Keyword URL arguments. Those in the record's declared addressing are filled in.
+
+    Returns:
+        The URL.
     """
     from .registration import registry
 
-    # Use the record's declared polymorphic base (``type_of``), not its own real class, when
-    # the model defines one. A concrete specimen type (e.g. ``RockSample``) shares its pages
-    # with every other sample type under one namespace - the same convention
-    # `BasePolymorphicModel.get_absolute_url` already uses (`fairdm/core/abstract.py`). Using
-    # the real class here looked for a per-subclass namespace ("rocksample") that is never
-    # registered, because only the base's namespace ("sample") is.
+    # A subtype such as `RockSample` shares its base's namespace ("sample"), so use `type_of` when set.
     model = getattr(instance, "type_of", type(instance))
     namespace = model._meta.model_name.lower()
     for kwarg, field in registry.lookup_for(type(instance)).items():

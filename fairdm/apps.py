@@ -1,55 +1,47 @@
+"""Application config for the FairDM framework app."""
+
 from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
 
-# The site navigation is declared as an import side effect of `fairdm.menus.menus`,
-# and until now the only module importing it was `fairdm.contrib.collections.apps`.
-# That made the whole menu tree - Home, Projects, Datasets, Literature and the rest,
-# not merely the two headings that app populates - conditional on an optional
-# application being installed, which FR-041 forbids. Tying it to the framework's own
-# app config instead makes the navigation independent of that application's start-up.
-# Module level rather than `ready()`, because `fairdm.menus.menus` imports no models:
-# only translation, `flex_menu` and `mvp.menus`.
+# Imported at module level, not in `ready()`, so the navigation exists regardless of
+# which optional apps are installed. `fairdm.menus.menus` imports no models.
 from fairdm import menus as _menus  # noqa: F401
 
-# Registered at module import, not inside ready()'s guarded body, so the
-# full check set still participates in `manage.py check --deploy`
-# independently of the FR-014 environment guard below (FR-015, FR-016).
+# Imported at module level so the checks also run under `manage.py check --deploy`
+# when the production-configuration guard in `ready()` is skipped.
 from fairdm.conf import checks as conf_checks  # noqa: F401
 
-#: The environments FairDM ships a non-production override module for, and so
-#: the only ones the boot refusal below stands down for. Every other resolved
-#: name composes the production baseline unchanged — a typo, a case variant and
-#: the empty string all do (FR-009, D1) — so every other name is a production
-#: deployment and is checked as one (D21).
+#: Environments that ship a non-production override module. Every other name,
+#: including typos and the empty string, composes the production baseline and is
+#: checked as production.
 NON_PRODUCTION_ENVIRONMENTS = frozenset({"development"})
 
 
 class FairDMConfig(AppConfig):
+    """Wire the FairDM framework into Django's startup."""
+
     name = "fairdm"
 
     def resolved_environment(self) -> str:
-        """The environment ``fairdm.setup()`` resolved, recorded as the
-        ``DJANGO_ENV`` setting for ``ready()`` to read once ``django.setup()``
-        has populated the app registry (research R1). Defaults to
-        ``production`` — the safe direction — when unset.
+        """Return the environment ``fairdm.setup()`` resolved, defaulting to ``production``.
+
+        Returns:
+            The value of the ``DJANGO_ENV`` setting.
         """
         from django.conf import settings
 
         return getattr(settings, "DJANGO_ENV", "production")
 
     def import_models(self) -> None:
-        # setup() already applied this rule to the settings it composed, but a
-        # portal may narrow LANGUAGES after setup() returns (layer 5, FR-012),
-        # which nothing has seen yet. Re-apply it here, on the loaded settings
-        # and ahead of fairdm.contrib.identity's models (which import
-        # parler.models), so that portal gets FairDM's named error rather than
-        # parler's bare traceback. ready() is too late: parler validates during
-        # this same model-import phase (T107).
+        """Re-check the parler language settings before any model imports parler."""
+        # A portal may narrow LANGUAGES after setup() returns. parler validates during
+        # this model-import phase, so `ready()` is too late to give FairDM's named error.
         self._check_parler_languages()
 
         return super().import_models()
 
     def _check_parler_languages(self) -> None:
+        """Raise when ``PARLER_LANGUAGES`` disagrees with ``LANGUAGES``."""
         from django.conf import settings
 
         from fairdm.conf.checks import raise_on_parler_languages_mismatch
@@ -61,15 +53,13 @@ class FairDMConfig(AppConfig):
         )
 
     def ready(self) -> None:
-        # adds a default renderer to all forms to keep a consistent look across the site. This way we don't have to specify it every time
-        # patch django-filters to not use crispy forms. should be safe to remove on the
-        # next release of fairdm
-
+        """Discover portal config and plugin modules and install FairDM's startup hooks."""
         autodiscover_modules("config")
         autodiscover_modules("plugins")
 
         from django_filters import compat
 
+        # Stops django-filter rendering through crispy forms.
         compat.is_crispy = lambda: False
 
         self._install_quantity_formatter()
@@ -81,30 +71,17 @@ class FairDMConfig(AppConfig):
         return super().ready()
 
     def _install_quantity_formatter(self) -> None:
-        """Install the framework's quantity formatter on the shared pint unit
-        registry at startup (FR-038).
-
-        Previously this happened as an import side effect of
-        ``fairdm/templatetags/fairdm.py``, and Django imports template tag
-        modules lazily - only once a template does ``{% load fairdm %}``. A
-        value rendered outside a template (a management command, an API view,
-        a test) could therefore be formatted with pint's default formatter
-        instead of the framework's. ``ready()`` runs once, at application
-        startup, regardless of whether any template is ever rendered.
-        """
+        """Install the framework's quantity formatter on the shared pint unit registry."""
+        # Done here rather than in the template tag module, which Django imports only
+        # once a template loads it, so values formatted elsewhere would miss it.
         from fairdm.templatetags.fairdm import MyFormatter, ureg
 
         ureg.formatter = MyFormatter(registry=ureg)
 
     def _connect_portal_roles_reconciliation(self) -> None:
-        """Install the four portal roles on every ``migrate`` run (FR-009 to FR-011).
-
-        Connected with no ``sender``: ``INSTALLED_APPS`` lists ``fairdm`` before the apps
-        whose permissions the roles need, so a receiver bound to this app's own
-        ``post_migrate`` signal would run before those permissions exist. Connected without a
-        sender it instead fires once per application config's own ``post_migrate`` signal, and
-        the last of those sees every permission that migrate created (research R5).
-        """
+        """Reconcile the four portal roles after every ``migrate`` run."""
+        # Connected with no sender: `fairdm` precedes the apps whose permissions the
+        # roles need, so its own `post_migrate` would fire before those exist.
         from django.db.models.signals import post_migrate
 
         post_migrate.connect(
@@ -114,24 +91,20 @@ class FairDMConfig(AppConfig):
 
     @staticmethod
     def _reconcile_portal_roles(**kwargs) -> None:
+        """Install the shipped portal roles."""
         from fairdm.portal_roles import PortalRoles
 
         PortalRoles.reconcile()
 
     def _check_production_configuration(self) -> None:
-        """Refuse to boot when the settings in force are the production baseline
-        and any production-critical check fails, naming every failure in one
-        error rather than the first (FR-013, SC-003).
+        """Refuse to boot on the production baseline when a critical check fails.
 
-        The gate is the settings that were composed, not an exact match on the
-        name ``production``. Layer selection is by file existence, so an
-        unrecognised ``DJANGO_ENV`` — ``Production``, ``prod``, the empty
-        string — loads no override and runs on the production baseline. Keying
-        the refusal on the literal name let exactly those inputs boot with no
-        secret key and no database, which is the failure the layering exists to
-        prevent (D21). Only an environment FairDM ships a non-production
-        override for is exempt, and it runs no checks here at all
-        (FR-014, SC-004).
+        The gate is the composed settings, not an exact match on ``production``, so an
+        unrecognised ``DJANGO_ENV`` (``prod``, the empty string) is checked as production.
+        Every failure is named in one error.
+
+        Raises:
+            SystemCheckError: A production-critical deployment check reported a serious issue.
         """
         if self.resolved_environment() in NON_PRODUCTION_ENVIRONMENTS:
             return

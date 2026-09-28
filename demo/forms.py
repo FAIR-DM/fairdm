@@ -1,4 +1,4 @@
-"""FairDM Demo Portal - Form Examples
+r"""Forms for the demo models, with examples of common form patterns.
 
 This module demonstrates best practices for creating forms in FairDM portals,
 including:
@@ -54,7 +54,7 @@ doi = forms.CharField(
     label=_("DOI"),
     help_text=_("Enter the DOI if already assigned"),
     required=False,
-    widget=forms.TextInput(attrs={"pattern": r"10\\.\\d{4,}/.*"}),
+    widget=forms.TextInput(attrs={"pattern": r"10\.\d{4,}/.*"}),
 )
 
 
@@ -90,311 +90,8 @@ class MySampleConfig(ModelConfiguration):
 ```
 
 See `docs/portal-development/registry_integration.md` for details.
-"""
 
-from django import forms
-from django.utils.translation import gettext_lazy as _
-from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
-from licensing.models import License
-
-# Import demo models for sample forms
-from demo.models import RockSample, WaterSample
-from fairdm.core.models import Project
-from fairdm.core.sample.forms import SampleFormMixin
-from fairdm.forms import ModelForm
-
-# ============================================================================
-# Example 1: Form with Request-Based Queryset Filtering
-# ============================================================================
-
-
-# Commented out example - uncomment and adapt
-# class RockSampleForm(ModelForm):
-class RockSampleFormExample(ModelForm):
-    """Example form demonstrating request-based queryset filtering.
-
-    This form shows how to:
-    1. Accept optional request parameter in __init__()
-    2. Filter project queryset based on user permissions
-    3. Handle anonymous users gracefully
-    4. Use gettext_lazy for all user-facing strings
-
-    Pattern Usage:
-    Copy this pattern to your own Sample/Measurement forms when you need
-    to filter choices based on the authenticated user's permissions.
-
-    Usage in views:
-        ```python
-        # In a view
-        form = RockSampleForm(request=request, data=request.POST)
-
-        # For editing
-        form = RockSampleForm(request=request, instance=sample)
-        ```
-    """
-
-    name = forms.CharField(
-        label=_("Sample Name"),
-        help_text=_(
-            "Provide a unique, descriptive name for this rock sample. "
-            "Include location or formation name if applicable (e.g., 'Granite-Site A-001')."
-        ),
-        required=True,
-        max_length=200,
-    )
-
-    dataset = forms.ModelChoiceField(
-        queryset=None,  # Set in __init__ based on user
-        label=_("Dataset"),
-        help_text=_(
-            "Select the dataset this sample belongs to. You can only add samples "
-            "to datasets where you have contributor permissions."
-        ),
-        required=True,
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a dataset...")},
-        ),
-    )
-
-    project = forms.ModelChoiceField(
-        queryset=None,  # Set in __init__ based on user
-        label=_("Project"),
-        help_text=_(
-            "Optionally associate this sample with a research project for better organization and tracking."
-        ),
-        required=False,
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a project...")},
-        ),
-    )
-
-    # Example: Rock-specific fields with internationalized help text
-    rock_type = forms.CharField(
-        label=_("Rock Type"),
-        help_text=_(
-            "Classify the rock type (e.g., igneous, sedimentary, metamorphic). "
-            "Be as specific as possible for better analysis."
-        ),
-        required=False,
-        max_length=100,
-    )
-
-    collection_date = forms.DateField(
-        label=_("Collection Date"),
-        help_text=_("Date when this sample was collected in the field."),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-
-    class Meta:
-        # model = RockSample
-        model = None  # Replace with your model
-        fields = ["name", "dataset", "project", "rock_type", "collection_date"]
-
-    def __init__(self, request=None, *args, **kwargs):
-        """Initialize form with optional request parameter for permission filtering.
-
-        Args:
-            request: Optional HttpRequest object for user context
-            *args: Variable length argument list
-            **kwargs: Arbitrary keyword arguments (including 'instance' for editing)
-        """
-        super().__init__(*args, **kwargs)
-        self.request = request
-
-        # Filter dataset queryset based on user permissions
-        dataset_field = self.fields.get("dataset")
-        if dataset_field:
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user.is_authenticated
-            ):
-                # Show only datasets where user is a contributor
-                from fairdm.core.dataset.models import Dataset
-
-                # This is a simplified example - adjust based on your permission logic
-                dataset_field.queryset = Dataset.objects.filter(
-                    contributors__person=self.request.user
-                )
-            else:
-                # Anonymous or no request - show no datasets (prevents data leakage)
-                from fairdm.core.dataset.models import Dataset
-
-                dataset_field.queryset = Dataset.objects.none()
-
-        # Filter project queryset based on user permissions
-        project_field = self.fields.get("project")
-        if project_field:
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user.is_authenticated
-            ):
-                # Show only user's accessible projects
-                project_field.queryset = self.request.user.projects.all()
-            else:
-                # Anonymous - no projects
-                project_field.queryset = Project.objects.none()
-
-
-# ============================================================================
-# Example 2: Form with License Default and DOI Entry
-# ============================================================================
-
-
-# Commented out example - uncomment and adapt
-# class DatasetEnhancedForm(ModelForm):
-class DatasetEnhancedFormExample(ModelForm):
-    """Example form demonstrating license defaults and DOI entry.
-
-    This form shows how to:
-    1. Set license field default to CC BY 4.0
-    2. Add DOI entry field that creates DatasetIdentifier
-    3. Use autocomplete on all relationship fields
-    4. Provide comprehensive help text
-
-    Pattern Usage:
-    Use this pattern when your model needs:
-    - License field with FAIR-compliant default
-    - DOI support through DatasetIdentifier
-    - Rich metadata entry
-    """
-
-    name = forms.CharField(
-        label=_("Dataset Name"),
-        help_text=_(
-            "Give your dataset a descriptive name that reflects its purpose and content. "
-            "This will help others discover and understand your data."
-        ),
-        required=True,
-        max_length=300,
-    )
-
-    license = forms.ModelChoiceField(
-        queryset=License.objects.all(),
-        label=_("License"),
-        help_text=_(
-            "Choose a license that defines how others can use this dataset. "
-            "CC BY 4.0 (default) allows sharing and adaptation with attribution. "
-            "This encourages FAIR data principles and open science."
-        ),
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a license...")},
-        ),
-    )
-
-    keywords = forms.ModelMultipleChoiceField(
-        queryset=None,  # Set in __init__
-        label=_("Keywords"),
-        help_text=_(
-            "Add keywords to help others find this dataset. Keywords improve "
-            "searchability and enable better dataset discovery."
-        ),
-        required=False,
-        widget=ModelSelect2MultipleWidget(
-            search_fields=["name__icontains"],
-            attrs={
-                "data-placeholder": _("Select keywords..."),
-                "data-tags": "true",  # Allow creating new keywords
-            },
-        ),
-    )
-
-    doi = forms.CharField(
-        label=_("DOI (Digital Object Identifier)"),
-        help_text=_(
-            "If this dataset already has a DOI assigned (e.g., from a data repository "
-            "like Zenodo or Dryad), enter it here. Format: 10.1000/xyz123. "
-            "Leave empty if no DOI has been assigned yet."
-        ),
-        required=False,
-        max_length=255,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": _("10.1000/example"),
-                "pattern": r"10\.\d{4,}/.*",
-                "title": _("DOI must start with 10. followed by a number"),
-            }
-        ),
-    )
-
-    class Meta:
-        # model = Dataset
-        model = None  # Replace with your model
-        fields = ["name", "license", "keywords"]
-
-    def __init__(self, *args, **kwargs):
-        """Initialize form with license default."""
-        super().__init__(*args, **kwargs)
-
-        # Set license default to CC BY 4.0 (FAIR-compliant)
-        license_field = self.fields.get("license")
-        if license_field:
-            cc_by_license = License.objects.filter(name="CC BY 4.0").first()
-            if cc_by_license:
-                license_field.initial = cc_by_license
-
-        # Set keywords queryset
-        # NOTE: Dataset model does not currently have a keywords field
-        # keywords_field = self.fields.get("keywords")
-        # if keywords_field:
-        #     from fairdm.contrib.dicts.models import Term
-        #     keywords_field.queryset = Term.objects.filter(vocabulary__name="Keywords")
-
-        # Pre-populate DOI if editing existing instance
-        if self.instance and self.instance.pk:
-            from fairdm.core.dataset.models import DatasetIdentifier
-
-            doi_identifier = DatasetIdentifier.objects.filter(
-                related=self.instance, type="DOI"
-            ).first()
-            if doi_identifier:
-                self.fields["doi"].initial = doi_identifier.value
-
-    def save(self, commit=True):
-        """Save instance and handle DOI identifier creation/update.
-
-        This method extends the default save() to handle the DOI field which
-        creates or updates a DatasetIdentifier instance with type='DOI'.
-
-        Args:
-            commit: Whether to save to database immediately
-
-        Returns:
-            The saved instance
-        """
-        instance = super().save(commit=commit)
-
-        # Handle DOI field - create/update DatasetIdentifier
-        doi_value = self.cleaned_data.get("doi", "").strip()
-
-        if commit:
-            from fairdm.core.dataset.models import DatasetIdentifier
-
-            if doi_value:
-                # Create or update DOI identifier
-                DatasetIdentifier.objects.update_or_create(
-                    related=instance,
-                    type="DOI",
-                    defaults={"value": doi_value},
-                )
-            else:
-                # Remove DOI identifier if field is empty
-                DatasetIdentifier.objects.filter(related=instance, type="DOI").delete()
-
-        return instance
-
-
-# ============================================================================
-# Best Practices Summary
-# ============================================================================
-
-"""
-## Form Best Practices for FairDM Portals
+## Best Practices
 
 ### 1. Request Parameter Pattern
 - Always accept optional `request` parameter in __init__()
@@ -463,14 +160,272 @@ After creating forms, test:
 6. Autocomplete functionality
 7. Form rendering (no errors)
 8. i18n string extraction (makemessages)
-
-See: `tests/unit/core/dataset/test_form.py` for comprehensive form tests.
 """
 
+from django import forms
+from django.utils.translation import gettext_lazy as _
+from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
+from licensing.models import License
 
-# ============================================================================
-# Concrete Sample Forms Using SampleFormMixin (Phase 5 - US3)
-# ============================================================================
+from demo.models import RockSample, WaterSample
+from fairdm.core.models import Project
+from fairdm.core.sample.forms import SampleFormMixin
+from fairdm.forms import ModelForm
+
+
+class RockSampleFormExample(ModelForm):
+    """Example form demonstrating request-based queryset filtering.
+
+    This form shows how to:
+    1. Accept optional request parameter in __init__()
+    2. Filter project queryset based on user permissions
+    3. Handle anonymous users gracefully
+    4. Use gettext_lazy for all user-facing strings
+
+    Pattern Usage:
+    Copy this pattern to your own Sample/Measurement forms when you need
+    to filter choices based on the authenticated user's permissions.
+
+    Usage in views:
+        ```python
+        form = RockSampleForm(request=request, data=request.POST)
+
+        # For editing
+        form = RockSampleForm(request=request, instance=sample)
+        ```
+
+    Args:
+        request: Optional HttpRequest object for user context.
+        *args: Positional arguments passed to the parent form.
+        **kwargs: Keyword arguments passed to the parent form, including
+            `instance` for editing.
+
+    Attributes:
+        name: The sample name.
+        dataset: Dataset choice, limited to datasets the user contributes to.
+        project: Optional project choice, limited to the user's projects.
+        rock_type: Free-text rock classification.
+        collection_date: Date the sample was collected.
+    """
+
+    name = forms.CharField(
+        label=_("Sample Name"),
+        help_text=_(
+            "Provide a unique, descriptive name for this rock sample. "
+            "Include location or formation name if applicable (e.g., 'Granite-Site A-001')."
+        ),
+        required=True,
+        max_length=200,
+    )
+
+    dataset = forms.ModelChoiceField(
+        queryset=None,  # Set in __init__ based on user
+        label=_("Dataset"),
+        help_text=_(
+            "Select the dataset this sample belongs to. You can only add samples "
+            "to datasets where you have contributor permissions."
+        ),
+        required=True,
+        widget=ModelSelect2Widget(
+            search_fields=["name__icontains"],
+            attrs={"data-placeholder": _("Select a dataset...")},
+        ),
+    )
+
+    project = forms.ModelChoiceField(
+        queryset=None,  # Set in __init__ based on user
+        label=_("Project"),
+        help_text=_(
+            "Optionally associate this sample with a research project for better organization and tracking."
+        ),
+        required=False,
+        widget=ModelSelect2Widget(
+            search_fields=["name__icontains"],
+            attrs={"data-placeholder": _("Select a project...")},
+        ),
+    )
+
+    rock_type = forms.CharField(
+        label=_("Rock Type"),
+        help_text=_(
+            "Classify the rock type (e.g., igneous, sedimentary, metamorphic). "
+            "Be as specific as possible for better analysis."
+        ),
+        required=False,
+        max_length=100,
+    )
+
+    collection_date = forms.DateField(
+        label=_("Collection Date"),
+        help_text=_("Date when this sample was collected in the field."),
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    class Meta:
+        model = None
+        fields = ["name", "dataset", "project", "rock_type", "collection_date"]
+
+    def __init__(self, request=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+
+        dataset_field = self.fields.get("dataset")
+        if dataset_field:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user.is_authenticated
+            ):
+                from fairdm.core.dataset.models import Dataset
+
+                dataset_field.queryset = Dataset.objects.filter(
+                    contributors__person=self.request.user
+                )
+            else:
+                # No datasets for anonymous users, to prevent data leakage.
+                from fairdm.core.dataset.models import Dataset
+
+                dataset_field.queryset = Dataset.objects.none()
+
+        project_field = self.fields.get("project")
+        if project_field:
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user.is_authenticated
+            ):
+                project_field.queryset = self.request.user.projects.all()
+            else:
+                project_field.queryset = Project.objects.none()
+
+
+class DatasetEnhancedFormExample(ModelForm):
+    """Example form demonstrating license defaults and DOI entry.
+
+    This form shows how to:
+    1. Set license field default to CC BY 4.0
+    2. Add DOI entry field that creates DatasetIdentifier
+    3. Use autocomplete on all relationship fields
+    4. Provide comprehensive help text
+
+    Pattern Usage:
+    Use this pattern when your model needs:
+    - License field with FAIR-compliant default
+    - DOI support through DatasetIdentifier
+    - Rich metadata entry
+
+    Args:
+        *args: Positional arguments passed to the parent form.
+        **kwargs: Keyword arguments passed to the parent form.
+
+    Attributes:
+        name: The dataset name.
+        license: License choice, defaulting to CC BY 4.0 when it exists.
+        keywords: Optional keyword selection.
+        doi: Optional DOI, stored as a DatasetIdentifier on save.
+    """
+
+    name = forms.CharField(
+        label=_("Dataset Name"),
+        help_text=_(
+            "Give your dataset a descriptive name that reflects its purpose and content. "
+            "This will help others discover and understand your data."
+        ),
+        required=True,
+        max_length=300,
+    )
+
+    license = forms.ModelChoiceField(
+        queryset=License.objects.all(),
+        label=_("License"),
+        help_text=_(
+            "Choose a license that defines how others can use this dataset. "
+            "CC BY 4.0 (default) allows sharing and adaptation with attribution. "
+            "This encourages FAIR data principles and open science."
+        ),
+        widget=ModelSelect2Widget(
+            search_fields=["name__icontains"],
+            attrs={"data-placeholder": _("Select a license...")},
+        ),
+    )
+
+    keywords = forms.ModelMultipleChoiceField(
+        queryset=None,
+        label=_("Keywords"),
+        help_text=_(
+            "Add keywords to help others find this dataset. Keywords improve "
+            "searchability and enable better dataset discovery."
+        ),
+        required=False,
+        widget=ModelSelect2MultipleWidget(
+            search_fields=["name__icontains"],
+            attrs={
+                "data-placeholder": _("Select keywords..."),
+                "data-tags": "true",  # Allow creating new keywords
+            },
+        ),
+    )
+
+    doi = forms.CharField(
+        label=_("DOI (Digital Object Identifier)"),
+        help_text=_(
+            "If this dataset already has a DOI assigned (e.g., from a data repository "
+            "like Zenodo or Dryad), enter it here. Format: 10.1000/xyz123. "
+            "Leave empty if no DOI has been assigned yet."
+        ),
+        required=False,
+        max_length=255,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": _("10.1000/example"),
+                "pattern": r"10\.\d{4,}/.*",
+                "title": _("DOI must start with 10. followed by a number"),
+            }
+        ),
+    )
+
+    class Meta:
+        model = None
+        fields = ["name", "license", "keywords"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        license_field = self.fields.get("license")
+        if license_field:
+            cc_by_license = License.objects.filter(name="CC BY 4.0").first()
+            if cc_by_license:
+                license_field.initial = cc_by_license
+
+        if self.instance and self.instance.pk:
+            from fairdm.core.dataset.models import DatasetIdentifier
+
+            doi_identifier = DatasetIdentifier.objects.filter(
+                related=self.instance, type="DOI"
+            ).first()
+            if doi_identifier:
+                self.fields["doi"].initial = doi_identifier.value
+
+    def save(self, commit=True):
+        """Save the instance and create, update or remove its DOI identifier."""
+        instance = super().save(commit=commit)
+
+        doi_value = self.cleaned_data.get("doi", "").strip()
+
+        if commit:
+            from fairdm.core.dataset.models import DatasetIdentifier
+
+            if doi_value:
+                DatasetIdentifier.objects.update_or_create(
+                    related=instance,
+                    type="DOI",
+                    defaults={"value": doi_value},
+                )
+            else:
+                DatasetIdentifier.objects.filter(related=instance, type="DOI").delete()
+
+        return instance
 
 
 class RockSampleForm(SampleFormMixin, ModelForm):

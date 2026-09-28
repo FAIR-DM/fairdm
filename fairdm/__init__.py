@@ -1,3 +1,5 @@
+"""FairDM, a framework for building FAIR research data portals."""
+
 from fairdm.conf.setup import setup
 from fairdm.registry import config, register, registry
 

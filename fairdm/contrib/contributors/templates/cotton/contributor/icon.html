@@ -1,3 +1,4 @@
+{# @description A link to a contributor's default identifier, shown as its icon with a tooltip saying whether the ORCID is authenticated. Renders nothing when the contributor has no default identifier. Reads the context variable `contributor`. #}
 {% if contributor.get_default_identifier %}
     <a class="text-decoration-none"
        href="{{ contributor.get_default_identifier.get_absolute_url }}"
@@ -7,10 +8,3 @@
        data-bs-placement="bottom"
        {% if contributor.orcid_is_authenticated %} data-bs-title="{% trans "This ORCID is <em>authenticated</em>." %}" {% else %} data-bs-title="{% trans "This ORCID is <em>unauthenticated</em>." %}"  {% endif %}>{% icon contributor.icon height="1em" %}</a>
 {% endif %}
-{% comment %} <c-components.button class="text-reset link-underline-hover position-absolute top-0 start-0 ms-2 mt-1" href="{{ contributor.get_default_identifier.get_absolute_url }}">
-    {% if contributor.type == "organization" %}
-        {% icon contributor.DEFAULT_IDENTIFIER height="1em" %}
-    {% else %}
-        {% icon contributor.icon height="1em" %}
-    {% endif %}
-</c-components.button> {% endcomment %}

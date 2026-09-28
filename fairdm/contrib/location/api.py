@@ -1,3 +1,5 @@
+"""API viewsets and serializers that return locations as GeoJSON."""
+
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -23,9 +25,12 @@ from .serializers import GeoFeatureSerializer
 
 
 class SampleGeojsonSerializer(BaseSerializerMixin, GeoFeatureModelSerializer):
+    """Serialize a sample as a GeoJSON feature at its location."""
+
     geom = GeometrySerializerMethodField()
 
     def get_geom(self, obj):
+        """Return the sample location's point."""
         return obj.location.point
 
     class Meta:
@@ -36,12 +41,15 @@ class SampleGeojsonSerializer(BaseSerializerMixin, GeoFeatureModelSerializer):
 
 
 class GeoJsonViewset(BaseViewSet):
+    """Viewset that serves a GeoJSON feature collection when the client asks for GeoJSON."""
+
     distance_filter_field = "point"
     distance_ordering_filter_field = "point"
     filter_backends = (DjangoFilterBackend,)
 
     @method_decorator(cache_page(60 * 60 * 2))
     def list(self, request, *args, **kwargs):
+        """Return a GeoJSON feature collection for GeoJSON requests, cached for two hours."""
         if self.is_geojson():
             qs = self.filter_queryset(self.get_queryset())
             serializer = GeoFeatureSerializer(qs, many=True)
@@ -49,7 +57,7 @@ class GeoJsonViewset(BaseViewSet):
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        """Overriding the default docstring"""
+        """Return one record, filtered to its feature for GeoJSON requests."""
         instance = self.get_object()
         if self.is_geojson():
             instance = self.get_queryset().filter(uuid=self.get_object().uuid)
@@ -57,5 +65,10 @@ class GeoJsonViewset(BaseViewSet):
         return Response(serializer.data)
 
     def is_geojson(self):
+        """Report whether the request negotiated the GeoJSON renderer.
+
+        Returns:
+            True for a GeoJSON request, None when no renderer was negotiated.
+        """
         if self.request.accepted_renderer:
             return self.request.accepted_renderer.format == "geojson"

@@ -1,9 +1,13 @@
+"""Filtersets for the literature listing."""
+
 import django_filters as df
 from django.utils.translation import gettext_lazy as _
 from literature.models import LiteratureItem
 
 
 class LiteratureFilterset(df.FilterSet):
+    """Filter literature items by title, author, year, journal, DOI and publisher."""
+
     title = df.CharFilter(label=_("Title"), lookup_expr="icontains")
     author = df.CharFilter(
         field_name="item__author", lookup_expr="icontains", label=_("Author")
@@ -16,7 +20,6 @@ class LiteratureFilterset(df.FilterSet):
     publisher = df.CharFilter(
         field_name="item__publisher", lookup_expr="icontains", label=_("Publisher")
     )
-    # keywords = df.ModelMultipleChoiceFilter(to_field_name="name", queryset=Tag.objects.all(), label=_("Keywords"))
 
     class Meta:
         model = LiteratureItem

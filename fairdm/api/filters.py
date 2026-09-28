@@ -17,16 +17,18 @@ if TYPE_CHECKING:
 def _get_public_filter(model) -> dict:
     """Return a queryset filter dict that selects publicly-visible records.
 
-    FairDM's core models (Project, Dataset) use an integer ``visibility`` field
-    with ``Visibility.PUBLIC = 1``.  Sample/Measurement do not have a direct
-    visibility field — their visibility cascades from the parent Dataset.
+    Project and Dataset carry an integer ``visibility`` field. Sample and
+    Measurement have none, so their visibility cascades from the parent Dataset.
 
-    Returns a dict suitable for passing to ``queryset.filter(**...)``, or an
-    empty dict if no known visibility field is found (caller should skip filtering).
+    Args:
+        model: The model class to build the filter for.
+
+    Returns:
+        A dict to pass to ``queryset.filter(**...)``, or an empty dict when the
+        model has no known visibility field and filtering should be skipped.
     """
     from django.db.models import IntegerField
 
-    # Direct visibility field (Project, Dataset)
     with contextlib.suppress(Exception):
         field = model._meta.get_field("visibility")
         if isinstance(field, IntegerField):
@@ -34,41 +36,40 @@ def _get_public_filter(model) -> dict:
 
             return {"visibility": Visibility.PUBLIC}
 
-    # Dataset-cascaded visibility (Sample, Measurement)
     with contextlib.suppress(Exception):
         model._meta.get_field("dataset")
         from fairdm.utils.choices import Visibility
 
         return {"dataset__visibility": Visibility.PUBLIC}
 
-    return {}  # No known visibility field
+    return {}
 
 
 class FairDMVisibilityFilter(BaseFilterBackend):
     """Queryset-level visibility filter for FairDM API list endpoints.
 
     Restricts list querysets to objects the requesting user can see:
-      - Records that are publicly visible (via ``visibility=PUBLIC`` or cascaded
-        through ``dataset__visibility=PUBLIC``) are always included.
-      - Records where the user has an explicit guardian 'view' permission are also
-        included.
+
+    - Records that are publicly visible (via ``visibility=PUBLIC`` or cascaded
+      through ``dataset__visibility=PUBLIC``) are always included.
+    - Records where the user has an explicit guardian 'view' permission are also
+      included.
 
     Both sets are combined via queryset union to avoid N+1 queries.
 
-    For models with no known visibility mechanism (e.g. Contributor), the filter
-    short-circuits and returns the full unfiltered queryset, making all records
-    publicly accessible. Override ``filter_queryset()`` in a viewset subclass if
-    stricter filtering is needed for such models.
+    For models with no known visibility mechanism (such as Contributor), the
+    filter returns the full queryset, making all records publicly accessible.
+    Override ``filter_queryset()`` in a viewset subclass for stricter filtering.
 
     This replaces ``ObjectPermissionsFilter`` from ``djangorestframework-guardian``,
-    which requires explicit guardian entries for *all* objects — unsuitable for
-    publicly-visible records that have no guardian permission rows at all.
+    which requires explicit guardian entries for *all* objects and so hides
+    publicly-visible records that have no guardian permission rows.
     """
 
     def filter_queryset(self, request: Request, queryset, view: APIView):
+        """Limit the queryset to public records plus those the user may view."""
         public_filter = _get_public_filter(queryset.model)
 
-        # No known visibility mechanism: return everything (e.g. Contributor)
         if not public_filter:
             return queryset
 
@@ -82,5 +83,4 @@ class FairDMVisibilityFilter(BaseFilterBackend):
             )
             return (public_qs | permitted_qs).distinct()
 
-        # Anonymous users: public records only
         return queryset.filter(**public_filter)

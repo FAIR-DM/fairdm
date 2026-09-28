@@ -1,3 +1,5 @@
+"""Managers and querysets for people, affiliations and contributions."""
+
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -7,91 +9,65 @@ from fairdm.db.models import PrefetchPolymorphicManager, PrefetchPolymorphicQuer
 
 
 class PersonQuerySet(PrefetchPolymorphicQuerySet):
-    """QuerySet for Person model with state-based filtering methods.
-
-    Provides methods for querying persons based on their claim status and account state.
-    See decisions.md D8 for the account-state derivation.
-    """
+    """Person queryset with a filter for each claim and account state."""
 
     def real(self):
-        """Exclude superusers and django-guardian anonymous user.
-
-        Safe for portal-facing queries where superusers should not appear
-        in contributor lists or search results.
+        """Exclude superusers and the django-guardian anonymous user.
 
         Returns:
-            QuerySet: Person objects excluding is_superuser=True and email="AnonymousUser"
+            Persons that are not superusers and do not have the email ``AnonymousUser``.
         """
         return self.exclude(is_superuser=True).exclude(email="AnonymousUser")
 
     def active(self):
-        """Filter to active persons only.
+        """Filter to active persons.
 
         Returns:
-            QuerySet: Person objects with is_active=True
+            Persons with ``is_active`` true.
         """
         return self.filter(is_active=True)
 
     def inactive(self):
-        """Filter to deactivated accounts - the highest-precedence state (D8).
-
-        Deactivation is decided first: a deactivated person is inactive
-        regardless of claim status or email address, mirroring
-        `Person.account_state`.
+        """Filter to deactivated accounts, whatever their claim status or email.
 
         Returns:
-            QuerySet: Person objects with is_active=False
+            Persons with ``is_active`` false.
         """
         return self.filter(is_active=False)
 
     def claimed(self):
-        """Filter to persons who have claimed their accounts.
+        """Filter to active persons who have claimed their accounts.
 
-        Claimed persons are active and have is_claimed=True. Deactivation is
-        decided first (D8), so a deactivated account is never claimed here
-        even though the stored flag is still True.
+        A deactivated account is never claimed here, even though its flag is still true.
 
         Returns:
-            QuerySet: Person objects with is_active=True and is_claimed=True
+            Persons with ``is_active`` and ``is_claimed`` true.
         """
         return self.filter(is_active=True, is_claimed=True)
 
     def unclaimed(self):
         """Filter to persons who have not claimed their accounts.
 
-        Unclaimed persons include both Ghost (no email) and Invited (email present
-        but not yet claimed) states.
+        This covers both ghost profiles and invited profiles.
 
         Returns:
-            QuerySet: Person objects with is_claimed=False
+            Persons with ``is_claimed`` false.
         """
         return self.filter(is_claimed=False)
 
     def ghost(self):
-        """Filter to ghost profiles (provenance-only attribution records).
-
-        Ghost profiles are active, have no email and are created via
-        create_unclaimed() for attribution purposes. They cannot receive
-        invitations. Deactivation is decided first (D8): a deactivated
-        person with no email is inactive, not ghost.
+        """Filter to ghost profiles, the attribution-only records made by ``create_unclaimed``.
 
         Returns:
-            QuerySet: Person objects with is_active=True, is_claimed=False
-            and email=NULL
+            Active, unclaimed persons with no email.
         """
         return self.filter(is_active=True, is_claimed=False, email__isnull=True)
 
     def invited(self):
-        """Filter to invited profiles (email present but not claimed).
-
-        Invited profiles are active and have an email address but the person
-        has not yet completed registration/claiming. Deactivation is decided
-        first (D8): a deactivated person with an email is inactive, not
-        invited.
+        """Filter to invited profiles, which have an email but have not been claimed.
 
         Returns:
-            QuerySet: Person objects with is_active=True, is_claimed=False
-            and email NOT NULL
+            Active, unclaimed persons with an email.
         """
         return self.filter(is_active=True, is_claimed=False, email__isnull=False)
 
@@ -99,23 +75,26 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
 class UserManager(
     BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)
 ):
-    """Manager for the Person model with no username field.
+    """Manager for the Person model, which has no username field.
 
-    `real()`, `active()`, `claimed()`, `unclaimed()`, `ghost()`, `invited()`
-    and `inactive()` are defined once on `PersonQuerySet` above and reach this
-    manager through `PrefetchPolymorphicManager.from_queryset()` (FR-040,
-    D14), matching the pattern `fairdm.core.dataset.models.DatasetManager`
-    uses - no manager-side reimplementation is kept here.
+    The state filters come from ``PersonQuerySet``.
     """
 
     use_in_migrations = False
 
     def _create_user(self, email, password, **extra_fields):
-        """Create and save a User with the given email and password.
+        """Create and save a user with the given email and password.
 
-        A `None` password (the default `create_user`/`create_superuser` pass
-        through) sets an unusable one - `AbstractBaseUser.set_password(None)`
-        already does this, so no separate branch is needed here (FR-009, FR-010).
+        Args:
+            email: The user's email, which is required.
+            password: The password. None sets an unusable password.
+            **extra_fields: Other model fields.
+
+        Returns:
+            The saved user.
+
+        Raises:
+            ValueError: The email is empty.
         """
         if not email:
             raise ValueError("The given email must be set")
@@ -126,16 +105,34 @@ class UserManager(
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        """Create and save a Person with the given email and password.
+        """Create and save a non-staff person with the given email and password.
 
-        Sets an unusable password when none is supplied (FR-010).
+        Args:
+            email: The person's email.
+            password: The password. None sets an unusable password.
+            **extra_fields: Other model fields.
+
+        Returns:
+            The saved person.
         """
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """Create and save a SuperUser with the given email and password."""
+        """Create and save a staff superuser with the given email and password.
+
+        Args:
+            email: The user's email.
+            password: The password. None sets an unusable password.
+            **extra_fields: Other model fields.
+
+        Returns:
+            The saved superuser.
+
+        Raises:
+            ValueError: ``is_staff`` or ``is_superuser`` is passed as false.
+        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -147,23 +144,15 @@ class UserManager(
         return self._create_user(email, password, **extra_fields)
 
     def create_unclaimed(self, first_name: str, last_name: str, **extra_fields):
-        """Create an unclaimed (Ghost state) Person record.
-
-        Creates a provenance-only attribution record with:
-        - email=None (no email address)
-        - is_claimed=False (not owned by a user)
-        - is_active=True (allows future claiming via invitation)
-        - set_unusable_password() (cannot log in until claimed)
-
-        This implements the Ghost state in the 4-state machine. See decisions.md D8.
+        """Create a ghost profile: an active, unclaimed person with no email and an unusable password.
 
         Args:
-            first_name: Given name (required).
-            last_name: Family name (required).
-            **extra_fields: Any other Contributor/Person fields.
+            first_name: Given name.
+            last_name: Family name.
+            **extra_fields: Any other Contributor or Person fields.
 
         Returns:
-            Person instance (saved, Ghost state).
+            The saved person.
         """
         extra_fields["email"] = None
         extra_fields["is_claimed"] = False
@@ -179,71 +168,40 @@ class UserManager(
 
 
 class AffiliationQuerySet(models.QuerySet):
-    """QuerySet for Affiliation model with time-based filtering methods.
-
-    Provides methods for querying affiliations based on their temporal state
-    (primary, current, or past) as documented in data-model.md.
-    """
+    """Affiliation queryset with filters for primary, current, past and owner affiliations."""
 
     def primary(self):
-        """Get the primary affiliation.
-
-        Returns the affiliation marked with is_primary=True, or None if no
-        primary affiliation is set.
+        """Return the affiliation marked primary.
 
         Returns:
-            Affiliation or None: The primary affiliation instance
-
-        Usage:
-            primary = person.affiliations.primary()
+            The primary affiliation, or None when none is set.
         """
         return self.filter(is_primary=True).first()
 
     def current(self):
-        """Get all current (active) affiliations.
-
-        Current affiliations have end_date=NULL, meaning they are still active.
+        """Filter to current affiliations, which have no end date.
 
         Returns:
-            QuerySet: Affiliation objects with no end date
-
-        Usage:
-            current_orgs = person.affiliations.current()
+            Affiliations with ``end_date`` null.
         """
         return self.filter(end_date__isnull=True)
 
     def past(self):
-        """Get all past (historical) affiliations.
-
-        Past affiliations have end_date IS NOT NULL, meaning the affiliation
-        has ended.
+        """Filter to past affiliations, which have an end date.
 
         Returns:
-            QuerySet: Affiliation objects with an end date set
-
-        Usage:
-            past_orgs = person.affiliations.past()
+            Affiliations with ``end_date`` set.
         """
         return self.filter(end_date__isnull=False)
 
     def owners(self):
-        """Get all current owner affiliations.
+        """Filter to current owner affiliations.
 
-        Ownership is defined once, here, as a current affiliation
-        (``end_date`` is NULL - see :meth:`current`) whose type is OWNER. A
-        person whose OWNER affiliation has ended - the field's help_text
-        documents ending an affiliation as ending the rights it conferred -
-        is not an owner, even though the row's type still reads OWNER.
-        Every caller that decides who may manage an organization
-        (``OrganizationPermissionBackend.has_perm``, ``Organization.owner()``,
-        ``Organization.transfer_ownership()``) derives from this method
-        rather than re-deriving the rule.
+        Ownership is defined here once: a current affiliation (see :meth:`current`) of
+        type OWNER. An ended OWNER affiliation confers no ownership.
 
         Returns:
-            QuerySet: current Affiliation objects with type=OWNER
-
-        Usage:
-            org.affiliations.owners()
+            Current affiliations with type OWNER.
         """
         from fairdm.contrib.contributors.models import Affiliation
 
@@ -251,50 +209,49 @@ class AffiliationQuerySet(models.QuerySet):
 
 
 class AffiliationManager(models.Manager.from_queryset(AffiliationQuerySet)):
-    """Manager for the Affiliation model.
+    """Manager for the Affiliation model, exposing the ``AffiliationQuerySet`` filters.
 
-    `primary()`, `current()` and `past()` are defined once on
-    `AffiliationQuerySet` above and reach this manager through
-    `Manager.from_queryset()` (FR-040, D14). `primary()` returns a single
-    `Affiliation` or `None` rather than a queryset - `from_queryset` copies a
-    method's forwarding call regardless of its return type, so this does not
-    prevent composition; it only means `.primary()` cannot be chained with a
-    further queryset method, which no caller in this codebase does.
+    ``primary()`` returns one affiliation or None, so it cannot be chained further.
     """
 
 
 class ContributionQuerySet(OrderedModelQuerySet):
-    """QuerySet for Contribution model with filtering methods."""
+    """Contribution queryset with filters by role, entity and contributor."""
 
     def by_role(self, role_name: str):
-        """Filter contributions to those containing the specified role.
+        """Filter contributions to those holding a role.
 
         Args:
-            role_name: Name matching a Concept in FairDMRoles vocabulary.
+            role_name: Name of a concept in the roles vocabulary.
+
+        Returns:
+            Contributions with that role.
         """
         return self.filter(roles__name=role_name)
 
     def for_entity(self, obj):
-        """All contributions for a specific entity (Project/Dataset/etc.).
+        """Filter contributions to those credited on one object.
 
         Args:
-            obj: Any model instance with a GenericRelation to Contribution.
+            obj: A model instance, such as a project or dataset, that contributions point at.
+
+        Returns:
+            Contributions for that object.
         """
         content_type = ContentType.objects.get_for_model(obj)
         return self.filter(content_type=content_type, object_id=obj.pk)
 
     def by_contributor(self, contributor):
-        """All contributions by a specific contributor across all entities."""
+        """Filter contributions to those by one contributor across all objects.
+
+        Args:
+            contributor: The contributor.
+
+        Returns:
+            Contributions by that contributor.
+        """
         return self.filter(contributor=contributor)
 
 
 class ContributionManager(OrderedModelManager.from_queryset(ContributionQuerySet)):
-    """Manager for the Contribution model.
-
-    `by_role()`, `for_entity()` and `by_contributor()` are defined once on
-    `ContributionQuerySet` above and reach this manager through
-    `OrderedModelManager.from_queryset()` (FR-040, D14) - `OrderedModelManager`
-    is itself `models.Manager.from_queryset(OrderedModelQuerySet)`, so this
-    keeps the ordered-model queryset methods (`get_max_order()`, `above()`,
-    etc.) alongside the contribution-specific ones.
-    """
+    """Manager for the Contribution model, with the ordered-model methods and the ``ContributionQuerySet`` filters."""

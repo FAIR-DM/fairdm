@@ -1,4 +1,4 @@
-"""FairDM Demo Portal Configuration
+"""Model registrations for the demo portal.
 
 This module demonstrates various model registration patterns using the FairDM registry system.
 It showcases different configuration approaches and serves as executable documentation
@@ -32,8 +32,6 @@ from fairdm.core.sample.config import BaseSampleConfiguration
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.config import Authority, Citation, ModelMetadata
 
-# Import filters lazily to avoid app registry issues
-# from .filters import CustomSampleFilter
 from .models import (
     CustomParentSample,
     CustomSample,
@@ -79,8 +77,6 @@ class CustomParentSampleConfig(BaseSampleConfiguration):
         ("name", "status"),
         "char_field",
     ]
-    # resource_class = SampleResource  # Not implemented in demo
-    # table_class = SampleTable
 
 
 @fairdm.register
@@ -130,7 +126,6 @@ class CustomSampleConfig(ModelConfiguration):
     filterset_class = "demo.filters.CustomSampleFilter"
     table_class = CustomSampleTable
 
-    # The remaining components are generated, each from its own field list.
     form_fields = [
         "name",
         "char_field",
@@ -184,8 +179,6 @@ class ExampleMeasurementConfig(BaseMeasurementConfiguration):
         repository_url="https://github.com/FAIR-DM/fairdm",
         keywords=[],
     )
-    # resource_class = MeasurementResource  # Not implemented in demo
-    # table_class = MeasurementTable  # Not implemented in demo
     fields = [
         "sample",
         "name",
@@ -203,19 +196,8 @@ class ExampleMeasurementConfig(BaseMeasurementConfiguration):
         "decimal_field",
         "float_field",
     ]
-    # An explicit measurement declaration, narrower than the default: only
-    # `char_field` is searched, not `name` (FR-025).
+    # Narrower than the default: `name` is not searched.
     search_fields = ["char_field"]
-
-
-# ========================================================================
-# Pattern 1: Minimal Configuration (RockSample)
-# ========================================================================
-# Just specify the fields you want to display. FairDM auto-generates everything else.
-# This is the recommended approach for most models.
-#
-# See: Developer Guide > Registry > Registration Patterns
-#      quickstart.md for setup instructions
 
 
 @fairdm.register
@@ -255,23 +237,8 @@ class RockSampleConfig(BaseSampleConfiguration):
         "hardness_mohs",
         "mineral_content",
     ]
-    # An explicit declaration, narrower than the default: only `rock_type` is
-    # searched, not `name` (FR-025).
+    # Narrower than the default: `name` is not searched.
     search_fields = ["rock_type"]
-
-
-# ========================================================================
-# Pattern 2: Component-Specific Fields (SoilSample)
-# ========================================================================
-# Specify different fields for different components when you need
-# different information density in tables vs forms.
-#
-# - table_fields: Shows summary columns (less is more for scanning)
-# - form_fields: Shows all editable fields (comprehensive data entry)
-# - filterset_fields: Common search criteria
-# - fields: Parent fallback when component-specific not provided
-#
-# See: Developer Guide > Registry > Component-Specific Configuration
 
 
 @fairdm.register
@@ -304,7 +271,7 @@ class SoilSampleConfig(BaseSampleConfiguration):
         keywords=["soil", "agriculture", "environmental", "demo"],
     )
 
-    # Parent fields - used as fallback when component-specific fields not provided
+    # Fallback for every component without its own field list.
     fields = [
         "name",
         "soil_type",
@@ -314,7 +281,6 @@ class SoilSampleConfig(BaseSampleConfiguration):
         "moisture_content",
     ]
 
-    # Table shows summary info only (3-5 key fields)
     table_fields = [
         "name",
         "soil_type",
@@ -322,7 +288,6 @@ class SoilSampleConfig(BaseSampleConfiguration):
         "depth_cm",
     ]
 
-    # Form shows all fields for data entry
     form_fields = [
         "name",
         "soil_type",
@@ -333,27 +298,14 @@ class SoilSampleConfig(BaseSampleConfiguration):
         "depth_cm",
     ]
 
-    # Filters for common search criteria
     filterset_fields = [
         "soil_type",
         "ph_level",
         "depth_cm",
     ]
 
-    # An explicit declaration that also names the default: `name` alongside
-    # `soil_type` (FR-025).
+    # Names the default (`name`) explicitly alongside `soil_type`.
     search_fields = ["name", "soil_type"]
-
-
-# ========================================================================
-# Pattern 3: Custom Component Classes (WaterSample)
-# ========================================================================
-# Provide your own Form/Table/FilterSet classes when you need:
-# - Custom widgets or validation logic
-# - Special column rendering or formatting (e.g., color-coded pH levels)
-# - Complex filter behavior
-#
-# See: Developer Guide > Registry > Custom Components
 
 
 @fairdm.register
@@ -404,13 +356,8 @@ class WaterSampleConfig(BaseSampleConfiguration):
     FILTERABLE = {"water_source", "ph_level", "temperature_celsius"}
 
     def get_filterset_class(self):
-        """Build the filter set from the filterable subset of `fields`.
-
-        A field list could not say this: the rule is "whichever of my declared
-        fields are in FILTERABLE", which has to be evaluated rather than written
-        out. Deriving it means a new entry in `fields` gets a table column and a
-        form input without also getting a filter nobody asked for.
-        """
+        """Build the filter set from the filterable subset of `fields`."""
+        # Derived so that a new entry in `fields` does not silently gain a filter.
         from fairdm.registry.factories import FilterFactory
 
         filterable = [
@@ -419,29 +366,6 @@ class WaterSampleConfig(BaseSampleConfiguration):
         return FilterFactory(model=self.model, fields=filterable).generate()
 
 
-# ========================================================================
-# Accessing the Registry Programmatically
-# ========================================================================
-# You can query registered models and their configurations:
-#
-# # Get all registered Sample models
-# samples = fairdm.registry.samples
-# print(f"Registered samples: {[s.__name__ for s in samples]}")
-#
-# # Get configuration for a specific model
-# config = fairdm.registry.get_for_model(RockSample)
-# print(f"RockSample display name: {config.display_name}")
-# print(f"RockSample fields: {config.fields}")
-#
-# # Access auto-generated components
-# form_class = config.get_form_class()  # Auto-generated ModelForm
-# table_class = config.get_table_class()  # Auto-generated Table
-# filterset_class = config.get_filterset_class()  # Auto-generated FilterSet
-# admin_class = config.get_admin_class()  # Auto-generated ModelAdmin
-
-
-# List of all models registered in this demo app
-# Used by tests to verify registration completeness
 DEMO_REGISTERED_MODELS = [
     CustomParentSample,
     CustomSample,
@@ -452,9 +376,6 @@ DEMO_REGISTERED_MODELS = [
     XRFMeasurement,
     ICP_MS_Measurement,
 ]
-
-
-# Additional measurement model registrations demonstrating different patterns
 
 
 @fairdm.register
@@ -490,8 +411,6 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
         "instrument_model",
         "measurement_conditions",
     ]
-    # resource_class = MeasurementResource  # Not implemented in demo
-    # table_class = MeasurementTable  # Not implemented in demo
 
 
 @fairdm.register
@@ -533,5 +452,3 @@ class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
         "internal_standard",
         "analysis_date",
     ]
-    # resource_class = MeasurementResource  # Not implemented in demo
-    # table_class = MeasurementTable  # Not implemented in demo

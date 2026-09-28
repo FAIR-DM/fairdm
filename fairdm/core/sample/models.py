@@ -1,3 +1,5 @@
+"""Models for samples and their related descriptions, dates, identifiers and relations."""
+
 import re
 
 from django.contrib.contenttypes.fields import GenericRelation
@@ -6,8 +8,6 @@ from django.db import models as django_models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.functional import classproperty
-
-# from rest_framework.authtoken.models import Token
 from django.utils.translation import gettext_lazy as _
 from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
@@ -35,12 +35,9 @@ BASE_SAMPLE_ERROR = _(
     "Cannot create base Sample instances directly. Please use a specific sample type subclass."
 )
 
-# research.md R1: IGSN allocation moved to DataCite in 2023, and an IGSN today is an
-# ordinary DataCite DOI spread across at least 38 registry prefixes with no shared prefix
-# and no enforced suffix grammar. A prefix-anchored regex is structurally wrong, not merely
-# stale, so this normalises the display forms an IGSN is commonly pasted in as, then accepts
-# any DataCite DOI or the legacy pre-2023 handle form. Case carries no information and the
-# suffix is never constrained - a slash inside the suffix is normal (D-016).
+# An IGSN is now an ordinary DataCite DOI with no shared prefix and no suffix grammar, so a
+# prefix-anchored regex is wrong. Normalise the common display forms, then accept any DataCite
+# DOI or the legacy pre-2023 handle. Case and the suffix are never constrained.
 IGSN_DISPLAY_PREFIXES = (
     "https://doi.org/",
     "http://doi.org/",
@@ -54,25 +51,28 @@ IGSN_LEGACY_HANDLE_PATTERN = re.compile(r"^10273/\S+$", re.IGNORECASE)
 
 
 class Sample(BasePolymorphicModel):
-    """A sample is a physical or digital object that is part of a dataset.
+    """A physical or digital object that is part of a dataset.
 
-    Samples represent physical specimens, digital artifacts, or observational data
-    collected as part of a research dataset. This is a polymorphic model allowing
-    for domain-specific sample types to be defined by inheriting from this base.
+    A polymorphic model: domain-specific sample types inherit from this base. The base ``Sample``
+    itself cannot be saved.
 
     Attributes:
-        dataset: The dataset this sample belongs to
-        uuid: Unique short identifier with 's' prefix
-        local_id: Local identifier used by dataset creator
-        status: Current status of the sample (e.g., available, destroyed)
-        location: Geographic location of the sample
-        contributors: Generic relation to contributor records
+        CONTRIBUTOR_ROLES: The roles a contributor can hold on a sample.
+        DATE_TYPES: The date types a sample can carry.
+        DESCRIPTION_TYPES: The description types a sample can carry.
+        dataset: The dataset this sample belongs to.
+        uuid: Unique short identifier with an ``s`` prefix.
+        local_id: The creator's own identifier for the sample within its dataset.
+        status: The sample's custody status, such as available or destroyed.
+        location: The sample's location.
+        contributors: Generic relation to contributor records.
+        related: Samples related through ``SampleRelation``.
+        objects: The manager, with the ``SampleQuerySet`` helpers.
     """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Sample")
     DATE_TYPES = FairDMDates.from_collection("Sample")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Sample")
-    # IDENTIFIER_TYPES = choices.DataCiteIdentifiers
 
     dataset = models.ForeignKey(
         "dataset.Dataset",
@@ -112,16 +112,13 @@ class Sample(BasePolymorphicModel):
         "fairdm_location.Point",
         verbose_name=_("location"),
         help_text=_("The location of the sample."),
-        # related_name="samples",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
     )
 
-    # GENERIC RELATIONS
     contributors = GenericRelation("contributors.Contribution")
 
-    # MANY-TO-MANY RELATIONSHIPS
     related = models.ManyToManyField(
         "self",
         through="SampleRelation",
@@ -130,7 +127,6 @@ class Sample(BasePolymorphicModel):
         blank=True,
     )
 
-    # CUSTOM MANAGER
     objects = PolymorphicManager.from_queryset(SampleQuerySet)()  # type: ignore[assignment,misc]
 
     class Meta:
@@ -144,69 +140,48 @@ class Sample(BasePolymorphicModel):
         ]
 
     def __str__(self):
+        """Use the sample's name."""
         return f"{self.name}"
 
     def clean(self):
-        """Validate that Sample is not instantiated directly (only subclasses).
-
-        Raises:
-            ValidationError: If attempting to create base Sample instance
-        """
+        """Refuse a bare ``Sample``, which must be created as a subclass."""
         super().clean()
 
-        # Prevent direct instantiation of base Sample model. Forms and the admin call
-        # full_clean() before save(), so this is what turns a bare-Sample attempt into a
-        # validation error there rather than the server error the pre_save guard below raises.
+        # Forms and the admin call full_clean() before save(), so a bare Sample becomes a
+        # validation error there rather than the server error the pre_save guard raises.
         if self.__class__ == Sample:
             raise ValidationError(BASE_SAMPLE_ERROR)
 
     def get_absolute_url(self):
-        """Get the absolute URL for this sample.
-
-        Returns:
-            str: URL path to sample detail view (placeholder for future implementation)
-        """
+        """Return the URL of the sample's overview page."""
         from django.urls import reverse
 
-        # Placeholder - will be implemented when views are created
         return reverse("sample:overview", kwargs={"uuid": self.uuid})
 
     def get_all_relationships(self):
-        """Get all SampleRelation objects where this sample is source or target.
+        """Return every relation in which this sample is the source or the target.
 
         Returns:
-            QuerySet: All SampleRelation objects involving this sample
-
-        Example:
-            >>> sample = Sample.objects.get(uuid="s_abc123")
-            >>> relationships = sample.get_all_relationships()
-            >>> for rel in relationships:
-            >>>     print(f"{rel.source} {rel.type} {rel.target}")
+            A queryset of ``SampleRelation`` objects involving this sample.
         """
         return SampleRelation.objects.filter(
             django_models.Q(source=self) | django_models.Q(target=self)
         )
 
     def get_related_samples(self, relationship_type=None):
-        """Get all samples related to this sample.
+        """Return every sample related to this sample, as source or target.
 
         Args:
-            relationship_type: Optional filter for specific relationship type
-                             (e.g., "child_of")
+            relationship_type: Only follow relations of this type, such as ``"child_of"``.
 
         Returns:
-            QuerySet: Sample objects related to this sample
-
-        Example:
-            >>> parent = Sample.objects.get(uuid="s_abc123")
-            >>> children = parent.get_related_samples(relationship_type="child_of")
+            A queryset of the related samples, excluding this one.
         """
         relationships = self.get_all_relationships()
 
         if relationship_type:
             relationships = relationships.filter(type=relationship_type)
 
-        # Get sample IDs from both source and target, excluding self
         related_ids = set()
         for rel in relationships:
             if rel.source_id != self.id:
@@ -217,86 +192,67 @@ class Sample(BasePolymorphicModel):
         return Sample.objects.filter(id__in=related_ids)
 
     def get_children(self):
-        """Get all child samples (samples where this is the target of 'child_of' relationship).
+        """Return the samples that are children of this one.
 
         Returns:
-            QuerySet: Sample objects that are children of this sample
-
-        Example:
-            >>> parent = Sample.objects.get(uuid="s_abc123")
-            >>> children = parent.get_children()
-            >>> for child in children:
-            >>>     print(f"{child.name} is a child of {parent.name}")
+            A queryset of samples with a ``child_of`` relation whose target is this sample.
         """
-        # Children are samples where this sample is the target of a "child_of" relationship
         child_ids = SampleRelation.objects.filter(
             target=self, type="child_of"
         ).values_list("source_id", flat=True)
         return Sample.objects.filter(id__in=child_ids)
 
     def get_parents(self):
-        """Get all parent samples (samples where this is the source of 'child_of' relationship).
+        """Return the samples that are parents of this one.
 
         Returns:
-            QuerySet: Sample objects that are parents of this sample
-
-        Example:
-            >>> child = Sample.objects.get(uuid="s_abc123")
-            >>> parents = child.get_parents()
-            >>> for parent in parents:
-            >>>     print(f"{child.name} is a child of {parent.name}")
+            A queryset of samples that are the target of a ``child_of`` relation whose source is
+            this sample.
         """
-        # Parents are samples where this sample is the source of a "child_of" relationship
         parent_ids = SampleRelation.objects.filter(
             source=self, type="child_of"
         ).values_list("target_id", flat=True)
         return Sample.objects.filter(id__in=parent_ids)
 
     def get_descendants(self, depth=None):
-        """Get all descendant samples with optional depth limit.
+        """Return the descendants of this sample, optionally to a depth limit.
 
-        Delegates to :meth:`SampleQuerySet.get_descendants` (D-007) - the single
-        traversal implementation - rather than repeating the walk here.
+        Delegates to ``SampleQuerySet.get_descendants``, the single traversal implementation.
 
         Args:
-            depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
-                  only direct children, depth 2 includes grandchildren, etc.
+            depth: The maximum depth to traverse. ``None`` is unlimited, 1 is direct children only,
+                2 includes grandchildren, and so on.
 
         Returns:
-            QuerySet: All descendant Sample objects within depth limit
-
-        Example:
-            >>> root = Sample.objects.get(uuid="s_abc123")
-            >>> direct_children = root.get_descendants(depth=1)
-            >>> all_descendants = root.get_descendants()
+            A queryset of the descendant samples within the depth limit.
         """
         return Sample.objects.get_descendants(self, max_depth=depth)
 
     def get_ancestors(self, depth=None):
-        """Get all ancestor samples with optional depth limit.
+        """Return the ancestors of this sample, optionally to a depth limit.
 
-        Delegates to :meth:`SampleQuerySet.get_ancestors` (D-007) - the single
-        traversal implementation.
+        Delegates to ``SampleQuerySet.get_ancestors``, the single traversal implementation.
 
         Args:
-            depth: Maximum depth to traverse (None = unlimited). Depth 1 returns
-                  only direct parents, depth 2 includes grandparents, etc.
+            depth: The maximum depth to traverse. ``None`` is unlimited, 1 is direct parents only,
+                2 includes grandparents, and so on.
 
         Returns:
-            QuerySet: All ancestor Sample objects within depth limit
-
-        Example:
-            >>> leaf = Sample.objects.get(uuid="s_abc123")
-            >>> direct_parents = leaf.get_ancestors(depth=1)
-            >>> all_ancestors = leaf.get_ancestors()
+            A queryset of the ancestor samples within the depth limit.
         """
         return Sample.objects.get_ancestors(self, max_depth=depth)
 
     @classproperty
     def type_of(self):
+        """Return the base Sample class for polymorphic queries."""
         return Sample
 
     def get_template_name(self):
+        """Return the card templates to try for this sample, in order of preference.
+
+        Returns:
+            The template paths.
+        """
         app_name = self._meta.app_label
         model_name = self._meta.model_name
         return [f"{app_name}/{model_name}_card.html", "fairdm/sample_card.html"]
@@ -306,33 +262,30 @@ class Sample(BasePolymorphicModel):
 def block_base_sample_creation(sender, instance, **kwargs):
     """Refuse to save a bare ``Sample`` row, by any route.
 
-    Scoped to ``sender=Sample`` rather than connected without a sender: a subclass instance
-    sends its own class, never ``Sample``, so this never fires for a registered specimen type.
-    ``pre_save`` is the one mechanism that also covers fixture loading (`django.core.serializers`
-    sends it on every deserialized object) and cannot fire on the framework's own read path -
-    django-polymorphic only constructs base instances there, it never saves them (research.md
-    R4). ``Sample.clean()`` stays alongside this so forms and the admin still raise a validation
-    error instead of the server error this receiver raises.
+    Scoped to ``sender=Sample`` because a subclass instance sends its own class, so this never
+    fires for a registered sample type. ``pre_save`` also covers fixture loading, and it cannot
+    fire on the framework's own read path, where django-polymorphic never saves base instances.
+    ``Sample.clean()`` stays alongside so forms and the admin raise a validation error instead.
+
+    Args:
+        sender: The model class being saved.
+        instance: The instance being saved.
+        **kwargs: Additional signal arguments.
+
+    Raises:
+        ValidationError: Always, since a bare ``Sample`` cannot be saved.
     """
     raise ValidationError(BASE_SAMPLE_ERROR)
 
 
 class SampleDescription(AbstractDescription):
-    """Free-text description of a Sample with type categorization.
-
-    Supports multiple description types (e.g., abstract, methods, notes)
-    as defined by the FairDM Sample description vocabulary.
-    """
+    """Typed free-text description of a sample."""
 
     VOCABULARY = FairDMDescriptions.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
-        """Validate description_type against FairDMDescriptions vocabulary.
-
-        Raises:
-            ValidationError: If type is not in DESCRIPTION_TYPES vocabulary
-        """
+        """Refuse a description type outside the vocabulary."""
         super().clean()
 
         if self.type:
@@ -347,21 +300,13 @@ class SampleDescription(AbstractDescription):
 
 
 class SampleDate(AbstractDate):
-    """Important dates associated with a Sample.
-
-    Tracks various dates (e.g., collected, processed, archived) as defined
-    by the FairDM Sample date vocabulary.
-    """
+    """Typed date on a sample."""
 
     VOCABULARY = FairDMDates.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
-        """Validate date_type against FairDMDates vocabulary.
-
-        Raises:
-            ValidationError: If type is not in DATE_TYPES vocabulary
-        """
+        """Refuse a date type outside the vocabulary."""
         super().clean()
 
         if self.type:
@@ -376,27 +321,15 @@ class SampleDate(AbstractDate):
 
 
 class SampleIdentifier(AbstractIdentifier):
-    """External identifiers for a Sample.
-
-    Links a sample to an external identifier system, drawn from the sample identifier
-    collection (``FairDMIdentifiers.from_collection("Sample")``, IGSN and DOI - D-003, R3).
-    """
+    """Typed external identifier of a sample, from the sample identifier collection (IGSN and DOI)."""
 
     VOCABULARY = FairDMIdentifiers.from_collection("Sample")
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
-        """Validate identifier_type and IGSN format.
-
-        The IGSN format check runs first because it normalises ``self.value`` (F5) - the
-        uniqueness check inherited from ``AbstractIdentifier.clean()`` (``super().clean()``,
-        below) compares ``self.value`` exactly, so it has to see the normalised form or two
-        display variants of the same identifier would compare unequal and both be accepted.
-
-        Raises:
-            ValidationError: If type is not in IDENTIFIER_TYPES vocabulary
-                           or if IGSN format is invalid
-        """
+        """Refuse an identifier type outside the vocabulary and an invalid IGSN."""
+        # The IGSN check runs first because it normalises `self.value`, and the uniqueness check
+        # in `super().clean()` compares it exactly. Two display variants would otherwise both pass.
         if self.type == "IGSN" and self.value:
             self._validate_igsn_format()
 
@@ -413,12 +346,16 @@ class SampleIdentifier(AbstractIdentifier):
                 )
 
     def _validate_igsn_format(self):
-        """Validate ``self.value`` against the format research.md R1/D-016 settles on.
+        """Normalise and validate ``self.value`` as an IGSN.
 
-        An IGSN today is an ordinary DataCite DOI with no shared prefix and no enforced
-        suffix grammar, so this normalises the display forms an IGSN is commonly pasted
-        in as, then accepts any DataCite DOI or the legacy pre-2023 handle form,
-        case-insensitively.
+        Strips the display prefixes an IGSN is commonly pasted with, then accepts any DataCite DOI
+        or the legacy pre-2023 handle, case-insensitively.
+
+        Returns:
+            None once the value is valid.
+
+        Raises:
+            ValidationError: The value is neither a DataCite DOI nor a legacy IGSN handle.
         """
         normalised = self.value
         for prefix in IGSN_DISPLAY_PREFIXES:
@@ -445,20 +382,18 @@ class SampleIdentifier(AbstractIdentifier):
 
 
 class SampleRelation(models.Model):
-    """Through-model for sample-to-sample relationships.
+    """Typed relationship between two samples, such as parent and child.
 
-    Defines typed relationships between samples (e.g., parent/child, derived from).
-    This allows tracking of sample hierarchies, splits, and derivations.
+    A sample cannot relate to itself, and A to B and B to A with the same type is refused. The
+    ``unique_together`` constraint on source, target and type prevents duplicate links.
 
     Attributes:
-        type: Type of relationship (e.g., 'child_of')
-        source: The sample initiating the relationship
-        target: The sample being related to
-
-    Validation:
-        - Prevents self-reference (sample cannot relate to itself)
-        - Prevents direct circular relationships (A→B and B→A with same type)
-        - Enforces unique_together constraint on (source, target, type)
+        RELATION_TYPES: The relationship types offered.
+        type: The type of relationship, such as ``child_of``.
+        source: The sample initiating the relationship.
+        target: The sample being related to.
+        added: Unused, as the model records no creation time.
+        modified: Unused, as the model records no modification time.
     """
 
     RELATION_TYPES = [
@@ -488,22 +423,21 @@ class SampleRelation(models.Model):
         verbose_name_plural = _("sample relationships")
 
     def __str__(self):
-        """Return string representation of relationship."""
+        """Show the source, the relationship type and the target."""
         return f"{self.source} {self.type} {self.target}"
 
     def _refuse_self_reference_and_loop(self):
         """Raise if this relationship is a self-reference or a two-step loop.
 
-        FR-027: refused when saved directly, not only under validation - both
-        ``clean()`` and ``save()`` call this rather than each carrying its own copy.
+        Both ``clean()`` and ``save()`` call this, so the refusal holds when saved directly.
+
+        Raises:
+            ValidationError: The sample relates to itself, or the reverse relationship exists.
         """
-        # 1. Prevent self-reference
         if self.source_id and self.target_id and self.source_id == self.target_id:
             raise ValidationError(_("Sample cannot relate to itself"))
 
-        # 2. Prevent direct circular relationships (A→B and B→A with same type)
         if self.source_id and self.target_id and self.type:  # noqa: SIM102
-            # Check if reverse relationship already exists
             if (
                 SampleRelation.objects.filter(
                     source_id=self.target_id, target_id=self.source_id, type=self.type
@@ -519,17 +453,12 @@ class SampleRelation(models.Model):
                 )
 
     def clean(self):
-        """Validate relationship to prevent self-reference and circular relationships."""
+        """Refuse a self-reference or a two-step loop."""
         self._refuse_self_reference_and_loop()
 
     def save(self, *args, **kwargs):
-        """Refuse a self-reference or a two-step loop even when saved directly.
-
-        FR-027 requires the refusal to hold for ``SampleRelation.objects.create()`` and
-        ``.save()``, not only for callers that run ``clean()``/``full_clean()`` first -
-        forms and the admin already do, but the manager and a bare ``.save()`` do not.
-        The duplicate-link case stays enforced by the ``unique_together`` constraint at
-        the database, which every save route already goes through.
-        """
+        """Refuse a self-reference or a two-step loop even when saved directly."""
+        # `objects.create()` and a bare `.save()` skip `clean()`. Duplicate links are left to the
+        # `unique_together` constraint.
         self._refuse_self_reference_and_loop()
         super().save(*args, **kwargs)

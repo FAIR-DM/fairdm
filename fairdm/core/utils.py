@@ -1,8 +1,8 @@
+"""Helpers for core records: documentation links, polymorphic-aware permissions and fieldsets."""
+
 from django.utils.translation import gettext as _
 
 from fairdm.utils.utils import user_guide
-
-# UUID_RE_PATTERN = r"^(?P<uuid>[[pdsme][a-zA-Z0-9_-]{22})/$"
 
 UUID_RE_PATTERN = r"^(?P<uuid>[pdsmea-zA-Z0-9_-]{22})/$"
 """A regex the matches the uuid of a core data object (project, sample, measurement, etc.) and captures it in a named group 'uuid'."""
@@ -15,7 +15,13 @@ CORE_PERMISSIONS = [
 
 
 def documentation_link(path):
-    """Returns a URL to the documentation for the given path.
+    """Return the link dictionary pointing at a page of the user guide.
+
+    Args:
+        path: The user guide path to link to.
+
+    Returns:
+        A dictionary with the ``text``, ``href`` and ``icon`` of the link.
     """
     return {
         "text": _("Learn more"),
@@ -25,12 +31,18 @@ def documentation_link(path):
 
 
 def get_non_polymorphic_instance(obj):
-    """Return ``obj`` re-fetched through its polymorphic base's non-polymorphic manager.
+    """Return an object re-fetched through its polymorphic base's non-polymorphic manager.
 
-    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker``: every
+    Gated on ``type_of`` directly, not on ``polymorphic_model_marker``: every
     polymorphic model carries the marker, but only ``Sample``, ``Measurement`` and
-    ``Contributor`` declare ``type_of`` - a portal-defined polymorphic model that is none of
+    ``Contributor`` declare ``type_of``. A portal-defined polymorphic model that is none of
     those would otherwise raise ``AttributeError`` here rather than being left alone.
+
+    Args:
+        obj: The record to re-fetch.
+
+    Returns:
+        The non-polymorphic instance, or ``obj`` itself when it declares no ``type_of``.
     """
     base_class = getattr(obj, "type_of", None)
     if base_class is None:
@@ -44,20 +56,26 @@ def get_permission_target(obj, perm):
 
     A polymorphic subclass instance (e.g. ``RockSample``) carries its own app label and content
     type, so guardian either raises ``WrongAppError`` or silently misses a stored row when the
-    permission is declared on the polymorphic base instead (``research.md`` R2). Normalising to
-    the base fixes that - but only when the base is the one that actually owns the permission
-    being checked. Doing it unconditionally would retarget every polymorphic record's content
-    type, including one whose own subclass owns the permission - an ``Organization`` normalised
-    to ``Contributor`` would orphan every permission ever assigned to it (D-018).
+    permission is declared on the polymorphic base instead. Normalising to the base fixes that,
+    but only when the base is the one that actually owns the permission being checked. Doing it
+    unconditionally would retarget every polymorphic record's content type, including one whose
+    own subclass owns the permission: an ``Organization`` normalised to ``Contributor`` would
+    orphan every permission ever assigned to it.
 
     Gated on the object, not on the permission string: guardian only compares app labels when the
     permission carries one (``"." in perm``), so a gate keyed on that would never fire for an
     unqualified permission and the failure would become a silent denial instead of an error.
 
-    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker``: every polymorphic
-    model carries the marker, but only ``Sample``, ``Measurement`` and ``Contributor`` declare
-    ``type_of`` - a portal-defined polymorphic model that is none of those would otherwise raise
-    ``AttributeError`` inside an authentication backend rather than being left alone.
+    Gated on ``type_of`` directly, not on ``polymorphic_model_marker``: a portal-defined
+    polymorphic model that declares no ``type_of`` would otherwise raise ``AttributeError``
+    inside an authentication backend rather than being left alone.
+
+    Args:
+        obj: The record the permission is checked or granted on, or ``None``.
+        perm: The permission codename, with or without an app label.
+
+    Returns:
+        The object to pass to guardian: ``obj`` itself or its non-polymorphic base instance.
     """
     if obj is None:
         return obj
@@ -80,13 +98,20 @@ def get_permission_target(obj, perm):
 
 
 def assign_perm(perm, user_or_group, obj):
-    """Assign ``perm`` to ``user_or_group`` on ``obj``, normalising a polymorphic instance first.
+    """Assign a permission, normalising a polymorphic instance first.
 
-    A backend takes no part in granting a right - ``guardian.shortcuts.assign_perm`` resolves the
+    A backend takes no part in granting a right. ``guardian.shortcuts.assign_perm`` resolves the
     object's own content type directly, so a permission declared on a polymorphic base (e.g.
-    ``change_sample``) still cannot be stored against a subclass instance even once the check side
-    is fixed (D-019). Uses the same gate as the check side, so the two never disagree about which
-    records they cover.
+    ``change_sample``) could not be stored against a subclass instance. Uses the same gate as
+    the check side, so the two never disagree about which records they cover.
+
+    Args:
+        perm: The permission to assign.
+        user_or_group: The user or group receiving the permission.
+        obj: The record the permission applies to.
+
+    Returns:
+        Whatever ``guardian.shortcuts.assign_perm`` returns.
     """
     from guardian.shortcuts import assign_perm as guardian_assign_perm
 
@@ -94,21 +119,34 @@ def assign_perm(perm, user_or_group, obj):
 
 
 def remove_perm(perm, user_or_group, obj):
-    """Remove ``perm`` from ``user_or_group`` on ``obj``, with :func:`assign_perm`'s normalisation."""
+    """Remove a permission, with the same normalisation as :func:`assign_perm`.
+
+    Args:
+        perm: The permission to remove.
+        user_or_group: The user or group losing the permission.
+        obj: The record the permission applies to.
+
+    Returns:
+        Whatever ``guardian.shortcuts.remove_perm`` returns.
+    """
     from guardian.shortcuts import remove_perm as guardian_remove_perm
 
     return guardian_remove_perm(perm, user_or_group, get_permission_target(obj, perm))
 
 
 def get_perms(user_or_group, obj):
-    """List every permission ``user_or_group`` holds on ``obj``.
+    """List every permission a user or group holds on an object.
 
-    Merges rows stored against ``obj``'s own content type with rows stored against its
+    Merges rows stored against the object's own content type with rows stored against its
     polymorphic base, because :func:`assign_perm` may have written to either depending on which
-    one owns the permission - and there is no single ``perm`` here to gate the choice on.
+    one owns the permission, and there is no single permission here to gate the choice on.
 
-    Gated on ``type_of`` directly (F6), not on ``polymorphic_model_marker`` - see
-    :func:`get_permission_target`.
+    Args:
+        user_or_group: The user or group to look up.
+        obj: The record to look up permissions on.
+
+    Returns:
+        The sorted permission codenames.
     """
     from guardian.shortcuts import get_perms as guardian_get_perms
 
@@ -122,17 +160,24 @@ def get_perms(user_or_group, obj):
 
 
 def get_objects_for_user(user, perm, klass, **kwargs):
-    """List the objects in ``klass`` that ``user`` holds ``perm`` for, normalising a polymorphic
-    subclass's content type the same way :func:`assign_perm`/:func:`has_perm` do (F4).
+    """List the objects a user holds a permission for, allowing for polymorphic subclasses.
 
-    ``guardian.shortcuts.get_objects_for_user`` derives its content-type filter from ``perm``'s
-    own app label and model name, so a naive permission built from a specimen subclass (e.g.
-    ``"demo.view_rocksample"``) finds nothing when the grant is filed under the
-    polymorphic base's content type (``sample.view_sample``) - and it raises
-    ``MixedContentTypeError`` outright if handed that base-model permission alongside a subclass
-    queryset, so the two cannot simply be passed through together. This recomputes ``perm``
-    against the base model, resolves matching primary keys there, and narrows the caller's own
-    queryset by them - safe because a polymorphic subclass shares its primary key with its base.
+    ``guardian.shortcuts.get_objects_for_user`` derives its content-type filter from the
+    permission's own app label and model name, so a permission built from a subclass (e.g.
+    ``"demo.view_rocksample"``) finds nothing when the grant is filed under the polymorphic
+    base's content type (``sample.view_sample``). Handing it the base-model permission alongside
+    a subclass queryset raises ``MixedContentTypeError``. This recomputes the permission against
+    the base model, resolves matching primary keys there, and narrows the caller's own queryset
+    by them. That is safe because a polymorphic subclass shares its primary key with its base.
+
+    Args:
+        user: The user to look up.
+        perm: The permission, in ``app_label.codename`` form.
+        klass: The model or queryset to filter.
+        **kwargs: Keyword arguments passed to ``guardian.shortcuts.get_objects_for_user``.
+
+    Returns:
+        The queryset of objects the user holds the permission for.
     """
     from guardian.shortcuts import get_objects_for_user as guardian_get_objects_for_user
 
@@ -154,6 +199,20 @@ def get_objects_for_user(user, perm, klass, **kwargs):
 
 
 def model_class_inheritance_to_fieldsets(obj_or_class):
+    """Group a sample model's own fields into fieldsets, one per class in its inheritance chain.
+
+    Each field appears once, under the first class in the chain that declares it, and the
+    bookkeeping fields every sample carries (``id``, ``local_id``, ``image`` and the like) are
+    left out. The most derived class's fields are then folded into the first group, and that
+    last group is dropped.
+
+    Args:
+        obj_or_class: A sample instance or sample model class.
+
+    Returns:
+        A list of ``(name, {"fields": [...]})`` pairs. ``name`` is the class's verbose name,
+        or ``None`` for ``Sample`` itself.
+    """
     from .models import Sample
 
     klass = obj_or_class if isinstance(obj_or_class, type) else obj_or_class.__class__
@@ -172,26 +231,17 @@ def model_class_inheritance_to_fieldsets(obj_or_class):
     }
     result = []
 
-    # Loop through the real model's MRO
     for base in reversed(klass.__mro__):
-        # Only process Django models that are subclasses of models.Model
         if hasattr(base, "_meta") and issubclass(base, Sample):
             declared_in_base = []
             for field in base._meta.local_fields:
-                # Check if field is already declared by a parent class
                 if field.name not in declared_fields:
-                    # Mark this field as declared
                     declared_fields.add(field.name)
                     declared_in_base.append(field.name)
 
             if declared_in_base:
                 name = base._meta.verbose_name if base != Sample else None
                 result.append((name, {"fields": declared_in_base}))
-
-    # if len(result) == 1:
-    # return {None: result["sample"]}
-    # sample = result.pop("sample")
-    # last_key = list(result.keys())[-1]
 
     first_group = result[0][1]
     last_group = result[-1][1]

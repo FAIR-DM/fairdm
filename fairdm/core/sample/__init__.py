@@ -1,7 +1,1 @@
-"""Sample model module.
-
-The base Sample model is NOT registered with the registry.
-Only polymorphic subclasses (e.g., RockSample, WaterSample) should be registered.
-
-See the demo app for examples of registering sample subclasses.
-"""
+"""The sample record type. Only polymorphic subclasses are registered, not the base ``Sample``."""

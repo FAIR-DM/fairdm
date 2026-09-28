@@ -1,3 +1,5 @@
+"""Reusable overview, update and delete plugins for the core record pages."""
+
 from typing import Any
 
 from django.urls import reverse
@@ -16,6 +18,11 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
     - template_name: Override the template (or use hierarchical resolution)
     - get_context_data(): Add custom context variables
     - permission: Set required permission for access
+
+    Attributes:
+        page_subtitle: The page subtitle.
+        page_icon: The icon shown beside the page title.
+        menu: The tab label, icon and order.
 
     Example:
         ```python
@@ -40,7 +47,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
     menu = {"label": _("Overview"), "icon": "overview", "order": 0}
 
     def get_page_title(self):
-        """Default page title is the object's string representation."""
+        """Use the object's string representation as the page title."""
         return str(self.base_object)
 
 
@@ -53,6 +60,10 @@ class UpdatePlugin(Plugin, FairDMUpdateView):
     - menu: Configure tab label, icon, and order
     - template_name: Override the template (or use hierarchical resolution)
     - permission: Set required permission (defaults to change permission)
+
+    Attributes:
+        page_subtitle: The page subtitle.
+        page_icon: The icon shown beside the page title.
 
     Example:
         ```python
@@ -73,10 +84,11 @@ class UpdatePlugin(Plugin, FairDMUpdateView):
     page_icon = "edit"
 
     def get_success_url(self):
-        """Return to the base object's detail page after successful save."""
+        """Return to the base object's detail page after a successful save."""
         return self.base_object.get_absolute_url()
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Return the context from the parent view unchanged."""
         return super().get_context_data(**kwargs)
 
 
@@ -92,6 +104,9 @@ class DeletePlugin(Plugin, FairDMDeleteView):
 
     The default behavior requires users to check a confirmation box before
     deletion can proceed.
+
+    Attributes:
+        template_name: The confirmation template.
 
     Example:
         ```python
@@ -113,14 +128,12 @@ class DeletePlugin(Plugin, FairDMDeleteView):
     template_name = "plugins/delete.html"
 
     def get_success_url(self):
-        """Redirect to model's list view after successful deletion."""
-        # Try to get parent object's URL first
+        """Redirect to the parent record, else the model's list view, after deletion."""
         if hasattr(self.base_object, "project"):
             return self.base_object.project.get_absolute_url()
         if hasattr(self.base_object, "dataset"):
             return self.base_object.dataset.get_absolute_url()
 
-        # Fall back to model's list view
         app_label = self.base_object._meta.app_label
         model_name = self.base_object._meta.model_name
         try:

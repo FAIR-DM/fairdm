@@ -1,1 +1,1 @@
-# Template tags for plugin system
+"""Template tags for the plugin system."""

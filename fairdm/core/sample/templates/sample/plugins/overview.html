@@ -25,7 +25,6 @@
 
 {% block overview_main %}
   {{ block.super }}
-  {# Measurements #}
   {% if sample.measurements.exists %}
     <c-card icon="speedometer2">
       <c-slot name="title">
@@ -61,7 +60,6 @@
 
 {% block overview_sidebar %}
   {{ block.super }}
-  {# Location #}
   {% if sample.location %}
     <c-card title="{% trans 'Location' %}" icon="location">
       <dl class="mb-0">
@@ -82,7 +80,6 @@
       </dl>
     </c-card>
   {% endif %}
-  {# Collection Details #}
   {% if sample.collection_date or sample.collector %}
     <c-card title="{% trans 'Collection' %}"
             icon="calendar-event">

@@ -1,116 +1,66 @@
-"""Custom permission backends for Measurement model.
+"""Permission backend for measurements, inheriting permissions from the parent dataset.
 
-Provides guardian integration with permission inheritance from Dataset.
-
-Usage:
-    Add to settings.AUTHENTICATION_BACKENDS:
-
-    ```python
-    AUTHENTICATION_BACKENDS = [
-        "django.contrib.auth.backends.ModelBackend",
-        "allauth.account.auth_backends.AuthenticationBackend",
-        "fairdm.core.permissions.PolymorphicObjectPermissionBackend",
-        "fairdm.core.sample.permissions.SamplePermissionBackend",
-        "fairdm.core.measurement.permissions.MeasurementPermissionBackend",  # Add this
-    ]
-    ```
+Add ``fairdm.core.measurement.permissions.MeasurementPermissionBackend`` to
+``AUTHENTICATION_BACKENDS`` after ``fairdm.core.permissions.PolymorphicObjectPermissionBackend``.
 """
 
 from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
 class MeasurementPermissionBackend(PolymorphicObjectPermissionBackend):
-    """Custom permission backend for Measurement model with dataset inheritance.
+    """Permission backend that lets a measurement inherit permissions from its dataset.
 
-    This backend extends django-guardian's ObjectPermissionBackend to support:
-    1. Object-level permissions on Measurement instances
-    2. Permission inheritance from parent Dataset
+    A user without a direct permission on a measurement is checked against the dataset:
 
-    Permission Mapping:
-    - view_dataset → view_measurement
-    - change_dataset → change_measurement
-    - delete_dataset → delete_measurement
-    - change_dataset → add_measurement (creating measurements requires dataset change permission)
-    - import_data → import_data (bulk import inherits from dataset)
+    - ``view_dataset`` gives ``view_measurement``
+    - ``change_dataset`` gives ``change_measurement`` and ``add_measurement``
+    - ``delete_dataset`` gives ``delete_measurement``
+    - ``import_data`` on the dataset gives ``import_data`` on the measurement
 
-    Cross-Dataset Context:
-    When a measurement in Dataset A references a sample from Dataset B:
-    - Measurement edit permissions are controlled by Dataset A
-    - Sample edit permissions are controlled by Dataset B (via SamplePermissionBackend)
-    - This maintains clear permission boundaries for cross-dataset workflows
+    When a measurement in dataset A references a sample from dataset B, the measurement's
+    permissions come from A and the sample's from B (through ``SamplePermissionBackend``).
 
-    Examples:
-        ```python
-        from guardian.shortcuts import assign_perm
-
-        # Direct measurement permission
-        assign_perm("view_measurement", user, measurement)
-        user.has_perm("view_measurement", measurement)  # True
-
-        # Inherited from dataset
-        assign_perm("view_dataset", user, dataset)
-        user.has_perm("view_measurement", measurement)  # True (inherited)
-
-        # Cross-dataset scenario
-        measurement_a = Measurement.objects.create(dataset=dataset_a, sample=sample_b)
-        assign_perm("change_dataset", user, dataset_a)
-        user.has_perm(
-            "change_measurement", measurement_a
-        )  # True (can edit measurement)
-        user.has_perm(
-            "change_sample", sample_b
-        )  # False (requires Dataset B permission)
-        ```
+    Attributes:
+        supports_object_permissions: Object-level permissions are supported.
+        supports_anonymous_user: Anonymous users are passed to the backend.
     """
 
     supports_object_permissions = True
     supports_anonymous_user = True
 
     def has_perm(self, user_obj, perm, obj=None):
-        """Check if user has permission on object.
-
-        For Measurement objects, checks:
-        1. Direct measurement-level permissions via guardian
-        2. Inherited dataset-level permissions
+        """Check the permission directly on the measurement, then through its dataset.
 
         Args:
-            user_obj: User instance
-            perm: Permission string (e.g., 'measurement.view_measurement')
-            obj: Optional Measurement instance
+            user_obj: The user to check.
+            perm: The permission, such as ``measurement.view_measurement``.
+            obj: The object the permission is checked on. Non-measurements go to the parent backend.
 
         Returns:
-            bool: True if user has permission
+            True when the user holds the permission on the measurement or its dataset.
         """
-        # Let parent backend handle non-Measurement objects and global permissions
         if obj is None:
             return super().has_perm(user_obj, perm, obj)
 
-        # Import here to avoid circular imports
         from fairdm.core.measurement.models import Measurement
 
-        # Only handle Measurement objects
         if not isinstance(obj, Measurement):
             return super().has_perm(user_obj, perm, obj)
 
-        # Check direct measurement permission first
         if super().has_perm(user_obj, perm, obj):
             return True
 
-        # Check inherited dataset permission
         if obj.dataset:
-            # Map measurement permissions to dataset permissions
             permission_map = {
                 "measurement.view_measurement": "dataset.view_dataset",
                 "measurement.change_measurement": "dataset.change_dataset",
                 "measurement.delete_measurement": "dataset.delete_dataset",
-                "measurement.add_measurement": "dataset.change_dataset",  # Creating requires change permission
+                "measurement.add_measurement": "dataset.change_dataset",
                 "measurement.import_data": "dataset.import_data",
             }
 
-            # Get corresponding dataset permission
             dataset_perm = permission_map.get(perm)
             if dataset_perm:
-                # Check if user has permission on parent dataset
                 return super().has_perm(user_obj, dataset_perm, obj.dataset)
 
         return False

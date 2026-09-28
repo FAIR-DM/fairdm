@@ -1,3 +1,5 @@
+"""Audit logging for claiming events."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -16,20 +18,20 @@ def log_claiming_event(
     failure_reason: str = "",
     details: dict[str, Any] | None = None,
 ):
-    """Create an immutable ClaimingAuditLog record for a claiming event.
+    """Write an immutable audit record for a claiming event.
 
     Args:
-        method: One of ClaimMethod choices (e.g., "orcid", "email", "token").
-        source: The unclaimed Person being claimed (or None if not known).
-        target: The resulting claimed Person (or None if claim failed before linking).
-        initiated_by: Admin who initiated (for admin-driven claims), or None.
-        ip_address: Request IP address for security auditing, or None.
-        success: True if the claim succeeded, False otherwise.
-        failure_reason: Short description of why the claim failed (if success=False).
-        details: Arbitrary JSON-serialisable metadata about the event.
+        method: A ``ClaimMethod`` value such as ``orcid``, ``email`` or ``token``.
+        source: The unclaimed person being claimed, if known.
+        target: The resulting claimed person, or None when the claim failed before linking.
+        initiated_by: The admin who initiated an admin-driven claim.
+        ip_address: The requester's IP address.
+        success: Whether the claim succeeded.
+        failure_reason: Why the claim failed.
+        details: JSON-serialisable metadata about the event.
 
     Returns:
-        ClaimingAuditLog: The newly created (immutable) audit record.
+        The new audit record.
     """
     from fairdm.contrib.contributors.models import ClaimingAuditLog
 

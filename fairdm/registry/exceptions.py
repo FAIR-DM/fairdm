@@ -1,8 +1,4 @@
-"""Exception Classes - FairDM Registry System Error Types.
-
-This module defines the complete exception hierarchy for the registry system
-with helpful error messages, suggestions, and context preservation.
-"""
+"""Exceptions raised by the registry."""
 
 from typing import TYPE_CHECKING
 
@@ -30,14 +26,25 @@ class ConfigurationError(RegistryError):
     """Invalid ModelConfiguration setup.
 
     Raised when:
+
     - Model doesn't inherit from Sample or Measurement
     - Required model attribute is missing
     - Custom class doesn't inherit from expected base
     - Invalid configuration combination
 
-    Attributes:
-        model: The Django model class (if known)
-        config_class: The ModelConfiguration class (if known)
+    The message is prefixed with the model's or configuration class's name when
+    either is given.
+
+    Args:
+        message: Error description.
+        model: The Django model class, if known.
+        config_class: The ModelConfiguration class, if known.
+
+    Example:
+        raise ConfigurationError(
+            "model attribute is required",
+            config_class=RockSampleConfig
+        )
     """
 
     def __init__(
@@ -46,23 +53,9 @@ class ConfigurationError(RegistryError):
         model: type["models.Model"] | None = None,
         config_class: type | None = None,
     ):
-        """Initialize ConfigurationError.
-
-        Args:
-            message: Error description
-            model: Django model class (optional)
-            config_class: ModelConfiguration class (optional)
-
-        Example:
-            raise ConfigurationError(
-                "model attribute is required",
-                config_class=RockSampleConfig
-            )
-        """
         self.model = model
         self.config_class = config_class
 
-        # Add model name to message if available
         if model:
             message = f"{model.__name__}: {message}"
         elif config_class:
@@ -78,12 +71,19 @@ class FieldValidationError(RegistryError):
     the model, the attribute that declared the name, the name itself, and either a
     close match or the reason the path stopped resolving.
 
-    Attributes:
-        field_name: the name or path that failed
-        model: the Django model it was declared against
-        attribute: the configuration attribute that declared it
-        suggestion: a comma-separated list of close matches, if any
-        reason: why the path stopped resolving, where that is not a missing name
+    Args:
+        field_name: The name or path that failed.
+        model: The Django model it was declared against.
+        attribute: The configuration attribute that declared it.
+        suggestion: A comma-separated list of close matches, if any.
+        reason: Why the path stopped resolving, where that is not a missing name.
+
+    Example:
+        raise FieldValidationError(
+            "loction", RockSample, attribute="fields", suggestion="location"
+        )
+        # "Invalid field 'loction' in RockSample.fields: no such field on
+        #  RockSample. Did you mean: location?"
     """
 
     def __init__(
@@ -94,15 +94,6 @@ class FieldValidationError(RegistryError):
         suggestion: str | None = None,
         reason: str | None = None,
     ):
-        """Build the error.
-
-        Example:
-            raise FieldValidationError(
-                "loction", RockSample, attribute="fields", suggestion="location"
-            )
-            # "Invalid field 'loction' in RockSample.fields: no such field on
-            #  RockSample. Did you mean: location?"
-        """
         self.field_name = field_name
         self.model = model
         self.attribute = attribute
@@ -125,6 +116,9 @@ class NotRegisteredError(RegistryError, KeyError):
     Subclasses ``KeyError`` so that callers written against the registry's earlier
     behaviour keep working, while the message names the model rather than repeating
     its label as a bare key.
+
+    Args:
+        model: The model class, or its ``app_label.ModelName`` label.
     """
 
     def __init__(self, model: "type[models.Model] | str"):
@@ -137,6 +131,7 @@ class NotRegisteredError(RegistryError, KeyError):
         )
 
     def __str__(self) -> str:
+        """Return the message unquoted."""
         # KeyError repr()s its argument, which would quote the whole sentence.
         return str(self.args[0])
 
@@ -147,10 +142,20 @@ class DuplicateRegistrationError(RegistryError):
     Raised when attempting to register a model that's already registered.
     Each model can only be registered once.
 
-    Attributes:
-        model: The Django model class
-        original_location: Module path where model was first registered
-        new_location: Module path of duplicate registration attempt
+    Args:
+        model: The Django model class.
+        original_location: Module path where the model was first registered.
+        new_location: Module path of the duplicate registration attempt.
+
+    Example:
+        raise DuplicateRegistrationError(
+            RockSample,
+            original_location='myapp.registry',
+            new_location='myapp.another_registry'
+        )
+        # "RockSample already registered at myapp.registry. Each model can only
+        #  be registered once. Attempted duplicate registration from
+        #  myapp.another_registry."
     """
 
     def __init__(
@@ -159,22 +164,6 @@ class DuplicateRegistrationError(RegistryError):
         original_location: str,
         new_location: str | None = None,
     ):
-        """Initialize DuplicateRegistrationError.
-
-        Args:
-            model: Django model class
-            original_location: Module path of first registration
-            new_location: Module path of duplicate attempt (optional)
-
-        Example:
-            raise DuplicateRegistrationError(
-                RockSample,
-                original_location='myapp.registry',
-                new_location='myapp.another_registry'
-            )
-            # Error message: "RockSample already registered at myapp.registry.
-            #                 Attempted duplicate registration from myapp.another_registry."
-        """
         self.model = model
         self.original_location = original_location
         self.new_location = new_location

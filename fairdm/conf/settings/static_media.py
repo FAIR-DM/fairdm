@@ -1,64 +1,45 @@
-"""Static and Media Files Configuration
+"""Static and media file settings: WhiteNoise, compressor, storages and thumbnails.
 
-Owns: static file serving via WhiteNoise, and media storage — local
-filesystem by default, switching to S3 when ``S3_ACCESS_KEY_ID``,
-``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME`` are all present (FR-002,
-FR-003). That switch is feature detection on which credentials a portal
-supplied, not a branch on the resolved environment. Leaves to a portal:
-thumbnail alias sizes beyond the four core content types, and any
-STORAGES entry it wants to add.
-
-This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
+Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem,
+switching to S3 when ``S3_ACCESS_KEY_ID``, ``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME``
+are all present. A portal supplies thumbnail aliases beyond the four core content types, and
+any STORAGES entry it wants to add.
 """
 
 import logging
 import os
 
-# Access environment variables via shared env instance
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 SITE_DOMAIN = globals()["SITE_DOMAIN"]
 
 logger = logging.getLogger(__name__)
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = COMPRESS_ROOT = str(BASE_DIR / "static")
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = COMPRESS_URL = "/static/"
 
-
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 if os.path.exists(str(BASE_DIR / "assets")):
     STATICFILES_DIRS = [
-        # this is where the end user will store their static files
         str(BASE_DIR / "assets"),
     ]
 
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "compressor.finders.CompressorFinder",
 ]
 
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = str(BASE_DIR / "media")
 
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-# ======= WHITENOISE =================================
 WHITENOISE_MANIFEST_STRICT = False
-
-
-# ======= Django Compressor ========================
-# https://django-compressor.readthedocs.io/en/latest/settings/
 
 COMPRESS_ENABLED = True
 COMPRESS_STORAGE = "compressor.storage.GzipCompressorFileStorage"
-COMPRESS_OFFLINE = True  # Offline compression is required when using Whitenoise
+# Whitenoise requires offline compression.
+COMPRESS_OFFLINE = True
 COMPRESS_FILTERS = {
     "css": [
         "compressor.filters.css_default.CssAbsoluteFilter",
@@ -68,12 +49,9 @@ COMPRESS_FILTERS = {
 }
 COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 
-# STATIC
-# ------------------------
-
 STORAGES = {
     "staticfiles": {
-        # using whitenosie.storage.CompressedManifestStaticFilesStorage is more problematic than it's worth
+        # CompressedManifestStaticFilesStorage is more trouble than it is worth.
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
     "default": {
@@ -81,7 +59,6 @@ STORAGES = {
         "LOCATION": str(BASE_DIR / "media"),
     },
 }
-
 
 if all(
     [
@@ -91,40 +68,25 @@ if all(
     ]
 ):
     logger.info("Media storage: Using S3")
-    # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
     STORAGES["default"] = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     }
 
-# STORAGES
-# ------------------------------------------------------------------------------
 AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("S3_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("S3_BUCKET_NAME")
 AWS_S3_REGION_NAME = env("S3_REGION_NAME")
 
-# AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
-# THUMBNAIL_DEFAULT_STORAGE = STORAGES["default"]
-
-
-# 1MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
-
-# EASY-THUMBNAILS CONFIGURATION
-# https://easy-thumbnails.readthedocs.io/
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
 THUMBNAIL_CACHE_DIMENSIONS = True
 THUMBNAIL_SUBDIR = "thumbs"
-# easy-thumbnails re-raises rather than degrading to a blank image when this is
-# on, which is a development aid and a way to turn a missing source file into a
-# 500 in production. The baseline is production, so it is off here and turned
-# back on in conf/development.py (FR-003, D21).
+# On, easy-thumbnails re-raises instead of degrading to a blank image, turning a missing
+# source file into a 500. Only conf/development.py enables it.
 THUMBNAIL_DEBUG = False
 
 THUMBNAIL_ALIASES = {
-    # Project-wide 3:2 aliases used by all four core model types (Project,
-    # Dataset, Sample, Measurement). core_small is served in card/listing
-    # contexts; core_large is served in detail page headers.
+    # 3:2 aliases shared by Project, Dataset, Sample and Measurement.
     "": {
         "core_small": {"size": (600, 400), "crop": "smart"},
         "core_large": {"size": (1200, 800), "crop": "smart"},
@@ -143,5 +105,4 @@ THUMBNAIL_PROCESSORS = [
     "easy_thumbnails.processors.filters",
 ]
 
-# Default widget thumbnail size for admin ThumbnailerImageField previews (3:2 ratio)
 THUMBNAIL_WIDGET_OPTIONS = {"size": (150, 100)}

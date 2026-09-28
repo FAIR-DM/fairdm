@@ -1,9 +1,4 @@
-"""Signal handlers for the contributors app.
-
-Currently handles:
-  - email_confirmed: triggers claim_via_email() for unclaimed Persons
-    whose email address matches the confirmed email.
-"""
+"""Signal handlers for the contributors app."""
 
 from __future__ import annotations
 
@@ -18,12 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 def handle_email_confirmed(sender, request=None, email_address=None, **kwargs):
-    """Handle allauth email_confirmed signal.
+    """Claim the unclaimed person whose email was just confirmed.
 
-    Looks up any unclaimed Person whose email matches the confirmed address
-    and calls claim_via_email() if found.  Silent no-op when:
-      - ACCOUNT_EMAIL_VERIFICATION != 'mandatory'
-      - No unclaimed Person with that email exists
+    Does nothing unless ``ACCOUNT_EMAIL_VERIFICATION`` is ``mandatory`` and an unclaimed
+    person has that email. A claiming failure is logged, not raised.
+
+    Args:
+        sender: The signal sender.
+        request: The current request.
+        email_address: The confirmed email address.
+        **kwargs: Other signal arguments.
+
+    Returns:
+        None.
     """
     if getattr(settings, "ACCOUNT_EMAIL_VERIFICATION", "mandatory") != "mandatory":
         return

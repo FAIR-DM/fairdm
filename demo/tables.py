@@ -1,9 +1,13 @@
+"""Table definitions for the demo sample models."""
+
 from fairdm.contrib.collections.tables import SampleTable
 
 from .models import CustomSample
 
 
 class CustomSampleTable(SampleTable):
+    """List custom samples with one column per field type."""
+
     class Meta:
         model = CustomSample
         exclude = [
@@ -33,7 +37,23 @@ class CustomSampleTable(SampleTable):
         ]
 
     def render_text_field(self, value):
+        """Truncate the text field to 32 characters.
+
+        Args:
+            value: The full text value.
+
+        Returns:
+            The first 32 characters followed by an ellipsis.
+        """
         return f"{value[:32]}..."
 
     def value_text_field(self, value):
+        """Export the text field untruncated.
+
+        Args:
+            value: The full text value.
+
+        Returns:
+            The value unchanged.
+        """
         return value

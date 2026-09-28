@@ -1,8 +1,8 @@
+"""Models for projects and their related descriptions, dates and identifiers."""
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
-
-# from django.db.models import QuerySet
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
@@ -27,27 +27,32 @@ from .validators import validate_funding
 
 
 class ProjectQuerySet(QuerySet):
-    """Custom QuerySet for Project model with optimized query methods."""
+    """QuerySet for projects, with helpers that load related records in a bounded number of queries."""
 
     def get_visible(self) -> "ProjectQuerySet":
-        """Return only projects with public visibility."""
+        """Return only the projects with public visibility.
+
+        Returns:
+            The public projects.
+        """
         return self.filter(visibility=Visibility.PUBLIC)
 
     def with_contributors(self) -> "ProjectQuerySet":
-        """Prefetch related contributors for optimized access.
+        """Prefetch the contributions and the contributors behind them.
 
-        Reaches through to the contributor itself, not just the contribution
-        row: every caller that prefetches contributions goes on to name the
-        person or organisation behind each one, and `Contributor` is
-        polymorphic, so resolving them lazily costs two queries per credit.
+        Callers go on to name the person or organisation behind each credit, and
+        ``Contributor`` is polymorphic, so resolving them lazily costs two queries per credit.
+
+        Returns:
+            The queryset with the prefetch applied.
         """
         return self.prefetch_related("contributors__contributor")
 
     def with_metadata(self) -> "ProjectQuerySet":
-        """Prefetch all related metadata for detail views.
+        """Load the owner, descriptions, dates, identifiers, contributions and keywords.
 
-        Includes descriptions, dates, identifiers, and contributors to minimize
-        database queries when displaying full project details.
+        Returns:
+            The queryset with the related records loaded.
         """
         return self.select_related("owner").prefetch_related(
             "descriptions",
@@ -58,18 +63,13 @@ class ProjectQuerySet(QuerySet):
         )
 
     def with_list_data(self) -> "ProjectQuerySet":
-        """Optimized queryset for list views.
+        """Load everything a project card draws, and annotate ``dataset_count``.
 
-        Loads everything a project card draws — the owning organization, the
-        keyword badges, and the descriptions the plain-text abstract is taken
-        from — and annotates ``dataset_count``, the number of datasets the card
-        reports.
+        The count covers public datasets only. An annotation aggregates over a join and never
+        consults a manager, so the exclusion of private datasets is written into the aggregate.
 
-        That count names **public datasets only**. ``Dataset.objects`` excludes
-        private records, but an annotation aggregates over a join to the dataset
-        table and never consults a manager, so the exclusion has to be written
-        into the aggregate itself. Without it the listing would publish a number
-        that only a private dataset explains.
+        Returns:
+            The queryset with the related records and count loaded.
         """
         return (
             self.select_related("owner")
@@ -85,16 +85,16 @@ class ProjectQuerySet(QuerySet):
 
 
 class Project(BaseModel):
-    """A project is a collection of datasets and associated metadata. The Project model
-    is the top level model in the FairDM schema hierarchy and all datasets, samples,
-    and measurements should relate back to a project.
+    """A collection of datasets and associated metadata.
+
+    The top-level model in the FairDM schema hierarchy: datasets, samples and measurements
+    should relate back to a project.
     """
 
     DEFAULT_ROLES = ["ProjectMember"]
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Project")
     DATE_TYPES = FairDMDates.from_collection("Project")
     DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Project")
-    # IDENTIFIER_TYPES = choices.DataCiteIdentifiers
     STATUS_CHOICES = ProjectStatus
     VISIBILITY = Visibility
 
@@ -131,12 +131,8 @@ class Project(BaseModel):
     )
     contributors = GenericRelation("contributors.Contribution")
 
-    # RELATIONS
-    # `created_by` is a ForeignKey rather than a plain nullable char field, so it
-    # carries a database index by default - no additional indexing decision is
-    # needed here. Not editable: the creator is written server-side only (see
-    # the portal create view and ProjectViewSet.perform_create), never through a
-    # form, the admin or a serializer field.
+    # Not editable: the creator is written server-side only, never through a form, the admin
+    # or a serializer field.
     created_by = models.ForeignKey(
         "contributors.Person",
         on_delete=models.SET_NULL,
@@ -168,8 +164,7 @@ class Project(BaseModel):
     }
 
     #: The theme colour each lifecycle stage carries on a project card. Only
-    #: `SEARCHING_FOR_COLLABORATORS` is a call to action, so it is the only one
-    #: given an attention colour; the rest report state and stay quiet.
+    #: `SEARCHING_FOR_COLLABORATORS` is a call to action, so only it gets an attention colour.
     STATUS_BADGE_VARIANTS = {
         STATUS_CHOICES.CONCEPT: "neutral",
         STATUS_CHOICES.PLANNING: "info",
@@ -180,21 +175,14 @@ class Project(BaseModel):
 
     @property
     def status_badge_variant(self):
-        """The theme colour name for this project's status badge.
+        """Return the theme colour name for this project's status badge.
 
-        Falls back to `neutral` so a status added to the vocabulary without an
-        entry above still renders a legible badge rather than an unstyled one.
+        Falls back to ``neutral`` so a status without an entry above still renders a legible badge.
         """
         return self.STATUS_BADGE_VARIANTS.get(self.status, "neutral")
 
     def get_absolute_url(self):
-        """The project's own page: its registered overview (013 plan P1).
-
-        Overrides ``BaseModel.get_absolute_url``, which reverses ``f"{model_name}-detail"`` — a
-        name this record no longer has, now that its own page is a registration rather than a
-        standalone route. ``Dataset``, the other direct ``BaseModel`` subclass, keeps that
-        behaviour unchanged; its own singular/plural address split is issue #283, not this one.
-        """
+        """Return the URL of the project's registered overview page."""
         return reverse("project:overview", kwargs={"uuid": self.uuid})
 
     class Meta:
@@ -210,6 +198,8 @@ class Project(BaseModel):
 
 
 class ProjectDescription(AbstractDescription):
+    """Typed prose about a project, at most one description per type."""
+
     VOCABULARY = FairDMDescriptions.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
@@ -219,7 +209,7 @@ class ProjectDescription(AbstractDescription):
         verbose_name_plural = _("project descriptions")
 
     def clean(self):
-        """Validate that only one description per type exists for this project."""
+        """Refuse a second description of a type the project already carries."""
         super().clean()
         if self.related_id and self.type:
             existing = (
@@ -240,6 +230,8 @@ class ProjectDescription(AbstractDescription):
 
 
 class ProjectDate(AbstractDate):
+    """Typed date on a project, at most one per type, with the end no earlier than the start."""
+
     VOCABULARY = FairDMDates.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
@@ -251,15 +243,10 @@ class ProjectDate(AbstractDate):
         verbose_name_plural = _("project dates")
 
     def clean(self):
-        """Validate that the project's end date does not precede its start.
-
-        A project's start and end are stored as two separate `ProjectDate`
-        rows, one per type, so the comparison is made against the sibling
-        record rather than within a single instance. The comparison itself
-        is precision-aware and shared, in `fairdm.core.dates`.
-        """
+        """Refuse an end date that precedes the start date."""
         super().clean()
 
+        # Start and end are separate rows, so the rule compares against the sibling row.
         if not self.related_id or not self.value:
             return
 
@@ -294,6 +281,8 @@ class ProjectDate(AbstractDate):
 
 
 class ProjectIdentifier(AbstractIdentifier):
+    """Typed external identifier naming a project outside the portal."""
+
     VOCABULARY = FairDMIdentifiers.from_collection("Project")
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
@@ -303,10 +292,10 @@ class ProjectIdentifier(AbstractIdentifier):
 
 
 class PublicDatasetsProtect(Exception):
-    """Raised by pre_delete signal when a Project has publicly visible datasets.
+    """Raised before a project is deleted while it still has public datasets.
 
-    Attributes:
-        datasets: QuerySet of public Dataset instances blocking deletion.
+    Args:
+        datasets: The queryset of public datasets blocking deletion.
     """
 
     def __init__(self, datasets):
@@ -318,19 +307,17 @@ class PublicDatasetsProtect(Exception):
 
 @receiver(pre_delete, sender=Project)
 def prevent_project_deletion_with_datasets(sender, instance, **kwargs):
-    """Prevent deletion of projects that have associated PUBLIC datasets.
+    """Block deleting a project that has public datasets.
 
-    This signal ensures data integrity by blocking project deletion when
-    publicly visible child datasets exist. Projects with only private datasets
-    can be deleted freely (private datasets are removed via CASCADE).
+    A project with only private datasets can be deleted, and they go with it by cascade.
 
     Args:
-        sender: The Project model class
-        instance: The Project instance being deleted
-        **kwargs: Additional signal arguments
+        sender: The Project model class.
+        instance: The project being deleted.
+        **kwargs: Additional signal arguments.
 
     Raises:
-        PublicDatasetsProtect: If the project has any PUBLIC datasets
+        PublicDatasetsProtect: The project has public datasets.
     """
     public_datasets = instance.datasets.filter(visibility=Visibility.PUBLIC)
     if public_datasets.exists():

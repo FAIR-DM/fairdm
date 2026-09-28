@@ -1,3 +1,5 @@
+{# @description A date shown at the precision the record holds: the year, the month and year, or the full date. The date is passed in the `date` attribute. #}
+{# @prop :precision:number | default:0 | description:"How much of the date to show: 0 for the year, 1 for the month and year, 2 for the full date." #}
 <c-vars :precision="0" />
 {% if precision == 2 %}
   <span>{{ date|date:"M d, Y" }}</span>

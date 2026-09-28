@@ -21,54 +21,49 @@ if TYPE_CHECKING:
 
 
 class Plugin(PermissionRequiredMixin, View):
-    """Mixin class that adds plugin behavior to Django class-based views.
+    """Mixin that turns a Django class-based view into a page attached to a core record.
 
     Attributes:
-        name: Unique identifier per model (auto-derived from class name if not set)
-        url_path: URL path segment (auto-derived from name if not set)
-        model: Set by registry during registration (base model only)
-        menu: Tab configuration dict with keys:
-            - label (str, required): Display text
-            - icon (str, optional): Icon identifier
-            - order (int, optional, default 0): Sort position
-            If None/falsey, no tab is created.
-
+        registered_model: The model this mount serves. Bound per mount by ``as_view``, so
+            a plugin registered against two models serves each independently.
+        plugin_class: The plugin that owns this view. None for a plugin itself. For an
+            additional view, the declaring plugin, whose predicate governs the whole group.
+        name: Unique identifier per model. Defaults to the slugified class name.
+        url_path: URL path segment. ``""`` uses the name, ``None`` mounts without a base
+            path, and any other string is used as given.
+        permission: Permission or permissions required to open the page.
+        check: Predicate ``(request, obj)`` or bool deciding whether the page opens.
+        model: The base model, set by the registry during registration.
+        menu: The navigation menu bound per mount by ``as_view``.
+        extra_views: Additional view classes belonging to this plugin. Read through
+            ``get_extra_views``.
+        page_title: Last entry of the breadcrumb trail (#112).
+        slug_field: Model field used to find the record.
+        slug_url_kwarg: URL keyword argument holding the record's slug.
     """
 
-    # The model this mount serves. Bound per mount by as_view(), never assigned onto the class —
-    # a plugin registered against two models must serve each independently.
     registered_model: ClassVar[type[Model] | None] = None
 
-    # The plugin that owns this view. For a plugin itself this is None and it owns itself; for an
-    # additional view it is the declaring plugin, whose predicate governs the whole group.
     plugin_class: ClassVar[type[Plugin] | None] = None
 
-    # Plugin name (slugified class name if not set)
     name: ClassVar[str | None] = None
     url_path: ClassVar[str | None] = ""
-    # Note: url_path="" (default) → use slugified class name
-    #       url_path=None (explicit) → no base path for plugin or subviews
-    #       url_path="foo" → use "foo" as base path
     permission: ClassVar[str | None] = None
     check: ClassVar[Callable[[HttpRequest, Model | None], bool] | None] = True
     model: ClassVar[type[Model] | None] = None
     menu: ClassVar[dict[str, Any] | None] = None
-    # tab = None
-    #: Additional view classes belonging to this plugin. Read only through get_extra_views().
     extra_views: ClassVar[list[type[Plugin]]] = []
 
-    #: Shown as the last entry in the navigation trail. Declared here because get_breadcrumbs()
-    #: reads it directly, and a plugin that set none used to raise AttributeError (issue #112).
     page_title: ClassVar[str] = ""
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
 
     @classmethod
     def get_name(cls) -> str:
-        """Get the plugin name (slugified class name if not set).
+        """Return the plugin name, the slugified class name unless ``name`` is set.
 
         Returns:
-            Plugin name used for URL naming and identification
+            The name used for URL naming and identification.
         """
         if cls.name:
             return cls.name
@@ -78,11 +73,11 @@ class Plugin(PermissionRequiredMixin, View):
 
     @classmethod
     def get_url_path(cls) -> str | None:
-        """Get the URL path segment.
+        """Return the URL path segment.
 
         Returns:
-            URL path segment (e.g., "analysis" or "download"),
-            or None if url_path is explicitly set to None (no base path)
+            The segment, such as ``"analysis"``, or None when ``url_path`` is None
+            (no base path).
         """
         if cls.url_path is None:
             return None
@@ -92,26 +87,26 @@ class Plugin(PermissionRequiredMixin, View):
 
     @classmethod
     def get_extra_views(cls) -> list[type[Plugin]]:
-        """The additional view classes belonging to this plugin.
+        """Return the additional view classes belonging to this plugin.
 
-        The single reader of ``extra_views``. Declaration is a class attribute and resolution is one
-        method, which is the pattern this project settled for the model registry and the one Django
-        admin uses for inlines.
+        Returns:
+            A new list copied from ``extra_views``.
         """
         return list(cls.extra_views or [])
 
     @classmethod
     def get_urls(cls, menu_class=None, model=None) -> list[URLPattern]:
-        """Flat URL patterns for this plugin and every view it owns.
+        """Build one flat URL pattern for the plugin and one for each view it owns.
 
-        One ``path()`` per view, named ``<plugin>`` and ``<plugin>-<child>``. No nested namespace:
-        the earlier shape emitted an ``include()`` for every plugin whether or not it had children,
-        installing an empty resolver whose namespace equalled the plugin's own pattern name — the
-        plugin was simultaneously a route and a container. Django admin, DRF routers and neapolitan
-        all flatten instead.
+        Patterns are named ``<plugin>`` and ``<plugin>-<child>``, with no nested namespace.
 
-        The model is bound per mount rather than assigned onto the class, so one plugin registered
-        against two records serves each independently.
+        Args:
+            menu_class: The menu bound to each mount.
+            model: The model bound to each mount, so one plugin registered against two
+                records serves each independently.
+
+        Returns:
+            The URL patterns.
         """
         base_name = cls.get_name()
         base_path = cls.get_url_path()
@@ -139,33 +134,27 @@ class Plugin(PermissionRequiredMixin, View):
 
     @cached_property
     def base_object(self) -> Model | None:
-        """The core record this plugin hangs from.
+        """The core record this plugin hangs from, or None when it cannot be resolved.
 
-        Distinct from ``self.object``, which stays whatever the view class decides it is — the two
-        are different things and sharing one attribute name is what broke any view managing its own.
-        Named to match ``RelatedObjectMixin`` so a plugin and an ordinary related view read alike.
+        Distinct from ``self.object``, which the view class manages for itself.
         """
         from django.http import Http404
 
         try:
             return self.get_base_object()
         except Http404:
-            # A record that does not exist is a 404, not an absent record. Swallowing it here is
-            # what turned a missing sample into a 500 further along.
             raise
         except Exception:
             return None
 
     def get_base_object(self) -> Model:
-        """Fetch the core record named by the address.
+        """Fetch the core record named by the address, using the model's declared addressing.
 
-        The lookup comes from the model's declared addressing rather than a hardcoded ``uuid``, so
-        a record identified some other way — the location record is keyed on a coordinate pair and
-        has no ``uuid`` field — can be served by the same machinery.
+        Returns:
+            The record.
 
         Raises:
-            Http404: if no such record exists
-            ValueError: if the mount is missing, which is a wiring mistake rather than a bad request
+            ValueError: The mount has no model, or none of the model's lookup kwargs are in the URL.
         """
         from django.shortcuts import get_object_or_404
 
@@ -192,35 +181,13 @@ class Plugin(PermissionRequiredMixin, View):
                 )
                 raise ValueError(msg)
 
-        # Resolving through `all_objects` hands the access decision to the plugin's own
-        # `has_permission` (via `can_open`), because a privacy-first default manager such as
-        # `Dataset.objects` would otherwise 404 a private record before that check ever runs.
-        # `can_open` is only a decision where the plugin declares one: with neither `check` nor
-        # `permission` set it admits every request, anonymous included, so a plugin serving a
-        # model with restricted records MUST declare one (the three in `fairdm.core.dataset`
-        # declare `dataset.change_dataset`). `all_objects`, where a model has one, is the
-        # explicit unfiltered route (see 004-core-datasets R1); models without one keep the
-        # default manager unchanged.
+        # `all_objects` skips the privacy-first default manager, which would 404 a private record before
+        # `can_open` runs. A plugin on restricted records must declare `check` or `permission`.
         manager = getattr(self.registered_model, "all_objects", self.registered_model)
         return get_object_or_404(manager, **filters)
 
     def get_queryset(self):
-        """Base queryset for plugins built on Django's ``SingleObjectMixin``.
-
-        A plugin such as ``DescriptionsPlugin`` (``InlineFormSetView``) resolves its own record
-        through ``SingleObjectMixin.get_object()``, not through ``get_base_object()`` above, so the
-        same regression applies there: a privacy-first default manager would 404 a private record
-        before ``has_permission()`` (``can_open``) ever runs. Reads through ``all_objects`` where
-        the served model declares one, for the same reason and by the same rule as
-        ``get_base_object()``, and carries the same obligation - the plugin's own ``check`` or
-        ``permission`` is the only thing standing between an anonymous request and a private
-        record.
-
-        A view that declares its own ``get_queryset`` overrides this one through the MRO. A view
-        that declares a ``queryset`` attribute does not, because ``SingleObjectMixin`` only ever
-        reads that attribute from inside the method being overridden here - so it is honoured
-        explicitly below.
-        """
+        """Read through the served model's ``all_objects`` manager, as ``get_base_object`` does."""
         if getattr(self, "queryset", None) is not None:
             return super().get_queryset()  # type: ignore[misc]
         model = self.registered_model or self.model
@@ -230,49 +197,23 @@ class Plugin(PermissionRequiredMixin, View):
         return super().get_queryset()  # type: ignore[misc]
 
     def has_permission(self) -> bool:
-        """Whether this request may open this view.
-
-        Overrides ``PermissionRequiredMixin.has_permission``, which supplies the surrounding
-        ``dispatch`` and the ``handle_no_permission`` behaviour — an authenticated user gets 403, an
-        anonymous one is sent to log in.
-
-        The decision itself is :func:`~fairdm.contrib.plugins.access.can_open`, which the navigation
-        entry also calls. That is the whole mechanism behind the guarantee that what a user can see
-        and what a user can reach are the same set.
-        """
+        """Decide with :func:`~fairdm.contrib.plugins.access.can_open`, as the navigation entry does."""
         return can_open(self.__class__, self.request, self.base_object)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Add plugin-specific context data.
-
-        Adds:
-        - object: Model instance
-        - tabs: List of Tab objects for this model
-        - breadcrumbs: Breadcrumb navigation chain
-        - plugin_media: Static assets for this plugin
-
-        Args:
-            **kwargs: Additional context
-
-        Returns:
-            Context dictionary
-        """
+        """Add the core record, breadcrumbs, the plugin menu and the plugin's media."""
         context = super().get_context_data(**kwargs)  # type: ignore[misc]
 
-        # The core record, always. `object` is left to the view class.
         context["base_object"] = self.base_object
 
-        # Kept for templates that predate `base_object`; it resolves to the view's own object when
-        # the view has one, and to the core record otherwise.
+        # Templates that predate `base_object` read `object`.
         if not context.get("object"):
             context["object"] = getattr(self, "object", None) or self.base_object
 
-        # Add breadcrumbs
         context["breadcrumbs"] = self.get_breadcrumbs()
 
-        # Note: The presence of `plugin_menu` in the context is used by the base template to render the local tab navigation against an instance of the registered model.
+        # The base template renders the local tab navigation when `plugin_menu` is present.
         context["plugin_menu"] = self.menu
-        # Add plugin media
         if hasattr(self, "Media"):
             context["plugin_media"] = Media(self.Media)
         else:
@@ -281,10 +222,10 @@ class Plugin(PermissionRequiredMixin, View):
         return context
 
     def get_breadcrumbs(self) -> list[dict[str, Any]]:
-        """Auto-generate breadcrumb navigation chain.
+        """Build the breadcrumb trail from the model, the record and the page title.
 
         Returns:
-            List of breadcrumb dicts with 'text' and optionally 'href' keys
+            Breadcrumb dicts with a ``text`` key and, where a link resolves, an ``href``.
         """
         from django.urls import NoReverseMatch
         from django.urls import reverse as django_reverse
@@ -294,8 +235,7 @@ class Plugin(PermissionRequiredMixin, View):
         if self.registered_model:
             meta = self.registered_model._meta
             entry: dict[str, Any] = {"text": meta.verbose_name_plural}
-            # A record type may have no list page; a trail entry that does not navigate is worse
-            # than one that is plain text, so the link is added only when it resolves.
+            # A record type may have no list page, so the link is added only when it resolves.
             for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
                 try:
                     entry["href"] = django_reverse(candidate)

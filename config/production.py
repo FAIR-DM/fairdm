@@ -1,9 +1,7 @@
-"""Portal override module for the production environment (see docs/portal-development/configuration.md).
+"""Production settings overrides for the demo portal.
 
-Applied by fairdm.setup() as layer 4 — after the baseline, FairDM's own
-environment override, and addon settings, and before assignments made in
-settings.py after the setup() call. It must not call fairdm.setup() itself:
-it runs inside the caller's already-in-progress setup() call, sharing scope.
+See docs/portal-development/configuration.md. This module runs inside the
+``fairdm.setup()`` call in ``settings.py`` and must not call it again.
 """
 
 from django.utils.translation import gettext_lazy as _
@@ -13,10 +11,8 @@ LANGUAGES = [
     ("de", _("German")),
 ]
 
-# django-parler validates every code in PARLER_LANGUAGES against LANGUAGES when
-# it is imported, so a portal that narrows LANGUAGES has to narrow this to match.
-# Leaving it at the FairDM baseline (en, fr, de) is refused at startup as
-# fairdm.E400, which names both settings (T107).
+# django-parler validates PARLER_LANGUAGES against LANGUAGES on import, so narrowing
+# LANGUAGES means narrowing this too. Leaving the baseline is refused as fairdm.E400.
 PARLER_LANGUAGES = {
     1: (
         {"code": "en"},

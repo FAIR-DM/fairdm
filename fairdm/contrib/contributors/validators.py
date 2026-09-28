@@ -5,11 +5,14 @@ from django.utils.translation import gettext_lazy as _
 
 
 def validate_iso_639_1_language_code(value):
-    """Validate that the value is a valid ISO 639-1 language code.
+    """Validate a two-letter lowercase ISO 639-1 language code such as ``en``.
 
-    ISO 639-1 codes are two-letter lowercase codes (e.g., 'en', 'es', 'fr').
+    Args:
+        value: The code to check.
+
+    Raises:
+        ValidationError: The value is not an ISO 639-1 code.
     """
-    # All valid ISO 639-1 codes (extracted from iso_639_1_languages in fairdm.utils.choices)
     valid_codes = {
         "aa",
         "ab",
@@ -205,11 +208,12 @@ def validate_iso_639_1_language_code(value):
 
 
 def validate_iso_639_1_language_codes(value):
-    """Validate that every element of a list is a valid ISO 639-1 language code.
+    """Validate that every element of a list is an ISO 639-1 language code.
 
-    Field validators receive the field's whole value; for ``Contributor.lang``, a
-    JSONField holding a list of codes, that means validating each element in turn
-    so an invalid code anywhere in the list is refused.
+    An invalid element raises the ``ValidationError`` of the single-code validator.
+
+    Args:
+        value: The list of codes, or an empty value.
     """
     for code in value or []:
         validate_iso_639_1_language_code(code)

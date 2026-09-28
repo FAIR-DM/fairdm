@@ -1,3 +1,5 @@
+"""django-import-export resource for importing people from a spreadsheet."""
+
 import time
 
 from django.core.exceptions import ValidationError
@@ -8,43 +10,28 @@ from .utils import update_or_create_from_orcid, update_or_create_from_ror
 
 
 class PersonResource(resources.ModelResource):
+    """Import people, their ORCID iD and their affiliation from a spreadsheet.
+
+    Attributes:
+        orcid: The person's ORCID iD.
+        ror_id: The ROR id of the person's affiliation.
+        affiliation: The name of the person's affiliation.
+        uuid: The row's identifier, used to find the person but never written.
+    """
+
     orcid = fields.Field(column_name="orcid")
     ror_id = fields.Field(column_name="ror_id")
     affiliation = fields.Field(column_name="affiliation")
-    # `uuid` identifies a row - it is never written by one. Declared
-    # `readonly` (import_export.fields.Field's own supported way to exclude a
-    # field from `import_field()`/`Field.save()`, read in
-    # import_export==4.4.1's fields.py) so `import_instance()` skips writing
-    # it, while `import_id_fields` below still uses it - unaffected, since
-    # instance lookup goes through `Field.clean()`/`get_value()`, not
-    # `save()` - to find the row's matching Person. Without this, the
-    # auto-generated field for a model attribute of the same name defaults to
-    # writable, and a row whose `uuid` cell is blank or collides with another
-    # Person's real uuid could overwrite the public identifier every
-    # profile URL is built from, or raise an IntegrityError (see
-    # `use_transactions` below for why that must not take the rest of the
-    # batch with it).
+    # Read-only so a blank or colliding cell cannot overwrite the public identifier profile URLs use.
     uuid = fields.Field(attribute="uuid", column_name="uuid", readonly=True)
 
     class Meta:
         model = Person
-        # A display name is not an identity check — a spreadsheet row and an
-        # existing Person can share one by coincidence. `uuid` is the public
-        # identifier every Person carries, and is the only field this resource
-        # uses to decide "this row is that record" for a row that also
-        # supplies no ORCID (see get_instance).
+        # Names can collide by coincidence, so `uuid` alone identifies a row without an ORCID iD.
         import_id_fields = ["uuid"]
         skip_unchanged = True
-        # Each row's `import_row()` is wrapped in its own atomic()/savepoint
-        # (import_export==4.4.1 resources.py `import_data_inner`, the `with
-        # atomic_if_using_transaction(...)` around the per-row loop) only
-        # when this is True. Without it, a row whose `instance.save()` raises
-        # (an IntegrityError, say) has nothing to roll back to: the project
-        # runs PostgreSQL with `ATOMIC_REQUESTS=True`
-        # (fairdm/conf/settings/database.py), so the admin-import request's
-        # own ambient transaction is left broken and every later row fails
-        # with TransactionManagementError instead of reporting its own real
-        # outcome, however unrelated it was to the row that actually failed.
+        # A per-row savepoint: with ATOMIC_REQUESTS a failing row would otherwise break the
+        # request's transaction and fail every later row with TransactionManagementError.
         use_transactions = True
         skip_admin_log = True
         fields = (
@@ -57,38 +44,36 @@ class PersonResource(resources.ModelResource):
             "affiliation",
         )
 
-    # def after_import_row(self, row, row_result, **kwargs):
-    #     print(row["name"])
-
     def after_save_instance(self, instance, row, **kwargs):
+        """Link the person to their affiliation's organisation, creating it if needed."""
         org = None
         if ror_id := row.get("ror_id"):
             org, _ = update_or_create_from_ror(ror_id, name=row.get("affiliation"))
 
         elif row.get("affiliation") and not ror_id:
-            # If no ROR ID is provided, we can still create a new organization based on the name provided in the affiliation column
             org, _created = Organization.objects.get_or_create(name=row["affiliation"])
 
         if org:
-            # Link person to organization
             Affiliation.objects.get_or_create(
                 person=instance,
                 organization=org,
                 defaults={"type": Affiliation.MembershipType.MEMBER},
             )
-        time.sleep(1.5)  # Rate limit to avoid hitting API limits
+        time.sleep(1.5)  # Stay under the external API rate limits.
 
     def get_instance(self, instance_loader, row):
-        """Resolve the row to an existing Person, or ``None`` so a new one is created.
+        """Resolve the row to an existing person, or None so a new one is created.
 
-        An uploaded spreadsheet is untrusted input, so a row is never allowed to
-        resolve to — and thereby overwrite — an already-claimed Person, whether
-        the match comes from the row's ORCID identifier or its uuid (the only
-        `import_id_fields` this resource trusts; see ``Meta``). Either match is
-        refused with a `ValidationError` naming the row rather than silently
-        skipped, so the import report shows it.
+        Args:
+            instance_loader: The import-export instance loader.
+            row: The spreadsheet row.
+
+        Returns:
+            The matching or newly created person, or None for a new row.
+
+        Raises:
+            ValidationError: The row matches an already-claimed person, which an import must not overwrite.
         """
-        # Allows reuse of instance created during before_import_row
         if orcid := row.get("orcid"):
             existing = ContributorIdentifier.objects.filter(
                 value=orcid, type="ORCID"
@@ -104,10 +89,7 @@ class PersonResource(resources.ModelResource):
                 )
             person, created = update_or_create_from_orcid(orcid, id=row.get("id"))
             if created:
-                # Match `UserManager.create_unclaimed`'s Ghost-state result exactly
-                # (decisions.md D8): a person created purely to attribute an import
-                # is unclaimed but not banned, so a later invitation can still
-                # reach them. `is_active=False` means banned, not "not yet real".
+                # Same result as `UserManager.create_unclaimed`: unclaimed but active, so an invitation can still reach them.
                 person.email = None
                 person.is_claimed = False
                 person.is_active = True

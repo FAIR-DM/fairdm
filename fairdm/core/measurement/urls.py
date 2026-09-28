@@ -1,3 +1,5 @@
+"""URL routes for the measurement pages."""
+
 from django.urls import path
 
 from .views import MeasurementDetailView

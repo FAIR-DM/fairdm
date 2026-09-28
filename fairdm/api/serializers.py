@@ -1,4 +1,4 @@
-"""FairDM API serializer helpers and base mixin."""
+"""Serializer base classes and the factory that builds model serializers."""
 
 from typing import Any
 
@@ -6,16 +6,8 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework import serializers
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
-# Module-level cache so build_model_serializer always returns the same class
-# object for identical inputs.  Without this drf-spectacular warns about
-# "2 components with identical names and different identities" when schema
-# generation traverses multiple viewset instances for the same model.
+# One class per input, or drf-spectacular warns about components with identical names.
 _SERIALIZER_CACHE: dict[tuple, type] = {}
-
-
-# ---------------------------------------------------------------------------
-# Concrete base serializers for polymorphic domain models
-# ---------------------------------------------------------------------------
 
 
 class BaseSampleSerializer(
@@ -102,14 +94,8 @@ class BaseMeasurementSerializer(
         ]
 
 
-# ---------------------------------------------------------------------------
-# Validation helpers for custom serializer_class enforcement
-# ---------------------------------------------------------------------------
-
-
 def _validate_sample_serializer(cls: type) -> None:
-    """Raise :exc:`~django.core.exceptions.ImproperlyConfigured` if *cls* does not
-    subclass :class:`BaseSampleSerializer`.
+    """Require a custom Sample serializer to subclass :class:`BaseSampleSerializer`.
 
     Args:
         cls: The custom serializer class to validate.
@@ -125,8 +111,7 @@ def _validate_sample_serializer(cls: type) -> None:
 
 
 def _validate_measurement_serializer(cls: type) -> None:
-    """Raise :exc:`~django.core.exceptions.ImproperlyConfigured` if *cls* does not
-    subclass :class:`BaseMeasurementSerializer`.
+    """Require a custom Measurement serializer to subclass its base serializer.
 
     Args:
         cls: The custom serializer class to validate.
@@ -152,18 +137,20 @@ class BaseSerializerMixin:
     """
 
     url = serializers.HyperlinkedIdentityField(
-        view_name="",  # Overridden per-model by generate_serializer()
+        view_name="",  # Set per model by build_model_serializer()
         lookup_field="uuid",
         read_only=True,
     )
 
 
 def _flatten_fields(fields: list) -> list[str]:
-    """Deprecated alias for :func:`fairdm.registry.config.flatten_fields`.
+    """Flatten a grouped field list, as :func:`fairdm.registry.config.flatten_fields` does.
 
-    Kept only so existing imports keep working. There is one implementation of
-    flattening, in the registry, because three of them disagreeing is how a grouped
-    field list ended up meaning different things to different components.
+    Args:
+        fields: Field names, possibly grouped in tuples or nested lists.
+
+    Returns:
+        The flat list of field names.
     """
     from fairdm.registry.config import flatten_fields
 
@@ -179,9 +166,7 @@ def build_model_serializer(
 ) -> type[serializers.ModelSerializer]:
     """Build a DRF ModelSerializer for *model* exposing *fields*.
 
-    The generated class is named ``{ModelName}APISerializer`` to distinguish it
-    from the registry's plain serializer.  A read-only ``url`` hyperlinked field
-    is included when *view_name* is provided.
+    A read-only ``url`` hyperlinked field is included when *view_name* is provided.
 
     Results are cached by ``(model, fields, view_name)`` so the same Python
     class object is returned for identical inputs — preventing drf-spectacular
@@ -223,7 +208,6 @@ def build_model_serializer(
     serializer_attrs: dict[str, Any] = {}
 
     if view_name:
-        # Prepend url as the first field so it appears before all data fields
         meta_fields.append("url")
         serializer_attrs["url"] = serializers.HyperlinkedIdentityField(
             view_name=view_name,
@@ -241,10 +225,6 @@ def build_model_serializer(
     )
     serializer_attrs["Meta"] = Meta
 
-    # Build get_permissions_map so the mixin assigns guardian object permissions
-    # (view, change, delete) to the submitting user when objects are created or
-    # updated via the API.  The permission codenames follow Django's convention:
-    # <action>_<model_name> (e.g. "view_project", "change_project").
     model_name = model._meta.model_name
     perm_codenames = [
         f"view_{model_name}",
@@ -259,10 +239,7 @@ def build_model_serializer(
 
     serializer_attrs["get_permissions_map"] = get_permissions_map
 
-    # Determine the base class for the generated serializer.  If a specific
-    # base_class is given (e.g. BaseSampleSerializer) use it directly since it
-    # already includes ObjectPermissionsAssignmentMixin in its MRO.  Otherwise
-    # fall back to the generic mixin + ModelSerializer combination.
+    # A given base_class already has ObjectPermissionsAssignmentMixin in its MRO.
     bases: tuple[type, ...]
     if base_class is not None:
         bases = (base_class,)

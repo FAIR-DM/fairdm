@@ -1,3 +1,5 @@
+"""Views for listing and adding people."""
+
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Prefetch
@@ -12,33 +14,32 @@ from ..models import ContributorIdentifier, Person
 
 
 class PersonListView(FairDMListView):
+    """List people, excluding superusers."""
+
     model = Person
     page_title = _("People")
     page_icon = "people"
     filterset_class = PersonFilter
     queryset = Person.objects.real()
     list_item_template = "contributors/contributor_card.html"
-    show_create_action = False  # Creation is handled by a separate view
+    show_create_action = False
 
     def get_queryset(self):
-        # Step 1: Filter active non-superuser persons
+        """Prefetch each person's ORCID identifiers, ORCID accounts and affiliations."""
         qs = super().get_queryset()
 
-        # Step 2: Prefetch only ORCID identifiers
         orcid_prefetch = Prefetch(
             "identifiers",
             queryset=ContributorIdentifier.objects.filter(type="ORCID"),
             to_attr="orcid_identifiers",
         )
 
-        # Step 3: Prefetch ORCID social accounts
         orcid_accounts_prefetch = Prefetch(
             "socialaccount_set",
             queryset=SocialAccount.objects.filter(provider="orcid"),
             to_attr="orcid_accounts",
         )
 
-        # Step 4: Apply select_related and prefetch_related
         qs = qs.prefetch_related(
             orcid_prefetch, orcid_accounts_prefetch, "affiliations"
         )
@@ -47,13 +48,14 @@ class PersonListView(FairDMListView):
 
 
 class PersonCreateView(LoginRequiredMixin, FairDMCreateView):
+    """Add a person who has no account yet."""
+
     form_class = PersonCreateForm
 
     def form_valid(self, form):
+        """Save the person as inactive, since being active needs an account."""
         response = super().form_valid(form)
 
-        # Users created through this view are not active by default.
-        # Being active requires having an account and loggin in.
         self.object.is_active = False
         self.object.save()
 
@@ -62,7 +64,5 @@ class PersonCreateView(LoginRequiredMixin, FairDMCreateView):
         return response
 
     def assign_permissions(self):
-        # assigning full permissions is the default for FairDMCreateView (perhaps needs to be reviewed)
-        # overriding this method to prevent that
-        # Need to think about what permissions they get by default. Perhaps depends on the role?
+        """Skip the creator's default full permissions."""
         pass

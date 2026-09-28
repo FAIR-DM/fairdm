@@ -1,3 +1,5 @@
+"""Forms for adding people and editing contributions."""
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
@@ -18,14 +20,19 @@ from .widgets import ContributorSelect2Widget, OrcidInputWidget
 
 
 class PersonCreateForm(ModelForm):
-    """Form for creating a new person contributor.
+    """Create a person by ORCID lookup or by entering their details.
 
-    Provides two methods of creation:
-    1. Search ORCID - Fetch person data from ORCID registry
-    2. Add Manually - Enter person information manually
+    Only the fields of the submitted ``action`` (``from_orcid`` or ``from_form``) are required.
 
-    The form uses action-based validation to ensure only the active method's
-    fields are validated.
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        from_orcid: The ORCID iD to look up.
+        affiliations: The person's organisation.
+        is_primary: Whether the affiliation is primary.
+        is_current: Whether the affiliation is current.
     """
 
     from_orcid = forms.CharField(
@@ -84,30 +91,35 @@ class PersonCreateForm(ModelForm):
         self.action = self.data.get("action") if self.data else None
 
     def clean_first_name(self):
+        """Require a first name when adding manually."""
         first_name = self.cleaned_data.get("first_name", "")
         if self.action == "from_form" and not first_name:
             raise ValidationError(_("First name is required when adding manually."))
         return first_name
 
     def clean_last_name(self):
+        """Require a last name when adding manually."""
         last_name = self.cleaned_data.get("last_name", "")
         if self.action == "from_form" and not last_name:
             raise ValidationError(_("Last name is required when adding manually."))
         return last_name
 
     def clean_affiliations(self):
+        """Require an affiliation when adding manually."""
         affiliation = self.cleaned_data.get("affiliations")
         if self.action == "from_form" and not affiliation:
             raise ValidationError(_("Affiliation is required when adding manually."))
         return affiliation
 
     def clean_from_orcid(self):
+        """Require an ORCID iD when searching ORCID."""
         orcid_id = self.cleaned_data.get("from_orcid", "")
         if self.action == "from_orcid" and not orcid_id:
             raise ValidationError(_("ORCID iD is required when searching ORCID."))
         return orcid_id
 
     def save(self, commit=True):
+        """Create the person from ORCID, or save the entered details and their affiliation."""
         if self.action == "from_orcid":
             orcid_id = self.cleaned_data.get("from_orcid")
             self.instance, _ = Person.from_orcid(orcid_id)
@@ -127,11 +139,17 @@ class PersonCreateForm(ModelForm):
 
 
 class UpdateContributionForm(ModelForm):
-    """Form for editing an existing contribution's roles and affiliation.
+    """Edit a contribution's roles and affiliation.
 
-    Dynamically filters available roles based on the object type (Project,
-    Dataset, etc.) and available affiliations based on the contributor's
-    organization memberships.
+    Roles are limited to those the credited object allows, and affiliations to the contributor's own.
+
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm`` after removing ``base_object``, the credited object.
+
+    Attributes:
+        roles: The roles held.
+        affiliation: The contributor's affiliation for this credit.
     """
 
     roles = forms.ModelMultipleChoiceField(
@@ -170,7 +188,16 @@ class UpdateContributionForm(ModelForm):
 
 
 class QuickAddContributionForm(Form):
-    """Simple form for quickly adding multiple contributors at once."""
+    """Add several contributors to an object at once.
+
+    Args:
+        base_object: The object the contributors are added to.
+        *args: Passed to ``Form``.
+        **kwargs: Passed to ``Form``.
+
+    Attributes:
+        contributors: The contributors to add.
+    """
 
     contributors = forms.ModelMultipleChoiceField(
         queryset=Contributor.objects.all(),

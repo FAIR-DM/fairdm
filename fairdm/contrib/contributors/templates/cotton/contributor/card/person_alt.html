@@ -1,10 +1,12 @@
+{# @description A card for a person with their avatar filling the card, and their identifier and name at the bottom. Reads the context variable `obj`, the person. #}
+{# @slot Menu — Content shown over the avatar, such as an actions menu. #}
+{# @slot:actions Edit — Content for the card footer. The footer is left out when there is none. #}
 {% load fairdm contributor_tags easy_icons %}
 
 {% with obj as contributor %}
   <c-card class="overflow-hidden h-100">
     <c-avatar :contributor="obj" only />
     <c-card.body class="card-img-overlay">
-      {% comment %} <c-widgets.follow :object="obj" class="border-0 position-absolute top-0 end-0 fs-6 z-2" :show_text="False" /> {% endcomment %}
       <a href="{{ obj.get_absolute_url }}"
          class="stretched-link"></a>
       {{ slot }}

@@ -1,63 +1,40 @@
-"""Celery Configuration
+"""Celery settings: the shared Redis broker and result backend at ``REDIS_URL``.
 
-Owns: background-task processing settings, using the shared Redis broker at
-``REDIS_URL`` for both broker and result backend (FR-002, FR-003). Leaves to
-a portal: task-specific time limits, the beat schedule, and whether a worker
-runs at all — a portal may legitimately have none (research R5).
-
-This is the production baseline. Environment-specific overrides in development.py (FairDM) or a same-named module beside the portal's settings module.
+Owns the background-task settings. A portal supplies task-specific time limits and the beat
+schedule. It may also run no worker at all.
 """
 
-# Access environment variables via shared env instance
 env = globals()["env"]
 
-
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
 CELERY_TIMEZONE = env("DJANGO_TIME_ZONE")
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
 CELERY_RESULT_EXTENDED = True
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-backend-always-retry
 # https://github.com/celery/celery/pull/6122
 CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-backend-max-retries
 CELERY_RESULT_BACKEND_MAX_RETRIES = 10
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ["json"]
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_serializer
 CELERY_TASK_SERIALIZER = "json"
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_serializer
 CELERY_RESULT_SERIALIZER = "json"
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit
-# TODO: set to whatever value is adequate in your circumstances
 CELERY_TASK_TIME_LIMIT = 5 * 60
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
-# TODO: set to whatever value is adequate in your circumstances
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#worker-send-task-events
 CELERY_WORKER_SEND_TASK_EVENTS = True
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std-setting-task_send_sent_event
 CELERY_TASK_SEND_SENT_EVENT = True
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-eager-propagates
 CELERY_TASK_EAGER_PROPAGATES = True
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
 CELERY_BROKER_URL = env("REDIS_URL")
 
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 CELERY_TASK_ALWAYS_EAGER = False

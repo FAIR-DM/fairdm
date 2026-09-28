@@ -1,3 +1,5 @@
+"""Inline formsets and forms for identifiers and affiliations."""
+
 from dal import autocomplete
 from django import forms
 from django.forms.models import BaseInlineFormSet
@@ -7,17 +9,15 @@ from ..models import Affiliation, ContributorIdentifier, Organization, Person
 
 
 class UserIdentifierFormSet(BaseInlineFormSet):
-    """Custom formset for identifiers that tracks existing types to prevent duplicates."""
+    """Identifier formset that tells each form which types the other identifiers already use."""
 
     def get_form_kwargs(self, index):
-        """Pass existing types to each form so it can filter choices appropriately."""
+        """Pass the types used by the other identifiers to each form."""
         kwargs = super().get_form_kwargs(index)
 
-        # Collect existing identifier types from the instance's saved identifiers
-        # This gets called before forms are bound, so we need to look at the queryset
+        # Forms are not bound yet, so read the types from the queryset.
         existing_types = set()
 
-        # Get the instance being edited in this form (if any)
         current_instance = None
         if (
             self.queryset is not None
@@ -26,7 +26,6 @@ class UserIdentifierFormSet(BaseInlineFormSet):
         ):
             current_instance = self.queryset[index]
 
-        # Collect types from all existing identifiers except the current one
         if self.queryset is not None:
             for obj in self.queryset:
                 if obj != current_instance:
@@ -37,36 +36,30 @@ class UserIdentifierFormSet(BaseInlineFormSet):
 
 
 class UserIdentifierForm(forms.ModelForm):
-    """Form for editing user persistent identifiers (ORCID, etc.).
+    """Edit a persistent identifier, offering only types that suit the contributor and are not already used.
 
-    Used in inline formset for managing multiple identifiers per user.
-    Filters available identifier types based on contributor type (Person vs Organization)
-    and excludes types that are already selected in other forms.
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm`` after removing ``contributor_instance``, the
+            contributor being edited, and ``existing_types``, the types already in use.
     """
 
     def __init__(self, *args, **kwargs):
-        # Extract contributor_instance and existing_types from kwargs if provided
         contributor_instance = kwargs.pop("contributor_instance", None)
         existing_types = kwargs.pop("existing_types", set())
         super().__init__(*args, **kwargs)
 
-        # Filter identifier type choices based on contributor type
         if contributor_instance:
             vocabulary = self._meta.model.VOCABULARY
             if isinstance(contributor_instance, Person):
-                # Person: ORCID, ResearcherID
                 filtered_vocab = vocabulary.from_collection("Person")
             elif isinstance(contributor_instance, Organization):
-                # Organization: ROR, Wikidata, ISNI, Crossref Funder ID
                 filtered_vocab = vocabulary.from_collection("Organization")
             else:
-                # Fallback: all types
                 filtered_vocab = vocabulary
 
-            # Get all available choices
             all_choices = filtered_vocab.choices
 
-            # Filter out already-selected types (unless this is the current instance's type)
             current_type = self.instance.type if self.instance.pk else None
             available_choices = [
                 (value, label)
@@ -74,7 +67,6 @@ class UserIdentifierForm(forms.ModelForm):
                 if value == "" or value == current_type or value not in existing_types
             ]
 
-            # Update the choices for the type field
             self.fields["type"].choices = available_choices
 
     class Meta:
@@ -87,12 +79,12 @@ class UserIdentifierForm(forms.ModelForm):
 
 
 class AffiliationForm(forms.ModelForm):
-    """Form for editing organizational affiliations.
+    """Edit a person's affiliation, setting the type of a new one from the organisation's managers.
 
-    Used in inline formset for managing person's organizational memberships.
-    Automatically sets membership type based on organization's existing memberships:
-    - PENDING if organization has owners or admins
-    - MEMBER if organization has no owners or admins
+    A new affiliation is pending when the organisation has an owner or admin, and a member otherwise.
+
+    Attributes:
+        organization: The organisation joined.
     """
 
     organization = forms.ModelChoiceField(
@@ -103,12 +95,10 @@ class AffiliationForm(forms.ModelForm):
     )
 
     def save(self, commit=True):
-        """Override save to automatically set membership type."""
+        """Set the type of a new affiliation, then save."""
         instance = super().save(commit=False)
 
-        # Only set type for new memberships (not when editing existing ones)
         if not instance.pk:
-            # Check if organization has owners or admins
             has_managers = instance.organization.affiliations.filter(
                 type__in=[
                     Affiliation.MembershipType.OWNER,
@@ -116,7 +106,6 @@ class AffiliationForm(forms.ModelForm):
                 ]
             ).exists()
 
-            # Set type based on whether organization has managers
             if has_managers:
                 instance.type = Affiliation.MembershipType.PENDING
             else:

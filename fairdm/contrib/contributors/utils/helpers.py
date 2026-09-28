@@ -1,8 +1,4 @@
-"""Helper utilities for contributors.
-
-This module provides helper functions for working with contributors,
-including avatar retrieval, role checking, and contribution management.
-"""
+"""Helpers for contributor avatars, role checks and contributions."""
 
 from django.templatetags.static import static
 from easy_thumbnails.files import get_thumbnailer
@@ -10,13 +6,13 @@ from research_vocabs.models import Concept
 
 
 def get_contributor_avatar(contributor):
-    """Returns the avatar URL for a given contributor.
+    """Return the URL of a contributor's avatar thumbnail.
 
     Args:
-        contributor (Contributor): A Contributor object.
+        contributor: The contributor.
 
     Returns:
-        str: The URL of the contributor's avatar.
+        The thumbnail URL, or the default user icon when there is no image.
     """
     if not contributor.image:
         return static("icons/user.svg")
@@ -25,15 +21,15 @@ def get_contributor_avatar(contributor):
 
 
 def current_user_has_role(request, obj, role):
-    """Returns True if the current user has the specified role for the given object.
+    """Check whether the signed-in user holds any of the roles on an object.
 
     Args:
-        request (Request): The request object.
-        obj (Project, Dataset, Sample): A database object containing a list of contributors.
-        role (str, list): The role/s to check for.
+        request: The current request.
+        obj: A project, dataset or sample with contributors.
+        role: A role name or a list of role names.
 
     Returns:
-        bool: True if the contributor has the specified roles.
+        True when the user's contribution to the object includes any of the roles.
     """
     current_user = request.user
     if not current_user.is_authenticated:
@@ -49,27 +45,16 @@ def current_user_has_role(request, obj, role):
 
 
 def update_or_create_contribution(contributor, obj, roles=None):
-    """Adds a contributor to the given object with specified roles.
-
-    Behavior:
-    - If the contributor already exists on the object and roles are provided, the roles are updated and the Contribution
-      object is returned.
-    - If the contributor already exists on the object and roles *are not* provided, the existing roles are retained and
-      the Contribution object is returned unchanged.
-    - If the contributor does not already exist on the object and roles are provided, a new Contribution object is created
-      with the provided roles and returned.
-    - If the contributor does not already exist on the object and roles are not provided, a new Contribution object is
-      created with the object's DEFAULT_ROLES and returned.
+    """Add a contributor to an object and add the given roles to their contribution.
 
     Args:
-        contributor: The contributor instance to add.
-        obj: The object to which the contributor is being added. Must have a 'contributors' manager and 'DEFAULT_ROLES' attribute.
-        roles (optional): The roles to assign to the contributor. If not provided, uses obj.DEFAULT_ROLES.
+        contributor: The contributor to add.
+        obj: The object to add them to. Needs a ``contributors`` manager and ``DEFAULT_ROLES``.
+        roles: Role names to add. Defaults to ``obj.DEFAULT_ROLES``.
 
     Returns:
-        tuple: (contribution, created)
-            contribution: The contribution instance.
-            created (bool): True if a new contribution was created, False if it already existed.
+        A ``(contribution, created)`` pair, where ``created`` is False when the contributor
+        was already on the object.
     """
     contribution, created = obj.contributors.get_or_create(
         contributor=contributor,

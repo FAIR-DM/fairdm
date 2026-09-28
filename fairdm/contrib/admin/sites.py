@@ -1,3 +1,5 @@
+"""Custom admin site that admits holders of rights-carrying roles."""
+
 import os
 import tempfile
 
@@ -16,27 +18,32 @@ from .views import FixtureUploadView
 
 
 class FixtureUploadForm(forms.Form):
+    """Form with a single field for the fixture file to load."""
+
     fixture_file = forms.FileField(label="Select a fixture file")
 
 
 def _holds_a_rights_carrying_role(user) -> bool:
-    """Whether ``user`` belongs to at least one role that carries permissions.
+    """Return whether the user belongs to at least one role that carries permissions.
 
-    Access is derived from role membership, never stored on the person (research R3):
-    nothing here sets ``is_staff``.
+    Access is derived from role membership, never stored on the person, so nothing
+    here sets ``is_staff``.
+
+    Args:
+        user: The user to check.
+
+    Returns:
+        True when the user holds a rights-carrying role.
     """
     return user.groups.filter(name__in=PortalRoles.rights_carrying()).exists()
 
 
 class PortalAdminAuthenticationForm(AdminAuthenticationForm):
-    """Accepts a holder of a rights-carrying role, not only an ``is_staff`` account.
-
-    ``AdminAuthenticationForm.confirm_login_allowed`` refuses a non-staff user before
-    ``CustomAdminSite.has_permission`` is ever consulted (research R3), so both must change
-    together or a role holder can only reach the interface while already signed in.
-    """
+    """Admin login form that accepts a holder of a rights-carrying role, not only staff."""
 
     def confirm_login_allowed(self, user):
+        """Allow staff and holders of a rights-carrying role to sign in."""
+        # The parent refuses non-staff before has_permission is consulted, so both must change.
         super(AdminAuthenticationForm, self).confirm_login_allowed(user)
         if not (user.is_staff or _holds_a_rights_carrying_role(user)):
             raise ValidationError(
@@ -47,19 +54,20 @@ class PortalAdminAuthenticationForm(AdminAuthenticationForm):
 
 
 class CustomAdminSite(admin.AdminSite):
+    """Admin site titled for the portal that admits holders of rights-carrying roles."""
+
     site_header = _("Portal Administration")
     site_title = _("Portal Administration")
     index_title = _("Portal Administration")
     login_form = PortalAdminAuthenticationForm
 
     def has_permission(self, request):
-        """Accept a holder of a rights-carrying role, not only an ``is_staff`` account
-        (research R3). Nothing is stored on the person to grant this.
-        """
+        """Accept a holder of a rights-carrying role, not only an ``is_staff`` account."""
         user = request.user
         return user.is_active and (user.is_staff or _holds_a_rights_carrying_role(user))
 
     def get_urls(self):
+        """Add the fixture upload route."""
         urls = super().get_urls()
         custom_urls = [
             path(
@@ -71,6 +79,14 @@ class CustomAdminSite(admin.AdminSite):
         return custom_urls + urls
 
     def upload_fixture_view(self, request):
+        """Load an uploaded fixture file and report the outcome.
+
+        Args:
+            request: The current request.
+
+        Returns:
+            A redirect to the admin index after a valid upload, otherwise the upload form.
+        """
         if request.method == "POST":
             form = FixtureUploadForm(request.POST, request.FILES)
             if form.is_valid():

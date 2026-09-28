@@ -1,5 +1,4 @@
-"""
-Addon discovery and configuration loading.
+"""Addon discovery and configuration loading.
 
 Handles integration of FairDM addons that provide additional settings, apps, and middleware.
 """
@@ -14,23 +13,21 @@ from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
-# Global registry for addon URLs
 addon_urls: list[str] = []
 
 
 def get_module_path(module_name: str) -> str:
-    """
-    Get the file system path to a Python module.
+    """Get the file system path to a Python module.
 
     Args:
-        module_name: Fully qualified module name (e.g., 'myapp.conf')
+        module_name: Fully qualified module name (e.g., 'myapp.conf').
 
     Returns:
-        str: Absolute path to the module file
+        Absolute path to the module file.
 
     Raises:
-        ModuleNotFoundError: If the module cannot be found
-        ValueError: If the module is a package (not a single file)
+        ModuleNotFoundError: The module cannot be found.
+        ValueError: The module is a package, not a single file.
     """
     spec = importlib.util.find_spec(module_name)
     if spec is None or spec.origin is None:
@@ -45,18 +42,19 @@ def get_module_path(module_name: str) -> str:
 def discover_addon_setup_modules(
     addons: list[str], env_profile: str
 ) -> list[tuple[str, str]]:
-    """
-    Discover setup modules for the given addon packages.
+    """Discover setup modules for the given addon packages.
 
     Args:
-        addons: List of addon package names
-        env_profile: Environment profile (for validation)
+        addons: List of addon package names.
+        env_profile: Environment profile, used for validation.
 
     Returns:
-        list[tuple[str, str]]: ``(addon_name, absolute path to its setup
-        module file)`` pairs — one per addon whose setup module was found
-        and passed validation. The name travels with its path so a failure
-        applying that file later can still name the addon it came from.
+        ``(addon_name, absolute path to its setup module file)`` pairs, one per addon
+        whose setup module was found and passed validation. The name travels with its
+        path so a later failure applying that file can still name the addon.
+
+    Raises:
+        ImproperlyConfigured: An addon's configuration is invalid, so production fails fast.
     """
     from .checks import validate_addon_module
 
@@ -64,10 +62,8 @@ def discover_addon_setup_modules(
 
     for addon_name in addons:
         try:
-            # Import the addon package
             addon_module = import_module(addon_name)
 
-            # Check for __fdm_setup_module__ attribute
             setup_module_path = getattr(addon_module, "__fdm_setup_module__", None)
 
             if setup_module_path is None:
@@ -77,11 +73,9 @@ def discover_addon_setup_modules(
                 )
                 continue
 
-            # Validate the setup module can be imported
             if not validate_addon_module(addon_name, setup_module_path, env_profile):
-                continue  # Skip if validation failed (already logged)
+                continue
 
-            # Get the absolute path to the setup module
             try:
                 module_file_path = get_module_path(setup_module_path)
                 setup_modules.append((addon_name, module_file_path))
@@ -94,7 +88,6 @@ def discover_addon_setup_modules(
                 )
 
         except ImproperlyConfigured:
-            # Re-raise configuration errors (production fail-fast)
             raise
         except ImportError as e:
             logger.error(f"❌ Could not import addon '{addon_name}': {e}")
@@ -105,56 +98,49 @@ def discover_addon_setup_modules(
 
 
 def discover_addon_urls(addons: list[str]) -> list[str]:
-    """
-    Discover URL configurations from addons.
+    """Discover URL configurations from addons.
 
     Args:
-        addons: List of addon package names
+        addons: List of addon package names.
 
     Returns:
-        list[str]: List of addon URL module paths (e.g., ['addon1.urls', 'addon2.urls'])
+        Addon URL module paths (e.g., ['addon1.urls', 'addon2.urls']).
     """
     global addon_urls
     addon_urls = []
 
     for addon_name in addons:
         try:
-            # Check if addon has a urls module
             spec = importlib.util.find_spec(f"{addon_name}.urls")
             if spec is not None and spec.origin is not None:
                 addon_urls.append(f"{addon_name}.urls")
                 logger.info(f"✓ Registered URL config from addon: {addon_name}.urls")
         except Exception as e:
-            # Silently skip addons without URL configs
             logger.debug(f"Addon '{addon_name}' has no urls.py: {e}")
 
     return addon_urls
 
 
 def load_addons(addons: list[str], env_profile: str) -> list[tuple[str, str]]:
-    """
-    Load addon configurations and discover their URLs.
+    """Load addon configurations and discover their URLs.
 
-    This is the main entry point for addon integration. It:
-    1. Discovers addon setup modules (for settings)
-    2. Discovers addon URL configurations
+    This is the main entry point for addon integration. It discovers addon setup
+    modules (for settings) and addon URL configurations.
 
     Args:
-        addons: List of addon package names
-        env_profile: The resolved environment name (e.g. "production", "development")
+        addons: List of addon package names.
+        env_profile: The resolved environment name (e.g. "production", "development").
 
     Returns:
-        list[tuple[str, str]]: ``(addon_name, absolute path to its setup
-        module file)`` pairs — see ``discover_addon_setup_modules``.
+        ``(addon_name, absolute path to its setup module file)`` pairs, as returned by
+        ``discover_addon_setup_modules``.
     """
     logger.info(
         f"Loading {len(addons)} addon(s): {', '.join(addons) if addons else '(none)'}"
     )
 
-    # Discover settings modules
     setup_modules = discover_addon_setup_modules(addons, env_profile)
 
-    # Discover URL configurations
     discover_addon_urls(addons)
 
     return setup_modules
