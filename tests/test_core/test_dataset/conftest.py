@@ -1,7 +1,7 @@
 """Shared fixtures for Dataset tests.
 
 Thin wrappers over the factories in ``fairdm.factories``, per constitution
-Article X.
+Article I.
 """
 
 import pytest

@@ -7,7 +7,7 @@ citation and a passing test — never against this list's own judgement of what 
 there.
 
 Article I: every behavioural task writes its test first, and the test fails for the stated reason
-before the change. Article X: tests mirror the source tree, one factory per model, shared fixtures
+before the change. Article I: tests mirror the source tree, one factory per model, shared fixtures
 in `conftest.py`, related assertions grouped in classes.
 
 Test locations, throughout: `tests/test_core/test_dataset/` for the record's own surface,

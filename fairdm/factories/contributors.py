@@ -85,7 +85,7 @@ class PersonFactory(ContributorFactory):
     """Factory for creating Person instances.
 
     Defaults to an unclaimed instance with an unusable password - a contributor
-    added for attribution alone is the common case (Article X, issue #227). Pass
+    added for attribution alone is the common case (Article I, issue #227). Pass
     `password=...` for a claimed-looking instance, or set `is_claimed`/`is_active`
     explicitly.
     """
@@ -123,7 +123,7 @@ class ContributorIdentifierFactory(DjangoModelFactory):
 
     ``AbstractIdentifier.value`` carries a database-level uniqueness constraint across
     every identifier-bearing record, not just other ContributorIdentifiers, so it is a
-    sequence rather than a fixed or random value (Article X).
+    sequence rather than a fixed or random value (Article I).
     """
 
     class Meta:

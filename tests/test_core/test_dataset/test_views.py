@@ -1486,7 +1486,7 @@ class TestDatasetListingQueryCount:
     """Rendering the listing costs a constant number of queries regardless of
     how many datasets it returns (issue #333).
 
-    Constitution Article X requires a `django_assert_num_queries` guard rather
+    Constitution Article I requires a `django_assert_num_queries` guard rather
     than wall-clock timing. The count is measured twice — once for a single
     dataset and once for twenty, each carrying the full set of related records
     a card draws — so the test fails if any of the prefetching is removed,

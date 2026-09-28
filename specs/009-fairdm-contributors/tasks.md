@@ -66,7 +66,7 @@ constitution requires a failing test before the code that satisfies it.
   and no second account model exists (FR-008).
   - **Open — built-without-tests.** Nearest code `fairdm/conf/settings/auth.py:19`. No test asserts AUTH_USER_MODEL resolves to the person record.
 - [X] T004 [P] [SETUP] Create the mirroring test package
-  `tests/test_contrib/test_contributors/__init__.py` (Article X).
+  `tests/test_contrib/test_contributors/__init__.py` (Article I).
   - **Reconciled done.** Code `tests/test_contrib/test_contributors/__init__.py:1` · test `tests/test_contrib/test_contributors/test_models.py:38 TestPersonClaimedUnclaimedSemantics::test_claimed_person_has_email_and_is_active`
 - [ ] T005 [P] [SETUP] Create `tests/test_contrib/test_contributors/conftest.py` with a
   `contribution_roles` fixture that seeds the framework's controlled role vocabulary
@@ -154,7 +154,7 @@ Covers FR-001 to FR-007, SC-001 and SC-002.
   - **Open — partial.** Nearest code `fairdm/contrib/contributors/migrations/0001_initial.py:31`. Location foreign key arrives only in 0008.
 - [ ] T021 [US1] Add `ContributorFactory` to `fairdm/factories/contributors.py` as the shared base
   the person and organisation factories build on, declaring only the fields common to both and
-  using `factory.Sequence` for the name (Article X).
+  using `factory.Sequence` for the name (Article I).
   - **Open — built-differently.** Nearest code `fairdm/factories/contributors.py:44`. ContributorFactory builds a Person and the two concrete factories do not inherit from it.
 - [ ] T022 [US1] Create `docs/data_models/contributors.md` documenting the `Contributor` base — its
   fields, its two concrete types, its public identifier and its configuration store — with a
@@ -247,10 +247,10 @@ Covers FR-008 to FR-011, FR-015, SC-003 and SC-005.
   - **Open — partial.** Nearest code `fairdm/contrib/contributors/migrations/0001_initial.py:192`. No migration-level constraint.
 - [ ] T034 [US2] Add `PersonFactory` to `fairdm/factories/contributors.py`, sequencing the email
   address, defaulting to an unusable password, and leaving the account unclaimed so the default
-  instance is the common case (Article X).
+  instance is the common case (Article I).
   - **Open — partial.** Nearest code `fairdm/factories/contributors.py:60`. No unusable password; is_active is a random boolean (issue #227).
 - [X] T035 [US2] Add a `person` fixture to `tests/test_contrib/test_contributors/conftest.py` as a
-  thin wrapper over `PersonFactory` (Article X).
+  thin wrapper over `PersonFactory` (Article I).
   - **Reconciled done.** Code `tests/test_contrib/test_contributors/conftest.py:31` · test `tests/test_contrib/test_contributors/test_models.py:42 TestPersonClaimedUnclaimedSemantics::test_claimed_person_has_email_and_is_active`
 - [ ] T036 [US2] Create `docs/portal-development/contributors.md` documenting the person record as
   the portal's account — why there is one row rather than two, how to add a person for attribution
@@ -361,10 +361,10 @@ Covers FR-016 to FR-019, SC-006 and SC-007.
   - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/migrations/0001_initial.py:314`.
 - [X] T057 [P] [US4] Add `OrganizationFactory` to `fairdm/factories/contributors.py`, with the
   parent left unset by default and expressed at the call site when a hierarchy is wanted
-  (Article X).
+  (Article I).
   - **Reconciled done.** Code `fairdm/factories/contributors.py:75` · test `tests/test_factories/test_contributors.py:82 TestContributorFactoryCreation::test_organization_factory_creates_organization`
 - [X] T058 [P] [US4] Add an `organization` fixture to
-  `tests/test_contrib/test_contributors/conftest.py` wrapping `OrganizationFactory` (Article X).
+  `tests/test_contrib/test_contributors/conftest.py` wrapping `OrganizationFactory` (Article I).
   - **Reconciled done.** Code `tests/test_contrib/test_contributors/conftest.py:70` · test `tests/test_contrib/test_contributors/test_models.py:145 TestOrganizationCreationAndValidation::test_create_organization`
 - [ ] T059 [US4] Document `Organization` in `docs/data_models/contributors.md` — its type, its
   hierarchy, what happens to children when a parent is deleted, and its location fields — with a
@@ -440,10 +440,10 @@ Covers FR-020 to FR-025 and SC-008.
   - **Open — partial.** Nearest code `fairdm/contrib/contributors/migrations/0012_rename_to_affiliation.py:1`. No primary-membership constraint is migrated.
 - [ ] T074 [P] [US5] Add `AffiliationFactory` to `fairdm/factories/contributors.py` with
   `SubFactory` relations to the person and organisation factories, a current period and a plain
-  member type by default (Article X).
+  member type by default (Article I).
   - **Open — partial.** Nearest code `fairdm/factories/contributors.py:86`. The factory declares no period.
 - [X] T075 [P] [US5] Add an `affiliation` fixture to
-  `tests/test_contrib/test_contributors/conftest.py` wrapping `AffiliationFactory` (Article X).
+  `tests/test_contrib/test_contributors/conftest.py` wrapping `AffiliationFactory` (Article I).
   - **Reconciled done.** Code `tests/test_contrib/test_contributors/conftest.py:96` · test `tests/test_contrib/test_contributors/test_models.py:238 TestAffiliationUniqueConstraints::test_affiliation_start_end_dates`
 - [ ] T076 [US5] Document memberships in `docs/portal-development/contributors.md` — the period and
   its precision, what makes a membership current, the primary membership and what it is used for —
@@ -590,10 +590,10 @@ Covers FR-030 to FR-036, SC-010, SC-011 and SC-012.
   the credit table, its roles join table and its uniqueness constraint.
   - **Reconciled done.** Code `fairdm/contrib/contributors/migrations/0001_initial.py:565` · test `tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor`
 - [X] T105 [P] [US7] Add `ContributionFactory` to `fairdm/factories/contributors.py`, with the
-  credited object supplied at the call site and roles left empty by default (Article X).
+  credited object supplied at the call site and roles left empty by default (Article I).
   - **Reconciled done.** Code `fairdm/factories/contributors.py:96` · test `tests/test_contrib/test_contributors/test_models.py:305 TestContributionGFKRelationships::test_contribution_unique_per_entity_contributor`
 - [X] T106 [P] [US7] Add a `contribution` fixture to
-  `tests/test_contrib/test_contributors/conftest.py` wrapping `ContributionFactory` (Article X).
+  `tests/test_contrib/test_contributors/conftest.py` wrapping `ContributionFactory` (Article I).
   - **Reconciled done.** Code `tests/test_contrib/test_contributors/conftest.py:126` · test `tests/test_contrib/test_contributors/test_models.py:297 TestContributionGFKRelationships::test_contribution_links_person_to_project`
 - [ ] T107 [US7] Document crediting in `docs/portal-development/contributors.md` — one entry per
   contributor per object, roles accumulating on it, the crediting organisation default, and the
@@ -646,7 +646,7 @@ Covers FR-037 to FR-039 and SC-013.
   identifier table and its uniqueness constraint.
   - **Open — built-without-tests.** Nearest code `fairdm/contrib/contributors/migrations/0001_initial.py:381`. No test inserts a duplicate type to prove the constraint bites.
 - [ ] T116 [US8] Add `ContributorIdentifierFactory` to `fairdm/factories/contributors.py`, using
-  `factory.Sequence` on the value because it is uniqueness-guarded (Article X).
+  `factory.Sequence` on the value because it is uniqueness-guarded (Article I).
   - **Open — never-built.** No identifier factory.
 - [ ] T117 [US8] Document external identifiers in `docs/data_models/contributors.md` — the record,
   one per type, and the default type per kind — noting that fetching and refreshing their contents
@@ -765,7 +765,7 @@ Covers FR-043 to FR-046 and SC-015.
 
 - [ ] T138 [SETUP] Add `tests/test_factories/test_contributors.py` asserting that every factory in
   `fairdm/factories/contributors.py` produces an instance that passes `full_clean()`, and that
-  `create_batch` stays unique where a field is uniqueness-guarded (Article X).
+  `create_batch` stays unique where a field is uniqueness-guarded (Article I).
   - **Open — partial.** Nearest code `tests/test_factories/test_contributors.py:21`. Never calls full_clean; three factories untouched.
 - [ ] T139 [SETUP] Consolidate the branch's migrations into a single
   `fairdm/contrib/contributors/migrations/0001_initial.py`, deleting the intermediate files, since

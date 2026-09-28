@@ -187,7 +187,7 @@ class TestProjectListViewEmitsNoDeprecationWarning:
 # ---------------------------------------------------------------------------
 # 013 US-1: Find a project — reaching, searching, ordering and filtering the
 # public listing. Uses the project test package's conftest fixtures for
-# public/private projects and permission-holding users, per Article X.
+# public/private projects and permission-holding users, per Article I.
 # ---------------------------------------------------------------------------
 
 
@@ -1758,7 +1758,7 @@ class TestProjectListingQueryCount:
     """Rendering the listing costs a constant number of queries regardless of
     how many projects it returns (issue #330, "Done when").
 
-    Constitution Article X requires a `django_assert_num_queries` guard rather
+    Constitution Article I requires a `django_assert_num_queries` guard rather
     than wall-clock timing. The count is measured twice — once for a single
     project and once for twenty, each carrying the full set of related records
     a card draws — so the test fails if any of the prefetching is removed,

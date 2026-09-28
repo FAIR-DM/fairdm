@@ -135,7 +135,7 @@ either file. Without the location the error names a problem the developer cannot
 **Previous specification**: `FR-018`, `FR-019` and `FR-020` required Bootstrap 5 styling, a
 `django_tables2/bootstrap5.html` template and crispy-forms Bootstrap 5 integration.
 
-**Code**: the framework depends on `crispy-tailwind`, and the constitution's Article XV requires the
+**Code**: the framework depends on `crispy-tailwind`, and the constitution's Article XIV requires the
 interface to be built on the shared application shell using Tailwind and daisyUI.
 
 **Settled**: these requirements are removed rather than restated for Tailwind.

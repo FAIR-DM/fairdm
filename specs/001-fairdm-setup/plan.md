@@ -33,7 +33,7 @@ docs/portal-administration/configuration-checks.md
 
 - **Article I (test-first)** — every task pairs a test with its change; the reconciliation rule for
   this feature is stricter still, so a behaviour with no test is unfinished by definition.
-- **Article X (test structure)** — `tests/test_conf/` mirrors `fairdm/conf/`, one module per source
+- **Article I (test structure)** — `tests/test_conf/` mirrors `fairdm/conf/`, one module per source
   module, `Test<Subject>` classes within. The existing package already follows this; new modules
   extend it rather than introducing a parallel layout.
 - **Article II / III (simplicity, anti-abstraction)** — this plan removes two mechanisms (the
@@ -44,8 +44,8 @@ docs/portal-administration/configuration-checks.md
   content. Removing shipped fallbacks for secret material is the substantive change.
 - **Article VI / XVII (documentation)** — a single configuration page is a first-class deliverable
   (FR-023, FR-024), not a follow-up.
-- **Article XIV / XV (configuration over plumbing, production-grade defaults)** — the feature is
-  the direct expression of both. Article XV's "container-friendly, 12-factor-style configuration via
+- **Article XIII / XIV (configuration over plumbing, production-grade defaults)** — the feature is
+  the direct expression of both. Article XIV's "container-friendly, 12-factor-style configuration via
   environment variables" is satisfied by the layering; the container stack itself is R26.
 
 No article requires an exemption.

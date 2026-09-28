@@ -12,11 +12,11 @@ Package skeletons and shared test scaffolding that every story's tests import.
   **Done (A3):** `fairdm/conf/__init__.py:8` · `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded` — Package exists and re-exports setup(); the cited test imports fairdm and calls setup().
 - [x] T002 [P] [US-1] Create `fairdm/conf/settings/__init__.py` as an empty package for the baseline concern modules (FR-002)  
   **Done (A3):** `fairdm/conf/settings/__init__.py:1` · `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded` — Empty package holding eleven concern modules; the cited test resolves a full settings scope through them.
-- [x] T003 [P] [US-1] Create `tests/test_conf/__init__.py` mirroring `fairdm/conf/` (Article X)  
+- [x] T003 [P] [US-1] Create `tests/test_conf/__init__.py` mirroring `fairdm/conf/` (Article I)  
   **Done (A3):** `tests/test_conf/__init__.py:1` · `tests/test_conf/test_addons.py::TestAddonDiscovery::test_addon_with_setup_module_is_loaded` — Package exists and the 60 passing tests are collected from inside it.
-- [x] T004 [P] [US-1] Create `tests/test_conf/test_settings/__init__.py` mirroring `fairdm/conf/settings/` (Article X)  
+- [x] T004 [P] [US-1] Create `tests/test_conf/test_settings/__init__.py` mirroring `fairdm/conf/settings/` (Article I)  
   **Open (A3, never_built):** tests/test_conf/test_settings/ does not exist.
-- [x] T005 [US-1] Write `tests/test_conf/conftest.py`: an env-var isolation fixture (saves/restores `DJANGO_ENV` and related variables per test), a fixture that builds a throwaway portal settings module on `tmp_path` with a real `__file__`, and a scope-snapshot helper reused by the provenance tests in Phase 2 (Article X)  
+- [x] T005 [US-1] Write `tests/test_conf/conftest.py`: an env-var isolation fixture (saves/restores `DJANGO_ENV` and related variables per test), a fixture that builds a throwaway portal settings module on `tmp_path` with a real `__file__`, and a scope-snapshot helper reused by the provenance tests in Phase 2 (Article I)  
   **Open (A3, partial):** `tests/test_conf/conftest.py:14` — conftest holds only production_env; no tmp_path portal-settings fixture, no scope-snapshot helper, and the env fixtures that exist are duplicated inside individual test modules.
 - [x] T006 [US-1] Write `tests/test_conf/test_environment.py::TestEnv` asserting the shared `Env` declares `DJANGO_SECRET_KEY`, `DJANGO_SITE_DOMAIN`, the database, cache and admin-credential variables with no *working* default — each resolves to an explicitly unusable sentinel when the variable is unset, and the read itself never raises (FR-004, FR-006, research R6)  
   **Open (A3, never_built):** tests/test_conf/test_environment.py does not exist.

@@ -54,19 +54,19 @@ of a view
   no present second use, and it is justified below rather than waved through.
 - **Article IV, Integration-First** — the contract is the six accessors and the introspection
   surface. Acceptance scenarios exercise them the way the framework and a portal do.
-- **Article X, Test structure** — test modules mirror the source tree, tests group into
+- **Article I, Test structure** — test modules mirror the source tree, tests group into
   `Test<Subject>` classes, one factory per model, shared setup in `conftest.py`.
-- **Article XI, Cohesion** — behaviour lives on `ModelConfiguration`, `FairDMRegistry` and
+- **Article X, Cohesion** — behaviour lives on `ModelConfiguration`, `FairDMRegistry` and
   `FieldInspector` rather than in loose module functions. Field introspection stays on
   `FieldInspector` because the model is its subject and the factories already need it.
-- **Article XIV, Configuration over custom plumbing** — this feature *is* that article's mechanism.
+- **Article XIII, Configuration over custom plumbing** — this feature *is* that article's mechanism.
   Defaults are inferred where they can be, and overriding is available at three levels of effort.
 
 **On Article III and the override hook.** Article III forbids future-proofing indirection without a
 present second use, and no code in this repository overrides an accessor today. It is kept for two
-reasons that Article III accommodates rather than contradicts. Article XI states the framework's
+reasons that Article III accommodates rather than contradicts. Article X states the framework's
 position directly: in a published framework a class is the extension point, and a portal developer
-who needs different behaviour subclasses it and overrides one method. Article XIV names the registry
+who needs different behaviour subclasses it and overrides one method. Article XIII names the registry
 as the primary extension point. The hook is therefore the article-sanctioned shape for a framework
 class, not speculative generality, and it costs nothing: the accessor has to exist regardless, and
 making it the implementation rather than a delegate to a cached property is strictly less code than

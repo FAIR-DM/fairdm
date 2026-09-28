@@ -27,7 +27,7 @@ route; the spec's Independent Test for every story is a test task below, not a m
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: no ordering dependency on its siblings, so it can be written alongside them. Test tasks
-  marked `[P]` often share a test module, because Article X's mirroring rule puts several `Test*`
+  marked `[P]` often share a test module, because Article I's mirroring rule puts several `Test*`
   classes in one file by design; what `[P]` promises is that neither task's content depends on the
   other's, not that the files are disjoint.
 - **[Story]**: which user story owns the task (US1–US6), or `SETUP`/`FOUND`/`POLISH`
@@ -138,7 +138,7 @@ published records appear, paging works.
       **and each one reverses by its `<slug>-list` name** — a status code passes under either
       naming, so the name is asserted explicitly or T028 is untested —
       `tests/test_contrib/test_collections/test_urls.py`. Creates the package's
-      `__init__.py` alongside it, as its sibling test packages carry (Article I, Article X,
+      `__init__.py` alongside it, as its sibling test packages carry (Article I,
       FR-049, FR-051)
 - [ ] T072 [P] [US2] Test: two registrations resolving to the same listing address are refused at
       import with `ImproperlyConfigured` naming both models — same file (red first, before T029;
@@ -233,7 +233,7 @@ is indexed.
 ### Tests for User Story 3 (write first)
 
 All four concerns below — search, filters, ordering, the switcher — are tested as further
-`Test<Subject>` classes in the module of their subject, per Article X. No test file is named after
+`Test<Subject>` classes in the module of their subject, per Article I. No test file is named after
 a concern that mirrors no source module.
 
 - [ ] T031 [P] [US3] Test: with no `search_fields` declared, a word from the record's name matches
@@ -267,7 +267,7 @@ a concern that mirrors no source module.
 
 - [ ] T030 [US3] Register `search_fields` on at least two `fairdm_demo` sample configs and one
       measurement config, illustrating the default and an explicit declaration —
-      `fairdm_demo/config.py` (Article XVIII, FR-025). Sits here rather than in US-2 because T032 is
+      `fairdm_demo/config.py` (Article XVII, FR-025). Sits here rather than in US-2 because T032 is
       the test that fails without it, and Article I puts the test first — a demo registration is
       production code like any other
 - [ ] T039 [US3] **Assign** `self.search_fields = self.model_config.get_search_fields()` on
@@ -446,7 +446,7 @@ stands, the full suite and the demo app still pass.
       every named component exists, every example works (FR-059)
 - [ ] T061 [US6] Test: the full suite passes, and `git log` shows no test deleted without a
       recorded decision — run `poetry run pytest` and `poetry run pytest fairdm_demo/tests/`
-      (Acceptance Scenario 4, Article XVIII). **`fairdm_demo/tests/` is red before this branch
+      (Acceptance Scenario 4, Article XVII). **`fairdm_demo/tests/` is red before this branch
       starts**: `test_admin_views.py::TestICPMSMeasurementAdminViews::test_change_view_loads_without_error`,
       `test_admin_views.py::TestAllMeasurementAdminViewsWork::test_all_measurement_change_views_load`
       and `test_contributors.py::TestDemoPersonCreation::test_demo_person_creation` all fail on

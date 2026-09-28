@@ -34,7 +34,7 @@ backend subclasses), django-allauth, django-flex-menus. Nothing added.
 **Storage**: PostgreSQL in production, SQLite in development. `auth.Group`, `auth.Permission` and
 the existing `Person.groups` relation only.
 
-**Testing**: pytest + pytest-django, factory-boy. `tests/` mirrors the source tree (Article X).
+**Testing**: pytest + pytest-django, factory-boy. `tests/` mirrors the source tree (Article I).
 
 **Target Platform**: Linux server
 

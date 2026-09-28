@@ -1,7 +1,7 @@
 """Shared fixtures for the collections listing tests.
 
 Thin wrappers over the factories in `fairdm.factories` / `demo.factories`, per
-constitution Article X.
+constitution Article I.
 """
 
 import pytest

@@ -93,7 +93,7 @@ class TestContributorFactoryCreation:
 
     def test_person_factory_defaults_to_unusable_password_and_unclaimed(self):
         """T034: the default PersonFactory instance is the common case - a
-        contributor added for attribution alone (Article X, issue #227)."""
+        contributor added for attribution alone (Article I, issue #227)."""
         person = PersonFactory()
 
         assert person.has_usable_password() is False
@@ -193,7 +193,7 @@ class TestContributionFactory:
 @pytest.mark.django_db
 class TestContributorIdentifierFactory:
     """T116 - ContributorIdentifierFactory defaults to a real vocabulary member and a
-    unique value (Article X)."""
+    unique value (Article I)."""
 
     def test_default_type_is_a_contributor_identifier_vocabulary_member(self):
         person = PersonFactory()
@@ -446,7 +446,7 @@ class TestFactoryIntegration(TestCase):
 class TestContributorFactoriesPassFullClean:
     """Every factory in ``fairdm/factories/contributors.py`` produces an
     instance that satisfies ``full_clean()`` with no arguments beyond the
-    factory's own defaults (Article X)."""
+    factory's own defaults (Article I)."""
 
     def test_user_factory_instance_passes_full_clean(self):
         UserFactory().full_clean()
@@ -470,7 +470,7 @@ class TestContributorFactoriesPassFullClean:
 @pytest.mark.django_db
 class TestContributorFactoryBatchUniqueness:
     """``create_batch`` stays unique where a field is uniqueness-guarded
-    (Article X). ``Person.email`` (and, since ``AUTH_USER_MODEL`` swaps in
+    (Article I). ``Person.email`` (and, since ``AUTH_USER_MODEL`` swaps in
     ``Person``, ``UserFactory``'s email too) is the one field in this app
     carrying a database-level uniqueness constraint."""
 

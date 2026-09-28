@@ -274,13 +274,13 @@ the role silently stops covering what `DatasetPublishConfirm.check()` asks for.
 US-1's returned work raised three `modified_preexisting_test` flags, on `tests/test_apps.py`,
 `tests/test_conf/test_settings/test_apps.py` and
 `tests/test_contrib/test_contributors/test_choices.py`. All three are additions — a new `Test*`
-class appended to the module that Article X says owns that subject — plus one formatter reflow of a
+class appended to the module that Article I says owns that subject — plus one formatter reflow of a
 line the implementer did not otherwise touch. Nothing was weakened, skipped or deleted. Approved.
 
 The independent verify that followed was green on lint, types, the full suite, build and
 conformance, and red on the documentation step: `PortalRole` and `PortalRoles` are public names no
 page documented. The story's documentation tasks covered the administrator's view of the roles and
-the upgrade note, and missed the developer-facing API — which is Article XVII's requirement, not a
+the upgrade note, and missed the developer-facing API — which is Article XVI's requirement, not a
 nicety, because a portal author reading `rights_carrying()` has nothing else to read. Written as
 `docs/portal-development/portal_roles.md` and added to that guide's table of contents rather than
 returned to the implementer: a page is not implementation, and a re-dispatch for one page costs
@@ -442,7 +442,7 @@ narrowing would need to be reverted alongside them.
 **ADR:** none — a triage record for tamper flags raised and cleared in this run.
 
 Four `modified_preexisting_test` flags on US-2's diff, all additions: a new `Test*` class appended
-to the module Article X says owns that subject, in `test_admin.py`, `test_permissions.py`,
+to the module Article I says owns that subject, in `test_admin.py`, `test_permissions.py`,
 `test_portal_roles.py` and `test_templatetags/test_fairdm.py`, plus one import line reflowed.
 Nothing weakened, skipped or deleted. Approved.
 
@@ -679,7 +679,7 @@ gains a case and loses a decorator on a test whose subject moved. Approved.
 
 `tests/test_contrib/test_admin/test_group_admin.py` mirrored no source module, because the admin
 class lives in `fairdm/contrib/admin/admin.py`. Renamed to `test_admin.py`, which is what the
-conformance rule asks for and what Article X means by mirroring.
+conformance rule asks for and what Article I means by mirroring.
 
 The first full verify on this story reported one failure — `no such table: demo_testmeasurement` in
 a measurement cascade test that this feature never touches. It passed serially in 2.5 seconds and

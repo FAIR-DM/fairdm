@@ -59,7 +59,7 @@ except for keywords.
 **Why**: the roadmap item this feature serves is about managing records without the Django admin,
 and a project whose descriptions can only be written by an administrator has not met it. The
 application shell already provides view classes for editing related records alongside a parent, so
-this is configuration rather than new machinery, which is what Article XIV asks for. Descriptions
+this is configuration rather than new machinery, which is what Article XIII asks for. Descriptions
 are separated from the rest because they are long-form prose and the others are short values.
 
 **Left open**: which of the shell's facilities fits each case, and how the descriptions page is

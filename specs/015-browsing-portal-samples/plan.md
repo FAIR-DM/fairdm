@@ -133,7 +133,7 @@ tests/
     └── test_views.py                # listing content, search, filters, empty state, switcher, query counts, nothing-unreachable
 ```
 
-**Test file placement is a constraint, not a convenience.** Article X requires a test module to
+**Test file placement is a constraint, not a convenience.** Article I requires a test module to
 mirror a source module, and `fairdm/contrib/collections/` contains only `apps.py`, `plugins.py`
 (deleted), `tables.py`, `urls.py` and `views.py`. A cross-cutting concern — search, filtering,
 ordering, the switcher, query counts — is tested as a further `Test<Subject>` class inside the

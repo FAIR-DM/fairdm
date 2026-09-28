@@ -114,7 +114,7 @@ listing, and building a lesser version of it per listing now is how a portal end
 
 **What the shell already gives**: the application shell searches across declared field paths,
 related paths included, with OR semantics across words. This feature configures that from the
-registration rather than building anything equivalent, per Article XIV.
+registration rather than building anything equivalent, per Article XIII.
 
 **Where the index obligation stops**: on the fields the framework itself searches by default. A
 field a model author adds is the author's to index, and the documentation says so. Enforcing it
@@ -230,7 +230,7 @@ consumed directly by the view.
 nothing to instantiate — it configures the application shell's own `SearchMixin`, which already
 takes a plain `search_fields` list on any view. Forcing it into the `COMPONENTS` shape would build
 a factory that generates nothing, which is the wrong abstraction for what is otherwise a two-line
-pass-through, per Article XIV.
+pass-through, per Article XIII.
 
 **ADR:** none - an application of the existing rule to configure the shell rather than rebuild it; the registry gains no new pattern from it.
 
