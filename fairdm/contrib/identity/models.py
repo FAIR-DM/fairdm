@@ -8,8 +8,7 @@ from solo.models import SingletonModel
 
 
 def brand_asset_path(instance, filename: str) -> str:
-    """
-    Generate upload paths for brand assets (logos and icons).
+    """Generate upload paths for brand assets (logos and icons).
 
     Creates predictable paths for identity branding files to enable
     reliable URL resolution in templates and settings.
@@ -30,8 +29,7 @@ def brand_asset_path(instance, filename: str) -> str:
 
 
 class BrandAssets(models.Model):
-    """
-    Abstract mixin providing brand asset fields for light/dark theme variants.
+    """Abstract mixin providing brand asset fields for light/dark theme variants.
 
     Provides logo and icon fields with theme-specific variants to support
     both light and dark color schemes. Uses ThumbnailerImageField for

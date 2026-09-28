@@ -89,7 +89,6 @@ class DataPackage:
 
     def add_samples(self, zip_file):
         """Add the samples to the ZIP."""
-
         # get a list of all sample types collected by this dataset
         sample_types = self.dataset.samples.values_list("polymorphic_ctype", flat=True)
 

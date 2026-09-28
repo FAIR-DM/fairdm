@@ -12,8 +12,7 @@ from .models import Point
 
 
 def normalize_coordinate(value, precision=5, coerce=str):
-    """
-    Normalizes a coordinate value to a specified precision and type.
+    """Normalizes a coordinate value to a specified precision and type.
 
     Args:
         value: The coordinate value to normalize. Can be any type convertible to Decimal.

@@ -1,5 +1,4 @@
-"""
-Example plugins for Project model using the new model-centric system.
+"""Example plugins for Project model using the new model-centric system.
 """
 
 from django.urls import reverse_lazy
@@ -90,7 +89,8 @@ class ProjectDatesInline(ProjectDateInline):
     parameterised on :attr:`ProjectDate.START_TYPE`/``END_TYPE`` rather than the literals, and
     stated here rather than in ``related_records.py`` because it is this page's own choice of
     which shared declaration to combine with which shared rule — a dataset's dates page pairs
-    the same base with its own, differently-typed pair (plan P6)."""
+    the same base with its own, differently-typed pair (plan P6).
+    """
 
     formset = date_ordering_formset(
         ProjectDate.START_TYPE,
@@ -142,7 +142,8 @@ class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
     def show_delete_action(self, user):
         """Offered on the right ``Delete`` itself requires, not on the one that opened this page:
         a user may hold ``change_project`` without ``delete_project``, and a link they cannot
-        follow is worse than no link."""
+        follow is worse than no link.
+        """
         return has_perm(self.request, Delete.permission, self.base_object)
 
     def get_success_url(self):

@@ -1,5 +1,4 @@
-"""
-FairDM Demo Portal - Form Examples
+"""FairDM Demo Portal - Form Examples
 
 This module demonstrates best practices for creating forms in FairDM portals,
 including:

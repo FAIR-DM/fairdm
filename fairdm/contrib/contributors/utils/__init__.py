@@ -1,5 +1,4 @@
-"""
-Utilities for the contributors app.
+"""Utilities for the contributors app.
 
 This package provides various utility functions for working with contributors,
 including API integrations, data transformations, and helper functions.

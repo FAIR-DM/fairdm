@@ -17,7 +17,8 @@ from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 
 class VocabularyDescriptionsForm(forms.Form):
     """One text area per concept in ``related_model``'s vocabulary, labelled
-    with the concept's name and helped by its definition."""
+    with the concept's name and helped by its definition.
+    """
 
     def __init__(self, *args, related_model, instance, **kwargs):
         self.related_model = related_model
@@ -42,7 +43,8 @@ class VocabularyDescriptionsForm(forms.Form):
     def save(self):
         """Write, update or delete one row per area: a non-blank area
         becomes one row of its type, blank (including whitespace-only)
-        removes any row already stored for that type."""
+        removes any row already stored for that type.
+        """
         for type_value in self.related_model.VOCABULARY.values:
             value = (self.cleaned_data.get(type_value) or "").strip()
             row = self.related_model._default_manager.filter(

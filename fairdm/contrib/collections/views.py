@@ -9,8 +9,7 @@ from fairdm.views import FairDMTableView
 
 
 class DataTableView(FairDMTableView):
-    """
-    A view for displaying tabular data for Sample and Measurement sub-types.
+    """A view for displaying tabular data for Sample and Measurement sub-types.
 
     This view combines SingleTableMixin from django-tables2 with FairDMListView
     to provide a rich tabular interface with filtering and pagination.
@@ -78,7 +77,8 @@ class DataTableView(FairDMTableView):
         """The switcher's entries for one kind, samples or measurements - each
         `{name, url, is_current}`, reversed from the `<slug>-list` URL names (FR-042
         to FR-045). Built from the registry at render time, so a new registration
-        needs no per-type wiring (plan.md Summary)."""
+        needs no per-type wiring (plan.md Summary).
+        """
         entries = []
         for model_class in models:
             config = registry.get_for_model(model_class)
@@ -96,14 +96,12 @@ class DataTableView(FairDMTableView):
         return entries
 
     def get_table_class(self):
-        """
-        Return the class to use for the table.
+        """Return the class to use for the table.
         """
         return self.model_config.get_table_class()
 
     def get_table_kwargs(self):
-        """
-        Return the keyword arguments for instantiating the table.
+        """Return the keyword arguments for instantiating the table.
 
         Allows passing customized arguments to the table constructor, for example,
         to remove the buttons column, you could define this method in your View::
@@ -148,8 +146,7 @@ class DataTableView(FairDMTableView):
 
     @classmethod
     def get_urls(cls, **kwargs):
-        """
-        Return the URLs for the table view.
+        """Return the URLs for the table view.
         """
         if not registry.samples and not registry.measurements:
             # In case there are no samples or measurements registered, return an empty list.

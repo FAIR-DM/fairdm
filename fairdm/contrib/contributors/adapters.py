@@ -13,8 +13,7 @@ from fairdm.contrib.contributors.utils.transforms import ORCIDTransform
 
 
 def is_provider(name, sociallogin):
-    """
-    Check if the sociallogin provider matches the given name.
+    """Check if the sociallogin provider matches the given name.
     """
     return sociallogin.account.provider == name
 
@@ -49,8 +48,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         }
 
     def get_db_user_by_orcid(self, orcid_id):
-        """
-        Retrieve a user from the database by their ORCID ID.
+        """Retrieve a user from the database by their ORCID ID.
         """
         existing = ContributorIdentifier.objects.filter(
             value=orcid_id, type="ORCID"

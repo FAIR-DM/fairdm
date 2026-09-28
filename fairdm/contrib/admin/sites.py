@@ -54,7 +54,8 @@ class CustomAdminSite(admin.AdminSite):
 
     def has_permission(self, request):
         """Accept a holder of a rights-carrying role, not only an ``is_staff`` account
-        (research R3). Nothing is stored on the person to grant this."""
+        (research R3). Nothing is stored on the person to grant this.
+        """
         user = request.user
         return user.is_active and (user.is_staff or _holds_a_rights_carrying_role(user))
 

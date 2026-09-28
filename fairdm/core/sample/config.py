@@ -1,5 +1,4 @@
-"""
-Base registry configuration for Sample subclasses.
+"""Base registry configuration for Sample subclasses.
 
 Provides a base configuration class that sample type subclasses can inherit from.
 Do NOT register the base Sample model - only polymorphic subclasses should be registered.

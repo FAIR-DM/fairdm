@@ -10,8 +10,7 @@ from fairdm.utils.choices import Visibility
 
 
 def render_concept_many_to_many(value):
-    """
-    Custom render function for ConceptManyToManyField to display concepts.
+    """Custom render function for ConceptManyToManyField to display concepts.
     """
     if not value:
         return ""
@@ -82,7 +81,8 @@ class BaseTable(tables.Table):
 
     def configure_column_attrs(self):
         """Resolve each column's underlying model field, once, and use it to set
-        both the type/name CSS classes and the header tooltip."""
+        both the type/name CSS classes and the header tooltip.
+        """
         model = getattr(self._meta, "model", None)
 
         # Iterate over bound columns (safer) and update/ensure the nested 'td' dict exists.
@@ -124,8 +124,7 @@ class BaseTable(tables.Table):
                 th["title"] = str(help_text)
 
     def update_concept_field_render_methods(self):
-        """
-        Update the render methods for ConceptManyToManyField in the table.
+        """Update the render methods for ConceptManyToManyField in the table.
         This is called in the constructor to ensure all fields are set up correctly.
         """
         for c in self.columns.columns.values():

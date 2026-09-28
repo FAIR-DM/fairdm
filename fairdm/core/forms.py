@@ -73,8 +73,7 @@ class CreatorsFormField(forms.ModelMultipleChoiceField):
         return value
 
     def _check_values(self, value):
-        """
-        Given a list of possible PK values, return a QuerySet of the
+        """Given a list of possible PK values, return a QuerySet of the
         corresponding objects. Raise a ValidationError if a given value is
         invalid (not a valid PK, not in the queryset, etc.)
         """

@@ -1,5 +1,4 @@
-"""
-Data transformation utilities for contributors.
+"""Data transformation utilities for contributors.
 
 This module provides bidirectional transformations between Contributor objects
 and various external metadata formats (DataCite, Schema.org, CSL-JSON, ORCID, ROR, etc.).
@@ -17,8 +16,7 @@ from fairdm.contrib.contributors.models import (
 
 
 class BaseTransform:
-    """
-    Base class for bidirectional contributor data transformations.
+    """Base class for bidirectional contributor data transformations.
 
     Provides utilities for converting between external data formats and
     Contributor model instances. Subclasses should implement:
@@ -27,8 +25,7 @@ class BaseTransform:
     """
 
     def dictget(self, data: dict | list, path: list, default: Any = "") -> Any:
-        """
-        Navigate nested data structures using a path list.
+        """Navigate nested data structures using a path list.
 
         Safely retrieves values from deeply nested dictionaries or lists.
 
@@ -54,8 +51,7 @@ class BaseTransform:
             return default
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export a Contributor instance to external format.
+        """Export a Contributor instance to external format.
 
         Args:
             contributor: The Contributor instance to export
@@ -71,8 +67,7 @@ class BaseTransform:
     def import_data(
         self, data: dict, instance: Contributor | None = None, save: bool = True
     ) -> Contributor:
-        """
-        Import external format data into a Contributor instance.
+        """Import external format data into a Contributor instance.
 
         Args:
             data: External format data dictionary
@@ -90,8 +85,7 @@ class BaseTransform:
         )
 
     def validate(self, data: dict) -> bool:
-        """
-        Validate that data conforms to the expected format.
+        """Validate that data conforms to the expected format.
 
         Args:
             data: Data to validate
@@ -104,16 +98,14 @@ class BaseTransform:
 
 
 class DataCiteTransform(BaseTransform):
-    """
-    Bidirectional transformation for DataCite Metadata Schema 4.4.
+    """Bidirectional transformation for DataCite Metadata Schema 4.4.
 
     Converts between Contributor objects and DataCite creator/contributor format.
     See: https://schema.datacite.org/meta/kernel-4.4/
     """
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export Contributor to DataCite creator/contributor format.
+        """Export Contributor to DataCite creator/contributor format.
 
         Args:
             contributor: Person or Organization instance
@@ -170,8 +162,7 @@ class DataCiteTransform(BaseTransform):
     def import_data(
         self, data: dict, instance: Contributor | None = None, save: bool = True
     ) -> Contributor:
-        """
-        Import DataCite creator/contributor data into a Contributor.
+        """Import DataCite creator/contributor data into a Contributor.
 
         Args:
             data: DataCite formatted contributor data
@@ -214,16 +205,14 @@ class DataCiteTransform(BaseTransform):
 
 
 class SchemaOrgTransform(BaseTransform):
-    """
-    Bidirectional transformation for Schema.org JSON-LD format.
+    """Bidirectional transformation for Schema.org JSON-LD format.
 
     Converts between Contributor objects and Schema.org Person/Organization types.
     See: https://schema.org/Person and https://schema.org/Organization
     """
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export Contributor to Schema.org JSON-LD format.
+        """Export Contributor to Schema.org JSON-LD format.
 
         Args:
             contributor: Person or Organization instance
@@ -304,8 +293,7 @@ class SchemaOrgTransform(BaseTransform):
     def import_data(
         self, data: dict, instance: Contributor | None = None, save: bool = True
     ) -> Contributor:
-        """
-        Import Schema.org Person/Organization data into a Contributor.
+        """Import Schema.org Person/Organization data into a Contributor.
 
         Args:
             data: Schema.org formatted data
@@ -364,16 +352,14 @@ class SchemaOrgTransform(BaseTransform):
 
 
 class CSLJSONTransform(BaseTransform):
-    """
-    Bidirectional transformation for CSL-JSON (Citation Style Language) format.
+    """Bidirectional transformation for CSL-JSON (Citation Style Language) format.
 
     Converts between Contributor objects and CSL-JSON author/contributor format.
     See: https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html
     """
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export Contributor to CSL-JSON author format.
+        """Export Contributor to CSL-JSON author format.
 
         Args:
             contributor: Contributor instance
@@ -406,8 +392,7 @@ class CSLJSONTransform(BaseTransform):
     def import_data(
         self, data: dict, instance: Contributor | None = None, save: bool = True
     ) -> Contributor:
-        """
-        Import CSL-JSON author data into a Contributor.
+        """Import CSL-JSON author data into a Contributor.
 
         Args:
             data: CSL-JSON formatted author data
@@ -460,8 +445,7 @@ class CSLJSONTransform(BaseTransform):
 
 
 class ORCIDTransform(BaseTransform):
-    """
-    Bidirectional transformation for ORCID Public API v3.0 data.
+    """Bidirectional transformation for ORCID Public API v3.0 data.
 
     Converts between Person objects and ORCID API response format.
     See: https://info.orcid.org/documentation/integration-guide/orcid-record/
@@ -469,8 +453,7 @@ class ORCIDTransform(BaseTransform):
 
     @staticmethod
     def fetch_from_api(orcid_id: str) -> dict:
-        """
-        Fetch public data for a given ORCID ID from the ORCID Public API.
+        """Fetch public data for a given ORCID ID from the ORCID Public API.
 
         Args:
             orcid_id: The ORCID identifier of the researcher
@@ -509,8 +492,7 @@ class ORCIDTransform(BaseTransform):
             raise requests.RequestException(msg) from e
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export Person to ORCID API format.
+        """Export Person to ORCID API format.
 
         Note: This creates a minimal ORCID-compatible structure for Person data.
         The full ORCID record has many more fields.
@@ -579,8 +561,7 @@ class ORCIDTransform(BaseTransform):
     def import_data(
         self, data: dict, instance: Person | None = None, save: bool = True
     ) -> Person:
-        """
-        Import ORCID API data into a Person instance.
+        """Import ORCID API data into a Person instance.
 
         Args:
             data: ORCID API response data
@@ -643,8 +624,7 @@ class ORCIDTransform(BaseTransform):
     def update_or_create(
         cls, orcid: str, force: bool = False, **kwargs
     ) -> tuple[Person, bool]:
-        """
-        Update an existing Person or create a new one using ORCID data.
+        """Update an existing Person or create a new one using ORCID data.
 
         Attempts to find a Person matching the provided kwargs or with an identifier
         value matching the given ORCID. If found and not recently synced (or force=True),
@@ -687,8 +667,7 @@ class ORCIDTransform(BaseTransform):
 
     @classmethod
     def get_or_create(cls, orcid: str) -> tuple[Person, bool]:
-        """
-        Retrieve a Person instance matching the given ORCID.
+        """Retrieve a Person instance matching the given ORCID.
 
         If no match is found, a Person instance is created by fetching data from
         the ORCID Public API.
@@ -713,8 +692,7 @@ class ORCIDTransform(BaseTransform):
 
 
 class RORTransform(BaseTransform):
-    """
-    Bidirectional transformation for ROR (Research Organization Registry) API data.
+    """Bidirectional transformation for ROR (Research Organization Registry) API data.
 
     Converts between Organization objects and ROR API response format.
     See: https://ror.readme.io/docs/data-structure
@@ -722,8 +700,7 @@ class RORTransform(BaseTransform):
 
     @staticmethod
     def clean_ror_id(ror_id_or_link: str) -> str:
-        """
-        Extract ROR ID from URL or return as-is.
+        """Extract ROR ID from URL or return as-is.
 
         Args:
             ror_id_or_link: ROR ID or full URL
@@ -738,8 +715,7 @@ class RORTransform(BaseTransform):
 
     @staticmethod
     def fetch_from_api(ror_id: str) -> dict:
-        """
-        Fetch public data for a given ROR ID from the ROR API.
+        """Fetch public data for a given ROR ID from the ROR API.
 
         Args:
             ror_id: The ROR identifier of the organization (URL or ID)
@@ -780,8 +756,7 @@ class RORTransform(BaseTransform):
             raise requests.RequestException(msg) from e
 
     def export(self, contributor: Contributor) -> dict:
-        """
-        Export Organization to ROR API format.
+        """Export Organization to ROR API format.
 
         Note: This creates a minimal ROR-compatible structure for Organization data.
         The full ROR record has many more fields.
@@ -847,8 +822,7 @@ class RORTransform(BaseTransform):
     def import_data(
         self, data: dict, instance: Organization | None = None, save: bool = True
     ) -> Organization:
-        """
-        Import ROR API data into an Organization instance.
+        """Import ROR API data into an Organization instance.
 
         Args:
             data: ROR API response data
@@ -914,8 +888,7 @@ class RORTransform(BaseTransform):
     def update_or_create(
         cls, ror_id: str, force: bool = False, **kwargs
     ) -> tuple[Organization, bool]:
-        """
-        Update an existing Organization or create a new one using ROR data.
+        """Update an existing Organization or create a new one using ROR data.
 
         Attempts to find an Organization matching the provided kwargs or with an
         identifier value matching the given ROR ID. If found and not recently synced
@@ -960,8 +933,7 @@ class RORTransform(BaseTransform):
 
     @classmethod
     def get_or_create(cls, ror_id: str) -> tuple[Organization, bool]:
-        """
-        Retrieve an Organization instance matching the given ROR ID.
+        """Retrieve an Organization instance matching the given ROR ID.
 
         If no match is found, an Organization instance is created by fetching data
         from the ROR API.

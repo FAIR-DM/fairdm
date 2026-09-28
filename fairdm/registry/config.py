@@ -296,7 +296,8 @@ class ModelConfiguration:
 
     def _validate_model(self) -> None:
         """A configuration needs a model. Whether that model may be *registered* is
-        the registry's decision, made in FairDMRegistry.register per FR-002."""
+        the registry's decision, made in FairDMRegistry.register per FR-002.
+        """
         if self.model is None:
             raise ConfigurationError("ModelConfiguration.model is required")
 
@@ -480,7 +481,8 @@ class ModelConfiguration:
 
     def get_search_fields(self) -> list[str]:
         """The fields `SearchMixin` searches on `?q=`, defaulting to `["name"]`
-        when this configuration declares none (FR-024, data-model.md)."""
+        when this configuration declares none (FR-024, data-model.md).
+        """
         return self.search_fields or ["name"]
 
     def _component_class(self, component: str) -> type:

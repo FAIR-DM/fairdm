@@ -1,5 +1,4 @@
-"""
-Base registry configuration for Measurement subclasses.
+"""Base registry configuration for Measurement subclasses.
 
 Provides a base configuration class that measurement type subclasses can inherit from.
 Do NOT register the base Measurement model - only polymorphic subclasses should be registered.

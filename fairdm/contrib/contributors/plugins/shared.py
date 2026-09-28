@@ -83,8 +83,7 @@ class ContributionRemove(Plugin, FairDMDeleteView):
 
 @plugins.register(Project, label=_("Contributors"), icon="users", order=150)
 class ContributionList(Plugin, FairDMListView):
-    """
-    Plugin for managing contributors on any model with a 'contributors' GenericRelation.
+    """Plugin for managing contributors on any model with a 'contributors' GenericRelation.
     """
 
     url_path = "contributors"

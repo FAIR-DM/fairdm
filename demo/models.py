@@ -564,8 +564,7 @@ class ExampleMeasurement(Measurement):
 
 
 class XRFMeasurement(Measurement):
-    """
-    X-ray fluorescence (XRF) spectroscopy measurement.
+    """X-ray fluorescence (XRF) spectroscopy measurement.
 
     Demonstrates a measurement model with specific analytical parameters
     and custom configuration patterns in the registry.
@@ -606,8 +605,7 @@ class XRFMeasurement(Measurement):
 
 
 class ICP_MS_Measurement(Measurement):
-    """
-    Inductively Coupled Plasma Mass Spectrometry (ICP-MS) measurement.
+    """Inductively Coupled Plasma Mass Spectrometry (ICP-MS) measurement.
 
     Demonstrates a measurement model with isotope-specific data
     and advanced field validation patterns.

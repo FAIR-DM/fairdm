@@ -1,5 +1,4 @@
-"""
-FairDM Registry Package - Model registration and configuration system.
+"""FairDM Registry Package - Model registration and configuration system.
 
 This package provides the core registration system for FairDM Sample and Measurement models,
 including configuration classes, component factories, and the global registry instance.

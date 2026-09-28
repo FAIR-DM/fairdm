@@ -28,8 +28,7 @@ class FairDMConfig(AppConfig):
     name = "fairdm"
 
     def resolved_environment(self) -> str:
-        """
-        The environment ``fairdm.setup()`` resolved, recorded as the
+        """The environment ``fairdm.setup()`` resolved, recorded as the
         ``DJANGO_ENV`` setting for ``ready()`` to read once ``django.setup()``
         has populated the app registry (research R1). Defaults to
         ``production`` — the safe direction — when unset.
@@ -120,8 +119,7 @@ class FairDMConfig(AppConfig):
         PortalRoles.reconcile()
 
     def _check_production_configuration(self) -> None:
-        """
-        Refuse to boot when the settings in force are the production baseline
+        """Refuse to boot when the settings in force are the production baseline
         and any production-critical check fails, naming every failure in one
         error rather than the first (FR-013, SC-003).
 

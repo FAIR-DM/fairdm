@@ -1,5 +1,4 @@
-"""
-Custom permission backends for Sample model.
+"""Custom permission backends for Sample model.
 
 Provides guardian integration with permission inheritance from Dataset.
 """
@@ -8,8 +7,7 @@ from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
 class SamplePermissionBackend(PolymorphicObjectPermissionBackend):
-    """
-    Custom permission backend for Sample model that inherits permissions from parent Dataset.
+    """Custom permission backend for Sample model that inherits permissions from parent Dataset.
 
     This backend extends the shared ``PolymorphicObjectPermissionBackend`` (which normalises a
     specimen instance to its base ``Sample`` before the object-level check, see
@@ -50,8 +48,7 @@ class SamplePermissionBackend(PolymorphicObjectPermissionBackend):
     supports_anonymous_user = True
 
     def has_perm(self, user_obj, perm, obj=None):
-        """
-        Check if user has permission on object.
+        """Check if user has permission on object.
 
         For Sample objects, checks:
         1. Direct sample-level permissions via guardian

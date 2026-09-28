@@ -1,5 +1,4 @@
-"""
-FairDM Demo Portal - Filter Examples
+"""FairDM Demo Portal - Filter Examples
 
 This module demonstrates best practices for creating filters in FairDM portals,
 including:
@@ -92,8 +91,7 @@ from .models import CustomSample
 
 
 class CustomSampleFilter(SampleFilter):
-    """
-    Basic filter for CustomSample showing registry auto-generation pattern.
+    """Basic filter for CustomSample showing registry auto-generation pattern.
 
     This is the simplest filter configuration - just specify the model and
     fields. The registry will auto-generate this if you don't provide a
@@ -137,8 +135,7 @@ class CustomSampleFilter(SampleFilter):
 # Commented out example - uncomment and adapt
 # class RockSampleFilter(SampleFilter):
 class RockSampleFilterExample(SampleFilter):
-    """
-    Example filter demonstrating generic search across multiple fields.
+    """Example filter demonstrating generic search across multiple fields.
 
     This filter shows how to:
     1. Add a generic search field that searches multiple model fields
@@ -192,8 +189,7 @@ class RockSampleFilterExample(SampleFilter):
         fields = []  # Leave empty when defining custom filters above
 
     def filter_search(self, queryset, name, value):
-        """
-        Generic search method across multiple fields.
+        """Generic search method across multiple fields.
 
         Searches the following fields (case-insensitive):
         - name: Sample name
@@ -229,8 +225,7 @@ class RockSampleFilterExample(SampleFilter):
 # Commented out example - uncomment and adapt
 # class XRFMeasurementFilter(BaseListFilter):
 class XRFMeasurementFilterExample(SampleFilter):
-    """
-    Example filter demonstrating cross-relationship filtering.
+    """Example filter demonstrating cross-relationship filtering.
 
     This filter shows how to:
     1. Filter by fields in related models (descriptions, dates, etc.)
@@ -318,8 +313,7 @@ class XRFMeasurementFilterExample(SampleFilter):
 # Commented out example - uncomment and adapt
 # class DatasetFilter(BaseListFilter):
 class DatasetFilterExample(SampleFilter):
-    """
-    Example filter demonstrating advanced filtering patterns.
+    """Example filter demonstrating advanced filtering patterns.
 
     This filter shows how to:
     1. Use ModelChoiceFilter for ForeignKey relationships

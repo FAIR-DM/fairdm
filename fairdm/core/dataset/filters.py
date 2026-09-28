@@ -1,5 +1,4 @@
-"""
-Filters for the Dataset app.
+"""Filters for the Dataset app.
 
 This module provides filtering capabilities for Dataset querysets using django-filter.
 The DatasetFilter class enables filtering by:
@@ -74,8 +73,7 @@ from .models import Dataset
 
 
 class DatasetFilter(BaseListFilter):
-    """
-    Filter for Dataset list views with comprehensive filtering capabilities.
+    """Filter for Dataset list views with comprehensive filtering capabilities.
 
     This filter provides multiple ways to discover and narrow datasets:
 

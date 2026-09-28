@@ -17,7 +17,8 @@ class ShippedRoleGroupForm(forms.ModelForm):
     """T022/T023: turns the ``pre_save`` guard's raise (T021) into a field error naming
     the role, so an administrator renaming a shipped role sees why rather than a 500 -
     the receiver stays the enforcement (research R6) and never actually fires through
-    this form, since the rename is caught here first."""
+    this form, since the rename is caught here first.
+    """
 
     class Meta:
         model = Group
@@ -42,7 +43,8 @@ admin.site.unregister(Group)
 class ShippedRoleGroupAdmin(DjangoGroupAdmin):
     """FR-012/FR-013: no delete action or button for a shipped role, and a field
     error rather than a server error for a rename attempt. FR-014: a group a portal
-    created for itself is unaffected either way."""
+    created for itself is unaffected either way.
+    """
 
     form = ShippedRoleGroupForm
 
@@ -55,7 +57,8 @@ class ShippedRoleGroupAdmin(DjangoGroupAdmin):
         """SPC-001/FR-012: name the role rather than the bare 403 `has_delete_permission`
         above produces on its own - `ModelAdmin.delete_view` raises `PermissionDenied`
         before any of this feature's code runs, and the naming message on the `pre_delete`
-        receiver (`refuse_shipped_role_deletion`) is unreachable from here."""
+        receiver (`refuse_shipped_role_deletion`) is unreachable from here.
+        """
         group = self.get_object(request, object_id)
         if group is not None and group.name in PortalRoles.shipped_names():
             return HttpResponseForbidden(

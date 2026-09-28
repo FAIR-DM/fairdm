@@ -15,7 +15,8 @@ from django.utils.translation import gettext_lazy as _
 
 class PortalRole(NamedTuple):
     """One shipped role: its stored name, its display label, and the exact
-    permissions it holds, each an explicit ``app_label.codename``."""
+    permissions it holds, each an explicit ``app_label.codename``.
+    """
 
     name: str
     label: str | Promise
@@ -23,7 +24,7 @@ class PortalRole(NamedTuple):
 
 
 class PortalRoles:
-    """The roles FairDM ships, and the methods that read and install them (Article XI)."""
+    """The roles FairDM ships, and the methods that read and install them (Article X)."""
 
     PORTAL_ADMINISTRATOR = PortalRole(
         name="Portal Administrator",

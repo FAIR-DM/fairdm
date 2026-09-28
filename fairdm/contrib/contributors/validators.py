@@ -5,8 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def validate_iso_639_1_language_code(value):
-    """
-    Validate that the value is a valid ISO 639-1 language code.
+    """Validate that the value is a valid ISO 639-1 language code.
 
     ISO 639-1 codes are two-letter lowercase codes (e.g., 'en', 'es', 'fr').
     """
@@ -206,8 +205,7 @@ def validate_iso_639_1_language_code(value):
 
 
 def validate_iso_639_1_language_codes(value):
-    """
-    Validate that every element of a list is a valid ISO 639-1 language code.
+    """Validate that every element of a list is a valid ISO 639-1 language code.
 
     Field validators receive the field's whole value; for ``Contributor.lang``, a
     JSONField holding a list of codes, that means validating each element in turn

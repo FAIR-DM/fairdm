@@ -1,5 +1,4 @@
-"""
-FairDM Demo Portal Configuration
+"""FairDM Demo Portal Configuration
 
 This module demonstrates various model registration patterns using the FairDM registry system.
 It showcases different configuration approaches and serves as executable documentation
@@ -50,8 +49,7 @@ from .tables import CustomSampleTable
 
 @fairdm.register
 class CustomParentSampleConfig(BaseSampleConfiguration):
-    """
-    Example configuration demonstrating rich metadata and authority information.
+    """Example configuration demonstrating rich metadata and authority information.
 
     This configuration showcases:
     - Complete metadata with authority, citation, and repository information
@@ -87,8 +85,7 @@ class CustomParentSampleConfig(BaseSampleConfiguration):
 
 @fairdm.register
 class CustomSampleConfig(ModelConfiguration):
-    """
-    Advanced configuration with custom component classes and component-specific fields.
+    """Advanced configuration with custom component classes and component-specific fields.
 
     Stays on `ModelConfiguration` rather than `BaseSampleConfiguration` on purpose:
     it declares no shared `fields` list at all, relying on the framework's own
@@ -462,8 +459,7 @@ DEMO_REGISTERED_MODELS = [
 
 @fairdm.register
 class XRFMeasurementConfig(BaseMeasurementConfiguration):
-    """
-    XRF measurement configuration demonstrating measurement-specific patterns.
+    """XRF measurement configuration demonstrating measurement-specific patterns.
 
     Shows field customization for analytical chemistry data and component overrides.
     The ``metadata.description`` value surfaces in Swagger UI as the operation
@@ -500,8 +496,7 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
 
 @fairdm.register
 class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
-    """
-    ICP-MS measurement configuration with advanced field patterns.
+    """ICP-MS measurement configuration with advanced field patterns.
 
     Demonstrates complex measurement data with isotopic information and uncertainty.
     The ``metadata.description`` value surfaces in Swagger UI as the operation

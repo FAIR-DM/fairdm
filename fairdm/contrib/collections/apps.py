@@ -18,8 +18,7 @@ class CollectionsConfig(AppConfig):
         return super().ready()
 
     def populate_data_collection_menu(self):
-        """
-        Populates the data collection menu with sample and measurement collection links.
+        """Populates the data collection menu with sample and measurement collection links.
         This function is called during the `CollectionsConfig.ready` method.
         """
         from flex_menu import MenuItem

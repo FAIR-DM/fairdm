@@ -47,8 +47,7 @@ def contributor_permissions_default() -> dict:
 
 
 class Contributor(PolymorphicMixin, PolymorphicModel):
-    """
-    Base model for contributors to research data.
+    """Base model for contributors to research data.
 
     A Contributor represents a person or organization that makes contributions to
     projects, datasets, samples, or measurements within the database. This model stores
@@ -208,8 +207,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         default_related_name = "contributors"
 
     def save(self, *args, **kwargs):
-        """
-        Save the contributor instance.
+        """Save the contributor instance.
 
         Automatically updates the last_synced field when synced_data changes,
         tracking when the contributor was last synchronized with external
@@ -308,7 +306,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     @property
     def samples(self):
         """Every specimen this contributor is credited on, resolved through the concrete
-        type each contribution actually names (FR-034; see ``credited_object_ids``)."""
+        type each contribution actually names (FR-034; see ``credited_object_ids``).
+        """
         Sample = apps.get_model("sample.Sample")
         return Sample.objects.filter(pk__in=self.credited_object_ids(Sample))
 
@@ -342,8 +341,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return result
 
     def to_datacite(self):
-        """
-        Export contributor metadata in DataCite JSON format.
+        """Export contributor metadata in DataCite JSON format.
 
         Returns DataCite-compatible creator/contributor object following
         the DataCite Metadata Schema 4.4.
@@ -356,8 +354,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return contributor_to_datacite(self)
 
     def to_schema_org(self):
-        """
-        Export contributor metadata in Schema.org JSON-LD format.
+        """Export contributor metadata in Schema.org JSON-LD format.
 
         Returns Schema.org-compatible Person or Organization object.
 
@@ -369,8 +366,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return contributor_to_schema_org(self)
 
     def get_recent_contributions(self, limit: int = 5):
-        """
-        Get the most recent contributions by this contributor.
+        """Get the most recent contributions by this contributor.
 
         Args:
             limit: Maximum number of contributions to return (default: 5)
@@ -381,8 +377,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return self.contributions.select_related("content_type").order_by("-id")[:limit]
 
     def get_contributions_by_type(self, model_name: str):
-        """
-        Get all contributions to a specific type of object (project, dataset, sample, measurement).
+        """Get all contributions to a specific type of object (project, dataset, sample, measurement).
 
         Args:
             model_name: Name of the model (e.g., 'project', 'dataset', 'sample', 'measurement')
@@ -405,8 +400,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         )
 
     def has_contribution_to(self, obj) -> bool:
-        """
-        Check if this contributor has contributed to a specific object.
+        """Check if this contributor has contributed to a specific object.
 
         Args:
             obj: A Project, Dataset, Sample, or Measurement instance
@@ -424,8 +418,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         ).exists()
 
     def get_co_contributors(self, limit: int | None = None):
-        """
-        Get other contributors who have contributed to the same objects as this contributor.
+        """Get other contributors who have contributed to the same objects as this contributor.
 
         Returns contributors ordered by frequency of co-contribution (most frequent first).
 
@@ -678,8 +671,7 @@ class Person(AbstractUser, Contributor):
         return self.last_name
 
     def get_full_name_display(self, name_format: str = "given_family") -> str:
-        """
-        Get formatted full name with various display options.
+        """Get formatted full name with various display options.
 
         Args:
             name_format: Display format - one of:
@@ -900,7 +892,8 @@ class Affiliation(models.Model):
     def clean(self):
         """Refuse a second membership of the same organisation with a readable
         message, rather than leaving the person to discover it as a database
-        error (FR-021)."""
+        error (FR-021).
+        """
         from django.core.exceptions import ValidationError
 
         super().clean()
@@ -1060,8 +1053,7 @@ class Organization(Contributor):
 
     @hook(AFTER_CREATE)
     def update_identifier(self):
-        """
-        Extract and create ROR identifier after organization creation.
+        """Extract and create ROR identifier after organization creation.
 
         This lifecycle hook automatically creates a ContributorIdentifier
         record when an organization is created with ROR data in synced_data.
@@ -1109,8 +1101,7 @@ class Organization(Contributor):
         return "organization"
 
     def get_memberships(self):
-        """
-        Returns a queryset of all memberships related to this instance, with related 'person' objects fetched efficiently using select_related.
+        """Returns a queryset of all memberships related to this instance, with related 'person' objects fetched efficiently using select_related.
 
         Returns:
             QuerySet: A queryset of Membership objects associated with this instance, with related Person objects prefetched.
@@ -1243,7 +1234,8 @@ CONTRIBUTION_ROLES_VOCABULARY_MESSAGE = _(
 
 class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor is a person or organisation that has contributed to the project or
-    dataset. This model is based on the Datacite schema for contributors."""
+    dataset. This model is based on the Datacite schema for contributors.
+    """
 
     ROLES_VOCAB = FairDMRoles()
     objects = ContributionManager()
@@ -1389,8 +1381,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
 
     @hook(BEFORE_CREATE)
     def set_default_affiliation(self):
-        """
-        Automatically set affiliation for person contributors.
+        """Automatically set affiliation for person contributors.
 
         If a contribution is being created by a Person and no affiliation
         is specified, this hook will use the person's primary organizational

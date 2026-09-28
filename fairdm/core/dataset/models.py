@@ -80,8 +80,7 @@ DATACITE_RELATIONSHIP_TYPES = [
 
 
 class DatasetLiteratureRelation(models.Model):
-    """
-    Intermediate model for Dataset-to-LiteratureItem relationships.
+    """Intermediate model for Dataset-to-LiteratureItem relationships.
 
     Specifies the type of relationship using DataCite RelationType vocabulary.
     """
@@ -394,7 +393,8 @@ class Dataset(BaseModel):
     @cached_property
     def has_data(self):
         """Whether the dataset holds any samples or measurements, checked
-        in a single query (FR-008)."""
+        in a single query (FR-008).
+        """
         sample_pks = self.samples.values("pk")
         measurement_pks = self.measurements.values("pk")
         return sample_pks.union(measurement_pks).exists()

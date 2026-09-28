@@ -1,5 +1,4 @@
-"""
-FairDM Demo Portal - Admin Interface Examples
+"""FairDM Demo Portal - Admin Interface Examples
 
 This module demonstrates best practices for customizing Django admin interfaces
 in FairDM portals, including:

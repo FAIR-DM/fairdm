@@ -1,5 +1,4 @@
-"""
-Custom permission backends for Organization model.
+"""Custom permission backends for Organization model.
 
 Provides derived permissions based on Affiliation relationships.
 """
@@ -8,8 +7,7 @@ from fairdm.core.permissions import PolymorphicObjectPermissionBackend
 
 
 class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
-    """
-    Custom permission backend that derives manage_organization from Affiliation.type.
+    """Custom permission backend that derives manage_organization from Affiliation.type.
 
     This backend extends django-guardian's ObjectPermissionBackend to support:
     1. Derived manage_organization permission based on OWNER affiliation (no guardian rows)
@@ -65,8 +63,7 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
     supports_anonymous_user = True
 
     def has_perm(self, user_obj, perm, obj=None):
-        """
-        Check if user has permission on object.
+        """Check if user has permission on object.
 
         For Organization objects with manage_organization permission, checks:
         1. Whether the user is a superuser (checked explicitly, not via the parent

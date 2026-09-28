@@ -41,7 +41,8 @@ class PartialDateFilterField(forms.CharField):
 
 class PartialDateFilter(django_filters.CharFilter):
     """A `CharFilter` whose form field validates a partial date string
-    before it reaches the ORM."""
+    before it reaches the ORM.
+    """
 
     field_class = PartialDateFilterField
 

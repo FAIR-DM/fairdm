@@ -1,5 +1,4 @@
-"""
-FairDM Demo App - Factory Examples
+"""FairDM Demo App - Factory Examples
 
 This module demonstrates best practices for creating test factories in FairDM
 portals using factory_boy. These factories are used in tests and for generating
@@ -76,8 +75,7 @@ from .models import (
 
 
 class CustomParentSampleFactory(SampleFactory):
-    """
-    Basic sample factory demonstrating minimal configuration.
+    """Basic sample factory demonstrating minimal configuration.
 
     This is the simplest factory pattern - just specify fake data for
     your custom fields. The parent SampleFactory handles all base fields
@@ -96,8 +94,7 @@ class CustomParentSampleFactory(SampleFactory):
 
 
 class CustomSampleFactory(SampleFactory):
-    """
-    Comprehensive sample factory showing all common field types.
+    """Comprehensive sample factory showing all common field types.
 
     This factory demonstrates how to use Faker providers for different
     Django field types. Use this as a reference when creating factories
@@ -130,8 +127,7 @@ class CustomSampleFactory(SampleFactory):
 
 
 class ExampleMeasurementFactory(MeasurementFactory):
-    """
-    Measurement factory demonstrating measurement-specific patterns.
+    """Measurement factory demonstrating measurement-specific patterns.
 
     Measurement factories inherit from MeasurementFactory which provides
     base fields. Always ensure measurements are linked to samples.
@@ -158,8 +154,7 @@ class ExampleMeasurementFactory(MeasurementFactory):
 
 
 class XRFMeasurementFactory(MeasurementFactory):
-    """
-    Factory for XRFMeasurement, an X-ray fluorescence (XRF) spectroscopy measurement.
+    """Factory for XRFMeasurement, an X-ray fluorescence (XRF) spectroscopy measurement.
 
     ``element`` and ``concentration_ppm`` are required (non-null) fields on the model, so the
     factory always supplies them.
@@ -177,8 +172,7 @@ class XRFMeasurementFactory(MeasurementFactory):
 
 
 class ICP_MS_MeasurementFactory(MeasurementFactory):
-    """
-    Factory for ICP_MS_Measurement, an Inductively Coupled Plasma Mass Spectrometry
+    """Factory for ICP_MS_Measurement, an Inductively Coupled Plasma Mass Spectrometry
     (ICP-MS) measurement.
 
     ``isotope`` and ``counts_per_second`` are required (non-null) fields on the model, so the
@@ -197,8 +191,7 @@ class ICP_MS_MeasurementFactory(MeasurementFactory):
 
 
 class RockSampleFactory(SampleFactory):
-    """
-    Factory for RockSample demonstrating geological sample data patterns.
+    """Factory for RockSample demonstrating geological sample data patterns.
 
     This factory shows how to create rock samples with realistic test data
     for geological studies. Used in Feature 007 tests and demo data generation.
@@ -241,8 +234,7 @@ class RockSampleFactory(SampleFactory):
 
 
 class WaterSampleFactory(SampleFactory):
-    """
-    Factory for WaterSample demonstrating water quality measurement patterns.
+    """Factory for WaterSample demonstrating water quality measurement patterns.
 
     This factory creates water samples with realistic environmental monitoring
     data. Used in Feature 007 tests and for generating demo datasets.
@@ -275,8 +267,7 @@ class WaterSampleFactory(SampleFactory):
 
 
 class SoilSampleFactory(SampleFactory):
-    """
-    Factory for SoilSample demonstrating component-specific field configuration.
+    """Factory for SoilSample demonstrating component-specific field configuration.
 
     See: Developer Guide > Testing > Sample Factories
     """
@@ -312,8 +303,7 @@ class SoilSampleFactory(SampleFactory):
 
 
 class PersonFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Person (AUTH_USER_MODEL) demonstrating claimed/unclaimed patterns.
+    """Factory for Person (AUTH_USER_MODEL) demonstrating claimed/unclaimed patterns.
 
     FairDM uses Person as AUTH_USER_MODEL. There are two patterns:
     1. Claimed users (email + password) for interactive portal access
@@ -343,8 +333,7 @@ class PersonFactory(factory.django.DjangoModelFactory):
 
 
 class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for unclaimed Person instances (provenance-only records).
+    """Factory for unclaimed Person instances (provenance-only records).
 
     Unclaimed persons have:
     - No email address (email=None)
@@ -365,8 +354,7 @@ class UnclaimedPersonFactory(factory.django.DjangoModelFactory):
 
 
 class OrganizationFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Organization demonstrating organizational structures.
+    """Factory for Organization demonstrating organizational structures.
 
     Organizations can have:
     - ROR identifiers for institutional lookup
@@ -384,8 +372,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
 
 
 class AffiliationFactory(factory.django.DjangoModelFactory):
-    """
-    Factory for Affiliation demonstrating membership patterns.
+    """Factory for Affiliation demonstrating membership patterns.
 
     Affiliation type field determines permissions:
     - PENDING (0): Awaiting verification

@@ -8,8 +8,7 @@ from fairdm.contrib.contributors.models import Contribution, Contributor, Organi
 
 
 class ConceptAutocomplete(autocomplete.Select2QuerySetView):
-    """
-    Autocomplete view for Concept model with vocabulary filtering.
+    """Autocomplete view for Concept model with vocabulary filtering.
 
     This view allows filtering concepts by vocabulary to support large vocabularies
     efficiently without loading all concepts into the browser.
@@ -32,8 +31,7 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """
-        Return concepts filtered by vocabulary and search term.
+        """Return concepts filtered by vocabulary and search term.
 
         Filters:
             - vocabulary: Filter by vocabulary name (from URL param or forwarded field)
@@ -63,8 +61,7 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
 
 
 class ContributorAutocomplete(autocomplete.Select2QuerySetView):
-    """
-    Autocomplete view for Contributor model with filtering to exclude existing contributors.
+    """Autocomplete view for Contributor model with filtering to exclude existing contributors.
 
     This view allows searching for contributors while optionally excluding those
     already associated with a specific object.
@@ -85,8 +82,7 @@ class ContributorAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """
-        Return contributors filtered by search term and excluding existing ones.
+        """Return contributors filtered by search term and excluding existing ones.
 
         Filters:
             - q: Search term to match against contributor name
@@ -130,8 +126,7 @@ class ContributorAutocomplete(autocomplete.Select2QuerySetView):
 
 
 class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
-    """
-    Autocomplete view for Organization model.
+    """Autocomplete view for Organization model.
 
     This view allows searching for organizations by name.
 
@@ -145,8 +140,7 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
     """
 
     def get_queryset(self):
-        """
-        Return organizations filtered by search term.
+        """Return organizations filtered by search term.
 
         Filters:
             - q: Search term to match against organization name

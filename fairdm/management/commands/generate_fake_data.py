@@ -1,5 +1,4 @@
-"""
-Management command to generate fake data for development purposes.
+"""Management command to generate fake data for development purposes.
 
 This command creates a complete hierarchy of fake data including projects, datasets,
 samples, and measurements. It uses polymorphic Sample and Measurement subclasses

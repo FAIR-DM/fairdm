@@ -90,8 +90,7 @@ class CoreInlineFormset(FormsetMixin, BaseInlineFormSet):
 
 
 class TypeVocabularyFormMixin(forms.ModelForm):
-    """
-    A mixin for Django ModelForms that integrates vocabulary-based concepts
+    """A mixin for Django ModelForms that integrates vocabulary-based concepts
     for a 'type' field and dynamically adjusts the 'value' field labels and help texts.
 
     Args:
@@ -111,8 +110,7 @@ class TypeVocabularyFormMixin(forms.ModelForm):
 
 
 class DateForm(TypeVocabularyFormMixin):
-    """
-    A Django ModelForm for handling date-related input using a partial date field.
+    """A Django ModelForm for handling date-related input using a partial date field.
 
     Attributes:
         value (PartialDateField): A custom date input field that allows partial dates.
@@ -132,8 +130,7 @@ class DateForm(TypeVocabularyFormMixin):
 
 
 class KeywordForm(forms.ModelForm):
-    """
-    A flexible form for managing keywords on FairDM objects.
+    """A flexible form for managing keywords on FairDM objects.
 
     This form dynamically creates fields for each vocabulary specified in settings.
     For Project: uses FAIRDM_PROJECT["keywords"]
@@ -205,8 +202,7 @@ class KeywordForm(forms.ModelForm):
         self.helper.form_id = "keyword-form"
 
     def save(self, commit=True):
-        """
-        Save the form, handling both vocabulary-based keywords and free-form tags.
+        """Save the form, handling both vocabulary-based keywords and free-form tags.
         """
         instance = super().save(commit=False)
 
@@ -253,8 +249,7 @@ class BaseInlineFactory(InlineFormSetFactory):
 
 
 class DescriptionForm(TypeVocabularyFormMixin):
-    """
-    A Django ModelForm that extends TypeVocabularyFormMixin to handle text-based descriptions.
+    """A Django ModelForm that extends TypeVocabularyFormMixin to handle text-based descriptions.
 
     Attributes:
         value (CharField): A text area input for entering a description.

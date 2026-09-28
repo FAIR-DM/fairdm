@@ -15,8 +15,7 @@ CORE_PERMISSIONS = [
 
 
 def documentation_link(path):
-    """
-    Returns a URL to the documentation for the given path.
+    """Returns a URL to the documentation for the given path.
     """
     return {
         "text": _("Learn more"),

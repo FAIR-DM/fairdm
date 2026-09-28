@@ -22,8 +22,7 @@ from .utils import DataPackage, get_export_formats, get_import_formats
 
 
 class BaseImportExportView(MessageMixin, FormView):
-    """
-    A base view for importing and exporting data with django-import-export.
+    """A base view for importing and exporting data with django-import-export.
     Handles common functionality like file format detection and resource initialization.
     """
 
@@ -63,8 +62,7 @@ class BaseImportExportView(MessageMixin, FormView):
         return config.get_resource_class()(dataset=self.get_object())
 
     def get_resource_model(self):
-        """
-        Retrieves the model class based on the 'type' query parameter.
+        """Retrieves the model class based on the 'type' query parameter.
 
         If no 'type' parameter is provided, the method defaults to the first registered model
         in the registry.
@@ -115,8 +113,7 @@ class BaseImportExportView(MessageMixin, FormView):
         return super().form_invalid(form)
 
     def get_import_kwargs(self):
-        """
-        Returns a dictionary of keyword arguments for the import process.
+        """Returns a dictionary of keyword arguments for the import process.
         This can be overridden in subclasses to customize the import behavior.
         """
         return self.import_kwargs.copy()

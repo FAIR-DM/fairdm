@@ -72,7 +72,8 @@ class BaseModel(models.Model):
 
     def get_non_polymorphic_instance(self):
         """Returns the non-polymorphic version of a given instance. If the model is not polymorphic, simple returns the
-        instance."""
+        instance.
+        """
         from .utils import get_non_polymorphic_instance
 
         return get_non_polymorphic_instance(self)
@@ -107,7 +108,6 @@ class BaseModel(models.Model):
 
     def is_contributor(self, user):
         """Returns true if the user is a contributor."""
-
         return self.contributors.filter(contributor=user).exists()
 
     def get_direct_contributors(self):
@@ -230,8 +230,7 @@ class GenericModelQuerySet(QuerySet):
     """Custom QuerySet for GenericModel subclasses that provides vocabulary-based ordering."""
 
     def in_order(self):
-        """
-        Orders the queryset by the order defined in the model's VOCABULARY attribute.
+        """Orders the queryset by the order defined in the model's VOCABULARY attribute.
 
         Returns:
             List of instances ordered according to VOCABULARY.values

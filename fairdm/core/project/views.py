@@ -41,7 +41,8 @@ class ProjectListView(FairDMListView):
         """The listing offers its own creation link to a signed-in user, and none to an
         anonymous visitor (013 plan P5, US-5 T073). ``ProjectCreateView`` itself already
         requires authentication; this only decides whether the link is drawn — see
-        ``mvp.views.detail.CRUDDirectoryMixin``'s own class docstring on that distinction."""
+        ``mvp.views.detail.CRUDDirectoryMixin``'s own class docstring on that distinction.
+        """
         return user.is_authenticated
 
     def get_queryset(self) -> QuerySet[Project]:

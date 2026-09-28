@@ -1,5 +1,4 @@
-"""
-Re-export registry configuration classes for convenient imports.
+"""Re-export registry configuration classes for convenient imports.
 
 This module provides a convenient single import point for configuration classes.
 Instead of importing from fairdm.registry.config, users can import from fairdm.config.

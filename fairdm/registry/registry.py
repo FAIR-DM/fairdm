@@ -1,5 +1,4 @@
-"""
-FairDM Registry - Model registration and discovery system.
+"""FairDM Registry - Model registration and discovery system.
 
 This module provides the FairDMRegistry class and registration decorators for
 managing Sample and Measurement models in the FairDM framework.
@@ -42,8 +41,7 @@ def _caller_location() -> str:
 
 
 class FairDMRegistry:
-    """
-    A registry to manage Sample and Measurement subclass registration with auto-generated configurations.
+    """A registry to manage Sample and Measurement subclass registration with auto-generated configurations.
 
     This registry implements the FairDM registration API that allows Sample and Measurement
     subclasses to be registered with configuration classes that auto-generate forms,
@@ -96,8 +94,7 @@ class FairDMRegistry:
             )
 
     def get_for_model(self, model_reference: type[Model] | str) -> ModelConfiguration:
-        """
-        Retrieve the registered configuration for a model.
+        """Retrieve the registered configuration for a model.
 
         This method can accept either a model class directly or a string reference
         in the format "app_label.model_name" (compatible with apps.get_model).
@@ -151,8 +148,7 @@ class FairDMRegistry:
         return self._registry[model_cls]
 
     def is_registered(self, model_reference: type[Model] | str) -> bool:
-        """
-        Check if a model is registered with the registry.
+        """Check if a model is registered with the registry.
 
         Args:
             model_reference: Either a Django model class or a string in format "app_label.model_name"
@@ -177,8 +173,7 @@ class FairDMRegistry:
 
     @property
     def samples(self) -> list[type["Sample"]]:
-        """
-        Retrieves all registered Sample models.
+        """Retrieves all registered Sample models.
 
         Returns:
             list[type]: A list of registered Sample model classes.
@@ -189,8 +184,7 @@ class FairDMRegistry:
 
     @property
     def measurements(self) -> list[type["Measurement"]]:
-        """
-        Retrieves all registered Measurement models.
+        """Retrieves all registered Measurement models.
 
         Returns:
             list[type]: A list of registered Measurement model classes.
@@ -201,8 +195,7 @@ class FairDMRegistry:
 
     @property
     def models(self) -> list[type[Model]]:
-        """
-        Retrieves all registered models (Samples + Measurements).
+        """Retrieves all registered models (Samples + Measurements).
 
         Returns:
             list[type]: A combined list of all registered Sample and Measurement model classes.
@@ -210,8 +203,7 @@ class FairDMRegistry:
         return list(self._registry.keys())
 
     def get_all_configs(self) -> list[ModelConfiguration]:
-        """
-        Retrieve all registered ModelConfiguration instances.
+        """Retrieve all registered ModelConfiguration instances.
 
         Returns:
             list[ModelConfiguration]: A list of all ModelConfiguration instances
@@ -228,8 +220,7 @@ class FairDMRegistry:
     def register(
         self, model_class: type[Model], config: ModelConfiguration | None = None
     ) -> None:
-        """
-        Registers a Sample or Measurement subclass with associated configuration.
+        """Registers a Sample or Measurement subclass with associated configuration.
 
         Args:
             model_class (django.db.models.Model): The Django model class to register.
@@ -285,8 +276,7 @@ class FairDMRegistry:
         model_class: type[Model],
         config: ModelConfiguration | type[ModelConfiguration] | None = None,
     ) -> ModelConfiguration:
-        """
-        Builds a configuration instance from the registered config class.
+        """Builds a configuration instance from the registered config class.
         Handles auto-generation of forms, serializers, filters, and tables.
 
         Args:
@@ -317,8 +307,7 @@ registry = FairDMRegistry()
 
 
 def register(config_cls: type) -> type:
-    """
-    Decorator to register a Sample or Measurement model with its configuration.
+    """Decorator to register a Sample or Measurement model with its configuration.
 
     This decorator provides a consistent API for registering models with the FairDM framework.
     The configuration class must specify a 'model' attribute pointing to the Sample or

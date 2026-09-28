@@ -14,8 +14,7 @@ from .fields import PartialDateField
 
 
 class BaseMetaClass:
-    """
-    Base metaclass for FairDM forms and model forms that adds custom behavior.
+    """Base metaclass for FairDM forms and model forms that adds custom behavior.
     """
 
     def __new__(cls, name, bases, attrs):
@@ -72,8 +71,7 @@ class BaseMetaClass:
         return new_class
 
     def _get_conf_and_remove(meta, attr):
-        """
-        Helper method to get a configuration value and remove it from the attributes.
+        """Helper method to get a configuration value and remove it from the attributes.
         """
         if hasattr(meta, attr):
             value = getattr(meta, attr)
@@ -82,8 +80,7 @@ class BaseMetaClass:
 
 
 class FairDMModelFormMetaclass(BaseMetaClass, ModelFormMetaclass):
-    """
-    Metaclass for BaseModelForm that allows for custom field declarations.
+    """Metaclass for BaseModelForm that allows for custom field declarations.
     This can be extended to add common fields or behaviors to all model forms.
     """
 
@@ -91,8 +88,7 @@ class FairDMModelFormMetaclass(BaseMetaClass, ModelFormMetaclass):
 
 
 class FairDMFormMetaclass(BaseMetaClass, DeclarativeFieldsMetaclass):
-    """
-    Metaclass for BaseForm that allows for custom field declarations.
+    """Metaclass for BaseForm that allows for custom field declarations.
     This can be extended to add common fields or behaviors to all forms.
     """
 
@@ -100,8 +96,7 @@ class FairDMFormMetaclass(BaseMetaClass, DeclarativeFieldsMetaclass):
 
 
 class FairDMFormMixin:
-    """
-    Mixin class that can be
+    """Mixin class that can be
     """
 
     _custom_conf: dict[str, Any] = {}
@@ -135,8 +130,7 @@ class FairDMFormMixin:
         self.helper = self._helper()
 
     def _helper(self):
-        """
-        Returns the FormHelper instance for this form.
+        """Returns the FormHelper instance for this form.
         This can be used to customize the form's layout and attributes.
         """
         helper = FormHelper()
@@ -155,8 +149,7 @@ class FairDMFormMixin:
         return helper
 
     def get_layout(self):
-        """
-        Returns the layout for the form.
+        """Returns the layout for the form.
         This can be overridden in subclasses to provide custom layouts.
         """
         if fieldsets := self._custom_conf.get("fieldsets"):
@@ -172,8 +165,7 @@ class FairDMFormMixin:
         return Layout()
 
     def get_help_text(self):
-        """
-        Returns the help text for a specific field.
+        """Returns the help text for a specific field.
         This can be overridden in subclasses to provide custom help texts.
         """
         if help_text := self._custom_conf.get("help_text"):
@@ -183,16 +175,14 @@ class FairDMFormMixin:
         return None
 
     def get_form_id(self):
-        """
-        Returns the form ID.
+        """Returns the form ID.
         This can be overridden in subclasses to provide custom form IDs.
         """
         return f"{self.__class__.__name__.lower()}"
 
 
 class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
-    """
-    Base form class that can be extended for custom forms.
+    """Base form class that can be extended for custom forms.
     This class can be used to define common behavior or attributes for all forms.
     """
 
@@ -211,8 +201,7 @@ class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
 
 
 class ModelForm(FairDMFormMixin, forms.ModelForm, metaclass=FairDMModelFormMetaclass):
-    """
-    Base model form class that can be extended for custom model forms.
+    """Base model form class that can be extended for custom model forms.
     This class can be used to define common behavior or attributes for all model forms.
     """
 

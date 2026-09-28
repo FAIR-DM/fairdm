@@ -1,5 +1,4 @@
-"""
-FairDM Utilities Package
+"""FairDM Utilities Package
 
 This package provides common utilities and helper functions used throughout
 the FairDM framework, including form helpers, permission utilities,

@@ -1,5 +1,4 @@
-"""
-Component Factories for FairDM ModelConfiguration.
+"""Component Factories for FairDM ModelConfiguration.
 
 This module provides factory classes that generate Django components (Forms, Tables,
 Filters, Admin, Serializers, Resources) from ModelConfiguration settings using intelligent
@@ -215,7 +214,6 @@ class TableFactory(ComponentFactory):
         Returns:
             Table subclass configured with Bootstrap 5 styling and smart columns
         """
-
         fields = self.get_fields()
 
         # Filter out large text fields that shouldn't be in tables
@@ -405,7 +403,8 @@ class PublishedChoicesMixin:
     def applied_to(cls, filterset_class: type) -> type:
         """`filterset_class` with this mixin in front, or unchanged if it is
         already there. Idempotent, because a listing resolves its filter set on
-        every request and a fresh subclass per request would leak classes."""
+        every request and a fresh subclass per request would leak classes.
+        """
         if issubclass(filterset_class, cls):
             return filterset_class
         return type(

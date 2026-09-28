@@ -87,7 +87,8 @@ class ProjectQuerySet(QuerySet):
 class Project(BaseModel):
     """A project is a collection of datasets and associated metadata. The Project model
     is the top level model in the FairDM schema hierarchy and all datasets, samples,
-    and measurements should relate back to a project."""
+    and measurements should relate back to a project.
+    """
 
     DEFAULT_ROLES = ["ProjectMember"]
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Project")

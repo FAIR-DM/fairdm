@@ -8,7 +8,8 @@ class SiteAdminMixin(admin.GISModelAdmin):
 
     def get_queryset(self, request):
         """Modified to annotate 'lat' and 'lon' coordinates to the
-        admin queryset."""
+        admin queryset.
+        """
         qs = super().get_queryset(request)
         if "__" in self.geom_field:
             qs = qs.select_related(self.geom_field.split("__")[0])

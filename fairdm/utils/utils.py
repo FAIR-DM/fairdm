@@ -18,8 +18,7 @@ DOCUMENTATION_BASE_URL = "https://www.fairdm.org/en/latest/user-guide/"
 
 
 def user_guide(name: str) -> str:
-    """
-    Returns the documentation URL for a given name.
+    """Returns the documentation URL for a given name.
 
     Args:
         name: The name of the documentation section.
@@ -31,8 +30,7 @@ def user_guide(name: str) -> str:
 
 
 def get_setting(name: str, key: str):
-    """
-    Return a setting from the Django settings module.
+    """Return a setting from the Django settings module.
 
     Args:
         name: The name of the FAIRDM setting (without FAIRDM_ prefix).
@@ -46,8 +44,7 @@ def get_setting(name: str, key: str):
 
 
 def get_subclasses(model):
-    """
-    Retrieve all registered Django model subclasses of a given model.
+    """Retrieve all registered Django model subclasses of a given model.
 
     This function iterates through all models registered in the Django app registry
     and returns a list of models that are subclasses of the specified `model`,
@@ -74,8 +71,7 @@ def get_subclasses(model):
 
 
 def get_inheritance_chain(model, base_model):
-    """
-    Retrieve the inheritance chain of a given model up to a specified base model.
+    """Retrieve the inheritance chain of a given model up to a specified base model.
 
     This function traverses the method resolution order (MRO) of a Django model class
     and collects all classes in the hierarchy that are subclasses of `base_model`.
@@ -111,8 +107,7 @@ def get_model_class(uuid: str):
 
 
 def get_core_object_or_none(uuid: str) -> tuple:
-    """
-    Retrieves the model class and the object instance matching the given UUID. If no instance is found,
+    """Retrieves the model class and the object instance matching the given UUID. If no instance is found,
     it returns None.
 
     Args:
@@ -133,8 +128,7 @@ def get_core_object_or_404(uuid: str):
 
 
 def default_image_path(instance, filename: str) -> str:
-    """
-    Generates file paths for images.
+    """Generates file paths for images.
 
     Args:
         instance: The model instance the image is being uploaded to.
@@ -148,8 +142,7 @@ def default_image_path(instance, filename: str) -> str:
 
 
 def fieldsets_to_crispy_layout(fieldsets):
-    """
-    Convert Django fieldsets into a crispy-forms Layout.
+    """Convert Django fieldsets into a crispy-forms Layout.
 
     This function takes a list of fieldsets (typically defined in Django's `admin.py`)
     and transforms them into a crispy-forms `Layout`. It supports grouping fields
@@ -201,8 +194,7 @@ def fieldsets_to_crispy_layout(fieldsets):
 
 
 def fields_to_crispy_layout(fields):
-    """
-    Convert a flat list of fields or tuples/lists of fields into crispy-forms layout.
+    """Convert a flat list of fields or tuples/lists of fields into crispy-forms layout.
 
     - Single field names are added directly.
     - Tuples/lists of field names are wrapped in Columns inside a Row.

@@ -91,7 +91,8 @@ class DatasetDatesInline(DatasetDateInline):
     and stated here rather than in ``related_records.py`` because it is this page's own choice of
     which shared declaration to combine with which shared rule — mirrors
     ``fairdm.core.project.plugins.ProjectDatesInline``, whose docstring explains why (a project's
-    dates page pairs the same base with a differently-typed, differently-worded pair)."""
+    dates page pairs the same base with a differently-typed, differently-worded pair).
+    """
 
     formset = date_ordering_formset(
         DatasetDate.START_TYPE,
@@ -145,12 +146,14 @@ class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
     def show_delete_action(self, user):
         """Offered on the right ``Delete`` itself requires, not on the one that opened this page:
         a user may hold ``change_dataset`` without ``delete_dataset``, and a link they cannot
-        follow is worse than no link."""
+        follow is worse than no link.
+        """
         return has_perm(self.request, Delete.permission, self.base_object)
 
     def get_form_kwargs(self):
         """Add ``request`` so the project field is narrowed to the researcher's own projects,
-        on the same terms as the creation page (FR-026)."""
+        on the same terms as the creation page (FR-026).
+        """
         kwargs = super().get_form_kwargs()
         kwargs["request"] = self.request
         return kwargs

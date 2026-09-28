@@ -127,7 +127,6 @@ def edit_url(obj, fields=None):
 @register.simple_tag
 def avatar_url(contributor, **kwargs):
     """Renders a default img tag for the given profile. If the profile.image is None, renders a default icon if no image is set."""
-
     if not contributor:
         # for anonymous users
         return render_to_string("icons/user.svg")
@@ -140,8 +139,7 @@ def avatar_url(contributor, **kwargs):
 
 @register.simple_tag(takes_context=True)
 def plugin_url(context, view_name, *args, **kwargs):
-    """
-    DEPRECATED: Use {% load plugin_tags %} and {% plugin_url ... %} instead.
+    """DEPRECATED: Use {% load plugin_tags %} and {% plugin_url ... %} instead.
 
     Returns a URL for a plugin view, using the base_object's model name as the namespace.
 
@@ -162,8 +160,7 @@ def plugin_url(context, view_name, *args, **kwargs):
 
 @register.filter
 def normalize_doi(doi):
-    """
-    Normalize any DOI input to a full https://doi.org/ URL.
+    """Normalize any DOI input to a full https://doi.org/ URL.
 
     Examples:
         - "10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
@@ -172,7 +169,6 @@ def normalize_doi(doi):
 
     Returns None if input does not look like a valid DOI.
     """
-
     if not doi:
         return None
     return utils.generic.normalize_doi(doi)
@@ -186,8 +182,7 @@ def safe_markdown(content):
 
 @register.filter
 def has_perms(permission_obj, perms):
-    """
-    Check if the user has the provided object permission or is a privileged user.
+    """Check if the user has the provided object permission or is a privileged user.
 
     """
     return any(perm in permission_obj for perm in perms.split(","))
@@ -199,8 +194,7 @@ def has_perms(permission_obj, perms):
 
 @register.simple_tag(takes_context=True)
 def has_permission(context, perms):
-    """
-    Check if the user has the specified permission on the given object.
+    """Check if the user has the specified permission on the given object.
     """
     permission_obj = context.get("user_permissions", [])
     if any(perm in permission_obj for perm in perms.split(",")):
@@ -213,8 +207,7 @@ def has_permission(context, perms):
 
 @register.simple_tag
 def get_related_field(obj, field_name):
-    """
-    Drill down into an object's attributes using Django-style double-underscore notation.
+    """Drill down into an object's attributes using Django-style double-underscore notation.
 
     Args:
         obj: The root model instance.

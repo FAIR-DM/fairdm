@@ -1,5 +1,4 @@
-"""
-Helper utilities for contributors.
+"""Helper utilities for contributors.
 
 This module provides helper functions for working with contributors,
 including avatar retrieval, role checking, and contribution management.
@@ -11,8 +10,7 @@ from research_vocabs.models import Concept
 
 
 def get_contributor_avatar(contributor):
-    """
-    Returns the avatar URL for a given contributor.
+    """Returns the avatar URL for a given contributor.
 
     Args:
         contributor (Contributor): A Contributor object.
@@ -27,8 +25,7 @@ def get_contributor_avatar(contributor):
 
 
 def current_user_has_role(request, obj, role):
-    """
-    Returns True if the current user has the specified role for the given object.
+    """Returns True if the current user has the specified role for the given object.
 
     Args:
         request (Request): The request object.
@@ -52,8 +49,7 @@ def current_user_has_role(request, obj, role):
 
 
 def update_or_create_contribution(contributor, obj, roles=None):
-    """
-    Adds a contributor to the given object with specified roles.
+    """Adds a contributor to the given object with specified roles.
 
     Behavior:
     - If the contributor already exists on the object and roles are provided, the roles are updated and the Contribution

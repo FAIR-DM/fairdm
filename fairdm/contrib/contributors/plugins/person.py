@@ -32,8 +32,7 @@ class Overview(OverviewPlugin):
         return context
 
     def get_contribution_counts(self):
-        """
-        Calculate contribution counts by content type.
+        """Calculate contribution counts by content type.
 
         Returns:
             dict: Mapping of model verbose names to contribution counts

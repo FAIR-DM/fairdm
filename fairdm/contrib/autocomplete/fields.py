@@ -43,8 +43,7 @@ class ConceptMixin:
 
 
 class ConceptSelect(ConceptMixin, forms.ModelChoiceField):
-    """
-    A ModelChoiceField for selecting a single Concept with autocomplete.
+    """A ModelChoiceField for selecting a single Concept with autocomplete.
 
     This field automatically configures autocomplete for a specific vocabulary,
     handling both VocabularyBuilder classes and string paths.
@@ -73,8 +72,7 @@ class ConceptSelect(ConceptMixin, forms.ModelChoiceField):
 
 
 class ConceptMultiSelect(ConceptMixin, forms.ModelMultipleChoiceField):
-    """
-    A ModelMultipleChoiceField for selecting multiple Concepts with autocomplete.
+    """A ModelMultipleChoiceField for selecting multiple Concepts with autocomplete.
 
     This field automatically configures autocomplete for a specific vocabulary,
     handling both VocabularyBuilder classes and string paths.

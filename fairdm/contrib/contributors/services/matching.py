@@ -1,5 +1,4 @@
-"""
-Fuzzy name matching service for identifying potential duplicate Person records.
+"""Fuzzy name matching service for identifying potential duplicate Person records.
 
 Uses rapidfuzz token_sort_ratio so that name-token reordering (e.g. "Smith, John"
 vs "John Smith") does not lower the similarity score.

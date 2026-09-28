@@ -28,8 +28,7 @@ class FeatureCollectionSerializer(ListSerializer):
         return super(ListSerializer, self).data
 
     def to_representation(self, data):
-        """
-        Add GeoJSON compatible formatting to a serialized queryset list
+        """Add GeoJSON compatible formatting to a serialized queryset list
         """
         return OrderedDict(
             (

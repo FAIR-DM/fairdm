@@ -358,7 +358,8 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         """D13/D21: profile claims and merges are the Community Manager's, through the
         same ``contributors.change_person`` right FR-004 already gives that role - not
         "any staff member", which is what the superseded reasoning on ``claim_link_view``
-        and ``merge_view`` was written against."""
+        and ``merge_view`` was written against.
+        """
         return request.user.has_perm("contributors.change_person")
 
     def get_actions(self, request):
@@ -803,7 +804,8 @@ class AffiliationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         """Refuse deleting a given affiliation without ``manage_organization``
-        on its organisation. See ``has_change_permission`` above."""
+        on its organisation. See ``has_change_permission`` above.
+        """
         if obj is not None and not request.user.has_perm(
             "contributors.manage_organization", obj.organization
         ):

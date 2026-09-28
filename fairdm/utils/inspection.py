@@ -1,5 +1,4 @@
-"""
-Field Inspection and Smart Detection for FairDM Models.
+"""Field Inspection and Smart Detection for FairDM Models.
 
 This module provides the FieldInspector class that introspects Django models
 to automatically detect field types, suggest appropriate widgets, filters,

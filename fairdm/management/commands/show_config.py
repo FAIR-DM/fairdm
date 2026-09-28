@@ -1,5 +1,4 @@
-"""
-Interrogate the running portal about where a setting came from (FR-019, FR-020).
+"""Interrogate the running portal about where a setting came from (FR-019, FR-020).
 
 With no arguments, reports every layer ``fairdm.setup()`` considered, in
 application order, each marked found or absent. Given a setting name,
