@@ -1,7 +1,12 @@
 {% extends "mvp/base.html" %}
 {% load flex_menu static %}
 
-{# Linked here so it reaches plugin views too, and after django-mvp's build so it wins. #}
+{% comment %}
+  FairDM's own stylesheet is linked here rather than from any one page's
+  template, so it reaches every page — plugin views included, since they render
+  inside this base template and cannot add a `<link>` of their own. It loads
+  after django-mvp's build, so what it declares wins.
+{% endcomment %}
 {% block styles %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/fairdm.css' %}" />
@@ -14,9 +19,10 @@
           crossorigin="anonymous"></script>
   <script type="text/javascript"
           src="{% url 'javascript-catalog' %}"></script>
-  {# Temporary until django-mvp fixes the header spacing. #}
+  {% comment %} temporary until spacing fixed in django-mvp {% endcomment %}
   <style>
     .mvp-header {
+      /* px-3 */
       padding-inline: calc(var(--spacing) * 3);
     }
 

@@ -1,6 +1,7 @@
 {% extends '' %}
 <div x-data="dropdownComponent({{ inputData }}, {{ initialData }})">
   <div class="d-flex">
+    <!-- The ordered list with drag-and-drop functionality -->
     <div class="sortable-list-items form-control border d-flex flex-wrap"
          x-sort="updateorderedString.bind($data)">
       <template x-for="(item, index) in selected" :key="item[0]">
@@ -13,6 +14,10 @@
         </span>
       </template>
     </div>
+    {% comment %} <select name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{% for group_name, group_choices, group_index in widget.optgroups %}{% if group_name %}
+    </select>
+    {% endcomment %}
+    <!-- Add new elements to list -->
     <select x-ref="selectElement"
             id="person-select"
             @change="addItem">
@@ -41,6 +46,7 @@
         inputData: data,
 
         init(data, initial) {
+          // Initialize the ordered string
           this.updateorderedString()
 
         },
@@ -58,6 +64,7 @@
           this.updateorderedString()
         },
         updateorderedString() {
+          // Scan all items and update the comma-separated ids string based on the order
           this.$nextTick(() => {
             const ids = Array.from(document.querySelectorAll('.sortable-list-items > span')).map(item => item.dataset.value)
             this.orderedString = ids.join(',')

@@ -29,6 +29,7 @@
     <div class="btn btn-danger"
          @click="deleteImage"
          x-show="croppedImage && !croppieActive">{% icon "delete" %}</div>
+    {% comment %} <div class="btn btn-primary" @click="$refs.fileOpener.click()" x-show="croppedImage && !croppieActive">Choose another image</div> {% endcomment %}
     <div class="btn btn-warning"
          @click="cancelCroppie"
          x-show="croppieActive">{% icon "cancel" %}</div>
@@ -62,6 +63,7 @@
       croppieInstance: null,
       croppieActive: false,
 
+      // Croppie configuration options as Alpine properties
       croppieConfig: {
         viewport: {
           width: "100%",
@@ -69,13 +71,16 @@
         },
         enableOrientation: true,
         showZoomer: false
+        // ...{{widget.config|safe}},
       },
 
+      // Initialize Croppie using config from x-data
       init() {
         this.croppieInstance = new Croppie(this.$refs.croppieElement, this.croppieConfig);
 
       },
 
+      // Load image into Croppie
       loadImage(event) {
         const file = event.target.files[0];
         if (file) {
@@ -92,20 +97,26 @@
 
       deleteImage() {
 
+        // Remove data from croppie
         this.croppieInstance.bind({
           url: null
         });
+        // Removes the image src from the thumbail
         this.croppedImage = "";
 
+        // Clear the file input
         this.$refs.croppieFileInput.value = "clear";
 
+        // Hide the croppie container
         this.croppieActive = false;
       },
 
       cancelCroppie() {
+        // Remove data from croppie
         this.croppieInstance.bind({
           url: null
         });
+        // Hide the croppie container
         this.croppieActive = false;
 
       },
@@ -114,6 +125,7 @@
         this.croppieInstance.result({
           type: 'base64',
           size: { width: {{ widget.res_width }} },
+          // ...{{widget.result|safe}},
         }).then((image) => {
 
           this.$refs.croppieFileInput.value = image;

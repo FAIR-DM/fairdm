@@ -284,8 +284,8 @@ class _BaseDiscoveryView(APIView):
     registry_attr: str = ""
     url_prefix: str = ""
 
-    def get(self, request: Request) -> Response:
-        """List every registered type with its endpoint, fields and record count."""
+    # No docstring: drf-spectacular would show it instead of each subclass's own.
+    def get(self, request: Request) -> Response:  # noqa: D102
         from fairdm.registry import registry
 
         types = []

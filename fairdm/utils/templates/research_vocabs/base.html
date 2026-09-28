@@ -3,11 +3,13 @@
 
 {% block head %}
   {{ block.super }}
+  <!-- Load jsTree CSS -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
 {% endblock head %}
 
 {% block body_end %}
+  <!-- Load jsTree JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 {% endblock body_end %}
 
@@ -28,7 +30,9 @@
       {% endblock sidebar %}
 
       <div class="col">
+        {% comment %} <h1 class="mb-0 fs-3 text-capitalize">{% i18n_label concept %}</h1> {% endcomment %}
         <hr class="mt-1" />
+        {% comment %} {{ block.super }} {% endcomment %}
         {% block content_inner %}
         {% endblock content_inner %}
 
