@@ -1,6 +1,6 @@
 # FairDM
 
-[![CI](https://github.com/FAIR-DM/fairdm/actions/workflows/ci.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/ci.yml)
+[![Tests](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml)
 [![Documentation](https://readthedocs.org/projects/fairdm/badge/?version=latest)](https://fairdm.readthedocs.io/en/latest/)
 [![PyPI](https://img.shields.io/pypi/v/fairdm)](https://pypi.org/project/fairdm/)
 [![codecov](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
@@ -236,14 +236,14 @@ Extend FairDM with custom functionality:
 
 ## 📚 Documentation
 
-Full documentation is available at: **<https://fairdm.github.io/fairdm/>**
+Full documentation is available at: **<https://fairdm.readthedocs.io/en/latest/>**
 
 ### Documentation Sections
 
-- **[User Guide](https://fairdm.github.io/fairdm/user-guide/)** — For portal users and contributors
-- **[Developer Guide](https://fairdm.github.io/fairdm/portal-development/)** — Build your own research portal
-- **[Admin Guide](https://fairdm.github.io/fairdm/portal-administration/)** — Portal administration and maintenance
-- **[Contributing](https://fairdm.github.io/fairdm/contributing/)** — Contribute to FairDM framework development
+- **[User Guide](https://fairdm.readthedocs.io/en/latest/user-guide/)** — For portal users and contributors
+- **[Developer Guide](https://fairdm.readthedocs.io/en/latest/portal-development/)** — Build your own research portal
+- **[Admin Guide](https://fairdm.readthedocs.io/en/latest/portal-administration/)** — Portal administration and maintenance
+- **[Contributing](https://fairdm.readthedocs.io/en/latest/contributing/)** — Contribute to FairDM framework development
 
 ---
 
@@ -389,21 +389,9 @@ FairDM is under active development. Current focus areas:
 
 ## 📞 Support & Community
 
-- **Documentation**: <https://fairdm.github.io/fairdm/>
+- **Documentation**: <https://fairdm.readthedocs.io/en/latest/>
 - **Issues**: <https://github.com/FAIR-DM/fairdm/issues>
-- **Discussions**: <https://github.com/FAIR-DM/fairdm/discussions>
 - **GitHub**: <https://github.com/FAIR-DM/fairdm>
-
----
-
-## [![Repography logo](https://images.repography.com/logo.svg)](https://repography.com) / Recent activity [![Time period](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_badge.svg)](https://repography.com)
-
-[![Timeline graph](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_timeline.svg)](https://github.com/FAIR-DM/fairdm/commits)
-[![Issue status graph](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_issues.svg)](https://github.com/FAIR-DM/fairdm/issues)
-[![Pull request status graph](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_prs.svg)](https://github.com/FAIR-DM/fairdm/pulls)
-[![Trending topics](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_words.svg)](https://github.com/FAIR-DM/fairdm/commits)
-[![Top contributors](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_users.svg)](https://github.com/FAIR-DM/fairdm/graphs/contributors)
-[![Activity map](https://images.repography.com/38992691/FAIR-DM/fairdm/recent-activity/wR5Qyb7vQtQMDQBP1um1HrDQXvNCa5onTbGDdtwZKCg/hzg3IEH7q7FhzX3eX5c_BGACTiJz-_dhyInw4d4n_bU_map.svg)](https://github.com/FAIR-DM/fairdm/commits)
 
 ---
 
