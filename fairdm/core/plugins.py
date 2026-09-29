@@ -367,7 +367,13 @@ class RecordOverviewPlugin(OverviewPlugin):
 
     @staticmethod
     def _type_counts(queryset) -> list[tuple[str, int]]:
-        """Count a queryset's records by type, largest first."""
+        """Count a queryset's records by type, largest first.
+
+        A type the registry does not hold, and a content type whose model no longer exists, are
+        left out.
+        """
+        from fairdm.registry import registry
+
         rows = (
             queryset.values("polymorphic_ctype").annotate(n=Count("pk")).order_by("-n")
         )
@@ -376,6 +382,8 @@ class RecordOverviewPlugin(OverviewPlugin):
             model = ContentType.objects.get_for_id(
                 row["polymorphic_ctype"]
             ).model_class()
+            if model is None or not registry.is_registered(model):
+                continue
             result.append((sentence_case(model._meta.verbose_name_plural), row["n"]))
         return result
 
