@@ -162,8 +162,10 @@ Identifiers, the citation and the related publications.
 
 **The timeline.** A card in `overview.timeline` lists the dataset's key dates in the order they
 happened: collected (with its end date, or "ongoing"), added to the portal, submitted, published,
-available from and withdrawn. A step with no date recorded is left out. Days follow the active
-language's short date format.
+available from and withdrawn. A step with no date recorded is left out. Each date is shown as
+precisely as it was recorded, as a day, a month and year, or a year alone, and days follow the
+active language's short date format. The withdrawal notice at the top of the page words its date
+the same way.
 
 **The readiness checklist.** The team sees "Ready to publish?" until the dataset is published, and
 a visitor never sees it. It has seven required items and three recommended ones, taken from
@@ -521,7 +523,7 @@ The dataset's own steps are methods on its `Overview` plugin in `fairdm.core.dat
 | --- | --- |
 | `get_access()` | The dataset's state, `private`, `public` (not published) or `published`, with its label. |
 | `get_descriptions()` | The descriptions the dataset has text for, in the vocabulary's order. |
-| `get_dates()` | The collection start and end and the available, submitted, published and withdrawn dates as plain dates, each `None` when not recorded. |
+| `get_dates()` | The collection start and end and the available, submitted, published and withdrawn dates, each `None` when not recorded and otherwise a partial date with the precision it was recorded at, plus the withdrawal written out as `withdrawn_text`. |
 | `get_lifecycle(dates)` | The timeline's steps, in the order they happened. |
 | `get_team()` | The creators, whether a contact person is credited, and how many contributions the dataset has. |
 | `get_literature()` | The related publications, each with its relation worded from the publication's side, its DOI and its year. |
@@ -545,7 +547,8 @@ What no class owns is a plain function in `fairdm.core.overview`:
 | `format_authors(contributors)` | Writes creators in citation style: `Keller, A., Oliveira, T. & Brandt, L.` |
 | `author_name(contributor)` | One creator: surname and initial, or the contributor's name when they have no first name. |
 | `json_ld(data)` | Serialises data for an inline script element, with `<`, `>` and `&` escaped so a name can never end the element. |
-| `as_date(partial)` | A date from a partial date of any precision, or `None`. |
+| `as_date(partial)` | A date from a partial date of any precision, or `None`. It pads a year or month to a day, so use it to sort and compare, not to show. |
+| `format_partial_date(partial)` | Writes a partial date as a day, a month and year, or a year, as it was recorded. |
 | `sentence_case(text)` | Capitalises the first letter only, so `XRF measurements` keeps its acronym. |
 | `safe_reverse(name, **kwargs)` | A URL, or `None` when the name does not resolve. |
 

@@ -95,7 +95,9 @@ button to copy it. DOIs and IGSNs link to doi.org.
 ### `c-card.funding`
 
 The awards that paid for the record, each with its funder, title and number. The funder links to
-its identifier and the number to the award's page where the award records them.
+its identifier and the number to the award's page where the award records them. An identifier
+or award page is linked only when it is an `http://` or `https://` address; anything else, such as a
+bare funder ID, is shown as plain text.
 
 | Attribute | What it takes |
 | --- | --- |
