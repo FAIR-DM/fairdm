@@ -258,8 +258,13 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --steps docs --base origin/main: only the two measurement-story names remain"
+            ]
+          }
         }
       ]
     },

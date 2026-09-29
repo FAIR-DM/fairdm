@@ -228,6 +228,146 @@ The blocks read `access`, `dates`, `team`, `descriptions`, `literature`, `counts
 `composition_chart`, `growth_chart`, `lifecycle`, `citation`, `details`, `urls` and, for the team,
 `readiness`.
 
+## The sample page
+
+A sample is a physical specimen, so its page is organised around what happened to it and what was
+learned from it: its type and status, a timeline of its life, the measurements made on it, where
+it sits, how to cite it and what it is related to. It reads only the base `Sample` model and what
+the registry says about the sample's type, never a field a particular type adds. Its template is
+`sample/sample_overview.html`.
+
+**Header.** The type and the status as badges. Where the registry describes the type, the type
+badge opens that description in a dialog, with the type's keywords, the authority that maintains
+its schema and how to cite it. A type the registry does not describe opens nothing. The status
+badge is green for available, blue for in use, grey for stored and red for destroyed; a sample
+with no recorded status reads "Status unknown".
+
+**Notices.** A destroyed specimen says it no longer exists and that its record and measurements
+are kept. A sample whose dataset is not public and published tells the dataset's team that only
+they can see it.
+
+**Figures.** Measurements, related samples and people credited.
+
+**Content column** (`overview.properties`, `overview.notes`, `overview.history` and
+`overview.measurements`). `overview.properties` is empty on the shared page: it is the block a
+sample type fills with its own fields. Then the notes, the history and the measurements.
+
+- *The history* joins three things the sample vocabularies record for each step in a specimen's
+  life: its date, the contributor role that performed it and the description that explains it. The
+  steps are created, collected, prepared, archived, returned, restored and destroyed. Dated steps
+  come first, in date order, each date shown as precisely as it was recorded (a year, a month or a
+  day). A step with no date follows them.
+- *The measurements* are listed most recent first, ten at a time, each naming its type. The rest
+  are counted ("and 2 more"). A measurement recorded in another dataset than the sample's is
+  marked with that dataset.
+
+**Side column.** Details (its project, dataset, licence, status with what it means for
+re-examining the specimen, and when it was added and last updated), People, Identifiers, the
+citation, the location and the related samples.
+
+- *The citation* follows DataCite's form for a physical object and points at the IGSN when the
+  sample has one. Without an IGSN it points at the page and says an IGSN would outlive the portal.
+- *The location* is a map of the point with its longitude and latitude listed. A sample without
+  one says so.
+- *The related samples* are the sample's parents and subsamples in one list, each saying how it
+  relates to this sample.
+
+**Who can open it.** A sample follows its own dataset. Its page opens for everyone once that
+dataset is public and published. Before then it opens only for a user who holds `view_dataset` or
+`change_dataset` on the dataset, and anyone else gets a "not found" response, so the address never
+confirms the sample exists.
+
+The same rule applies to each record the page lists. A measurement or a related sample in another
+dataset is shown only when the viewer may see that dataset. One they may not see is counted and
+never named, linked or mapped: the related samples card says how many belong to datasets that are
+not published yet, and the measurement list leaves them out of its count.
+
+## Giving a sample or measurement type its own page
+
+A portal that defines a sample type adds the type's fields to its page by providing one template.
+There is nothing to register. For each type from the sample's own up to `Sample`, the page looks for
+`<app_label>/<model_name>_overview.html`, then falls back to `sample/sample_overview.html`. So:
+
+- A type with a template of its own uses it.
+- A subtype without one uses its parent type's template.
+- A type with no template anywhere in its ancestry uses the shared page.
+
+Measurements work the same way, with `measurement/measurement_overview.html` as the shared page.
+
+The demo's rock sample is the worked example. `RockSample` is in the `demo` app, so its template is
+`demo/rocksample_overview.html`. It extends the shared page and fills two blocks:
+
+```django
+{% extends "sample/sample_overview.html" %}
+{% load i18n %}
+
+{# Add the rock type beside the generic type and status badges; block.super keeps those. #}
+{% block overview.badges %}
+  {{ block.super }}
+  {% if sample.rock_type %}
+    <span class="badge badge-outline badge-sm">{{ sample.rock_type|capfirst }}</span>
+  {% endif %}
+{% endblock overview.badges %}
+
+{# The block the shared page leaves empty for exactly this: the type's own fields. #}
+{% block overview.properties %}
+  <c-card title="{% translate 'Rock properties' %}" class="bg-base-100">
+    <c-data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
+    <c-data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
+  </c-card>
+{% endblock overview.properties %}
+```
+
+Every block the template does not fill shows the shared content: the history, the measurements,
+the side column and the citation all stay. In the template, `sample` is the sample as its own type,
+so `sample.rock_type` reads the rock's field. The shared page still reads only `Sample`. A
+`WaterSample` in the same app has no `demo/watersample_overview.html`, so it shows the shared page.
+
+A subtype of `RockSample` needs nothing to inherit this page. To give it a page of its own, add
+`demo/<subtype>_overview.html` and extend `demo/rocksample_overview.html` to keep the rock card.
+
+**A custom manager is fine.** The page decides who may open a sample by asking `Sample.objects`
+(and `Measurement.objects` for a measurement), never the type's own manager. A type can declare a
+plain `QuerySet` manager with no `visible_to` and its page still opens for the dataset's team and
+answers "not found" to a visitor.
+
+**The visibility rules are queryset methods.** `published()` keeps the records whose own dataset is
+published. `visible_to(user)` keeps the records a user may see: those in a dataset that is public
+and published, and those in a dataset on which the user holds `view_dataset` or `change_dataset`.
+Both are decided against each record's own dataset, so being on one dataset's team never opens
+another dataset's records. `SampleQuerySet` and `MeasurementQuerySet` get them from
+`fairdm.core.managers.RecordVisibilityMixin`. A queryset of your own for a record that has a
+`dataset` foreign key can use the mixin too:
+
+```python
+from django.db.models import QuerySet
+
+from fairdm.core.managers import RecordVisibilityMixin
+
+
+class CoreQuerySet(RecordVisibilityMixin, QuerySet):
+    pass
+```
+
+The sample's own steps are methods on its `Overview` plugin in `fairdm.core.sample.plugins`:
+
+| Method | What it returns |
+| --- | --- |
+| `get_status()` | The custody status: its stored `value`, its `label`, the badge colour `variant` and what it `meaning`s for re-examining the specimen. `status_variants` and `status_meanings` hold the colours and the meanings. |
+| `get_measurements()` | The measurements made on the sample the viewer may see: `items` (the most recent, up to `measurements_shown`, ten by default), the `total` and how many are `more`. |
+| `get_related_samples()` | The parents and subsamples the viewer may see, as `items`, `parents` and `children`, each saying how it relates. `hidden` counts those the viewer may not see. |
+| `get_relations_summary(relations)` | The figure's caption, such as "1 parent · 2 subsamples", or "None recorded". |
+| `get_citation_details(entries, dates, identifiers)` | The citation's title and text, with a note when the sample has no IGSN. |
+| `get_details(project, status)` | The rows of the Details card. `project` is `None` when the viewer may not see it. |
+
+The steps of the history are in the plugin's `lifecycle` list, each as a date type, the contributor
+role that performs it, the description type that explains it and the label the page shows. A portal
+can subclass `Overview` and replace the list.
+
+The blocks read `record`, `sample`, `sample_type`, `type_info`, `status`, `lifecycle`, `notes`,
+`measurements`, `relations`, `location`, `project`, `counts`, `people`, `identifiers`, `citation`
+and `details`.
+
 ## What the plugins work out
 
 The page's numbers and lists come from two plugin classes in `fairdm.core.plugins`.
@@ -248,7 +388,9 @@ plugins subclass it. A portal building its own page for a record can subclass it
 
 `TypedOverviewPlugin` subclasses `RecordOverviewPlugin` for the record types portals subclass, the
 sample and the measurement. It adds the template lookup by type and `get_type_info()`, which reads
-what the registry says about the record's type.
+what the registry says about the record's type. A subclass names its `base_model`, and the plugin
+then opens a record only for a user the base model's `visible_to` lets see it. A subclass with no
+`base_model` opens no record.
 
 Override one method to change one piece of a page. This subclass lists eight people in the People
 card instead of eighteen:

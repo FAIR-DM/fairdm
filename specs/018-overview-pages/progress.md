@@ -98,3 +98,9 @@
 - Verified: `uv run pytest tests/test_core/test_sample tests/test_core/test_measurement tests/test_core/test_managers.py -q`: only the known measurement test fails, which belongs to the measurement story. Rendered all 141 seeded samples as visitor, `staff.user` and `regular.user` before and after the move: 423 pages, no difference. `uv run pre-commit run --all-files`: all hooks pass.
 - Next: T015.
 - Watch: T013 found one gap, the visibility check on a typed overview, fixed in the same commit as its test.
+
+## 2026-09-29 · US3 · T015
+
+- Did: `docs/portal-development/overview-pages.md` gained the sample page (header, notices, figures, both columns, the history, who can open it) and "Giving a sample or measurement type its own page" with the demo's rock sample as the worked example, the plain-manager note, the visibility mixin and the sample plugin's methods. The changelog entry for the overview pages is extended.
+- Verified: `forge verify --steps docs --base origin/main`: the only names left undocumented are `sample_status` and `siblings`, which belong to the measurement story.
+- Next: the full verify, then the report.

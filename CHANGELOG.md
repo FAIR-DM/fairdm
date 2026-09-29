@@ -109,6 +109,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   required and three recommended items until the dataset is published. The page's logic moved from
   `fairdm.core.dataset.overview` to methods on the dataset `Overview` plugin, and the module is
   gone. See [Overview pages](docs/portal-development/overview-pages.md).
+- **The sample page follows the specimen, and a sample type adds its own fields by providing one
+  template.** It shows the type and status, a timeline joining each step's date, people and
+  notes, the measurements made on the sample (including those another team recorded in its own
+  dataset), a citation in DataCite's form for a physical object, a map and the related samples.
+  A measurement or related sample in a dataset the viewer may not see is counted and never named or
+  linked. A portal gives a sample type its page with `<app_label>/<model_name>_overview.html`, a
+  subtype inherits its parent type's page, and the demo's rock sample is the worked example. The
+  page's logic moved from `fairdm.core.sample.overview` to methods on the sample `Overview`
+  plugin, and the module is gone. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
+  and `visible_to()` from `fairdm.core.managers.RecordVisibilityMixin`. See
+  [Overview pages](docs/portal-development/overview-pages.md).
 - **`manage.py seed_overviews` loads development data for the overview pages**, and creates
   `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
   missing. It refuses to run outside development, leaves an existing account as it is, and
