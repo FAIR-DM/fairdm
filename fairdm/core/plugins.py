@@ -1,6 +1,7 @@
 """Reusable overview, update and delete plugins for the core record pages."""
 
 from collections import OrderedDict
+from dataclasses import replace
 from datetime import date
 from typing import Any
 
@@ -504,7 +505,9 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
     def handle_no_permission(self):
         from django.http import Http404
 
-        raise Http404(_("Nothing matches the given query."))
+        raise Http404(
+            _("No %s matches the given query.") % self.base_model._meta.object_name
+        )
 
     def get_template_names(self):
         names = []
@@ -535,10 +538,17 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
             return None
         config = registry.get_for_model(model)
         metadata = config.metadata
+        citation = metadata.citation
+        if (
+            citation
+            and citation.doi
+            and not citation.doi.startswith(("http://", "https://"))
+        ):
+            citation = replace(citation, doi=f"https://doi.org/{citation.doi}")
         info = {
             "description": metadata.description or config.description,
             "authority": metadata.authority,
-            "citation": metadata.citation,
+            "citation": citation,
             "keywords": metadata.keywords,
         }
         return info if any(info.values()) else None

@@ -6,6 +6,8 @@ import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.template.loader import select_template
 from django.test import RequestFactory
 from django.test.utils import isolate_apps
@@ -17,7 +19,7 @@ from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurement
 from demo.models import RockSample
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
-from fairdm.core.sample.models import SampleDate, SampleDescription
+from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
 from fairdm.core.sample.plugins import Descriptions, Edit, KeyDates, Keywords, Overview
 from fairdm.core.utils import assign_perm
 from fairdm.factories import (
@@ -27,6 +29,7 @@ from fairdm.factories import (
     SampleRelationFactory,
 )
 from fairdm.registry import registry
+from fairdm.registry.config import Citation
 from fairdm.utils.choices import Visibility
 
 EDITING_PLUGINS = [Edit, Descriptions, Keywords, KeyDates]
@@ -231,6 +234,14 @@ class TestOverviewFollowsItsDataset:
         sample = RockSampleFactory(dataset=_dataset(public=public, published=published))
 
         assert client.get(sample.get_absolute_url()).status_code == 404
+
+    def test_a_hidden_sample_and_a_missing_one_raise_the_same_error(self):
+        with pytest.raises(Http404) as missing:
+            get_object_or_404(Sample, pk=0)
+        with pytest.raises(Http404) as hidden:
+            Overview().handle_no_permission()
+
+        assert str(hidden.value) == str(missing.value)
 
     def test_a_signed_in_stranger_gets_not_found(self, client):
         sample = RockSampleFactory(dataset=_dataset(published=False))
@@ -484,6 +495,27 @@ class TestOverviewTypeBadge:
         assert response.context["type_info"] is None
         assert response.page.find("dialog", id="about-sample-type") is None
         assert response.page.select("header button[aria-haspopup=dialog]") == []
+
+    @pytest.mark.parametrize(
+        ("recorded", "linked"),
+        [
+            ("10.1000/xyz123", "https://doi.org/10.1000/xyz123"),
+            ("https://doi.org/10.1000/xyz123", "https://doi.org/10.1000/xyz123"),
+            ("http://example.org/protocol", "http://example.org/protocol"),
+        ],
+    )
+    def test_a_protocol_doi_links_to_an_absolute_address(
+        self, client, rock, monkeypatch, recorded, linked
+    ):
+        config = registry.get_for_model(RockSample)
+        monkeypatch.setattr(
+            config.metadata, "citation", Citation(text="Protocol text", doi=recorded)
+        )
+
+        response = _page(client, rock)
+
+        dialog = response.page.find("dialog", id="about-sample-type")
+        assert dialog.find("a", string="Protocol text")["href"] == linked
 
     def test_the_configuration_description_stands_in_for_an_empty_metadata_one(
         self, client, rock, monkeypatch
