@@ -261,3 +261,16 @@ published dataset, and a case beside it asserts the 404 for a public but unpubli
 assertion changed.
 
 **Revisit if:** the measurement page opens by another rule than its own dataset's.
+
+## D19 — The credit readers are methods of `RecordOverviewPlugin`, or already on the model
+
+`contributions_of`, `roles_of` and `with_role` shared a subject with `get_credits` (a record's
+credits), so they are now `get_contributions()`, `get_role_names()` and
+`get_contributors_with_role()` on `RecordOverviewPlugin`, and `fairdm/core/overview.py` holds only the
+six functions with no shared subject. `is_person` needed no replacement: `Contribution.is_person()`
+already answers it, and the one place that holds a bare contributor (the dataset's JSON-LD) checks
+`isinstance(person, Person)`. The measurement's steps became methods of its `Overview` plugin the
+way the sample's did, with `procedure_steps` and `siblings_shown` as attributes a portal can replace.
+
+**Revisit if:** a fifth record page needs the same readers, which would argue for the credits moving
+onto the record's own manager.

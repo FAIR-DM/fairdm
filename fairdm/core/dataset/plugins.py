@@ -14,6 +14,7 @@ from mvp.views import MVPFormView
 from mvp.views.detail import CRUDDirectoryMixin
 
 from fairdm import plugins
+from fairdm.contrib.contributors.models import Person
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
@@ -25,10 +26,7 @@ from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
-    contributions_of,
-    is_person,
     json_ld,
-    roles_of,
     safe_reverse,
     sentence_case,
 )
@@ -543,10 +541,10 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             The creators, the contact person when not already a creator, everyone else and the
             counts of people and organisations credited.
         """
-        contributions = contributions_of(self.base_object)
+        contributions = self.get_contributions()
         creators, contact, others = [], None, []
         for contribution in contributions:
-            roles = roles_of(contribution)
+            roles = self.get_role_names(contribution)
             entry = {
                 "contributor": contribution.contributor,
                 "roles": [r.label for r in contribution.roles.all()],
@@ -563,10 +561,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "has_contact": contact is not None,
             "others": others,
             "total": len(contributions),
-            "people": sum(1 for c in contributions if is_person(c.contributor)),
-            "organizations": sum(
-                1 for c in contributions if not is_person(c.contributor)
-            ),
+            "people": sum(1 for c in contributions if c.is_person()),
+            "organizations": sum(1 for c in contributions if not c.is_person()),
         }
 
     def get_literature(self):
@@ -797,7 +793,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         creators = []
         for entry in page["team"]["creators"]:
             person = entry["contributor"]
-            if is_person(person):
+            if isinstance(person, Person):
                 creators.append(
                     {
                         "@type": "Person",

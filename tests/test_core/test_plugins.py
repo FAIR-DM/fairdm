@@ -2,9 +2,12 @@
 
 import pytest
 
+from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.factories import (
     DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
     SampleIdentifierFactory,
@@ -81,3 +84,49 @@ class TestRecordOverviewPluginIdentifiers:
 
     def test_a_record_with_no_identifiers_gives_an_empty_list(self):
         assert _plugin_for(ProjectFactory()).get_identifiers() == []
+
+
+@pytest.mark.django_db
+class TestRecordOverviewPluginCredits:
+    @pytest.fixture
+    def credited(self):
+        project = ProjectFactory()
+        person = PersonFactory(is_active=True)
+        organisation = OrganizationFactory()
+        project.add_contributor(person, with_roles=["Creator", "ContactPerson"])
+        project.add_contributor(organisation, with_roles=["Other"])
+        return project, person, organisation
+
+    def test_each_credit_carries_its_contributor_as_its_own_subtype(self, credited):
+        project, person, organisation = credited
+
+        contributions = _plugin_for(project).get_contributions()
+
+        assert {type(c.contributor) for c in contributions} == {Person, Organization}
+        assert {c.contributor.pk: c.is_person() for c in contributions} == {
+            person.pk: True,
+            organisation.pk: False,
+        }
+
+    def test_a_credit_names_the_roles_it_holds(self, credited):
+        project, person, _ = credited
+        plugin = _plugin_for(project)
+
+        credit = next(
+            c for c in plugin.get_contributions() if c.contributor.pk == person.pk
+        )
+
+        assert plugin.get_role_names(credit) == {"Creator", "ContactPerson"}
+
+    def test_the_contributors_holding_a_role_are_picked_out_of_the_credits(
+        self, credited
+    ):
+        project, person, _ = credited
+        plugin = _plugin_for(project)
+
+        entries = plugin.get_credits()
+
+        assert [
+            c.pk for c in plugin.get_contributors_with_role(entries, "Creator")
+        ] == [person.pk]
+        assert plugin.get_contributors_with_role(entries, "Editor") == []

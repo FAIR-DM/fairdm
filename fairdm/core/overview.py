@@ -1,16 +1,15 @@
 """Pure helpers shared by the four record overview pages: project, dataset, sample and measurement.
 
-What the pages work out from a record lives on ``fairdm.core.plugins.RecordOverviewPlugin``. What
-stays here has no shared subject: how a name is written in a citation, how a partial date becomes a
-date, how data is serialised into a script element, and how a credit is read.
+What the pages work out from a record, including who is credited on it, lives on
+``fairdm.core.plugins.RecordOverviewPlugin``. What stays here has no shared subject: how a name is
+written in a citation, how a partial date becomes a date, and how data is serialised into a script
+element.
 """
 
 import json
 from datetime import date
 
 from django.urls import NoReverseMatch, reverse
-
-from fairdm.contrib.contributors.models import Contributor, Person
 
 
 def safe_reverse(name, **kwargs):
@@ -25,29 +24,6 @@ def as_date(partial):
         return None
     value = getattr(partial, "date", partial)
     return value if isinstance(value, date) else None
-
-
-def contributions_of(obj):
-    """The record's credits with each contributor as its own subtype, Person or Organization.
-
-    ``select_related`` stops at the polymorphic base, which has neither a person's name parts nor
-    a way to tell the two apart, so the real instances are fetched in one extra query.
-    """
-    contributions = list(
-        obj.contributors.select_related("affiliation").prefetch_related("roles")
-    )
-    real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
-    for contribution in contributions:
-        contribution.contributor = real[contribution.contributor_id]
-    return contributions
-
-
-def is_person(contributor):
-    return isinstance(contributor, Person)
-
-
-def roles_of(contribution):
-    return {role.name for role in contribution.roles.all()}
 
 
 def author_name(contributor):
@@ -81,7 +57,3 @@ def json_ld(data):
         .replace(">", "\\u003e")
         .replace("&", "\\u0026")
     )
-
-
-def with_role(entries, role):
-    return [entry["contributor"] for entry in entries if role in entry["roles"]]

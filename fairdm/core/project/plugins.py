@@ -24,10 +24,7 @@ from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
-    contributions_of,
-    is_person,
     json_ld,
-    roles_of,
     safe_reverse,
 )
 from fairdm.core.plugins import RecordOverviewPlugin
@@ -420,10 +417,10 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             organisations, and who a would-be collaborator writes to: the contact person, else the
             first lead.
         """
-        contributions = contributions_of(self.base_object)
+        contributions = self.get_contributions()
         ranked_leads, contact, others = [], None, []
         for contribution in contributions:
-            roles = roles_of(contribution)
+            roles = self.get_role_names(contribution)
             entry = {
                 "contributor": contribution.contributor,
                 "roles": [
@@ -443,10 +440,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "contact_is_lead": bool(contact and contact in leads),
             "others": others,
             "total": len(contributions),
-            "people": sum(1 for c in contributions if is_person(c.contributor)),
-            "organizations": sum(
-                1 for c in contributions if not is_person(c.contributor)
-            ),
+            "people": sum(1 for c in contributions if c.is_person()),
+            "organizations": sum(1 for c in contributions if not c.is_person()),
             "has_contact": contact is not None,
             "reach": (contact or (leads[0] if leads else None) or {}).get(
                 "contributor"
@@ -548,7 +543,9 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         """
         project = self.base_object
         creators = [
-            c.contributor for c in contributions_of(project) if "Creator" in roles_of(c)
+            c.contributor
+            for c in self.get_contributions()
+            if "Creator" in self.get_role_names(c)
         ]
         start = {d.type: d.value for d in project.dates.all()}.get("Start")
         year = as_date(start).year if as_date(start) else project.added.year

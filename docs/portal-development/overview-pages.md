@@ -377,6 +377,9 @@ plugins subclass it. A portal building its own page for a record can subclass it
 
 | Method | What it returns |
 | --- | --- |
+| `get_contributions()` | The record's credits with each contributor as its own type, person or organisation. Ask a credit `is_person()` to tell them apart. |
+| `get_role_names(contribution)` | The names of the roles held on one credit. |
+| `get_contributors_with_role(entries, role)` | The contributors in `get_credits()` entries who hold a role. |
 | `get_credits()` | Everyone credited on the record, each contributor as its own type (person or organisation), with role labels and affiliation. |
 | `get_people(entries=None, exclude=())` | What the People card shows: `shown` (up to `people_shown`, eighteen by default), `more` and `total`. `exclude` names contributors already in the header. |
 | `get_identifiers()` | The record's identifiers with a doi.org link on a DOI or an IGSN. `resolvable_identifier_types` lists the types that link. |
@@ -440,10 +443,6 @@ What no class owns is a plain function in `fairdm.core.overview`:
 | `as_date(partial)` | A date from a partial date of any precision, or `None`. |
 | `sentence_case(text)` | Capitalises the first letter only, so `XRF measurements` keeps its acronym. |
 | `safe_reverse(name, **kwargs)` | A URL, or `None` when the name does not resolve. |
-| `contributions_of(record)` | A record's credits with each contributor as its own type. |
-| `roles_of(contribution)` | The names of the roles held on one credit. |
-| `is_person(contributor)` | Whether a contributor is a person rather than an organisation. |
-| `with_role(entries, role)` | The contributors in `get_credits()` entries who hold a role. |
 
 ## Development data
 

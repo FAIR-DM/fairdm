@@ -111,3 +111,10 @@
 - Verified: `uv run pytest tests/test_core/test_measurement/test_plugins.py tests/test_core/test_measurement/test_managers.py tests/test_core/test_measurement/test_models.py::TestMeasurementViews -q`: 55 passed. Probed by making the sample always visible (3 failed) and dropping the siblings `visible_to` (2 failed), then restored.
 - Next: T017.
 - Watch: the page's behaviour already met every scenario; T016 found no gap. A sample's list crumb has no link (no `sample-list` route exists), and the measurement's matches it.
+
+## 2026-09-29 · US4 · T017
+
+- Did: the measurement's logic is methods on its `Overview` plugin (`get_result`, `get_sample_status`, `get_siblings`, `get_citation_details`, `get_details`) and `fairdm/core/measurement/overview.py` is deleted. `get_contributions`, `get_role_names` and `get_contributors_with_role` moved onto `RecordOverviewPlugin`; the project, dataset and sample plugins call them, and `fairdm/core/overview.py` holds the six pure functions (D19). Direct tests for the three credit methods added to `tests/test_core/test_plugins.py`.
+- Verified: `uv run pytest tests/test_core/test_measurement tests/test_core/test_sample tests/test_core/test_project/test_plugins.py tests/test_core/test_dataset/test_plugins.py tests/test_core/test_overview.py tests/test_core/test_plugins.py tests/test_core/test_managers.py -q`: green. Rendered 56 seeded records (projects, datasets, up to eight of each sample and measurement type) as visitor, staff.user and regular.user before and after the move: 168 responses, status, length and content hash identical in every one.
+- Next: T018.
+- Watch: no test other than my own was edited.

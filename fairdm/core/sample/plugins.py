@@ -13,7 +13,7 @@ from fairdm.contrib.generic.plugins import (
 )
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
-from fairdm.core.overview import safe_reverse, sentence_case, with_role
+from fairdm.core.overview import safe_reverse, sentence_case
 from fairdm.core.plugins import TypedOverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide
@@ -189,7 +189,7 @@ class Overview(TypedOverviewPlugin):
         igsn = next((i for i in identifiers if i["type"] == "IGSN"), None)
         collected = dates.get("Collected")
         text = self.get_citation(
-            authors=with_role(entries, "Collection"),
+            authors=self.get_contributors_with_role(entries, "Collection"),
             year=getattr(getattr(collected, "date", None), "year", None)
             or sample.added.year,
             title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
