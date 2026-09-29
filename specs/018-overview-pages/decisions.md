@@ -48,7 +48,7 @@ class Django already owns, so the logic moves onto each page's `Overview` plugin
 part onto `RecordOverviewPlugin`. A portal then changes one piece of a page by overriding one
 method.
 
-**ADR:** pending — decided at convergence, once the shape has settled in code.
+**ADR:** docs/adr/0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates.md
 
 ## D3 — The header's people row is `overview.byline`
 
@@ -111,6 +111,8 @@ The sample's visibility rules have their own tests in the sample story.
 
 **Revisit if:** the sample page's visibility rule changes again.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D7 — The shared page logic moved onto the plugin classes in one step, and the other pages call it there
 
 `RecordOverviewPlugin` now holds what every overview page works out the same way: `get_credits`,
@@ -142,6 +144,8 @@ byte the same.
 
 **Revisit if:** a story finds a method that belongs on one page's plugin alone.
 
+**ADR:** docs/adr/0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates.md
+
 ## D8 — Dates on the pages use `SHORT_DATE_FORMAT` and `YEAR_MONTH_FORMAT`
 
 Every date the four pages and the cards write out goes through one of Django's named formats, so
@@ -152,6 +156,8 @@ where the prototype wrote `29 Sep 2026`, because the named format is the locale'
 reads badly to the portal's audience, the change is one format name in the templates.
 
 **Revisit if:** the maintainer prefers `DATE_FORMAT` (`Sept. 29, 2026`) for days.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D9 — The development data recognises its own projects by name and by who created them
 
@@ -164,6 +170,8 @@ run creates fresh copies beside them.
 
 **Revisit if:** a run needs to find its records by something other than a name and a creator.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D10 — The type dialog is written out in `type_badge.html`
 
 `c-modal` draws a `<dialog>` with no accessible name, and the description of a sample or
@@ -171,6 +179,8 @@ measurement type opens in one. The include now writes the same markup itself wit
 so the dialog is announced by the type's name.
 
 **Revisit if:** `c-modal` names its dialog.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D11 — The old "identical whether published or not" dataset page test now states the new rule
 
@@ -184,6 +194,8 @@ notice appears only while the dataset is unpublished. It is renamed to say so.
 **Revisit if:** the page lists records again, in which case the visitor's view of an unpublished
 dataset needs its own test.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D12 — `get_record_types()` returns each type's kind, label and field labels, and nothing else
 
 The figures, the readiness checklist and the schema.org `variableMeasured` list are the only
@@ -194,6 +206,8 @@ not when the module loads, so it follows the active language like every other st
 
 **Revisit if:** a page needs a type's description or count again, in which case add the key and its
 reader together.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D13 — "The dataset is public" is a recommended item on the readiness checklist
 
@@ -207,6 +221,8 @@ in the list.
 **Revisit if:** publishing stops making a dataset public, in which case the item is required again
 and the spec's count changes with it.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D14 — Two sample gate tests now open a sample in a published, public dataset
 
 `test_the_reading_surface_stays_open_for_a_user_with_no_rights` and
@@ -218,6 +234,8 @@ fixture instead; their assertions are unchanged.
 
 **Revisit if:** the reading surface is meant to open for samples whose dataset is not released, in
 which case FR-019 changes first.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D15 — A typed overview asks the base model's manager, never the subtype's
 
@@ -231,6 +249,8 @@ model when it is defined. A subclass with no `base_model` refuses every record, 
 **Revisit if:** the plugin base learns to call a bound permission method, in which case `check`
 can become an ordinary method again.
 
+**ADR:** none — applies ADR 0015 (a record's own dataset decides) to the typed page's check; no new rule.
+
 ## D16 — The sample page's tables are attributes of its `Overview` plugin
 
 The history's steps, the status colours and meanings, and the number of measurements listed were
@@ -242,6 +262,8 @@ sample plugin, imported inside the function to avoid a circular import.
 
 **Revisit if:** a third page needs the colours, in which case they move to `RecordOverviewPlugin`.
 
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
 ## D17 — `published()` and `visible_to()` live in `RecordVisibilityMixin` in `fairdm/core/managers.py`
 
 The two rules were identical in `SampleQuerySet` and `MeasurementQuerySet`. The mixin sits beside
@@ -250,6 +272,8 @@ mirrors it. Both querysets keep their own `with_related()` and the other helpers
 
 **Revisit if:** a record type whose visibility follows something other than its own dataset needs
 the same methods, in which case the dataset lookup becomes a class attribute.
+
+**ADR:** none — applies ADR 0015 and ADR 0018; where the shared methods live is an implementation detail.
 
 ## D18 — The measurement detail-page test is brought up to date with the measurement's own dataset
 
@@ -261,6 +285,8 @@ published dataset, and a case beside it asserts the 404 for a public but unpubli
 assertion changed.
 
 **Revisit if:** the measurement page opens by another rule than its own dataset's.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
 
 ## D19 — The credit readers are methods of `RecordOverviewPlugin`, or already on the model
 
@@ -274,3 +300,5 @@ way the sample's did, with `procedure_steps` and `siblings_shown` as attributes 
 
 **Revisit if:** a fifth record page needs the same readers, which would argue for the credits moving
 onto the record's own manager.
+
+**ADR:** docs/adr/0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates.md

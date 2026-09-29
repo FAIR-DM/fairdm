@@ -29,4 +29,5 @@ do not restate earlier ones, only build past them.
 0020-a-missing-role-is-answered-four-ways
 0021-claims-and-merges-belong-to-a-named-role
 0022-development-accounts-are-a-command-that-refuses
+0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates
 ```
