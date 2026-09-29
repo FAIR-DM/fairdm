@@ -17,9 +17,9 @@
     {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
 
   Sample blocks in the wide column, in order: overview.properties (empty here, the block a type
-  fills first), overview.notes, overview.history, overview.measurements, overview.location. In
-  the facts column, overview.samples holds related samples. Every other block is listed in
-  `overview/page.html`.
+  fills first), overview.notes, overview.history, overview.measurements. In the facts column,
+  overview.location (the map) and overview.samples (related samples). Every other block is
+  listed in `overview/page.html`.
 {% endcomment %}
 
 {% block overview.badges %}
@@ -106,25 +106,13 @@
     </c-card>
   {% endblock overview.measurements %}
 
-  {% block overview.location %}
-    <c-card title="{% translate 'Location' %}" class="bg-base-100">
-      {% if location %}
-        <div id="sample-map" class="overview-map bg-base-200" role="img"
-             aria-label="{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}"
-             data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
-        <dl class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
-          <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>
-          {% if location.crs %}<div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Reference system" %}</dt><dd class="font-mono">{{ location.crs }}</dd></div>{% endif %}
-        </dl>
-      {% else %}
-        <p class="text-sm text-base-content/70">{% translate "No location has been recorded for this sample." %}</p>
-      {% endif %}
-    </c-card>
-  {% endblock overview.location %}
 {% endblock overview.main %}
 
 {% block overview.record_facts %}
+{% block overview.location %}
+  <c-card.location :location="location" empty="{% translate 'No location has been recorded for this sample.' %}" />
+{% endblock overview.location %}
+
 {% block overview.samples %}
   {% if relations.items or relations.hidden %}
     <c-card title="{% translate 'Related' %}" class="bg-base-100">
@@ -162,33 +150,5 @@
 
 {% block extra_js %}
   {{ block.super }}
-  {% if location %}
-    {% block overview.map_library %}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"
-            integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK"
-            crossorigin="anonymous" referrerpolicy="no-referrer" />
-      <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"
-              integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp"
-              crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    {% endblock overview.map_library %}
-    <script>
-      (function () {
-        var el = document.getElementById("sample-map");
-        if (!el || !window.maplibregl) return;
-        var point = [parseFloat(el.dataset.lon), parseFloat(el.dataset.lat)];
-        var map = new maplibregl.Map({
-          container: el,
-          style: "https://tiles.openfreemap.org/styles/liberty",
-          center: point,
-          zoom: 8,
-          attributionControl: { compact: true },
-          cooperativeGestures: true,
-        });
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-        new maplibregl.Marker({ color: getComputedStyle(el).getPropertyValue("--color-primary").trim() || undefined })
-          .setLngLat(point)
-          .addTo(map);
-      })();
-    </script>
-  {% endif %}
+  {% if location %}{% include "overview/includes/map_library.html" %}{% endif %}
 {% endblock extra_js %}

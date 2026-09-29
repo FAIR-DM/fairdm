@@ -16,6 +16,7 @@ Safe to run twice: it removes what it created before creating it again.
 
 from decimal import Decimal
 
+from django.apps import apps
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -64,7 +65,13 @@ class MeasurementSeed(BaseCommand):
             for permission in ("view_dataset", "change_dataset"):
                 assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
 
-        sample = RockSampleFactory(dataset=cores, name="GPK-2 core, 3512 m", local_id="GPK2-C14-3512")
+        Point = apps.get_model("fairdm_location", "Point")
+        sample = RockSampleFactory(
+            dataset=cores,
+            name="GPK-2 core, 3512 m",
+            local_id="GPK2-C14-3512",
+            location=Point.objects.get_or_create(x=7.8656, y=48.9353, defaults={"crs": "EPSG:4326"})[0],
+        )
 
         full = XRFMeasurementFactory(
             sample=sample,

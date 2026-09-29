@@ -18,8 +18,10 @@
 
   Measurement blocks: overview.result (in the figures' place; shown when the type declares a
   `value`, otherwise the block a type fills first), then in the wide column overview.properties
-  (empty here), overview.procedure, overview.notes, overview.sample, overview.siblings. What the
-  registry says about the type opens from the type badge in the header. Every other block is listed in `overview/page.html`.
+  (empty here), overview.procedure, overview.notes, overview.sample, overview.siblings; in the
+  facts column, overview.location (the sample's map, when it has a location and is visible).
+  What the registry says about the type opens from the type badge in the header. Every other
+  block is listed in `overview/page.html`.
 {% endcomment %}
 
 {% block overview.badges %}
@@ -141,3 +143,16 @@
     {% endif %}
   {% endblock overview.siblings %}
 {% endblock overview.main %}
+
+{% block overview.record_facts %}
+  {% block overview.location %}
+    {% if sample_visible %}
+      <c-card.location :location="sample.location" title="{% translate 'Sample location' %}" />
+    {% endif %}
+  {% endblock overview.location %}
+{% endblock overview.record_facts %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if sample_visible and sample.location %}{% include "overview/includes/map_library.html" %}{% endif %}
+{% endblock extra_js %}

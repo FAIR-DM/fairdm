@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+  <c-card.location> — where a sample was taken: a map with the point marked, and the coordinates
+  as recorded. The map is drawn by `overview/includes/map_library.html`, which the page includes
+  once in `extra_js` when it has a location to show.
+
+  Attributes:
+    location – a location Point (x = longitude, y = latitude, crs), or nothing
+    title    – the card's title (default "Location")
+    empty    – what to say when there is no location; with none given, the card isn't shown
+    class    – extra classes on the card
+{% endcomment %}
+<c-vars location title empty class />
+{% if location or empty %}
+  <c-card title="{{ title|default:_('Location') }}" class="bg-base-100 {{ class }}" only>
+    {% if location %}
+      <div class="overview-map bg-base-200" role="img"
+           aria-label="{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}"
+           data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
+      <dl class="grid grid-cols-2 gap-3 text-sm">
+        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
+        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>
+        {% if location.crs %}<div class="col-span-2"><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Reference system" %}</dt><dd class="font-mono">{{ location.crs }}</dd></div>{% endif %}
+      </dl>
+    {% else %}
+      <p class="text-sm text-base-content/70">{{ empty }}</p>
+    {% endif %}
+  </c-card>
+{% endif %}
