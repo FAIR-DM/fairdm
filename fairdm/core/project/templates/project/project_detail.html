@@ -1,45 +1,202 @@
-{% extends "detail_view.html" %}
-{% load i18n fairdm flex_menu %}
+{% extends "overview/page.html" %}
+{% load i18n humanize fairdm %}
+{% comment %}
+  The project's overview page: the landing page people reach from a grant report, a group
+  website or a paper.
 
-{% block app.header.tray %}
-  {% render_menu "ProjectMenu" renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
-{% endblock app.header.tray %}
+  Read by someone deciding whether the data is usable to them, someone who has to cite the
+  project, and the team keeping the record complete. A visitor never sees a figure that only a
+  private record explains. The anatomy and the facts column come from `overview/page.html`; this
+  template fills the project's own blocks. Its context is gathered by
+  `fairdm/core/project/overview.py`.
 
-{% block page.actions %}
-  {{ block.super }}
-  {% if directory.descriptions_url %}
-    <c-button href="{{ directory.descriptions_url }}"
-              text="{% trans 'Descriptions' %}"
-              icon="description"
-              size="sm"
-              variant="secondary" />
+  Project blocks in the wide column: overview.about, overview.datasets, overview.charts,
+  overview.map, overview.activity. The timeline sits in overview.details_extra.
+{% endcomment %}
+
+{% block overview.badges %}
+  <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
+  {% if project.visibility != project.VISIBILITY.PUBLIC %}
+    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
   {% endif %}
-{% endblock page.actions %}
+{% endblock overview.badges %}
 
-{% block page.content %}
-  <c-section id="project-stats">
-    <c-grid cols="1" md="4" gap="4">
-      <c-cards.statistic value="{{ dataset_count|default:'0' }}"
-                         title="{% trans 'Datasets' %}"
-                         icon="dataset"
-                         variant="success" />
-      <c-cards.statistic value="{{ object.contributors.count }}"
-                         title="{% trans 'Contributors' %}"
-                         icon="person"
-                         variant="primary" />
-      <c-cards.statistic value="{{ project.samples.count|default:'0' }}"
-                         title="{% trans 'Samples' %}"
-                         icon="sample"
-                         variant="warning" />
-      <c-cards.statistic value="{{ project.measurements.count|default:'0' }}"
-                         title="{% trans 'Measurements' %}"
-                         icon="measurement"
-                         variant="danger" />
-    </c-grid>
-  </c-section>
-{% endblock page.content %}
-
-{% block extra_js %}
+{% block overview.actions %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
-{% endblock extra_js %}
+  {% if can_manage %}
+    {% if urls.add_dataset %}
+      <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
+                text="{% translate 'Add dataset' %}"
+                icon="add"
+                size="sm"
+                variant="primary" />
+    {% endif %}
+    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu>
+        <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
+        <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+        <c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />
+        {% if directory.delete_url %}
+          <c-menu.divider />
+          <c-menu.item label="{% translate 'Delete project' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
+        {% endif %}
+      </c-menu>
+    </c-dropdown>
+  {% endif %}
+{% endblock overview.actions %}
+
+{% block overview.notices %}
+  {% if can_manage and project.visibility != project.VISIBILITY.PUBLIC %}
+    <c-alert variant="warning" icon="lock" soft>
+      <span>{% translate "This project is private. Only its team can open this page, and none of its datasets can be found by anyone else until the project is made public." %}</span>
+      <c-button href="{{ urls.update }}" text="{% translate 'Change visibility' %}" size="sm" />
+    </c-alert>
+  {% endif %}
+  {% if project.status == project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS %}
+    {% with person=team.reach %}
+      <c-alert variant="info" icon="people" soft>
+        <span>{% translate "This project is looking for collaborators." %}{% if person %} {% blocktranslate with name=person %}Get in touch with {{ name }} to take part.{% endblocktranslate %}{% endif %}</span>
+        {% if person %}<c-button href="{{ person.get_absolute_url }}" text="{% translate 'View profile' %}" size="sm" />{% endif %}
+      </c-alert>
+    {% endwith %}
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.figures %}
+  <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" icon="people" />
+  </c-stats>
+{% endblock overview.figures %}
+
+{% block overview.main %}
+  {% block overview.about %}
+    <c-card.descriptions :descriptions="descriptions" group="project-about">
+      {% if can_manage %}
+        <div class="flex flex-col items-start gap-3">
+          <p class="text-base-content/70">{% translate "Nobody has described this project yet. An abstract is the first thing visitors and search engines read, and the first thing a data repository asks for." %}</p>
+          <c-button href="{{ urls.descriptions }}" text="{% translate 'Write an abstract' %}" icon="description" size="sm" variant="primary" />
+        </div>
+      {% else %}
+        <p class="text-base-content/70">{% translate "The team hasn't described this project yet." %}</p>
+      {% endif %}
+    </c-card.descriptions>
+  {% endblock overview.about %}
+
+  {% block overview.datasets %}
+    <c-card title="{% translate 'Datasets' %}" class="bg-base-100">
+      <c-slot name="badges">
+        {% if counts.datasets %}<span class="badge badge-ghost badge-sm">{{ counts.datasets }}</span>{% endif %}
+      </c-slot>
+      <c-slot name="actions">
+        {% if counts.datasets and urls.datasets %}
+          <c-button href="{{ urls.datasets }}" text="{% translate 'View all' %}" size="sm" />
+        {% endif %}
+      </c-slot>
+      {% if datasets_preview.rows %}
+        <c-list label="{% translate 'Most recently updated datasets' %}">
+          {% for dataset in datasets_preview.rows %}
+            <c-list.row class="px-0">
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ dataset.get_absolute_url }}" class="link link-hover font-medium break-words">{{ dataset.name }}</a>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/70">
+                  {% if dataset.data_is_public %}
+                    <span class="badge badge-soft badge-success badge-xs">{% translate "Published" %}</span>
+                  {% else %}
+                    <span class="badge badge-soft badge-neutral badge-xs">{% translate "Unpublished" %}</span>
+                  {% endif %}
+                  {% if dataset.license %}
+                    <span class="badge badge-outline badge-xs" title="{% translate 'Licence' %}">{{ dataset.license.name }}</span>
+                  {% else %}
+                    <span class="badge badge-soft badge-warning badge-xs">{% translate "No licence" %}</span>
+                  {% endif %}
+                  <span class="tabular-nums">
+                    {% blocktranslate count counter=dataset.n_samples %}{{ counter }} sample{% plural %}{{ counter }} samples{% endblocktranslate %}
+                    · {% blocktranslate count counter=dataset.n_measurements %}{{ counter }} measurement{% plural %}{{ counter }} measurements{% endblocktranslate %}
+                  </span>
+                  <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Last updated {{ when }}{% endblocktranslate %}</span>
+                </div>
+              </div>
+            </c-list.row>
+          {% endfor %}
+        </c-list>
+        {% if datasets_preview.more %}
+          <div>
+            <a href="{{ urls.datasets }}" class="link link-primary text-sm">
+              {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
+            </a>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="flex flex-col items-start gap-3">
+          {% if can_manage %}
+            <p class="text-base-content/70">{% translate "Datasets hold this project's samples and measurements, and are what other researchers cite and reuse. Add the first one to start sharing data." %}</p>
+            {% if urls.add_dataset %}
+              <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}" text="{% translate 'Add dataset' %}" icon="add" size="sm" variant="primary" />
+            {% endif %}
+          {% else %}
+            <p class="text-base-content/70">{% translate "No datasets have been shared from this project yet." %}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </c-card>
+  {% endblock overview.datasets %}
+
+  {% block overview.charts %}
+    {% if composition_chart or growth_chart %}
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+        {% if composition_chart %}
+          <c-card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="composition_chart.chart"
+                     id="project-composition"
+                     height="{{ composition_chart.height }}"
+                     name="{% translate 'Records by type' %}"
+                     caption="{% translate 'Records by sample and measurement type.' %}"
+                     description="{{ composition_chart.description }}" />
+          </c-card>
+        {% endif %}
+        {% if growth_chart %}
+          <c-card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="growth_chart.chart"
+                     id="project-growth"
+                     aspect-ratio="16/9"
+                     name="{% translate 'Samples and measurements added over time' %}"
+                     caption="{% translate 'Running total, by month added to the portal.' %}"
+                     description="{{ growth_chart.description }}" />
+          </c-card>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endblock overview.charts %}
+
+  {% block overview.map %}
+    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
+                        icon="map"
+                        wide
+                        message="{% translate "A map of every sample with a location, so you can see the project's spatial coverage before opening a dataset." %}" />
+  {% endblock overview.map %}
+
+  {% block overview.activity %}
+    <c-card.placeholder title="{% translate 'Recent activity' %}"
+                        icon="activity"
+                        wide
+                        message="{% translate 'The latest changes to this project and its datasets: new samples, published datasets, people joining.' %}" />
+  {% endblock overview.activity %}
+{% endblock overview.main %}
+
+
+{% block overview.details_extra %}
+  {% if timeline.start_date %}
+    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline">
+      <span class="flex justify-between gap-3">
+        <span>{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
+        {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
+      </span>
+      {% if timeline.percent is not None %}
+        <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" class="mt-1" />
+      {% endif %}
+    </c-card.details.entry>
+  {% endif %}
+{% endblock overview.details_extra %}

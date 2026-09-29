@@ -1,0 +1,154 @@
+{% extends "overview/page.html" %}
+{% load i18n humanize fairdm thumbnail %}
+{% comment %}
+  The sample's own page, drawn from the base Sample model alone.
+
+  A physical sample is understood through its history: collected, prepared, stored, perhaps
+  destroyed. The page puts that history back together, then shows what was measured on the
+  specimen, where it came from and what it is related to. The anatomy and the facts column come
+  from `overview/page.html`; the context is gathered by `fairdm/core/sample/overview.py`.
+
+  A sample type adds its own content by providing `<app_label>/<model_name>_overview.html`, which
+  extends this template and fills its blocks. `{{ block.super }}` adds to a block and keeps what is
+  already there:
+
+    {% extends "sample/sample_overview.html" %}
+    {% block overview.badges %}{{ block.super }}<span class="badge badge-sm">…</span>{% endblock %}
+    {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
+
+  Sample blocks in the wide column, in order: overview.properties (empty here, the block a type
+  fills first), overview.notes, overview.history, overview.measurements. In the facts column,
+  overview.location (the map) and overview.samples (related samples). Every other block is
+  listed in `overview/page.html`.
+{% endcomment %}
+
+{% block overview.badges %}
+  {% include "overview/includes/type_badge.html" with label=sample_type info=type_info id="about-sample-type" %}
+  {% if status.variant %}
+    <span class="badge badge-soft badge-{{ status.variant }} badge-sm">{{ status.label }}</span>
+  {% else %}
+    <span class="badge badge-outline badge-sm">{% translate "Status unknown" %}</span>
+  {% endif %}
+{% endblock overview.badges %}
+
+{% block overview.notices %}
+  {% if status.value == "destroyed" %}
+    <c-alert variant="warning" icon="warning" soft>
+      <span>{% translate "This specimen has been destroyed and can't be re-examined. Its record and measurements are kept." %}</span>
+    </c-alert>
+  {% endif %}
+  {% if not sample.dataset.data_is_public %}
+    <c-alert variant="info" icon="lock" soft>
+      <span>{% translate "Only the dataset's team can see this sample until the dataset is published." %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.figures %}
+  <c-stats cols="1" lg="3" aria-label="{% translate 'Sample at a glance' %}">
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" variant="secondary" icon="sample" />
+    <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}" icon="people" />
+  </c-stats>
+{% endblock overview.figures %}
+
+{% block overview.main %}
+  {% block overview.properties %}{% endblock overview.properties %}
+
+  {% block overview.notes %}
+    {% if notes %}
+      <c-card title="{% translate 'Notes' %}" class="bg-base-100">
+        <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
+      </c-card>
+    {% endif %}
+  {% endblock overview.notes %}
+
+  {% block overview.history %}
+    {% if can_manage %}
+      {% translate "Nothing is recorded about how this specimen was collected, prepared or stored. Those dates and notes are what lets someone else trust and reuse its measurements." as empty %}
+    {% else %}
+      {% translate "No history has been recorded for this specimen." as empty %}
+    {% endif %}
+    <c-card.timeline title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" />
+  {% endblock overview.history %}
+
+  {% block overview.measurements %}
+    <c-card title="{% translate 'Measurements' %}" class="bg-base-100">
+      <c-slot name="badges">{% if measurements.total %}<span class="badge badge-ghost badge-sm">{{ measurements.total }}</span>{% endif %}</c-slot>
+      {% if measurements.items %}
+        <ul class="list">
+          {% for entry in measurements.items %}
+            <li class="list-row px-0 items-center">
+              <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-accent)" aria-hidden="true"><c-icon name="measurement" only /></span>
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ entry.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.measurement }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                  {% if entry.elsewhere %}
+                    <span>{% translate "In" %} <a href="{{ entry.measurement.dataset.get_absolute_url }}" class="link link-hover">{{ entry.measurement.dataset }}</a></span>
+                  {% endif %}
+                  <span>{% blocktranslate with when=entry.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                </span>
+              </div>
+              <span class="badge badge-soft badge-accent badge-sm whitespace-nowrap">{{ entry.type }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if measurements.more %}
+          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+            {% blocktranslate count counter=measurements.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a table." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="text-sm text-base-content/70">{% translate "No measurements have been made on this sample yet." %}</p>
+      {% endif %}
+    </c-card>
+  {% endblock overview.measurements %}
+
+{% endblock overview.main %}
+
+{% block overview.record_facts %}
+{% block overview.location %}
+  <c-card.location :location="location" empty="{% translate 'No location has been recorded for this sample.' %}" />
+{% endblock overview.location %}
+
+{% block overview.samples %}
+  {% if relations.items or relations.hidden %}
+    <c-card title="{% translate 'Related' %}" class="bg-base-100">
+      <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
+      {% if relations.items %}
+        <ul class="list">
+          {% for entry in relations.items %}
+            <li class="list-row px-0">
+              {% if entry.sample.image %}
+                <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
+              {% else %}
+                <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
+              {% endif %}
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span class="badge badge-soft badge-secondary badge-xs whitespace-nowrap">{{ entry.relation }}</span>
+                  <span>{{ entry.type }}</span>
+                  {% if entry.elsewhere %}<span>{% translate "in" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if relations.hidden %}
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
+        </p>
+      {% endif %}
+    </c-card>
+  {% endif %}
+{% endblock overview.samples %}
+{% endblock overview.record_facts %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if location %}{% include "overview/includes/map_library.html" %}{% endif %}
+{% endblock extra_js %}

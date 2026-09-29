@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "fairdm.contrib.identity",
     "fairdm.contrib.theme",
     "mvp",
+    "mvp_charts",
     "polymorphic",
     "parler",
     "dac",

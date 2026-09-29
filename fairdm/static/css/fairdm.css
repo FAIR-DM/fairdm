@@ -298,3 +298,61 @@
     line-clamp: 3;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Overview pages
+ * ------------------------------------------------------------------------- */
+
+/* A 16:9 box, for the map and other wide placeholders on the overview pages.
+ * Named like Tailwind's utility so it can go once django-mvp's build ships it. */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+/* The icon on a figure in a stats strip: a rounded tile tinted with the record type's colour,
+ * so the strip reads by colour and shape before the numbers are read. The colour comes from
+ * the stat's `variant` through --stat-color; without one the tile stays neutral. django-mvp's
+ * build ships no tinted-background utilities, which is why this is a rule here. */
+.stat-icon {
+  --stat-color: var(--color-base-content);
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-box, 1rem);
+  font-size: 1.5rem;
+  color: var(--stat-color);
+  background-color: color-mix(in oklch, var(--stat-color) 12%, transparent);
+}
+
+/* The first tab in a set that sits flush with the card's text: no leading padding, and the
+ * underline drawn from the text's edge rather than inset by the tab's padding. */
+.tab.tab-flush {
+  padding-inline-start: 0;
+}
+.tabs-border > .tab.tab-flush::before {
+  left: 0;
+  width: calc(100% - var(--tab-p));
+}
+
+/* The same tile at list size, beside an entry in a card: a funder, a related sample. */
+.stat-icon.stat-icon-sm {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-field, 0.5rem);
+  font-size: 1.125rem;
+}
+
+/* A map drawn in a card: 16:9, rounded like the card's own content. */
+.overview-map {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: var(--radius-box, 1rem);
+  overflow: hidden;
+}
+
+/* Tabs standing in for a card's header: each tab's name set as a card title. */
+.tabs-header > .tab {
+  font-size: var(--cardtitle-fs, 1.125rem);
+  font-weight: 600;
+}

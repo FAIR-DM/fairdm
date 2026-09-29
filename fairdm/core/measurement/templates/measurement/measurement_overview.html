@@ -1,0 +1,158 @@
+{% extends "overview/page.html" %}
+{% load i18n humanize fairdm thumbnail %}
+{% comment %}
+  The measurement's own page, drawn from the base Measurement model and what the registry says
+  about the measurement's type.
+
+  A reuser asks four things of a single measurement: what the result was, how it was measured,
+  what it was measured on, and whether they can cite and reuse it. The page answers them in that
+  order. The anatomy and the facts column come from `overview/page.html`; the context is gathered
+  by `fairdm/core/measurement/overview.py`.
+
+  A measurement type adds its own content by providing `<app_label>/<model_name>_overview.html`,
+  which extends this template and fills its blocks:
+
+    {% extends "measurement/measurement_overview.html" %}
+    {% block overview.result %}…the type's own result…{% endblock %}
+    {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
+
+  Measurement blocks: overview.result (in the figures' place; shown when the type declares a
+  `value`, otherwise the block a type fills first), then in the wide column overview.properties
+  (empty here), overview.procedure, overview.notes, overview.sample, overview.siblings; in the
+  facts column, overview.location (the sample's map, when it has a location and is visible).
+  What the registry says about the type opens from the type badge in the header. Every other
+  block is listed in `overview/page.html`.
+{% endcomment %}
+
+{% block overview.badges %}
+  {% include "overview/includes/type_badge.html" with label=measurement_type info=type_info id="about-measurement-type" %}
+{% endblock overview.badges %}
+
+{% block overview.notices %}
+  {% if not measurement.dataset.data_is_public %}
+    <c-alert variant="info" icon="lock" soft>
+      <span>{% translate "Only the dataset's team can see this measurement until the dataset is published." %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.figures %}
+  {% block overview.result %}
+    {% if result %}
+      <c-card.wrapper class="bg-base-100">
+        <div class="card-body">
+          <p class="text-xs uppercase font-semibold text-base-content/60">{% translate "Result" %}</p>
+          <p class="text-4xl font-semibold tabular-nums break-words">{{ result.text }}</p>
+        </div>
+      </c-card.wrapper>
+    {% endif %}
+  {% endblock overview.result %}
+{% endblock overview.figures %}
+
+{% block overview.main %}
+  {% block overview.properties %}{% endblock overview.properties %}
+
+  {% block overview.procedure %}
+    {% if can_manage %}
+      {% translate "Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs." as empty %}
+    {% else %}
+      {% translate "No details of how this measurement was made have been recorded." as empty %}
+    {% endif %}
+    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" />
+  {% endblock overview.procedure %}
+
+  {% block overview.notes %}
+    {% if notes %}
+      <c-card title="{% translate 'Notes' %}" class="bg-base-100">
+        <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
+      </c-card>
+    {% endif %}
+  {% endblock overview.notes %}
+
+  {% block overview.sample %}
+    <c-card title="{% translate 'Measured on' %}" class="bg-base-100">
+      {% if sample_visible %}
+        <div class="flex gap-4 items-start min-w-0">
+          <a href="{{ sample.get_absolute_url }}" class="shrink-0" tabindex="-1" aria-hidden="true">
+            {% if sample.image %}
+              <img src="{{ sample.image|thumbnail_url:'core_small' }}" alt="" class="w-16 rounded-box object-cover" />
+            {% else %}
+              <div class="avatar avatar-placeholder">
+                <div class="w-16 rounded-box bg-base-200 text-base-content/60 text-2xl">
+                  <c-icon name="sample" aria-hidden="true" />
+                </div>
+              </div>
+            {% endif %}
+          </a>
+          <div class="flex flex-col gap-2 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="badge badge-primary badge-sm">{{ sample_type }}</span>
+              {% if sample_status %}<span class="badge badge-soft badge-{{ sample_status.variant }} badge-sm">{{ sample_status.label }}</span>{% endif %}
+            </div>
+            <a href="{{ sample.get_absolute_url }}" class="link link-hover text-xl font-semibold leading-tight break-words">{{ sample }}</a>
+            <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">
+              {% if sample.local_id %}<span class="font-mono">{{ sample.local_id }}</span>{% endif %}
+              <span>{% translate "in" %} <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a></span>
+            </span>
+            {% with keywords=sample.keywords.all %}
+              {% if keywords %}
+                <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Sample keywords' %}">
+                  {% for keyword in keywords %}<li class="badge badge-primary badge-soft badge-sm">{{ keyword.label }}</li>{% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+      {% else %}
+        <p class="text-sm text-base-content/70">{% translate "The sample this was measured on belongs to a dataset that hasn't been published yet." %}</p>
+      {% endif %}
+      {% if other_dataset %}
+        <c-alert variant="info" icon="info" soft class="mt-3">
+          <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one team measures specimens another team collected." %}</span>
+        </c-alert>
+      {% endif %}
+    </c-card>
+  {% endblock overview.sample %}
+
+  {% block overview.siblings %}
+    {% if siblings.total %}
+      <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100">
+        <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
+        <ul class="list">
+          {% for row in siblings.rows %}
+            <li class="list-row px-0">
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ row.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ row.measurement.name }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                  <span>{{ row.type|capfirst }}</span>
+                  {% if row.measurement.dataset_id != measurement.dataset_id %}<span>{% translate "in" %} {{ row.measurement.dataset }}</span>{% endif %}
+                  <span>{% blocktranslate with when=row.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if siblings.more %}
+          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+            {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a filterable table." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
+          </div>
+        {% endif %}
+      </c-card>
+    {% endif %}
+  {% endblock overview.siblings %}
+{% endblock overview.main %}
+
+{% block overview.record_facts %}
+  {% block overview.location %}
+    {% if sample_visible %}
+      <c-card.location :location="sample.location" title="{% translate 'Sample location' %}" />
+    {% endif %}
+  {% endblock overview.location %}
+{% endblock overview.record_facts %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if sample_visible and sample.location %}{% include "overview/includes/map_library.html" %}{% endif %}
+{% endblock extra_js %}

@@ -25,6 +25,7 @@ from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
+from . import overview
 from .forms import DatasetForm
 from .models import Dataset, DatasetDate, DatasetDescription
 
@@ -281,4 +282,11 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, OverviewPlugin):
         """Add the dataset under the ``dataset`` key the template expects."""
         context = super().get_context_data(**kwargs)
         context["dataset"] = self.base_object
+        context.update(
+            overview.build(
+                self.request,
+                self.base_object,
+                can_manage=has_perm(self.request, Update.permission, self.base_object),
+            )
+        )
         return context

@@ -1,45 +1,180 @@
-{% extends "detail_view.html" %}
-{% load i18n fairdm flex_menu %}
+{% extends "overview/page.html" %}
+{% load i18n humanize fairdm %}
+{% comment %}
+  The dataset's overview page.
 
-{% block app.header.tray %}
-  {% render_menu "DatasetMenu" renderer="plugin-menu-renderer" object=object uuid=object.uuid %}
-{% endblock app.header.tray %}
+  A dataset is what a portal cites and distributes, so this page answers a reuser's questions in
+  the order they ask them: what it is and whether its data is published, under what licence, what
+  it holds and how it grew, how to cite it, and who made it.
 
-{% block page.actions %}
-  {{ block.super }}
-  {% if directory.descriptions_url %}
-    <c-button href="{{ directory.descriptions_url }}"
-              text="{% trans 'Descriptions' %}"
-              icon="description"
-              size="sm"
-              variant="secondary" />
+  The anatomy and the facts column come from `overview/page.html`. Its context is gathered by
+  `fairdm/core/dataset/overview.py`.
+
+  Dataset blocks in the wide column: overview.about, overview.data (shown only while the dataset
+  is empty), overview.charts, overview.map. In the facts column: overview.timeline,
+  overview.publications.
+{% endcomment %}
+
+{% block overview.badges %}
+  {% if access.state == "published" %}
+    <span class="badge badge-soft badge-success badge-sm"><c-icon name="success" aria-hidden="true" />{{ access.label }}</span>
+  {% elif access.state == "public" %}
+    <span class="badge badge-soft badge-neutral badge-sm">{{ access.label }}</span>
+  {% else %}
+    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{{ access.label }}</span>
   {% endif %}
-{% endblock page.actions %}
+  {% if dataset.license %}
+    <span class="badge badge-outline badge-sm" title="{% translate 'Licence' %}"><c-icon name="license" aria-hidden="true" />{{ dataset.license.name }}</span>
+  {% endif %}
+{% endblock overview.badges %}
 
-{% block page.content %}
-  <c-section id="project-stats">
-    <c-grid cols="1" md="4" gap="4">
-      <c-cards.statistic title="{% trans 'Project' %}"
-                         icon="project"
-                         message="{{ object.project|default:"-" }}"
-                         variant="success" />
-      <c-cards.statistic value="{{ object.contributors.count }}"
-                         title="{% trans 'Contributors' %}"
-                         icon="person"
-                         variant="primary" />
-      <c-cards.statistic value="{{ project.samples.count|default:'0' }}"
-                         title="{% trans 'Samples' %}"
-                         icon="sample"
-                         variant="warning" />
-      <c-cards.statistic value="{{ project.measurements.count|default:'0' }}"
-                         title="{% trans 'Measurements' %}"
-                         icon="measurement"
-                         variant="danger" />
-    </c-grid>
-  </c-section>
-{% endblock page.content %}
-
-{% block extra_js %}
+{% block overview.actions %}
   {{ block.super }}
-  <script src="https://cdn.jsdelivr.net/npm/parallaxx-js/dist/parallax.js"></script>
-{% endblock extra_js %}
+  {% if can_manage %}
+    {% if not dataset.data_is_public %}
+      {% translate "Publish" as label %}
+      {% translate "Checks the list under Ready to publish?, mints a DOI and releases the data." as reason %}
+      {% include "overview/includes/pending_action.html" with label=label icon="upload" reason=reason variant="primary" %}
+    {% endif %}
+    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu>
+        <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
+        <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+        {% if directory.delete_url %}
+          <c-menu.divider />
+          <c-menu.item label="{% translate 'Delete dataset' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
+        {% endif %}
+      </c-menu>
+    </c-dropdown>
+  {% endif %}
+{% endblock overview.actions %}
+
+{% block overview.notices %}
+  {% if access.state == "private" and can_manage %}
+    <c-alert variant="warning" icon="lock" soft>
+      <span>{% translate "This dataset is private. Only its team can open this page." %}</span>
+      <c-button href="{{ urls.update }}" text="{% translate 'Change visibility' %}" size="sm" />
+    </c-alert>
+  {% elif access.state == "public" %}
+    <c-alert variant="info" icon="info" soft>
+      <span>
+        {% if can_manage %}
+          {% translate "Anyone can read this description, but the records stay hidden until the dataset is published." %}
+        {% else %}
+          {% translate "The data in this dataset hasn't been published yet. You can read what it holds, and the records open to everyone once the team publishes it." %}
+        {% endif %}
+      </span>
+    </c-alert>
+  {% endif %}
+  {% if dates.withdrawn %}
+    <c-alert variant="error" icon="warning" soft>
+      <span>{% blocktranslate with when=dates.withdrawn|date:"j M Y" %}This dataset was withdrawn on {{ when }}. It is kept here so existing citations still resolve.{% endblocktranslate %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.figures %}
+  <c-stats cols="2" lg="4" aria-label="{% translate 'Dataset at a glance' %}">
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" icon="people" />
+    <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}" icon="literature" />
+  </c-stats>
+{% endblock overview.figures %}
+
+{% block overview.main %}
+  {% block overview.about %}
+    <c-card.descriptions :descriptions="descriptions" group="dataset-about">
+      {% if can_manage %}
+        <div class="flex flex-col items-start gap-3">
+          <p class="text-base-content/70">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
+          <c-button href="{{ urls.descriptions }}" text="{% translate 'Write a description' %}" icon="description" size="sm" variant="primary" />
+        </div>
+      {% else %}
+        <p class="text-base-content/70">{% translate "The team hasn't described this dataset yet." %}</p>
+      {% endif %}
+    </c-card.descriptions>
+  {% endblock overview.about %}
+
+  {% block overview.data %}
+    {% if not data_types %}
+      <c-card title="{% translate 'Data types' %}" class="bg-base-100">
+        {% if can_manage %}
+          <div class="flex flex-col items-start gap-3">
+            <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
+            {% translate "Import data" as label %}
+            {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="import" reason=reason variant="primary" %}
+          </div>
+        {% else %}
+          <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
+        {% endif %}
+      </c-card>
+    {% endif %}
+  {% endblock overview.data %}
+
+  {% block overview.charts %}
+    {% if composition_chart or growth_chart %}
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+        {% if composition_chart %}
+          <c-card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="composition_chart.chart"
+                     id="dataset-composition"
+                     height="{{ composition_chart.height }}"
+                     name="{% translate 'Records by type' %}"
+                     caption="{% translate 'Records by sample and measurement type.' %}"
+                     description="{{ composition_chart.description }}" />
+          </c-card>
+        {% endif %}
+        {% if growth_chart %}
+          <c-card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="growth_chart.chart"
+                     id="dataset-growth"
+                     aspect-ratio="16/9"
+                     name="{% translate 'Samples and measurements added over time' %}"
+                     caption="{% translate 'Running total, by month added to the portal.' %}"
+                     description="{{ growth_chart.description }}" />
+          </c-card>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endblock overview.charts %}
+
+  {% block overview.map %}
+    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
+                        icon="map"
+                        wide
+                        message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+  {% endblock overview.map %}
+{% endblock overview.main %}
+
+{% block overview.timeline %}
+  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" />
+{% endblock overview.timeline %}
+
+{% block overview.record_facts %}
+  {% block overview.publications %}
+    {% if literature.items or can_manage %}
+      <c-card title="{% translate 'Related publications' %}" class="bg-base-100">
+        {% if literature.items %}
+          <ul class="flex flex-col gap-3 text-sm">
+            {% for entry in literature.items %}
+              <li class="flex flex-col gap-1">
+                <span class="badge badge-ghost badge-xs">{{ entry.relation }}</span>
+                {% if entry.doi %}
+                  <a href="https://doi.org/{{ entry.doi }}" class="link link-hover">{{ entry.item }}</a>
+                {% else %}
+                  <span>{{ entry.item }}</span>
+                {% endif %}
+                {% if entry.year %}<span class="text-xs text-base-content/70">{{ entry.year }}</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-sm text-base-content/70">{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}</p>
+        {% endif %}
+      </c-card>
+    {% endif %}
+  {% endblock overview.publications %}
+
+{% endblock overview.record_facts %}

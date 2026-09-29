@@ -21,6 +21,7 @@ from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 from ..dataset.views import DatasetListView
+from . import overview
 from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription, PublicDatasetsProtect
 
@@ -244,6 +245,13 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, OverviewPlugin):
         """Add the project under the ``project`` key the template expects."""
         context = super().get_context_data(**kwargs)
         context["project"] = self.base_object
+        context.update(
+            overview.build(
+                self.request,
+                self.base_object,
+                can_manage=has_perm(self.request, Update.permission, self.base_object),
+            )
+        )
         return context
 
 

@@ -5,24 +5,43 @@ from typing import Any
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
+from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.generic.plugins import (
     DescriptionsPlugin,
     KeyDatesPlugin,
     KeywordsPlugin,
 )
-from fairdm.core.plugins import OverviewPlugin, UpdatePlugin
+from fairdm.core.plugins import TypedOverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide
 
 from ..utils import documentation_link
+from . import overview
 from .models import Sample
 
 
 @plugins.register(Sample, label=_("Overview"), icon="view", order=0)
-class Overview(OverviewPlugin):
-    """The sample's overview page."""
+class Overview(TypedOverviewPlugin):
+    """The sample's own page, drawn from ``sample/sample_overview.html``, which reads only the
+    base ``Sample`` model. A sample type adds its own content with
+    ``<app_label>/<model_name>_overview.html``; see :class:`TypedOverviewPlugin`."""
 
+    # Was declared at module scope, outside the class it belongs to, so it configured nothing.
     fieldsets: list[tuple[str | None, dict[str, Any]]] = []
+    base_model = Sample
+    fallback_template = "sample/sample_overview.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["sample"] = self.base_object
+        context.update(
+            overview.build(
+                self.request,
+                self.base_object,
+                can_manage=has_perm(self.request, "dataset.change_dataset", self.base_object.dataset),
+            )
+        )
+        return context
 
 
 # A plugin with no declared `permission` admits every request, anonymous included, so each

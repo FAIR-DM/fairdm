@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+  <c-card.people> — everyone credited on the record who isn't already named in the page header,
+  as a grid of faces. Hovering a face shows the name; clicking it opens the contributor's page.
+  Three rows are shown; the rest are counted, linked to the full list.
+
+  Attributes:
+    people   – {shown: [contributor], more: int, total: int}
+    all_url  – where the full list lives, shown as "See all" and on the count
+    class    – extra classes on the card
+{% endcomment %}
+<c-vars people all_url class />
+<c-card title="{% translate 'People' %}" class="bg-base-100 {{ class }}" only>
+  {% if all_url %}
+    <c-slot name="actions"><c-button href="{{ all_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>
+  {% endif %}
+  {% if people.shown %}
+    <ul class="grid grid-cols-6 gap-2">
+      {% for contributor in people.shown %}
+        <li class="tooltip" data-tip="{{ contributor }}">
+          <a href="{{ contributor.get_absolute_url }}" class="block rounded-full" aria-label="{{ contributor }}">
+            <c-avatar :for="contributor" alt="" size="w-full" only />
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if people.more %}
+      {% if all_url %}
+        <a href="{{ all_url }}" class="link link-primary text-sm">
+          {% blocktranslate count counter=people.more %}and {{ counter }} other contributor{% plural %}and {{ counter }} other contributors{% endblocktranslate %}
+        </a>
+      {% else %}
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate count counter=people.more %}and {{ counter }} other contributor{% plural %}and {{ counter }} other contributors{% endblocktranslate %}
+        </p>
+      {% endif %}
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-base-content/70">{% translate "Everyone credited is named above." %}</p>
+  {% endif %}
+</c-card>

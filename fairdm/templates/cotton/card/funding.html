@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  <c-card.funding> — the awards that paid for the record, in DataCite's funding reference shape.
+
+  Attributes:
+    funding     – [{funderName, funderIdentifier, awardTitle, awardNumber, awardURI}]
+    can_manage  – the viewer is on the team; with no funding recorded, the card then says why it
+                  matters rather than disappearing
+    class       – extra classes on the card
+{% endcomment %}
+<c-vars funding can_manage=False class />
+{% if funding or can_manage %}
+  <c-card title="{% translate 'Funding' %}" class="bg-base-100 {{ class }}" only>
+    {% if funding %}
+      <ul class="flex flex-col gap-4 text-sm">
+        {% for award in funding %}
+          <li class="flex gap-3 min-w-0">
+            <span class="stat-icon stat-icon-sm shrink-0" aria-hidden="true"><c-icon name="funding" only /></span>
+            <div class="flex flex-col min-w-0">
+              {% if award.funderIdentifier %}
+                <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium break-words">{{ award.funderName }}</a>
+              {% else %}
+                <span class="font-medium break-words">{{ award.funderName }}</span>
+              {% endif %}
+              {% if award.awardTitle %}<span class="text-base-content/70 break-words">{{ award.awardTitle }}</span>{% endif %}
+              {% if award.awardNumber %}
+                <span class="text-xs font-mono mt-1">
+                  {% if award.awardURI %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
+                </span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-sm text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
+    {% endif %}
+  </c-card>
+{% endif %}
