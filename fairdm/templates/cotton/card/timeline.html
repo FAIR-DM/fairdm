@@ -23,7 +23,7 @@
           <div class="timeline-end mb-6 ms-2 flex flex-col gap-1 min-w-0">
             <div class="flex flex-wrap items-baseline gap-x-3">
               <span class="font-medium">{{ step.label }}</span>
-              <span class="text-sm text-base-content/70">{% if step.day %}{{ step.day|date:"j M Y" }}{% elif step.date %}{{ step.date }}{% else %}{% translate "date not recorded" %}{% endif %}</span>
+              <span class="text-sm text-base-content/70">{% if step.day %}{{ step.day|date:"SHORT_DATE_FORMAT" }}{% elif step.date.precision == 1 %}{{ step.date.date|date:"YEAR_MONTH_FORMAT" }}{% elif step.date %}{{ step.date }}{% else %}{% translate "date not recorded" %}{% endif %}</span>
             </div>
             {% if step.people %}
               <p class="text-sm">

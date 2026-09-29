@@ -342,6 +342,16 @@ class TestTimelineCard:
         assert "2020" in html
         assert "Jan" not in html
 
+    def test_a_date_recorded_only_to_the_month_follows_the_active_locale(
+        self, render_card
+    ):
+        steps = [{"label": "Step", "date": PartialDate("2021-05"), "day": None}]
+        with translation.override("de"):
+            html = render_card("timeline", title="History", steps=steps, empty="")
+            expected = date_format(date(2021, 5, 1), "YEAR_MONTH_FORMAT")
+
+        assert expected in html
+
     def test_a_full_day_follows_the_active_locale(self, render_card):
         when = date(2021, 5, 6)
         steps = [{"label": "Step", "date": PartialDate("2021-05-06"), "day": when}]

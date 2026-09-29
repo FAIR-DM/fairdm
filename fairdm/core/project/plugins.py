@@ -421,7 +421,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             first lead.
         """
         contributions = contributions_of(self.base_object)
-        leads, contact, others = [], None, []
+        ranked_leads, contact, others = [], None, []
         for contribution in contributions:
             roles = roles_of(contribution)
             entry = {
@@ -433,10 +433,10 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             if "ContactPerson" in roles and contact is None:
                 contact = entry
             if roles & set(self.lead_roles):
-                leads.append(entry)
+                ranked_leads.append((0 if "ProjectLeader" in roles else 1, entry))
             elif "ContactPerson" not in roles:
                 others.append(entry)
-        leads.sort(key=lambda e: 0 if "Project Leader" in e["roles"] else 1)
+        leads = [entry for _rank, entry in sorted(ranked_leads, key=lambda t: t[0])]
         return {
             "leads": leads,
             "contact": contact if contact and contact not in leads else None,

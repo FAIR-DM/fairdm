@@ -126,7 +126,7 @@
                 <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
                   <span>{{ row.type|capfirst }}</span>
                   {% if row.measurement.dataset_id != measurement.dataset_id %}<span>{% translate "in" %} {{ row.measurement.dataset }}</span>{% endif %}
-                  <span>{% blocktranslate with when=row.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                  <span>{% blocktranslate with when=row.measurement.added|naturalday:"SHORT_DATE_FORMAT" %}Added {{ when }}{% endblocktranslate %}</span>
                 </span>
               </div>
             </li>

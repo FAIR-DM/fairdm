@@ -28,7 +28,7 @@
           {% elif row.badge %}
             <span class="badge badge-soft badge-{{ row.badge_variant|default:'neutral' }} badge-sm">{{ row.badge }}</span>
           {% elif row.date %}
-            {{ row.date|date:"j M Y" }}{% if row.until %} – {{ row.until|date:"j M Y" }}{% endif %}
+            {{ row.date|date:"SHORT_DATE_FORMAT" }}{% if row.until %} – {{ row.until|date:"SHORT_DATE_FORMAT" }}{% endif %}
           {% elif row.url %}
             <a href="{{ row.url }}" class="link link-hover">{{ row.text }}</a>
           {% else %}

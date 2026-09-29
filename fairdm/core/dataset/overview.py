@@ -162,8 +162,8 @@ def lifecycle(dataset, dates_):
             {
                 "label": _("Collected"),
                 "sort": dates_["collection_start"],
-                "date": f"{date_format(dates_['collection_start'], 'j M Y')} \u2013 "
-                + (date_format(end, "j M Y") if end else _("ongoing")),
+                "date": f"{date_format(dates_['collection_start'], 'SHORT_DATE_FORMAT')} \u2013 "
+                + (date_format(end, "SHORT_DATE_FORMAT") if end else _("ongoing")),
             }
         )
     steps.append(

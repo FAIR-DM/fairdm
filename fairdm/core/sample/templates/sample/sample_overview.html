@@ -86,7 +86,7 @@
                   {% if entry.elsewhere %}
                     <span>{% translate "In" %} <a href="{{ entry.measurement.dataset.get_absolute_url }}" class="link link-hover">{{ entry.measurement.dataset }}</a></span>
                   {% endif %}
-                  <span>{% blocktranslate with when=entry.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                  <span>{% blocktranslate with when=entry.measurement.added|naturalday:"SHORT_DATE_FORMAT" %}Added {{ when }}{% endblocktranslate %}</span>
                 </span>
               </div>
               <span class="badge badge-soft badge-accent badge-sm whitespace-nowrap">{{ entry.type }}</span>

@@ -118,7 +118,7 @@
                     {% blocktranslate count counter=dataset.n_samples %}{{ counter }} sample{% plural %}{{ counter }} samples{% endblocktranslate %}
                     · {% blocktranslate count counter=dataset.n_measurements %}{{ counter }} measurement{% plural %}{{ counter }} measurements{% endblocktranslate %}
                   </span>
-                  <span>{% blocktranslate with when=dataset.modified|naturalday:"j M Y" %}Last updated {{ when }}{% endblocktranslate %}</span>
+                  <span>{% blocktranslate with when=dataset.modified|naturalday:"SHORT_DATE_FORMAT" %}Last updated {{ when }}{% endblocktranslate %}</span>
                 </div>
               </div>
             </c-list.row>
@@ -193,7 +193,7 @@
   {% if timeline.start_date %}
     <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline">
       <span class="flex justify-between gap-3">
-        <span>{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
+        <span>{{ timeline.start_date|date:"YEAR_MONTH_FORMAT" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"YEAR_MONTH_FORMAT" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
         {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
       </span>
       {% if timeline.percent is not None %}

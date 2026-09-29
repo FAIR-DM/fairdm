@@ -21,7 +21,7 @@
   <c-card title="{% translate 'Rock properties' %}" class="bg-base-100">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
       <c-data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
-      <c-data-field label="{% translate 'Collection date' %}" value="{{ sample.collection_date|date:'j M Y' }}" />
+      <c-data-field label="{% translate 'Collection date' %}" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
       <c-data-field label="{% translate 'Weight' %}" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
       <c-data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
     </div>

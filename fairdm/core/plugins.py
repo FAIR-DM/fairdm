@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.urls import reverse
+from django.utils.formats import date_format
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from pyecharts import options as opts
@@ -327,7 +328,7 @@ class RecordOverviewPlugin(OverviewPlugin):
         line_style = opts.LineStyleOpts(width=2)
         chart = (
             Line()
-            .add_xaxis([month.strftime("%b %Y") for month in months])
+            .add_xaxis([date_format(month, "YEAR_MONTH_FORMAT") for month in months])
             .add_yaxis(
                 gettext("Samples"),
                 samples_line,
@@ -362,8 +363,8 @@ class RecordOverviewPlugin(OverviewPlugin):
                 "%(measurements)s measurements."
             )
             % {
-                "first": months[0].strftime("%B %Y"),
-                "last": months[-1].strftime("%B %Y"),
+                "first": date_format(months[0], "YEAR_MONTH_FORMAT"),
+                "last": date_format(months[-1], "YEAR_MONTH_FORMAT"),
                 "samples": samples_line[-1],
                 "measurements": measurements_line[-1],
             },

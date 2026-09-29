@@ -70,7 +70,7 @@
   {% endif %}
   {% if dates.withdrawn %}
     <c-alert variant="error" icon="warning" soft>
-      <span>{% blocktranslate with when=dates.withdrawn|date:"j M Y" %}This dataset was withdrawn on {{ when }}. It is kept here so existing citations still resolve.{% endblocktranslate %}</span>
+      <span>{% blocktranslate with when=dates.withdrawn|date:"SHORT_DATE_FORMAT" %}This dataset was withdrawn on {{ when }}. It is kept here so existing citations still resolve.{% endblocktranslate %}</span>
     </c-alert>
   {% endif %}
 {% endblock overview.notices %}

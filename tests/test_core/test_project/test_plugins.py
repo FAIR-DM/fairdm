@@ -1152,6 +1152,19 @@ class TestOverviewPeople:
         for leader in overview_showcase.leaders:
             assert header.find("a", href=leader.get_absolute_url()) is not None
 
+    def test_a_leader_is_named_before_a_manager_however_they_were_credited(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        manager = PersonFactory(name="Manager Person", is_active=True)
+        leader = PersonFactory(name="Leader Person", is_active=True)
+        project.add_contributor(manager, with_roles=["ProjectManager"])
+        project.add_contributor(leader, with_roles=["ProjectLeader"])
+
+        response = _page(client, project)
+
+        assert response.context["header_people"] == [leader, manager]
+
     def test_the_people_card_shows_everyone_else_and_not_the_leaders(
         self, client, overview_showcase
     ):
