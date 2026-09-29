@@ -52,3 +52,8 @@
 - Verified: `uv run pytest tests -q`: 2996 passed, 8 skipped, 4 failed. The four failures are pre-existing tests for the sample (two), dataset and measurement stories, which the brief keeps out of this story. Every test added in T002 to T005 is green.
 - Next: T009.
 - Watch: a scan of the templates and Python that build the four pages found no untranslated shown string; the one English literal compared against a translated label was the leader sort.
+
+## 2026-09-29 · Implementer US1 · T009
+
+- Did: `docs/portal-development/overview-pages.md` (anatomy, block list, project page, extending a project page by template, the plugin methods and helper functions, development data), `docs/portal-development/component_library/cards.md` (every `c-card.*` component and `c-stats`, `c-list`, `c-tabs`, `c-progress`, each with a working example), the new section of `development_accounts.md`, the `context_object_name` passage of `sample-mixins.md`, both pages added to their toctrees, and a changelog entry under Unreleased.
+- Verified: every fenced `django` example in `cards.md` rendered against the branch (16 examples), both template examples in `overview-pages.md` rendered as overrides of `project/project_detail.html` on a real project. `forge verify --steps docs --base origin/main` now reports 13 undocumented names, all in the dataset, sample and measurement modules that stay until their stories: `field_kind`, `field_summary`, `literature`, `preview_table`, `project_info`, `record_types`, `schema_org`, `shared_context` (dataset); `measurement_summary`, `related_samples`, `relations_summary` (sample); `sample_status`, `siblings` (measurement).

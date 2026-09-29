@@ -353,7 +353,6 @@ class RockSampleListView(LoginRequiredMixin, FilterView):
     model = RockSample
     filterset_class = RockSampleFilter
     template_name = 'samples/rock_sample_list.html'
-    context_object_name = 'samples'
     paginate_by = 50
 
     def get_queryset(self):
@@ -398,7 +397,7 @@ class RockSampleListView(LoginRequiredMixin, FilterView):
         </tr>
       </thead>
       <tbody>
-        {% for sample in samples %}
+        {% for sample in object_list %}
         <tr>
           <td><a href="{{ sample.get_absolute_url }}">{{ sample.name }}</a></td>
           <td>{{ sample.rock_type }}</td>

@@ -84,6 +84,7 @@ listing-a-registered-type
 :maxdepth: 2
 
 component_library/index
+overview-pages
 ```
 
 ```{toctree}

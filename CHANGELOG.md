@@ -90,6 +90,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Projects, datasets, samples and measurements open on one consistent overview page.** The
+  four pages share one layout (header, notices, a strip of figures, then content beside a side
+  column of shared cards) and one list of `overview.` template blocks, documented in
+  [Overview pages](docs/portal-development/overview-pages.md). The project page lists its five
+  most recently updated datasets, charts records by type and growth by month, shows the team a
+  readiness checklist, and counts for a visitor only the datasets they may see. The cards are
+  the `c-card.*` components, described in
+  [Cards](docs/portal-development/component_library/cards.md), and a portal changes a page by
+  overriding one block, or one method of `RecordOverviewPlugin`, which every overview plugin now
+  subclasses. Dates on these pages follow the active language, and every string on them is
+  translatable.
+- **`manage.py seed_overviews` loads development data for the overview pages**, and creates
+  `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
+  missing. It refuses to run outside development, leaves an existing account as it is, and
+  replaces only the projects it created. `fairdm.E501` now reports these three addresses on a
+  portal that is not in development. See
+  [Development accounts](docs/portal-development/development_accounts.md).
 - **Description text now has a 20,000-character ceiling.** Project, dataset, sample and
   measurement descriptions previously had no length limit anywhere between the editing page
   and the database. The limit is well beyond any real abstract or methods note, so ordinary
