@@ -44,6 +44,21 @@ class TestRecordOverviewPluginIdentifiers:
 
         assert identifier["link"] == "https://doi.org/10.60516/AU1101"
 
+    def test_a_legacy_igsn_handle_that_doi_org_cannot_resolve_is_not_linked(self):
+        from demo.models import RockSample
+
+        sample = RockSample.objects.create(
+            name="Core",
+            dataset=DatasetFactory(),
+            rock_type="igneous",
+            collection_date="2024-01-15",
+        )
+        SampleIdentifierFactory(related=sample, type="IGSN", value="AU1101")
+
+        [identifier] = _plugin_for(sample).get_identifiers()
+
+        assert identifier["link"] is None
+
     def test_an_identifier_of_another_type_is_not_linked(self):
         project = ProjectFactory()
         ProjectIdentifierFactory(

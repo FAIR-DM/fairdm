@@ -74,9 +74,11 @@ class RecordOverviewPlugin(OverviewPlugin):
 
     Attributes:
         people_shown: How many faces the People card draws before it counts the rest.
+        resolvable_identifier_types: The identifier types that link to doi.org.
     """
 
     people_shown = 18
+    resolvable_identifier_types = ("DOI", "IGSN")
 
     def get_credits(self) -> list[dict[str, Any]]:
         """List everyone credited on the record.
@@ -133,7 +135,8 @@ class RecordOverviewPlugin(OverviewPlugin):
     def get_identifiers(self) -> list[dict[str, Any]]:
         """List the record's identifiers for the Identifiers card.
 
-        A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023.
+        A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023. A legacy
+        IGSN handle, which does not start with ``10.``, does not resolve there and stays unlinked.
 
         Returns:
             One ``{"type", "value", "link"}`` entry per identifier; ``link`` is ``None`` for any
@@ -144,7 +147,8 @@ class RecordOverviewPlugin(OverviewPlugin):
                 "type": identifier.type,
                 "value": identifier.value,
                 "link": f"https://doi.org/{identifier.value}"
-                if str(identifier.value).startswith("10.")
+                if identifier.type in self.resolvable_identifier_types
+                and str(identifier.value).startswith("10.")
                 else None,
             }
             for identifier in self.base_object.identifiers.all()
