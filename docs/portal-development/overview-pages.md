@@ -282,6 +282,54 @@ dataset is shown only when the viewer may see that dataset. One they may not see
 never named, linked or mapped: the related samples card says how many belong to datasets that are
 not published yet, and the measurement list leaves them out of its count.
 
+## The measurement page
+
+A reuser opens a measurement to judge whether its value is comparable with theirs, so the page
+answers four questions in order: what the result was, what it was measured on, how it was
+measured, and whether they can cite and reuse it. It reads only the base `Measurement` model and
+what the registry says about the measurement's type, never a field a particular type adds. Its
+template is `measurement/measurement_overview.html`, and the page stays at
+`/measurement/<uuid>/`.
+
+**Header.** The type as a badge. Where the registry describes the type, the badge opens that
+description in a dialog, with the type's keywords, the authority that maintains its schema and how
+to cite it. A type the registry does not describe opens nothing. A measurement whose dataset is not
+public and published tells the dataset's team that only they can see it.
+
+**Figures.** The result. A type that declares a `value` (and optionally an `uncertainty`) gets it
+shown as "value ± uncertainty unit" with no template of its own. A type that records its result
+another way leaves the result to its own template, which fills `overview.result`.
+
+**Content column** (`overview.properties`, `overview.procedure`, `overview.notes`,
+`overview.sample` and `overview.siblings`). `overview.properties` is empty on the shared page: it
+is the block a measurement type fills with its own fields.
+
+- *How it was measured* is a timeline of three steps, set up, measured and taken down. Each joins
+  the date, the contributor role that performed it and the description that explains it.
+- *Measured on* shows the sample as a small version of its own header: its image or icon, type and
+  status, name, local ID, dataset and keywords. A measurement recorded in a different dataset from
+  its sample says so, since that is how one team measures another team's specimens.
+- *Other measurements on this sample* lists up to eight, most recent first, and counts the rest.
+
+**Side column.** Details (its project, dataset, licence, and when it was added and last updated),
+People, Identifiers, the citation and the location of the sample.
+
+- *The citation* names the contributors credited with the measurement role, and points at the
+  measurement's DOI when it has one. Most measurements have none, so the page points at itself and
+  suggests citing the dataset instead.
+- *The location* is a map of the sample's location, shown only when the sample has one and the
+  viewer may see the sample.
+
+**Who can open it.** A measurement follows its own dataset, not its sample's. Its page opens for
+everyone once the measurement's dataset is public and published, whatever the state of the sample's
+dataset. Before then it opens only for a user who holds `view_dataset` or `change_dataset` on that
+dataset, and anyone else gets a "not found" response.
+
+The sample's dataset is checked separately. A sample in a dataset that is not published is
+described as "an unpublished sample" on the page, in the citation and in the card. It is never
+named, linked or mapped. The list of other measurements leaves out those in datasets the viewer
+may not see, and its count leaves them out too.
+
 ## Giving a sample or measurement type its own page
 
 A portal that defines a sample type adds the type's fields to its page by providing one template.
@@ -293,6 +341,44 @@ There is nothing to register. For each type from the sample's own up to `Sample`
 - A type with no template anywhere in its ancestry uses the shared page.
 
 Measurements work the same way, with `measurement/measurement_overview.html` as the shared page.
+
+The demo's XRF measurement is the worked example. `XRFMeasurement` records an element and a
+concentration instead of a single `value`, so the shared result area has nothing to show. Its
+template, `demo/xrfmeasurement_overview.html`, extends the shared page and fills three blocks:
+
+```django
+{% extends "measurement/measurement_overview.html" %}
+{% load i18n humanize %}
+
+{# Add the element beside the type badge; block.super keeps it. #}
+{% block overview.badges %}
+  {{ block.super }}
+  <span class="badge badge-outline badge-sm font-mono">{{ measurement.element }}</span>
+{% endblock overview.badges %}
+
+{# The result, in place of the single value the shared page would show. #}
+{% block overview.result %}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-3">
+      <p class="text-4xl font-semibold tabular-nums">{{ measurement.concentration_ppm|floatformat:"-2"|intcomma }}</p>
+    </div>
+  </c-card.wrapper>
+{% endblock overview.result %}
+
+{# The block the shared page leaves empty for exactly this: the type's own fields. #}
+{% block overview.properties %}
+  <c-card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
+    <c-data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
+  </c-card>
+{% endblock overview.properties %}
+```
+
+The demo's template goes further, with the detection limit and a warning when the concentration is
+at or below it. Every block it does not fill shows the shared content: how it was measured, the
+sample it was made on, the other measurements and the side column. In the template, `measurement`
+is the measurement as its own type, so `measurement.element` reads the XRF field. An
+`ICP_MS_Measurement` declares a `value` and has no template of its own, so it shows the shared page
+with its result drawn for it.
 
 The demo's rock sample is the worked example. `RockSample` is in the `demo` app, so its template is
 `demo/rocksample_overview.html`. It extends the shared page and fills two blocks:
@@ -367,6 +453,25 @@ can subclass `Overview` and replace the list.
 The blocks read `record`, `sample`, `sample_type`, `type_info`, `status`, `lifecycle`, `notes`,
 `measurements`, `relations`, `location`, `project`, `counts`, `people`, `identifiers`, `citation`
 and `details`.
+
+The measurement's own steps are methods on its `Overview` plugin in
+`fairdm.core.measurement.plugins`:
+
+| Method | What it returns |
+| --- | --- |
+| `get_result()` | The result's `text` when the measurement's type declares a `value`, otherwise `None`. |
+| `get_sample_status()` | The sample's status `label` and badge colour `variant`, as the sample's own page shows them, or `None` when it has no status. |
+| `get_siblings()` | The other measurements on the same sample the viewer may see: `rows` (up to `siblings_shown`, eight by default), the `total` and how many are `more`. |
+| `get_citation_details(entries, dates, identifiers, sample)` | The citation's title and text, with a note pointing at the dataset when the measurement has no DOI. `sample` is `None` when the viewer may not see it. |
+| `get_details(project)` | The rows of the Details card. `project` is `None` when the viewer may not see it. |
+
+The steps of "How it was measured" are in the plugin's `procedure_steps` list, each as a date type,
+the contributor role that performs it, the description type that explains it and the label the page
+shows. A portal can subclass `Overview` and replace the list.
+
+The blocks read `record`, `measurement`, `measurement_type`, `type_info`, `result`, `procedure`,
+`notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `other_dataset`, `siblings`,
+`project`, `citation`, `identifiers`, `people` and `details`.
 
 ## What the plugins work out
 

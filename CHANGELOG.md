@@ -120,6 +120,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   plugin, and the module is gone. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
   and `visible_to()` from `fairdm.core.managers.RecordVisibilityMixin`. See
   [Overview pages](docs/portal-development/overview-pages.md).
+- **The measurement page shows the result and how it was obtained, and a measurement type adds its
+  own fields by providing one template.** It shows the result with its uncertainty, a timeline of
+  how the measurement was set up, made and taken down, the sample it was made on as a small version
+  of the sample's own header, the other measurements on that sample, a citation that suggests the
+  dataset when the measurement has no DOI, and a map of the sample's location. A measurement follows
+  its own dataset: it opens for everyone once that dataset is public and published, whatever the
+  state of its sample's dataset, and a sample in an unpublished dataset is described as one and
+  never named, linked or mapped. A portal gives a measurement type its page with
+  `<app_label>/<model_name>_overview.html`, and the demo's XRF measurement is the worked example.
+  The page's logic moved from `fairdm.core.measurement.overview` to methods on the measurement
+  `Overview` plugin, and the module is gone. The helpers that read a record's credits moved from
+  `fairdm.core.overview` onto `RecordOverviewPlugin` as `get_contributions()`,
+  `get_role_names()` and `get_contributors_with_role()`. See
+  [Overview pages](docs/portal-development/overview-pages.md).
 - **`manage.py seed_overviews` loads development data for the overview pages**, and creates
   `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
   missing. It refuses to run outside development, leaves an existing account as it is, and

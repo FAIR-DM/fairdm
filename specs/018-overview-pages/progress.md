@@ -118,3 +118,9 @@
 - Verified: `uv run pytest tests/test_core/test_measurement tests/test_core/test_sample tests/test_core/test_project/test_plugins.py tests/test_core/test_dataset/test_plugins.py tests/test_core/test_overview.py tests/test_core/test_plugins.py tests/test_core/test_managers.py -q`: green. Rendered 56 seeded records (projects, datasets, up to eight of each sample and measurement type) as visitor, staff.user and regular.user before and after the move: 168 responses, status, length and content hash identical in every one.
 - Next: T018.
 - Watch: no test other than my own was edited.
+
+## 2026-09-29 · US4 · T018
+
+- Did: `docs/portal-development/overview-pages.md` gained "The measurement page" (header, figures, both columns, who can open it, the unpublished sample), the demo's XRF measurement as the worked example under "Giving a sample or measurement type its own page", the measurement plugin's methods with `procedure_steps` and `siblings_shown`, and the three credit methods on `RecordOverviewPlugin`. The changelog entry for the measurement page is added under Added.
+- Verified: `forge verify --steps docs --base origin/main`: passed.
+- Next: the full verify, then the report.
