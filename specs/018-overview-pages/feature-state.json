@@ -230,7 +230,7 @@
       "id": "US3",
       "priority": "P2",
       "issue": 370,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
