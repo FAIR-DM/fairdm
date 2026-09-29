@@ -183,3 +183,14 @@ notice appears only while the dataset is unpublished. It is renamed to say so.
 
 **Revisit if:** the page lists records again, in which case the visitor's view of an unpublished
 dataset needs its own test.
+
+## D12 — `get_record_types()` returns each type's kind, label and field labels, and nothing else
+
+The figures, the readiness checklist and the schema.org `variableMeasured` list are the only
+readers left, and they need the kind of each type, whether there is any, and its field labels. The
+description, authority, citation, slug, count, field kinds, units and the preview table went with
+the data tabs. The wording of each publication relation is now looked up when the page is built,
+not when the module loads, so it follows the active language like every other string on the page.
+
+**Revisit if:** a page needs a type's description or count again, in which case add the key and its
+reader together.

@@ -203,8 +203,15 @@
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset -q",
+              "render of every seeded dataset as visitor, staff.user and regular.user before and after: identical",
+              "uv run pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T012",

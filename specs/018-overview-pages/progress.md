@@ -64,3 +64,10 @@
 - Verified: `uv run pytest tests/test_core/test_dataset/test_plugins.py -q -k TestOverview`: 25 passed on the first run, so the page already met every scenario. Probed by mutation: checklist for everyone, year order, project visibility, relation order and the timeline sort each turned a test red. The timeline sort probe first survived; the test now puts the added date before the collection so the sort decides it.
 - Next: T011.
 - Watch: a dataset holding only unregistered types shows the first-run card, because the card follows the types the registry knows.
+
+## 2026-09-29 · US2 · T011
+
+- Did: the dataset's logic is methods on the dataset `Overview` plugin (`get_lifecycle`, `get_access`, `get_dates`, `get_team`, `get_literature`, `get_record_types`, `get_counts`, `get_project_info`, `get_citation_details`, `get_schema_org`, `get_readiness`, `get_shared_context`, `get_details`) and `fairdm/core/dataset/overview.py` is deleted, with `preview_table`, `field_kind` and the value ranges of `field_summary`. `get_citation` from the shared plugin now writes the built citation. Nothing in `fairdm/core/overview.py` lost its last caller: the project plugin still uses `contributions_of`, `is_person` and `roles_of`, and the plugin base and the sample and measurement modules use `with_role`.
+- Verified: `uv run pytest tests/test_core/test_dataset -q`: 417 passed, five runs. A T010 test was flaky on the first run (a random sample name showed up elsewhere on the page) and now uses distinctive names. Rendered all 14 seeded datasets as visitor, `staff.user` and `regular.user` before and after the move: 42 pages, no difference. `uv run pre-commit run --all-files`: all hooks pass.
+- Next: T012.
+- Watch: T010 found nothing to fix, so the move changed no rendered output.

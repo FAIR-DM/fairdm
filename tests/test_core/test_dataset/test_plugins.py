@@ -1457,7 +1457,10 @@ def holding():
     from fairdm.core.sample.models import Sample
 
     dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-    rocks = RockSampleFactory.create_batch(2, dataset=dataset)
+    rocks = [
+        RockSampleFactory(dataset=dataset, name=f"Zq-{n}-4471 rift core")
+        for n in (1, 2)
+    ]
     XRFMeasurementFactory.create_batch(2, dataset=dataset, sample=rocks[0])
     Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
     Measurement.objects.update(added=datetime(2026, 3, 15, tzinfo=UTC))

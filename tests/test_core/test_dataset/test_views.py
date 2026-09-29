@@ -1068,7 +1068,7 @@ class TestNonCollectionPagesIgnorePublished:
         from demo.factories import RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-        sample = RockSampleFactory(dataset=dataset)
+        sample = RockSampleFactory(dataset=dataset, name="Zq-4471 rift core")
         url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
 
         unpublished = client.get(url)
