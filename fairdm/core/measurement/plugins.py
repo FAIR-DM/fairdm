@@ -36,6 +36,7 @@ class Overview(TypedOverviewPlugin):
         context["measurement"] = self.base_object
         context.update(
             overview.build(
+                self,
                 self.request,
                 self.base_object,
                 can_manage=has_perm(

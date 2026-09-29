@@ -39,3 +39,9 @@
 - Did: gave the six pre-existing tests named in the task a sample in a published, public dataset (fixture line only, assertions untouched), recorded as D6 in `decisions.md`.
 - Verified: `uv run pytest tests/test_contrib/test_plugins -q`: 164 passed (6 of them were red before).
 - Next: T007.
+
+## 2026-09-29 · Implementer US1 · T007
+
+- Did: added `RecordOverviewPlugin` (shared methods) and gave `TypedOverviewPlugin` `get_type_info`; all four `Overview` plugins subclass it; moved the project's logic onto its `Overview` plugin and deleted `fairdm/core/project/overview.py`; the dataset, sample and measurement modules take the plugin as first argument and call the shared methods; the moved functions left `fairdm/core/overview.py`. See D7.
+- Verified: `uv run pytest tests/test_core tests/test_templates tests/test_contrib/test_plugins tests/test_demo -q`: the same failures as before the move, all of them tests written to fail before T008 plus the pre-existing ones (two delete-link tests, and four tests for the dataset, sample and measurement stories). Every project, dataset, sample and measurement page in the development data, rendered as visitor, `staff.user` and `regular.user` before and after: 297 responses, no difference. `uv run pre-commit run --all-files` passes.
+- Next: T008.

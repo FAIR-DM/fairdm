@@ -110,3 +110,34 @@ Changed, by file (`tests/test_contrib/test_plugins/`):
 The sample's visibility rules have their own tests in the sample story.
 
 **Revisit if:** the sample page's visibility rule changes again.
+
+## D7 — The shared page logic moved onto the plugin classes in one step, and the other pages call it there
+
+`RecordOverviewPlugin` now holds what every overview page works out the same way: `get_credits`,
+`get_people`, `get_identifiers`, `get_citation`, `get_timeline`, `get_license_entry`,
+`get_composition_chart` and `get_growth_chart`. `TypedOverviewPlugin` subclasses it and adds
+`get_type_info`. The project's own logic moved from `fairdm/core/project/overview.py` onto its
+`Overview` plugin, and that module is gone. The four `Overview` plugins all subclass
+`RecordOverviewPlugin`.
+
+The dataset, sample and measurement modules stay until their stories, but their `build()`
+functions now take the plugin as their first argument and call these methods in place of the
+module functions they replace. Keeping both would have left the same chart, credit and identifier
+code in two places for three more stories, and every fix this story makes (translatable strings,
+locale-aware dates, skipping types the registry does not hold) would have had to be made twice.
+What stays in `fairdm/core/overview.py` is what no class owns: `format_authors`, `author_name`,
+`json_ld`, `as_date`, `sentence_case`, `safe_reverse`, and the small readers of a credit
+(`contributions_of`, `roles_of`, `is_person`, `with_role`) that the dataset module's own logic
+still calls.
+
+The project page's own steps have their own names on the plugin: `get_progress` for how far
+through its dates the project is (the shared `get_timeline` joins dated steps of a sample or
+measurement), `get_citation_details` for the project's citation with its DOI facts (the shared
+`get_citation` only writes the text), and `get_readiness(page)` and `get_details(licenses)`, which
+take what the page has gathered so far, so nothing is queried twice.
+
+Checked by rendering every project, dataset, sample and measurement in the development data as a
+visitor, as `staff.user` and as `regular.user` before and after the move: 297 responses, byte for
+byte the same.
+
+**Revisit if:** a story finds a method that belongs on one page's plugin alone.

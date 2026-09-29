@@ -50,11 +50,11 @@ STATUS_MEANING = {
 }
 
 
-def build(request, sample, can_manage):
+def build(plugin, request, sample, can_manage):
     from fairdm.core.project.plugins import project_is_visible
 
     user = request.user
-    entries = shared.credits_of(sample)
+    entries = plugin.get_credits()
     descriptions = {d.type: d.value for d in sample.descriptions.all()}
     dates = {d.type: d.value for d in sample.dates.all()}
     measurements = measurement_summary(user, sample)
@@ -68,11 +68,11 @@ def build(request, sample, can_manage):
         "variant": STATUS_VARIANTS.get(status),
         "meaning": STATUS_MEANING.get(status, ""),
     }
-    history = shared.timeline(LIFECYCLE, dates, descriptions, entries)
+    history = plugin.get_timeline(LIFECYCLE, dates, descriptions, entries)
     project = sample.dataset.project
     if project is not None and not project_is_visible(request, project):
         project = None
-    identifiers = shared.identifiers(sample)
+    identifiers = plugin.get_identifiers()
     igsn = next((i for i in identifiers if i["type"] == "IGSN"), None)
     collected = dates.get("Collected")
     sample_type = str(type(sample)._meta.verbose_name)
@@ -81,10 +81,9 @@ def build(request, sample, can_manage):
     if project is not None:
         parents.append({"label": _("Project"), "icon": "project", "record": project})
     parents.append({"label": _("Dataset"), "icon": "dataset", "record": sample.dataset})
-    parents.append(shared.license_row(sample.dataset.license))
+    parents.append(plugin.get_license_entry(sample.dataset.license))
 
-    citation_text = shared.citation(
-        request,
+    citation_text = plugin.get_citation(
         authors=shared.with_role(entries, "Collection"),
         year=getattr(getattr(collected, "date", None), "year", None)
         or sample.added.year,
@@ -121,8 +120,8 @@ def build(request, sample, can_manage):
         "citation": citation,
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
-        "type_info": shared.type_info(sample),
-        "people": shared.people(entries),
+        "type_info": plugin.get_type_info(),
+        "people": plugin.get_people(entries),
         "details": [
             *parents,
             {

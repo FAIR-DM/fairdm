@@ -33,7 +33,10 @@ class TestRecordOverviewPluginIdentifiers:
         from demo.models import RockSample
 
         sample = RockSample.objects.create(
-            name="Core", dataset=DatasetFactory(), rock_type="igneous"
+            name="Core",
+            dataset=DatasetFactory(),
+            rock_type="igneous",
+            collection_date="2024-01-15",
         )
         SampleIdentifierFactory(related=sample, type="IGSN", value="10.60516/AU1101")
 

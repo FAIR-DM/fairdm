@@ -20,11 +20,9 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
-from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
-    composition_chart,
     contributions_of,
     format_authors,
     is_person,
@@ -58,7 +56,7 @@ BOOKKEEPING_FIELDS = {
 ROLE_ORDER = ["Creator", "ContactPerson"]
 
 
-def build(request, dataset, can_manage):
+def build(plugin, request, dataset, can_manage):
     can_see_data = dataset.data_is_public or can_manage
     samples = Sample.objects.filter(dataset=dataset)
     measurements = Measurement.objects.filter(dataset=dataset)
@@ -75,8 +73,8 @@ def build(request, dataset, can_manage):
         "literature": literature(dataset),
         "data_types": data_types,
         "counts": counts(samples, measurements, data_types),
-        "composition_chart": composition_chart(samples, measurements),
-        "growth_chart": shared.growth_chart(samples, measurements),
+        "composition_chart": plugin.get_composition_chart(samples, measurements),
+        "growth_chart": plugin.get_growth_chart(samples, measurements),
         "project_info": project_info(request, dataset, can_manage),
         "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
         "urls": {
@@ -92,11 +90,11 @@ def build(request, dataset, can_manage):
     context["json_ld"] = json_ld(schema_org(request, dataset, context))
     if can_manage and not dataset.data_is_public:
         context["readiness"] = readiness(dataset, context)
-    context.update(shared_context(request, dataset, context))
+    context.update(shared_context(plugin, request, dataset, context))
     return context
 
 
-def shared_context(request, dataset, context):
+def shared_context(plugin, request, dataset, context):
     """The keys every overview page provides, which the shared skeleton and cards read."""
     citation_ = context["citation"]
     creators = [e["contributor"] for e in context["team"]["creators"]]
@@ -105,9 +103,9 @@ def shared_context(request, dataset, context):
         "overview_icon": "dataset",
         "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
         "citation": {"title": _("Citation"), "text": citation_["text"]},
-        "identifiers": shared.identifiers(dataset),
+        "identifiers": plugin.get_identifiers(),
         "api_url": context["api_url"],
-        "people": shared.people(shared.credits_of(dataset), exclude=creators),
+        "people": plugin.get_people(exclude=creators),
         "header_people": creators,
         "header_people_label": _("Creators"),
         "lifecycle": lifecycle(dataset, context["dates"]),
@@ -133,7 +131,7 @@ def shared_context(request, dataset, context):
                 info["siblings"],
             ) % {"n": info["siblings"]}
         result["details"].append(row)
-    result["details"].append(shared.license_row(dataset.license))
+    result["details"].append(plugin.get_license_entry(dataset.license))
     result["details"].append(
         {"label": _("Last updated"), "icon": "time", "date": dataset.modified}
     )

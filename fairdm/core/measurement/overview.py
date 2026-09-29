@@ -28,12 +28,12 @@ PROCEDURE = [
 SIBLINGS = 8
 
 
-def build(request, measurement, can_manage):
+def build(plugin, request, measurement, can_manage):
     from fairdm.core.project.plugins import project_is_visible
     from fairdm.core.sample.models import Sample
 
     user = request.user
-    entries = shared.credits_of(measurement)
+    entries = plugin.get_credits()
     descriptions = {d.type: d.value for d in measurement.descriptions.all()}
     dates = {d.type: d.value for d in measurement.dates.all()}
     sample = measurement.sample
@@ -42,7 +42,7 @@ def build(request, measurement, can_manage):
     if project is not None and not project_is_visible(request, project):
         project = None
     measurement_type = str(type(measurement)._meta.verbose_name)
-    identifiers = shared.identifiers(measurement)
+    identifiers = plugin.get_identifiers()
     doi = next((i for i in identifiers if i["type"] == "DOI"), None)
     setup = dates.get("Setup")
 
@@ -53,8 +53,7 @@ def build(request, measurement, can_manage):
     }
     citation = {
         "title": _("Citation"),
-        "text": shared.citation(
-            request,
+        "text": plugin.get_citation(
             authors=shared.with_role(entries, "MeasurementCollection"),
             year=getattr(getattr(setup, "date", None), "year", None)
             or measurement.added.year,
@@ -77,7 +76,7 @@ def build(request, measurement, can_manage):
     parents.append(
         {"label": _("Dataset"), "icon": "dataset", "record": measurement.dataset}
     )
-    parents.append(shared.license_row(measurement.dataset.license))
+    parents.append(plugin.get_license_entry(measurement.dataset.license))
 
     return {
         "record": measurement,
@@ -85,8 +84,8 @@ def build(request, measurement, can_manage):
         "can_manage": can_manage,
         "measurement_type": measurement_type,
         "result": result(measurement),
-        "type_info": shared.type_info(measurement),
-        "procedure": shared.timeline(PROCEDURE, dates, descriptions, entries),
+        "type_info": plugin.get_type_info(),
+        "procedure": plugin.get_timeline(PROCEDURE, dates, descriptions, entries),
         "notes": descriptions.get("Other"),
         "sample": sample,
         "sample_type": shared.sentence_case(type(sample)._meta.verbose_name),
@@ -98,7 +97,7 @@ def build(request, measurement, can_manage):
         "citation": citation,
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
-        "people": shared.people(entries),
+        "people": plugin.get_people(entries),
         "details": [
             *parents,
             {"label": _("Added"), "icon": "calendar", "date": measurement.added},

@@ -19,7 +19,7 @@ from fairdm.contrib.plugins.mixins import (
 from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.measurement.models import Measurement
-from fairdm.core.plugins import OverviewPlugin
+from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.related_records import DatasetDateInline, DatasetIdentifierInline
 from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
@@ -245,7 +245,7 @@ class Delete(
 
 
 @plugins.register(Dataset, label=_("Overview"), icon="view", order=0)
-class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, OverviewPlugin):
+class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.
 
     Its ``extra_views`` are :class:`Update`, :class:`Delete` and :class:`Descriptions`, and
@@ -284,6 +284,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, OverviewPlugin):
         context["dataset"] = self.base_object
         context.update(
             overview.build(
+                self,
                 self.request,
                 self.base_object,
                 can_manage=has_perm(self.request, Update.permission, self.base_object),

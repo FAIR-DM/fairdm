@@ -1,11 +1,25 @@
 """Reusable overview, update and delete plugins for the core record pages."""
 
+from collections import OrderedDict
+from datetime import date
 from typing import Any
 
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.urls import reverse
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
+from pyecharts import options as opts
+from pyecharts.charts import Bar, Line
 
 from fairdm.contrib.plugins import Plugin
+from fairdm.core.overview import (
+    contributions_of,
+    format_authors,
+    sentence_case,
+    with_role,
+)
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 
@@ -51,7 +65,336 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         return str(self.base_object)
 
 
-class TypedOverviewPlugin(OverviewPlugin):
+class RecordOverviewPlugin(OverviewPlugin):
+    """The overview of a project, dataset, sample or measurement.
+
+    Holds what every one of those pages works out the same way: who is credited, the People
+    card, identifiers, citation, timeline, licence entry and the two charts. A portal changes one
+    piece of a page by subclassing that page's plugin and overriding one of these methods.
+
+    Attributes:
+        people_shown: How many faces the People card draws before it counts the rest.
+    """
+
+    people_shown = 18
+
+    def get_credits(self) -> list[dict[str, Any]]:
+        """List everyone credited on the record.
+
+        Each contributor is its own type (person or organisation). The affiliation is the one
+        recorded on the credit itself, falling back to the person's primary affiliation.
+
+        Returns:
+            One ``{"contributor", "roles": {name: label}, "affiliation"}`` entry per credit, in
+            the record's own order.
+        """
+        result = []
+        for credit in contributions_of(self.base_object):
+            affiliation = credit.affiliation
+            if affiliation is None and hasattr(
+                credit.contributor, "primary_affiliation"
+            ):
+                primary = credit.contributor.primary_affiliation()
+                affiliation = primary.organization if primary else None
+            result.append(
+                {
+                    "contributor": credit.contributor,
+                    "roles": {role.name: role.label for role in credit.roles.all()},
+                    "affiliation": affiliation,
+                }
+            )
+        return result
+
+    def get_people(self, entries=None, exclude=()) -> dict[str, Any]:
+        """Work out what the People card shows.
+
+        Args:
+            entries: The record's credits, when the caller already has them. Defaults to
+                :meth:`get_credits`.
+            exclude: Contributors already named in the page header.
+
+        Returns:
+            The first ``people_shown`` faces, how many more there are and the total.
+        """
+        if entries is None:
+            entries = self.get_credits()
+        named = {contributor.pk for contributor in exclude}
+        rest = [
+            entry["contributor"]
+            for entry in entries
+            if entry["contributor"].pk not in named
+        ]
+        return {
+            "shown": rest[: self.people_shown],
+            "more": max(len(rest) - self.people_shown, 0),
+            "total": len(rest),
+        }
+
+    def get_identifiers(self) -> list[dict[str, Any]]:
+        """List the record's identifiers for the Identifiers card.
+
+        A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023.
+
+        Returns:
+            One ``{"type", "value", "link"}`` entry per identifier; ``link`` is ``None`` for any
+            other type.
+        """
+        return [
+            {
+                "type": identifier.type,
+                "value": identifier.value,
+                "link": f"https://doi.org/{identifier.value}"
+                if str(identifier.value).startswith("10.")
+                else None,
+            }
+            for identifier in self.base_object.identifiers.all()
+        ]
+
+    def get_citation(self, *, authors, year, title, link) -> str:
+        """Write the citation in DataCite's form: Creators (Year). Title. Publisher. Identifier.
+
+        Args:
+            authors: The creators to name.
+            year: The year of publication.
+            title: The record's title.
+            link: Its DOI link, or the address of the page.
+
+        Returns:
+            The citation as plain text.
+        """
+        names = format_authors(authors)
+        publisher = getattr(getattr(self.request, "site", None), "name", "") or ""
+        parts = [
+            f"{names} ({year})." if names else f"({year}).",
+            f"{title}.",
+            f"{publisher}.",
+            link,
+        ]
+        return " ".join(part for part in parts if part.strip(". "))
+
+    def get_timeline(self, steps, dates, descriptions, entries) -> list[dict[str, Any]]:
+        """Join the three ways the vocabularies describe a step in a record's life.
+
+        A step combines a date type, a contributor role and a description type. Dated steps come
+        first in date order, undated ones after them in the order given. A date recorded only to
+        the year or the month is shown as recorded, never padded out to a day.
+
+        Args:
+            steps: ``[(date_type, role, description_type, label)]``.
+            dates: The record's dates, by type.
+            descriptions: The record's descriptions, by type.
+            entries: The record's credits, from :meth:`get_credits`.
+
+        Returns:
+            One ``{"label", "date", "day", "people", "note"}`` entry per step with anything to
+            show.
+        """
+        result = []
+        for date_type, role, description_type, label in steps:
+            when = dates.get(date_type) if date_type else None
+            who = with_role(entries, role) if role else []
+            note = descriptions.get(description_type) if description_type else None
+            if when or who or note:
+                result.append(
+                    {
+                        "label": label,
+                        "date": when,
+                        "day": when.date
+                        if when is not None and when.precision == 2
+                        else None,
+                        "people": who,
+                        "note": note,
+                    }
+                )
+        dated = sorted((s for s in result if s["date"]), key=lambda s: str(s["date"]))
+        return dated + [s for s in result if not s["date"]]
+
+    def get_license_entry(self, licence, note=None) -> dict[str, Any]:
+        """Write the Details card's licence entry: the licence linked to its text, or a warning.
+
+        Args:
+            licence: The licence, or ``None`` when none is chosen.
+            note: A line to show under the licence.
+
+        Returns:
+            An entry for :class:`c-card.details`.
+        """
+        if licence is None:
+            return {
+                "label": gettext("Licence"),
+                "icon": "license",
+                "text": gettext("None chosen yet"),
+                "warning": True,
+                "note": gettext(
+                    "Nobody can safely reuse this data until a licence is chosen."
+                ),
+            }
+        return {
+            "label": gettext("Licence"),
+            "icon": "license",
+            "text": licence.name,
+            "url": licence.canonical_url or "",
+            "note": note,
+        }
+
+    def get_composition_chart(self, samples, measurements) -> dict[str, Any] | None:
+        """Draw the records by type, largest first, in one hue since the bars compare magnitude.
+
+        Args:
+            samples: The samples to count.
+            measurements: The measurements to count.
+
+        Returns:
+            The chart, its height and its text alternative, or ``None`` when there is nothing to
+            count.
+        """
+        items = self._type_counts(samples) + self._type_counts(measurements)
+        if not items:
+            return None
+        # ECharts draws the first category at the bottom.
+        items.sort(key=lambda item: item[1])
+        chart = (
+            Bar()
+            .add_xaxis([label for label, _count in items])
+            .add_yaxis(
+                gettext("Records"),
+                [count for _label, count in items],
+                bar_max_width=18,
+                label_opts=opts.LabelOpts(is_show=True, position="right"),
+                itemstyle_opts=opts.ItemStyleOpts(border_radius=[0, 4, 4, 0]),
+            )
+            .reversal_axis()
+            .set_global_opts(
+                legend_opts=opts.LegendOpts(is_show=False),
+                tooltip_opts=opts.TooltipOpts(trigger="axis"),
+                xaxis_opts=opts.AxisOpts(
+                    splitline_opts=opts.SplitLineOpts(is_show=True)
+                ),
+            )
+        )
+        chart.options["grid"] = {
+            "left": 8,
+            "right": 40,
+            "top": 8,
+            "bottom": 8,
+            "containLabel": True,
+        }
+        return {
+            "chart": chart,
+            "height": f"{max(len(items) * 44 + 32, 160)}px",
+            "description": "; ".join(
+                f"{label}: {count}" for label, count in reversed(items)
+            ),
+        }
+
+    def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:
+        """Draw the cumulative samples and measurements by month, two series on one count axis.
+
+        Args:
+            samples: The samples to count.
+            measurements: The measurements to count.
+
+        Returns:
+            The chart and its text alternative, or ``None`` when the records span fewer than two
+            months.
+        """
+        by_sample, by_measurement = self._monthly(samples), self._monthly(measurements)
+        months = sorted(set(by_sample) | set(by_measurement))
+        if len(months) < 2:
+            return None
+        # Fill the gaps so a quiet month reads as flat, not as a missing point.
+        first, last = months[0], months[-1]
+        months, cursor = [], first
+        while cursor <= last:
+            months.append(cursor)
+            cursor = date(cursor.year + cursor.month // 12, cursor.month % 12 + 1, 1)
+
+        def cumulative(series):
+            total, values = 0, []
+            for month in months:
+                total += series.get(month, 0)
+                values.append(total)
+            return values
+
+        samples_line, measurements_line = (
+            cumulative(by_sample),
+            cumulative(by_measurement),
+        )
+        line_style = opts.LineStyleOpts(width=2)
+        chart = (
+            Line()
+            .add_xaxis([month.strftime("%b %Y") for month in months])
+            .add_yaxis(
+                gettext("Samples"),
+                samples_line,
+                is_symbol_show=False,
+                linestyle_opts=line_style,
+                label_opts=opts.LabelOpts(is_show=False),
+            )
+            .add_yaxis(
+                gettext("Measurements"),
+                measurements_line,
+                is_symbol_show=False,
+                linestyle_opts=line_style,
+                label_opts=opts.LabelOpts(is_show=False),
+            )
+            .set_global_opts(
+                legend_opts=opts.LegendOpts(pos_left="left", pos_top="top"),
+                tooltip_opts=opts.TooltipOpts(trigger="axis"),
+                xaxis_opts=opts.AxisOpts(boundary_gap=False),
+            )
+        )
+        chart.options["grid"] = {
+            "left": 8,
+            "right": 16,
+            "top": 40,
+            "bottom": 8,
+            "containLabel": True,
+        }
+        return {
+            "chart": chart,
+            "description": gettext(
+                "From %(first)s to %(last)s it grew to %(samples)s samples and "
+                "%(measurements)s measurements."
+            )
+            % {
+                "first": months[0].strftime("%B %Y"),
+                "last": months[-1].strftime("%B %Y"),
+                "samples": samples_line[-1],
+                "measurements": measurements_line[-1],
+            },
+        }
+
+    @staticmethod
+    def _type_counts(queryset) -> list[tuple[str, int]]:
+        """Count a queryset's records by type, largest first."""
+        rows = (
+            queryset.values("polymorphic_ctype").annotate(n=Count("pk")).order_by("-n")
+        )
+        result = []
+        for row in rows:
+            model = ContentType.objects.get_for_id(
+                row["polymorphic_ctype"]
+            ).model_class()
+            result.append((sentence_case(model._meta.verbose_name_plural), row["n"]))
+        return result
+
+    @staticmethod
+    def _monthly(queryset) -> "OrderedDict[date, int]":
+        """Count a queryset's records by the month they were added."""
+        return OrderedDict(
+            (
+                row["month"].date() if hasattr(row["month"], "date") else row["month"],
+                row["n"],
+            )
+            for row in queryset.annotate(month=TruncMonth("added"))
+            .values("month")
+            .annotate(n=Count("pk"))
+            .order_by("month")
+        )
+
+
+class TypedOverviewPlugin(RecordOverviewPlugin):
     """The overview of a record portals subclass: a sample or a measurement.
 
     Two things differ from a project or dataset overview.
@@ -98,6 +441,33 @@ class TypedOverviewPlugin(OverviewPlugin):
                     f"{cls._meta.app_label}/{cls._meta.model_name}_overview.html"
                 )
         return [*names, self.fallback_template]
+
+    def get_type_info(self) -> dict[str, Any] | None:
+        """Read what the registry says about the record's type and by whose rules it is recorded.
+
+        Returns:
+            The description, the maintaining authority, the protocol citation and the keywords,
+            or ``None`` when the registry holds nothing to say.
+        """
+        from fairdm.registry import registry
+
+        model = type(self.base_object)
+        if not registry.is_registered(model):
+            return None
+        config = registry.get_for_model(model)
+        metadata = config.metadata
+        if not metadata:
+            return (
+                {"description": config.description or ""}
+                if config.description
+                else None
+            )
+        return {
+            "description": metadata.description,
+            "authority": metadata.authority,
+            "citation": metadata.citation,
+            "keywords": metadata.keywords,
+        }
 
 
 class UpdatePlugin(Plugin, FairDMUpdateView):
