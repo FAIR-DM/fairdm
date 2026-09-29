@@ -107,7 +107,7 @@ def shared_context(request, dataset, context):
         "citation": {"title": _("Citation"), "text": citation_["text"]},
         "identifiers": shared.identifiers(dataset),
         "api_url": context["api_url"],
-        "people": shared.people(shared.credits(dataset), exclude=creators),
+        "people": shared.people(shared.credits_of(dataset), exclude=creators),
         "header_people": creators,
         "header_people_label": _("Creators"),
         "lifecycle": lifecycle(dataset, context["dates"]),
@@ -164,7 +164,7 @@ def lifecycle(dataset, dates_):
             {
                 "label": _("Collected"),
                 "sort": dates_["collection_start"],
-                "date": f"{date_format(dates_['collection_start'], 'j M Y')} – "
+                "date": f"{date_format(dates_['collection_start'], 'j M Y')} \u2013 "
                 + (date_format(end, "j M Y") if end else _("ongoing")),
             }
         )
@@ -325,13 +325,13 @@ def field_summary(model, config, queryset, can_see_data):
         for n in config.resolve_fields("table")
         if n not in BOOKKEEPING_FIELDS and "__" not in n
     ]
+    model_fields = {f.name: f for f in model._meta.get_fields()}
     rows, numeric = [], []
     for name in names:
-        try:
-            field = model._meta.get_field(name)
-        except (
-            Exception
-        ):  # a table column that isn't a model field — nothing to describe
+        field = model_fields.get(name)
+        if (
+            field is None
+        ):  # a table column that isn't a model field: nothing to describe
             continue
         kind = field_kind(field)
         row = {

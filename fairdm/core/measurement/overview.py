@@ -33,7 +33,7 @@ def build(request, measurement, can_manage):
     from fairdm.core.sample.models import Sample
 
     user = request.user
-    entries = shared.credits(measurement)
+    entries = shared.credits_of(measurement)
     descriptions = {d.type: d.value for d in measurement.descriptions.all()}
     dates = {d.type: d.value for d in measurement.dates.all()}
     sample = measurement.sample
@@ -99,8 +99,8 @@ def build(request, measurement, can_manage):
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
         "people": shared.people(entries),
-        "details": parents
-        + [
+        "details": [
+            *parents,
             {"label": _("Added"), "icon": "calendar", "date": measurement.added},
             {"label": _("Last updated"), "icon": "time", "date": measurement.modified},
         ],

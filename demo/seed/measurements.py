@@ -38,7 +38,12 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.project.models import Project
-from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
+from fairdm.management.commands.create_dev_accounts import (
+    DEV_ACCOUNT_PASSWORD,
+)
+from fairdm.management.commands.create_dev_accounts import (
+    EXAMPLE_ACCOUNTS as ACCOUNTS,
+)
 from fairdm.utils.choices import Visibility
 
 PROJECT = "Measurement page examples"
@@ -171,10 +176,12 @@ class MeasurementSeed(BaseCommand):
         for email, first, last, staff, superuser in ACCOUNTS:
             user = Person.objects.filter(
                 email=email
-            ).first() or Person.objects.create_user(email=email, password="password")
+            ).first() or Person.objects.create_user(
+                email=email, password=DEV_ACCOUNT_PASSWORD
+            )
             user.first_name, user.last_name, user.name = first, last, f"{first} {last}"
             user.is_staff, user.is_superuser = staff, superuser
-            user.set_password("password")
+            user.set_password(DEV_ACCOUNT_PASSWORD)
             user.save()
             users[email.split("@")[0]] = user
         return users

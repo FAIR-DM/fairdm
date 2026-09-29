@@ -42,7 +42,12 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
-from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
+from fairdm.management.commands.create_dev_accounts import (
+    DEV_ACCOUNT_PASSWORD,
+)
+from fairdm.management.commands.create_dev_accounts import (
+    EXAMPLE_ACCOUNTS as ACCOUNTS,
+)
 from fairdm.utils.choices import Visibility
 
 PROJECT = "Sample page examples"
@@ -100,10 +105,12 @@ class SampleSeed(BaseCommand):
         for email, first, last, staff, superuser in ACCOUNTS:
             user = Person.objects.filter(
                 email=email
-            ).first() or Person.objects.create_user(email=email, password="password")
+            ).first() or Person.objects.create_user(
+                email=email, password=DEV_ACCOUNT_PASSWORD
+            )
             user.first_name, user.last_name, user.name = first, last, f"{first} {last}"
             user.is_staff, user.is_superuser = staff, superuser
-            user.set_password("password")
+            user.set_password(DEV_ACCOUNT_PASSWORD)
             user.save()
             users[email.split("@")[0]] = user
         return users
@@ -168,7 +175,7 @@ class SampleSeed(BaseCommand):
             ),
             (
                 "Other",
-                "Fracture zone at 3509–3514 m. The core is partly altered, which shows in the potassium values.",
+                "Fracture zone at 3509\u20133514 m. The core is partly altered, which shows in the potassium values.",
             ),
         ]:
             SampleDescription.objects.create(related=core, type=type_, value=value)

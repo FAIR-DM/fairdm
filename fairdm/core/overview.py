@@ -218,7 +218,7 @@ def json_ld(data):
     )
 
 
-def credits(obj):
+def credits_of(obj):
     """Everyone credited on ``obj``: each contributor as its own type, with its role labels and
     the organisation they are credited under.
 
@@ -319,11 +319,11 @@ def timeline(steps, dates, descriptions, entries):
     return dated + [s for s in result if not s["date"]]
 
 
-def license_row(license, note=None):
+def license_row(licence, note=None):
     """The Details card's licence row: the licence linked to its text, or a warning."""
     from django.utils.translation import gettext as _
 
-    if license is None:
+    if licence is None:
         return {
             "label": _("Licence"),
             "icon": "license",
@@ -334,8 +334,8 @@ def license_row(license, note=None):
     return {
         "label": _("Licence"),
         "icon": "license",
-        "text": license.name,
-        "url": license.canonical_url or "",
+        "text": licence.name,
+        "url": licence.canonical_url or "",
         "note": note,
     }
 

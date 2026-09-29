@@ -48,7 +48,12 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.core.sample.models import Sample
-from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
+from fairdm.management.commands.create_dev_accounts import (
+    DEV_ACCOUNT_PASSWORD,
+)
+from fairdm.management.commands.create_dev_accounts import (
+    EXAMPLE_ACCOUNTS as ACCOUNTS,
+)
 from fairdm.utils.choices import Visibility
 
 SHOWCASE = "Thermal regime and groundwater flow of the Upper Rhine Graben"
@@ -191,12 +196,15 @@ class ProjectSeed(BaseCommand):
             user = Person.objects.filter(email=email).first()
             if user is None:
                 user = Person.objects.create_user(
-                    email=email, password="password", first_name=first, last_name=last
+                    email=email,
+                    password=DEV_ACCOUNT_PASSWORD,
+                    first_name=first,
+                    last_name=last,
                 )
             user.first_name, user.last_name = first, last
             user.name = f"{first} {last}"
             user.is_staff, user.is_superuser = staff, superuser
-            user.set_password("password")
+            user.set_password(DEV_ACCOUNT_PASSWORD)
             user.save()
             users[email.split("@")[0]] = user
         return users
