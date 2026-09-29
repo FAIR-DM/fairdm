@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -19,6 +19,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-09-29T12:56:42Z",
       "note": "S3 green; dispatching the design reviewer"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-29T13:06:35Z",
+      "note": "S3R green; plan notified to Sam; starting US1"
     }
   ],
   "gates": {
@@ -30,8 +35,8 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "notified",
+      "at": "2026-09-29T13:06:35Z"
     },
     "merge": {
       "approved_by": null,
