@@ -124,3 +124,10 @@
 - Did: `docs/portal-development/overview-pages.md` gained "The measurement page" (header, figures, both columns, who can open it, the unpublished sample), the demo's XRF measurement as the worked example under "Giving a sample or measurement type its own page", the measurement plugin's methods with `procedure_steps` and `siblings_shown`, and the three credit methods on `RecordOverviewPlugin`. The changelog entry for the measurement page is added under Added.
 - Verified: `forge verify --steps docs --base origin/main`: passed.
 - Next: the full verify, then the report.
+
+## 2026-09-29 · FIX-1 · TC01–TC06
+
+- Did: TC01 type badge is plain when the registry has nothing to say (falls back to the configuration description); TC02 dataset and project dates shown as precisely as recorded (`format_partial_date`, `as_date` kept for sorting); TC03 sibling-dataset count limited to what the viewer may open; TC04 funder identifier and award URI linked only when http(s); TC05 hidden and missing records raise the same 404, bare protocol DOIs link to doi.org; TC06 changelog entries, false "moved from" sentences removed, docstrings added, docs pages updated.
+- Verified: each task's own test class red then green; `forge verify --base origin/main` green on lint, typecheck, test, build, conformance and docs.
+- Next: review.
+- Watch: no test other than my own was edited. The project-manager rule in TC03 uses `project.change_project`, held per project.
