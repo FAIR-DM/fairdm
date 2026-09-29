@@ -3,7 +3,8 @@
   <c-card.funding> — the awards that paid for the record, in DataCite's funding reference shape.
 
   Attributes:
-    funding     – [{funderName, funderIdentifier, awardTitle, awardNumber, awardURI}]
+    funding     – [{funderName, funderIdentifier, awardTitle, awardNumber, awardURI}]; an identifier
+                  or award URI is linked only when it is an http(s) address
     can_manage  – the viewer is on the team; with no funding recorded, the card then says why it
                   matters rather than disappearing
     class       – extra classes on the card
@@ -17,7 +18,7 @@
           <li class="flex gap-3 min-w-0">
             <span class="stat-icon stat-icon-sm shrink-0" aria-hidden="true"><c-icon name="funding" only /></span>
             <div class="flex flex-col min-w-0">
-              {% if award.funderIdentifier %}
+              {% if award.funderIdentifier|slice:":8" == "https://" or award.funderIdentifier|slice:":7" == "http://" %}
                 <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium break-words">{{ award.funderName }}</a>
               {% else %}
                 <span class="font-medium break-words">{{ award.funderName }}</span>
@@ -25,7 +26,7 @@
               {% if award.awardTitle %}<span class="text-base-content/70 break-words">{{ award.awardTitle }}</span>{% endif %}
               {% if award.awardNumber %}
                 <span class="text-xs font-mono mt-1">
-                  {% if award.awardURI %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
+                  {% if award.awardURI|slice:":8" == "https://" or award.awardURI|slice:":7" == "http://" %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
                 </span>
               {% endif %}
             </div>

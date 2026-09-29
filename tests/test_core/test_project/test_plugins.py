@@ -1395,6 +1395,44 @@ class TestOverviewFunding:
         assert "Funder Example" in text
         assert "AWARD-42" in text
 
+    def _links(self, client, **award):
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC, funding=[{**self.AWARD, **award}]
+        )
+        response = _page(client, project)
+        title = next(
+            h for h in response.page.select("h2.card-title") if h.get_text(strip=True) == "Funding"
+        )
+        card = title.find_parent(class_="card")
+        return response, card.find_all("a")
+
+    @pytest.mark.parametrize("identifier", ["javascript:alert(1)", "10.13039/501100001659"])
+    def test_a_funder_identifier_that_is_not_a_web_address_is_not_a_link(
+        self, client, identifier
+    ):
+        _, links = self._links(client, funderIdentifier=identifier)
+
+        assert links == []
+
+    @pytest.mark.parametrize("uri", ["javascript:alert(1)", "AWARD/42"])
+    def test_an_award_uri_that_is_not_a_web_address_is_not_a_link(self, client, uri):
+        response, links = self._links(client, awardURI=uri)
+
+        assert links == []
+        assert "AWARD-42" in response.page.get_text()
+
+    def test_web_addresses_stay_links(self, client):
+        _, links = self._links(
+            client,
+            funderIdentifier="https://doi.org/10.13039/501100001659",
+            awardURI="https://example.org/awards/42",
+        )
+
+        assert [a["href"] for a in links] == [
+            "https://doi.org/10.13039/501100001659",
+            "https://example.org/awards/42",
+        ]
+
     def test_a_project_without_funding_shows_a_visitor_no_funding_card(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
         with_funding = ProjectFactory(visibility=Visibility.PUBLIC, funding=[self.AWARD])
