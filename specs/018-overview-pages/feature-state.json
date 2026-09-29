@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-09-29T13:06:35Z",
       "note": "S3R green; plan notified to Sam; starting US1"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-29T15:17:28Z",
+      "note": "all four stories done"
     }
   ],
   "gates": {
@@ -312,7 +317,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
