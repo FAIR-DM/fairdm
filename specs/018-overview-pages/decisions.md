@@ -30,3 +30,41 @@ Samples and measurements are polymorphic, and portals subclass them, so a type n
 put its own fields. Projects and datasets have fixed schemas that portals do not extend. A portal
 that wants a different project page overrides the template the usual way, and the shared
 `overview.` blocks give it the same points to change as a sample type has.
+
+## D1 — Implementation starts from the reviewed prototype
+
+The pages were built and reviewed as a working prototype before this plan was written, and the
+specification describes what that review settled. The implementation keeps the prototype's markup,
+copy and layout, and adds the tests, the documentation and the structural changes it lacks, rather
+than rebuilding the pages from the specification.
+
+**ADR:** none — how this feature was sequenced, nothing downstream inherits it.
+
+## D2 — Page logic lives on the overview plugins
+
+The prototype keeps each page's logic in a module of functions called from the plugin. The
+cohesion rule in the constitution puts behaviour that shares a subject on a class, preferring the
+class Django already owns, so the logic moves onto each page's `Overview` plugin and the shared
+part onto `RecordOverviewPlugin`. A portal then changes one piece of a page by overriding one
+method.
+
+**ADR:** pending — decided at convergence, once the shape has settled in code.
+
+## D3 — The header's people row is `overview.byline`
+
+The prototype called the header's people row `overview.meta`, which says nothing about what it
+holds, beside `overview.people` for the People card. The specification asks for one name per
+thing, so the header row becomes `overview.byline`.
+
+**ADR:** none — a block name, documented with the block list.
+
+## D4 — Existing tests that describe the old rules are updated, not kept
+
+Several existing tests open a sample or measurement in an unpublished dataset as a visitor and
+expect the page. The specification now answers that with "not found". Where a test is about
+something other than visibility, its fixture gets a published, public dataset. Where it is about
+visibility, it is rewritten to the new rule. A test that fails because the prototype dropped
+something the specification still requires, such as the Delete link, is left as it is and the code
+is fixed.
+
+**ADR:** none — follows from the specification.
