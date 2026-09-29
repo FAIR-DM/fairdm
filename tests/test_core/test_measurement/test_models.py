@@ -30,6 +30,7 @@ from fairdm.factories import (
     MeasurementIdentifierFactory,
     PersonFactory,
 )
+from fairdm.utils.choices import Visibility
 
 
 @pytest.mark.django_db
@@ -778,12 +779,23 @@ class TestMeasurementViews:
         assert match.kwargs["uuid"] == str(measurement.uuid)
 
     def test_detail_page_renders(self, client):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        measurement = ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=dataset), dataset=dataset
+        )
 
         response = client.get(measurement.get_absolute_url())
 
         assert response.status_code == 200
         assert measurement.name in response.content.decode()
+
+    def test_detail_page_is_not_found_while_its_dataset_is_unpublished(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        measurement = ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=dataset), dataset=dataset
+        )
+
+        assert client.get(measurement.get_absolute_url()).status_code == 404
 
 
 @pytest.mark.django_db

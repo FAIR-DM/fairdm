@@ -250,3 +250,14 @@ mirrors it. Both querysets keep their own `with_related()` and the other helpers
 
 **Revisit if:** a record type whose visibility follows something other than its own dataset needs
 the same methods, in which case the dataset lookup becomes a class attribute.
+
+## D18 — The measurement detail-page test is brought up to date with the measurement's own dataset
+
+`TestMeasurementViews.test_detail_page_renders` built a measurement in the factory's default dataset,
+which is private and unpublished, and expected a visitor to get a 200. A measurement follows its own
+dataset (FR-020), so that page has answered "not found" to a visitor since the visibility rule was
+added and the test was the one red test on the branch. The test now puts its measurement in a public,
+published dataset, and a case beside it asserts the 404 for a public but unpublished dataset. No other
+assertion changed.
+
+**Revisit if:** the measurement page opens by another rule than its own dataset's.

@@ -1,6 +1,7 @@
 """Tests for the measurement queryset and manager."""
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -12,7 +13,9 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
+from fairdm.core.utils import assign_perm
 from fairdm.factories import DatasetFactory, PersonFactory
+from fairdm.utils.choices import Visibility
 
 
 def count_queries_accessing_related(queryset):
@@ -207,3 +210,62 @@ class TestBothLoadingsComposeWithFilteringAndOrdering:
                 _ = list(measurement.descriptions.all())
 
         assert len(context.captured_queries) == 0
+
+
+@pytest.mark.django_db
+class TestVisibleTo:
+    """FR-020: a measurement follows its own dataset, whatever the state of its sample's."""
+
+    @pytest.fixture
+    def measurements(self):
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
+        return {
+            "released": ExampleMeasurementFactory(
+                sample=sample,
+                dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True),
+            ),
+            "unpublished": ExampleMeasurementFactory(
+                sample=sample,
+                dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=False),
+            ),
+            "private": ExampleMeasurementFactory(
+                sample=sample,
+                dataset=DatasetFactory(visibility=Visibility.PRIVATE, published=False),
+            ),
+        }
+
+    def test_a_visitor_sees_only_measurements_in_public_published_datasets(
+        self, measurements
+    ):
+        visible = Measurement.objects.visible_to(AnonymousUser())
+
+        assert set(visible) == {measurements["released"]}
+
+    def test_a_published_sample_does_not_release_a_measurement_in_an_unpublished_dataset(
+        self, measurements
+    ):
+        assert measurements["unpublished"] not in Measurement.objects.visible_to(
+            AnonymousUser()
+        )
+
+    def test_a_signed_in_user_with_no_rights_sees_the_same_as_a_visitor(
+        self, measurements
+    ):
+        visible = Measurement.objects.visible_to(PersonFactory(is_active=True))
+
+        assert set(visible) == {measurements["released"]}
+
+    def test_a_dataset_team_member_also_sees_that_datasets_measurements(
+        self, measurements
+    ):
+        user = PersonFactory(is_active=True)
+        assign_perm("view_dataset", user, measurements["private"].dataset)
+
+        visible = Measurement.objects.visible_to(user)
+
+        assert set(visible) == {measurements["released"], measurements["private"]}
+
+    def test_no_user_at_all_is_treated_as_a_visitor(self, measurements):
+        assert set(Measurement.objects.visible_to(None)) == {measurements["released"]}

@@ -104,3 +104,10 @@
 - Did: `docs/portal-development/overview-pages.md` gained the sample page (header, notices, figures, both columns, the history, who can open it) and "Giving a sample or measurement type its own page" with the demo's rock sample as the worked example, the plain-manager note, the visibility mixin and the sample plugin's methods. The changelog entry for the overview pages is extended.
 - Verified: `forge verify --steps docs --base origin/main`: the only names left undocumented are `sample_status` and `siblings`, which belong to the measurement story.
 - Next: the full verify, then the report.
+
+## 2026-09-29 · US4 · T016
+
+- Did: `tests/test_core/test_measurement/test_plugins.py` covers US-4 scenarios 1 to 10 (address, template choice, visibility by the measurement's own dataset, the unpublished sample, the map, the result, the type badge, siblings, procedure, citation, breadcrumbs) as visitor and team, asserting the literal `/measurement/<uuid>/`. `TestVisibleTo` added to the measurement manager tests. The authorised detail-page test now uses a published dataset, with a 404 case beside it (D18).
+- Verified: `uv run pytest tests/test_core/test_measurement/test_plugins.py tests/test_core/test_measurement/test_managers.py tests/test_core/test_measurement/test_models.py::TestMeasurementViews -q`: 55 passed. Probed by making the sample always visible (3 failed) and dropping the siblings `visible_to` (2 failed), then restored.
+- Next: T017.
+- Watch: the page's behaviour already met every scenario; T016 found no gap. A sample's list crumb has no link (no `sample-list` route exists), and the measurement's matches it.
