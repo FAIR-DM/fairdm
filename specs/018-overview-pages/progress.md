@@ -57,3 +57,10 @@
 
 - Did: `docs/portal-development/overview-pages.md` (anatomy, block list, project page, extending a project page by template, the plugin methods and helper functions, development data), `docs/portal-development/component_library/cards.md` (every `c-card.*` component and `c-stats`, `c-list`, `c-tabs`, `c-progress`, each with a working example), the new section of `development_accounts.md`, the `context_object_name` passage of `sample-mixins.md`, both pages added to their toctrees, and a changelog entry under Unreleased.
 - Verified: every fenced `django` example in `cards.md` rendered against the branch (16 examples), both template examples in `overview-pages.md` rendered as overrides of `project/project_detail.html` on a real project. The documentation check over the branch diff now reports 13 undocumented names, all in the dataset, sample and measurement modules that stay until their stories: `field_kind`, `field_summary`, `literature`, `preview_table`, `project_info`, `record_types`, `schema_org`, `shared_context` (dataset); `measurement_summary`, `related_samples`, `relations_summary` (sample); `sample_status`, `siblings` (measurement).
+
+## 2026-09-29 · US2 · T010
+
+- Did: `TestOverview…` classes in `tests/test_core/test_dataset/test_plugins.py` for scenarios 1 to 11, the JSON-LD of a public unpublished dataset, and the Delete offer. The old published-or-not test in `test_views.py` now states the new rule (decision D11).
+- Verified: `uv run pytest tests/test_core/test_dataset/test_plugins.py -q -k TestOverview`: 25 passed on the first run, so the page already met every scenario. Probed by mutation: checklist for everyone, year order, project visibility, relation order and the timeline sort each turned a test red. The timeline sort probe first survived; the test now puts the added date before the collection so the sort decides it.
+- Next: T011.
+- Watch: a dataset holding only unregistered types shows the first-run card, because the card follows the types the registry knows.

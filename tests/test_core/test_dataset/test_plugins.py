@@ -1,7 +1,9 @@
 """Tests for the dataset's registered pages: update, descriptions, deletion, menu and links."""
 
+import json
 import re
 import warnings
+from datetime import UTC, date, datetime
 from urllib.parse import quote
 
 import pytest
@@ -9,8 +11,10 @@ from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
+from django.utils.formats import date_format
 from guardian.shortcuts import assign_perm
 from licensing.models import License
+from partial_date import PartialDate
 from mvp.warnings import MVPDeprecationWarning
 from pytest_django.asserts import assertContains, assertNotContains
 
@@ -18,14 +22,22 @@ from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
 from fairdm.contrib.plugins.base import Plugin
 from fairdm.core.dataset.forms import DatasetForm
-from fairdm.core.dataset.models import Dataset, DatasetDescription
+from fairdm.core.dataset.models import (
+    Dataset,
+    DatasetDescription,
+    DatasetLiteratureRelation,
+)
 from fairdm.core.dataset.plugins import Delete, Descriptions, Overview, Update
 from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.factories import (
     DatasetDateFactory,
+    DatasetDescriptionFactory,
     DatasetFactory,
     DatasetIdentifierFactory,
+    DatasetLiteratureRelationFactory,
     LiteratureItemFactory,
+    PersonFactory,
+    ProjectFactory,
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
@@ -1408,3 +1420,379 @@ class TestRetiredManagementPages:
 
     def test_the_dataset_menu_carries_one_entry(self):
         assert _entry_view_names(Dataset) == ["dataset:overview"]
+
+
+def _page(client, dataset):
+    """Open the dataset's page and return the response with its parsed HTML."""
+    response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
+    assert response.status_code == 200
+    response.page = BeautifulSoup(response.content, "html.parser")
+    return response
+
+
+def _figures(page):
+    """The values of the four figures, in the order they are drawn."""
+    return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+
+
+def _json_ld(page):
+    return json.loads(page.head.find("script", type="application/ld+json").string)
+
+
+def _team_member(dataset, *permissions):
+    """Return a signed-in-ready user holding the given permissions on the dataset."""
+    user = UserFactory()
+    for permission in ("view_dataset", *permissions):
+        assign_perm(permission, user, dataset)
+    return user
+
+
+@pytest.fixture
+def holding():
+    """A public, unpublished dataset holding two rock samples and two XRF measurements."""
+    from datetime import UTC, datetime
+
+    from demo.factories import RockSampleFactory, XRFMeasurementFactory
+    from fairdm.core.measurement.models import Measurement
+    from fairdm.core.sample.models import Sample
+
+    dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+    rocks = RockSampleFactory.create_batch(2, dataset=dataset)
+    XRFMeasurementFactory.create_batch(2, dataset=dataset, sample=rocks[0])
+    Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
+    Measurement.objects.update(added=datetime(2026, 3, 15, tzinfo=UTC))
+    return dataset
+
+
+class TestOverviewWhatAVisitorSeesBeforePublication:
+    """US-2 scenarios 1 to 3 and FR-022, FR-024."""
+
+    def test_a_visitor_sees_the_counts_and_both_charts_and_a_notice(
+        self, client, holding
+    ):
+        response = _page(client, holding)
+
+        assert _figures(response.page)[:2] == ["2", "2"]
+        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.find(id="dataset-growth") is not None
+        assert len(response.page.select(".alert")) == 1
+
+    def test_a_visitor_is_shown_the_abstract(self, client, holding):
+        DatasetDescriptionFactory(
+            related=holding, type="Abstract", value="Cores from the rift."
+        )
+
+        response = _page(client, holding)
+
+        assertContains(response, "Cores from the rift.")
+
+    def test_the_team_of_an_unpublished_dataset_sees_the_checklist(
+        self, client, holding
+    ):
+        client.force_login(_team_member(holding, "change_dataset"))
+
+        response = _page(client, holding)
+
+        assert response.page.find("progress", attrs={"max": "10"}) is not None
+
+    def test_a_visitor_sees_no_checklist(self, client, holding):
+        response = _page(client, holding)
+
+        assert response.page.find("progress") is None
+
+    def test_a_published_dataset_shows_its_team_no_checklist_and_no_notice(
+        self, client, holding
+    ):
+        Dataset.all_objects.filter(pk=holding.pk).update(published=True)
+        client.force_login(_team_member(holding, "change_dataset"))
+
+        response = _page(client, holding)
+
+        assert response.page.find("progress") is None
+        assert response.page.select(".alert") == []
+
+
+class TestOverviewCitation:
+    """US-2 scenario 4."""
+
+    def _citation(self, client, dataset):
+        return _page(client, dataset).page.find(id="citation-text").get_text(strip=True)
+
+    def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
+        reference = LiteratureItemFactory()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, reference=reference)
+
+        assert self._citation(client, dataset) == str(reference)
+
+    def test_without_one_the_year_is_the_published_date(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDateFactory(
+            related=dataset, type="Published", value=PartialDate("2021-05-04")
+        )
+        DatasetDateFactory(
+            related=dataset, type="Available", value=PartialDate("2022-01-01")
+        )
+
+        assert "(2021)" in self._citation(client, dataset)
+
+    def test_without_a_published_date_the_year_is_the_available_date(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetDateFactory(
+            related=dataset, type="Available", value=PartialDate("2022-01-01")
+        )
+
+        assert "(2022)" in self._citation(client, dataset)
+
+    def test_without_either_the_year_is_when_the_record_was_added(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        assert f"({dataset.added.year})" in self._citation(client, dataset)
+
+
+class TestOverviewCharts:
+    """US-2 scenarios 5 to 7."""
+
+    def test_the_composition_text_lists_every_type_with_its_count(
+        self, client, holding
+    ):
+        response = _page(client, holding)
+
+        text = response.page.find(id="dataset-composition-description").get_text()
+        assert "Rock Samples: 2" in text
+        assert "XRF Measurements: 2" in text
+
+    def test_records_within_one_month_draw_no_growth_chart(self, client, holding):
+        from datetime import UTC, datetime
+
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
+        Measurement.objects.update(added=datetime(2026, 1, 20, tzinfo=UTC))
+
+        response = _page(client, holding)
+
+        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.find(id="dataset-growth") is None
+
+    def test_a_type_the_registry_no_longer_holds_is_left_out(
+        self, client, holding, monkeypatch
+    ):
+        from demo.models import XRFMeasurement
+        from fairdm.registry import registry
+
+        held = {
+            model: config
+            for model, config in registry._registry.items()
+            if model is not XRFMeasurement
+        }
+        monkeypatch.setattr(registry, "_registry", held)
+
+        response = _page(client, holding)
+
+        text = response.page.find(id="dataset-composition-description").get_text()
+        assert "XRF" not in text
+        assert "Rock Samples" in text
+
+
+class TestOverviewFirstRun:
+    """US-2 scenario 6."""
+
+    def _unavailable_actions(self, client, dataset):
+        page = _page(client, dataset).page
+        return len(page.find_all("button", disabled=True))
+
+    def test_the_team_of_an_empty_dataset_is_offered_one_more_step_than_of_one_holding_data(
+        self, client, holding
+    ):
+        Dataset.all_objects.filter(pk=holding.pk).update(published=True)
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        client.force_login(_team_member(holding, "change_dataset"))
+        with_data = self._unavailable_actions(client, holding)
+        client.force_login(_team_member(empty, "change_dataset"))
+
+        assert self._unavailable_actions(client, empty) == with_data + 1
+
+    def test_an_empty_dataset_draws_no_chart(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        client.force_login(_team_member(dataset, "change_dataset"))
+
+        response = _page(client, dataset)
+
+        assert response.page.find(attrs={"data-mvp-chart": True}) is None
+        assert response.page.find(id="dataset-composition") is None
+        assert response.page.find(id="dataset-growth") is None
+
+    def test_a_visitor_to_an_empty_dataset_is_offered_no_first_step(
+        self, client, holding
+    ):
+        Dataset.all_objects.filter(pk=holding.pk).update(published=True)
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        assert self._unavailable_actions(client, empty) == self._unavailable_actions(
+            client, holding
+        )
+
+
+class TestOverviewTimeline:
+    """US-2 scenarios 8 and 9."""
+
+    def _steps(self, page):
+        """The date each timeline step shows, in the order they are drawn."""
+        card = page.find("ol", class_="timeline").find_parent(class_="card")
+        return [
+            item.select_one(".text-sm").get_text(strip=True)
+            for item in card.select("ol > li")
+        ]
+
+    def test_the_dates_are_listed_in_the_order_they_happened(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        Dataset.all_objects.filter(pk=dataset.pk).update(
+            added=datetime(2022, 11, 10, tzinfo=UTC)
+        )
+        for type_, value in (
+            ("Available", "2025-06-01"),
+            ("Published", "2025-05-01"),
+            ("Submitted", "2025-04-01"),
+            ("CollectionStart", "2023-02-01"),
+            ("CollectionEnd", "2023-09-30"),
+        ):
+            DatasetDateFactory(related=dataset, type=type_, value=PartialDate(value))
+
+        steps = self._steps(_page(client, dataset).page)
+
+        assert steps[0] == date_format(date(2022, 11, 10), "SHORT_DATE_FORMAT")
+        assert steps[1].startswith(date_format(date(2023, 2, 1), "SHORT_DATE_FORMAT"))
+        assert steps[2:] == [
+            date_format(day, "SHORT_DATE_FORMAT")
+            for day in (date(2025, 4, 1), date(2025, 5, 1), date(2025, 6, 1))
+        ]
+
+    def test_a_withdrawn_dataset_says_so_and_the_withdrawal_ends_its_timeline(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetDateFactory(
+            related=dataset, type="Withdrawn", value=PartialDate("2999-01-01")
+        )
+        when = date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT")
+
+        response = _page(client, dataset)
+
+        assert when in response.page.select_one(".alert").get_text()
+        assert self._steps(response.page)[-1] == when
+
+
+class TestOverviewRelatedPublications:
+    """US-2 scenario 10."""
+
+    def test_each_relation_is_worded_from_the_publications_side_and_the_closest_come_first(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        items = {}
+        for relation in ("Cites", "IsCitedBy", "IsDescribedBy"):
+            items[relation] = LiteratureItemFactory()
+            DatasetLiteratureRelationFactory(
+                dataset=dataset,
+                literature_item=items[relation],
+                relationship_type=relation,
+            )
+
+        response = _page(client, dataset)
+
+        card = response.page.find(string=str(items["IsDescribedBy"])).find_parent(
+            class_="card"
+        )
+        listed = card.select("ul > li")
+        order = [
+            next(name for name, item in items.items() if str(item) in li.get_text())
+            for li in listed
+        ]
+        assert order == ["IsDescribedBy", "IsCitedBy", "Cites"]
+        for name, li in zip(order, listed, strict=True):
+            dataset_side = DatasetLiteratureRelation(relationship_type=name)
+            assert li.select_one(".badge").get_text(strip=True) != (
+                dataset_side.get_relationship_type_display()
+            )
+
+
+class TestOverviewProject:
+    """US-2 scenario 11."""
+
+    def test_a_project_the_viewer_may_not_see_is_neither_named_nor_linked(self, client):
+        project = ProjectFactory(
+            visibility=Visibility.PRIVATE, name="Secret Rift Programme"
+        )
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, project=project)
+
+        response = _page(client, dataset)
+
+        assert project.name not in response.content.decode()
+        assert project.get_absolute_url() not in response.content.decode()
+        assert "isPartOf" not in _json_ld(response.page)
+
+    def test_a_project_the_viewer_may_see_is_named_and_linked(self, client):
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC, name="Open Rift Programme"
+        )
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, project=project)
+
+        response = _page(client, dataset)
+
+        assert response.page.find("a", href=project.get_absolute_url()) is not None
+        assert _json_ld(response.page)["isPartOf"]["name"] == "Open Rift Programme"
+
+
+class TestOverviewSchemaOrgDescription:
+    """FR-034 and FR-056."""
+
+    def test_a_public_unpublished_dataset_names_its_variables_and_carries_no_values(
+        self, client, holding
+    ):
+        from demo.models import XRFMeasurement
+        from fairdm.core.sample.models import Sample
+
+        response = _page(client, holding)
+
+        data = _json_ld(response.page)
+        assert data["@type"] == "Dataset"
+        assert data["variableMeasured"]
+        serialised = json.dumps(data)
+        for sample in Sample.objects.filter(dataset=holding):
+            assert sample.name not in serialised
+        for measurement in XRFMeasurement.objects.filter(dataset=holding):
+            assert str(measurement.concentration_ppm) not in serialised
+
+    def test_a_dataset_holding_nothing_names_no_variables(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        assert "variableMeasured" not in _json_ld(_page(client, dataset).page)
+
+    def test_it_carries_no_contributor_email_address(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        person = PersonFactory(is_active=True)
+        dataset.add_contributor(person, with_roles=["Creator"])
+
+        response = _page(client, dataset)
+
+        assert person.email not in response.content.decode()
+
+
+class TestOverviewManageMenu:
+    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        client.force_login(_team_member(dataset, "delete_dataset"))
+
+        response = _page(client, dataset)
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assert response.page.find("a", href=delete_url) is not None
+
+    def test_a_visitor_is_offered_no_delete_link(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, dataset)
+
+        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        assert response.page.find("a", href=delete_url) is None

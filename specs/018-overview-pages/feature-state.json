@@ -192,8 +192,14 @@
       "tasks": [
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset/test_plugins.py -q -k TestOverview",
+              "uv run pytest tests/test_core/test_dataset/test_views.py -q -k TestNonCollectionPagesIgnorePublished"
+            ]
+          }
         },
         {
           "id": "T011",

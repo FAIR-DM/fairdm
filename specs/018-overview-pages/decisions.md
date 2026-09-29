@@ -171,3 +171,15 @@ measurement type opens in one. The include now writes the same markup itself wit
 so the dialog is announced by the type's name.
 
 **Revisit if:** `c-modal` names its dialog.
+
+## D11 — The old "identical whether published or not" dataset page test now states the new rule
+
+`TestNonCollectionPagesIgnorePublished` held a test that the dataset's page rendered byte for byte
+the same whether the dataset was published or not. That was the rule of the page that listed
+records. The page now carries a notice while a public dataset is unpublished, and the team also
+sees the readiness checklist, so the two states differ on purpose. The test now checks the rule
+that replaced it: a visitor sees the sample count and no record's name, published or not, and the
+notice appears only while the dataset is unpublished. It is renamed to say so.
+
+**Revisit if:** the page lists records again, in which case the visitor's view of an unpublished
+dataset needs its own test.
