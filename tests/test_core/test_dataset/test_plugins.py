@@ -1817,6 +1817,56 @@ class TestOverviewProject:
         assert _json_ld(response.page)["isPartOf"]["name"] == "Open Rift Programme"
 
 
+@pytest.mark.django_db
+class TestOverviewProjectSiblingCount:
+    """SC-003: the count of other datasets in the project never includes one the viewer cannot open."""
+
+    @pytest.fixture
+    def project(self):
+        return ProjectFactory(visibility=Visibility.PUBLIC)
+
+    @pytest.fixture
+    def team_dataset(self, project):
+        return DatasetFactory(visibility=Visibility.PUBLIC, project=project)
+
+    @pytest.fixture
+    def hidden(self, project):
+        return DatasetFactory(visibility=Visibility.PRIVATE, project=project)
+
+    def _siblings(self, client, user, dataset):
+        client.force_login(user)
+        return _page(client, dataset).context["project_info"]["siblings"]
+
+    def test_a_team_member_is_not_told_about_a_private_dataset_they_cannot_open(
+        self, client, team_dataset, hidden
+    ):
+        user = _team_member(team_dataset, "change_dataset")
+
+        assert self._siblings(client, user, team_dataset) == 0
+
+    def test_a_private_dataset_the_viewer_may_open_is_counted(
+        self, client, team_dataset, hidden
+    ):
+        user = _team_member(team_dataset, "change_dataset")
+        assign_perm("view_dataset", user, hidden)
+
+        assert self._siblings(client, user, team_dataset) == 1
+
+    def test_a_public_dataset_is_counted(self, client, project, team_dataset):
+        DatasetFactory(visibility=Visibility.PUBLIC, project=project)
+        user = _team_member(team_dataset, "change_dataset")
+
+        assert self._siblings(client, user, team_dataset) == 1
+
+    def test_someone_who_manages_the_project_counts_every_dataset(
+        self, client, project, team_dataset, hidden
+    ):
+        user = _team_member(team_dataset)
+        assign_perm("change_project", user, project)
+
+        assert self._siblings(client, user, team_dataset) == 1
+
+
 class TestOverviewSchemaOrgDescription:
     """FR-034 and FR-056."""
 

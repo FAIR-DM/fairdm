@@ -527,7 +527,7 @@ The dataset's own steps are methods on its `Overview` plugin in `fairdm.core.dat
 | `get_literature()` | The related publications, each with its relation worded from the publication's side, its DOI and its year. |
 | `get_record_types(samples, measurements)` | The registered sample and measurement types the dataset holds, each with its `kind`, `label` and the labels of its `fields`. `bookkeeping_fields` lists the fields left out. |
 | `get_counts(samples, measurements, data_types)` | The sample and measurement counts, each with how many types it spans. |
-| `get_project_info(can_manage)` | The project and how many other datasets it has, or `None` when the viewer may not see it. |
+| `get_project_info()` | The project and how many other datasets in it the viewer may see, or `None` when the viewer may not see the project. |
 | `get_citation_details(page)` | The citation's text and link, and whether it comes from a data publication or has a DOI. |
 | `get_schema_org(page)` | The schema.org `Dataset` description for the page head. |
 | `get_readiness(page)` | The checklist's items, how many are done and whether every required one is. |

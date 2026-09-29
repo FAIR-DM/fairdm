@@ -4,7 +4,7 @@ from collections import Counter, OrderedDict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.urls import reverse_lazy
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
@@ -336,7 +336,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "counts": self.get_counts(samples, measurements, data_types),
             "composition_chart": self.get_composition_chart(samples, measurements),
             "growth_chart": self.get_growth_chart(samples, measurements),
-            "project_info": self.get_project_info(can_manage),
+            "project_info": self.get_project_info(),
             "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
             "urls": {
                 "update": safe_reverse("dataset:overview-update", uuid=dataset.uuid),
@@ -679,27 +679,36 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "measurements_desc": types("measurement"),
         }
 
-    def get_project_info(self, can_manage):
+    def get_project_info(self):
         """Find the parent project when the viewer may see it.
 
         Nothing ties a dataset's visibility to its project's, so a public dataset can sit in a
         private project that must not be named.
 
-        Args:
-            can_manage: Whether the viewer is on the dataset's team, who count every sibling.
-
         Returns:
-            The project and how many other datasets it has, or ``None``.
+            The project and how many other datasets in it the viewer may see, or ``None``.
         """
         from fairdm.core.project.plugins import project_is_visible
+        from fairdm.core.utils import get_objects_for_user
 
         dataset = self.base_object
         project = dataset.project
         if project is None or not project_is_visible(self.request, project):
             return None
         siblings = Dataset.all_objects.filter(project=project).exclude(pk=dataset.pk)
-        if not can_manage:
-            siblings = siblings.filter(visibility=Visibility.PUBLIC)
+        if not has_perm(self.request, "project.change_project", project):
+            visible = Q(visibility=Visibility.PUBLIC)
+            user = self.request.user
+            if user.is_authenticated:
+                visible |= Q(
+                    pk__in=get_objects_for_user(
+                        user,
+                        ["dataset.view_dataset", "dataset.change_dataset"],
+                        Dataset.all_objects.all(),
+                        any_perm=True,
+                    )
+                )
+            siblings = siblings.filter(visible)
         return {"project": project, "siblings": siblings.count()}
 
     def get_citation_details(self, page):
