@@ -407,6 +407,27 @@ class RecordOverviewPlugin(OverviewPlugin):
         )
 
 
+def _visible_through(base_model):
+    """Build a plugin ``check`` that asks the base model's manager whether the user may see a record.
+
+    The subtype's own manager is never asked: a portal's type may declare a plain ``QuerySet``
+    manager with no ``visible_to``.
+
+    Args:
+        base_model: The core model the records share, such as ``Sample``.
+
+    Returns:
+        A ``check(request, obj)`` predicate.
+    """
+
+    def check(request, obj):
+        if obj is None:
+            return True
+        return base_model.objects.visible_to(request.user).filter(pk=obj.pk).exists()
+
+    return check
+
+
 class TypedOverviewPlugin(RecordOverviewPlugin):
     """The overview of a record portals subclass: a sample or a measurement.
 
@@ -429,11 +450,16 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
 
     @staticmethod
     def check(request, obj):
-        # A staticmethod, not a classmethod: registration refuses a classmethod `check`
-        # (fairdm.contrib.plugins.access.check_is_valid).
-        if obj is None:
-            return True
-        return type(obj).objects.visible_to(request.user).filter(pk=obj.pk).exists()
+        # Fails closed: a subclass that names its ``base_model`` gets the real check from
+        # ``__init_subclass__``. It is a staticmethod, not a classmethod, because registration
+        # refuses a classmethod `check` (fairdm.contrib.plugins.access.check_is_valid).
+        return obj is None
+
+    def __init_subclass__(cls, **kwargs):
+        """Give a subclass that names its ``base_model`` a visibility check that reads through it."""
+        super().__init_subclass__(**kwargs)
+        if cls.base_model is not None:
+            cls.check = staticmethod(_visible_through(cls.base_model))
 
     def handle_no_permission(self):
         from django.http import Http404

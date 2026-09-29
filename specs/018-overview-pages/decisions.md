@@ -206,3 +206,27 @@ in the list.
 
 **Revisit if:** publishing stops making a dataset public, in which case the item is required again
 and the spec's count changes with it.
+
+## D14 — Two sample gate tests now open a sample in a published, public dataset
+
+`test_the_reading_surface_stays_open_for_a_user_with_no_rights` and
+`test_the_reading_surface_stays_open_for_an_anonymous_request` in
+`tests/test_core/test_sample/test_plugins.py` used a sample in the default private, unpublished
+dataset and expected the overview to open for anyone. A sample now follows its dataset (FR-019),
+so that sample is correctly hidden from both. The tests take a new `published_rock_sample`
+fixture instead; their assertions are unchanged.
+
+**Revisit if:** the reading surface is meant to open for samples whose dataset is not released, in
+which case FR-019 changes first.
+
+## D15 — A typed overview asks the base model's manager, never the subtype's
+
+`TypedOverviewPlugin.check` used `type(obj).objects.visible_to(...)`. A portal's sample type may
+declare a plain `QuerySet` manager with no `visible_to` (the demo documents exactly that), which
+made the page raise instead of opening for the team or answering "not found". Registration refuses
+a classmethod `check`, so a subclass that names its `base_model` gets a `check` built around that
+model when it is defined. A subclass with no `base_model` refuses every record, so a forgotten
+`base_model` fails closed.
+
+**Revisit if:** the plugin base learns to call a bound permission method, in which case `check`
+can become an ordinary method again.

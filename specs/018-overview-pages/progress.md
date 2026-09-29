@@ -84,3 +84,10 @@
 - Did: `docs/portal-development/overview-pages.md` gained the dataset page (header, notices, figures, content and side columns, the timeline card, the readiness checklist, the citation, related publications, what a visitor sees before publication, the page head), extending a dataset page by template, and the dataset plugin's methods. The changelog entry for the overview pages is extended with the dataset page.
 - Verified: the template example in the dataset section rendered as an override of `dataset/dataset_detail.html` on a real dataset. `forge verify --steps docs --base origin/main`: the only names left undocumented are the five that belong to the sample and measurement stories.
 - Next: the full verify, then the report.
+
+## 2026-09-29 · US3 · T013
+
+- Did: `TestOverview…` classes in `tests/test_core/test_sample/test_plugins.py` for scenarios 1 to 12, template choice by own type, nearest ancestor and fallback, and a subtype with a plain manager. `TestVisibleTo` in `test_managers.py`, `TestDatasetDataIsPublic` in `test_models.py`. The two gate tests use a published dataset (decision D14). The plain-manager test failed with an `AttributeError` on `visible_to`; the typed check now reads through the base model (decision D15).
+- Verified: `uv run pytest tests/test_core/test_sample/test_plugins.py -q`: 51 passed. The rest of the page already met every scenario, so T014 moves code without changing output.
+- Next: T014.
+- Watch: `related_samples` says hidden relations are not counted; the code and FR-023 count them, so the docstring changes as it moves.
