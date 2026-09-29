@@ -26,7 +26,7 @@ class Overview(TypedOverviewPlugin):
     base ``Sample`` model. A sample type adds its own content with
     ``<app_label>/<model_name>_overview.html``; see :class:`TypedOverviewPlugin`."""
 
-    # Was declared at module scope, outside the class it belongs to, so it configured nothing.
+    # The overview edits no fields, so it declares no fieldsets.
     fieldsets: list[tuple[str | None, dict[str, Any]]] = []
     base_model = Sample
     fallback_template = "sample/sample_overview.html"
