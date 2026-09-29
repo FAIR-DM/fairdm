@@ -9,16 +9,12 @@ project's public datasets only, and the samples and measurements beneath them; a
 team sees everything, with the private share called out.
 """
 
-from collections import Counter, OrderedDict
-from datetime import date
+from collections import Counter
 
 from django.db.models import Count
-from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
-from pyecharts import options as opts
-from pyecharts.charts import Line
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
@@ -65,7 +61,7 @@ def build(request, project, can_manage):
         "datasets_preview": datasets_preview(datasets),
         "licenses": licenses(datasets),
         "composition_chart": composition_chart(samples, measurements),
-        "growth_chart": growth_chart(samples, measurements),
+        "growth_chart": shared.growth_chart(samples, measurements),
         "citation": citation(request, project),
         "json_ld": json_ld(to_json_ld(project)),
         "api_url": safe_reverse(f"api:{project._meta.model_name}-detail", uuid=project.uuid),
@@ -86,20 +82,17 @@ def build(request, project, can_manage):
 
 def shared_context(request, project, context):
     """The keys every overview page provides, which the shared skeleton and cards read."""
+    leads = [e["contributor"] for e in context["team"]["leads"]]
     result = {
         "record": project,
         "overview_icon": "project",
         "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
         "citation": {"title": _("Cite this project"), "text": context["citation"]["text"]},
         "identifiers": shared.identifiers(project),
-        "people": shared.people(
-            shared.credits(project), named_roles=LEAD_ROLES, condensed=True, detail="affiliation"
-        ),
+        "people": shared.people(shared.credits(project), exclude=leads),
         "people_url": context["urls"]["contributors"],
-        "header_people": {
-            "label": _("Led by"),
-            "people": [e["contributor"] for e in context["team"]["leads"]],
-        },
+        "header_people": leads,
+        "header_people_label": _("Project leaders"),
         "details": project_details(project, context),
     }
     if not context["citation"]["has_doi"]:
@@ -247,72 +240,6 @@ def licenses(datasets):
     unlicensed = counter.pop(None, 0)
     return {"items": counter.most_common(), "unlicensed": unlicensed}
 
-
-
-
-def monthly(queryset):
-    return OrderedDict(
-        (row["month"].date() if hasattr(row["month"], "date") else row["month"], row["n"])
-        for row in queryset.annotate(month=TruncMonth("added"))
-        .values("month")
-        .annotate(n=Count("pk"))
-        .order_by("month")
-    )
-
-
-def growth_chart(samples, measurements):
-    """Cumulative samples and measurements by month — two series on one count axis."""
-    by_sample, by_measurement = monthly(samples), monthly(measurements)
-    months = sorted(set(by_sample) | set(by_measurement))
-    if len(months) < 2:
-        return None
-    # Fill the gaps so a quiet month reads as flat, not as a missing point.
-    first, last = months[0], months[-1]
-    months, cursor = [], first
-    while cursor <= last:
-        months.append(cursor)
-        cursor = date(cursor.year + cursor.month // 12, cursor.month % 12 + 1, 1)
-
-    def cumulative(series):
-        total, values = 0, []
-        for month in months:
-            total += series.get(month, 0)
-            values.append(total)
-        return values
-
-    samples_line, measurements_line = cumulative(by_sample), cumulative(by_measurement)
-    line_style = opts.LineStyleOpts(width=2)
-    chart = (
-        Line()
-        .add_xaxis([m.strftime("%b %Y") for m in months])
-        .add_yaxis(
-            _("Samples"), samples_line, is_symbol_show=False, linestyle_opts=line_style,
-            label_opts=opts.LabelOpts(is_show=False),
-        )
-        .add_yaxis(
-            _("Measurements"), measurements_line, is_symbol_show=False, linestyle_opts=line_style,
-            label_opts=opts.LabelOpts(is_show=False),
-        )
-        .set_global_opts(
-            legend_opts=opts.LegendOpts(pos_left="left", pos_top="top"),
-            tooltip_opts=opts.TooltipOpts(trigger="axis"),
-            xaxis_opts=opts.AxisOpts(boundary_gap=False),
-        )
-    )
-    chart.options["grid"] = {"left": 8, "right": 16, "top": 40, "bottom": 8, "containLabel": True}
-    return {
-        "chart": chart,
-        "description": _(
-            "From %(first)s to %(last)s the project grew to %(samples)s samples and "
-            "%(measurements)s measurements."
-        )
-        % {
-            "first": months[0].strftime("%B %Y"),
-            "last": months[-1].strftime("%B %Y"),
-            "samples": samples_line[-1],
-            "measurements": measurements_line[-1],
-        },
-    }
 
 
 

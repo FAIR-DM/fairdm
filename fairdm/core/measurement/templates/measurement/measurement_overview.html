@@ -1,5 +1,5 @@
 {% extends "overview/page.html" %}
-{% load i18n humanize fairdm %}
+{% load i18n humanize fairdm thumbnail %}
 {% comment %}
   The measurement's own page, drawn from the base Measurement model and what the registry says
   about the measurement's type.
@@ -18,12 +18,12 @@
 
   Measurement blocks: overview.result (in the figures' place; shown when the type declares a
   `value`, otherwise the block a type fills first), then in the wide column overview.properties
-  (empty here), overview.method, overview.procedure, overview.notes, overview.sample,
-  overview.siblings. Every other block is listed in `overview/page.html`.
+  (empty here), overview.procedure, overview.notes, overview.sample, overview.siblings. What the
+  registry says about the type opens from the type badge in the header. Every other block is listed in `overview/page.html`.
 {% endcomment %}
 
 {% block overview.badges %}
-  <span class="badge badge-ghost badge-sm"><c-icon name="measurement" aria-hidden="true" />{{ measurement_type|capfirst }}</span>
+  {% include "overview/includes/type_badge.html" with label=measurement_type info=type_info id="about-measurement-type" %}
 {% endblock overview.badges %}
 
 {% block overview.notices %}
@@ -50,29 +50,6 @@
 {% block overview.main %}
   {% block overview.properties %}{% endblock overview.properties %}
 
-  {% block overview.method %}
-    {% if method.description or method.authority or method.citation %}
-      <c-card title="{% blocktranslate with type=measurement_type %}About {{ type }}{% endblocktranslate %}" class="bg-base-100">
-        {% if method.description %}<p class="text-sm">{{ method.description }}</p>{% endif %}
-        {% if method.keywords %}
-          <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Method keywords' %}">
-            {% for keyword in method.keywords %}<li class="badge badge-outline badge-sm">{{ keyword }}</li>{% endfor %}
-          </ul>
-        {% endif %}
-        {% if method.authority or method.citation %}
-          <div class="flex flex-col gap-1 text-sm text-base-content/70">
-            {% if method.authority %}
-              <p>{% translate "Recorded to the schema maintained by" %} {% if method.authority.website %}<a href="{{ method.authority.website }}" class="link link-hover">{{ method.authority.name }}</a>{% else %}{{ method.authority.name }}{% endif %}.</p>
-            {% endif %}
-            {% if method.citation.text %}
-              <p>{% translate "Protocol:" %} {% if method.citation.doi %}<a href="{{ method.citation.doi }}" class="link link-hover">{{ method.citation.text }}</a>{% else %}{{ method.citation.text }}{% endif %}</p>
-            {% endif %}
-          </div>
-        {% endif %}
-      </c-card>
-    {% endif %}
-  {% endblock overview.method %}
-
   {% block overview.procedure %}
     {% if can_manage %}
       {% translate "Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs." as empty %}
@@ -93,13 +70,36 @@
   {% block overview.sample %}
     <c-card title="{% translate 'Measured on' %}" class="bg-base-100">
       {% if sample_visible %}
-        <div class="flex flex-col gap-1">
-          <a href="{{ sample.get_absolute_url }}" class="link link-hover font-medium text-lg break-words">{{ sample }}</a>
-          <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">
-            <span>{{ sample_type|capfirst }}</span>
-            {% if sample.local_id %}<span class="font-mono">{{ sample.local_id }}</span>{% endif %}
-            <span>{% translate "in" %} <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a></span>
-          </span>
+        <div class="flex gap-4 items-start min-w-0">
+          <a href="{{ sample.get_absolute_url }}" class="shrink-0" tabindex="-1" aria-hidden="true">
+            {% if sample.image %}
+              <img src="{{ sample.image|thumbnail_url:'core_small' }}" alt="" class="w-16 rounded-box object-cover" />
+            {% else %}
+              <div class="avatar avatar-placeholder">
+                <div class="w-16 rounded-box bg-base-200 text-base-content/60 text-2xl">
+                  <c-icon name="sample" aria-hidden="true" />
+                </div>
+              </div>
+            {% endif %}
+          </a>
+          <div class="flex flex-col gap-2 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="badge badge-primary badge-sm">{{ sample_type }}</span>
+              {% if sample_status %}<span class="badge badge-soft badge-{{ sample_status.variant }} badge-sm">{{ sample_status.label }}</span>{% endif %}
+            </div>
+            <a href="{{ sample.get_absolute_url }}" class="link link-hover text-xl font-semibold leading-tight break-words">{{ sample }}</a>
+            <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">
+              {% if sample.local_id %}<span class="font-mono">{{ sample.local_id }}</span>{% endif %}
+              <span>{% translate "in" %} <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a></span>
+            </span>
+            {% with keywords=sample.keywords.all %}
+              {% if keywords %}
+                <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Sample keywords' %}">
+                  {% for keyword in keywords %}<li class="badge badge-primary badge-soft badge-sm">{{ keyword.label }}</li>{% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+          </div>
         </div>
       {% else %}
         <p class="text-sm text-base-content/70">{% translate "The sample this was measured on belongs to a dataset that hasn't been published yet." %}</p>

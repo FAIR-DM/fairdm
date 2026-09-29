@@ -5,15 +5,14 @@
 
   A dataset is what a portal cites and distributes, so this page answers a reuser's questions in
   the order they ask them: what it is and whether its data is published, under what licence, what
-  the data looks like and what each field means, how to cite it, and who made it. It has no
-  samples or measurements page of its own, so the data itself is previewed here, one tab per
-  record type, built from the registry's own table and field list for that type.
+  it holds and how it grew, how to cite it, and who made it.
 
   The anatomy and the facts column come from `overview/page.html`. Its context is gathered by
   `fairdm/core/dataset/overview.py`.
 
-  Dataset blocks in the wide column: overview.about, overview.data, overview.charts,
-  overview.map. In the facts column: overview.publications, overview.versions.
+  Dataset blocks in the wide column: overview.about, overview.data (shown only while the dataset
+  is empty), overview.charts, overview.map. In the facts column: overview.timeline,
+  overview.publications.
 {% endcomment %}
 
 {% block overview.badges %}
@@ -31,9 +30,6 @@
 
 {% block overview.actions %}
   {{ block.super }}
-  {% if can_see_data and data_types %}
-    <c-button href="#data" text="{% translate 'Data' %}" icon="data" size="sm" />
-  {% endif %}
   {% if can_manage %}
     {% if not dataset.data_is_public %}
       {% translate "Publish" as label %}
@@ -63,9 +59,9 @@
     <c-alert variant="info" icon="info" soft>
       <span>
         {% if can_manage %}
-          {% translate "Anyone can read this description, but the data stays hidden until the dataset is published. You are seeing it because you are on the team." %}
+          {% translate "Anyone can read this description, but the records stay hidden until the dataset is published." %}
         {% else %}
-          {% translate "The data in this dataset hasn't been published yet. You can read what it contains and what each field means. The records themselves appear here once the team publishes it." %}
+          {% translate "The data in this dataset hasn't been published yet. You can read what it holds, and the records open to everyone once the team publishes it." %}
         {% endif %}
       </span>
     </c-alert>
@@ -88,7 +84,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card title="{% translate 'About this dataset' %}" class="bg-base-100">
+    <c-card title="{% translate 'About' %}" class="bg-base-100">
       {% if descriptions|length > 1 %}
         <c-tabs group="dataset-about" label="{% translate 'Dataset descriptions' %}">
           {% for description in descriptions %}
@@ -111,112 +107,46 @@
   {% endblock overview.about %}
 
   {% block overview.data %}
-    <c-card title="{% translate 'Data' %}" class="bg-base-100 min-w-0 scroll-mt-24" id="data">
-      {% if data_types %}
-        <c-tabs group="dataset-data" variant="lift" label="{% translate 'Record types in this dataset' %}">
-          {% for type in data_types %}
-            <c-tabs.tab group="dataset-data" label="{{ type.label }} ({{ type.count|intcomma }})" :checked="forloop.first" class="bg-base-100 border-base-300 rounded-box p-4">
-              <div class="flex flex-col gap-4 min-w-0">
-                {% if type.description %}
-                  <p class="text-sm text-base-content/70">{{ type.description }}</p>
-                {% endif %}
-
-                {% if type.table %}
-                  <c-addons.django-table :table="type.table" label="{% blocktranslate with name=type.label %}Preview of {{ name }}{% endblocktranslate %}" class="rounded-box border border-base-300" />
-                  <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/70">
-                    <span>
-                      {% if type.count > 10 %}
-                        {% blocktranslate with total=type.count|intcomma %}First 10 of {{ total }} rows.{% endblocktranslate %}
-                      {% else %}
-                        {% blocktranslate count counter=type.count %}{{ counter }} row.{% plural %}All {{ counter }} rows.{% endblocktranslate %}
-                      {% endif %}
-                    </span>
-                    <span class="flex flex-wrap gap-2">
-                      {% translate "CSV" as csv %}{% translate "A spreadsheet of every row of this type." as csv_reason %}
-                      {% include "overview/includes/pending_action.html" with label=csv icon="download" reason=csv_reason size="xs" %}
-                      {% translate "All rows" as all_rows %}{% translate "A searchable, filterable table of every row of this type." as all_reason %}
-                      {% include "overview/includes/pending_action.html" with label=all_rows icon="data" reason=all_reason size="xs" %}
-                    </span>
-                  </div>
-                {% elif not can_see_data %}
-                  <div class="rounded-box bg-base-200 p-6 text-sm text-base-content/70 flex items-center gap-3">
-                    <c-icon name="lock" class="text-2xl" aria-hidden="true" />
-                    <span>{% blocktranslate count counter=type.count %}{{ counter }} record will be shown here once the dataset is published.{% plural %}{{ counter }} records will be shown here once the dataset is published.{% endblocktranslate %}</span>
-                  </div>
-                {% endif %}
-
-                {% if type.fields %}
-                  <details class="collapse collapse-arrow border border-base-300 rounded-box" {% if not type.table %}open{% endif %}>
-                    <summary class="collapse-title text-sm font-medium">
-                      {% blocktranslate count counter=type.fields|length %}What the {{ counter }} field means{% plural %}What the {{ counter }} fields mean{% endblocktranslate %}
-                    </summary>
-                    <div class="collapse-content overflow-x-auto">
-                      <table class="table table-sm">
-                        <caption class="sr-only">{% blocktranslate with name=type.label %}Fields of {{ name }}{% endblocktranslate %}</caption>
-                        <thead>
-                          <tr>
-                            <th scope="col">{% translate "Field" %}</th>
-                            <th scope="col">{% translate "Meaning" %}</th>
-                            <th scope="col">{% translate "Kind" %}</th>
-                            <th scope="col">{% translate "Unit" %}</th>
-                            {% if can_see_data %}<th scope="col" class="text-end">{% translate "Range in this dataset" %}</th>{% endif %}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for field in type.fields %}
-                            <tr>
-                              <th scope="row" class="font-medium">{{ field.label }}</th>
-                              <td class="text-base-content/70">{{ field.help|default:"–" }}</td>
-                              <td>{{ field.kind }}</td>
-                              <td>{{ field.unit|default:"–" }}</td>
-                              {% if can_see_data %}
-                                <td class="text-end tabular-nums whitespace-nowrap">{% if field.range %}{{ field.range.0|floatformat:"-2" }} – {{ field.range.1|floatformat:"-2" }}{% else %}–{% endif %}</td>
-                              {% endif %}
-                            </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                  </details>
-                {% endif %}
-
-                {% if type.authority or type.schema_citation %}
-                  <p class="text-xs text-base-content/60 flex flex-wrap gap-x-2">
-                    {% if type.authority %}
-                      <span>{% translate "Schema maintained by" %} {% if type.authority.website %}<a href="{{ type.authority.website }}" class="link link-hover">{{ type.authority.name }}</a>{% else %}{{ type.authority.name }}{% endif %}.</span>
-                    {% endif %}
-                    {% if type.schema_citation.doi %}
-                      <a href="{{ type.schema_citation.doi }}" class="link link-hover" title="{{ type.schema_citation.text }}">{% translate "Cite the schema" %}</a>
-                    {% endif %}
-                  </p>
-                {% endif %}
-              </div>
-            </c-tabs.tab>
-          {% endfor %}
-        </c-tabs>
-      {% elif can_manage %}
-        <div class="flex flex-col items-start gap-3">
-          <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
-          {% translate "Import data" as label %}
-          {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
-          {% include "overview/includes/pending_action.html" with label=label icon="import" reason=reason variant="primary" %}
-        </div>
-      {% else %}
-        <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
-      {% endif %}
-    </c-card>
+    {% if not data_types %}
+      <c-card title="{% translate 'Data types' %}" class="bg-base-100">
+        {% if can_manage %}
+          <div class="flex flex-col items-start gap-3">
+            <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
+            {% translate "Import data" as label %}
+            {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="import" reason=reason variant="primary" %}
+          </div>
+        {% else %}
+          <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
+        {% endif %}
+      </c-card>
+    {% endif %}
   {% endblock overview.data %}
 
   {% block overview.charts %}
-    {% if composition_chart %}
-      <c-card title="{% translate "What's in this dataset" %}" class="bg-base-100 min-w-0">
-        <c-chart :chart="composition_chart.chart"
-                 id="dataset-composition"
-                 height="{{ composition_chart.height }}"
-                 name="{% translate 'Records by type' %}"
-                 caption="{% translate 'Records by sample and measurement type.' %}"
-                 description="{{ composition_chart.description }}" />
-      </c-card>
+    {% if composition_chart or growth_chart %}
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+        {% if composition_chart %}
+          <c-card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="composition_chart.chart"
+                     id="dataset-composition"
+                     height="{{ composition_chart.height }}"
+                     name="{% translate 'Records by type' %}"
+                     caption="{% translate 'Records by sample and measurement type.' %}"
+                     description="{{ composition_chart.description }}" />
+          </c-card>
+        {% endif %}
+        {% if growth_chart %}
+          <c-card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
+            <c-chart :chart="growth_chart.chart"
+                     id="dataset-growth"
+                     aspect-ratio="16/9"
+                     name="{% translate 'Samples and measurements added over time' %}"
+                     caption="{% translate 'Running total, by month added to the portal.' %}"
+                     description="{{ growth_chart.description }}" />
+          </c-card>
+        {% endif %}
+      </div>
     {% endif %}
   {% endblock overview.charts %}
 
@@ -227,6 +157,10 @@
                         message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
   {% endblock overview.map %}
 {% endblock overview.main %}
+
+{% block overview.timeline %}
+  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" />
+{% endblock overview.timeline %}
 
 {% block overview.record_facts %}
   {% block overview.publications %}
@@ -253,9 +187,4 @@
     {% endif %}
   {% endblock overview.publications %}
 
-  {% block overview.versions %}
-    <c-card.placeholder title="{% translate 'Versions' %}"
-                        icon="timeline"
-                        message="{% translate 'Each published version of this dataset, with its own date and DOI, so earlier versions stay citable.' %}" />
-  {% endblock overview.versions %}
 {% endblock overview.record_facts %}

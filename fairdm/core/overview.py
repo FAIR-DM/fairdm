@@ -6,14 +6,16 @@ set of records is broken down by type — so the two pages never disagree about 
 """
 
 import json
+from collections import OrderedDict
 from datetime import date
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from pyecharts import options as opts
-from pyecharts.charts import Bar
+from pyecharts.charts import Bar, Line
 
 from fairdm.contrib.contributors.models import Contributor, Person
 
@@ -93,6 +95,71 @@ def composition_chart(samples, measurements):
     }
 
 
+def monthly(queryset):
+    return OrderedDict(
+        (row["month"].date() if hasattr(row["month"], "date") else row["month"], row["n"])
+        for row in queryset.annotate(month=TruncMonth("added"))
+        .values("month")
+        .annotate(n=Count("pk"))
+        .order_by("month")
+    )
+
+
+def growth_chart(samples, measurements):
+    """Cumulative samples and measurements by month — two series on one count axis."""
+    by_sample, by_measurement = monthly(samples), monthly(measurements)
+    months = sorted(set(by_sample) | set(by_measurement))
+    if len(months) < 2:
+        return None
+    # Fill the gaps so a quiet month reads as flat, not as a missing point.
+    first, last = months[0], months[-1]
+    months, cursor = [], first
+    while cursor <= last:
+        months.append(cursor)
+        cursor = date(cursor.year + cursor.month // 12, cursor.month % 12 + 1, 1)
+
+    def cumulative(series):
+        total, values = 0, []
+        for month in months:
+            total += series.get(month, 0)
+            values.append(total)
+        return values
+
+    samples_line, measurements_line = cumulative(by_sample), cumulative(by_measurement)
+    line_style = opts.LineStyleOpts(width=2)
+    chart = (
+        Line()
+        .add_xaxis([m.strftime("%b %Y") for m in months])
+        .add_yaxis(
+            _("Samples"), samples_line, is_symbol_show=False, linestyle_opts=line_style,
+            label_opts=opts.LabelOpts(is_show=False),
+        )
+        .add_yaxis(
+            _("Measurements"), measurements_line, is_symbol_show=False, linestyle_opts=line_style,
+            label_opts=opts.LabelOpts(is_show=False),
+        )
+        .set_global_opts(
+            legend_opts=opts.LegendOpts(pos_left="left", pos_top="top"),
+            tooltip_opts=opts.TooltipOpts(trigger="axis"),
+            xaxis_opts=opts.AxisOpts(boundary_gap=False),
+        )
+    )
+    chart.options["grid"] = {"left": 8, "right": 16, "top": 40, "bottom": 8, "containLabel": True}
+    return {
+        "chart": chart,
+        "description": _(
+            "From %(first)s to %(last)s it grew to %(samples)s samples and "
+            "%(measurements)s measurements."
+        )
+        % {
+            "first": months[0].strftime("%B %Y"),
+            "last": months[-1].strftime("%B %Y"),
+            "samples": samples_line[-1],
+            "measurements": measurements_line[-1],
+        },
+    }
+
+
 def author_name(contributor):
     last = getattr(contributor, "last_name", "")
     first = getattr(contributor, "first_name", "")
@@ -150,31 +217,19 @@ def credits(obj):
     return result
 
 
-def people(entries, named_roles=(), condensed=False, detail="roles"):
-    """Split credits into the people named in full and everyone else, as ``c-card.people`` draws
-    them. With no ``named_roles`` everyone is named. Named people are ordered by the first of
-    ``named_roles`` they hold. ``detail`` is the line under each name: their ``"roles"``, or the
-    ``"affiliation"`` they are credited under."""
-    order = list(named_roles)
-    named, others = [], []
-    for entry in entries:
-        roles = list(entry["roles"].values())
-        if detail == "affiliation":
-            line = str(entry["affiliation"]) if entry["affiliation"] else ", ".join(roles)
-        else:
-            line = ", ".join(roles)
-        item = {"contributor": entry["contributor"], "roles": roles, "detail": line}
-        held = [order.index(name) for name in entry["roles"] if name in order]
-        if not order or held:
-            named.append((min(held, default=0), item))
-        else:
-            others.append(item)
-    named.sort(key=lambda pair: pair[0])
+#: Faces shown in the People card: three rows of six.
+PEOPLE_SHOWN = 18
+
+
+def people(entries, exclude=()):
+    """Everyone credited who isn't already named in the page header, as ``c-card.people`` draws
+    them: the first :data:`PEOPLE_SHOWN` faces and a count of the rest."""
+    named = {c.pk for c in exclude}
+    rest = [e["contributor"] for e in entries if e["contributor"].pk not in named]
     return {
-        "named": [item for _, item in named],
-        "others": others,
-        "total": len(entries),
-        "condensed": condensed,
+        "shown": rest[:PEOPLE_SHOWN],
+        "more": max(len(rest) - PEOPLE_SHOWN, 0),
+        "total": len(rest),
     }
 
 
@@ -248,4 +303,24 @@ def license_row(license, note=None):
         "text": license.name,
         "url": license.canonical_url or "",
         "note": note,
+    }
+
+
+def type_info(obj):
+    """What the registry says about ``obj``'s type and by whose rules it is recorded: the
+    description, the maintaining authority, the protocol citation and keywords."""
+    from fairdm.registry import registry
+
+    model = type(obj)
+    if not registry.is_registered(model):
+        return None
+    config = registry.get_for_model(model)
+    metadata = config.metadata
+    if not metadata:
+        return {"description": config.description or ""} if config.description else None
+    return {
+        "description": metadata.description,
+        "authority": metadata.authority,
+        "citation": metadata.citation,
+        "keywords": metadata.keywords,
     }

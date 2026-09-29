@@ -1,0 +1,33 @@
+{% load i18n %}
+{% comment %}
+  The record's type as a primary badge in the header. When the registry describes the type, the
+  badge is a button that opens that description in a dialog.
+
+  Include with: label (the type's name), info (from `type_info`), id (the dialog's id)
+{% endcomment %}
+{% if info %}
+  <button type="button" class="badge badge-primary badge-sm cursor-pointer" onclick="{{ id }}.showModal()"
+          aria-haspopup="dialog" title="{% blocktranslate with type=label %}About {{ type }}{% endblocktranslate %}">{{ label|capfirst }}</button>
+  <c-modal id="{{ id }}" title="{% blocktranslate with type=label|capfirst %}About {{ type }}{% endblocktranslate %}" closable>
+    <div class="flex flex-col gap-4">
+      {% if info.description %}<p class="text-sm">{{ info.description }}</p>{% endif %}
+      {% if info.keywords %}
+        <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
+          {% for keyword in info.keywords %}<li class="badge badge-outline badge-sm">{{ keyword }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      {% if info.authority or info.citation %}
+        <div class="flex flex-col gap-1 text-sm text-base-content/70">
+          {% if info.authority %}
+            <p>{% translate "Recorded to the schema maintained by" %} {% if info.authority.website %}<a href="{{ info.authority.website }}" class="link link-hover">{{ info.authority.name }}</a>{% else %}{{ info.authority.name }}{% endif %}.</p>
+          {% endif %}
+          {% if info.citation.text %}
+            <p>{% translate "Protocol:" %} {% if info.citation.doi %}<a href="{{ info.citation.doi }}" class="link link-hover">{{ info.citation.text }}</a>{% else %}{{ info.citation.text }}{% endif %}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </c-modal>
+{% else %}
+  <span class="badge badge-primary badge-sm">{{ label|capfirst }}</span>
+{% endif %}

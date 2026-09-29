@@ -14,7 +14,7 @@
 <input type="radio"
        name="{{ group }}"
        role="tab"
-       class="tab {% if flush %}ps-0{% endif %}"
+       class="tab {% if flush %}tab-flush{% endif %}"
        aria-label="{{ label }}"
        {% if checked %}checked{% endif %} />
 <div role="tabpanel" class="tab-content pt-4 {{ class }}">{{ slot }}</div>

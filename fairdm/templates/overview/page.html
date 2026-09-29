@@ -14,7 +14,8 @@
 
     overview.image          header: the record's image, or its icon
     overview.badges         header: status badges
-    overview.meta           header: the people behind the record (leads, creators, collectors)
+    overview.meta           header: the people behind the record (a project's leads, a
+                            dataset's creators), avatar and name, no caption
     overview.keywords       header: keywords
     overview.actions        header: buttons (Cite and Share by default)
     overview.notices        alerts above the figures
@@ -22,11 +23,13 @@
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
       overview.readiness      what the team still has to add (team only)
-      overview.details        what it belongs to, licence, access, status, dates, identifiers
-        overview.details_extra  sections inside Details, e.g. a project's timeline and funding
-      overview.people         everyone credited
+      overview.details        what it belongs to, licence, status, dates, identifiers
+        overview.details_extra  sections inside Details, e.g. a project's timeline
+      overview.timeline       key dates in the record's life, where they have their own card
+      overview.funding        funding awards, on records that carry them
+      overview.people         everyone credited who isn't already named in the header
       overview.cite           how to cite it
-      overview.record_facts   cards particular to the record (publications, versions)
+      overview.record_facts   cards particular to the record (a dataset's publications)
     overview.chart_library  the ECharts script; replace it to serve ECharts yourself
 
   The facts-column blocks draw the shared `c-card.*` components from the context every overview
@@ -71,16 +74,17 @@
           <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record.name }}</h1>
 
           {% block overview.meta %}
-            {% if header_people.people %}
-              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                <span class="text-base-content/70">{{ header_people.label }}</span>
-                {% for person in header_people.people %}
-                  <a href="{{ person.get_absolute_url }}" class="inline-flex items-center gap-1.5 link link-hover">
-                    <c-avatar :for="person" alt="" size="xs" />
-                    {{ person }}
-                  </a>
+            {% if header_people %}
+              <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm" aria-label="{{ header_people_label }}">
+                {% for person in header_people %}
+                  <li>
+                    <a href="{{ person.get_absolute_url }}" class="flex items-center gap-2 link link-hover">
+                      <c-avatar :for="person" alt="" size="xs" />
+                      <span>{{ person }}</span>
+                    </a>
+                  </li>
                 {% endfor %}
-              </div>
+              </ul>
             {% endif %}
           {% endblock overview.meta %}
 
@@ -140,10 +144,18 @@
           </c-card.details>
         {% endblock overview.details %}
 
+        {% block overview.timeline %}{% endblock overview.timeline %}
+
+        {% block overview.funding %}
+          {% if funding is not None %}
+            <c-card.funding :funding="funding" :can_manage="can_manage" />
+          {% endif %}
+        {% endblock overview.funding %}
+
         {% block overview.people %}
-          <c-card.people :people="people"
-                         all_url="{{ people_url|default:'' }}"
-                         :condensed="people.condensed" />
+          {% if people.shown %}
+            <c-card.people :people="people" all_url="{{ people_url|default:'' }}" />
+          {% endif %}
         {% endblock overview.people %}
 
         {% block overview.cite %}

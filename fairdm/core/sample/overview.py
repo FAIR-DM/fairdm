@@ -78,19 +78,11 @@ def build(request, sample, can_manage):
     collected = dates.get("Collected")
     sample_type = str(type(sample)._meta.verbose_name)
 
-    parents = [{"label": _("Dataset"), "icon": "dataset", "record": sample.dataset}]
+    parents = []
     if project is not None:
         parents.append({"label": _("Project"), "icon": "project", "record": project})
-    parents.append(shared.license_row(sample.dataset.license, note=_("From its dataset")))
-    parents.append(
-        {
-            "label": _("Access"),
-            "icon": "globe" if sample.dataset.data_is_public else "lock",
-            "text": _("Open to everyone")
-            if sample.dataset.data_is_public
-            else _("Its dataset's team only, until the dataset is published"),
-        }
-    )
+    parents.append({"label": _("Dataset"), "icon": "dataset", "record": sample.dataset})
+    parents.append(shared.license_row(sample.dataset.license))
 
     citation_text = shared.citation(
         request,
@@ -120,10 +112,6 @@ def build(request, sample, can_manage):
         "project": project,
         "counts": {
             "measurements": measurements["total"],
-            "measurements_desc": ngettext("%(n)s type", "%(n)s types", len(measurements["types"]))
-            % {"n": len(measurements["types"])}
-            if measurements["types"]
-            else _("None yet"),
             "related": len(relations["parents"]) + len(relations["children"]),
             "related_desc": relations_summary(relations),
             "people": len(entries),
@@ -131,44 +119,43 @@ def build(request, sample, can_manage):
         "citation": citation,
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
+        "type_info": shared.type_info(sample),
         "people": shared.people(entries),
-        "header_people": {
-            "label": _("Collected by"),
-            "people": shared.with_role(entries, "Collection"),
-        },
         "details": parents + [
-            {"label": _("Custody"), "icon": "box", "text": status_["label"], "note": status_["meaning"]},
-            {"label": _("Type"), "icon": "tag", "text": sample_type[:1].upper() + sample_type[1:]},
+            {"label": _("Status"), "icon": "box", "text": status_["label"], "note": status_["meaning"]},
             {"label": _("Added"), "icon": "calendar", "date": sample.added},
             {"label": _("Last updated"), "icon": "time", "date": sample.modified},
         ],
     }
 
 
+#: Measurements listed on the sample's page before the rest are counted.
+MEASUREMENTS_SHOWN = 10
+
+
 def measurement_summary(user, sample):
-    """Measurements made on this sample, grouped by type.
+    """Measurements made on this sample, most recent first.
 
     A measurement can belong to a different dataset than its sample, which is how one team
     measures another team's specimens. Each is shown only if the viewer may see its own dataset,
     and being on the sample's dataset team opens nothing else.
     """
     queryset = (
-        Measurement.objects.filter(sample=sample).visible_to(user).select_related("dataset")
+        Measurement.objects.filter(sample=sample)
+        .visible_to(user)
+        .select_related("dataset")
+        .order_by("-added")
     )
-    groups = {}
-    for measurement in queryset.order_by("-added"):
-        model = type(measurement)
-        group = groups.setdefault(
-            model,
-            {"label": str(model._meta.verbose_name_plural), "items": [], "count": 0},
-        )
-        group["count"] += 1
-        if len(group["items"]) < 5:
-            group["items"].append(
-                {"measurement": measurement, "elsewhere": measurement.dataset_id != sample.dataset_id}
-            )
-    types = sorted(groups.values(), key=lambda g: -g["count"])
-    return {"types": types, "total": sum(g["count"] for g in types)}
+    total = queryset.count()
+    items = [
+        {
+            "measurement": m,
+            "type": shared.sentence_case(type(m)._meta.verbose_name),
+            "elsewhere": m.dataset_id != sample.dataset_id,
+        }
+        for m in queryset[:MEASUREMENTS_SHOWN]
+    ]
+    return {"items": items, "total": total, "more": max(total - MEASUREMENTS_SHOWN, 0)}
 
 
 def related_samples(user, sample):
@@ -183,15 +170,22 @@ def related_samples(user, sample):
     ]
     visible = Sample.objects.filter(pk__in=parents + children).visible_to(user).in_bulk()
 
-    def entries(pks):
+    def entries(pks, relation):
         shown = [visible[pk] for pk in pks if pk in visible]
         return [
-            {"sample": s, "type": str(type(s)._meta.verbose_name)} for s in shown
+            {
+                "sample": s,
+                "type": shared.sentence_case(type(s)._meta.verbose_name),
+                "relation": relation,
+                "elsewhere": s.dataset_id != sample.dataset_id,
+            }
+            for s in shown
         ], len(pks) - len(shown)
 
-    parent_entries, hidden_parents = entries(parents)
-    child_entries, hidden_children = entries(children)
+    parent_entries, hidden_parents = entries(parents, _("Parent sample"))
+    child_entries, hidden_children = entries(children, _("Subsample"))
     return {
+        "items": parent_entries + child_entries,
         "parents": parent_entries,
         "children": child_entries,
         "hidden": hidden_parents + hidden_children,

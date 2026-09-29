@@ -31,25 +31,6 @@ class Overview(TypedOverviewPlugin):
     def get_page_title(self):
         return self.base_object.name
 
-    def get_breadcrumbs(self):
-        """Project › dataset › sample › this measurement: the path a reader came down. A project
-        or sample the viewer may not see is left out or described, never named."""
-        from fairdm.core.project.plugins import project_is_visible
-        from fairdm.core.sample.models import Sample
-
-        measurement = self.base_object
-        dataset = measurement.dataset
-        crumbs = []
-        if dataset.project_id and project_is_visible(self.request, dataset.project):
-            crumbs.append({"text": str(dataset.project), "href": dataset.project.get_absolute_url()})
-        crumbs.append({"text": str(dataset), "href": dataset.get_absolute_url()})
-        if Sample.objects.filter(pk=measurement.sample_id).visible_to(self.request.user).exists():
-            crumbs.append({"text": str(measurement.sample), "href": measurement.sample.get_absolute_url()})
-        else:
-            crumbs.append({"text": _("Unpublished sample")})
-        crumbs.append({"text": self.get_page_title()})
-        return crumbs
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["measurement"] = self.base_object

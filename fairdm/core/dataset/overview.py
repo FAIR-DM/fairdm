@@ -18,6 +18,7 @@ from django.db import models as dj_models
 from django.db.models import Max, Min
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
+from django.utils.formats import date_format
 
 from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
@@ -65,9 +66,8 @@ def build(request, dataset, can_manage):
         "literature": literature(dataset),
         "data_types": data_types,
         "counts": counts(samples, measurements, data_types),
-        "composition_chart": composition_chart(samples, measurements)
-        if len(data_types) > 1
-        else None,
+        "composition_chart": composition_chart(samples, measurements),
+        "growth_chart": shared.growth_chart(samples, measurements),
         "project_info": project_info(request, dataset, can_manage),
         "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
         "urls": {
@@ -85,28 +85,21 @@ def build(request, dataset, can_manage):
     return context
 
 
-ACCESS_TEXT = {
-    "published": _("Open. Every record is shown on this page and through the API."),
-    "public": _("Description only, until the dataset is published."),
-    "private": _("The team only."),
-}
-
-
 def shared_context(request, dataset, context):
     """The keys every overview page provides, which the shared skeleton and cards read."""
     citation_ = context["citation"]
+    creators = [e["contributor"] for e in context["team"]["creators"]]
     result = {
         "record": dataset,
         "overview_icon": "dataset",
-        "has_charts": bool(context["composition_chart"]),
+        "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
         "citation": {"title": _("Cite this dataset"), "text": citation_["text"]},
         "identifiers": shared.identifiers(dataset),
         "api_url": context["api_url"],
-        "people": shared.people(shared.credits(dataset), named_roles=ROLE_ORDER),
-        "header_people": {
-            "label": _("Created by"),
-            "people": [e["contributor"] for e in context["team"]["creators"]],
-        },
+        "people": shared.people(shared.credits(dataset), exclude=creators),
+        "header_people": creators,
+        "header_people_label": _("Creators"),
+        "lifecycle": lifecycle(dataset, context["dates"]),
         "details": [],
     }
     if citation_["from_reference"]:
@@ -128,14 +121,7 @@ def shared_context(request, dataset, context):
             ) % {"n": info["siblings"]}
         result["details"].append(row)
     result["details"].append(shared.license_row(dataset.license))
-    result["details"].append(
-        {
-            "label": _("Access"),
-            "icon": "globe" if dataset.data_is_public else "lock",
-            "text": ACCESS_TEXT[context["access"]["state"]],
-        }
-    )
-    result["details"].extend(dataset_details(dataset, context["dates"]))
+    result["details"].append({"label": _("Last updated"), "icon": "time", "date": dataset.modified})
     if "readiness" in context:
         readiness_ = context["readiness"]
         readiness_["title"] = _("Ready to publish?")
@@ -154,20 +140,29 @@ def shared_context(request, dataset, context):
     return result
 
 
-def dataset_details(dataset, dates_):
-    rows = []
+def lifecycle(dataset, dates_):
+    """The dataset's key dates in the order they happened, as ``c-card.timeline`` draws them."""
+    steps = []
     if dates_["collection_start"]:
-        rows.append({"label": _("Collected"), "icon": "calendar", "date": dates_["collection_start"], "until": dates_["collection_end"]})
+        end = dates_["collection_end"]
+        steps.append(
+            {
+                "label": _("Collected"),
+                "sort": dates_["collection_start"],
+                "date": f"{date_format(dates_['collection_start'], 'j M Y')} – "
+                + (date_format(end, "j M Y") if end else _("ongoing")),
+            }
+        )
+    steps.append({"label": _("Added to the portal"), "sort": dataset.added.date(), "day": dataset.added, "date": dataset.added})
     for key, label in (
         ("submitted", _("Submitted")),
         ("published", _("Published")),
         ("available", _("Available from")),
+        ("withdrawn", _("Withdrawn")),
     ):
         if dates_[key]:
-            rows.append({"label": label, "icon": "calendar", "date": dates_[key]})
-    rows.append({"label": _("Added"), "icon": "calendar", "date": dataset.added})
-    rows.append({"label": _("Last updated"), "icon": "time", "date": dataset.modified})
-    return rows
+            steps.append({"label": label, "sort": dates_[key], "day": dates_[key], "date": dates_[key]})
+    return sorted(steps, key=lambda step: step["sort"])
 
 
 def access(dataset):

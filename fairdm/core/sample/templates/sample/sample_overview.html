@@ -1,5 +1,5 @@
 {% extends "overview/page.html" %}
-{% load i18n humanize fairdm %}
+{% load i18n humanize fairdm thumbnail %}
 {% comment %}
   The sample's own page, drawn from the base Sample model alone.
 
@@ -22,11 +22,11 @@
 {% endcomment %}
 
 {% block overview.badges %}
-  <span class="badge badge-ghost badge-sm"><c-icon name="sample" aria-hidden="true" />{{ sample_type|capfirst }}</span>
+  {% include "overview/includes/type_badge.html" with label=sample_type info=type_info id="about-sample-type" %}
   {% if status.variant %}
     <span class="badge badge-soft badge-{{ status.variant }} badge-sm">{{ status.label }}</span>
   {% else %}
-    <span class="badge badge-outline badge-sm">{% translate "Custody unknown" %}</span>
+    <span class="badge badge-outline badge-sm">{% translate "Status unknown" %}</span>
   {% endif %}
 {% endblock overview.badges %}
 
@@ -74,35 +74,31 @@
   {% block overview.measurements %}
     <c-card title="{% translate 'Measurements' %}" class="bg-base-100">
       <c-slot name="badges">{% if measurements.total %}<span class="badge badge-ghost badge-sm">{{ measurements.total }}</span>{% endif %}</c-slot>
-      {% if measurements.types %}
-        <c-tabs group="sample-measurements" variant="border" label="{% translate 'Measurement types' %}">
-          {% for group in measurements.types %}
-            <c-tabs.tab group="sample-measurements" label="{{ group.label|capfirst }} ({{ group.count }})" :checked="forloop.first" :flush="forloop.first">
-              <ul class="list">
-                {% for entry in group.items %}
-                  <li class="list-row px-0">
-                    <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                      <a href="{{ entry.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.measurement }}</a>
-                      <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
-                        {% if entry.elsewhere %}
-                          <span>{% translate "In dataset" %} <a href="{{ entry.measurement.dataset.get_absolute_url }}" class="link link-hover">{{ entry.measurement.dataset }}</a></span>
-                        {% endif %}
-                        <span>{% blocktranslate with when=entry.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
-                      </span>
-                    </div>
-                  </li>
-                {% endfor %}
-              </ul>
-              {% if group.count > group.items|length %}
-                <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
-                  {% blocktranslate count counter=group.count|add:"-5" %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-                  {% translate "All measurements" as label %}{% translate "Every measurement of this type made on this sample, as a table." as reason %}
-                  {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
-                </div>
-              {% endif %}
-            </c-tabs.tab>
+      {% if measurements.items %}
+        <ul class="list">
+          {% for entry in measurements.items %}
+            <li class="list-row px-0 items-center">
+              <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-accent)" aria-hidden="true"><c-icon name="measurement" only /></span>
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ entry.measurement.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.measurement }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                  {% if entry.elsewhere %}
+                    <span>{% translate "In" %} <a href="{{ entry.measurement.dataset.get_absolute_url }}" class="link link-hover">{{ entry.measurement.dataset }}</a></span>
+                  {% endif %}
+                  <span>{% blocktranslate with when=entry.measurement.added|naturalday:"j M Y" %}Added {{ when }}{% endblocktranslate %}</span>
+                </span>
+              </div>
+              <span class="badge badge-soft badge-accent badge-sm whitespace-nowrap">{{ entry.type }}</span>
+            </li>
           {% endfor %}
-        </c-tabs>
+        </ul>
+        {% if measurements.more %}
+          <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+            {% blocktranslate count counter=measurements.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a table." as reason %}
+            {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
+          </div>
+        {% endif %}
       {% else %}
         <p class="text-sm text-base-content/70">{% translate "No measurements have been made on this sample yet." %}</p>
       {% endif %}
@@ -110,32 +106,31 @@
   {% endblock overview.measurements %}
 
   {% block overview.samples %}
-    {% if relations.parents or relations.children or relations.hidden %}
+    {% if relations.items or relations.hidden %}
       <c-card title="{% translate 'Related samples' %}" class="bg-base-100">
-        <ul class="list">
-          {% if relations.parents %}
-            <li class="pt-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Taken from" %}</li>
-            {% for parent in relations.parents %}
-              <li class="list-row px-0">
-                <div class="list-col-grow min-w-0">
-                  <a href="{{ parent.sample.get_absolute_url }}" class="link link-hover font-medium">{{ parent.sample }}</a>
-                  <span class="text-xs text-base-content/70 ms-2">{{ parent.type|capfirst }}</span>
+        <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
+        {% if relations.items %}
+          <ul class="list">
+            {% for entry in relations.items %}
+              <li class="list-row px-0 items-center">
+                {% if entry.sample.image %}
+                  <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
+                {% else %}
+                  <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
+                {% endif %}
+                <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                  <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
+                  <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
+                    <span>{{ entry.type }}</span>
+                    {% if entry.sample.local_id %}<span class="font-mono">{{ entry.sample.local_id }}</span>{% endif %}
+                    {% if entry.elsewhere %}<span>{% translate "In" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
+                  </span>
                 </div>
+                <span class="badge badge-soft badge-secondary badge-sm whitespace-nowrap">{{ entry.relation }}</span>
               </li>
             {% endfor %}
-          {% endif %}
-          {% if relations.children %}
-            <li class="pt-2 text-xs uppercase font-semibold text-base-content/60">{% translate "Subsamples" %}</li>
-            {% for child in relations.children %}
-              <li class="list-row px-0">
-                <div class="list-col-grow min-w-0">
-                  <a href="{{ child.sample.get_absolute_url }}" class="link link-hover font-medium">{{ child.sample }}</a>
-                  <span class="text-xs text-base-content/70 ms-2">{{ child.type|capfirst }}</span>
-                </div>
-              </li>
-            {% endfor %}
-          {% endif %}
-        </ul>
+          </ul>
+        {% endif %}
         {% if relations.hidden %}
           <p class="text-sm text-base-content/70">
             {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
@@ -146,19 +141,52 @@
   {% endblock overview.samples %}
 
   {% block overview.location %}
-    {% if location %}
-      <c-card title="{% translate 'Location' %}" class="bg-base-100">
-        <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Map coming soon" %}</span></c-slot>
+    <c-card title="{% translate 'Location' %}" class="bg-base-100">
+      {% if location %}
+        <div id="sample-map" class="overview-map bg-base-200" role="img"
+             aria-label="{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}"
+             data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
         <dl class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
           <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>
           {% if location.crs %}<div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Reference system" %}</dt><dd class="font-mono">{{ location.crs }}</dd></div>{% endif %}
         </dl>
-      </c-card>
-    {% else %}
-      <c-card title="{% translate 'Location' %}" class="bg-base-100">
+      {% else %}
         <p class="text-sm text-base-content/70">{% translate "No location has been recorded for this sample." %}</p>
-      </c-card>
-    {% endif %}
+      {% endif %}
+    </c-card>
   {% endblock overview.location %}
 {% endblock overview.main %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if location %}
+    {% block overview.map_library %}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.css"
+            integrity="sha384-ntw3zEt6rcVML7jDK0ULmHa5hxLB23afsPqzqfY+gLgMfAkbFCnCgPpkZvV5mmZX"
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+      <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.js"
+              integrity="sha384-E8gMcYTPPaVdSyyziUNzJtosP0xWQkh/NxeEyq1wKz1HnC/oQuf7sp/fj4oYXP4M"
+              crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% endblock overview.map_library %}
+    <script>
+      (function () {
+        var el = document.getElementById("sample-map");
+        if (!el || !window.maplibregl) return;
+        var point = [parseFloat(el.dataset.lon), parseFloat(el.dataset.lat)];
+        var map = new maplibregl.Map({
+          container: el,
+          style: "https://tiles.openfreemap.org/styles/liberty",
+          center: point,
+          zoom: 8,
+          attributionControl: { compact: true },
+          cooperativeGestures: true,
+        });
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+        new maplibregl.Marker({ color: getComputedStyle(el).getPropertyValue("--color-primary").trim() || undefined })
+          .setLngLat(point)
+          .addTo(map);
+      })();
+    </script>
+  {% endif %}
+{% endblock extra_js %}

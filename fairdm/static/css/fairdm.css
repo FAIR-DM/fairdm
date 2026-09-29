@@ -401,3 +401,29 @@
   color: var(--stat-color);
   background-color: color-mix(in oklch, var(--stat-color) 12%, transparent);
 }
+
+/* The first tab in a set that sits flush with the card's text: no leading padding, and the
+ * underline drawn from the text's edge rather than inset by the tab's padding. */
+.tab.tab-flush {
+  padding-inline-start: 0;
+}
+.tabs-border > .tab.tab-flush::before {
+  left: 0;
+  width: calc(100% - var(--tab-p));
+}
+
+/* The same tile at list size, beside an entry in a card: a funder, a related sample. */
+.stat-icon.stat-icon-sm {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-field, 0.5rem);
+  font-size: 1.125rem;
+}
+
+/* A map drawn in a card: 16:9, rounded like the card's own content. */
+.overview-map {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: var(--radius-box, 1rem);
+  overflow: hidden;
+}

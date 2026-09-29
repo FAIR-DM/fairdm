@@ -14,7 +14,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
 from fairdm.core import overview as shared
-from fairdm.registry import registry
 
 #: Each step in how a measurement was made: its date type, the contributor role that performs
 #: it, the description type that explains it, and what the page calls it. The measurement
@@ -69,19 +68,11 @@ def build(request, measurement, can_manage):
         citation["note_url"] = measurement.dataset.get_absolute_url() + "#cite"
         citation["note_link"] = _("Cite the dataset")
 
-    parents = [{"label": _("Dataset"), "icon": "dataset", "record": measurement.dataset}]
+    parents = []
     if project is not None:
         parents.append({"label": _("Project"), "icon": "project", "record": project})
-    parents.append(shared.license_row(measurement.dataset.license, note=_("From its dataset")))
-    parents.append(
-        {
-            "label": _("Access"),
-            "icon": "globe" if measurement.dataset.data_is_public else "lock",
-            "text": _("Open to everyone")
-            if measurement.dataset.data_is_public
-            else _("Its dataset's team only, until the dataset is published"),
-        }
-    )
+    parents.append({"label": _("Dataset"), "icon": "dataset", "record": measurement.dataset})
+    parents.append(shared.license_row(measurement.dataset.license))
 
     return {
         "record": measurement,
@@ -89,11 +80,12 @@ def build(request, measurement, can_manage):
         "can_manage": can_manage,
         "measurement_type": measurement_type,
         "result": result(measurement),
-        "method": method(measurement),
+        "type_info": shared.type_info(measurement),
         "procedure": shared.timeline(PROCEDURE, dates, descriptions, entries),
         "notes": descriptions.get("Other"),
         "sample": sample,
-        "sample_type": str(type(sample)._meta.verbose_name),
+        "sample_type": shared.sentence_case(type(sample)._meta.verbose_name),
+        "sample_status": sample_status(sample),
         "sample_visible": sample_visible,
         "other_dataset": sample.dataset_id != measurement.dataset_id,
         "siblings": siblings(user, measurement),
@@ -102,12 +94,7 @@ def build(request, measurement, can_manage):
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
         "people": shared.people(entries),
-        "header_people": {
-            "label": _("Measured by"),
-            "people": shared.with_role(entries, "MeasurementCollection"),
-        },
         "details": parents + [
-            {"label": _("Type"), "icon": "tag", "text": measurement_type[:1].upper() + measurement_type[1:]},
             {"label": _("Added"), "icon": "calendar", "date": measurement.added},
             {"label": _("Last updated"), "icon": "time", "date": measurement.modified},
         ],
@@ -127,21 +114,15 @@ def result(measurement):
     return {"text": measurement.print_value()}
 
 
-def method(measurement):
-    """What the registry says about how this type of measurement is made, and by whose rules."""
-    model = type(measurement)
-    if not registry.is_registered(model):
+def sample_status(sample):
+    """The sample's status label and badge colour, as its own page shows them."""
+    from fairdm.core.sample.overview import STATUS_VARIANTS
+
+    status = getattr(sample.status, "name", sample.status)
+    if not status:
         return None
-    config = registry.get_for_model(model)
-    metadata = config.metadata
-    if not metadata:
-        return {"description": config.description or ""}
-    return {
-        "description": metadata.description,
-        "authority": metadata.authority,
-        "citation": metadata.citation,
-        "keywords": metadata.keywords,
-    }
+    labels = dict(type(sample)._meta.get_field("status").choices)
+    return {"label": labels.get(status, status), "variant": STATUS_VARIANTS.get(status, "neutral")}
 
 
 def siblings(user, measurement):
