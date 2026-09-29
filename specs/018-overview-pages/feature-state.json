@@ -61,6 +61,15 @@
         "mediums applied: locale dates, sequential stories, base-model permission check, tests in test_plugins.py",
         "lows applied except the downward-visibility mismatch in CONTEXT.md, raised as a separate issue"
       ]
+    },
+    "review": {
+      "approved_by": "reviewers (correctness, security)",
+      "at": "2026-09-29T15:41:32Z",
+      "self_resolved": [
+        "both approve; 0 critical, 0 high",
+        "remedied: REV-001..005, REV-007, SEC-001..003 (fix pass TC01-TC06)",
+        "accepted with record: REV-006 test selectors (low), REV-008 helper placement (declined), SEC-004 demo tabs predate feature"
+      ]
     }
   },
   "stories": [
