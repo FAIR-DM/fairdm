@@ -1,20 +1,34 @@
 """Tests for the project's own registered pages: menu, permissions, visibility and links."""
 
+import json
 import re
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import quote
 
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
+from django.utils import timezone, translation
+from django.utils.formats import date_format
+from partial_date import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
 from fairdm.contrib.plugins.access import can_open
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.plugins import Delete, Descriptions, Overview, Update
 from fairdm.core.utils import assign_perm
-from fairdm.factories import ProjectFactory, UserFactory
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectDateFactory,
+    ProjectFactory,
+    ProjectIdentifierFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 # `ProjectFactory()` produces private projects unless told otherwise.
@@ -236,7 +250,14 @@ class TestUpdatePageOverHTTP:
     def test_a_user_holding_only_model_level_change_permission_is_refused(self, client):
         from django.contrib.auth.models import Permission
 
-        from fairdm.factories import ProjectFactory, UserFactory
+        from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectDateFactory,
+    ProjectFactory,
+    ProjectIdentifierFactory,
+    UserFactory,
+)
 
         project = ProjectFactory()
         user = UserFactory()
@@ -257,7 +278,14 @@ class TestUpdatePageOverHTTP:
     ):
         from django.contrib.auth.models import Permission
 
-        from fairdm.factories import ProjectFactory, UserFactory
+        from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectDateFactory,
+    ProjectFactory,
+    ProjectIdentifierFactory,
+    UserFactory,
+)
 
         project = ProjectFactory()
         user = UserFactory()
@@ -875,3 +903,779 @@ class TestDescriptionsPageAnswersNotFoundForAPrivateProject:
         response = client.get(url)
 
         assert response.status_code == 403
+
+
+def _overview_url(project):
+    return reverse("project:overview", kwargs={"uuid": project.uuid})
+
+
+def _page(client, project, language=None):
+    """Open the project's page and return the response with its parsed HTML."""
+    headers = {"Accept-Language": language} if language else {}
+    response = client.get(_overview_url(project), headers=headers)
+    assert response.status_code == 200
+    response.page = BeautifulSoup(response.content, "html.parser")
+    return response
+
+
+def _figures(page):
+    """The values of the four figures, in the order they are drawn."""
+    return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+
+
+def _json_ld(page):
+    return json.loads(page.head.find("script", type="application/ld+json").string)
+
+
+def _card_holding(page, tag):
+    """The card that holds the first ``tag`` in the page."""
+    return page.find(tag).find_parent(class_="card")
+
+
+@pytest.mark.django_db
+class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
+    """US-1 scenarios 1 and 2: a visitor's counts follow the datasets they may see."""
+
+    def test_a_visitor_counts_the_public_datasets_only(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        assert _figures(response.page)[:3] == ["2", "3", "2"]
+
+    def test_the_team_counts_every_dataset(
+        self, client, overview_showcase, project_team_member
+    ):
+        client.force_login(project_team_member)
+
+        response = _page(client, overview_showcase.project)
+
+        assert _figures(response.page)[:3] == ["3", "6", "3"]
+
+    def test_the_contributors_figure_counts_everyone_credited(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        assert _figures(response.page)[3] == "22"
+
+    def test_a_visitors_composition_chart_leaves_out_the_types_only_private_datasets_hold(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        description = response.page.find(id="project-composition-description")
+        assert "Rock" in description.get_text()
+        assert "Soil" not in description.get_text()
+        assert "ICP" not in description.get_text()
+
+    def test_the_teams_composition_chart_includes_them(
+        self, client, overview_showcase, project_team_member
+    ):
+        client.force_login(project_team_member)
+
+        response = _page(client, overview_showcase.project)
+
+        description = response.page.find(id="project-composition-description")
+        assert "Soil" in description.get_text()
+        assert "ICP" in description.get_text()
+
+    def test_a_visitors_growth_chart_counts_the_visible_records_only(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        description = response.page.find(id="project-growth-description")
+        assert "3 samples" in description.get_text()
+        assert "2 measurements" in description.get_text()
+
+    def test_the_teams_growth_chart_counts_every_record(
+        self, client, overview_showcase, project_team_member
+    ):
+        client.force_login(project_team_member)
+
+        response = _page(client, overview_showcase.project)
+
+        description = response.page.find(id="project-growth-description")
+        assert "6 samples" in description.get_text()
+        assert "3 measurements" in description.get_text()
+
+    def test_a_visitors_licence_summary_leaves_out_licences_only_private_datasets_carry(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        assert "CC0" not in response.page.get_text()
+
+    def test_the_datasets_listed_are_the_ones_the_viewer_may_see(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        listed = {row.name for row in response.context["datasets_preview"]["rows"]}
+        assert listed == {
+            overview_showcase.published.name,
+            overview_showcase.unpublished.name,
+        }
+        assert overview_showcase.private.name not in response.page.get_text()
+
+    def test_a_private_datasets_metadata_never_reaches_the_pages_head(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        head = str(response.page.head)
+        assert overview_showcase.private.name not in head
+        assert overview_showcase.private.name not in response.content.decode()
+
+    def test_a_dataset_the_project_lists_says_whether_it_is_published(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        rows = {row.pk: row.data_is_public for row in response.context["datasets_preview"]["rows"]}
+        assert rows == {
+            overview_showcase.published.pk: True,
+            overview_showcase.unpublished.pk: False,
+        }
+
+
+@pytest.mark.django_db
+class TestOverviewReadinessChecklistIsForTheTeam:
+    def test_a_visitor_is_shown_no_checklist(self, client, overview_showcase):
+        response = _page(client, overview_showcase.project)
+
+        assert "readiness" not in response.context
+        assert response.page.find("progress", attrs={"max": "10"}) is None
+
+    def test_the_team_sees_every_item_and_a_link_to_each_fix_that_has_a_page(
+        self, client, overview_showcase, project_team_member
+    ):
+        project = overview_showcase.project
+        client.force_login(project_team_member)
+
+        response = _page(client, project)
+
+        readiness = response.context["readiness"]
+        assert (readiness["done"], readiness["total"]) == (5, 10)
+        card = _card_holding(response.page, "progress")
+        assert len(card.select("ul > li")) == 10
+        links = {a["href"] for a in card.select("ul a")}
+        assert links == {
+            reverse("project:overview-descriptions", kwargs={"uuid": project.uuid}),
+            reverse("project:overview-update", kwargs={"uuid": project.uuid}),
+            reverse("project:contribution-list", kwargs={"uuid": project.uuid}),
+        }
+
+    def test_a_completed_item_stops_being_listed_as_missing(
+        self, client, overview_showcase, project_team_member
+    ):
+        ProjectIdentifierFactory(
+            related=overview_showcase.project, type="DOI", value="10.5555/ready"
+        )
+        client.force_login(project_team_member)
+
+        response = _page(client, overview_showcase.project)
+
+        assert response.context["readiness"]["done"] == 6
+
+
+@pytest.mark.django_db
+class TestOverviewNotices:
+    def test_the_team_of_a_private_project_is_told_it_is_private(self, client):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        user = UserFactory()
+        assign_perm("view_project", user, project)
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+
+        response = _page(client, project)
+
+        update_url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        alerts = response.page.select('[role="alert"]')
+        assert any(alert.find("a", href=update_url) for alert in alerts)
+
+    def test_a_public_project_gives_its_team_no_privacy_notice(
+        self, client, overview_showcase, project_team_member
+    ):
+        client.force_login(project_team_member)
+
+        response = _page(client, overview_showcase.project)
+
+        assert response.page.select('[role="alert"]') == []
+
+    def test_a_project_searching_for_collaborators_names_who_to_contact(self, client):
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC,
+            status=Project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS,
+        )
+        contact = PersonFactory(name="Contact Person", is_active=True)
+        project.add_contributor(contact, with_roles=["ContactPerson"])
+
+        response = _page(client, project)
+
+        alerts = response.page.select('[role="alert"]')
+        assert any(alert.find("a", href=contact.get_absolute_url()) for alert in alerts)
+
+    def test_without_a_contact_person_the_notice_names_the_first_leader(self, client):
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC,
+            status=Project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS,
+        )
+        leader = PersonFactory(name="Lead Person", is_active=True)
+        project.add_contributor(leader, with_roles=["ProjectLeader"])
+
+        response = _page(client, project)
+
+        alerts = response.page.select('[role="alert"]')
+        assert any(alert.find("a", href=leader.get_absolute_url()) for alert in alerts)
+
+    def test_a_project_in_any_other_state_shows_no_collaborators_notice(self, client):
+        project = ProjectFactory(
+            visibility=Visibility.PUBLIC,
+            status=Project.STATUS_CHOICES.IN_PROGRESS,
+        )
+
+        response = _page(client, project)
+
+        assert response.page.select('[role="alert"]') == []
+
+
+@pytest.mark.django_db
+class TestOverviewPeople:
+    def test_the_header_names_the_leaders_linked_to_their_pages(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        header = response.page.find("h1").find_parent(class_="card")
+        for leader in overview_showcase.leaders:
+            assert header.find("a", href=leader.get_absolute_url()) is not None
+
+    def test_the_people_card_shows_everyone_else_and_not_the_leaders(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        shown = {c.pk for c in response.context["people"]["shown"]}
+        assert shown <= {p.pk for p in overview_showcase.others}
+        assert not shown & {p.pk for p in overview_showcase.leaders}
+
+    def test_the_card_draws_eighteen_faces_and_counts_the_rest(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        tiles = response.page.select("li[data-tip]")
+        assert len(tiles) == 18
+        assert (response.context["people"]["more"], response.context["people"]["total"]) == (2, 20)
+
+    def test_the_count_links_to_the_full_list_of_contributors(
+        self, client, overview_showcase
+    ):
+        project = overview_showcase.project
+        contributors_url = reverse("project:contribution-list", kwargs={"uuid": project.uuid})
+
+        response = _page(client, project)
+
+        counted = [
+            a
+            for a in response.page.find_all("a", href=contributors_url)
+            if "2" in a.get_text()
+        ]
+        assert counted
+
+    def test_each_face_is_named_for_assistive_technology(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        for tile in response.page.select("li[data-tip]"):
+            assert tile.find("a")["aria-label"] == tile["data-tip"]
+
+    def test_when_everyone_credited_leads_the_people_card_is_left_out(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        project.add_contributor(PersonFactory(is_active=True), with_roles=["ProjectLeader"])
+
+        response = _page(client, project)
+
+        assert response.page.select("li[data-tip]") == []
+        assert response.context["people"]["shown"] == []
+
+    def test_an_organisation_credited_on_the_project_is_listed_like_a_person(
+        self, client
+    ):
+        from fairdm.factories import OrganizationFactory
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        organisation = OrganizationFactory(name="Institute")
+        project.add_contributor(organisation, with_roles=["Other"])
+
+        response = _page(client, project)
+
+        assert response.page.find("li", attrs={"data-tip": "Institute"}) is not None
+
+
+@pytest.mark.django_db
+class TestOverviewCitation:
+    def _citation(self, client, project):
+        response = _page(client, project)
+        return response.page.find(id="citation-text").get_text(strip=True)
+
+    def _project_with_creators(self, *names):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        for first, last in names:
+            project.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=["Creator"],
+            )
+        return project
+
+    def test_one_creator_is_written_surname_and_initial(self, client):
+        project = self._project_with_creators(("Anna", "Keller"))
+
+        assert self._citation(client, project).startswith("Keller, A. (")
+
+    def test_two_creators_are_joined_by_an_ampersand(self, client):
+        project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
+
+        assert self._citation(client, project).startswith(
+            "Keller, A. & Oliveira, T. ("
+        )
+
+    def test_several_creators_are_comma_separated_with_an_ampersand_before_the_last(
+        self, client
+    ):
+        project = self._project_with_creators(
+            ("Anna", "Keller"), ("Tomas", "Oliveira"), ("Lena", "Brandt")
+        )
+
+        assert self._citation(client, project).startswith(
+            "Keller, A., Oliveira, T. & Brandt, L. ("
+        )
+
+    def test_a_project_with_a_doi_is_cited_by_it(self, client):
+        project = self._project_with_creators(("Anna", "Keller"))
+        ProjectIdentifierFactory(related=project, type="DOI", value="10.5555/cited")
+
+        assert self._citation(client, project).endswith("https://doi.org/10.5555/cited")
+
+    def test_a_project_without_a_doi_is_cited_by_its_page_and_the_card_says_so(
+        self, client
+    ):
+        project = self._project_with_creators(("Anna", "Keller"))
+
+        response = _page(client, project)
+
+        assert response.page.find(id="citation-text").get_text().endswith(
+            _overview_url(project)
+        )
+        assert response.context["citation"]["note"]
+
+    def test_the_year_is_the_projects_start_year(self, client):
+        project = self._project_with_creators(("Anna", "Keller"))
+        ProjectDateFactory(related=project, type="Start", value=PartialDate("2019-05"))
+
+        assert "(2019)" in self._citation(client, project)
+
+
+@pytest.mark.django_db
+class TestOverviewTimeline:
+    def _progress(self, client, project, start, end):
+        for type_, day in (("Start", start), ("End", end)):
+            ProjectDateFactory(
+                related=project, type=type_, value=PartialDate(day.isoformat())
+            )
+        response = _page(client, project)
+        return response, response.page.find("progress")
+
+    def test_before_the_start_it_has_not_begun(self, client):
+        today = timezone.localdate()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response, bar = self._progress(
+            client, project, today + timedelta(days=30), today + timedelta(days=400)
+        )
+
+        assert bar["value"] == "0"
+        assert response.context["timeline"]["not_started"] is True
+
+    def test_during_the_project_it_says_how_far_through_it_is(self, client):
+        today = timezone.localdate()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response, bar = self._progress(
+            client, project, today - timedelta(days=100), today + timedelta(days=100)
+        )
+
+        assert bar["value"] == "50"
+        timeline = response.context["timeline"]
+        assert not timeline["finished"]
+        assert not timeline["not_started"]
+
+    def test_after_the_end_it_is_finished(self, client):
+        today = timezone.localdate()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response, bar = self._progress(
+            client, project, today - timedelta(days=800), today - timedelta(days=100)
+        )
+
+        assert bar["value"] == "100"
+        assert response.context["timeline"]["finished"] is True
+
+    def test_a_project_with_no_start_date_draws_no_timeline(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.page.find("progress") is None
+
+    def test_a_project_with_a_start_and_no_end_is_shown_as_ongoing_with_no_bar(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        ProjectDateFactory(related=project, type="Start", value=PartialDate("2020-01"))
+
+        response = _page(client, project)
+
+        assert response.page.find("progress") is None
+        assert response.context["timeline"]["end"] is None
+
+    def test_the_bar_is_named_for_assistive_technology(self, client):
+        today = timezone.localdate()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        _, bar = self._progress(
+            client, project, today - timedelta(days=100), today + timedelta(days=100)
+        )
+
+        assert bar["aria-label"]
+
+
+@pytest.mark.django_db
+class TestOverviewFunding:
+    AWARD = {
+        "funderName": "Funder Example",
+        "awardTitle": "Award Example",
+        "awardNumber": "AWARD-42",
+    }
+
+    def test_a_project_with_funding_shows_it_to_a_visitor(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[self.AWARD])
+
+        response = _page(client, project)
+
+        text = response.page.get_text()
+        assert "Funder Example" in text
+        assert "AWARD-42" in text
+
+    def test_a_project_without_funding_shows_a_visitor_no_funding_card(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
+        with_funding = ProjectFactory(visibility=Visibility.PUBLIC, funding=[self.AWARD])
+
+        without = _page(client, project)
+        with_ = _page(client, with_funding)
+
+        assert len(without.page.select("h2.card-title")) == (
+            len(with_.page.select("h2.card-title")) - 1
+        )
+
+    def test_the_team_of_a_project_without_funding_still_gets_the_card(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
+        user = UserFactory()
+        assign_perm("view_project", user, project)
+        assign_perm("change_project", user, project)
+
+        visitor_cards = len(_page(client, project).page.select("h2.card-title"))
+        client.force_login(user)
+        team_cards = len(_page(client, project).page.select("h2.card-title"))
+
+        # The team also gets the checklist and the manage controls, but it is the funding card
+        # that this compares: readiness adds one card, funding the other.
+        assert team_cards == visitor_cards + 2
+
+
+@pytest.mark.django_db
+class TestOverviewSchemaOrgDescription:
+    def test_the_pages_head_carries_the_projects_description(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC, name="Deep heat flow")
+
+        response = _page(client, project)
+
+        data = _json_ld(response.page)
+        assert data["@type"] == "ResearchProject"
+        assert data["name"] == "Deep heat flow"
+
+    def test_a_name_that_could_end_the_script_element_cannot_break_out_of_it(
+        self, client
+    ):
+        name = "</script><script>alert(1)</script> & <b>"
+        project = ProjectFactory(visibility=Visibility.PUBLIC, name=name)
+
+        response = _page(client, project)
+
+        assert _json_ld(response.page)["name"] == name
+        assert "<script>alert(1)" not in response.content.decode()
+
+    def test_it_carries_no_contributor_email_address(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        person = PersonFactory(is_active=True)
+        project.add_contributor(person, with_roles=["Creator"])
+
+        response = _page(client, project)
+
+        assert person.email not in response.content.decode()
+
+    def test_it_names_no_dataset_the_viewer_may_not_see(self, client, overview_showcase):
+        response = _page(client, overview_showcase.project)
+
+        assert overview_showcase.private.name not in json.dumps(
+            _json_ld(response.page)
+        )
+
+
+@pytest.mark.django_db
+class TestOverviewFirstRun:
+    def test_a_project_with_no_datasets_offers_its_team_a_way_to_add_one_and_draws_no_chart(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        user = UserFactory()
+        assign_perm("view_project", user, project)
+        assign_perm("change_project", user, project)
+        client.force_login(user)
+
+        response = _page(client, project)
+
+        add_url = f"{reverse('dataset-create')}?project={project.uuid}"
+        assert response.page.find("a", href=add_url) is not None
+        assert response.page.find(attrs={"data-mvp-chart": True}) is None
+        assert response.context["composition_chart"] is None
+        assert response.context["growth_chart"] is None
+
+    def test_a_visitor_to_a_project_with_no_datasets_is_offered_no_way_to_add_one(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.page.find("a", href=reverse("dataset-create")) is None
+        assert response.page.find(attrs={"data-mvp-chart": True}) is None
+
+    def test_the_chart_libraries_are_not_loaded_when_there_is_no_chart(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert "echarts" not in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestOverviewCharts:
+    """SC-006: each chart states in text what it shows."""
+
+    def test_each_chart_is_named_and_points_at_its_text_alternative(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        for chart_id in ("project-composition", "project-growth"):
+            surface = response.page.find(id=chart_id).find(attrs={"role": "img"})
+            assert surface["aria-label"]
+            described_by = surface["aria-describedby"].split()
+            assert f"{chart_id}-description" in described_by
+            assert response.page.find(id=f"{chart_id}-description").get_text(strip=True)
+
+    def test_the_composition_text_lists_every_type_with_its_count(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        text = response.page.find(id="project-composition-description").get_text()
+        assert "Rock Samples: 2" in text
+        assert "Water Samples: 1" in text
+        assert "XRF Measurements: 2" in text
+
+    def test_a_type_the_registry_no_longer_holds_is_left_out_of_the_composition(
+        self, client, overview_showcase, monkeypatch
+    ):
+        from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+        from demo.models import ExampleMeasurement
+        from fairdm.registry import registry
+
+        published = overview_showcase.published
+        ExampleMeasurementFactory(
+            dataset=published, sample=RockSampleFactory(dataset=published)
+        )
+        held = {
+            model: config
+            for model, config in registry._registry.items()
+            if model is not ExampleMeasurement
+        }
+        monkeypatch.setattr(registry, "_registry", held)
+
+        response = _page(client, overview_showcase.project)
+
+        text = response.page.find(id="project-composition-description").get_text()
+        assert "Example" not in text
+        assert "Rock Samples" in text
+
+    def test_a_record_whose_type_no_longer_exists_does_not_break_the_page(
+        self, client, overview_showcase
+    ):
+        from django.contrib.contenttypes.models import ContentType
+
+        from fairdm.core.sample.models import Sample
+
+        stale = ContentType.objects.create(app_label="demo", model="removedsample")
+        sample = Sample.objects.filter(dataset=overview_showcase.published).first()
+        Sample.objects.filter(pk=sample.pk).update(polymorphic_ctype=stale)
+
+        response = _page(client, overview_showcase.project)
+
+        text = response.page.find(id="project-composition-description").get_text()
+        assert "Rock Samples" in text
+
+
+@pytest.mark.django_db
+class TestOverviewFollowsTheActiveLanguage:
+    """FR-057: dates in chart labels and descriptions use the locale's named formats."""
+
+    def _growth_labels(self, page):
+        options = page.find(id="project-growth").find(
+            "script", attrs={"data-mvp-chart-options": True}
+        )
+        return json.loads(options.string)["xAxis"][0]["data"]
+
+    def test_the_growth_charts_month_labels_follow_the_language(
+        self, client, overview_showcase
+    ):
+        months = [date(2026, 1, 1), date(2026, 2, 1), date(2026, 3, 1)]
+        with translation.override("de"):
+            expected = [date_format(month, "YEAR_MONTH_FORMAT") for month in months]
+
+        response = _page(client, overview_showcase.project, language="de")
+
+        assert self._growth_labels(response.page) == expected
+        assert expected != self._growth_labels(
+            _page(client, overview_showcase.project, language="en").page
+        )
+
+    def test_the_growth_charts_description_names_its_months_in_the_language(
+        self, client, overview_showcase
+    ):
+        with translation.override("de"):
+            first = date_format(date(2026, 1, 1), "YEAR_MONTH_FORMAT")
+            last = date_format(date(2026, 3, 1), "YEAR_MONTH_FORMAT")
+
+        response = _page(client, overview_showcase.project, language="de")
+
+        text = response.page.find(id="project-growth-description").get_text()
+        assert first in text
+        assert last in text
+
+    def test_a_datasets_last_updated_date_follows_the_language(
+        self, client, overview_showcase
+    ):
+        updated = datetime(2026, 1, 5, 12, tzinfo=UTC)
+        Dataset.all_objects.filter(pk=overview_showcase.published.pk).update(
+            modified=updated
+        )
+        with translation.override("de"):
+            expected = date_format(updated, "SHORT_DATE_FORMAT")
+
+        response = _page(client, overview_showcase.project, language="de")
+
+        assert expected in response.page.get_text()
+
+
+@pytest.mark.django_db
+class TestOverviewManageMenu:
+    def _team_member(self, project, *rights):
+        user = UserFactory()
+        assign_perm("view_project", user, project)
+        for right in rights:
+            assign_perm(f"{right}_project", user, project)
+        return user
+
+    def test_a_user_who_may_change_and_delete_is_offered_delete_in_the_manage_menu(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._team_member(project, "change", "delete"))
+
+        response = _page(client, project)
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assert response.page.find("a", href=delete_url) is not None
+
+    def test_a_user_who_may_change_but_not_delete_is_not_offered_it(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._team_member(project, "change"))
+
+        response = _page(client, project)
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assert response.page.find("a", href=delete_url) is None
+
+    def test_a_user_who_may_delete_but_not_change_is_still_offered_delete(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        client.force_login(self._team_member(project, "delete"))
+
+        response = _page(client, project)
+
+        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        assert response.page.find("a", href=delete_url) is not None
+
+    def test_a_visitor_is_offered_no_manage_links(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        for name in ("update", "delete", "descriptions"):
+            url = reverse(f"project:overview-{name}", kwargs={"uuid": project.uuid})
+            assert response.page.find("a", href=url) is None
+
+    def test_the_add_dataset_action_is_offered_to_the_team_only(
+        self, client, overview_showcase, project_team_member
+    ):
+        project = overview_showcase.project
+        add_url = f"{reverse('dataset-create')}?project={project.uuid}"
+
+        visitor = _page(client, project)
+        client.force_login(project_team_member)
+        team = _page(client, project)
+
+        assert visitor.page.find("a", href=add_url) is None
+        assert team.page.find("a", href=add_url) is not None
+
+
+@pytest.mark.django_db
+class TestOverviewNotAvailableYet:
+    """FR-016, FR-017 and SC-005: what is not available yet is announced and does nothing."""
+
+    def test_every_disabled_button_says_why(self, client, overview_showcase):
+        response = _page(client, overview_showcase.project)
+
+        disabled = response.page.find_all("button", disabled=True)
+        assert disabled
+        for button in disabled:
+            assert button["title"]
+
+    def test_a_card_standing_in_for_a_missing_capability_carries_no_link_or_button(
+        self, client, overview_showcase
+    ):
+        response = _page(client, overview_showcase.project)
+
+        placeholders = [
+            card
+            for card in response.page.select(".card")
+            if card.select_one(".card.bg-base-200")
+            and card.select_one(".card.bg-base-200") is not card
+        ]
+        assert len(placeholders) == 2
+        for card in placeholders:
+            assert card.find("a") is None
+            assert card.find("button") is None
