@@ -403,3 +403,7 @@ port = 8010                   # Live server port (default: 5000)
 verbosity = "quiet"           # Options: "full", "quiet", "errors-only"
 django = true                 # Enable Django integration (default: false)
 theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
+
+# Suites that test templates and static assets have no Python module to mirror.
+[tool.forge.conformance]
+non-mirror-paths = ["tests/test_templates/"]
