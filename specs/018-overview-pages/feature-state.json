@@ -277,18 +277,35 @@
       "tasks": [
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_measurement/test_plugins.py tests/test_core/test_measurement/test_managers.py tests/test_core/test_measurement/test_models.py::TestMeasurementViews -q: 55 passed"
+            ]
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_measurement tests/test_core/test_sample tests/test_core/test_project/test_plugins.py tests/test_core/test_dataset/test_plugins.py tests/test_core/test_overview.py tests/test_core/test_plugins.py tests/test_core/test_managers.py -q: 842 passed, 7 skipped",
+              "rendered 56 seeded records as visitor, staff.user and regular.user before and after: 168 responses identical"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --steps docs --base origin/main: passed",
+              "forge verify --repo <worktree> --base origin/main: conformance, docs, lint, typecheck, test, build all passed"
+            ]
+          }
         }
       ]
     }
