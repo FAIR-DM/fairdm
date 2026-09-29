@@ -185,7 +185,9 @@ class TestExtraViews:
 @pytest.mark.django_db
 class TestRecordPagesServe:
     def test_sample_overview(self, client):
-        sample = RockSampleFactory()
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert response.status_code == 200
 

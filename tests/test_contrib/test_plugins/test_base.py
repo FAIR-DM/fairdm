@@ -10,6 +10,8 @@ from django.urls import reverse
 from django.views.generic import DetailView, TemplateView, UpdateView
 
 from demo.factories import RockSampleFactory
+from fairdm.utils.choices import Visibility
+from fairdm.factories import DatasetFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import DeletePlugin, OverviewPlugin, UpdatePlugin
@@ -930,7 +932,9 @@ class TestNaming:
 @pytest.mark.django_db
 class TestReachingTheRecord:
     def test_the_record_is_in_the_context(self, client):
-        sample = RockSampleFactory()
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert response.context["base_object"] == sample
 
@@ -986,14 +990,18 @@ class TestReachingTheRecord:
 @pytest.mark.django_db
 class TestTheNavigationTrail:
     def test_the_record_entry_links_to_the_record(self, client):
-        sample = RockSampleFactory()
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         trail = response.context["breadcrumbs"]
         record_entry = next(e for e in trail if e["text"] == str(sample))
         assert record_entry["href"] == sample.get_absolute_url()
 
     def test_no_entry_carries_a_placeholder_link(self, client):
-        sample = RockSampleFactory()
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         for entry in response.context["breadcrumbs"]:
             assert entry.get("href") not in {"#", "/"}
@@ -1015,7 +1023,9 @@ class TestTheNavigationTrail:
 @pytest.mark.django_db
 class TestDeclaredAssets:
     def test_declared_stylesheets_and_scripts_reach_the_response(self, client):
-        sample = RockSampleFactory()
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         assert "plugin_media" in response.context
 

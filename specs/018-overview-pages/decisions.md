@@ -86,3 +86,27 @@ Decision numbers in this file and section numbers in `plan.md` are separate seri
 plan sections as "plan D<n>".
 
 **ADR:** none — plan edits, recorded here.
+
+## D6 — Six existing sample-page tests open the page from a published, public dataset
+
+The tests were about something other than who may see a sample: that the record reaches the
+template context, that the breadcrumb trail links to it and carries no placeholder link, that the
+page declares its media, that it serves at all, and that its navigation points somewhere. Each
+built its sample with `RockSampleFactory()`, which puts it in a private, unpublished dataset. The
+sample page now answers a visitor with "not found" for such a sample, as the specification asks,
+so each test built a page nobody could open. Each one now builds its sample with
+`RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True))` and
+asserts what it asserted before.
+
+Changed, by file (`tests/test_contrib/test_plugins/`):
+
+- `test_base.py`: `TestReachingTheRecord.test_the_record_is_in_the_context`,
+  `TestTheNavigationTrail.test_the_record_entry_links_to_the_record`,
+  `TestTheNavigationTrail.test_no_entry_carries_a_placeholder_link` and
+  `TestDeclaredAssets.test_declared_stylesheets_and_scripts_reach_the_response`
+- `test_registration.py`: `TestRecordPagesServe.test_sample_overview`
+- `test_menus.py`: `TestNavigationRenders.test_every_visible_entry_points_somewhere`
+
+The sample's visibility rules have their own tests in the sample story.
+
+**Revisit if:** the sample page's visibility rule changes again.
