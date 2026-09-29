@@ -40,7 +40,9 @@ def contributions_of(obj):
     ``select_related`` stops at the polymorphic base, which has neither a person's name parts nor
     a way to tell the two apart, so the real instances are fetched in one extra query.
     """
-    contributions = list(obj.contributors.select_related("affiliation").prefetch_related("roles"))
+    contributions = list(
+        obj.contributors.select_related("affiliation").prefetch_related("roles")
+    )
     real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
     for contribution in contributions:
         contribution.contributor = real[contribution.contributor_id]
@@ -69,7 +71,9 @@ def composition_chart(samples, measurements):
     items = type_counts(samples) + type_counts(measurements)
     if not items:
         return None
-    items.sort(key=lambda item: item[1])  # ECharts draws the first category at the bottom
+    items.sort(
+        key=lambda item: item[1]
+    )  # ECharts draws the first category at the bottom
     chart = (
         Bar()
         .add_xaxis([label for label, _ in items])
@@ -87,7 +91,13 @@ def composition_chart(samples, measurements):
             xaxis_opts=opts.AxisOpts(splitline_opts=opts.SplitLineOpts(is_show=True)),
         )
     )
-    chart.options["grid"] = {"left": 8, "right": 40, "top": 8, "bottom": 8, "containLabel": True}
+    chart.options["grid"] = {
+        "left": 8,
+        "right": 40,
+        "top": 8,
+        "bottom": 8,
+        "containLabel": True,
+    }
     return {
         "chart": chart,
         "height": f"{max(len(items) * 44 + 32, 160)}px",
@@ -97,7 +107,10 @@ def composition_chart(samples, measurements):
 
 def monthly(queryset):
     return OrderedDict(
-        (row["month"].date() if hasattr(row["month"], "date") else row["month"], row["n"])
+        (
+            row["month"].date() if hasattr(row["month"], "date") else row["month"],
+            row["n"],
+        )
         for row in queryset.annotate(month=TruncMonth("added"))
         .values("month")
         .annotate(n=Count("pk"))
@@ -131,11 +144,17 @@ def growth_chart(samples, measurements):
         Line()
         .add_xaxis([m.strftime("%b %Y") for m in months])
         .add_yaxis(
-            _("Samples"), samples_line, is_symbol_show=False, linestyle_opts=line_style,
+            _("Samples"),
+            samples_line,
+            is_symbol_show=False,
+            linestyle_opts=line_style,
             label_opts=opts.LabelOpts(is_show=False),
         )
         .add_yaxis(
-            _("Measurements"), measurements_line, is_symbol_show=False, linestyle_opts=line_style,
+            _("Measurements"),
+            measurements_line,
+            is_symbol_show=False,
+            linestyle_opts=line_style,
             label_opts=opts.LabelOpts(is_show=False),
         )
         .set_global_opts(
@@ -144,7 +163,13 @@ def growth_chart(samples, measurements):
             xaxis_opts=opts.AxisOpts(boundary_gap=False),
         )
     )
-    chart.options["grid"] = {"left": 8, "right": 16, "top": 40, "bottom": 8, "containLabel": True}
+    chart.options["grid"] = {
+        "left": 8,
+        "right": 16,
+        "top": 40,
+        "bottom": 8,
+        "containLabel": True,
+    }
     return {
         "chart": chart,
         "description": _(
@@ -175,7 +200,7 @@ def sentence_case(text):
 
 
 def format_authors(contributors):
-    """"Keller, A., Oliveira, T. & Brandt, L." — the DataCite creator list as a reader writes it."""
+    """ "Keller, A., Oliveira, T. & Brandt, L." — the DataCite creator list as a reader writes it."""
     names = [author_name(c) for c in contributors]
     if len(names) > 1:
         return ", ".join(names[:-1]) + " & " + names[-1]
@@ -244,7 +269,9 @@ def identifiers(obj):
         {
             "type": i.type,
             "value": i.value,
-            "link": f"https://doi.org/{i.value}" if str(i.value).startswith("10.") else None,
+            "link": f"https://doi.org/{i.value}"
+            if str(i.value).startswith("10.")
+            else None,
         }
         for i in obj.identifiers.all()
     ]
@@ -254,7 +281,12 @@ def citation(request, *, authors, year, title, link):
     """DataCite's citation form: Creators (Year). Title. Publisher. Identifier."""
     names = format_authors(authors)
     publisher = getattr(getattr(request, "site", None), "name", "") or ""
-    parts = [f"{names} ({year})." if names else f"({year}).", f"{title}.", f"{publisher}.", link]
+    parts = [
+        f"{names} ({year})." if names else f"({year}).",
+        f"{title}.",
+        f"{publisher}.",
+        link,
+    ]
     return " ".join(p for p in parts if p.strip(". "))
 
 
@@ -276,7 +308,9 @@ def timeline(steps, dates, descriptions, entries):
                 {
                     "label": label,
                     "date": when,
-                    "day": when.date if when is not None and when.precision == 2 else None,
+                    "day": when.date
+                    if when is not None and when.precision == 2
+                    else None,
                     "people": who,
                     "note": note,
                 }

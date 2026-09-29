@@ -16,22 +16,22 @@ from collections import OrderedDict
 from django.contrib.contenttypes.models import ContentType
 from django.db import models as dj_models
 from django.db.models import Max, Min
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
-from django.utils.formats import date_format
 
 from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
     composition_chart,
-    sentence_case,
     contributions_of,
     format_authors,
     is_person,
     json_ld,
     roles_of,
     safe_reverse,
+    sentence_case,
 )
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
@@ -43,7 +43,16 @@ from .models import Dataset, DatasetDescription, DatasetLiteratureRelation
 PREVIEW_ROWS = 10
 
 #: Fields every record carries that say nothing about the data itself.
-BOOKKEEPING_FIELDS = {"id", "uuid", "name", "dataset", "sample", "added", "modified", "options"}
+BOOKKEEPING_FIELDS = {
+    "id",
+    "uuid",
+    "name",
+    "dataset",
+    "sample",
+    "added",
+    "modified",
+    "options",
+}
 
 #: The order a reuser wants people in: who made it, who to write to, then everyone else.
 ROLE_ORDER = ["Creator", "ContactPerson"]
@@ -72,7 +81,9 @@ def build(request, dataset, can_manage):
         "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
         "urls": {
             "update": safe_reverse("dataset:overview-update", uuid=dataset.uuid),
-            "descriptions": safe_reverse("dataset:overview-descriptions", uuid=dataset.uuid),
+            "descriptions": safe_reverse(
+                "dataset:overview-descriptions", uuid=dataset.uuid
+            ),
             "delete": safe_reverse("dataset:overview-delete", uuid=dataset.uuid),
         },
     }
@@ -103,7 +114,9 @@ def shared_context(request, dataset, context):
         "details": [],
     }
     if citation_["from_reference"]:
-        result["citation"]["note"] = _("Cite the data publication above rather than this page.")
+        result["citation"]["note"] = _(
+            "Cite the data publication above rather than this page."
+        )
     elif not citation_["has_doi"]:
         result["citation"]["note"] = _(
             "This dataset has no DOI yet, so the citation points at this page. It gets one when "
@@ -121,7 +134,9 @@ def shared_context(request, dataset, context):
             ) % {"n": info["siblings"]}
         result["details"].append(row)
     result["details"].append(shared.license_row(dataset.license))
-    result["details"].append({"label": _("Last updated"), "icon": "time", "date": dataset.modified})
+    result["details"].append(
+        {"label": _("Last updated"), "icon": "time", "date": dataset.modified}
+    )
     if "readiness" in context:
         readiness_ = context["readiness"]
         readiness_["title"] = _("Ready to publish?")
@@ -153,7 +168,14 @@ def lifecycle(dataset, dates_):
                 + (date_format(end, "j M Y") if end else _("ongoing")),
             }
         )
-    steps.append({"label": _("Added to the portal"), "sort": dataset.added.date(), "day": dataset.added, "date": dataset.added})
+    steps.append(
+        {
+            "label": _("Added to the portal"),
+            "sort": dataset.added.date(),
+            "day": dataset.added,
+            "date": dataset.added,
+        }
+    )
     for key, label in (
         ("submitted", _("Submitted")),
         ("published", _("Published")),
@@ -161,7 +183,14 @@ def lifecycle(dataset, dates_):
         ("withdrawn", _("Withdrawn")),
     ):
         if dates_[key]:
-            steps.append({"label": label, "sort": dates_[key], "day": dates_[key], "date": dates_[key]})
+            steps.append(
+                {
+                    "label": label,
+                    "sort": dates_[key],
+                    "day": dates_[key],
+                    "date": dates_[key],
+                }
+            )
     return sorted(steps, key=lambda step: step["sort"])
 
 
@@ -242,8 +271,14 @@ RELATION_WORDING = OrderedDict(
 def literature(dataset):
     order = list(RELATION_WORDING)
     relations = sorted(
-        DatasetLiteratureRelation.objects.filter(dataset=dataset).select_related("literature_item"),
-        key=lambda r: order.index(r.relationship_type) if r.relationship_type in order else len(order),
+        DatasetLiteratureRelation.objects.filter(dataset=dataset).select_related(
+            "literature_item"
+        ),
+        key=lambda r: (
+            order.index(r.relationship_type)
+            if r.relationship_type in order
+            else len(order)
+        ),
     )
     items = [
         {
@@ -252,7 +287,10 @@ def literature(dataset):
             ),
             "item": relation.literature_item,
             "doi": relation.literature_item.get_doi(),
-            "year": (relation.literature_item.item.get("issued", {}).get("date-parts") or [[None]])[0][0],
+            "year": (
+                relation.literature_item.item.get("issued", {}).get("date-parts")
+                or [[None]]
+            )[0][0],
         }
         for relation in relations
     ]
@@ -266,7 +304,9 @@ def field_kind(field):
         return _("Choice")
     if isinstance(field, dj_models.BooleanField):
         return _("Yes / no")
-    if isinstance(field, (dj_models.IntegerField, dj_models.FloatField, dj_models.DecimalField)):
+    if isinstance(
+        field, (dj_models.IntegerField, dj_models.FloatField, dj_models.DecimalField)
+    ):
         return _("Number")
     if isinstance(field, dj_models.DateTimeField):
         return _("Date and time")
@@ -280,12 +320,18 @@ def field_kind(field):
 def field_summary(model, config, queryset, can_see_data):
     """One row per field a reuser has to understand: what it means, what kind of value, the unit
     and, for numbers, the range this dataset actually spans."""
-    names = [n for n in config.resolve_fields("table") if n not in BOOKKEEPING_FIELDS and "__" not in n]
+    names = [
+        n
+        for n in config.resolve_fields("table")
+        if n not in BOOKKEEPING_FIELDS and "__" not in n
+    ]
     rows, numeric = [], []
     for name in names:
         try:
             field = model._meta.get_field(name)
-        except Exception:  # a table column that isn't a model field — nothing to describe
+        except (
+            Exception
+        ):  # a table column that isn't a model field — nothing to describe
             continue
         kind = field_kind(field)
         row = {
@@ -301,10 +347,14 @@ def field_summary(model, config, queryset, can_see_data):
         rows.append(row)
     if can_see_data and numeric and queryset.exists():
         aggregates = queryset.aggregate(
-            **{f"{n}__min": Min(n) for n in numeric}, **{f"{n}__max": Max(n) for n in numeric}
+            **{f"{n}__min": Min(n) for n in numeric},
+            **{f"{n}__max": Max(n) for n in numeric},
         )
         for row in rows:
-            low, high = aggregates.get(f"{row['name']}__min"), aggregates.get(f"{row['name']}__max")
+            low, high = (
+                aggregates.get(f"{row['name']}__min"),
+                aggregates.get(f"{row['name']}__max"),
+            )
             if low is not None and high is not None:
                 row["range"] = (low, high)
     return rows
@@ -331,7 +381,9 @@ def record_types(dataset, samples, measurements, can_see_data):
             .order_by("-n")
         )
         for row in rows:
-            model = ContentType.objects.get_for_id(row["polymorphic_ctype"]).model_class()
+            model = ContentType.objects.get_for_id(
+                row["polymorphic_ctype"]
+            ).model_class()
             if model is None or not registry.is_registered(model):
                 continue
             config = registry.get_for_model(model)
@@ -343,7 +395,9 @@ def record_types(dataset, samples, measurements, can_see_data):
                     "slug": config.get_slug(),
                     "label": sentence_case(model._meta.verbose_name_plural),
                     "count": row["n"],
-                    "description": config.get_description() if (metadata and metadata.description) or config.description else "",
+                    "description": config.get_description()
+                    if (metadata and metadata.description) or config.description
+                    else "",
                     "authority": metadata.authority if metadata else None,
                     "schema_citation": metadata.citation if metadata else None,
                     "fields": field_summary(model, config, typed, can_see_data),
@@ -358,7 +412,9 @@ def counts(samples, measurements, data_types):
     measurement_types = sum(1 for t in data_types if t["kind"] == "measurement")
 
     def types(n):
-        return ngettext("%(n)s type", "%(n)s types", n) % {"n": n} if n else _("None yet")
+        return (
+            ngettext("%(n)s type", "%(n)s types", n) % {"n": n} if n else _("None yet")
+        )
 
     return {
         "samples": samples.count(),
@@ -400,10 +456,19 @@ def citation(request, dataset, context):
     when = dates_["published"] or dates_["available"]
     year = when.year if when else dataset.added.year
     doi = next((i.value for i in context["identifiers"] if i.type == "DOI"), None)
-    link = f"https://doi.org/{doi}" if doi else request.build_absolute_uri(dataset.get_absolute_url())
+    link = (
+        f"https://doi.org/{doi}"
+        if doi
+        else request.build_absolute_uri(dataset.get_absolute_url())
+    )
     authors = format_authors(creators)
     publisher = getattr(getattr(request, "site", None), "name", "") or ""
-    parts = [f"{authors} ({year})." if authors else f"({year}).", f"{dataset.name}.", f"{publisher}.", link]
+    parts = [
+        f"{authors} ({year})." if authors else f"({year}).",
+        f"{dataset.name}.",
+        f"{publisher}.",
+        link,
+    ]
     return {
         "text": " ".join(p for p in parts if p.strip(". ")),
         "link": link,
@@ -416,7 +481,9 @@ def citation(request, dataset, context):
 def schema_org(request, dataset, context):
     """schema.org ``Dataset`` — the shape Google Dataset Search and most harvesters read."""
     url = request.build_absolute_uri(dataset.get_absolute_url())
-    abstract = next((d["value"] for d in context["descriptions"] if d["type"] == "Abstract"), "")
+    abstract = next(
+        (d["value"] for d in context["descriptions"] if d["type"] == "Abstract"), ""
+    )
     data = OrderedDict(
         [
             ("@context", "https://schema.org/"),
@@ -440,15 +507,25 @@ def schema_org(request, dataset, context):
         person = entry["contributor"]
         if is_person(person):
             creators.append(
-                {"@type": "Person", "name": str(person), "givenName": person.first_name, "familyName": person.last_name}
+                {
+                    "@type": "Person",
+                    "name": str(person),
+                    "givenName": person.first_name,
+                    "familyName": person.last_name,
+                }
             )
         else:
             creators.append({"@type": "Organization", "name": str(person)})
     if creators:
         data["creator"] = creators
-    start, end = context["dates"]["collection_start"], context["dates"]["collection_end"]
+    start, end = (
+        context["dates"]["collection_start"],
+        context["dates"]["collection_end"],
+    )
     if start:
-        data["temporalCoverage"] = f"{start.isoformat()}/{end.isoformat() if end else '..'}"
+        data["temporalCoverage"] = (
+            f"{start.isoformat()}/{end.isoformat() if end else '..'}"
+        )
     # Field names only: a visitor on an unpublished dataset may read what each field means, never
     # the range of values it holds.
     variables = [f["label"] for t in context["data_types"] for f in t["fields"]]
@@ -477,23 +554,69 @@ def readiness(dataset, context):
     described = {d["type"] for d in context["descriptions"]}
     dates_ = context["dates"]
     items = [
-        (_("An abstract describes the data"), "Abstract" in described, urls["descriptions"], True),
-        (_("The methods are described"), "Methods" in described, urls["descriptions"], True),
-        (_("At least one creator is credited"), bool(context["team"]["creators"]), None, True),
-        (_("Someone is named as the contact"), context["team"]["has_contact"], None, True),
-        (_("A licence is chosen"), dataset.license_id is not None, urls["update"], True),
-        (_("It holds samples or measurements"), bool(context["data_types"]), None, True),
-        (_("The collection period is recorded"), dates_["collection_start"] is not None, urls["update"], True),
+        (
+            _("An abstract describes the data"),
+            "Abstract" in described,
+            urls["descriptions"],
+            True,
+        ),
+        (
+            _("The methods are described"),
+            "Methods" in described,
+            urls["descriptions"],
+            True,
+        ),
+        (
+            _("At least one creator is credited"),
+            bool(context["team"]["creators"]),
+            None,
+            True,
+        ),
+        (
+            _("Someone is named as the contact"),
+            context["team"]["has_contact"],
+            None,
+            True,
+        ),
+        (
+            _("A licence is chosen"),
+            dataset.license_id is not None,
+            urls["update"],
+            True,
+        ),
+        (
+            _("It holds samples or measurements"),
+            bool(context["data_types"]),
+            None,
+            True,
+        ),
+        (
+            _("The collection period is recorded"),
+            dates_["collection_start"] is not None,
+            urls["update"],
+            True,
+        ),
         (_("Keywords make it findable"), dataset.keywords.exists(), None, False),
-        (_("A related publication is linked"), bool(context["literature"]["items"]), None, False),
-        (_("The dataset is public"), dataset.visibility == Visibility.PUBLIC, urls["update"], True),
+        (
+            _("A related publication is linked"),
+            bool(context["literature"]["items"]),
+            None,
+            False,
+        ),
+        (
+            _("The dataset is public"),
+            dataset.visibility == Visibility.PUBLIC,
+            urls["update"],
+            True,
+        ),
     ]
     required = [i for i in items if i[3]]
     done_required = sum(1 for i in required if i[1])
     done = sum(1 for i in items if i[1])
     return {
         "items": [
-            {"label": label, "done": ok, "url": url, "required": req} for label, ok, url, req in items
+            {"label": label, "done": ok, "url": url, "required": req}
+            for label, ok, url, req in items
         ],
         "done": done,
         "total": len(items),

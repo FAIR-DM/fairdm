@@ -11,13 +11,12 @@ as one timeline instead of three unrelated lists.
 """
 
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
-from django.utils.translation import ngettext
+from django.utils.translation import gettext_lazy, ngettext
 
 from fairdm.core import overview as shared
 from fairdm.core.measurement.models import Measurement
 
-from .models import Sample, SampleDescription, SampleRelation
+from .models import Sample, SampleRelation
 
 #: Each step in a sample's history: its date type, the contributor role that performs it, the
 #: description type that explains it, and what the page calls it. The order is the order a
@@ -87,9 +86,12 @@ def build(request, sample, can_manage):
     citation_text = shared.citation(
         request,
         authors=shared.with_role(entries, "Collection"),
-        year=getattr(getattr(collected, "date", None), "year", None) or sample.added.year,
+        year=getattr(getattr(collected, "date", None), "year", None)
+        or sample.added.year,
         title=f"{sample.name} [{sample_type}]",
-        link=igsn["link"] if igsn else request.build_absolute_uri(sample.get_absolute_url()),
+        link=igsn["link"]
+        if igsn
+        else request.build_absolute_uri(sample.get_absolute_url()),
     )
     citation = {"title": _("Citation"), "text": citation_text}
     if not igsn:
@@ -121,8 +123,14 @@ def build(request, sample, can_manage):
         "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
         "type_info": shared.type_info(sample),
         "people": shared.people(entries),
-        "details": parents + [
-            {"label": _("Status"), "icon": "box", "text": status_["label"], "note": status_["meaning"]},
+        "details": parents
+        + [
+            {
+                "label": _("Status"),
+                "icon": "box",
+                "text": status_["label"],
+                "note": status_["meaning"],
+            },
             {"label": _("Added"), "icon": "calendar", "date": sample.added},
             {"label": _("Last updated"), "icon": "time", "date": sample.modified},
         ],
@@ -163,12 +171,16 @@ def related_samples(user, sample):
     own dataset. One the viewer may not see is described, never named or linked, and isn't
     counted."""
     parents = [
-        r.target_id for r in SampleRelation.objects.filter(source=sample, type="child_of")
+        r.target_id
+        for r in SampleRelation.objects.filter(source=sample, type="child_of")
     ]
     children = [
-        r.source_id for r in SampleRelation.objects.filter(target=sample, type="child_of")
+        r.source_id
+        for r in SampleRelation.objects.filter(target=sample, type="child_of")
     ]
-    visible = Sample.objects.filter(pk__in=parents + children).visible_to(user).in_bulk()
+    visible = (
+        Sample.objects.filter(pk__in=parents + children).visible_to(user).in_bulk()
+    )
 
     def entries(pks, relation):
         shown = [visible[pk] for pk in pks if pk in visible]

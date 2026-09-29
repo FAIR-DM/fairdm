@@ -16,14 +16,12 @@ from datetime import timedelta
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-
-from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
 from django.db import transaction
 from django.utils import timezone
 from guardian.shortcuts import assign_perm
 from licensing.models import License
-from partial_date import PartialDate
 from literature.models import LiteratureItem
+from partial_date import PartialDate
 from research_vocabs.models import Concept, Vocabulary
 
 from demo.factories import (
@@ -50,6 +48,7 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.core.sample.models import Sample
+from fairdm.management.commands.create_dev_accounts import EXAMPLE_ACCOUNTS as ACCOUNTS
 from fairdm.utils.choices import Visibility
 
 SHOWCASE = "Thermal regime and groundwater flow of the Upper Rhine Graben"
@@ -121,18 +120,48 @@ PEOPLE = [
 
 DATASETS = [
     # name, visibility, published, sample factory, measurement factories
-    ("Core samples from the Soultz-sous-Forêts boreholes", Visibility.PUBLIC, True,
-     RockSampleFactory, [XRFMeasurementFactory]),
-    ("Thermal conductivity of Buntsandstein sandstones", Visibility.PUBLIC, True,
-     RockSampleFactory, [XRFMeasurementFactory]),
-    ("Deep groundwater chemistry, Rittershoffen and Landau", Visibility.PUBLIC, True,
-     WaterSampleFactory, [ICP_MS_MeasurementFactory]),
-    ("Shallow soil gas survey, Bruchsal", Visibility.PUBLIC, False,
-     SoilSampleFactory, [ICP_MS_MeasurementFactory]),
-    ("Borehole temperature logs (quality-controlled)", Visibility.PRIVATE, False,
-     RockSampleFactory, []),
-    ("Spring water sampling campaign 2026", Visibility.PRIVATE, False,
-     WaterSampleFactory, [ICP_MS_MeasurementFactory]),
+    (
+        "Core samples from the Soultz-sous-Forêts boreholes",
+        Visibility.PUBLIC,
+        True,
+        RockSampleFactory,
+        [XRFMeasurementFactory],
+    ),
+    (
+        "Thermal conductivity of Buntsandstein sandstones",
+        Visibility.PUBLIC,
+        True,
+        RockSampleFactory,
+        [XRFMeasurementFactory],
+    ),
+    (
+        "Deep groundwater chemistry, Rittershoffen and Landau",
+        Visibility.PUBLIC,
+        True,
+        WaterSampleFactory,
+        [ICP_MS_MeasurementFactory],
+    ),
+    (
+        "Shallow soil gas survey, Bruchsal",
+        Visibility.PUBLIC,
+        False,
+        SoilSampleFactory,
+        [ICP_MS_MeasurementFactory],
+    ),
+    (
+        "Borehole temperature logs (quality-controlled)",
+        Visibility.PRIVATE,
+        False,
+        RockSampleFactory,
+        [],
+    ),
+    (
+        "Spring water sampling campaign 2026",
+        Visibility.PRIVATE,
+        False,
+        WaterSampleFactory,
+        [ICP_MS_MeasurementFactory],
+    ),
 ]
 
 
@@ -152,7 +181,9 @@ class ProjectSeed(BaseCommand):
         self.empty(users)
         self.sparse(users)
         self.dataset_metadata(users, keywords)
-        self.stdout.write(self.style.SUCCESS("Seeded the project and dataset overview states."))
+        self.stdout.write(
+            self.style.SUCCESS("Seeded the project and dataset overview states.")
+        )
 
     def accounts(self):
         users = {}
@@ -208,7 +239,9 @@ class ProjectSeed(BaseCommand):
         for pk in queryset.values_list("pk", flat=True):
             # Weighted towards the later part of the project, as collection ramps up.
             offset = int(span * random.random() ** 0.6)
-            queryset.model.objects.filter(pk=pk).update(added=start + timedelta(days=offset))
+            queryset.model.objects.filter(pk=pk).update(
+                added=start + timedelta(days=offset)
+            )
 
     def showcase(self, users, keywords):
         owner = self.organization("Karlsruhe Institute of Technology")
@@ -244,10 +277,18 @@ class ProjectSeed(BaseCommand):
             ("ExpectedOutput", EXPECTED_OUTPUT),
         ]:
             ProjectDescription.objects.create(related=project, type=type_, value=value)
-        ProjectDate.objects.create(related=project, type="Start", value=PartialDate("2024-03-01"))
-        ProjectDate.objects.create(related=project, type="End", value=PartialDate("2028-02-29"))
-        ProjectIdentifier.objects.create(related=project, type="DOI", value="10.5880/fairdm.2024.001")
-        ProjectIdentifier.objects.create(related=project, type="GRANT_NUMBER", value="DFG 461295877")
+        ProjectDate.objects.create(
+            related=project, type="Start", value=PartialDate("2024-03-01")
+        )
+        ProjectDate.objects.create(
+            related=project, type="End", value=PartialDate("2028-02-29")
+        )
+        ProjectIdentifier.objects.create(
+            related=project, type="DOI", value="10.5880/fairdm.2024.001"
+        )
+        ProjectIdentifier.objects.create(
+            related=project, type="GRANT_NUMBER", value="DFG 461295877"
+        )
 
         for first, last, roles in PEOPLE:
             project.add_contributor(self.person(first, last), with_roles=roles)
@@ -259,7 +300,13 @@ class ProjectSeed(BaseCommand):
         start = timezone.now() - timedelta(days=int(365 * 2.5))
         now = timezone.now()
         licenses = list(License.objects.all())
-        for index, (name, visibility, published, sample_factory, measurement_factories) in enumerate(DATASETS):
+        for index, (
+            name,
+            visibility,
+            published,
+            sample_factory,
+            measurement_factories,
+        ) in enumerate(DATASETS):
             dataset = Dataset.all_objects.create(
                 name=name,
                 project=project,
@@ -277,12 +324,18 @@ class ProjectSeed(BaseCommand):
                     for _ in range(random.randint(1, 3)):
                         factory(sample=sample, dataset=dataset)
             self.backdate(Sample.objects.filter(dataset=dataset), start, now)
-            self.backdate(Measurement.objects.filter(dataset=dataset), start + timedelta(days=60), now)
+            self.backdate(
+                Measurement.objects.filter(dataset=dataset),
+                start + timedelta(days=60),
+                now,
+            )
             Dataset.all_objects.filter(pk=dataset.pk).update(
                 added=start + timedelta(days=90 * index),
                 modified=now - timedelta(days=random.randint(1, 120)),
             )
-        Project.objects.filter(pk=project.pk).update(added=start, modified=now - timedelta(days=2))
+        Project.objects.filter(pk=project.pk).update(
+            added=start, modified=now - timedelta(days=2)
+        )
 
     def empty(self, users):
         project = Project.objects.create(
@@ -313,7 +366,9 @@ class ProjectSeed(BaseCommand):
             ),
         )
         person = self.person("Hannah", "Vogel")
-        project.add_contributor(person, with_roles=["Creator", "ProjectLeader", "ContactPerson"])
+        project.add_contributor(
+            person, with_roles=["Creator", "ProjectLeader", "ContactPerson"]
+        )
         dataset = Dataset.all_objects.create(
             name="Round 1 reference ages", project=project, visibility=Visibility.PUBLIC
         )
@@ -346,12 +401,17 @@ class ProjectSeed(BaseCommand):
         described example: the Soultz cores (published), the Bruchsal soil gas survey (public,
         data not released) and the borehole logs (private)."""
         showcase = Project.objects.get(name=SHOWCASE)
-        people = {p.last_name: p for p in Person.objects.filter(email__endswith="@example.org")}
+        people = {
+            p.last_name: p
+            for p in Person.objects.filter(email__endswith="@example.org")
+        }
         for dataset in Dataset.all_objects.filter(project=showcase):
             for permission in ("view_dataset", "change_dataset", "delete_dataset"):
                 assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
 
-        cores = Dataset.all_objects.get(project=showcase, name__startswith="Core samples")
+        cores = Dataset.all_objects.get(
+            project=showcase, name__startswith="Core samples"
+        )
         cores.keywords.set(keywords[:3] + keywords[5:])
         DatasetDescription.objects.create(
             related=cores,
@@ -384,12 +444,18 @@ class ProjectSeed(BaseCommand):
             ("Published", "2026-03-04"),
             ("Available", "2026-03-04"),
         ]:
-            DatasetDate.objects.create(related=cores, type=type_, value=PartialDate(value))
-        DatasetIdentifier.objects.create(related=cores, type="DOI", value="10.5880/fairdm.2026.014")
+            DatasetDate.objects.create(
+                related=cores, type=type_, value=PartialDate(value)
+            )
+        DatasetIdentifier.objects.create(
+            related=cores, type="DOI", value="10.5880/fairdm.2026.014"
+        )
         cores.add_contributor(people["Keller"], with_roles=["Creator", "Supervisor"])
         cores.add_contributor(people["Brandt"], with_roles=["Creator", "DataCollector"])
         cores.add_contributor(people["Demir"], with_roles=["Creator", "Researcher"])
-        cores.add_contributor(people["Oliveira"], with_roles=["ContactPerson", "DataManager"])
+        cores.add_contributor(
+            people["Oliveira"], with_roles=["ContactPerson", "DataManager"]
+        )
         cores.add_contributor(people["Tanaka"], with_roles=["DataCurator"])
         cores.add_contributor(people["Weber"], with_roles=["DataCollector"])
         for key, title, year, doi, relation in [
@@ -422,7 +488,9 @@ class ProjectSeed(BaseCommand):
                 relationship_type=relation,
             )
 
-        soil = Dataset.all_objects.get(project=showcase, name__startswith="Shallow soil gas")
+        soil = Dataset.all_objects.get(
+            project=showcase, name__startswith="Shallow soil gas"
+        )
         DatasetDescription.objects.create(
             related=soil,
             type="Abstract",
@@ -431,6 +499,8 @@ class ProjectSeed(BaseCommand):
                 "boundary fault near Bruchsal, to test whether fluid pathways reach the surface."
             ),
         )
-        DatasetDate.objects.create(related=soil, type="CollectionStart", value=PartialDate("2025-06"))
+        DatasetDate.objects.create(
+            related=soil, type="CollectionStart", value=PartialDate("2025-06")
+        )
         soil.add_contributor(people["Martin"], with_roles=["Creator", "ContactPerson"])
         soil.add_contributor(people["Hofmann"], with_roles=["DataCollector"])

@@ -16,9 +16,9 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
+from fairdm.core import overview as shared
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
-from fairdm.core import overview as shared
 from fairdm.core.overview import (
     as_date,
     composition_chart,
@@ -64,12 +64,18 @@ def build(request, project, can_manage):
         "growth_chart": shared.growth_chart(samples, measurements),
         "citation": citation(request, project),
         "json_ld": json_ld(to_json_ld(project)),
-        "api_url": safe_reverse(f"api:{project._meta.model_name}-detail", uuid=project.uuid),
+        "api_url": safe_reverse(
+            f"api:{project._meta.model_name}-detail", uuid=project.uuid
+        ),
         "urls": {
             "datasets": safe_reverse("project:dataset-list", uuid=project.uuid),
-            "contributors": safe_reverse("project:contribution-list", uuid=project.uuid),
+            "contributors": safe_reverse(
+                "project:contribution-list", uuid=project.uuid
+            ),
             "update": safe_reverse("project:overview-update", uuid=project.uuid),
-            "descriptions": safe_reverse("project:overview-descriptions", uuid=project.uuid),
+            "descriptions": safe_reverse(
+                "project:overview-descriptions", uuid=project.uuid
+            ),
             "delete": safe_reverse("project:overview-delete", uuid=project.uuid),
             "add_dataset": safe_reverse("dataset-create"),
         },
@@ -111,7 +117,6 @@ def shared_context(request, project, context):
     return result
 
 
-
 def descriptions(project):
     """The project's descriptions in the vocabulary's own order, abstract first."""
     by_type = {d.type: d.value for d in project.descriptions.all()}
@@ -121,7 +126,6 @@ def descriptions(project):
         for t in ProjectDescription.VOCABULARY.values
         if by_type.get(t)
     ]
-
 
 
 def timeline(project):
@@ -154,9 +158,6 @@ def timeline(project):
         else:
             result["label"] = _("Year %(year)s of %(years)s") % result
     return result
-
-
-
 
 
 def team(project):
@@ -203,14 +204,17 @@ def counts(datasets, samples, measurements, can_manage):
             "private": total - public,
         }
     elif total:
-        dataset_desc = ngettext("%(n)s published", "%(n)s published", published) % {"n": published}
+        dataset_desc = ngettext("%(n)s published", "%(n)s published", published) % {
+            "n": published
+        }
     else:
         dataset_desc = _("None yet")
     return {
         "datasets": total,
         "datasets_desc": dataset_desc,
         "samples": samples.count(),
-        "samples_desc": ngettext("%(n)s type", "%(n)s types", sample_types) % {"n": sample_types}
+        "samples_desc": ngettext("%(n)s type", "%(n)s types", sample_types)
+        % {"n": sample_types}
         if sample_types
         else _("None yet"),
         "measurements": measurements.count(),
@@ -230,30 +234,49 @@ def datasets_preview(datasets):
         )
         .order_by("-modified")
     )
-    return {"rows": list(rows[:DATASET_PREVIEW]), "more": max(rows.count() - DATASET_PREVIEW, 0)}
+    return {
+        "rows": list(rows[:DATASET_PREVIEW]),
+        "more": max(rows.count() - DATASET_PREVIEW, 0),
+    }
 
 
 def licenses(datasets):
     counter = Counter(
-        datasets.filter(visibility=Visibility.PUBLIC).values_list("license__name", flat=True)
+        datasets.filter(visibility=Visibility.PUBLIC).values_list(
+            "license__name", flat=True
+        )
     )
     unlicensed = counter.pop(None, 0)
     return {"items": counter.most_common(), "unlicensed": unlicensed}
 
 
-
-
 def citation(request, project):
     """A DataCite-shaped citation: Creators (Year). Title. Publisher. Identifier."""
-    creators = [c.contributor for c in contributions_of(project) if "Creator" in roles_of(c)]
+    creators = [
+        c.contributor for c in contributions_of(project) if "Creator" in roles_of(c)
+    ]
     start = {d.type: d.value for d in project.dates.all()}.get("Start")
     year = as_date(start).year if as_date(start) else project.added.year
     doi = next((i.value for i in project.identifiers.all() if i.type == "DOI"), None)
-    link = f"https://doi.org/{doi}" if doi else request.build_absolute_uri(project.get_absolute_url())
+    link = (
+        f"https://doi.org/{doi}"
+        if doi
+        else request.build_absolute_uri(project.get_absolute_url())
+    )
     authors = format_authors(creators)
     publisher = getattr(getattr(request, "site", None), "name", "") or ""
-    parts = [f"{authors} ({year})." if authors else f"({year}).", f"{project.name}.", f"{publisher}.", link]
-    return {"text": " ".join(p for p in parts if p.strip(". ")), "link": link, "has_doi": bool(doi), "creators": len(creators)}
+    parts = [
+        f"{authors} ({year})." if authors else f"({year}).",
+        f"{project.name}.",
+        f"{publisher}.",
+        link,
+    ]
+    return {
+        "text": " ".join(p for p in parts if p.strip(". ")),
+        "link": link,
+        "has_doi": bool(doi),
+        "creators": len(creators),
+    }
 
 
 def readiness(project, context):
@@ -267,16 +290,52 @@ def readiness(project, context):
     team_ = context["team"]
     counts_ = context["counts"]
     items = [
-        (_("An abstract describes the project"), "Abstract" in descriptions_, urls["descriptions"]),
-        (_("At least one creator is credited"), context["citation"]["creators"] > 0, urls["contributors"]),
-        (_("Someone is named as the contact"), team_["has_contact"], urls["contributors"]),
-        (_("A start date is recorded"), context["timeline"]["start"] is not None, urls["update"]),
+        (
+            _("An abstract describes the project"),
+            "Abstract" in descriptions_,
+            urls["descriptions"],
+        ),
+        (
+            _("At least one creator is credited"),
+            context["citation"]["creators"] > 0,
+            urls["contributors"],
+        ),
+        (
+            _("Someone is named as the contact"),
+            team_["has_contact"],
+            urls["contributors"],
+        ),
+        (
+            _("A start date is recorded"),
+            context["timeline"]["start"] is not None,
+            urls["update"],
+        ),
         (_("Keywords make it findable"), project.keywords.exists(), None),
         (_("Funding is acknowledged"), bool(project.funding), None),
-        (_("It has a persistent identifier (DOI)"), context["citation"]["has_doi"], urls["update"]),
-        (_("At least one dataset is public"), Dataset.all_objects.filter(project=project, visibility=Visibility.PUBLIC).exists(), urls["datasets"]),
-        (_("Every public dataset has a licence"), counts_["datasets"] > 0 and context["licenses"]["unlicensed"] == 0 and bool(context["licenses"]["items"]), urls["datasets"]),
-        (_("The project is public"), project.visibility == Visibility.PUBLIC, urls["update"]),
+        (
+            _("It has a persistent identifier (DOI)"),
+            context["citation"]["has_doi"],
+            urls["update"],
+        ),
+        (
+            _("At least one dataset is public"),
+            Dataset.all_objects.filter(
+                project=project, visibility=Visibility.PUBLIC
+            ).exists(),
+            urls["datasets"],
+        ),
+        (
+            _("Every public dataset has a licence"),
+            counts_["datasets"] > 0
+            and context["licenses"]["unlicensed"] == 0
+            and bool(context["licenses"]["items"]),
+            urls["datasets"],
+        ),
+        (
+            _("The project is public"),
+            project.visibility == Visibility.PUBLIC,
+            urls["update"],
+        ),
     ]
     done = sum(1 for _, ok, _ in items if ok)
     return {
@@ -290,7 +349,13 @@ def readiness(project, context):
 def project_details(project, context):
     rows = []
     if project.owner:
-        rows.append({"label": _("Organisation"), "icon": "organization", "record": project.owner})
+        rows.append(
+            {
+                "label": _("Organisation"),
+                "icon": "organization",
+                "record": project.owner,
+            }
+        )
     rows.append(
         {
             "label": _("Status"),

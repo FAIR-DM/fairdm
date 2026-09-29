@@ -374,9 +374,9 @@ def check_dev_accounts_absent(app_configs, **kwargs):
 
     try:
         found = sorted(
-            Person.objects.filter(email__in=DEV_ACCOUNT_EMAILS | EXAMPLE_ACCOUNT_EMAILS).values_list(
-                "email", flat=True
-            )
+            Person.objects.filter(
+                email__in=DEV_ACCOUNT_EMAILS | EXAMPLE_ACCOUNT_EMAILS
+            ).values_list("email", flat=True)
         )
     except UNREADABLE_DATABASE:
         return []

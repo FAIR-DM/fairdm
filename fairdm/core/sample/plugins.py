@@ -5,12 +5,12 @@ from typing import Any
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.generic.plugins import (
     DescriptionsPlugin,
     KeyDatesPlugin,
     KeywordsPlugin,
 )
+from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.plugins import TypedOverviewPlugin, UpdatePlugin
 from fairdm.core.sample.models import SampleDate, SampleDescription
 from fairdm.utils.utils import user_guide
@@ -38,7 +38,9 @@ class Overview(TypedOverviewPlugin):
             overview.build(
                 self.request,
                 self.base_object,
-                can_manage=has_perm(self.request, "dataset.change_dataset", self.base_object.dataset),
+                can_manage=has_perm(
+                    self.request, "dataset.change_dataset", self.base_object.dataset
+                ),
             )
         )
         return context

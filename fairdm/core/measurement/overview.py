@@ -56,9 +56,12 @@ def build(request, measurement, can_manage):
         "text": shared.citation(
             request,
             authors=shared.with_role(entries, "MeasurementCollection"),
-            year=getattr(getattr(setup, "date", None), "year", None) or measurement.added.year,
+            year=getattr(getattr(setup, "date", None), "year", None)
+            or measurement.added.year,
             title=title,
-            link=doi["link"] if doi else request.build_absolute_uri(measurement.get_absolute_url()),
+            link=doi["link"]
+            if doi
+            else request.build_absolute_uri(measurement.get_absolute_url()),
         ),
     }
     if not doi:
@@ -71,7 +74,9 @@ def build(request, measurement, can_manage):
     parents = []
     if project is not None:
         parents.append({"label": _("Project"), "icon": "project", "record": project})
-    parents.append({"label": _("Dataset"), "icon": "dataset", "record": measurement.dataset})
+    parents.append(
+        {"label": _("Dataset"), "icon": "dataset", "record": measurement.dataset}
+    )
     parents.append(shared.license_row(measurement.dataset.license))
 
     return {
@@ -94,7 +99,8 @@ def build(request, measurement, can_manage):
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:measurement-detail", uuid=measurement.uuid),
         "people": shared.people(entries),
-        "details": parents + [
+        "details": parents
+        + [
             {"label": _("Added"), "icon": "calendar", "date": measurement.added},
             {"label": _("Last updated"), "icon": "time", "date": measurement.modified},
         ],
@@ -122,7 +128,10 @@ def sample_status(sample):
     if not status:
         return None
     labels = dict(type(sample)._meta.get_field("status").choices)
-    return {"label": labels.get(status, status), "variant": STATUS_VARIANTS.get(status, "neutral")}
+    return {
+        "label": labels.get(status, status),
+        "variant": STATUS_VARIANTS.get(status, "neutral"),
+    }
 
 
 def siblings(user, measurement):

@@ -89,8 +89,14 @@ class TypedOverviewPlugin(OverviewPlugin):
         for cls in type(self.base_object).__mro__:
             if cls is self.base_model:
                 break
-            if isinstance(cls, type) and issubclass(cls, self.base_model) and not cls._meta.abstract:
-                names.append(f"{cls._meta.app_label}/{cls._meta.model_name}_overview.html")
+            if (
+                isinstance(cls, type)
+                and issubclass(cls, self.base_model)
+                and not cls._meta.abstract
+            ):
+                names.append(
+                    f"{cls._meta.app_label}/{cls._meta.model_name}_overview.html"
+                )
         return [*names, self.fallback_template]
 
 

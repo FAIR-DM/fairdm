@@ -38,7 +38,9 @@ class Overview(TypedOverviewPlugin):
             overview.build(
                 self.request,
                 self.base_object,
-                can_manage=has_perm(self.request, "dataset.change_dataset", self.base_object.dataset),
+                can_manage=has_perm(
+                    self.request, "dataset.change_dataset", self.base_object.dataset
+                ),
             )
         )
         return context

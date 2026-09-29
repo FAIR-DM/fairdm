@@ -38,7 +38,9 @@ class MeasurementQuerySet(PolymorphicQuerySet):
         released = Q(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
         if user is None or not user.is_authenticated:
             return self.filter(released)
-        if user.has_perm("dataset.view_dataset") or user.has_perm("dataset.change_dataset"):
+        if user.has_perm("dataset.view_dataset") or user.has_perm(
+            "dataset.change_dataset"
+        ):
             return self
         team_datasets = get_objects_for_user(
             user,
