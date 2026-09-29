@@ -19,6 +19,9 @@ the code is fixed.
 
 **Format**: `[ID] [P?] [Story] Description`. `[P]` can run beside its neighbours.
 
+**Story order**: the stories run one after another. Each starts from the previous story's accepted
+commit, because US-1 changes the shared classes and templates every later story builds on.
+
 ## Phase 1: US-1, the shared anatomy and the project page (P1)
 
 **Goal**: the skeleton, the cards, `RecordOverviewPlugin`, the seed command and the project page,
@@ -27,22 +30,21 @@ tested and documented.
 **Independent test**: load development data, open each seeded project as a visitor and as
 `staff.user`, and compare against US-1's acceptance scenarios.
 
-- [ ] T001 [US1] Dependencies: declare `pyecharts` as a direct dependency, map `django-mvp-charts`
-  to `mvp_charts` for `deptry` (it is used through `INSTALLED_APPS` and templates, so declare it as
-  used rather than ignoring the rule), re-lock with `uv lock`. Clear the ten `ruff check` findings
+- [ ] T001 [US1] Dependencies: declare `pyecharts` as a direct dependency, add `django-mvp-charts`
+  to the existing `deptry` DEP002 ignore list beside the other packages Django loads through
+  `INSTALLED_APPS`, re-lock with `uv lock`. Clear the ten `ruff check` findings
   in the prototype's code (the development password in `demo/seed/`, en dashes, a silent `except`,
   builtin names shadowed). The lint step passes.
-- [ ] T002 [P] [US1] Tests for the shared pieces, written against the plan's D3 API so they fail
-  first:
+- [ ] T002 [P] [US1] Tests for the shared pieces:
   - `tests/test_core/test_overview.py`: `format_authors` for zero, one, two and several creators,
     persons and organisations. `json_ld` escapes `<`, `>` and `&`. `as_date` keeps year-only and
     month-only dates as recorded.
-  - `tests/test_core/test_plugins.py`: on `RecordOverviewPlugin`, `get_citation()` leaves out
-    empty parts; `get_identifiers()` links DOIs and IGSNs to doi.org and leaves other types
-    unlinked; `get_timeline()` puts dated steps in date order and undated ones last;
-    `get_people()` leaves out anyone named in the header and caps at eighteen, counting the rest.
+  - `tests/test_core/test_plugins.py`: `RecordOverviewPlugin.get_identifiers()` links DOIs and
+    IGSNs to doi.org and leaves other types unlinked (FR-012). Citations, the People cap and
+    timelines are covered by the page scenarios in T004, T010 and T013.
 - [ ] T003 [P] [US1] Tests for the skeleton and the cards, under `tests/test_templates/`
-  mirroring `fairdm/templates/`:
+  mirroring `fairdm/templates/`, declared in `pyproject.toml` as
+  `[tool.forge.conformance] non-mirror-paths = ["tests/test_templates/"]`:
   - the side column renders its cards in FR-003's order
   - a child template can add to `overview.main` with `{{ block.super }}` and keep its content
     (FR-007)
@@ -52,16 +54,19 @@ tested and documented.
   - SC-006: the description tabs and the type dialog are named for assistive technology, every
     avatar in the People grid carries the person's name, and each chart and map renders its text
     alternative (the chart description, the coordinates) as text in the page
-- [ ] T004 [P] [US1] `tests/test_core/test_project/test_overview.py`: US-1 scenarios 1 to 11
-  against the rendered page, plus:
+- [ ] T004 [P] [US1] A `TestOverview…` class in `tests/test_core/test_project/test_plugins.py`:
+  US-1 scenarios 1 to 11 against the rendered page, plus:
   - the Manage menu offers Delete to a user who may delete the project (the existing
     `test_a_user_who_may_delete_the_project_is_offered_the_link` stays as it is)
   - a private project's datasets never reach a visitor's figures, charts, licence summary or
     JSON-LD
+  - rendered under `translation.override` to a second enabled language, the growth chart's labels
+    equal `date_format(month, "YEAR_MONTH_FORMAT")` in that language (FR-057)
 - [ ] T005 [P] [US1] Tests for development data, under `tests/test_demo/`: `seed_overviews`
   refuses outside development, creates the three `example.com` accounts when missing and leaves
   existing ones alone, gives `staff.user` the team's rights and `regular.user` none, and running
-  it twice leaves the same records. In `tests/test_conf/`: `fairdm.E501` reports an
+  it twice leaves the same records, and a project it did not create survives a run even when it
+  shares a seeded name. In `tests/test_conf/`: `fairdm.E501` reports an
   `example.com` account outside development.
 - [ ] T006 [US1] Bring the pre-existing tests in `tests/test_contrib/test_plugins/`
   (`test_base.py`, `test_registration.py`, `test_menus.py`) up to date: give the sample and
@@ -75,10 +80,13 @@ tested and documented.
 - [ ] T008 [US1] Fix what T002 to T006 found against the prototype, including:
   - the header people block renamed `overview.byline` in the skeleton and every template
   - the Delete link restored in the project and dataset Manage menus
-  - the unused `cotton/cards/statistic.html` deleted
+  - the seed command creates accounts only when missing and leaves existing ones untouched, keys
+    its deletions on the records it created rather than on names, and puts the empty project's
+    team on `staff.user`, so `regular.user` is on no team (FR-052, FR-053)
   - the prototype's change-history code comments rewritten to say what the code does now
   - FR-057: every string the four pages and the cards show is marked for translation, in the
-    templates and in the Python that builds their context
+    templates and in the Python that builds their context, and dates use named locale-aware
+    formats (plan D8) in chart labels, chart descriptions and templates
 - [ ] T009 [US1] Documentation: `docs/portal-development/overview-pages.md` (the anatomy, the
   block list in page order, the project page, and extending a project page by overriding its
   template), `docs/portal-development/component_library/cards.md` (every `c-card.*` component and
@@ -93,15 +101,17 @@ tested and documented.
 **Independent test**: open the published, public-but-unpublished, private and empty seeded
 datasets as a visitor and as `staff.user`, and compare against FR-022 and FR-024.
 
-- [ ] T010 [US2] `tests/test_core/test_dataset/test_overview.py`: US-2 scenarios 1 to 11, plus:
+- [ ] T010 [US2] A `TestOverview…` class in `tests/test_core/test_dataset/test_plugins.py`: US-2
+  scenarios 1 to 11, plus:
   the JSON-LD on a public, unpublished dataset names the variables measured and carries no values
   (FR-034, FR-056); Delete offered to a user who may delete the dataset. Update the pre-existing
   `TestNonCollectionPagesIgnorePublished` test in `tests/test_core/test_dataset/test_views.py` to
   the new rule that a visitor sees counts but no records, and record why in `decisions.md`.
 - [ ] T011 [US2] Move the dataset's logic from `fairdm/core/dataset/overview.py` onto the dataset
   `Overview` plugin and delete the module. Delete what belonged to the removed data tabs:
-  `field_summary`, `preview_table`, `field_kind`, `record_types` and the `overview.data` block.
-  Fix what T010 found.
+  `preview_table`, `field_kind` and the value ranges in `field_summary`. Keep the `overview.data`
+  block (the first-run state) and a slim `get_record_types()` feeding the figures and
+  `variableMeasured` (plan D1). Fix what T010 found.
 - [ ] T012 [US2] Documentation: the dataset page section in `overview-pages.md`, including the
   timeline card and the readiness checklist. Changelog entry extended.
 
@@ -110,14 +120,18 @@ datasets as a visitor and as `staff.user`, and compare against FR-022 and FR-024
 **Independent test**: open each seeded sample as a visitor and as `staff.user`, then a rock
 sample and a sample type with no template of its own.
 
-- [ ] T013 [US3] `tests/test_core/test_sample/test_overview.py`: US-3 scenarios 1 to 12. Template
+- [ ] T013 [US3] A `TestOverview…` class in `tests/test_core/test_sample/test_plugins.py`: US-3
+  scenarios 1 to 12. A sample subtype with a plain `QuerySet` manager opens for the team and
+  answers "not found" to a visitor (plan D5). Template
   choice by own type, nearest ancestor and fallback (FR-048, FR-049). `visible_to` on
   `SampleQuerySet` and `Dataset.data_is_public` in `tests/test_core/test_sample/test_managers.py`
   and `tests/test_core/test_dataset/test_models.py`. Bring the pre-existing
   `tests/test_core/test_sample/test_plugins.py` gate tests up to date with a published dataset and
   record why.
 - [ ] T014 [US3] Move the sample's logic from `fairdm/core/sample/overview.py` onto the sample
-  `Overview` plugin and delete the module. Fix what T013 found.
+  `Overview` plugin and delete the module. Move the identical `visible_to` and `published` of
+  `SampleQuerySet` and `MeasurementQuerySet` into one QuerySet mixin in `fairdm/core` that both
+  use (plan D4). Fix what T013 found.
 - [ ] T015 [US3] Documentation: the sample page section and "Giving a sample or measurement type
   its own page" in `overview-pages.md`, with the demo's rock sample as the worked example (FR-008,
   FR-050). Changelog entry extended.
@@ -127,7 +141,8 @@ sample and a sample type with no template of its own.
 **Independent test**: open each seeded measurement as a visitor and as `staff.user`, including the
 one recorded in a different dataset from its sample.
 
-- [ ] T016 [US4] `tests/test_core/test_measurement/test_overview.py`: US-4 scenarios 1 to 10,
+- [ ] T016 [US4] A `TestOverview…` class in a new `tests/test_core/test_measurement/test_plugins.py`:
+  US-4 scenarios 1 to 10,
   asserting the literal `/measurement/<uuid>/` path. `visible_to` on `MeasurementQuerySet` in
   `tests/test_core/test_measurement/test_managers.py`. Bring the pre-existing
   `TestMeasurementViews.test_detail_page_renders` up to date with a published dataset, add the

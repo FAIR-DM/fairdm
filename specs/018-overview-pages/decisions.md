@@ -68,3 +68,21 @@ something the specification still requires, such as the Delete link, is left as 
 is fixed.
 
 **ADR:** none — follows from the specification.
+
+## D5 — Design review applied to the plan
+
+The design review raised eleven findings, all checked against the code. Applied as plan and task
+edits: the dataset's `overview.data` block and a slim record-types method stay, because the
+first-run state, the figures and `variableMeasured` depend on them; the composition chart skips
+unregistered types; dates use locale-aware named formats; the stories run in sequence; the typed
+page's permission check goes through the base model's manager; page tests live in each app's
+`test_plugins.py`; the seed command leaves existing accounts alone and keeps `regular.user` off
+every team; `visible_to` is shared by one QuerySet mixin; `TypedOverviewPlugin` subclasses
+`RecordOverviewPlugin`; three helper tests the page scenarios already cover are dropped. Not
+applied here: `CONTEXT.md` says a private project hides everything beneath it, which FairDM does
+not enforce for datasets. That predates this feature and is raised separately.
+
+Decision numbers in this file and section numbers in `plan.md` are separate series. Tasks cite
+plan sections as "plan D<n>".
+
+**ADR:** none — plan edits, recorded here.

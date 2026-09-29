@@ -75,9 +75,11 @@ Two block changes against the prototype, so the names follow FR-005 and say what
 
 - The header's people row is `overview.byline`, not `overview.meta`. `overview.people` stays the
   People card.
-- The dataset template's `overview.data` block and the dataset module's `field_summary`,
-  `preview_table`, `field_kind` and `record_types` belonged to the data tabs the spec removed.
-  They are deleted.
+- The dataset module's `preview_table`, `field_kind` and the value-range part of `field_summary`
+  belonged to the data tabs the spec removed, and are deleted. The `overview.data` block stays: it
+  now holds the empty dataset's first-run state (FR-032). A slim `get_record_types()` on the
+  dataset plugin stays too, returning the registered types present with their field labels,
+  because the figures and the JSON-LD's `variableMeasured` read it (FR-031, FR-034).
 
 Side-column blocks, in FR-003's order: `overview.readiness`, `overview.details` (with
 `overview.details_extra` inside it), `overview.timeline`, `overview.people`,
@@ -90,7 +92,7 @@ The prototype's ten components in `fairdm/templates/cotton/card/` stay as they a
 `placeholder`, `readiness` and `timeline` (FR-004). Each carries the component annotation header
 the code documentation standard asks for. The general components the pages need (`stats`, `list`,
 `tabs`, `progress`) stay in `fairdm/templates/cotton/`. The unused `cards/statistic.html` is
-deleted.
+already gone.
 
 Anything not available yet (FR-016, FR-017) is `c-card.placeholder` for a card or
 `overview/includes/pending_action.html` for a button: disabled, labelled "Coming soon", and saying
@@ -104,9 +106,13 @@ a class, and prefers the class Django already owns: here, the view. So:
 
 - **`RecordOverviewPlugin(OverviewPlugin)`** in `fairdm/core/plugins.py` holds what every overview
   page does: `get_credits()`, `get_people()` (the People card, excluding the header's names),
-  `get_identifiers()`, `get_citation()`, `get_timeline()`, `get_license_entry()`,
-  `get_type_info()`, and the two charts, `get_composition_chart()` and `get_growth_chart()`. All
-  four `Overview` plugins subclass it.
+  `get_identifiers()`, `get_citation()`, `get_timeline()`, `get_license_entry()`, and the two
+  charts, `get_composition_chart()` and `get_growth_chart()`. The composition chart leaves out
+  types the registry does not hold, and never fails on a stale content type (US-2 scenario 7).
+  The project and dataset `Overview` plugins subclass it directly.
+- **`TypedOverviewPlugin(RecordOverviewPlugin)`** adds what only samples and measurements need:
+  the template lookup (D5) and `get_type_info()` for the type dialog. The sample and measurement
+  `Overview` plugins subclass it.
 - **Each page's own logic** moves from its `overview.py` module onto that page's `Overview` plugin
   as methods (`get_readiness()`, `get_datasets_preview()`, `get_related_samples()`,
   `get_siblings()` and the rest), and `get_context_data()` assembles the context. The per-page
@@ -122,7 +128,8 @@ the code changes no output. The acceptance tests written first in each story pro
 - `Dataset.data_is_public`: the dataset is public and published.
 - `SampleQuerySet.visible_to(user)` and `MeasurementQuerySet.visible_to(user)`: records whose
   **own** dataset is public and published, or on whose own dataset the user holds view or change
-  rights (FR-019, FR-020).
+  rights (FR-019, FR-020). The two are identical in the prototype, so one QuerySet mixin in
+  `fairdm/core` holds `visible_to` and `published`, and both QuerySets use it.
 - The rule applies per row, against each listed record's own dataset, wherever a page lists,
   links or maps a record from another dataset (FR-023). A hidden record is counted or described,
   never named, linked or mapped.
@@ -133,13 +140,14 @@ the code changes no output. The acceptance tests written first in each story pro
 
 `TypedOverviewPlugin` (prototype, kept) walks the record's class ancestry to `base_model` and
 offers `<app_label>/<model_name>_overview.html` for each, then the fallback (FR-048, FR-049). Its
-`check` asks `visible_to`, and a refusal raises `Http404` (SC-004).
+permission check asks `self.base_model.objects.visible_to(user)`, never the subtype's own manager,
+because a portal's sample type may declare a plain `QuerySet` manager with no `visible_to` (the
+demo documents exactly that). A refusal raises `Http404` (SC-004).
 
 ### D6. Measurements join the tab strip at the same address
 
 The measurement `Overview` plugin sets `url_path = None`, so it serves `/measurement/<uuid>/`
-(FR-041). `MeasurementDetailView` and `measurement/detail.html` are gone. Tests assert the literal
-path. Breadcrumbs are the record list, then the measurement (FR-047).
+(FR-041). Tests assert the literal path. Breadcrumbs are the record list, then the measurement (FR-047).
 
 ### D7. One development-data command
 
@@ -156,6 +164,10 @@ Charts use django-mvp-charts' `<c-chart>`, painted from theme tokens by
 `overview.chart_library` block, only when the page has a chart. Maps use one shared include,
 `overview/includes/map_library.html`, only when the page has a map. Each chart's text alternative
 and each map's coordinates are in the page as text (spec edge case, SC-006).
+
+Dates in chart labels, chart descriptions and the page templates use Django's named, locale-aware
+formats (`date_format(value, "YEAR_MONTH_FORMAT")`, `{{ value|date:"SHORT_DATE_FORMAT" }}`), never
+literal patterns, so they follow the active locale (FR-057).
 
 ## Project structure
 
@@ -182,8 +194,8 @@ docs/portal-development/
   component_library/cards.md     # c-card.* and the general components
 tests/
   test_core/test_overview.py, test_core/test_plugins.py
-  test_core/test_{project,dataset,sample,measurement}/test_overview.py
-  test_templates/…               # skeleton and components
+  test_core/test_{project,dataset,sample,measurement}/test_plugins.py   # TestOverview… classes
+  test_templates/…               # skeleton and components (declared non-mirror)
   test_demo/…                    # seed command
 ```
 

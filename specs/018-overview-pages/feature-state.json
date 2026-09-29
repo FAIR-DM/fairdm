@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -14,6 +14,11 @@
       "state": "PLAN",
       "at": "2026-09-29T12:55:46Z",
       "note": "build branch cut from origin/main with the prototype merged in; earlier draft #374 closed, its plan void"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-29T12:56:42Z",
+      "note": "S3 green; dispatching the design reviewer"
     }
   ],
   "gates": {
@@ -31,6 +36,16 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-29T13:06:19Z",
+      "self_resolved": [
+        "11 findings, all verified: 1 high, 4 medium, 6 low",
+        "high: dataset first-run state and record types kept (plan D1, T011)",
+        "mediums applied: locale dates, sequential stories, base-model permission check, tests in test_plugins.py",
+        "lows applied except the downward-visibility mismatch in CONTEXT.md, raised as a separate issue"
+      ]
     }
   },
   "stories": [
@@ -171,7 +186,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
