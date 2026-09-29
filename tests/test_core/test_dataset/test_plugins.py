@@ -1722,6 +1722,39 @@ class TestOverviewTimeline:
         assert when in response.page.select_one(".alert").get_text()
         assert self._steps(response.page)[-1] == when
 
+    def test_a_collection_period_is_shown_as_precisely_as_it_was_recorded(
+        self, client
+    ):
+        year_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        month_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetDateFactory(
+            related=year_only, type="CollectionStart", value=PartialDate("2023")
+        )
+        DatasetDateFactory(
+            related=month_only, type="CollectionStart", value=PartialDate("2023-02")
+        )
+
+        year_steps = self._steps(_page(client, year_only).page)
+        month_steps = self._steps(_page(client, month_only).page)
+
+        assert "2023 \u2013" in year_steps[0]
+        assert date_format(date(2023, 1, 1), "SHORT_DATE_FORMAT") not in year_steps[0]
+        assert month_steps[0].startswith(
+            date_format(date(2023, 2, 1), "YEAR_MONTH_FORMAT")
+        )
+        assert date_format(date(2023, 2, 1), "SHORT_DATE_FORMAT") not in month_steps[0]
+
+    def test_a_withdrawal_recorded_to_the_year_is_shown_as_the_year(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetDateFactory(related=dataset, type="Withdrawn", value=PartialDate("2999"))
+
+        response = _page(client, dataset)
+
+        notice = response.page.select_one(".alert").get_text()
+        assert "2999" in notice
+        assert date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT") not in notice
+        assert self._steps(response.page)[-1] == "2999"
+
 
 class TestOverviewRelatedPublications:
     """US-2 scenario 10."""

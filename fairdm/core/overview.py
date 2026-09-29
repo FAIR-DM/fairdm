@@ -10,6 +10,8 @@ import json
 from datetime import date
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.formats import date_format
+from partial_date import PartialDate
 
 
 def safe_reverse(name, **kwargs):
@@ -24,6 +26,27 @@ def as_date(partial):
         return None
     value = getattr(partial, "date", partial)
     return value if isinstance(value, date) else None
+
+
+def format_partial_date(partial):
+    """Write a partial date as precisely as it was recorded.
+
+    Args:
+        partial: A ``PartialDate``, a date, or ``None``.
+
+    Returns:
+        The full date, the month and year, or the year alone, in the active language's formats;
+        an empty string when nothing is recorded.
+    """
+    when = as_date(partial)
+    if when is None:
+        return ""
+    precision = getattr(partial, "precision", PartialDate.DAY)
+    if precision == PartialDate.DAY:
+        return date_format(when, "SHORT_DATE_FORMAT")
+    if precision == PartialDate.MONTH:
+        return date_format(when, "YEAR_MONTH_FORMAT")
+    return str(when.year)
 
 
 def author_name(contributor):

@@ -1355,6 +1355,18 @@ class TestOverviewTimeline:
         assert response.page.find("progress") is None
         assert response.context["timeline"]["end"] is None
 
+    def test_the_start_and_end_are_shown_as_precisely_as_they_were_recorded(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        ProjectDateFactory(related=project, type="Start", value=PartialDate("2020"))
+        ProjectDateFactory(related=project, type="End", value=PartialDate("2022-03"))
+
+        response = _page(client, project)
+
+        shown = f"2020 \u2013 {date_format(date(2022, 3, 1), 'YEAR_MONTH_FORMAT')}"
+        assert response.page.find("span", string=shown) is not None
+
     def test_the_bar_is_named_for_assistive_technology(self, client):
         today = timezone.localdate()
         project = ProjectFactory(visibility=Visibility.PUBLIC)

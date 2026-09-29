@@ -6,12 +6,12 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.urls import reverse_lazy
-from django.utils.formats import date_format
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
 from mvp.views import MVPFormView
 from mvp.views.detail import CRUDDirectoryMixin
+from partial_date import PartialDate
 
 from fairdm import plugins
 from fairdm.contrib.contributors.models import Person
@@ -26,6 +26,7 @@ from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
+    format_partial_date,
     json_ld,
     safe_reverse,
     sentence_case,
@@ -454,13 +455,9 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             steps.append(
                 {
                     "label": gettext("Collected"),
-                    "sort": dates["collection_start"],
-                    "date": f"{date_format(dates['collection_start'], 'SHORT_DATE_FORMAT')} \u2013 "
-                    + (
-                        date_format(end, "SHORT_DATE_FORMAT")
-                        if end
-                        else gettext("ongoing")
-                    ),
+                    "sort": as_date(dates["collection_start"]),
+                    "date": f"{format_partial_date(dates['collection_start'])} \u2013 "
+                    + (format_partial_date(end) if end else gettext("ongoing")),
                 }
             )
         steps.append(
@@ -481,8 +478,10 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                 steps.append(
                     {
                         "label": label,
-                        "sort": dates[key],
-                        "day": dates[key],
+                        "sort": as_date(dates[key]),
+                        "day": dates[key].date
+                        if dates[key].precision == PartialDate.DAY
+                        else None,
                         "date": dates[key],
                     }
                 )
@@ -516,20 +515,21 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         ]
 
     def get_dates(self):
-        """Read the dataset's recorded dates as plain dates.
+        """Read the dataset's recorded dates, each with the precision it was recorded at.
 
         Returns:
             The collection start and end and the available, submitted, published and withdrawn
-            dates, each ``None`` when not recorded.
+            dates, each ``None`` when not recorded, and the withdrawal written out as recorded.
         """
         values = {d.type: d.value for d in self.base_object.dates.all()}
         return {
-            "collection_start": as_date(values.get("CollectionStart")),
-            "collection_end": as_date(values.get("CollectionEnd")),
-            "available": as_date(values.get("Available")),
-            "submitted": as_date(values.get("Submitted")),
-            "published": as_date(values.get("Published")),
-            "withdrawn": as_date(values.get("Withdrawn")),
+            "collection_start": values.get("CollectionStart"),
+            "collection_end": values.get("CollectionEnd"),
+            "available": values.get("Available"),
+            "submitted": values.get("Submitted"),
+            "published": values.get("Published"),
+            "withdrawn": values.get("Withdrawn"),
+            "withdrawn_text": format_partial_date(values.get("Withdrawn")),
         }
 
     def get_team(self):
@@ -727,7 +727,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                 "from_reference": True,
             }
         creators = [entry["contributor"] for entry in page["team"]["creators"]]
-        when = page["dates"]["published"] or page["dates"]["available"]
+        when = as_date(page["dates"]["published"] or page["dates"]["available"])
         year = when.year if when else dataset.added.year
         doi = next(
             (i.value for i in dataset.identifiers.all() if i.type == "DOI"), None
@@ -799,8 +799,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         if creators:
             data["creator"] = creators
         start, end = (
-            page["dates"]["collection_start"],
-            page["dates"]["collection_end"],
+            as_date(page["dates"]["collection_start"]),
+            as_date(page["dates"]["collection_end"]),
         )
         if start:
             data["temporalCoverage"] = (

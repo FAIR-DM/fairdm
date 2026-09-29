@@ -24,6 +24,7 @@ from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
+    format_partial_date,
     json_ld,
     safe_reverse,
 )
@@ -388,6 +389,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "end": end,
             "start_date": start_date,
             "end_date": end_date,
+            "start_text": format_partial_date(start),
+            "end_text": format_partial_date(end),
             "percent": None,
             "year": None,
             "years": None,
