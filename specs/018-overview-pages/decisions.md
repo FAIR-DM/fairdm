@@ -141,3 +141,33 @@ visitor, as `staff.user` and as `regular.user` before and after the move: 297 re
 byte the same.
 
 **Revisit if:** a story finds a method that belongs on one page's plugin alone.
+
+## D8 — Dates on the pages use `SHORT_DATE_FORMAT` and `YEAR_MONTH_FORMAT`
+
+Every date the four pages and the cards write out goes through one of Django's named formats, so
+it follows the active language: `SHORT_DATE_FORMAT` for a day, `YEAR_MONTH_FORMAT` for a month and
+for the growth chart's axis and description. A date recorded only to the month is written as a
+month, and one recorded only to the year as the year. In English a day now reads `09/29/2026`
+where the prototype wrote `29 Sep 2026`, because the named format is the locale's own. If that
+reads badly to the portal's audience, the change is one format name in the templates.
+
+**Revisit if:** the maintainer prefers `DATE_FORMAT` (`Sept. 29, 2026`) for days.
+
+## D9 — The development data recognises its own projects by name and by who created them
+
+`seed_overviews` used to delete every project with a seeded name, which removed a project somebody
+else had made under the same name, and its datasets. Each seeded project now records `super.user`
+as its creator, and the clean-up removes only a project with a seeded name that `super.user`
+created. A database seeded by the earlier version holds a few projects with no creator recorded
+(the sample and measurement examples) or another one (the empty project); those stay, and the next
+run creates fresh copies beside them.
+
+**Revisit if:** a run needs to find its records by something other than a name and a creator.
+
+## D10 — The type dialog is written out in `type_badge.html`
+
+`c-modal` draws a `<dialog>` with no accessible name, and the description of a sample or
+measurement type opens in one. The include now writes the same markup itself with an `aria-label`,
+so the dialog is announced by the type's name.
+
+**Revisit if:** `c-modal` names its dialog.
