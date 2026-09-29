@@ -910,7 +910,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                 gettext("The dataset is public"),
                 dataset.visibility == Visibility.PUBLIC,
                 urls["update"],
-                True,
+                False,
             ),
         ]
         required = [i for i in items if i[3]]

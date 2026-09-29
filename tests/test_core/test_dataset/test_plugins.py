@@ -1515,6 +1515,43 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         assert response.page.select(".alert") == []
 
 
+class TestOverviewReadinessChecklist:
+    """FR-033: seven required items and three recommended ones."""
+
+    def test_the_checklist_has_seven_required_and_three_recommended_items(
+        self, client, holding
+    ):
+        client.force_login(_team_member(holding, "change_dataset"))
+
+        response = _page(client, holding)
+
+        items = response.context["readiness"]["items"]
+        assert sum(1 for item in items if item["required"]) == 7
+        assert sum(1 for item in items if not item["required"]) == 3
+
+    def test_a_complete_but_private_dataset_is_ready_because_publishing_makes_it_public(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        DatasetDescriptionFactory(related=dataset, type="Abstract", value="Cores.")
+        DatasetDescriptionFactory(related=dataset, type="Methods", value="Drilled.")
+        DatasetDateFactory(
+            related=dataset, type="CollectionStart", value=PartialDate("2024-01-01")
+        )
+        dataset.add_contributor(
+            PersonFactory(is_active=True), with_roles=["Creator", "ContactPerson"]
+        )
+        from demo.factories import RockSampleFactory
+
+        RockSampleFactory(dataset=dataset)
+        client.force_login(_team_member(dataset, "change_dataset"))
+
+        readiness = _page(client, dataset).context["readiness"]
+
+        assert readiness["ready"] is True
+        assert readiness["missing_required"] == 0
+
+
 class TestOverviewCitation:
     """US-2 scenario 4."""
 

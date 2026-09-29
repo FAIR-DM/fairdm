@@ -71,3 +71,10 @@
 - Verified: `uv run pytest tests/test_core/test_dataset -q`: 417 passed, five runs. A T010 test was flaky on the first run (a random sample name showed up elsewhere on the page) and now uses distinctive names. Rendered all 14 seeded datasets as visitor, `staff.user` and `regular.user` before and after the move: 42 pages, no difference. `uv run pre-commit run --all-files`: all hooks pass.
 - Next: T012.
 - Watch: T010 found nothing to fix, so the move changed no rendered output.
+
+## 2026-09-29 · US2 · T011 (a gap T010 found)
+
+- Did: the readiness checklist counted eight required items and two recommended; FR-033 says seven and three. "The dataset is public" is now the third recommended item (decision D13). Two tests in `TestOverviewReadinessChecklist` fail before the change (8 required; a complete private dataset not ready) and pass after.
+- Verified: `uv run pytest tests/test_core/test_dataset -q`: 419 passed.
+- Next: T012.
+- Watch: FR-033's count is the only statement of the split. If the maintainer meant the eight-and-two of the prototype, revert the one `False` and the two tests.

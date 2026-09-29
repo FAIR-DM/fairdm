@@ -194,3 +194,15 @@ not when the module loads, so it follows the active language like every other st
 
 **Revisit if:** a page needs a type's description or count again, in which case add the key and its
 reader together.
+
+## D13 — "The dataset is public" is a recommended item on the readiness checklist
+
+FR-033 says the checklist has seven required items and three recommended ones. The prototype had
+eight and two, with "The dataset is public" required. The other seven required items are the ones
+the spec's count leaves, so the public item is the third recommended one. It is also the only
+item publishing itself resolves: publishing a dataset makes it public, so a private dataset that
+is otherwise complete is ready to publish. The item keeps its link to the update page and its place
+in the list.
+
+**Revisit if:** publishing stops making a dataset public, in which case the item is required again
+and the spec's count changes with it.
