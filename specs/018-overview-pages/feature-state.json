@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-09-29T15:20:44Z",
       "note": "S5 green; dispatching the reviewer"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-29T15:41:45Z",
+      "note": "S6 green; PR ready for the walkthrough"
     }
   ],
   "gates": {
