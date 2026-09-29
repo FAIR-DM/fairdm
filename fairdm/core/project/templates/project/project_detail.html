@@ -23,21 +23,23 @@
 
 {% block overview.actions %}
   {{ block.super }}
-  {% if can_manage %}
-    {% if urls.add_dataset %}
-      <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
-                text="{% translate 'Add dataset' %}"
-                icon="add"
-                size="sm"
-                variant="primary" />
-    {% endif %}
+  {% if can_manage and urls.add_dataset %}
+    <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
+              text="{% translate 'Add dataset' %}"
+              icon="add"
+              size="sm"
+              variant="primary" />
+  {% endif %}
+  {% if can_manage or directory.delete_url %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
       <c-menu>
-        <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
-        <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
-        <c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />
+        {% if can_manage %}
+          <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
+          <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+          <c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />
+        {% endif %}
         {% if directory.delete_url %}
-          <c-menu.divider />
+          {% if can_manage %}<c-menu.divider />{% endif %}
           <c-menu.item label="{% translate 'Delete project' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
         {% endif %}
       </c-menu>

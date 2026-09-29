@@ -30,18 +30,20 @@
 
 {% block overview.actions %}
   {{ block.super }}
-  {% if can_manage %}
-    {% if not dataset.data_is_public %}
-      {% translate "Publish" as label %}
-      {% translate "Checks the list under Ready to publish?, mints a DOI and releases the data." as reason %}
-      {% include "overview/includes/pending_action.html" with label=label icon="upload" reason=reason variant="primary" %}
-    {% endif %}
+  {% if can_manage and not dataset.data_is_public %}
+    {% translate "Publish" as label %}
+    {% translate "Checks the list under Ready to publish?, mints a DOI and releases the data." as reason %}
+    {% include "overview/includes/pending_action.html" with label=label icon="upload" reason=reason variant="primary" %}
+  {% endif %}
+  {% if can_manage or directory.delete_url %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
       <c-menu>
-        <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
-        <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+        {% if can_manage %}
+          <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
+          <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+        {% endif %}
         {% if directory.delete_url %}
-          <c-menu.divider />
+          {% if can_manage %}<c-menu.divider />{% endif %}
           <c-menu.item label="{% translate 'Delete dataset' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
         {% endif %}
       </c-menu>
