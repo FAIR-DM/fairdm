@@ -63,48 +63,123 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_overview.py",
+              "tests/test_core/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_overview.py tests/test_core/test_plugins.py -q"
+            ]
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_page.py",
+              "tests/test_templates/test_cards.py",
+              "tests/test_templates/test_includes.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates -q"
+            ]
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_project -q"
+            ]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_overviews.py",
+              "tests/test_conf/test_checks.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo tests/test_conf/test_checks.py -q"
+            ]
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py",
+              "tests/test_contrib/test_plugins/test_registration.py",
+              "tests/test_contrib/test_plugins/test_menus.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins -q"
+            ]
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core tests/test_templates tests/test_contrib/test_plugins tests/test_demo -q"
+            ],
+            "code": [
+              "fairdm/core/plugins.py:69"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py",
+              "tests/test_templates",
+              "tests/test_demo",
+              "tests/test_core/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests -q"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+            ]
+          }
         }
       ]
     },
