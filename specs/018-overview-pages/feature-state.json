@@ -177,7 +177,7 @@
           "attempts": 1,
           "evidence": {
             "commands": [
-              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+              "documentation check over the branch diff against origin/main"
             ]
           }
         }
