@@ -29,7 +29,9 @@ tested and documented.
 
 - [ ] T001 [US1] Dependencies: declare `pyecharts` as a direct dependency, map `django-mvp-charts`
   to `mvp_charts` for `deptry` (it is used through `INSTALLED_APPS` and templates, so declare it as
-  used rather than ignoring the rule), re-lock with `uv lock`. `deptry` passes.
+  used rather than ignoring the rule), re-lock with `uv lock`. Clear the ten `ruff check` findings
+  in the prototype's code (the development password in `demo/seed/`, en dashes, a silent `except`,
+  builtin names shadowed). The lint step passes.
 - [ ] T002 [P] [US1] Tests for the shared pieces, written against the plan's D3 API so they fail
   first:
   - `tests/test_core/test_overview.py`: `format_authors` for zero, one, two and several creators,
@@ -47,6 +49,9 @@ tested and documented.
   - each `c-card.*` component renders its documented inputs, and is left out or says what is
     missing when given nothing
   - `pending_action.html` renders a disabled button that says why (FR-017)
+  - SC-006: the description tabs and the type dialog are named for assistive technology, every
+    avatar in the People grid carries the person's name, and each chart and map renders its text
+    alternative (the chart description, the coordinates) as text in the page
 - [ ] T004 [P] [US1] `tests/test_core/test_project/test_overview.py`: US-1 scenarios 1 to 11
   against the rendered page, plus:
   - the Manage menu offers Delete to a user who may delete the project (the existing
@@ -72,6 +77,8 @@ tested and documented.
   - the Delete link restored in the project and dataset Manage menus
   - the unused `cotton/cards/statistic.html` deleted
   - the prototype's change-history code comments rewritten to say what the code does now
+  - FR-057: every string the four pages and the cards show is marked for translation, in the
+    templates and in the Python that builds their context
 - [ ] T009 [US1] Documentation: `docs/portal-development/overview-pages.md` (the anatomy, the
   block list in page order, the project page, and extending a project page by overriding its
   template), `docs/portal-development/component_library/cards.md` (every `c-card.*` component and
