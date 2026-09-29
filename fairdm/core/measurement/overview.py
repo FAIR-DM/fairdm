@@ -52,7 +52,7 @@ def build(request, measurement, can_manage):
         "sample": sample if sample_visible else _("an unpublished sample"),
     }
     citation = {
-        "title": _("Cite this measurement"),
+        "title": _("Citation"),
         "text": shared.citation(
             request,
             authors=shared.with_role(entries, "MeasurementCollection"),

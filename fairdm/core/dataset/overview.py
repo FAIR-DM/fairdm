@@ -93,7 +93,7 @@ def shared_context(request, dataset, context):
         "record": dataset,
         "overview_icon": "dataset",
         "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
-        "citation": {"title": _("Cite this dataset"), "text": citation_["text"]},
+        "citation": {"title": _("Citation"), "text": citation_["text"]},
         "identifiers": shared.identifiers(dataset),
         "api_url": context["api_url"],
         "people": shared.people(shared.credits(dataset), exclude=creators),

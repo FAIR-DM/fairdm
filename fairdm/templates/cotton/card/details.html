@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}
   <c-card.details> — the record's metadata in one card: what it belongs to, its licence, who can
-  see its data, its status and dates, its identifiers, and how a machine reaches it. Every entry
+  see its data, its status and dates, and how a machine reaches it. Every entry
   is a <c-card.details.entry>: an icon and a title in capitals, the value underneath.
 
   Attributes:
@@ -12,15 +12,12 @@
                    badge        – shown as a badge in `badge_variant`
                    note         – a line under the value
                    warning      – draws the value as a warning
-    identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
-    portal_id    – the record's portal ID, with a copy button
-    local_id     – the team's own ID for the record, if it has one
     api_url      – the record's REST API address, if it has one
     class        – extra classes on the card
   Slots:
     (default)    – entries after the rows, e.g. a project's timeline and funding
 {% endcomment %}
-<c-vars rows identifiers portal_id local_id api_url class />
+<c-vars rows api_url class />
 <c-card title="{% translate 'Details' %}" class="bg-base-100 {{ class }}" only>
   <dl class="flex flex-col gap-4">
     {% for row in rows %}
@@ -43,41 +40,6 @@
     {% endfor %}
 
     {{ slot }}
-
-    <c-card.details.entry label="{% translate 'Identifiers' %}" icon="identifier">
-      <table class="table table-xs">
-        <caption class="sr-only">{% translate "Identifiers" %}</caption>
-        <tbody>
-          {% for identifier in identifiers %}
-            <tr>
-              <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{{ identifier.type }}</th>
-              <td class="pe-0 font-mono break-all">
-                {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary">{{ identifier.value }}</a>{% else %}{{ identifier.value }}{% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-          {% if local_id %}
-            <tr>
-              <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Local ID" %}</th>
-              <td class="pe-0 font-mono break-all">{{ local_id }}</td>
-            </tr>
-          {% endif %}
-          {% if portal_id %}
-            <tr>
-              <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
-              <td class="pe-0 font-mono break-all">
-                {{ portal_id }}
-                <button type="button" class="btn btn-ghost btn-xs"
-                        aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
-                        onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
-                  <c-icon name="copy" aria-hidden="true" only />
-                </button>
-              </td>
-            </tr>
-          {% endif %}
-        </tbody>
-      </table>
-    </c-card.details.entry>
 
     <c-card.details.entry label="{% translate 'For machines' %}" icon="api">
       <span class="flex flex-wrap gap-2">

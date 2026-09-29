@@ -17,8 +17,9 @@
     {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
 
   Sample blocks in the wide column, in order: overview.properties (empty here, the block a type
-  fills first), overview.notes, overview.history, overview.measurements, overview.samples,
-  overview.location. Every other block is listed in `overview/page.html`.
+  fills first), overview.notes, overview.history, overview.measurements, overview.location. In
+  the facts column, overview.samples holds related samples. Every other block is listed in
+  `overview/page.html`.
 {% endcomment %}
 
 {% block overview.badges %}
@@ -105,41 +106,6 @@
     </c-card>
   {% endblock overview.measurements %}
 
-  {% block overview.samples %}
-    {% if relations.items or relations.hidden %}
-      <c-card title="{% translate 'Related samples' %}" class="bg-base-100">
-        <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
-        {% if relations.items %}
-          <ul class="list">
-            {% for entry in relations.items %}
-              <li class="list-row px-0 items-center">
-                {% if entry.sample.image %}
-                  <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
-                {% else %}
-                  <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
-                {% endif %}
-                <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                  <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
-                  <span class="text-xs text-base-content/70 flex flex-wrap gap-x-3">
-                    <span>{{ entry.type }}</span>
-                    {% if entry.sample.local_id %}<span class="font-mono">{{ entry.sample.local_id }}</span>{% endif %}
-                    {% if entry.elsewhere %}<span>{% translate "In" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
-                  </span>
-                </div>
-                <span class="badge badge-soft badge-secondary badge-sm whitespace-nowrap">{{ entry.relation }}</span>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-        {% if relations.hidden %}
-          <p class="text-sm text-base-content/70">
-            {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
-          </p>
-        {% endif %}
-      </c-card>
-    {% endif %}
-  {% endblock overview.samples %}
-
   {% block overview.location %}
     <c-card title="{% translate 'Location' %}" class="bg-base-100">
       {% if location %}
@@ -158,15 +124,51 @@
   {% endblock overview.location %}
 {% endblock overview.main %}
 
+{% block overview.record_facts %}
+{% block overview.samples %}
+  {% if relations.items or relations.hidden %}
+    <c-card title="{% translate 'Related' %}" class="bg-base-100">
+      <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
+      {% if relations.items %}
+        <ul class="list">
+          {% for entry in relations.items %}
+            <li class="list-row px-0">
+              {% if entry.sample.image %}
+                <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
+              {% else %}
+                <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
+              {% endif %}
+              <div class="list-col-grow min-w-0 flex flex-col gap-1">
+                <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
+                <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span class="badge badge-soft badge-secondary badge-xs whitespace-nowrap">{{ entry.relation }}</span>
+                  <span>{{ entry.type }}</span>
+                  {% if entry.elsewhere %}<span>{% translate "in" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if relations.hidden %}
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
+        </p>
+      {% endif %}
+    </c-card>
+  {% endif %}
+{% endblock overview.samples %}
+{% endblock overview.record_facts %}
+
 {% block extra_js %}
   {{ block.super }}
   {% if location %}
     {% block overview.map_library %}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.css"
-            integrity="sha384-ntw3zEt6rcVML7jDK0ULmHa5hxLB23afsPqzqfY+gLgMfAkbFCnCgPpkZvV5mmZX"
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"
+            integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK"
             crossorigin="anonymous" referrerpolicy="no-referrer" />
-      <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.js"
-              integrity="sha384-E8gMcYTPPaVdSyyziUNzJtosP0xWQkh/NxeEyq1wKz1HnC/oQuf7sp/fj4oYXP4M"
+      <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"
+              integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp"
               crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     {% endblock overview.map_library %}
     <script>

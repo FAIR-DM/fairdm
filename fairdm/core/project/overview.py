@@ -87,7 +87,7 @@ def shared_context(request, project, context):
         "record": project,
         "overview_icon": "project",
         "has_charts": bool(context["composition_chart"] or context["growth_chart"]),
-        "citation": {"title": _("Cite this project"), "text": context["citation"]["text"]},
+        "citation": {"title": _("Citation"), "text": context["citation"]["text"]},
         "identifiers": shared.identifiers(project),
         "people": shared.people(shared.credits(project), exclude=leads),
         "people_url": context["urls"]["contributors"],

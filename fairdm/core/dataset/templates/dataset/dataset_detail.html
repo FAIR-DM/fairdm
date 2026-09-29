@@ -84,18 +84,8 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card title="{% translate 'About' %}" class="bg-base-100">
-      {% if descriptions|length > 1 %}
-        <c-tabs group="dataset-about" label="{% translate 'Dataset descriptions' %}">
-          {% for description in descriptions %}
-            <c-tabs.tab group="dataset-about" label="{{ description.label }}" :checked="forloop.first" :flush="forloop.first">
-              <div class="prose max-w-none">{{ description.value|safe_markdown }}</div>
-            </c-tabs.tab>
-          {% endfor %}
-        </c-tabs>
-      {% elif descriptions %}
-        <div class="prose max-w-none">{{ descriptions.0.value|safe_markdown }}</div>
-      {% elif can_manage %}
+    <c-card.descriptions :descriptions="descriptions" group="dataset-about">
+      {% if can_manage %}
         <div class="flex flex-col items-start gap-3">
           <p class="text-base-content/70">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
           <c-button href="{{ urls.descriptions }}" text="{% translate 'Write a description' %}" icon="description" size="sm" variant="primary" />
@@ -103,7 +93,7 @@
       {% else %}
         <p class="text-base-content/70">{% translate "The team hasn't described this dataset yet." %}</p>
       {% endif %}
-    </c-card>
+    </c-card.descriptions>
   {% endblock overview.about %}
 
   {% block overview.data %}
@@ -151,7 +141,7 @@
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Map' %}"
+    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
                         icon="map"
                         wide
                         message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />

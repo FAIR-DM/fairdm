@@ -91,7 +91,7 @@ def build(request, sample, can_manage):
         title=f"{sample.name} [{sample_type}]",
         link=igsn["link"] if igsn else request.build_absolute_uri(sample.get_absolute_url()),
     )
-    citation = {"title": _("Cite this sample"), "text": citation_text}
+    citation = {"title": _("Citation"), "text": citation_text}
     if not igsn:
         citation["note"] = _(
             "This sample has no IGSN, so the citation points at this page. An IGSN gives the "
