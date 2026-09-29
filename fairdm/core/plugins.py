@@ -535,18 +535,13 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
             return None
         config = registry.get_for_model(model)
         metadata = config.metadata
-        if not metadata:
-            return (
-                {"description": config.description or ""}
-                if config.description
-                else None
-            )
-        return {
-            "description": metadata.description,
+        info = {
+            "description": metadata.description or config.description,
             "authority": metadata.authority,
             "citation": metadata.citation,
             "keywords": metadata.keywords,
         }
+        return info if any(info.values()) else None
 
 
 class UpdatePlugin(Plugin, FairDMUpdateView):

@@ -469,6 +469,34 @@ class TestOverviewTypeBadge:
         assert response.context["type_info"] is None
         assert response.page.find("dialog", id="about-sample-type") is None
 
+    def test_a_registered_type_with_nothing_to_say_is_a_plain_badge(
+        self, client, rock, monkeypatch
+    ):
+        config = registry.get_for_model(RockSample)
+        monkeypatch.setattr(config.metadata, "description", "")
+        monkeypatch.setattr(config.metadata, "citation", None)
+        monkeypatch.setattr(config.metadata, "authority", None)
+        monkeypatch.setattr(config.metadata, "keywords", [])
+        monkeypatch.setattr(config, "description", "")
+
+        response = _page(client, rock)
+
+        assert response.context["type_info"] is None
+        assert response.page.find("dialog", id="about-sample-type") is None
+        assert response.page.select("header button[aria-haspopup=dialog]") == []
+
+    def test_the_configuration_description_stands_in_for_an_empty_metadata_one(
+        self, client, rock, monkeypatch
+    ):
+        config = registry.get_for_model(RockSample)
+        monkeypatch.setattr(config.metadata, "description", "")
+        monkeypatch.setattr(config, "description", "A core of rift rock.")
+
+        response = _page(client, rock)
+
+        assert response.context["type_info"]["description"] == "A core of rift rock."
+        assert response.page.find("dialog", id="about-sample-type") is not None
+
 
 @pytest.mark.django_db
 class TestOverviewStatus:
