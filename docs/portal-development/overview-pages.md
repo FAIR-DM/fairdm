@@ -128,6 +128,106 @@ The context the blocks read comes from the plugin, so a block can use everything
 `datasets_preview`, `composition_chart`, `growth_chart`, `timeline`, `urls` and, for the team,
 `readiness`.
 
+## The dataset page
+
+A dataset is the unit a portal cites and distributes, so its page answers a reuser's questions in
+the order they ask them: what it is, whether its data is published, under which licence, what it
+holds and how it grew, when each step of its life happened, how to cite it and who made it. Its
+template is `dataset/dataset_detail.html`.
+
+**Header.** Whether the dataset is published, public but unpublished, or private, and its licence,
+as badges. The creators are named, each linked to their page. The team also gets a Publish button,
+announced as not available yet while the dataset is unpublished, and a Manage menu holding Edit
+details, Edit descriptions and, for a user who may delete the dataset, Delete. A user who may
+delete a dataset but not change it sees a Manage menu holding only Delete.
+
+**Notices.** A private dataset tells its team that only they can open the page. A public dataset
+that is not published yet tells a visitor that its data is not published, and tells the team that
+its records stay hidden until it is. A dataset with a Withdrawn date says it has been withdrawn
+and that the page stays so existing citations still resolve.
+
+**Figures.** Samples, measurements, contributors and related publications.
+
+**Content column** (`overview.about`, `overview.data`, `overview.charts` and `overview.map`). The
+descriptions card, with a tab for each description type. A chart of records by type, and once the
+dataset's records span more than one month, a chart of the running total of samples and
+measurements by month, each with a text description of what it shows. The map, announced as not
+available yet. A dataset that holds no samples or measurements shows its team the first-run state
+in `overview.data`, with a way to add data announced as not available yet and no empty chart. The
+page lists no record. A type the registry no longer holds is left out.
+
+**Side column.** The readiness checklist for the team, Details (its project, with how many other
+datasets the project has, its licence and when it was last updated), the timeline, People,
+Identifiers, the citation and the related publications.
+
+**The timeline.** A card in `overview.timeline` lists the dataset's key dates in the order they
+happened: collected (with its end date, or "ongoing"), added to the portal, submitted, published,
+available from and withdrawn. A step with no date recorded is left out. Days follow the active
+language's short date format.
+
+**The readiness checklist.** The team sees "Ready to publish?" until the dataset is published, and
+a visitor never sees it. It has seven required items and three recommended ones, taken from
+DataCite's required and recommended properties:
+
+| Item | Required |
+| --- | --- |
+| An abstract describes the data | yes |
+| The methods are described | yes |
+| At least one creator is credited | yes |
+| Someone is named as the contact | yes |
+| A licence is chosen | yes |
+| It holds samples or measurements | yes |
+| The collection period is recorded | yes |
+| The dataset is public | no |
+| Keywords make it findable | no |
+| A related publication is linked | no |
+
+Publishing a dataset makes it public, so a private dataset with every required item in place is
+ready to publish.
+
+Each missing item links to the page that fixes it where such a page exists.
+
+**The citation.** A dataset with a data publication is cited by that publication, and the card
+says to cite it rather than the page. Otherwise the citation is written as `Creators (Year).
+Title. Publisher. Identifier.`, with the year taken from the Published date, else the Available
+date, else the year the record was added. It ends with the DOI link, or the address of the page
+when the dataset has no DOI yet, and the card says so.
+
+**Related publications.** Each relation is worded from the publication's side, such as "Describes
+this dataset", and the relations a reuser cares about most come first: describes, documents,
+supplements, cites, refers to, then the relations the dataset makes to other work.
+
+**What a visitor sees before publication.** Visibility governs the page and `published` governs the
+records. A public dataset that is not published shows everyone its description, its figures
+(including the counts of samples and measurements) and its charts. The page never lists a record,
+published or not. The project is named and linked only when the viewer may see it, because a
+public dataset can sit in a private project.
+
+**The page head.** The dataset's schema.org description is in a `<script type="application/ld+json">`
+element. It names the variables its record types measure and never a value, and it carries nothing
+the viewer could not read on the page.
+
+## Extending a dataset page
+
+Override the template the same way as for a project. Put a template named
+`dataset/dataset_detail.html` in your portal's templates, ahead of FairDM's, and extend the one it
+replaces. This adds a card under the related publications and keeps everything else:
+
+```django
+{% extends "dataset/dataset_detail.html" %}
+
+{% block overview.record_facts %}
+  {{ block.super }}
+  <c-card title="Our repository" class="bg-base-100">
+    Deposited under {{ record.name }}.
+  </c-card>
+{% endblock overview.record_facts %}
+```
+
+The blocks read `access`, `dates`, `team`, `descriptions`, `literature`, `counts`, `data_types`,
+`composition_chart`, `growth_chart`, `lifecycle`, `citation`, `details`, `urls` and, for the team,
+`readiness`.
+
 ## What the plugins work out
 
 The page's numbers and lists come from two plugin classes in `fairdm.core.plugins`.
@@ -164,6 +264,27 @@ class Summary(RecordOverviewPlugin):
 The project's own steps are methods on its `Overview` plugin in `fairdm.core.project.plugins`:
 `get_descriptions()`, `get_progress()`, `get_team()`, `get_counts()`, `get_datasets_preview()`,
 `get_licenses()`, `get_citation_details()`, `get_readiness()` and `get_details()`.
+
+The dataset's own steps are methods on its `Overview` plugin in `fairdm.core.dataset.plugins`:
+
+| Method | What it returns |
+| --- | --- |
+| `get_access()` | The dataset's state, `private`, `public` (not published) or `published`, with its label. |
+| `get_descriptions()` | The descriptions the dataset has text for, in the vocabulary's order. |
+| `get_dates()` | The collection start and end and the available, submitted, published and withdrawn dates as plain dates, each `None` when not recorded. |
+| `get_lifecycle(dates)` | The timeline's steps, in the order they happened. |
+| `get_team()` | The creators, the contact person, everyone else and how many people and organisations are credited. `lead_roles` names the roles listed first. |
+| `get_literature()` | The related publications, each with its relation worded from the publication's side, its DOI and its year. |
+| `get_record_types(samples, measurements)` | The registered sample and measurement types the dataset holds, each with its `kind`, `label` and the labels of its `fields`. `bookkeeping_fields` lists the fields left out. |
+| `get_counts(samples, measurements, data_types)` | The sample and measurement counts, each with how many types it spans. |
+| `get_project_info(can_manage)` | The project and how many other datasets it has, or `None` when the viewer may not see it. |
+| `get_citation_details(page)` | The citation's text and link, and whether it comes from a data publication or has a DOI. |
+| `get_schema_org(page)` | The schema.org `Dataset` description for the page head. |
+| `get_readiness(page)` | The checklist's items, how many are done and whether every required one is. |
+| `get_details(project_info)` | The rows of the Details card. |
+| `get_shared_context(page)` | The keys every overview page provides. |
+
+Each `page` argument is the context the plugin has gathered so far.
 
 ### Helper functions
 

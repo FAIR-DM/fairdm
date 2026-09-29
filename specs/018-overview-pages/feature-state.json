@@ -215,8 +215,14 @@
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "template example rendered as an override on a real dataset",
+              "forge verify --steps docs --base origin/main: only the five later-story names remain"
+            ]
+          }
         }
       ]
     },

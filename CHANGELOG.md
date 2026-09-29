@@ -101,6 +101,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   overriding one block, or one method of `RecordOverviewPlugin`, which every overview plugin now
   subclasses. Dates on these pages follow the active language, and every string on them is
   translatable.
+- **The dataset page answers a reuser's questions in the order they ask them.** It shows whether
+  the data is published and under which licence, charts of its records by type and how they grew,
+  a timeline card of its key dates, its citation and its related publications worded from the
+  publication's side. A public dataset that is not published shows a visitor its description,
+  counts and charts, and never a record. The team sees a "Ready to publish?" checklist of seven
+  required and three recommended items until the dataset is published. The page's logic moved from
+  `fairdm.core.dataset.overview` to methods on the dataset `Overview` plugin, and the module is
+  gone. See [Overview pages](docs/portal-development/overview-pages.md).
 - **`manage.py seed_overviews` loads development data for the overview pages**, and creates
   `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
   missing. It refuses to run outside development, leaves an existing account as it is, and

@@ -78,3 +78,9 @@
 - Verified: `uv run pytest tests/test_core/test_dataset -q`: 419 passed.
 - Next: T012.
 - Watch: FR-033's count is the only statement of the split. If the maintainer meant the eight-and-two of the prototype, revert the one `False` and the two tests.
+
+## 2026-09-29 · US2 · T012
+
+- Did: `docs/portal-development/overview-pages.md` gained the dataset page (header, notices, figures, content and side columns, the timeline card, the readiness checklist, the citation, related publications, what a visitor sees before publication, the page head), extending a dataset page by template, and the dataset plugin's methods. The changelog entry for the overview pages is extended with the dataset page.
+- Verified: the template example in the dataset section rendered as an override of `dataset/dataset_detail.html` on a real dataset. `forge verify --steps docs --base origin/main`: the only names left undocumented are the five that belong to the sample and measurement stories.
+- Next: the full verify, then the report.
