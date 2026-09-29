@@ -29,6 +29,7 @@ from demo.factories import (
     RockSampleFactory,
     XRFMeasurementFactory,
 )
+from demo.seed.common import example_accounts, remove_own_projects
 from fairdm.contrib.contributors.models import Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
@@ -38,12 +39,6 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.project.models import Project
-from fairdm.management.commands.create_dev_accounts import (
-    DEV_ACCOUNT_PASSWORD,
-)
-from fairdm.management.commands.create_dev_accounts import (
-    EXAMPLE_ACCOUNTS as ACCOUNTS,
-)
 from fairdm.utils.choices import Visibility
 
 PROJECT = "Measurement page examples"
@@ -55,16 +50,14 @@ class MeasurementSeed(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         call_command("seed_licenses", verbosity=0)
-        users = self.accounts()
-        # Datasets first: a project with public datasets refuses to be deleted.
-        Dataset.all_objects.filter(project__name=PROJECT).delete()
-        Project.objects.filter(name=PROJECT).delete()
-        MeasurementIdentifier.objects.filter(
-            value="10.60510/FDM.XRF.2025.0412"
-        ).delete()
+        users = example_accounts()
+        remove_own_projects([PROJECT], users)
 
         project = Project.objects.create(
-            name=PROJECT, status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC
+            name=PROJECT,
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            created_by=users["super.user"],
         )
         licence = License.objects.first()
         cores = self.dataset(
@@ -170,21 +163,6 @@ class MeasurementSeed(BaseCommand):
             ("XRF in an unpublished dataset", hidden),
         ]:
             self.stdout.write(f"{label}: {measurement.get_absolute_url()}")
-
-    def accounts(self):
-        users = {}
-        for email, first, last, staff, superuser in ACCOUNTS:
-            user = Person.objects.filter(
-                email=email
-            ).first() or Person.objects.create_user(
-                email=email, password=DEV_ACCOUNT_PASSWORD
-            )
-            user.first_name, user.last_name, user.name = first, last, f"{first} {last}"
-            user.is_staff, user.is_superuser = staff, superuser
-            user.set_password(DEV_ACCOUNT_PASSWORD)
-            user.save()
-            users[email.split("@")[0]] = user
-        return users
 
     def person(self, first, last):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"

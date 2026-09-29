@@ -32,6 +32,7 @@ from demo.factories import (
     WaterSampleFactory,
     XRFMeasurementFactory,
 )
+from demo.seed.common import example_accounts, remove_own_projects
 from fairdm.contrib.contributors.models import Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
@@ -41,12 +42,6 @@ from fairdm.core.sample.models import (
     SampleDescription,
     SampleIdentifier,
     SampleRelation,
-)
-from fairdm.management.commands.create_dev_accounts import (
-    DEV_ACCOUNT_PASSWORD,
-)
-from fairdm.management.commands.create_dev_accounts import (
-    EXAMPLE_ACCOUNTS as ACCOUNTS,
 )
 from fairdm.utils.choices import Visibility
 
@@ -60,13 +55,14 @@ class SampleSeed(BaseCommand):
     def handle(self, *args, **options):
         random.seed(20260924)
         call_command("seed_licenses", verbosity=0)
-        users = self.accounts()
-        # Datasets first: a project with public datasets refuses to be deleted.
-        Dataset.all_objects.filter(project__name=PROJECT).delete()
-        Project.objects.filter(name=PROJECT).delete()
+        users = example_accounts()
+        remove_own_projects([PROJECT], users)
 
         project = Project.objects.create(
-            name=PROJECT, status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC
+            name=PROJECT,
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            created_by=users["super.user"],
         )
         licence = License.objects.first()
         cores = self.dataset(
@@ -99,21 +95,6 @@ class SampleSeed(BaseCommand):
             ("Rock sample in an unpublished dataset", hidden),
         ]:
             self.stdout.write(f"{label}: {sample.get_absolute_url()}")
-
-    def accounts(self):
-        users = {}
-        for email, first, last, staff, superuser in ACCOUNTS:
-            user = Person.objects.filter(
-                email=email
-            ).first() or Person.objects.create_user(
-                email=email, password=DEV_ACCOUNT_PASSWORD
-            )
-            user.first_name, user.last_name, user.name = first, last, f"{first} {last}"
-            user.is_staff, user.is_superuser = staff, superuser
-            user.set_password(DEV_ACCOUNT_PASSWORD)
-            user.save()
-            users[email.split("@")[0]] = user
-        return users
 
     def person(self, first, last):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"

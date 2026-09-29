@@ -5,10 +5,11 @@ Development only. Creates the standard sign-in accounts and three projects:
 
 - a fully described, active project with datasets, samples and measurements spread over
   three years, a large team, funding and identifiers;
-- a brand-new private project with nothing but a name, owned by ``regular.user``;
+- a brand-new private project with nothing but a name, owned by ``staff.user``;
 - a sparse public project with a very long title, one dataset and one contributor.
 
-Safe to run twice: it removes the projects it created before creating them again.
+Safe to run twice: it removes the projects it created before creating them again, and leaves any
+project somebody else made under the same name.
 """
 
 import random
@@ -31,6 +32,7 @@ from demo.factories import (
     WaterSampleFactory,
     XRFMeasurementFactory,
 )
+from demo.seed.common import example_accounts, remove_own_projects
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import (
@@ -48,12 +50,6 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.core.sample.models import Sample
-from fairdm.management.commands.create_dev_accounts import (
-    DEV_ACCOUNT_PASSWORD,
-)
-from fairdm.management.commands.create_dev_accounts import (
-    EXAMPLE_ACCOUNTS as ACCOUNTS,
-)
 from fairdm.utils.choices import Visibility
 
 SHOWCASE = "Thermal regime and groundwater flow of the Upper Rhine Graben"
@@ -177,37 +173,16 @@ class ProjectSeed(BaseCommand):
     def handle(self, *args, **options):
         random.seed(20260924)
         call_command("seed_licenses", verbosity=0)
-        users = self.accounts()
-        # Datasets first: a project with public datasets refuses to be deleted.
-        Dataset.all_objects.filter(project__name__in=SEEDED_NAMES).delete()
-        Project.objects.filter(name__in=SEEDED_NAMES).delete()
+        users = example_accounts()
+        remove_own_projects(SEEDED_NAMES, users)
         keywords = self.keywords()
-        self.showcase(users, keywords)
+        showcase = self.showcase(users, keywords)
         self.empty(users)
         self.sparse(users)
-        self.dataset_metadata(users, keywords)
+        self.dataset_metadata(users, keywords, showcase)
         self.stdout.write(
             self.style.SUCCESS("Seeded the project and dataset overview states.")
         )
-
-    def accounts(self):
-        users = {}
-        for email, first, last, staff, superuser in ACCOUNTS:
-            user = Person.objects.filter(email=email).first()
-            if user is None:
-                user = Person.objects.create_user(
-                    email=email,
-                    password=DEV_ACCOUNT_PASSWORD,
-                    first_name=first,
-                    last_name=last,
-                )
-            user.first_name, user.last_name = first, last
-            user.name = f"{first} {last}"
-            user.is_staff, user.is_superuser = staff, superuser
-            user.set_password(DEV_ACCOUNT_PASSWORD)
-            user.save()
-            users[email.split("@")[0]] = user
-        return users
 
     def keywords(self):
         vocabulary, _ = Vocabulary.objects.get_or_create(
@@ -344,17 +319,18 @@ class ProjectSeed(BaseCommand):
         Project.objects.filter(pk=project.pk).update(
             added=start, modified=now - timedelta(days=2)
         )
+        return project
 
     def empty(self, users):
         project = Project.objects.create(
             name=EMPTY,
             status=ProjectStatus.CONCEPT,
             visibility=Visibility.PRIVATE,
-            created_by=users["regular.user"],
+            created_by=users["super.user"],
         )
-        project.add_contributor(users["regular.user"], with_roles=["Creator"])
+        project.add_contributor(users["staff.user"], with_roles=["Creator"])
         for permission in PROJECT_PERMISSIONS:
-            assign_perm(f"project.{permission}", users["regular.user"], project)
+            assign_perm(f"project.{permission}", users["staff.user"], project)
 
     def sparse(self, users):
         project = Project.objects.create(
@@ -404,11 +380,10 @@ class ProjectSeed(BaseCommand):
         )
         return item
 
-    def dataset_metadata(self, users, keywords):
+    def dataset_metadata(self, users, keywords, showcase):
         """Dataset-level metadata for the showcase's datasets, so each access state has a fully
         described example: the Soultz cores (published), the Bruchsal soil gas survey (public,
         data not released) and the borehole logs (private)."""
-        showcase = Project.objects.get(name=SHOWCASE)
         people = {
             p.last_name: p
             for p in Person.objects.filter(email__endswith="@example.org")
