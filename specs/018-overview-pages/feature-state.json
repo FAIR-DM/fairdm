@@ -246,8 +246,15 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_sample tests/test_core/test_measurement tests/test_core/test_managers.py -q",
+              "render of every seeded sample as visitor, staff.user and regular.user before and after: 423 pages identical",
+              "uv run pre-commit run --all-files"
+            ]
+          }
         },
         {
           "id": "T015",

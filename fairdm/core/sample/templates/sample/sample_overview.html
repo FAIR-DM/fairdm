@@ -6,7 +6,7 @@
   A physical sample is understood through its history: collected, prepared, stored, perhaps
   destroyed. The page puts that history back together, then shows what was measured on the
   specimen, where it came from and what it is related to. The anatomy and the facts column come
-  from `overview/page.html`; the context is gathered by `fairdm/core/sample/overview.py`.
+  from `overview/page.html`; the context is gathered by the sample `Overview` plugin.
 
   A sample type adds its own content by providing `<app_label>/<model_name>_overview.html`, which
   extends this template and fills its blocks. `{{ block.super }}` adds to a block and keeps what is

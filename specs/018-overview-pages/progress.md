@@ -91,3 +91,10 @@
 - Verified: `uv run pytest tests/test_core/test_sample/test_plugins.py -q`: 51 passed. The rest of the page already met every scenario, so T014 moves code without changing output.
 - Next: T014.
 - Watch: `related_samples` says hidden relations are not counted; the code and FR-023 count them, so the docstring changes as it moves.
+
+## 2026-09-29 · US3 · T014
+
+- Did: the sample's logic is methods on the sample `Overview` plugin (`get_status`, `get_measurements`, `get_related_samples`, `get_relations_summary`, `get_citation_details`, `get_details`) and `fairdm/core/sample/overview.py` is deleted. The `related_samples` docstring no longer says hidden relations are not counted; they are, in `hidden`. `published()` and `visible_to()` moved into `RecordVisibilityMixin` and both querysets use it (decisions D16, D17). The measurement module reads the status colours from the sample plugin.
+- Verified: `uv run pytest tests/test_core/test_sample tests/test_core/test_measurement tests/test_core/test_managers.py -q`: only the known measurement test fails, which belongs to the measurement story. Rendered all 141 seeded samples as visitor, `staff.user` and `regular.user` before and after the move: 423 pages, no difference. `uv run pre-commit run --all-files`: all hooks pass.
+- Next: T015.
+- Watch: T013 found one gap, the visibility check on a typed overview, fixed in the same commit as its test.

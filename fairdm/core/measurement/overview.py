@@ -121,7 +121,7 @@ def result(measurement):
 
 def sample_status(sample):
     """The sample's status label and badge colour, as its own page shows them."""
-    from fairdm.core.sample.overview import STATUS_VARIANTS
+    from fairdm.core.sample.plugins import Overview as SampleOverview
 
     status = getattr(sample.status, "name", sample.status)
     if not status:
@@ -129,7 +129,7 @@ def sample_status(sample):
     labels = dict(type(sample)._meta.get_field("status").choices)
     return {
         "label": labels.get(status, status),
-        "variant": STATUS_VARIANTS.get(status, "neutral"),
+        "variant": SampleOverview.status_variants.get(status, "neutral"),
     }
 
 

@@ -230,3 +230,23 @@ model when it is defined. A subclass with no `base_model` refuses every record, 
 
 **Revisit if:** the plugin base learns to call a bound permission method, in which case `check`
 can become an ordinary method again.
+
+## D16 — The sample page's tables are attributes of its `Overview` plugin
+
+The history's steps, the status colours and meanings, and the number of measurements listed were
+module constants in `sample/overview.py`. They are now `lifecycle`, `status_variants`,
+`status_meanings` and `measurements_shown` on the sample `Overview` plugin, so a portal changes
+one by subclassing the plugin, like `lead_roles` on the dataset's. The measurement page still
+needs the status colours for the sample it names, and reads `Overview.status_variants` from the
+sample plugin, imported inside the function to avoid a circular import.
+
+**Revisit if:** a third page needs the colours, in which case they move to `RecordOverviewPlugin`.
+
+## D17 — `published()` and `visible_to()` live in `RecordVisibilityMixin` in `fairdm/core/managers.py`
+
+The two rules were identical in `SampleQuerySet` and `MeasurementQuerySet`. The mixin sits beside
+the polymorphic manager both records already share, and `tests/test_core/test_managers.py`
+mirrors it. Both querysets keep their own `with_related()` and the other helpers that differ.
+
+**Revisit if:** a record type whose visibility follows something other than its own dataset needs
+the same methods, in which case the dataset lookup becomes a class attribute.

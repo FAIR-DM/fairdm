@@ -2,48 +2,11 @@
 
 from polymorphic.managers import PolymorphicQuerySet
 
+from fairdm.core.managers import RecordVisibilityMixin
 
-class SampleQuerySet(PolymorphicQuerySet):
+
+class SampleQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
     """QuerySet for samples, whose methods chain with the standard queryset operations."""
-
-    def published(self):
-        """Return the samples whose own dataset is published.
-
-        It is a bare filter with no ``select_related``, as it also builds filter choice lists.
-
-        Returns:
-            The samples in published datasets.
-        """
-        return self.filter(dataset__published=True)
-
-    def visible_to(self, user):
-        """Samples the user may see: those whose own dataset is public and published, and those
-        in a dataset the user holds ``dataset.view_dataset`` or ``dataset.change_dataset`` on.
-
-        Applied per record, against each record's own dataset. Being on one dataset's team never
-        opens another dataset's records.
-        """
-        from django.db.models import Q
-
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.utils import get_objects_for_user
-        from fairdm.utils.choices import Visibility
-
-        released = Q(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
-        if user is None or not user.is_authenticated:
-            return self.filter(released)
-        if user.has_perm("dataset.view_dataset") or user.has_perm(
-            "dataset.change_dataset"
-        ):
-            return self
-        team_datasets = get_objects_for_user(
-            user,
-            ["dataset.view_dataset", "dataset.change_dataset"],
-            Dataset.all_objects.all(),
-            any_perm=True,
-            accept_global_perms=False,
-        )
-        return self.filter(released | Q(dataset__in=team_datasets))
 
     def with_related(self):
         """Load each sample's dataset, project and location, and prefetch its contributors and roles.
