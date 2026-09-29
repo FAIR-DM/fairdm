@@ -27,3 +27,9 @@
 - Verified: `uv run pytest tests/test_core/test_project -q`: 352 passed, 7 failed. One failure is the untouched pre-existing `test_a_user_who_may_delete_the_project_is_offered_the_link`. The other six are new and fail for the right reason: Delete not offered to a user who may delete but not change; the composition chart lists a type the registry does not hold; the composition chart crashes on a stale content type; the growth chart labels, the growth chart description and a dataset's last-updated date use literal patterns rather than the locale's named formats. Probe: removing the visitor's dataset filter from `fairdm/core/project/overview.py` fails seven of the scenario 1 tests, then restored.
 - Next: T005.
 - Watch: the JSON-LD tests pass against the prototype because the project's export names no datasets. They pin that it stays so.
+
+## 2026-09-29 · Implementer US1 · T005
+
+- Did: `tests/test_demo/test_management/test_commands/test_seed_overviews.py` (refusal outside development, the three accounts, accounts left untouched, team rights, safe to run again, a foreign project sharing a seeded name) and `TestDevAccountsAbsentReportsTheExampleAccounts` in `tests/test_conf/test_checks.py`.
+- Verified: `uv run pytest tests/test_demo tests/test_conf/test_checks.py -q -n0 -k "Seed or ExampleAccounts"`: 17 passed, 5 failed. The failures are the defects T008 fixes: an existing account has its password and names overwritten; the empty project's team is `regular.user` rather than `staff.user`; the regular user can open the private empty project; a foreign project sharing a seeded name is deleted. The `fairdm.E501` tests pass already, because the prototype extended the check.
+- Next: T006.
