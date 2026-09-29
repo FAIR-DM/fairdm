@@ -523,7 +523,7 @@ The dataset's own steps are methods on its `Overview` plugin in `fairdm.core.dat
 | `get_descriptions()` | The descriptions the dataset has text for, in the vocabulary's order. |
 | `get_dates()` | The collection start and end and the available, submitted, published and withdrawn dates as plain dates, each `None` when not recorded. |
 | `get_lifecycle(dates)` | The timeline's steps, in the order they happened. |
-| `get_team()` | The creators, the contact person, everyone else and how many people and organisations are credited. `lead_roles` names the roles listed first. |
+| `get_team()` | The creators, whether a contact person is credited, and how many contributions the dataset has. |
 | `get_literature()` | The related publications, each with its relation worded from the publication's side, its DOI and its year. |
 | `get_record_types(samples, measurements)` | The registered sample and measurement types the dataset holds, each with its `kind`, `label` and the labels of its `fields`. `bookkeeping_fields` lists the fields left out. |
 | `get_counts(samples, measurements, data_types)` | The sample and measurement counts, each with how many types it spans. |

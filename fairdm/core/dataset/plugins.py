@@ -276,7 +276,6 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
     record. Nothing here is written for a particular portal's types.
 
     Attributes:
-        lead_roles: The roles that name the people a reuser should see first, in this order.
         bookkeeping_fields: Fields every record carries that say nothing about its data.
     """
 
@@ -293,7 +292,6 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         "descriptions": "dataset:overview-descriptions",
     }
 
-    lead_roles = ["Creator", "ContactPerson"]
     bookkeeping_fields = {
         "id",
         "uuid",
@@ -535,34 +533,28 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         }
 
     def get_team(self):
-        """Sort the people credited: creators first, then the contact person, then the rest.
+        """Gather the dataset's creators, and whether anyone is credited as its contact person.
 
         Returns:
-            The creators, the contact person when not already a creator, everyone else and the
-            counts of people and organisations credited.
+            The creators, whether a contact person is credited, and how many contributions the
+            dataset has.
         """
         contributions = self.get_contributions()
-        creators, contact, others = [], None, []
+        creators, has_contact = [], False
         for contribution in contributions:
             roles = self.get_role_names(contribution)
-            entry = {
-                "contributor": contribution.contributor,
-                "roles": [r.label for r in contribution.roles.all()],
-            }
             if "Creator" in roles:
-                creators.append(entry)
-            if "ContactPerson" in roles and contact is None:
-                contact = entry
-            if not roles & set(self.lead_roles):
-                others.append(entry)
+                creators.append(
+                    {
+                        "contributor": contribution.contributor,
+                        "roles": [r.label for r in contribution.roles.all()],
+                    }
+                )
+            has_contact = has_contact or "ContactPerson" in roles
         return {
             "creators": creators,
-            "contact": contact if contact and contact not in creators else None,
-            "has_contact": contact is not None,
-            "others": others,
+            "has_contact": has_contact,
             "total": len(contributions),
-            "people": sum(1 for c in contributions if c.is_person()),
-            "organizations": sum(1 for c in contributions if not c.is_person()),
         }
 
     def get_literature(self):
