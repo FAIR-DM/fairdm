@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   portal roles described below. A portal already using the three previous groups keeps every
   member: they are renamed in place, not deleted, the next time the database is brought up to
   date.
+- **The `c-cards.statistic` component is gone.** Use `c-stats` with `c-stats.item` for a row of
+  figures. A portal template that includes `c-cards.statistic` needs the same change.
+- **`MeasurementDetailView` and the `measurement/detail.html` template are gone.** The measurement
+  page is now the overview plugin's, drawn by `measurement/measurement_overview.html` and its
+  `overview.*` blocks. A portal that subclassed the view or extended the template overrides the
+  matching block or plugin method instead, as described in
+  [Overview pages](docs/portal-development/overview-pages.md).
 
 ### Fixed
 
@@ -87,6 +94,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that list configured, and django-mvp only warns and discards the setting. A portal including
   `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
   above it, since the landing page and its `account-center` URL name now come from django-mvp.
+- **django-mvp moves to 0.24, and FairDM now requires django-mvp-charts and pyecharts.** The
+  overview pages draw their charts with them, so a portal installing FairDM gets both, and adds
+  `mvp_charts` to `INSTALLED_APPS` if it does not build its apps from FairDM's own list.
+- **Breadcrumbs show the full name of each page** instead of a shortened one.
 
 ### Added
 
@@ -106,18 +117,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a timeline card of its key dates, its citation and its related publications worded from the
   publication's side. A public dataset that is not published shows a visitor its description,
   counts and charts, and never a record. The team sees a "Ready to publish?" checklist of seven
-  required and three recommended items until the dataset is published. The page's logic moved from
-  `fairdm.core.dataset.overview` to methods on the dataset `Overview` plugin, and the module is
-  gone. See [Overview pages](docs/portal-development/overview-pages.md).
+  required and three recommended items until the dataset is published. See [Overview pages](docs/portal-development/overview-pages.md).
 - **The sample page follows the specimen, and a sample type adds its own fields by providing one
   template.** It shows the type and status, a timeline joining each step's date, people and
   notes, the measurements made on the sample (including those another team recorded in its own
   dataset), a citation in DataCite's form for a physical object, a map and the related samples.
   A measurement or related sample in a dataset the viewer may not see is counted and never named or
   linked. A portal gives a sample type its page with `<app_label>/<model_name>_overview.html`, a
-  subtype inherits its parent type's page, and the demo's rock sample is the worked example. The
-  page's logic moved from `fairdm.core.sample.overview` to methods on the sample `Overview`
-  plugin, and the module is gone. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
+  subtype inherits its parent type's page, and the demo's rock sample is the worked example. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
   and `visible_to()` from `fairdm.core.managers.RecordVisibilityMixin`. See
   [Overview pages](docs/portal-development/overview-pages.md).
 - **The measurement page shows the result and how it was obtained, and a measurement type adds its
@@ -129,11 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   state of its sample's dataset, and a sample in an unpublished dataset is described as one and
   never named, linked or mapped. A portal gives a measurement type its page with
   `<app_label>/<model_name>_overview.html`, and the demo's XRF measurement is the worked example.
-  The page's logic moved from `fairdm.core.measurement.overview` to methods on the measurement
-  `Overview` plugin, and the module is gone. The helpers that read a record's credits moved from
-  `fairdm.core.overview` onto `RecordOverviewPlugin` as `get_contributions()`,
-  `get_role_names()` and `get_contributors_with_role()`. See
-  [Overview pages](docs/portal-development/overview-pages.md).
+  See [Overview pages](docs/portal-development/overview-pages.md).
 - **`manage.py seed_overviews` loads development data for the overview pages**, and creates
   `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
   missing. It refuses to run outside development, leaves an existing account as it is, and

@@ -417,6 +417,12 @@ class RecordOverviewPlugin(OverviewPlugin):
 
         A type the registry does not hold, and a content type whose model no longer exists, are
         left out.
+
+        Args:
+            queryset: The records to count.
+
+        Returns:
+            One ``(plural type name, count)`` pair per type.
         """
         from fairdm.registry import registry
 
@@ -435,7 +441,14 @@ class RecordOverviewPlugin(OverviewPlugin):
 
     @staticmethod
     def _monthly(queryset) -> "OrderedDict[date, int]":
-        """Count a queryset's records by the month they were added."""
+        """Count a queryset's records by the month they were added.
+
+        Args:
+            queryset: The records to count.
+
+        Returns:
+            The count for each month that has records, oldest month first.
+        """
         return OrderedDict(
             (
                 row["month"].date() if hasattr(row["month"], "date") else row["month"],
@@ -503,6 +516,7 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
             cls.check = staticmethod(_visible_through(cls.base_model))
 
     def handle_no_permission(self):
+        """Answer a viewer who may not open the record exactly as for a record that does not exist."""
         from django.http import Http404
 
         raise Http404(
@@ -510,6 +524,7 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
         )
 
     def get_template_names(self):
+        """Offer the record's own type templates, most specific first, then the fallback."""
         names = []
         for cls in type(self.base_object).__mro__:
             if cls is self.base_model:

@@ -49,6 +49,7 @@ class Overview(TypedOverviewPlugin):
     siblings_shown = 8
 
     def get_page_title(self):
+        """Title the page with the measurement's name."""
         return self.base_object.name
 
     def get_context_data(self, **kwargs):
