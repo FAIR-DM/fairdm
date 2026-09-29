@@ -237,12 +237,14 @@ def license_row(license, note=None):
     if license is None:
         return {
             "label": _("Licence"),
+            "icon": "license",
             "text": _("None chosen yet"),
             "warning": True,
             "note": _("Nobody can safely reuse this data until a licence is chosen."),
         }
     return {
         "label": _("Licence"),
+        "icon": "license",
         "text": license.name,
         "url": license.canonical_url or "",
         "note": note,

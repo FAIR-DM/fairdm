@@ -30,22 +30,6 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.meta %}
-  <span class="inline-flex items-center gap-1">
-    <c-icon name="dataset" aria-hidden="true" />
-    <a href="{{ sample.dataset.get_absolute_url }}" class="link link-hover">{{ sample.dataset }}</a>
-  </span>
-  {% if project %}
-    <span class="inline-flex items-center gap-1">
-      <c-icon name="project" aria-hidden="true" />
-      <a href="{{ project.get_absolute_url }}" class="link link-hover">{{ project }}</a>
-    </span>
-  {% endif %}
-  {% if sample.local_id %}
-    <span class="font-mono">{{ sample.local_id }}</span>
-  {% endif %}
-{% endblock overview.meta %}
-
 {% block overview.notices %}
   {% if status.value == "destroyed" %}
     <c-alert variant="warning" icon="warning" soft>
@@ -164,7 +148,7 @@
   {% block overview.location %}
     {% if location %}
       <c-card title="{% translate 'Location' %}" class="bg-base-100">
-        <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Map planned" %}</span></c-slot>
+        <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Map coming soon" %}</span></c-slot>
         <dl class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
           <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
           <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>

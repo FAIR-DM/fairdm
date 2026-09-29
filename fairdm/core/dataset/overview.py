@@ -103,6 +103,10 @@ def shared_context(request, dataset, context):
         "identifiers": shared.identifiers(dataset),
         "api_url": context["api_url"],
         "people": shared.people(shared.credits(dataset), named_roles=ROLE_ORDER),
+        "header_people": {
+            "label": _("Created by"),
+            "people": [e["contributor"] for e in context["team"]["creators"]],
+        },
         "details": [],
     }
     if citation_["from_reference"]:
@@ -115,7 +119,7 @@ def shared_context(request, dataset, context):
     info = context["project_info"]
     if info:
         project = info["project"]
-        row = {"label": _("Project"), "record": project}
+        row = {"label": _("Project"), "icon": "project", "record": project}
         if info["siblings"]:
             row["note"] = ngettext(
                 "%(n)s other dataset in this project",
@@ -124,7 +128,13 @@ def shared_context(request, dataset, context):
             ) % {"n": info["siblings"]}
         result["details"].append(row)
     result["details"].append(shared.license_row(dataset.license))
-    result["details"].append({"label": _("Access"), "text": ACCESS_TEXT[context["access"]["state"]]})
+    result["details"].append(
+        {
+            "label": _("Access"),
+            "icon": "globe" if dataset.data_is_public else "lock",
+            "text": ACCESS_TEXT[context["access"]["state"]],
+        }
+    )
     result["details"].extend(dataset_details(dataset, context["dates"]))
     if "readiness" in context:
         readiness_ = context["readiness"]
@@ -147,16 +157,16 @@ def shared_context(request, dataset, context):
 def dataset_details(dataset, dates_):
     rows = []
     if dates_["collection_start"]:
-        rows.append({"label": _("Collected"), "date": dates_["collection_start"], "until": dates_["collection_end"]})
+        rows.append({"label": _("Collected"), "icon": "calendar", "date": dates_["collection_start"], "until": dates_["collection_end"]})
     for key, label in (
         ("submitted", _("Submitted")),
         ("published", _("Published")),
         ("available", _("Available from")),
     ):
         if dates_[key]:
-            rows.append({"label": label, "date": dates_[key]})
-    rows.append({"label": _("Added"), "date": dataset.added})
-    rows.append({"label": _("Last updated"), "date": dataset.modified})
+            rows.append({"label": label, "icon": "calendar", "date": dates_[key]})
+    rows.append({"label": _("Added"), "icon": "calendar", "date": dataset.added})
+    rows.append({"label": _("Last updated"), "icon": "time", "date": dataset.modified})
     return rows
 
 

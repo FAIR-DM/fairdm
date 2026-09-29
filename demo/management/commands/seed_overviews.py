@@ -11,6 +11,7 @@ See documentation: [Overview pages](docs/portal-development/overview-pages.md).
 """
 
 from django.apps import apps
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from demo.seed.measurements import MeasurementSeed
@@ -31,5 +32,8 @@ class Command(BaseCommand):
                 "is not a development one. The data signs in through accounts whose password is "
                 "written down."
             )
+        # Contributor roles are vocabulary concepts that exist in the database only once something
+        # creates them. On a fresh database crediting a role would silently credit nothing.
+        call_command("preload", verbosity=0)
         for seed in (ProjectSeed, SampleSeed, MeasurementSeed):
             seed(stdout=self.stdout, stderr=self.stderr).handle(*args, **options)

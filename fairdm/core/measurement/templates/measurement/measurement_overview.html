@@ -26,25 +26,6 @@
   <span class="badge badge-ghost badge-sm"><c-icon name="measurement" aria-hidden="true" />{{ measurement_type|capfirst }}</span>
 {% endblock overview.badges %}
 
-{% block overview.meta %}
-  <span class="inline-flex items-center gap-1">
-    <c-icon name="sample" aria-hidden="true" />
-    {% translate "on" %}
-    {% if sample_visible %}
-      <a href="{{ sample.get_absolute_url }}" class="link link-hover">{{ sample }}</a>
-    {% else %}
-      {% translate "an unpublished sample" %}
-    {% endif %}
-  </span>
-  <span class="inline-flex items-center gap-1">
-    <c-icon name="dataset" aria-hidden="true" />
-    <a href="{{ measurement.dataset.get_absolute_url }}" class="link link-hover">{{ measurement.dataset }}</a>
-  </span>
-  {% if measurement.local_id %}
-    <span class="font-mono">{{ measurement.local_id }}</span>
-  {% endif %}
-{% endblock overview.meta %}
-
 {% block overview.notices %}
   {% if not measurement.dataset.data_is_public %}
     <c-alert variant="info" icon="lock" soft>

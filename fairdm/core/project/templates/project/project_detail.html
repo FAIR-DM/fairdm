@@ -21,21 +21,6 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.meta %}
-  {% if project.owner %}
-    <span class="inline-flex items-center gap-1">
-      <c-icon name="organization" aria-hidden="true" />
-      <a href="{{ project.owner.get_absolute_url }}" class="link link-hover">{{ project.owner }}</a>
-    </span>
-  {% endif %}
-  {% if timeline.start_date %}
-    <span class="inline-flex items-center gap-1">
-      <c-icon name="calendar" aria-hidden="true" />
-      {{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}
-    </span>
-  {% endif %}
-{% endblock overview.meta %}
-
 {% block overview.actions %}
   {{ block.super }}
   {% if can_manage %}
@@ -117,7 +102,7 @@
       </c-slot>
       <c-slot name="actions">
         {% if counts.datasets and urls.datasets %}
-          <c-button href="{{ urls.datasets }}" text="{% translate 'View all' %}" size="sm" ghost />
+          <c-button href="{{ urls.datasets }}" text="{% translate 'View all' %}" size="sm" />
         {% endif %}
       </c-slot>
       {% if datasets_preview.rows %}
@@ -214,20 +199,18 @@
 
 {% block overview.details_extra %}
   {% if timeline.start_date %}
-    <div class="flex flex-col gap-1 text-sm">
-      <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "Timeline" %}</h3>
-      <div class="flex justify-between gap-3">
+    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline">
+      <span class="flex justify-between gap-3">
         <span>{{ timeline.start_date|date:"M Y" }} – {% if timeline.end_date %}{{ timeline.end_date|date:"M Y" }}{% else %}{% translate "ongoing" %}{% endif %}</span>
         {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
-      </div>
+      </span>
       {% if timeline.percent is not None %}
-        <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" />
+        <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" class="mt-1" />
       {% endif %}
-    </div>
+    </c-card.details.entry>
   {% endif %}
   {% if funding or can_manage %}
-    <div class="flex flex-col gap-1 text-sm">
-      <h3 class="text-xs uppercase font-semibold text-base-content/60">{% translate "Funding" %}</h3>
+    <c-card.details.entry label="{% translate 'Funding' %}" icon="funding">
       {% if funding %}
         <ul class="flex flex-col gap-2">
           {% for award in funding %}
@@ -247,8 +230,8 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
+        <span class="text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</span>
       {% endif %}
-    </div>
+    </c-card.details.entry>
   {% endif %}
 {% endblock overview.details_extra %}

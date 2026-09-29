@@ -14,9 +14,7 @@
 
     overview.image          header: the record's image, or its icon
     overview.badges         header: status badges
-    overview.meta           header: the line placing the record (parents, dates, IDs)
-    overview.updated        header: when the record last changed
-    overview.byline         header: who made it
+    overview.meta           header: the people behind the record (leads, creators, collectors)
     overview.keywords       header: keywords
     overview.actions        header: buttons (Cite and Share by default)
     overview.notices        alerts above the figures
@@ -72,17 +70,19 @@
 
           <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record.name }}</h1>
 
-          <p class="text-sm text-base-content/70 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {% block overview.meta %}{% endblock overview.meta %}
-            {% block overview.updated %}
-              <span class="inline-flex items-center gap-1">
-                <c-icon name="time" aria-hidden="true" />
-                {% blocktranslate with when=record.modified|naturalday:"j M Y" %}Last updated {{ when }}{% endblocktranslate %}
-              </span>
-            {% endblock overview.updated %}
-          </p>
-
-          {% block overview.byline %}{% endblock overview.byline %}
+          {% block overview.meta %}
+            {% if header_people.people %}
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                <span class="text-base-content/70">{{ header_people.label }}</span>
+                {% for person in header_people.people %}
+                  <a href="{{ person.get_absolute_url }}" class="inline-flex items-center gap-1.5 link link-hover">
+                    <c-avatar :for="person" alt="" size="xs" />
+                    {{ person }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endblock overview.meta %}
 
           {% block overview.keywords %}
             {% with keywords=record.keywords.all %}

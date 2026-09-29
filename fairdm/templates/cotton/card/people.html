@@ -17,7 +17,7 @@
 <c-vars people all_url empty condensed=False class />
 <c-card title="{% translate 'People' %}" class="bg-base-100 {{ class }}" only>
   {% if all_url and people.total %}
-    <c-slot name="actions"><a href="{{ all_url }}" class="btn btn-ghost btn-sm">{% translate "See all" %}</a></c-slot>
+    <c-slot name="actions"><c-button href="{{ all_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>
   {% endif %}
   {% if people.total %}
     {% if people.named %}

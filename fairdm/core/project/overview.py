@@ -96,6 +96,10 @@ def shared_context(request, project, context):
             shared.credits(project), named_roles=LEAD_ROLES, condensed=True, detail="affiliation"
         ),
         "people_url": context["urls"]["contributors"],
+        "header_people": {
+            "label": _("Led by"),
+            "people": [e["contributor"] for e in context["team"]["leads"]],
+        },
         "details": project_details(project, context),
     }
     if not context["citation"]["has_doi"]:
@@ -359,10 +363,11 @@ def readiness(project, context):
 def project_details(project, context):
     rows = []
     if project.owner:
-        rows.append({"label": _("Organisation"), "record": project.owner})
+        rows.append({"label": _("Organisation"), "icon": "organization", "record": project.owner})
     rows.append(
         {
             "label": _("Status"),
+            "icon": "info",
             "badge": project.get_status_display(),
             "badge_variant": project.status_badge_variant,
         }
@@ -372,7 +377,7 @@ def project_details(project, context):
         text = ", ".join(f"{name} ({n})" for name, n in licenses_["items"])
     else:
         text = _("No public datasets yet")
-    row = {"label": _("Licences"), "text": text}
+    row = {"label": _("Licences"), "icon": "license", "text": text}
     if licenses_["unlicensed"]:
         row["note"] = ngettext(
             "%(n)s public dataset has no licence and can't be reused safely.",
@@ -380,6 +385,6 @@ def project_details(project, context):
             licenses_["unlicensed"],
         ) % {"n": licenses_["unlicensed"]}
     rows.append(row)
-    rows.append({"label": _("Added"), "date": project.added})
-    rows.append({"label": _("Last updated"), "date": project.modified})
+    rows.append({"label": _("Added"), "icon": "calendar", "date": project.added})
+    rows.append({"label": _("Last updated"), "icon": "time", "date": project.modified})
     return rows

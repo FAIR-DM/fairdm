@@ -78,13 +78,14 @@ def build(request, sample, can_manage):
     collected = dates.get("Collected")
     sample_type = str(type(sample)._meta.verbose_name)
 
-    parents = [{"label": _("Dataset"), "record": sample.dataset}]
+    parents = [{"label": _("Dataset"), "icon": "dataset", "record": sample.dataset}]
     if project is not None:
-        parents.append({"label": _("Project"), "record": project})
+        parents.append({"label": _("Project"), "icon": "project", "record": project})
     parents.append(shared.license_row(sample.dataset.license, note=_("From its dataset")))
     parents.append(
         {
             "label": _("Access"),
+            "icon": "globe" if sample.dataset.data_is_public else "lock",
             "text": _("Open to everyone")
             if sample.dataset.data_is_public
             else _("Its dataset's team only, until the dataset is published"),
@@ -131,11 +132,15 @@ def build(request, sample, can_manage):
         "identifiers": identifiers,
         "api_url": shared.safe_reverse("api:sample-detail", uuid=sample.uuid),
         "people": shared.people(entries),
+        "header_people": {
+            "label": _("Collected by"),
+            "people": shared.with_role(entries, "Collection"),
+        },
         "details": parents + [
-            {"label": _("Custody"), "text": status_["label"], "note": status_["meaning"]},
-            {"label": _("Type"), "text": sample_type[:1].upper() + sample_type[1:]},
-            {"label": _("Added"), "date": sample.added},
-            {"label": _("Last updated"), "date": sample.modified},
+            {"label": _("Custody"), "icon": "box", "text": status_["label"], "note": status_["meaning"]},
+            {"label": _("Type"), "icon": "tag", "text": sample_type[:1].upper() + sample_type[1:]},
+            {"label": _("Added"), "icon": "calendar", "date": sample.added},
+            {"label": _("Last updated"), "icon": "time", "date": sample.modified},
         ],
     }
 

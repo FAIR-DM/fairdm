@@ -29,30 +29,6 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.meta %}
-  {% if project_info %}
-    <span class="inline-flex items-center gap-1">
-      <c-icon name="project" aria-hidden="true" />
-      {% translate "Part of" %}
-      <a href="{{ project_info.project.get_absolute_url }}" class="link link-hover">{{ project_info.project }}</a>
-    </span>
-  {% endif %}
-  {% if dates.collection_start %}
-    <span class="inline-flex items-center gap-1">
-      <c-icon name="calendar" aria-hidden="true" />
-      {% translate "Collected" %} {{ dates.collection_start|date:"M Y" }}{% if dates.collection_end %} – {{ dates.collection_end|date:"M Y" }}{% endif %}
-    </span>
-  {% endif %}
-{% endblock overview.meta %}
-
-{% block overview.byline %}
-  {% if people.named %}
-    <p class="text-sm">
-      {% for entry in team.creators %}<a href="{{ entry.contributor.get_absolute_url }}" class="link link-hover">{{ entry.contributor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-    </p>
-  {% endif %}
-{% endblock overview.byline %}
-
 {% block overview.actions %}
   {{ block.super }}
   {% if can_see_data and data_types %}
