@@ -26,7 +26,7 @@ class PersonListView(FairDMListView):
     show_create_action = False
 
     def get_queryset(self):
-        """Prefetch each person's ORCID identifiers, ORCID accounts and affiliations."""
+        """Prefetch each person's ORCID identifiers, ORCID accounts, affiliations and portal roles."""
         qs = super().get_queryset()
 
         orcid_prefetch = Prefetch(
@@ -42,7 +42,7 @@ class PersonListView(FairDMListView):
         )
 
         qs = qs.prefetch_related(
-            orcid_prefetch, orcid_accounts_prefetch, "affiliations"
+            orcid_prefetch, orcid_accounts_prefetch, "affiliations", "groups"
         )
 
         return qs

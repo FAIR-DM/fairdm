@@ -189,6 +189,28 @@ def contribution_roles(contribution):
 
 
 @register.simple_tag
+def contributor_has_account(contributor):
+    """Whether a person has a portal login: an active account they have claimed."""
+    from fairdm.contrib.contributors.choices import AccountState
+
+    return getattr(contributor, "account_state", None) == AccountState.CLAIMED
+
+
+@register.simple_tag
+def contributor_portal_roles(contributor):
+    """The labels of the portal roles an active person holds, in declaration order.
+
+    Reads ``groups.all()``, so a listing that prefetches ``groups`` costs no query per person.
+    """
+    from fairdm.portal_roles import PortalRoles
+
+    if contributor is None or is_organization(contributor) or not contributor.is_active:
+        return []
+    held = {group.name for group in contributor.groups.all()}
+    return [role.label for role in PortalRoles.ROLES if role.name in held]
+
+
+@register.simple_tag
 def split_contributors(values, limit=0, total=None):
     """Split a list of contributors into those shown and a count of the rest.
 

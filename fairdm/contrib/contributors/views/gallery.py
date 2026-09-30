@@ -19,7 +19,7 @@ class ContributorGalleryView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        people = list(Person.objects.filter(config__seed=SEED).order_by("pk"))
+        people = list(Person.objects.filter(config__seed=SEED).prefetch_related("groups").order_by("pk"))
         organizations = {o.name: o for o in Organization.objects.filter(config__seed=SEED)}
         projects = {
             p.name.removeprefix("[Contributors] "): p

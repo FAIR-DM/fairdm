@@ -11,8 +11,9 @@
                   "family_initial" or "initials_family" for citation-style names
     :link       – False for plain text (default: linked)
     :identifier – False to leave out the ORCID iD icon (default: shown)
+    :account    – True to mark a person who has a portal account (default: not marked)
     class       – extra classes on the name
-{% endcomment %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}<span class="inline-flex items-center gap-1 {{ class }}" {{ attrs }}>
+{% endcomment %}<c-vars contributor format :link="True" :identifier="True" :account="False" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}<span class="inline-flex items-center gap-1 {{ class }}" {{ attrs }}>
       {% if link %}
         <a href="{{ c.get_absolute_url }}" class="link link-hover">{{ display_name }}</a>
       {% else %}
@@ -35,6 +36,12 @@
             <a href="{{ ror.url }}" class="inline-flex" target="_blank" rel="noopener" title="ROR ID {{ ror.value }}"
                aria-label="{% blocktranslate with name=display_name %}ROR record of {{ name }}{% endblocktranslate %}">{% icon "ror" %}</a>
           {% endif %}
+        {% endif %}
+      {% endif %}
+      {% if account %}
+        {% contributor_has_account c as has_account %}
+        {% if has_account %}
+          <span class="inline-flex text-primary" role="img" title="{% translate "Has a portal account" %}" aria-label="{% translate "Has a portal account" %}">{% icon "portal_account" %}</span>
         {% endif %}
       {% endif %}
     </span>{% endif %}{% endwith %}

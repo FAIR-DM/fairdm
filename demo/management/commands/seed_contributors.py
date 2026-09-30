@@ -3,7 +3,7 @@
 Seeds people and organizations that reach every state the ``c-contributor.*`` components have to
 answer for: with and without a photo or logo, a wide logo, authenticated, unauthenticated and
 missing ORCID iDs, a ROR ID or none, an affiliation or none, a very long name, a name in a
-non-Latin script, and records credited to one, a handful and many contributors. It refuses outside
+non-Latin script, every account state, one portal role or several, and records credited to one, a handful and many contributors. It refuses outside
 development, and running it again replaces only the records it created.
 
     DJANGO_ENV=development python manage.py seed_contributors
@@ -16,6 +16,7 @@ import random
 
 from allauth.socialaccount.models import SocialAccount
 from django.apps import apps
+from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -66,6 +67,18 @@ PEOPLE = [
     ("Nikolai", "Petrov", "", True, None, []),
     ("Amara", "Okafor", "", False, None, ["potsdam"]),
 ]
+
+# index into PEOPLE: account state, portal roles held. Everyone else is a ghost profile.
+ACCOUNTS = {
+    0: ("claimed", ["Portal Administrator"]),
+    1: ("claimed", ["Data Curator", "Community Manager"]),
+    2: ("invited", []),
+    3: ("claimed", []),
+    4: ("claimed", ["Developer"]),
+    5: ("inactive", []),
+    6: ("claimed", ["Data Curator"]),
+    7: ("invited", []),
+}
 
 # key: name, type, city, country, ror, logo shape (None, "square", "wide")
 ORGANIZATIONS = {
@@ -159,6 +172,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Seeded {len(people)} people and {len(organizations)} organizations."))
 
     def clear(self):
+        # A project holding a public dataset refuses deletion, so the datasets go first.
+        Dataset.objects.filter(name__startswith="[Contributors] ").delete()
         Project.objects.filter(name__startswith="[Contributors] ").delete()
         SocialAccount.objects.filter(user__config__seed=SEED).delete()
         Contributor.objects.filter(config__seed=SEED).delete()
@@ -185,10 +200,14 @@ class Command(BaseCommand):
     def people(self, organizations):
         created = []
         for index, (first, last, preferred, photo, orcid, affiliations) in enumerate(PEOPLE):
+            state, roles = ACCOUNTS.get(index, ("ghost", []))
             person = Person(
                 first_name=first,
                 last_name=last,
                 name=preferred,
+                email=f"seed.person{index}@example.com" if state != "ghost" else None,
+                is_claimed=state == "claimed",
+                is_active=state != "inactive",
                 config={"seed": SEED},
                 profile=PROFILE if index % 3 != 2 else "",
             )
@@ -207,6 +226,8 @@ class Command(BaseCommand):
                     type=Affiliation.MembershipType.MEMBER,
                     is_primary=position == 0,
                 )
+            if roles:
+                person.groups.add(*Group.objects.filter(name__in=roles))
             created.append(person)
         return created
 
