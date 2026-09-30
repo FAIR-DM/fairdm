@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A measurement with no value recorded was shown as "None".** Wherever it was printed,
+  including its breadcrumbs and lists of measurements, a measurement whose type declares a
+  value but has none recorded read "None". It is now shown by its name, or by its portal ID
+  when it has no name either.
+
 - **Migrating any database other than `default` failed.** Ten data migrations queried
   through the ORM without saying which database they were being applied to, so they read
   and wrote `default` instead. A portal that migrates a second database — to check its
