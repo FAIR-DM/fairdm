@@ -34,12 +34,12 @@ fills blocks. The blocks carry the `overview.` prefix:
 
 | Block | What it holds |
 | --- | --- |
+| `overview.notices` | Alerts above the header, so they are read first. |
 | `overview.image` | Header: the record's image, or its icon. |
 | `overview.badges` | Header: status badges. |
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
 | `overview.keywords` | Header: keywords. |
 | `overview.actions` | Header: buttons. Cite and Share by default. |
-| `overview.notices` | Alerts above the figures. |
 | `overview.figures` | The figures strip. |
 | `overview.main` | The wide column. Each record fills it with its own blocks. |
 | `overview.side` | The side column, which holds the blocks below. |

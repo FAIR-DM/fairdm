@@ -3,8 +3,8 @@
 {% comment %}
   The overview page every core record shares: project, dataset, sample and measurement.
 
-  One anatomy on all four, so a reader finds the same fact in the same place: the header (badges,
-  name, a line placing the record, keywords, actions), notices, a strip of figures, then the
+  One anatomy on all four, so a reader finds the same fact in the same place: notices, the header
+  (badges, name, a line placing the record, keywords, actions), a strip of figures, then the
   content in a wide column with the facts a reuser checks in a narrow column beside it. Below
   `lg` the columns stack, content first.
 
@@ -12,13 +12,13 @@
   extends its record's template the same way, using `{{ block.super }}` to add to a block and keep
   what is there. Blocks, in page order:
 
+    overview.notices        alerts above the header, so they are read first
     overview.image          header: the record's image, or its icon
     overview.badges         header: status badges
     overview.byline         header: the people behind the record (a project's leads, a
                             dataset's creators), avatar and name, no caption
     overview.keywords       header: keywords
     overview.actions        header: buttons (Cite and Share by default)
-    overview.notices        alerts above the figures
     overview.figures        the figures strip
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
@@ -50,6 +50,8 @@
 {% endblock head %}
 
 {% block page.title %}
+  {% block overview.notices %}{% endblock overview.notices %}
+
   <c-card.wrapper class="bg-base-100">
     <div class="card-body gap-4">
       <div class="flex flex-col md:flex-row gap-4 md:items-start">
@@ -114,8 +116,6 @@
 {% endblock page.title %}
 
 {% block page.content %}
-  {% block overview.notices %}{% endblock overview.notices %}
-
   {% block overview.figures %}{% endblock overview.figures %}
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">

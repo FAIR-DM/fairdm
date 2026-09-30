@@ -138,3 +138,10 @@
 - Verified: `uv run pytest tests/test_demo/test_management/test_commands/test_seed_overviews.py -q`: 19 passed (new rights test red first); `pre-commit run --all-files` green.
 - Next: TC08.
 - Watch: `regular.user` still holds nothing.
+
+## 2026-09-30 · FIX-2 · TC08
+
+- Did: the `overview.notices` block now renders before the header, inside the page-title block, on all four pages; the block table in `docs/portal-development/overview-pages.md` moved it to the top.
+- Verified: `uv run pytest tests/test_templates/test_overview_page.py -q`: 13 passed. Layout only, no new test.
+- Next: TC09.
+- Watch: none.
