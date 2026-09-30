@@ -1,8 +1,8 @@
 {% load i18n easy_icons contributor_tags %}
 {% comment %}
   <c-contributor.card.person> — a person's card for the people listing: photo, name with ORCID
-  iD, affiliation and place, and the roles on a credit when given one. A person with a portal
-  account is marked in the top left corner, and the portal roles they hold close the card.
+  iD, affiliation and place, and the roles on a credit when given one. The portal roles they
+  hold close the card.
 
   Attributes:
     contributor – a Person, or a Contribution crediting one
@@ -16,7 +16,6 @@
     {% contributor_portal_roles c as portal_roles %}
     {% with location=c.get_location_display %}
       <c-card.wrapper class="h-full {{ class }}">
-        <c-contributor.account :contributor="c" class="absolute top-0 start-0 p-4 text-xl" />
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" />
         </figure>

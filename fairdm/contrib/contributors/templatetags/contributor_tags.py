@@ -189,14 +189,6 @@ def contribution_roles(contribution):
 
 
 @register.simple_tag
-def contributor_has_account(contributor):
-    """Whether a person has a portal login: an active account they have claimed."""
-    from fairdm.contrib.contributors.choices import AccountState
-
-    return getattr(contributor, "account_state", None) == AccountState.CLAIMED
-
-
-@register.simple_tag
 def contributor_portal_roles(contributor):
     """The labels of the portal roles an active person holds, in declaration order.
 

@@ -125,7 +125,6 @@ EASY_ICONS = {
             "file": "bi bi-file-earmark",
             "file_text": "bi bi-file-text",
             "member": "bi bi-person-fill",
-            "portal_account": "bi bi-person-check-fill",
             "organization": "bi bi-building",
             "location": "bi bi-geo-alt",
             "map": "bi bi-map",
