@@ -71,6 +71,22 @@ class PersonQuerySet(PrefetchPolymorphicQuerySet):
         """
         return self.filter(is_active=True, is_claimed=False, email__isnull=False)
 
+    def for_cards(self):
+        """Prefetch everything a person's card reads, so a listing costs no query per person.
+
+        The card reads the person's identifiers, sign-in accounts, affiliations with their
+        organisations, and portal roles.
+
+        Returns:
+            The queryset with those relations prefetched.
+        """
+        return self.prefetch_related(
+            "identifiers",
+            "socialaccount_set",
+            "affiliations__organization",
+            "groups",
+        )
+
 
 class UserManager(
     BaseUserManager, PrefetchPolymorphicManager.from_queryset(PersonQuerySet)

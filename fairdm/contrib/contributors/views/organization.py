@@ -28,6 +28,8 @@ class OrganizationListView(FairDMListView):
         "card": "contributor.card.organization",
     }
     card_template = "contributors/contributor_card.html"
+    list_item_template = "contributors/contributor_card.html"
+    grid = {"md": 2, "xl": 3}
 
 
 class OrganizationCreateView(FairDMCreateView):

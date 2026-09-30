@@ -1,0 +1,12 @@
+{# @description The card a contributor calls for: c-contributor.card.person for a person, c-contributor.card.organization for an organization. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution crediting one." #}
+{# @prop class:text | description:"Extra CSS classes on the card." #}
+{% load contributor_tags %}
+<c-vars contributor class />
+{% with c=contributor|as_contributor %}
+  {% if c.is_organization %}
+    <c-contributor.card.organization :contributor="contributor" class="{{ class }}" />
+  {% elif c %}
+    <c-contributor.card.person :contributor="contributor" class="{{ class }}" />
+  {% endif %}
+{% endwith %}

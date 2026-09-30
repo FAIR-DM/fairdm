@@ -1,15 +1,20 @@
-{# @description A lead paragraph listing contributors' names as profile links. Any other attribute is passed to the paragraph. #}
-{# @prop contributors:text | description:"The contributions to list." #}
-{# @prop :role:text | default:"None" | description:"Only list contributions holding this role, or any of several given as a comma-separated string. Empty lists all." #}
-{# @prop separator:text | default:"," | description:"Text shown after every name except the last." #}
-{% load contributor_tags %}
-
-<c-vars contributors :role="None" separator="," />
-{% if contributors %}
-  <c-text.lead {{ attrs }}>
-    {% for c in contributors|by_role:role %}
-      <c-contributor.name :contributor="c"
-                          after="{% if not forloop.last %}{{ separator }}{% endif %}" />
-    {% endfor %}
-  </c-text.lead>
+{# @description Names in a row: Ana Silva, Ben Wu and Chen Li. Past max the rest are counted, the count linking to more_url when given. #}
+{# @prop contributors:text | description:"Contributions or contributors, as a list or queryset." #}
+{# @prop max:number | default:3 | description:"Names shown before the count. 0 shows everyone." #}
+{# @prop total:number | description:"The real total, when contributors was already cut short." #}
+{# @prop format:select['family_given','family_initial','initials_family'] | description:"Name format, as for c-contributor.name." #}
+{# @prop identifier:boolean | description:"Follow each name with its ORCID iD or ROR icon." #}
+{# @prop link:boolean | default:true | description:"Link each name to the contributor's page." #}
+{# @prop more_url:text | description:"Where the full list lives." #}
+{# @prop empty:text | description:"Text shown when nobody is credited. Nothing is drawn without it." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
+{% load i18n contributor_tags %}
+<c-vars contributors max="3" total format :identifier="False" :link="True" more_url empty class />
+{% split_contributors contributors max total as group %}
+{% if group.shown %}
+  <span class="{{ class }}" {{ attrs }}>
+    {% for c in group.shown %}{% if not forloop.first %}{% if forloop.last and not group.more %} {% translate "and" %} {% else %}, {% endif %}{% endif %}<c-contributor.name :contributor="c" format="{{ format }}" :identifier="identifier" :link="link" class="" />{% endfor %}{% if group.more %} {% translate "and" %} {% blocktranslate count counter=group.more asvar others %}{{ counter }} other{% plural %}{{ counter }} others{% endblocktranslate %}{% if more_url %}<a href="{{ more_url }}" class="link link-hover">{{ others }}</a>{% else %}{{ others }}{% endif %}{% endif %}
+  </span>
+{% elif empty %}
+  <span class="text-base-content/70 {{ class }}">{{ empty }}</span>
 {% endif %}

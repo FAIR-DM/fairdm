@@ -40,6 +40,10 @@ FLEX_MENUS = {
 }
 
 MVP_CONFIG = {
+    # `c-avatar :for="contributor"` draws the contributor's photo or logo.
+    "brand": {
+        "avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url",
+    },
     "layout": {
         "sidebar": {
             "title": "FairDM",

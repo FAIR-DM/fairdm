@@ -25,3 +25,11 @@ text
 cards
 
 ```
+
+```{toctree}
+:caption: Contributors
+:maxdepth: 2
+
+contributors
+
+```

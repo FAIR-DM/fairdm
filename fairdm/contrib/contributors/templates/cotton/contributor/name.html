@@ -1,4 +1,17 @@
-{# @description A contributor's name as a link to their profile, after their identifier icon. Reads the context variables `contributor`, a contribution, and `after`, text shown straight after the name. #}
-<c-contributor.icon :contributor="contributor.contributor" />
-<a class="text-reset link-underline-secondary link-underline-opacity-0 link-underline-opacity-75-hover"
-   href="{{ contributor.get_absolute_url }}">{{ contributor }}</a>{{ after }}
+{# @description A contributor's name linked to their page, followed by their ORCID iD or ROR icon. Nothing is written outside the root element, so it can sit mid-sentence before a comma. A long name wraps like text and the icon stays with its last word. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution." #}
+{# @prop format:select['family_given','family_initial','initials_family'] | description:"A citation-style name for a person. Empty shows the preferred name." #}
+{# @prop link:boolean | default:true | description:"Link the name to the contributor's page." #}
+{# @prop identifier:boolean | default:true | description:"Follow the name with its ORCID iD or ROR icon." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
+{% load i18n easy_icons contributor_tags %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}{% spaceless %}<span class="whitespace-nowrap {{ class }}" {{ attrs }}>
+      {% if link %}<a href="{{ c.get_absolute_url }}" class="link link-hover text-wrap">{{ display_name }}</a>{% else %}<span class="text-wrap">{{ display_name }}</span>{% endif %}{% if identifier %}{% with ident=c.default_identifier %}{% if ident %}{% if c.is_organization %}&#8288;<a href="{{ ident.get_absolute_url }}" class="inline-flex align-middle ms-1" target="_blank" rel="noopener" title="ROR ID {{ ident.value }}"
+               aria-label="{% blocktranslate with name=display_name %}ROR record of {{ name }}{% endblocktranslate %}">{% icon "ror" %}</a>{% else %}{% with authenticated=c.orcid_is_authenticated %}&#8288;<a href="{{ ident.get_absolute_url }}"
+             class="inline-flex align-middle ms-1"
+             target="_blank"
+             rel="noopener"
+             title="{% if authenticated %}ORCID iD {{ ident.value }}{% else %}{% blocktranslate with value=ident.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
+             aria-label="{% if authenticated %}{% blocktranslate with name=display_name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=display_name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}">
+            {% if authenticated %}{% icon "orcid" %}{% else %}{% icon "orcid_unauthenticated" %}{% endif %}
+          </a>{% endwith %}{% endif %}{% endif %}{% endwith %}{% endif %}
+    </span>{% endspaceless %}{% endif %}{% endwith %}

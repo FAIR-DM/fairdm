@@ -1,24 +1,21 @@
-{# @description A contributor's avatar: their profile image cropped to a circle, or their initials when they have no image. Any other attribute is passed to the image or the initials badge. #}
-{# @prop contributor:text | description:"The contributor to show." #}
-{# @prop size:number | default:40 | description:"Width and height in pixels." #}
-{% load easy_thumbnails_tags %}
-
-<c-vars contributor size="40" />
-{% if contributor.image %}
-  <img src="{% thumbnail contributor.image 200x200 crop=True %}"
-       alt="{{ contributor.name }}"
-       class="rounded-circle"
-       width="{{ size }}"
-       height="{{ size }}"
-       {{ attrs }} />
-{% else %}
-  <div class="btn p-0 profile-icon bg-primary text-white"
-       style="width: {{ size }}px;
-              height: {{ size }}px;
-              font-size: calc({{ size }}px * 0.4);
-              font-weight: 600"
-       title="{{ contributor.name }}"
-       {{ attrs }}>
-    {{ contributor.get_initials }}
-  </div>
-{% endif %}
+{# @description A contributor's photo or logo through django-mvp's c-avatar. A person is round, an organization is a rounded box on base-300 grey, and without an image it shows the contributor's initials. Decorative by default: put the name beside it, or pass link or label when it stands alone. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution crediting one." #}
+{# @prop size:select['xs','sm','md','lg','xl','xxl'] | default:md | description:"The c-avatar size." #}
+{# @prop link:boolean | description:"Wrap the avatar in a link to the contributor's page, named for them." #}
+{# @prop label:boolean | description:"Name the avatar for assistive technology without linking it." #}
+{# @prop class:text | description:"Extra CSS classes on the avatar." #}
+{% load contributor_tags %}
+<c-vars contributor size="md" link label class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% if link %}<a href="{{ c.get_absolute_url }}" aria-label="{{ c.name }}" title="{{ c.name }}" class="inline-flex rounded-box">{% endif %}
+    <c-avatar :for="c"
+              size="{{ size }}"
+              alt="{% if label %}{{ c.name }}{% endif %}"
+              placeholder="{{ c.get_initials }}"
+              shape="{% if c.is_organization %}rounded-box{% else %}rounded-full{% endif %}"
+              variant="{% if c.is_organization %}base-300{% else %}primary{% endif %}"
+              class="{{ class }}" />
+    {% if link %}</a>{% endif %}
+  {% endif %}
+{% endwith %}

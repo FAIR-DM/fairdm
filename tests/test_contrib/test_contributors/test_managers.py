@@ -522,3 +522,27 @@ class TestQuerysetManagerParity:
 
         assert from_manager == from_queryset
         assert from_manager
+
+
+@pytest.mark.django_db
+class TestPersonQuerySetForCards:
+    def test_reading_a_card_costs_no_query_after_the_fetch(self, django_assert_num_queries):
+        from allauth.socialaccount.models import SocialAccount
+
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory()
+        identifier = ContributorIdentifierFactory(related=person)
+        SocialAccount.objects.create(user=person, provider="orcid", uid=identifier.value)
+        AffiliationFactory(person=person, is_primary=True)
+        fetched = Person.objects.for_cards().get(pk=person.pk)
+
+        with django_assert_num_queries(0):
+            assert fetched.get_default_identifier() == identifier
+            assert fetched.orcid_is_authenticated
+            assert fetched.primary_organization is not None
+            assert fetched.portal_roles == []

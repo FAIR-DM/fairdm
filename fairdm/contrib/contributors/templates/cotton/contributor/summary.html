@@ -1,0 +1,18 @@
+{# @description An avatar group followed by the first names: the contributor line of a listing card, where the record is the subject. #}
+{# @prop contributors:text | description:"Contributions or contributors, as a list or queryset." #}
+{# @prop faces:number | default:4 | description:"Faces in the group." #}
+{# @prop names:number | default:2 | description:"Names written out." #}
+{# @prop total:number | description:"The real total, when contributors was already cut short." #}
+{# @prop more_url:text | description:"Where the full list lives." #}
+{# @prop link:boolean | default:true | description:"Link the names. Turn off inside a whole-card link." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
+{% load contributor_tags %}
+<c-vars contributors faces="4" names="2" total more_url :link="True" class />
+{% split_contributors contributors 0 total as group %}
+{% if group.shown %}
+  <div class="flex items-center gap-2 min-w-0 text-sm {{ class }}" {{ attrs }}>
+    {# The faces repeat the names beside them, so only the names link. #}
+    <span class="shrink-0" aria-hidden="true"><c-contributor.stack :contributors="contributors" max="{{ faces }}" total="{{ total }}" size="xs" :link="False" /></span>
+    <c-contributor.names :contributors="contributors" max="{{ names }}" total="{{ total }}" :link="link" more_url="{{ more_url }}" class="min-w-0" />
+  </div>
+{% endif %}

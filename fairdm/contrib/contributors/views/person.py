@@ -1,8 +1,6 @@
 """Views for listing and adding people."""
 
-from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Prefetch
 from django.db.models.base import Model as Model
 from django.utils.translation import gettext as _
 
@@ -10,7 +8,7 @@ from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..filters import PersonFilter
 from ..forms.contribution import PersonCreateForm
-from ..models import ContributorIdentifier, Person
+from ..models import Person
 
 
 class PersonListView(FairDMListView):
@@ -22,29 +20,12 @@ class PersonListView(FairDMListView):
     filterset_class = PersonFilter
     queryset = Person.objects.real()
     list_item_template = "contributors/contributor_card.html"
+    grid = {"md": 2, "xl": 3}
     show_create_action = False
 
     def get_queryset(self):
-        """Prefetch each person's ORCID identifiers, ORCID accounts and affiliations."""
-        qs = super().get_queryset()
-
-        orcid_prefetch = Prefetch(
-            "identifiers",
-            queryset=ContributorIdentifier.objects.filter(type="ORCID"),
-            to_attr="orcid_identifiers",
-        )
-
-        orcid_accounts_prefetch = Prefetch(
-            "socialaccount_set",
-            queryset=SocialAccount.objects.filter(provider="orcid"),
-            to_attr="orcid_accounts",
-        )
-
-        qs = qs.prefetch_related(
-            orcid_prefetch, orcid_accounts_prefetch, "affiliations"
-        )
-
-        return qs
+        """Prefetch what each person's card reads."""
+        return super().get_queryset().for_cards()
 
 
 class PersonCreateView(LoginRequiredMixin, FairDMCreateView):

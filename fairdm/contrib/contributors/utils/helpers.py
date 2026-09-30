@@ -20,6 +20,29 @@ def get_contributor_avatar(contributor):
     return get_thumbnailer(contributor.image)["thumb"].url
 
 
+def avatar_url(contributor, size=None):
+    """Resolve a contributor's avatar for django-mvp's ``c-avatar``.
+
+    Wired as ``MVP_CONFIG["brand"]["avatar_resolver"]``, so ``<c-avatar :for="contributor">``
+    draws the contributor's photo or logo anywhere it is used.
+
+    Args:
+        contributor: A person, an organization, or None.
+        size: The ``c-avatar`` size token; lg and above get the larger image.
+
+    Returns:
+        The thumbnail URL, or None so ``c-avatar`` falls back to its placeholder.
+    """
+    image = getattr(contributor, "image", None)
+    if not image:
+        return None
+    alias = "medium" if size in ("lg", "xl", "xxl") else "small"
+    try:
+        return get_thumbnailer(image)[alias].url
+    except Exception:  # A missing file draws the placeholder, never a server error.
+        return None
+
+
 def current_user_has_role(request, obj, role):
     """Check whether the signed-in user holds any of the roles on an object.
 

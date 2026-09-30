@@ -1,25 +1,33 @@
-{# @description A card for a person with their avatar, a profile link, name, identifier and primary affiliation. Reads the context variable `obj`, the person. #}
-{% load fairdm contributor_tags easy_icons %}
-
-{% with obj as contributor %}
-  <c-card class="h-100">
-    <c-card.body class="p-2">
-      <div class="row">
-        <div class="col-3 d-flex flex-column gap-2">
-          <c-avatar class="overflow-hidden rounded"
-                    :contributor="obj"
-                    only />
-          <c-components.link href="{{ obj.get_absolute_url }}"
-                             text="{% trans "Profile" %}"
-                             icon="arrow-right"
-                             icon_position="end" />
+{# @description A person's card for the people listing: photo, name with ORCID iD, affiliation and place, the roles on a credit when given one, and the portal roles they hold. #}
+{# @prop contributor:text | description:"A Person, or a Contribution crediting one." #}
+{# @prop class:text | description:"Extra CSS classes on the card." #}
+{% load contributor_tags %}
+<c-vars contributor class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% with roles=contributor.roles.all affiliation=contributor.affiliation|default:c.primary_organization portal_roles=c.portal_roles location=c.get_location_display %}
+      <c-card.wrapper class="h-full py-5 {{ class }}">
+        <figure class="px-6 pt-6">
+          <c-contributor.avatar :contributor="c" size="xl" class="" />
+        </figure>
+        <div class="card-body items-center text-center">
+          <h2 class="card-title"><c-contributor.name :contributor="c" class="" /></h2>
+          {% if affiliation %}<p class="grow-0 flex justify-center max-w-full"><c-contributor.affiliation :organization="affiliation" class="" /></p>{% endif %}
+          {% if location %}
+            <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
+          {% endif %}
+          {% if roles %}
+            <div class="flex flex-wrap justify-center gap-1">
+              {% for role in roles %}<c-badge text="{{ role.label }}" size="sm" class="badge-soft" />{% endfor %}
+            </div>
+          {% endif %}
+          {% if portal_roles %}
+            <div class="card-actions justify-center mt-2">
+              {% for role in portal_roles %}<c-badge text="{{ role }}" size="sm" variant="primary" />{% endfor %}
+            </div>
+          {% endif %}
         </div>
-        <div class="col py-1 d-flex flex-column">
-          <h2 class="fs-6 mb-0">{{ obj }}</h2>
-          <c-contributor.person.identifier />
-          <c-contributor.person.affiliations />
-        </div>
-      </div>
-    </c-card.body>
-  </c-card>
+      </c-card.wrapper>
+    {% endwith %}
+  {% endif %}
 {% endwith %}

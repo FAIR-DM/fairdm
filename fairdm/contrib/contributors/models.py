@@ -73,7 +73,10 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         added: When the record was created.
         modified: When the record was last modified.
         tracker: Tracks field changes, used to stamp ``last_synced``.
+        is_organization: Whether the concrete type is :class:`Organization`.
     """
+
+    is_organization = False
 
     uuid = ShortUUIDField(
         editable=False,
@@ -231,15 +234,26 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     def get_default_identifier(self):
         """Return the contributor's identifier of the default scheme.
 
+        Reads ``identifiers.all()``, so a listing that prefetches ``identifiers`` costs no
+        query per contributor.
+
         Returns:
             The identifier, or None when there is none.
         """
-        return self.identifiers.filter(type=self.DEFAULT_IDENTIFIER).first()
+        return next(
+            (i for i in self.identifiers.all() if i.type == self.DEFAULT_IDENTIFIER),
+            None,
+        )
 
     @property
     def default_identifier(self):
         """The contributor's identifier of the default scheme, or None."""
-        return self.identifiers.filter(type=self.DEFAULT_IDENTIFIER).first()
+        return self.get_default_identifier()
+
+    @property
+    def primary_organization(self):
+        """The organisation the contributor is shown with: None here, a person overrides it."""
+        return None
 
     def profile_image(self):
         """Return the URL of the profile image, or of the brand icon when there is none.
@@ -252,9 +266,13 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return static("img/brand/icon.svg")
 
     def get_initials(self):
-        """Return initials from the first letter of the first two words in the name."""
+        """Return initials from the first letter of the first two words in the name.
+
+        Returns:
+            Up to two capital letters, or an empty string when there is no name.
+        """
         if not self.name:
-            return
+            return ""
         words = self.name.split()
         if len(words) >= 2:
             return (words[0][0] + words[1][0]).upper()
@@ -649,14 +667,45 @@ class Person(AbstractUser, Contributor):
     def primary_affiliation(self):
         """Return the person's primary affiliation.
 
+        Reads ``affiliations.all()``, so a listing that prefetches
+        ``affiliations__organization`` costs no query per person.
+
         Returns:
             The primary affiliation, or None when none is set.
         """
-        return (
-            self.affiliations.select_related("organization")
-            .filter(is_primary=True)
-            .first()
-        )
+        return next((a for a in self.affiliations.all() if a.is_primary), None)
+
+    @property
+    def primary_organization(self):
+        """The organisation of the person's primary affiliation, or None."""
+        affiliation = self.primary_affiliation()
+        return affiliation.organization if affiliation else None
+
+    @property
+    def portal_roles(self):
+        """The labels of the portal roles the person holds, in declaration order.
+
+        An inactive person holds none, as on the portal's team page. Reads
+        ``groups.all()``, so a listing that prefetches ``groups`` costs no query per person.
+        """
+        from fairdm.portal_roles import PortalRoles
+
+        if not self.is_active:
+            return []
+        held = {group.name for group in self.groups.all()}
+        return [role.label for role in PortalRoles.ROLES if role.name in held]
+
+    def get_initials(self):
+        """Return the initials of the given and family names, else of the preferred name.
+
+        Returns:
+            Up to two capital letters, or an empty string when there is no name.
+        """
+        first = (self.first_name or "").strip()
+        last = (self.last_name or "").strip()
+        if first or last:
+            return (first[:1] + last[:1]).upper()
+        return super().get_initials()
 
     def current_affiliations(self):
         """Return the person's verified affiliations that have not ended.
@@ -716,8 +765,12 @@ class Person(AbstractUser, Contributor):
 
     @property
     def orcid_is_authenticated(self):
-        """Whether the person has signed in with ORCID."""
-        return self.get_provider("orcid") is not None
+        """Whether the person has signed in with ORCID.
+
+        Reads ``socialaccount_set.all()``, so a listing that prefetches it costs no query per
+        person.
+        """
+        return any(a.provider == "orcid" for a in self.socialaccount_set.all())  # type: ignore[attr-defined]
 
     def icon(self):
         """Return the icon name, showing whether the ORCID iD is authenticated.
@@ -956,6 +1009,7 @@ class Organization(Contributor):
     """
 
     DEFAULT_IDENTIFIER = "ROR"
+    is_organization = True
 
     type = models.CharField(
         max_length=32,
@@ -1207,6 +1261,31 @@ class Organization(Contributor):
         if self.country:
             parts.append(self.country.name)
         return ", ".join(parts) if parts else None
+
+    @property
+    def summary(self):
+        """The organisation's type and place, joined by a middle dot, or an empty string."""
+        parts = [
+            self.get_type_display() if self.type else "",
+            self.get_location_display() or "",
+        ]
+        return " · ".join(str(p) for p in parts if p)
+
+    def get_initials(self):
+        """Return the organisation's acronym when its name starts with one, else its initials.
+
+        "GFZ Helmholtz Centre" gives "GFZ" and "University of Potsdam" gives "UP".
+
+        Returns:
+            The acronym or up to two capital letters, or an empty string when there is no name.
+        """
+        words = (self.name or "").split()
+        if not words:
+            return ""
+        if words[0].isupper() and len(words[0]) <= 5:
+            return words[0]
+        capitals = "".join(w[:1] for w in words if w[:1].isupper())[:2]
+        return capitals or words[0][:1].upper()
 
 
 CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
