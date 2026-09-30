@@ -32,7 +32,11 @@ from demo.factories import (
     WaterSampleFactory,
     XRFMeasurementFactory,
 )
-from demo.seed.common import example_accounts, remove_own_projects
+from demo.seed.common import (
+    example_accounts,
+    grant_team_rights,
+    remove_own_projects,
+)
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import (
@@ -358,13 +362,14 @@ class ProjectSeed(BaseCommand):
         )
         for n in range(3):
             RockSampleFactory(dataset=dataset, name=f"REF-{n + 1:02d}")
-        Dataset.all_objects.create(
+        draft = Dataset.all_objects.create(
             name="Round 2 reference ages (draft)",
             project=project,
             visibility=Visibility.PRIVATE,
             license=None,
             created_by=users["super.user"],
         )
+        grant_team_rights(users["staff.user"], project, dataset, draft)
 
     def literature(self, key, title, year, doi, kind="article-journal"):
         item, _ = LiteratureItem.objects.get_or_create(

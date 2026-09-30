@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from demo.seed.measurements import PROJECT as MEASUREMENT_PROJECT
-from demo.seed.projects import EMPTY, SEEDED_NAMES, SHOWCASE
+from demo.seed.projects import EMPTY, SEEDED_NAMES, SHOWCASE, SPARSE
 from demo.seed.samples import PROJECT as SAMPLE_PROJECT
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
@@ -161,6 +161,35 @@ class TestSeedOverviewsTeams:
         empty = Project.objects.get(name=EMPTY)
 
         assert staff.has_perm("project.change_project", empty)
+
+    def test_the_staff_user_holds_every_right_on_every_seeded_project_and_dataset(self):
+        _seed()
+        staff = Person.objects.get(email=ACCOUNTS["staff"])
+
+        projects = _seeded_projects()
+        datasets = Dataset.all_objects.filter(project__in=projects)
+        assert projects.count() == len(EVERY_SEEDED_PROJECT_NAME)
+        assert datasets.exists()
+        for project in projects:
+            for right in ("view_project", "change_project", "delete_project"):
+                assert staff.has_perm(f"project.{right}", project), (project, right)
+        for dataset in datasets:
+            for right in ("view_dataset", "change_dataset", "delete_dataset"):
+                assert staff.has_perm(f"dataset.{right}", dataset), (dataset, right)
+
+    def test_the_staff_user_sees_the_readiness_checklist_on_the_sparse_project(
+        self, client
+    ):
+        _seed()
+        client.login(email=ACCOUNTS["staff"], password=DEV_ACCOUNT_PASSWORD)
+        sparse = Project.objects.get(name=SPARSE)
+
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": sparse.uuid})
+        )
+
+        assert response.status_code == 200
+        assert response.context["readiness"]["total"] > 0
 
     def test_the_regular_user_is_on_no_team(self):
         _seed()

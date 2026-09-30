@@ -1,6 +1,7 @@
 """What the development-data seeds share: the example accounts and the clean-up of earlier runs."""
 
 from allauth.account.models import EmailAddress
+from guardian.shortcuts import assign_perm
 
 from fairdm.contrib.contributors.models import Person
 from fairdm.core.dataset.models import Dataset
@@ -56,3 +57,16 @@ def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
     # Datasets first: a project with public datasets refuses to be deleted.
     Dataset.all_objects.filter(project__in=projects).delete()
     projects.delete()
+
+
+def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
+    """Give ``user`` the rights the team of each project or dataset holds.
+
+    Args:
+        user: The account that joins the team.
+        *records: The projects and datasets to grant the rights on.
+    """
+    for record in records:
+        model = record._meta.model_name
+        for right in ("view", "change", "delete"):
+            assign_perm(f"{model}.{right}_{model}", user, record)

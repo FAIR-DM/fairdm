@@ -21,7 +21,6 @@ from django.apps import apps
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from guardian.shortcuts import assign_perm
 from licensing.models import License
 from partial_date import PartialDate
 
@@ -32,7 +31,11 @@ from demo.factories import (
     WaterSampleFactory,
     XRFMeasurementFactory,
 )
-from demo.seed.common import example_accounts, remove_own_projects
+from demo.seed.common import (
+    example_accounts,
+    grant_team_rights,
+    remove_own_projects,
+)
 from fairdm.contrib.contributors.models import Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
@@ -77,9 +80,7 @@ class SampleSeed(BaseCommand):
             licence,
             published=False,
         )
-        for dataset in (cores, lab, pending):
-            for permission in ("view_dataset", "change_dataset"):
-                assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
+        grant_team_rights(users["staff.user"], project, cores, lab, pending)
 
         core = self.core(cores, lab)
         water = self.destroyed_water(cores)

@@ -131,3 +131,10 @@
 - Verified: each task's own test class red then green; `forge verify --base origin/main` green on lint, typecheck, test, build, conformance and docs.
 - Next: review.
 - Watch: no test other than my own was edited. The project-manager rule in TC03 uses `project.change_project`, held per project.
+
+## 2026-09-30 · FIX-2 · TC07
+
+- Did: `grant_team_rights` in `demo/seed/common.py` gives `staff.user` view/change/delete on every seeded project and dataset; the sparse project, the sample-page and the measurement-page examples now use it.
+- Verified: `uv run pytest tests/test_demo/test_management/test_commands/test_seed_overviews.py -q`: 19 passed (new rights test red first); `pre-commit run --all-files` green.
+- Next: TC08.
+- Watch: `regular.user` still holds nothing.
