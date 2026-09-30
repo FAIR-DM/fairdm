@@ -1,16 +1,11 @@
+{# @description A DaisyUI avatar group: overlapping faces, then a +N placeholder for the rest, linking to more_url when given. #}
+{# @prop contributors:text | description:"Contributions or contributors, as a list or queryset." #}
+{# @prop max:number | default:5 | description:"Faces shown before the count." #}
+{# @prop total:number | description:"The real total, when contributors was already cut short." #}
+{# @prop size:select['xs','sm','md','lg'] | default:sm | description:"The avatar size." #}
+{# @prop more_url:text | description:"Where the full list lives." #}
+{# @prop link:boolean | default:true | description:"Link each face to the contributor. Turn off inside another link." #}
 {% load i18n contributor_tags %}
-{% comment %}
-  <c-contributor.stack> — a DaisyUI avatar group: overlapping faces, then a "+N" placeholder for
-  the rest, which links to the full list when `more_url` is given.
-
-  Attributes:
-    contributors – contributions or contributors (a list or queryset)
-    max          – faces before the count (default 5)
-    total        – the real total, when `contributors` was already cut short
-    size         – c-avatar size: xs · sm (default) · md · lg
-    more_url     – where the full list lives
-    :link        – False when the faces sit inside another link (default: each face links)
-{% endcomment %}
 <c-vars contributors max="5" total size="sm" more_url :link="True" />
 {% split_contributors contributors max total as group %}
 {% if group.shown %}

@@ -1,8 +1,4 @@
-{% load contributor_tags %}{% comment %}
-  <c-contributor.affiliation> — the organization a person is shown with, linked to its page, behind
-  the organization icon. Nothing is written outside the root element.
-
-  Attributes:
-    organization – an Organization
-    class        – extra classes
-{% endcomment %}<c-vars organization class />{% if organization %}<span class="inline-flex items-center gap-1 min-w-0 max-w-full {{ class }}" {{ attrs }}><c-icon name="organization" class="shrink-0" aria-hidden="true" /><a href="{{ organization.get_absolute_url }}" class="link link-hover truncate">{{ organization.name }}</a></span>{% endif %}
+{# @description The organization a person is shown with: the organization icon, then its name linked to its page. Nothing is written outside the root element. #}
+{# @prop organization:text | description:"The Organization to show. Nothing is drawn without one." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
+<c-vars organization class />{% if organization %}<span class="inline-flex items-center gap-1 min-w-0 max-w-full {{ class }}" {{ attrs }}><c-icon name="organization" class="shrink-0" aria-hidden="true" /><a href="{{ organization.get_absolute_url }}" class="link link-hover truncate">{{ organization.name }}</a></span>{% endif %}

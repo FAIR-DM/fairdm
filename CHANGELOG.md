@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The contributor components did not render** (#349). `c-contributor.names` raised
+  `TemplateDoesNotExist` on every use, and `c-contributor.avatar` drew Bootstrap markup the
+  stylesheet does not define, with the text "None" in place of initials.
+
 - **A measurement with no value recorded was shown as "None".** Wherever it was printed,
   including its breadcrumbs and lists of measurements, a measurement whose type declares a
   value but has none recorded read "None". It is now shown by its name, or by its portal ID
@@ -68,6 +72,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The contributor components were rebuilt on django-mvp and DaisyUI, and some attributes
+  changed.** `c-contributor.names` no longer takes `role` or `separator`, `c-contributor.name` and
+  the person and organization cards take the contributor as an attribute rather than reading it
+  from the context, and `c-contributor.avatar` takes a size token rather than pixels. A portal
+  template using them needs the changes listed in
+  [Contributors](docs/portal-development/component_library/contributors.md#upgrading-from-the-previous-components).
+
 - **The project is built and developed with uv instead of Poetry.** Contributors run
   `uv sync` to install and `uv run` in place of `poetry run`. The lockfile is now `uv.lock`,
   and the published package is built with hatchling.
@@ -105,6 +116,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breadcrumbs show the full name of each page** instead of a shortened one.
 
 ### Added
+
+- **Components for showing contributors.** `c-contributor.item`, `c-contributor.row` (a list
+  row with an `actions` slot), `c-contributor.byline`, `c-contributor.stack`,
+  `c-contributor.summary` and `c-contributor.affiliation` join the existing name, names, avatar and
+  card components. Each takes a person, an organization or a contribution. They are described in
+  [Contributors](docs/portal-development/component_library/contributors.md).
+- **The person card shows the portal roles a person holds**, as a badge per role.
+- **`Person.objects.for_cards()`** prefetches everything a person's card reads, so a page listing
+  people costs the same number of queries however many it shows. The people listing and the team
+  page use it. `Person.primary_organization`, `Person.portal_roles`, `Organization.summary` and
+  `Contributor.is_organization` are new, and `get_initials()` now gives a person's given and family
+  initials and an organization's leading acronym.
+- **Avatars show contributors' photos and logos.** FairDM sets django-mvp's avatar resolver, so
+  every `<c-avatar :for="...">`, including the signed-in user's in the menu, draws the
+  contributor's image, or their initials when there is none.
 
 - **Projects, datasets, samples and measurements open on one consistent overview page.** The
   four pages share one layout (header, notices, a strip of figures, then content beside a side

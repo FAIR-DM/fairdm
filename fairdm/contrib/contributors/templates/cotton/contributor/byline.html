@@ -1,25 +1,21 @@
+{# @description Contributors in a row, each with their avatar and name: the header of a record page. Past max the rest are counted, the count linking to more_url when given. #}
+{# @prop contributors:text | description:"Contributions or contributors, as a list or queryset." #}
+{# @prop max:number | default:6 | description:"People shown before the count. 0 shows everyone." #}
+{# @prop total:number | description:"The real total, when contributors was already cut short." #}
+{# @prop size:select['xs','sm'] | default:xs | description:"The avatar size." #}
+{# @prop identifier:boolean | description:"Follow each name with its ORCID iD or ROR icon." #}
+{# @prop more_url:text | description:"Where the full list lives." #}
+{# @prop label:text | description:"The list's accessible name. Defaults to Contributors." #}
+{# @prop class:text | description:"Extra CSS classes on the list." #}
 {% load i18n contributor_tags %}
-{% comment %}
-  <c-contributor.byline> — names in a row, each with its avatar: the header of a record page.
-
-  Attributes:
-    contributors – contributions or contributors (a list or queryset)
-    max          – people shown before the count (default 6; 0 shows everyone)
-    total        – the real total, when `contributors` was already cut short
-    size         – avatar size, xs (default) or sm
-    :identifier  – True to follow each name with its ORCID iD icon (default: left out)
-    more_url     – where the full list lives
-    label        – accessible name of the list (default "Contributors")
-    class        – extra classes
-{% endcomment %}
 <c-vars contributors max="6" total size="xs" :identifier="False" more_url label class />
 {% split_contributors contributors max total as group %}
 {% if group.shown %}
   <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm {{ class }}" aria-label="{% firstof label _('Contributors') %}" {{ attrs }}>
     {% for c in group.shown %}
       <li class="flex items-center gap-2">
-        <c-contributor.avatar :contributor="c" size="{{ size }}" />
-        <c-contributor.name :contributor="c" :identifier="identifier" />
+        <c-contributor.avatar :contributor="c" size="{{ size }}" label="" class="" />
+        <c-contributor.name :contributor="c" :identifier="identifier" class="" />
       </li>
     {% endfor %}
     {% if group.more %}

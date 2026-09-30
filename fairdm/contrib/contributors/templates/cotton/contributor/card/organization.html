@@ -1,30 +1,24 @@
-{% load i18n easy_icons contributor_tags %}
-{% comment %}
-  <c-contributor.card.organization> — an organization's card for the organizations listing: logo,
-  name with ROR ID, its type and place, and how many members and credits it has.
-
-  Attributes:
-    contributor – an Organization, or a Contribution crediting one
-    class       – extra classes on the card
-{% endcomment %}
+{# @description An organization's card for the organization listing: logo, name with ROR ID, type and place, the roles on a credit when given one, and its member and credit counts. #}
+{# @prop contributor:text | description:"An Organization, or a Contribution crediting one." #}
+{# @prop class:text | description:"Extra CSS classes on the card." #}
+{% load i18n contributor_tags %}
 <c-vars contributor class />
 {% with c=contributor|as_contributor %}
   {% if c %}
-    {% contribution_roles contributor as roles %}
-    {% with location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
+    {% with roles=contributor.roles.all location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
       <c-card.wrapper class="h-full py-5 {{ class }}">
         <figure class="px-6 pt-6">
-          <c-contributor.avatar :contributor="c" size="xl" />
+          <c-contributor.avatar :contributor="c" size="xl" class="" />
         </figure>
         <div class="card-body items-center text-center">
-          <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
+          <h2 class="card-title"><c-contributor.name :contributor="c" class="" /></h2>
           {% if c.type %}<c-badge text="{{ c.get_type_display }}" variant="primary" class="badge-soft" />{% endif %}
           {% if location %}
             <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
           {% endif %}
           {% if roles %}
             <div class="flex flex-wrap justify-center gap-1">
-              {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+              {% for role in roles %}<c-badge text="{{ role.label }}" size="sm" class="badge-soft" />{% endfor %}
             </div>
           {% endif %}
           <div class="card-actions justify-center mt-2">

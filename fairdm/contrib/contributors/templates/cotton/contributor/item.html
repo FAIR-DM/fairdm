@@ -1,26 +1,16 @@
+{# @description Avatar, name and one short line beneath: a person's affiliation, or an organization's type and place. Given a Contribution, the roles on that credit follow as badges. Use it anywhere a contributor is named on their own. Inside a c-list, use c-contributor.row. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution." #}
+{# @prop size:select['sm','md'] | default:sm | description:"The avatar size." #}
+{# @prop secondary:text | description:"Text for the second line instead. none leaves the line out." #}
+{# @prop link:boolean | default:true | description:"Link the name to the contributor's page." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
 {% load contributor_tags %}
-{% comment %}
-  <c-contributor.item> — avatar, name, and one short line beneath: a person's affiliation, or an
-  organization's type and place. Given a contribution, the roles on that credit follow as badges.
-
-  Use it anywhere a contributor is named on their own; inside a <c-list>, use
-  <c-contributor.row>, which wraps this in a list row.
-
-  Attributes:
-    contributor – a Person, an Organization, or a Contribution
-    size        – avatar size, "sm" (default) or "md"
-    secondary   – text for the second line instead; "none" to leave it out
-    :link       – False for plain text (default: the name links)
-    class       – extra classes
-{% endcomment %}
 <c-vars contributor size="sm" secondary :link="True" class />
 {% with c=contributor|as_contributor %}
   {% if c %}
-    {% contribution_roles contributor as roles %}
-    {% contributor_secondary c contributor as line %}
-    {% contributor_affiliation c contributor as organization %}
+    {% with roles=contributor.roles.all organization=contributor.affiliation|default:c.primary_organization line=c.summary %}
     <div class="flex items-center gap-3 min-w-0 {{ class }}" {{ attrs }}>
-      <c-contributor.avatar :contributor="c" size="{{ size }}" class="" />
+      <c-contributor.avatar :contributor="c" size="{{ size }}" link="" class="" />
       <div class="min-w-0">
         <c-contributor.name :contributor="c" :link="link" class="" />
         {% if secondary == "none" %}
@@ -33,10 +23,11 @@
         {% endif %}
         {% if roles %}
           <div class="flex flex-wrap gap-1 mt-1">
-            {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+            {% for role in roles %}<c-badge text="{{ role.label }}" size="sm" class="badge-soft" />{% endfor %}
           </div>
         {% endif %}
       </div>
     </div>
+    {% endwith %}
   {% endif %}
 {% endwith %}

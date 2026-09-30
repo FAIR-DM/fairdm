@@ -119,6 +119,25 @@ body, company or similar. In addition to the fields every `Contributor` carries,
 ROR itself permits an organisation several types at once. This model deliberately narrows that
 to a single selection — a portal displaying and filtering by institution kind wants one answer.
 
+An organization's `summary` is its type and place on one line, and `get_initials()` returns its
+leading acronym when its name starts with one:
+
+```python
+from fairdm.contrib.contributors.choices import OrganizationType
+
+gfz = Organization.objects.create(
+    name="GFZ Helmholtz Centre for Geosciences",
+    type=OrganizationType.FACILITY,
+    city="Potsdam",
+    country="DE",
+)
+assert gfz.summary == "Facility · Potsdam, Germany"
+assert gfz.get_initials() == "GFZ"
+```
+
+Every contributor answers `is_organization`, `True` on an organization and `False` on a person,
+so a template can branch on the concrete type without a filter.
+
 ### Hierarchy, and what happens when a parent is deleted
 
 An organisation may name another organisation as its parent, and is reachable from that parent
@@ -186,6 +205,9 @@ assert person.get_default_identifier().value == "0000-0001-2345-6789"
 organization = Organization.objects.create(name="Example University")
 assert organization.get_default_identifier() is None
 ```
+
+`get_default_identifier()` reads `identifiers.all()`, so a queryset that prefetches
+`identifiers` answers it without a query per contributor.
 
 Fetching an identifier's contents from ORCID or ROR, and keeping them current, belongs to the
 external identifier synchronisation specification, not this one — this record only carries the

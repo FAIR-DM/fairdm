@@ -1,14 +1,8 @@
+{# @description c-contributor.item as a DaisyUI list row, for use inside a c-list, with an actions slot for buttons at the end of the row. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution." #}
+{# @prop class:text | description:"Extra CSS classes on the row." #}
+{# @slot:actions <button class="btn btn-ghost btn-sm">Edit</button> — Buttons at the end of the row. #}
 {% load contributor_tags %}
-{% comment %}
-  <c-contributor.row> — <c-contributor.item> as a DaisyUI list row, for use inside a <c-list>,
-  with an `actions` slot for buttons at the end of the row.
-
-  Attributes:
-    contributor – a Person, an Organization, or a Contribution
-    class       – extra classes on the row
-  Slots:
-    actions     – buttons at the end of the row
-{% endcomment %}
 <c-vars contributor class />
 {% if contributor|as_contributor %}
   <c-list.row class="items-center {{ class }}">

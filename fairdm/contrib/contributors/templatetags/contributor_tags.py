@@ -41,7 +41,6 @@ def has_role(contribution, roles=None):
     return contribution.roles.filter(name__in=roles).exists()
 
 
-
 @register.filter
 def as_contributor(value):
     """Return the contributor behind a contribution, or the value itself if it is one.
@@ -74,66 +73,6 @@ def as_contributors(values):
     return [c for c in (as_contributor(v) for v in values) if c is not None]
 
 
-@register.filter
-def is_organization(contributor):
-    """Whether the contributor is an organization."""
-    from fairdm.contrib.contributors.models import Organization
-
-    return isinstance(contributor, Organization)
-
-
-@register.filter
-def initials(contributor):
-    """The placeholder text for a contributor without a photo or logo.
-
-    A person's given and family initials; an organization's first two words, which is its
-    acronym when the name starts with one ("GFZ Helmholtz…" gives "G").
-    """
-    if contributor is None:
-        return ""
-    first = (getattr(contributor, "first_name", "") or "").strip()
-    last = (getattr(contributor, "last_name", "") or "").strip()
-    if first or last:
-        return (first[:1] + last[:1]).upper()
-    words = (contributor.name or "").split()
-    if not words:
-        return ""
-    if words[0].isupper() and len(words[0]) <= 5:
-        return words[0]
-    return "".join(w[:1] for w in words if w[:1].isupper())[:2] or words[0][:1].upper()
-
-
-@register.simple_tag
-def contributor_orcid(contributor):
-    """The person's ORCID identifier and whether it is authenticated, or None.
-
-    Returns:
-        ``{"value", "url", "authenticated"}``, or None for an organization or a person
-        without an ORCID iD.
-    """
-    if contributor is None or is_organization(contributor):
-        return None
-    identifier = contributor.identifiers.filter(type="ORCID").first()
-    if identifier is None:
-        return None
-    return {
-        "value": identifier.value,
-        "url": f"https://orcid.org/{identifier.value}",
-        "authenticated": contributor.orcid_is_authenticated,
-    }
-
-
-@register.simple_tag
-def contributor_ror(contributor):
-    """The organization's ROR identifier, or None."""
-    if contributor is None or not is_organization(contributor):
-        return None
-    identifier = contributor.identifiers.filter(type="ROR").first()
-    if identifier is None:
-        return None
-    return {"value": identifier.value, "url": f"https://ror.org/{identifier.value}"}
-
-
 @register.simple_tag
 def contributor_name(contributor, name_format=""):
     """The contributor's name in the requested format.
@@ -145,61 +84,6 @@ def contributor_name(contributor, name_format=""):
     if name_format and hasattr(contributor, "get_full_name_display"):
         return contributor.get_full_name_display(name_format)
     return contributor.name
-
-
-@register.simple_tag
-def contributor_secondary(contributor, contribution=None):
-    """The one line that tells two contributors of the same name apart.
-
-    A person: their affiliation on this credit, else their primary affiliation. An organization:
-    its type and location.
-    """
-    if contributor is None:
-        return ""
-    if is_organization(contributor):
-        parts = [contributor.get_type_display() if contributor.type else "", contributor.get_location_display() or ""]
-        return " · ".join(p for p in parts if p)
-    if getattr(contribution, "affiliation_id", None):
-        return contribution.affiliation.name
-    primary = contributor.primary_affiliation()
-    return primary.organization.name if primary else ""
-
-
-@register.simple_tag
-def contributor_affiliation(contributor, contribution=None):
-    """The organization a person is shown with: the one on this credit, else their primary one.
-
-    Returns:
-        An Organization, or None for an organization or a person with no affiliation.
-    """
-    if contributor is None or is_organization(contributor):
-        return None
-    if getattr(contribution, "affiliation_id", None):
-        return contribution.affiliation
-    primary = contributor.primary_affiliation()
-    return primary.organization if primary else None
-
-
-@register.simple_tag
-def contribution_roles(contribution):
-    """A contribution's role labels, in vocabulary order."""
-    if contribution is None or not hasattr(contribution, "roles"):
-        return []
-    return [role.label for role in contribution.roles.all()]
-
-
-@register.simple_tag
-def contributor_portal_roles(contributor):
-    """The labels of the portal roles an active person holds, in declaration order.
-
-    Reads ``groups.all()``, so a listing that prefetches ``groups`` costs no query per person.
-    """
-    from fairdm.portal_roles import PortalRoles
-
-    if contributor is None or is_organization(contributor) or not contributor.is_active:
-        return []
-    held = {group.name for group in contributor.groups.all()}
-    return [role.label for role in PortalRoles.ROLES if role.name in held]
 
 
 @register.simple_tag

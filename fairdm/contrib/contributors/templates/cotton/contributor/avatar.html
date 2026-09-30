@@ -1,18 +1,10 @@
+{# @description A contributor's photo or logo through django-mvp's c-avatar. A person is round, an organization is a rounded box on base-300 grey, and without an image it shows the contributor's initials. Decorative by default: put the name beside it, or pass link or label when it stands alone. #}
+{# @prop contributor:text | description:"A Person, an Organization, or a Contribution crediting one." #}
+{# @prop size:select['xs','sm','md','lg','xl','xxl'] | default:md | description:"The c-avatar size." #}
+{# @prop link:boolean | description:"Wrap the avatar in a link to the contributor's page, named for them." #}
+{# @prop label:boolean | description:"Name the avatar for assistive technology without linking it." #}
+{# @prop class:text | description:"Extra CSS classes on the avatar." #}
 {% load contributor_tags %}
-{% comment %}
-  <c-contributor.avatar> — a contributor's photo or logo, through django-mvp's <c-avatar>.
-  A person is round; an organization is a rounded box on base-300 grey. Without an image it
-  shows the contributor's initials.
-
-  Decorative by default: put the name beside it. Standing alone, pass `link` or `label`.
-
-  Attributes:
-    contributor – a Person, an Organization, or a Contribution
-    size        – c-avatar size: xs · sm · md (default) · lg · xl · xxl
-    link        – wrap it in a link to the contributor, named for them
-    label       – name it for assistive technology without linking it
-    class       – extra classes on the avatar
-{% endcomment %}
 <c-vars contributor size="md" link label class />
 {% with c=contributor|as_contributor %}
   {% if c %}
@@ -20,9 +12,9 @@
     <c-avatar :for="c"
               size="{{ size }}"
               alt="{% if label %}{{ c.name }}{% endif %}"
-              placeholder="{{ c|initials }}"
-              shape="{% if c|is_organization %}rounded-box{% else %}rounded-full{% endif %}"
-              variant="{% if c|is_organization %}base-300{% else %}primary{% endif %}"
+              placeholder="{{ c.get_initials }}"
+              shape="{% if c.is_organization %}rounded-box{% else %}rounded-full{% endif %}"
+              variant="{% if c.is_organization %}base-300{% else %}primary{% endif %}"
               class="{{ class }}" />
     {% if link %}</a>{% endif %}
   {% endif %}

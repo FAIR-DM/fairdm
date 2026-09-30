@@ -54,7 +54,7 @@ class TeamView(FairDMTemplateView):
         Returns:
             One ``{"role": role, "holders": [people]}`` dict per role that has holders.
         """
-        active_holders = Person.objects.filter(is_active=True).order_by("name")
+        active_holders = Person.objects.filter(is_active=True).for_cards().order_by("name")
         groups = {
             group.name: group
             for group in Group.objects.filter(

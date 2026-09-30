@@ -1,17 +1,12 @@
+{# @description An avatar group followed by the first names: the contributor line of a listing card, where the record is the subject. #}
+{# @prop contributors:text | description:"Contributions or contributors, as a list or queryset." #}
+{# @prop faces:number | default:4 | description:"Faces in the group." #}
+{# @prop names:number | default:2 | description:"Names written out." #}
+{# @prop total:number | description:"The real total, when contributors was already cut short." #}
+{# @prop more_url:text | description:"Where the full list lives." #}
+{# @prop link:boolean | default:true | description:"Link the names. Turn off inside a whole-card link." #}
+{# @prop class:text | description:"Extra CSS classes on the root element." #}
 {% load contributor_tags %}
-{% comment %}
-  <c-contributor.summary> — an avatar group followed by the first names: the contributor line of
-  a listing card, where the record, not its people, is the subject.
-
-  Attributes:
-    contributors – contributions or contributors (a list or queryset)
-    faces        – faces in the group (default 4)
-    names        – names written out (default 2)
-    total        – the real total, when `contributors` was already cut short
-    more_url     – where the full list lives
-    :link        – False when the summary sits inside a whole-card link
-    class        – extra classes
-{% endcomment %}
 <c-vars contributors faces="4" names="2" total more_url :link="True" class />
 {% split_contributors contributors 0 total as group %}
 {% if group.shown %}

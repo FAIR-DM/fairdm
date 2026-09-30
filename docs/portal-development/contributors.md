@@ -154,7 +154,12 @@ display_name = person.get_full_name_display(name_format="family_given")
 
 # Affiliations
 primary_aff = person.primary_affiliation()  # Returns Affiliation or None
+primary_org = person.primary_organization  # That affiliation's Organization, or None
 current_affs = person.current_affiliations()  # QuerySet of active affiliations
+
+# Display
+person.get_initials()  # "AL" for Ada Lovelace: given and family initials
+person.portal_roles  # Labels of the portal roles held, e.g. ["Data Curator"]; [] when inactive
 
 # Contributions
 recent = person.get_recent_contributions(limit=5)
@@ -165,6 +170,16 @@ co_contributors = person.get_co_contributors(limit=10)
 # Add person to object - role names must be members of the fairdm-roles vocabulary
 # (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
 person.add_to(my_project, roles=["Creator", "DataCollector"])
+```
+
+`primary_affiliation()`, `primary_organization`, `portal_roles`, `orcid_is_authenticated` and
+`get_default_identifier()` read from prefetched relations when there are any. A page listing many
+people fetches them with `Person.objects.for_cards()`, which prefetches identifiers, sign-in
+accounts, affiliations with their organizations, and groups, so reading those costs no query per
+person:
+
+```python
+people = Person.objects.real().for_cards()
 ```
 
 ## Organization Model

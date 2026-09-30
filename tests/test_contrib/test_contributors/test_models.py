@@ -1662,3 +1662,154 @@ class TestContributorLinkValidation:
         person.links = ["https://example.org", "https://orcid.org/0000-0002-1825-0097"]
 
         person.full_clean()
+
+
+@pytest.mark.django_db
+class TestDefaultIdentifierReadsAPrefetch:
+    def test_a_prefetched_person_finds_its_orcid_without_a_query(
+        self, orcid_identifier, person, django_assert_num_queries
+    ):
+        prefetched = Person.objects.prefetch_related("identifiers").get(pk=person.pk)
+
+        with django_assert_num_queries(0):
+            assert prefetched.get_default_identifier() == orcid_identifier
+
+
+@pytest.mark.django_db
+class TestInitials:
+    def test_a_person_uses_their_given_and_family_names(self):
+        person = PersonFactory(first_name="ada", last_name="lovelace", name="The Countess")
+
+        assert person.get_initials() == "AL"
+
+    def test_a_person_without_given_or_family_names_uses_the_preferred_name(self):
+        person = PersonFactory(first_name="", last_name="", name="Grace Hopper")
+
+        assert person.get_initials() == "GH"
+
+    def test_an_organization_starting_with_an_acronym_uses_the_acronym(self):
+        organization = OrganizationFactory(name="GFZ Helmholtz Centre for Geosciences")
+
+        assert organization.get_initials() == "GFZ"
+
+    def test_an_organization_otherwise_uses_its_capitalised_words(self):
+        organization = OrganizationFactory(name="University of Potsdam")
+
+        assert organization.get_initials() == "UP"
+
+    def test_a_contributor_without_a_name_has_no_initials(self):
+        organization = OrganizationFactory()
+        organization.name = ""
+
+        assert organization.get_initials() == ""
+
+
+@pytest.mark.django_db
+class TestIsOrganization:
+    def test_an_organization_is_an_organization(self):
+        assert OrganizationFactory().is_organization is True
+
+    def test_a_person_is_not_an_organization(self):
+        assert PersonFactory().is_organization is False
+
+
+@pytest.mark.django_db
+class TestPrimaryOrganization:
+    def test_a_person_is_shown_with_their_primary_affiliations_organization(self):
+        person = PersonFactory()
+        affiliation = AffiliationFactory(person=person, is_primary=True)
+        AffiliationFactory(person=person, is_primary=False)
+
+        assert person.primary_organization == affiliation.organization
+
+    def test_a_person_without_a_primary_affiliation_has_none(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=False)
+
+        assert person.primary_organization is None
+
+    def test_an_organization_has_none(self):
+        assert OrganizationFactory().primary_organization is None
+
+    def test_a_prefetched_person_needs_no_query(self, django_assert_num_queries):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=True)
+        prefetched = Person.objects.prefetch_related("affiliations__organization").get(
+            pk=person.pk
+        )
+
+        with django_assert_num_queries(0):
+            assert prefetched.primary_organization is not None
+
+
+@pytest.mark.django_db
+class TestPortalRoles:
+    def test_a_person_holds_their_portal_roles_in_declaration_order(self):
+        from django.contrib.auth.models import Group
+
+        from fairdm.portal_roles import PortalRoles
+
+        person = PersonFactory()
+        person.groups.add(
+            Group.objects.get(name=PortalRoles.DEVELOPER.name),
+            Group.objects.get(name=PortalRoles.PORTAL_ADMINISTRATOR.name),
+        )
+
+        assert [str(label) for label in person.portal_roles] == [
+            str(PortalRoles.PORTAL_ADMINISTRATOR.label),
+            str(PortalRoles.DEVELOPER.label),
+        ]
+
+    def test_a_group_the_portal_created_itself_is_not_a_portal_role(self):
+        from django.contrib.auth.models import Group
+
+        person = PersonFactory()
+        person.groups.add(Group.objects.create(name="Reading club"))
+
+        assert person.portal_roles == []
+
+    def test_an_inactive_person_holds_none(self):
+        from django.contrib.auth.models import Group
+
+        from fairdm.portal_roles import PortalRoles
+
+        person = PersonFactory(is_active=False)
+        person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert person.portal_roles == []
+
+
+@pytest.mark.django_db
+class TestOrganizationSummary:
+    def test_the_summary_joins_the_type_and_the_place(self):
+        organization = OrganizationFactory(
+            type=OrganizationType.EDUCATION, city="Potsdam", country="DE"
+        )
+
+        assert organization.summary == (
+            f"{OrganizationType.EDUCATION.label} · {organization.get_location_display()}"
+        )
+
+    def test_an_organization_with_neither_has_an_empty_summary(self):
+        organization = OrganizationFactory(type=None, city=None, country=None)
+
+        assert organization.summary == ""
+
+
+@pytest.mark.django_db
+class TestOrcidIsAuthenticated:
+    def test_a_person_who_signed_in_with_orcid_is_authenticated(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory()
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001-0000-0001")
+
+        assert person.orcid_is_authenticated is True
+
+    def test_another_provider_does_not_count(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory()
+        SocialAccount.objects.create(user=person, provider="github", uid="42")
+
+        assert person.orcid_is_authenticated is False
