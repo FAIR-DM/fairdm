@@ -3,7 +3,7 @@
   "feature": "017-portal-roles",
   "branch": "017-portal-roles",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -52,6 +52,11 @@
       "state": "PR_READY",
       "at": "2026-09-16T17:13:14Z",
       "note": "review fixes merged; walkthrough in front of Sam"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-17T08:35:53Z",
+      "note": "PR #344 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -74,8 +79,8 @@
       "at": "2026-09-16T09:55:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-17T08:20:25Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -498,12 +503,12 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 187.71,
       "max": 120
     }
   },
   "pr": {
     "number": 344,
-    "draft": true
+    "draft": false
   }
 }
