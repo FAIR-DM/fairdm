@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "GATE_MERGE",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -44,6 +44,11 @@
       "state": "GATE_MERGE",
       "at": "2026-09-30T13:36:51Z",
       "note": "walkthrough approved; waiting for Sam's merge"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-09-30T13:41:24Z",
+      "note": "PR #379 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -59,8 +64,8 @@
       "at": "2026-09-29T13:06:35Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-30T13:37:23Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -360,7 +365,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 97.32,
       "max": 120
     }
   },
