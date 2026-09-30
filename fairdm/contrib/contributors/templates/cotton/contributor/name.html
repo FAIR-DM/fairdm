@@ -12,9 +12,8 @@
                   "family_initial" or "initials_family" for citation-style names
     :link       – False for plain text (default: linked)
     :identifier – False to leave out the ORCID iD icon (default: shown)
-    :account    – True to mark a person who has a portal account (default: not marked)
     class       – extra classes on the name
-{% endcomment %}<c-vars contributor format :link="True" :identifier="True" :account="False" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}{% spaceless %}<span class="{{ class }}" {{ attrs }}>
+{% endcomment %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}{% spaceless %}<span class="{{ class }}" {{ attrs }}>
       {% if link %}
         <a href="{{ c.get_absolute_url }}" class="link link-hover">{{ display_name }}</a>
       {% else %}
@@ -39,5 +38,4 @@
           {% endif %}
         {% endif %}
       {% endif %}
-      {% if account %}<c-contributor.account :contributor="c" class="align-middle ms-1" />{% endif %}
     </span>{% endspaceless %}{% endif %}{% endwith %}
