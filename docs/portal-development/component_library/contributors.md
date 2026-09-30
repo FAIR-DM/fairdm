@@ -217,22 +217,3 @@ people = Person.objects.real().for_cards()
 ```
 
 The people listing and the portal team page both do this.
-
-## Upgrading from the previous components
-
-The previous contributor components were written for the Bootstrap interface FairDM no longer
-ships, and two of them no longer rendered at all. A portal template that used them needs these
-changes:
-
-1. **`c-contributor.names`** no longer takes `role` or `separator`. To list one role, filter the
-   list with `by_role` as shown above. Names are now joined with commas and a final "and".
-2. **`c-contributor.name`** takes the contributor as the `contributor` attribute. It used to read a
-   contribution from a `contributor` context variable, and text after the name from `after`. Write
-   any following text after the tag instead:
-   `<c-contributor.name :contributor="credit" />, {{ credit.affiliation }}`.
-3. **`c-contributor.avatar`** takes a size token rather than a number of pixels. Replace
-   `size="32"` with `size="sm"`, `size="40"` with `size="md"`, and larger sizes with `lg`, `xl` or
-   `xxl`.
-4. **`c-contributor.card.person` and `c-contributor.card.organization`** take the contributor as
-   the `contributor` attribute rather than reading `obj` from the context:
-   `<c-contributor.card.person :contributor="obj" />`.

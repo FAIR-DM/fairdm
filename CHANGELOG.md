@@ -75,9 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The contributor components were rebuilt on django-mvp and DaisyUI, and some attributes
   changed.** `c-contributor.names` no longer takes `role` or `separator`, `c-contributor.name` and
   the person and organization cards take the contributor as an attribute rather than reading it
-  from the context, and `c-contributor.avatar` takes a size token rather than pixels. A portal
-  template using them needs the changes listed in
-  [Contributors](docs/portal-development/component_library/contributors.md#upgrading-from-the-previous-components).
+  from the context, and `c-contributor.avatar` takes a size token rather than pixels. The
+  components are described in [Contributors](docs/portal-development/component_library/contributors.md).
 
 - **The project is built and developed with uv instead of Poetry.** Contributors run
   `uv sync` to install and `uv run` in place of `poetry run`. The lockfile is now `uv.lock`,
