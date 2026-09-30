@@ -4,7 +4,8 @@
 
   Nothing is written outside the root element, so the name can sit mid-sentence and be followed
   directly by a comma. The root is inline, so a long name wraps like text and its icons move with
-  its last word.
+  its last word. The root does not wrap and the name inside it does, and a word joiner sits before
+  the icon, so a line can only break within the name.
 
   Attributes:
     contributor – a Person, an Organization, or a Contribution
@@ -13,29 +14,14 @@
     :link       – False for plain text (default: linked)
     :identifier – False to leave out the ORCID iD icon (default: shown)
     class       – extra classes on the name
-{% endcomment %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}{% spaceless %}<span class="{{ class }}" {{ attrs }}>
-      {% if link %}
-        <a href="{{ c.get_absolute_url }}" class="link link-hover">{{ display_name }}</a>
-      {% else %}
-        <span>{{ display_name }}</span>
-      {% endif %}
-      {% if identifier %}
-        {% contributor_orcid c as orcid %}
-        {% if orcid %}
-          <a href="{{ orcid.url }}"
+{% endcomment %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}{% spaceless %}<span class="whitespace-nowrap {{ class }}" {{ attrs }}>
+      {% if link %}<a href="{{ c.get_absolute_url }}" class="link link-hover text-wrap">{{ display_name }}</a>{% else %}<span class="text-wrap">{{ display_name }}</span>{% endif %}{% if identifier %}{% contributor_orcid c as orcid %}{% if orcid %}&#8288;<a href="{{ orcid.url }}"
              class="inline-flex align-middle ms-1"
              target="_blank"
              rel="noopener"
              title="{% if orcid.authenticated %}ORCID iD {{ orcid.value }}{% else %}{% blocktranslate with value=orcid.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
              aria-label="{% if orcid.authenticated %}{% blocktranslate with name=display_name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=display_name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}">
             {% if orcid.authenticated %}{% icon "orcid" %}{% else %}{% icon "orcid_unauthenticated" %}{% endif %}
-          </a>
-        {% else %}
-          {% contributor_ror c as ror %}
-          {% if ror %}
-            <a href="{{ ror.url }}" class="inline-flex align-middle ms-1" target="_blank" rel="noopener" title="ROR ID {{ ror.value }}"
-               aria-label="{% blocktranslate with name=display_name %}ROR record of {{ name }}{% endblocktranslate %}">{% icon "ror" %}</a>
-          {% endif %}
-        {% endif %}
-      {% endif %}
+          </a>{% else %}{% contributor_ror c as ror %}{% if ror %}&#8288;<a href="{{ ror.url }}" class="inline-flex align-middle ms-1" target="_blank" rel="noopener" title="ROR ID {{ ror.value }}"
+               aria-label="{% blocktranslate with name=display_name %}ROR record of {{ name }}{% endblocktranslate %}">{% icon "ror" %}</a>{% endif %}{% endif %}{% endif %}
     </span>{% endspaceless %}{% endif %}{% endwith %}
