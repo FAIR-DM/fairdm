@@ -351,6 +351,17 @@
   overflow: hidden;
 }
 
+/* An organization's logo in an overview header: the size of the record image beside it, the
+   whole logo shown on a tile, since logos are often wide wordmarks that cropping would cut. */
+.overview-logo {
+  width: 6rem;
+  height: 6rem;
+  object-fit: contain;
+  padding: 0.5rem;
+  border-radius: var(--radius-box, 1rem);
+  background-color: var(--color-base-200);
+}
+
 /* Tabs standing in for a card's header: each tab's name set as a card title. */
 .tabs-header > .tab {
   font-size: var(--cardtitle-fs, 1.125rem);

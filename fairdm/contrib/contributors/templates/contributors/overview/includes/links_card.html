@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+  The contributor's links elsewhere on the web, each named by its site. Reads `links`.
+{% endcomment %}
+<c-card title="{% translate 'Links' %}" class="bg-base-100" data-card="links">
+  {% if links %}
+    <ul class="flex flex-col gap-2 text-sm">
+      {% for link in links %}
+        <li class="flex items-center gap-2 min-w-0">
+          <c-icon name="link" class="text-base-content/60 shrink-0" aria-hidden="true" only />
+          <a href="{{ link.url }}" class="link link-hover break-words" rel="noopener nofollow">{{ link.host }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-sm text-base-content/70">{% translate "No links have been added." %}</p>
+  {% endif %}
+</c-card>
