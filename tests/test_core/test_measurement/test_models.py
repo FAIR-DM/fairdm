@@ -430,6 +430,18 @@ class TestMeasurementValueMethods:
         assert isinstance(value_str, str)
         assert value_str == measurement.name
 
+    def test_a_measurement_with_no_value_is_named_by_its_name(self):
+        measurement = ICP_MS_MeasurementFactory(
+            sample=RockSampleFactory(), name="206Pb/238U, spot 3", value=None
+        )
+        assert str(measurement) == "206Pb/238U, spot 3"
+
+    def test_a_measurement_with_no_value_or_name_is_named_by_its_portal_id(self):
+        measurement = ICP_MS_MeasurementFactory(
+            sample=RockSampleFactory(), name="", value=None
+        )
+        assert str(measurement) == measurement.uuid
+
 
 @pytest.mark.django_db
 class TestMeasurementDirectInstantiation:
