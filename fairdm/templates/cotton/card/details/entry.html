@@ -11,7 +11,7 @@
     (default) – the value
 {% endcomment %}
 <c-vars label icon class />
-<div class="flex flex-col gap-1 min-w-0 {{ class }}">
+<div class="flex flex-col gap-1 min-w-0 {{ class }}" {{ attrs }}>
   <dt class="flex items-center gap-2 text-sm uppercase font-semibold text-base-content/70">
     {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" only />{% endif %}
     {{ label }}

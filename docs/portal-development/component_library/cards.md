@@ -11,7 +11,7 @@ record) are written with a leading colon, the way any Cotton component takes one
 `<c-card.people :people="people" />`. Every card also takes `class`, which adds classes to the
 card's outer element.
 
-A card with nothing to show is either left out or says what is missing. Each entry below says which.
+A page draws every card it has and each says what is missing when it has nothing to show. Each card carries a `data-card` attribute (`details`, `people`, `identifiers`, `funding`, `citation`, `timeline`, `location`, `readiness`) that tests and scripts can find it by.
 
 ## The shared cards
 
@@ -60,11 +60,10 @@ One entry in a Details card: an icon and a title in capitals, then the value. Us
 
 ### `c-card.people`
 
-Everyone credited on the record who is not already named in the page header, as a grid of faces.
+Everyone credited on the record, the people named in the page header included, as a grid of faces.
 Hovering a face shows the name, and every face is a link to the contributor's page, named for
 assistive technology. At most eighteen faces are drawn. The rest are counted, and the count links
-to the full list when `all_url` is given. The page leaves this card out when nobody remains to
-show.
+to the full list when `all_url` is given. With nobody credited the card says so.
 
 | Attribute | What it takes |
 | --- | --- |
@@ -104,7 +103,7 @@ bare funder ID, is shown as plain text.
 | `funding` | A list of DataCite funding references: `funderName`, `funderIdentifier`, `awardTitle`, `awardNumber`, `awardURI`. |
 | `can_manage` | Whether the viewer is on the record's team. |
 
-With no funding, a visitor gets no card, and the team gets a card that says none is recorded.
+With no funding, everyone gets a card that says none is recorded.
 
 ```django
 <c-card.funding :funding="funding" :can_manage="can_manage" />
@@ -176,7 +175,7 @@ a location.
 | --- | --- |
 | `location` | A location point with `x` (longitude), `y` (latitude) and `crs`. |
 | `title` | The card's title. Defaults to "Location". |
-| `empty` | What to say when there is no location. Without it, the card is left out. |
+| `empty` | What to say when there is no location. Without it, the component draws nothing. |
 
 ```django
 <c-card.location :location="sample.location" empty="No location recorded." />

@@ -114,37 +114,38 @@
 {% endblock overview.location %}
 
 {% block overview.samples %}
-  {% if relations.items or relations.hidden %}
-    <c-card title="{% translate 'Related' %}" class="bg-base-100">
-      <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
-      {% if relations.items %}
-        <ul class="list">
-          {% for entry in relations.items %}
-            <li class="list-row px-0">
-              {% if entry.sample.image %}
-                <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
-              {% else %}
-                <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
-              {% endif %}
-              <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
-                <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span class="badge badge-soft badge-secondary badge-xs whitespace-nowrap">{{ entry.relation }}</span>
-                  <span>{{ entry.type }}</span>
-                  {% if entry.elsewhere %}<span>{% translate "in" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
-                </span>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-      {% if relations.hidden %}
-        <p class="text-sm text-base-content/70">
-          {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
-        </p>
-      {% endif %}
-    </c-card>
+  <c-card title="{% translate 'Related' %}" class="bg-base-100" data-card="related">
+    <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ relations.items|length }}</span></c-slot>
+    {% if relations.items %}
+      <ul class="list">
+        {% for entry in relations.items %}
+          <li class="list-row px-0">
+            {% if entry.sample.image %}
+              <img src="{{ entry.sample.image|thumbnail_url:'core_small' }}" alt="" class="size-9 rounded-field object-cover" />
+            {% else %}
+              <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-secondary)" aria-hidden="true"><c-icon name="sample" only /></span>
+            {% endif %}
+            <div class="list-col-grow min-w-0 flex flex-col gap-1">
+              <a href="{{ entry.sample.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.sample }}</a>
+              <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span class="badge badge-soft badge-secondary badge-xs whitespace-nowrap">{{ entry.relation }}</span>
+                <span>{{ entry.type }}</span>
+                {% if entry.elsewhere %}<span>{% translate "in" %} <a href="{{ entry.sample.dataset.get_absolute_url }}" class="link link-hover">{{ entry.sample.dataset }}</a></span>{% endif %}
+              </span>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if relations.hidden %}
+      <p class="text-sm text-base-content/70">
+        {% blocktranslate count counter=relations.hidden %}{{ counter }} related sample belongs to a dataset that hasn't been published yet.{% plural %}{{ counter }} related samples belong to datasets that haven't been published yet.{% endblocktranslate %}
+      </p>
+    {% endif %}
+    {% if not relations.items and not relations.hidden %}
+    <p class="text-sm text-base-content/70">{% translate "No related samples have been recorded." %}</p>
   {% endif %}
+</c-card>
 {% endblock overview.samples %}
 {% endblock overview.record_facts %}
 

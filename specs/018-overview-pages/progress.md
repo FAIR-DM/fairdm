@@ -152,3 +152,10 @@
 - Verified: `uv run pytest tests/test_core/test_project/test_plugins.py tests/test_templates tests/test_core/test_dataset tests/test_core/test_sample tests/test_core/test_measurement -q`: 1213 passed, 7 skipped (the skips were already there); the changed tests failed first. Pre-commit green.
 - Next: TC10.
 - Watch: five branch tests edited, listed in D20.
+
+## 2026-09-30 · FIX-2 · TC10
+
+- Did: every side-column card renders with an empty-state line: funding (everyone), identifiers, citation, dataset timeline and publications, sample Related and Location, measurement Sample location (no location, or sample hidden: no coordinates), and the project's timeline entry in Details. Each carries a `data-card` hook. Readiness stays team-only. Docs updated.
+- Verified: `uv run pytest tests/test_core tests/test_templates tests/test_demo -q -n auto --dist loadscope`: 1570 passed, 7 skipped (already skipped); new tests red first. Pre-commit green.
+- Next: TC11.
+- Watch: two branch tests replaced and one removed, listed in D21.

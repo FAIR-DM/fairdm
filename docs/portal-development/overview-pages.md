@@ -22,8 +22,9 @@ The side column presents its cards in this order, leaving out any that do not ap
 the readiness checklist (the team only), Details, the record's timeline of key dates, People,
 Identifiers, Funding, the citation, and then cards particular to the record.
 
-Two rules hold on every page. A card with nothing to show is either left out or says what is
-missing, never left blank. And anything FairDM cannot do yet (a map of a project's samples, recent
+Two rules hold on every page. A card the page has is always drawn, and says what is missing when it
+has nothing to show. Only the readiness checklist is left out, for anyone who cannot change the
+record. And anything FairDM cannot do yet (a map of a project's samples, recent
 activity, publishing a dataset, exporting a citation, metadata downloads) is announced the same
 way: a card or a button that says "Coming soon", and a button is disabled and says why.
 
@@ -319,8 +320,9 @@ People, Identifiers, the citation and the location of the sample.
 - *The citation* names the contributors credited with the measurement role, and points at the
   measurement's DOI when it has one. Most measurements have none, so the page points at itself and
   suggests citing the dataset instead.
-- *The location* is a map of the sample's location, shown only when the sample has one and the
-  viewer may see the sample.
+- *The location* is a map of the sample's location when the sample has one and the viewer may see
+  the sample. Otherwise the card says that no location is recorded, or that the sample's dataset has
+  not been published, and shows no coordinates.
 
 **Who can open it.** A measurement follows its own dataset, not its sample's. Its page opens for
 everyone once the measurement's dataset is public and published, whatever the state of the sample's

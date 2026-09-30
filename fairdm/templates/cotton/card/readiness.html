@@ -13,7 +13,7 @@
     class      – extra classes on the card
 {% endcomment %}
 <c-vars title summary about readiness class />
-<c-card title="{{ title }}" class="bg-base-100 border border-primary {{ class }}" only>
+<c-card title="{{ title }}" class="bg-base-100 border border-primary {{ class }}" data-card="readiness" only>
   <c-slot name="badges"><span class="badge badge-ghost badge-sm">{% translate "Team only" %}</span></c-slot>
   <div class="flex flex-col gap-2">
     <div class="flex items-baseline justify-between gap-2 text-sm">

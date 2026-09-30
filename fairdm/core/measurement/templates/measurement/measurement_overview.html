@@ -147,7 +147,9 @@
 {% block overview.record_facts %}
   {% block overview.location %}
     {% if sample_visible %}
-      <c-card.location :location="sample.location" title="{% translate 'Sample location' %}" />
+      <c-card.location :location="sample.location" title="{% translate 'Sample location' %}" empty="{% translate 'No location has been recorded for the sample.' %}" />
+    {% else %}
+      <c-card.location title="{% translate 'Sample location' %}" empty="{% translate 'The sample belongs to a dataset that has not been published, so its location is not shown.' %}" />
     {% endif %}
   {% endblock overview.location %}
 {% endblock overview.record_facts %}

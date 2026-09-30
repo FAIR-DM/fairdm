@@ -191,7 +191,7 @@
 
 {% block overview.details_extra %}
   {% if timeline.start_date %}
-    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline">
+    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline" data-card="progress">
       <span class="flex justify-between gap-3">
         <span>{{ timeline.start_text }} – {% if timeline.end_date %}{{ timeline.end_text }}{% else %}{% translate "ongoing" %}{% endif %}</span>
         {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
@@ -199,6 +199,10 @@
       {% if timeline.percent is not None %}
         <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" class="mt-1" />
       {% endif %}
+    </c-card.details.entry>
+  {% elif not timeline.end_date %}
+    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline" data-card="progress">
+      <span class="text-base-content/70">{% translate "No start or end date has been recorded." %}</span>
     </c-card.details.entry>
   {% endif %}
 {% endblock overview.details_extra %}

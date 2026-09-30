@@ -434,3 +434,27 @@ class TestOverviewBreadcrumbs:
         trail = _page(client, xrf).context["breadcrumbs"]
 
         assert [entry["text"] for entry in trail] == ["Measurements", str(xrf)]
+
+
+@pytest.mark.django_db
+class TestOverviewCardsAlwaysShown:
+    """FR-003 and the Edge Cases: a card the page has is shown even with nothing to put in it."""
+
+    def test_a_bare_measurement_shows_every_side_card(self, client, xrf):
+        response = _page(client, xrf)
+
+        for card in ["details", "people", "identifiers", "citation", "location"]:
+            assert response.page.select_one(f'[data-card="{card}"]') is not None, card
+
+    def test_the_sample_location_card_shows_when_the_sample_is_hidden_and_draws_no_map(
+        self, client, released
+    ):
+        hidden = _dataset(published=False)
+        sample = RockSampleFactory(dataset=hidden, location=PointFactory(x="12.5", y="41.5"))
+        measurement = XRFMeasurementFactory(dataset=released, sample=sample)
+
+        response = _page(client, measurement)
+
+        assert response.page.select_one('[data-card="location"]') is not None
+        assert response.page.select_one(".overview-map") is None
+        assertNotContains(response, "12.5")

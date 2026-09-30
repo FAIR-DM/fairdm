@@ -200,8 +200,11 @@ class TestFundingCard:
 
         assert page.find("a") is None
 
-    def test_with_no_funding_a_visitor_gets_no_card(self, render_card):
-        assert render_card("funding", funding=[], can_manage=False).strip() == ""
+    def test_with_no_funding_a_visitor_still_gets_the_card(self, render_card, soup):
+        page = soup(render_card("funding", funding=[], can_manage=False))
+
+        assert page.select_one('[data-card="funding"]') is not None
+        assert page.find("li") is None
 
     def test_with_no_funding_the_team_gets_a_card_that_says_none_is_recorded(
         self, render_card, soup

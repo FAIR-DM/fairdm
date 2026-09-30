@@ -320,3 +320,22 @@ by its wording.
 **Revisit if:** the header stops naming people, which would make the repetition pointless.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.
+
+## D21 — Every side-column card is drawn, and the tests that asserted a card was absent changed
+
+A card a page has now always renders, with a short line saying what is missing; only the readiness
+checklist stays team-only. Each card carries a `data-card` attribute so a test finds it without
+reading its wording. Three tests written on this branch asserted the old rule and changed:
+`tests/test_templates/test_cards.py::TestFundingCard::test_with_no_funding_a_visitor_gets_no_card`
+became `test_with_no_funding_a_visitor_still_gets_the_card`; in
+`tests/test_core/test_project/test_plugins.py`,
+`test_a_project_without_funding_shows_a_visitor_no_funding_card` became
+`test_a_project_without_funding_still_shows_a_visitor_the_funding_card`, and
+`test_the_team_of_a_project_without_funding_still_gets_the_card`, which counted card titles, was
+removed because a visitor and a team member now see the same funding card. The dataset page has no
+Funding card, since a dataset carries no funding. The location component still draws nothing when
+it is given neither a location nor an empty line, so a caller must pass one.
+
+**Revisit if:** a record type gains funding, which would add the card to its page.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.

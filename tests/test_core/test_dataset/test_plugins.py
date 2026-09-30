@@ -1919,3 +1919,30 @@ class TestOverviewManageMenu:
 
         delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         assert response.page.find("a", href=delete_url) is None
+
+
+@pytest.mark.django_db
+class TestOverviewCardsAlwaysShown:
+    """FR-003 and the Edge Cases: a card the page has is shown even with nothing to put in it."""
+
+    def test_a_bare_dataset_shows_every_side_card_to_a_visitor(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        response = _page(client, dataset)
+
+        for card in [
+            "details",
+            "timeline",
+            "people",
+            "identifiers",
+            "citation",
+            "publications",
+        ]:
+            assert response.page.select_one(f'[data-card="{card}"]') is not None, card
+
+    def test_the_readiness_checklist_stays_out_of_a_visitors_page(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        response = _page(client, dataset)
+
+        assert response.page.select_one('[data-card="readiness"]') is None

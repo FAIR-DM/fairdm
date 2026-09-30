@@ -558,3 +558,21 @@ class TestOverviewStatus:
 
         status = next(d for d in details if d.get("icon") == "box")
         assert status["note"]
+
+
+@pytest.mark.django_db
+class TestOverviewCardsAlwaysShown:
+    """FR-003 and the Edge Cases: a card the page has is shown even with nothing to put in it."""
+
+    def test_a_bare_sample_shows_every_side_card(self, client, rock):
+        response = _page(client, rock)
+
+        for card in [
+            "details",
+            "people",
+            "identifiers",
+            "citation",
+            "location",
+            "related",
+        ]:
+            assert response.page.select_one(f'[data-card="{card}"]') is not None, card

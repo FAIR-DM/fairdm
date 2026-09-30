@@ -151,32 +151,30 @@
 {% endblock overview.main %}
 
 {% block overview.timeline %}
-  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" />
+  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" empty="{% translate 'No key dates have been recorded for this dataset.' %}" />
 {% endblock overview.timeline %}
 
 {% block overview.record_facts %}
   {% block overview.publications %}
-    {% if literature.items or can_manage %}
-      <c-card title="{% translate 'Related publications' %}" class="bg-base-100">
-        {% if literature.items %}
-          <ul class="flex flex-col gap-3 text-sm">
-            {% for entry in literature.items %}
-              <li class="flex flex-col gap-1">
-                <span class="badge badge-ghost badge-xs">{{ entry.relation }}</span>
-                {% if entry.doi %}
-                  <a href="https://doi.org/{{ entry.doi }}" class="link link-hover">{{ entry.item }}</a>
-                {% else %}
-                  <span>{{ entry.item }}</span>
-                {% endif %}
-                {% if entry.year %}<span class="text-xs text-base-content/70">{{ entry.year }}</span>{% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="text-sm text-base-content/70">{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}</p>
-        {% endif %}
-      </c-card>
-    {% endif %}
+    <c-card title="{% translate 'Related publications' %}" class="bg-base-100" data-card="publications">
+      {% if literature.items %}
+        <ul class="flex flex-col gap-3 text-sm">
+          {% for entry in literature.items %}
+            <li class="flex flex-col gap-1">
+              <span class="badge badge-ghost badge-xs">{{ entry.relation }}</span>
+              {% if entry.doi %}
+                <a href="https://doi.org/{{ entry.doi }}" class="link link-hover">{{ entry.item }}</a>
+              {% else %}
+                <span>{{ entry.item }}</span>
+              {% endif %}
+              {% if entry.year %}<span class="text-xs text-base-content/70">{{ entry.year }}</span>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm text-base-content/70">{% if can_manage %}{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}{% else %}{% translate "No publications are linked to this dataset." %}{% endif %}</p>
+      {% endif %}
+    </c-card>
   {% endblock overview.publications %}
 
 {% endblock overview.record_facts %}

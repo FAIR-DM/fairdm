@@ -1,40 +1,41 @@
 {% load i18n %}
 {% comment %}
   <c-card.funding> — the awards that paid for the record, in DataCite's funding reference shape.
+  The card is always drawn; with no award it says none is recorded.
 
   Attributes:
     funding     – [{funderName, funderIdentifier, awardTitle, awardNumber, awardURI}]; an identifier
                   or award URI is linked only when it is an http(s) address
     can_manage  – the viewer is on the team; with no funding recorded, the card then says why it
-                  matters rather than disappearing
+                  matters
     class       – extra classes on the card
 {% endcomment %}
 <c-vars funding can_manage=False class />
-{% if funding or can_manage %}
-  <c-card title="{% translate 'Funding' %}" class="bg-base-100 {{ class }}" only>
-    {% if funding %}
-      <ul class="flex flex-col gap-4 text-sm">
-        {% for award in funding %}
-          <li class="flex gap-3 min-w-0">
-            <span class="stat-icon stat-icon-sm shrink-0" aria-hidden="true"><c-icon name="funding" only /></span>
-            <div class="flex flex-col min-w-0">
-              {% if award.funderIdentifier|slice:":8" == "https://" or award.funderIdentifier|slice:":7" == "http://" %}
-                <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium break-words">{{ award.funderName }}</a>
-              {% else %}
-                <span class="font-medium break-words">{{ award.funderName }}</span>
-              {% endif %}
-              {% if award.awardTitle %}<span class="text-base-content/70 break-words">{{ award.awardTitle }}</span>{% endif %}
-              {% if award.awardNumber %}
-                <span class="text-xs font-mono mt-1">
-                  {% if award.awardURI|slice:":8" == "https://" or award.awardURI|slice:":7" == "http://" %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
-                </span>
-              {% endif %}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-sm text-base-content/70">{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}</p>
-    {% endif %}
-  </c-card>
-{% endif %}
+<c-card title="{% translate 'Funding' %}" class="bg-base-100 {{ class }}" data-card="funding" only>
+  {% if funding %}
+    <ul class="flex flex-col gap-4 text-sm">
+      {% for award in funding %}
+        <li class="flex gap-3 min-w-0">
+          <span class="stat-icon stat-icon-sm shrink-0" aria-hidden="true"><c-icon name="funding" only /></span>
+          <div class="flex flex-col min-w-0">
+            {% if award.funderIdentifier|slice:":8" == "https://" or award.funderIdentifier|slice:":7" == "http://" %}
+              <a href="{{ award.funderIdentifier }}" class="link link-hover font-medium break-words">{{ award.funderName }}</a>
+            {% else %}
+              <span class="font-medium break-words">{{ award.funderName }}</span>
+            {% endif %}
+            {% if award.awardTitle %}<span class="text-base-content/70 break-words">{{ award.awardTitle }}</span>{% endif %}
+            {% if award.awardNumber %}
+              <span class="text-xs font-mono mt-1">
+                {% if award.awardURI|slice:":8" == "https://" or award.awardURI|slice:":7" == "http://" %}<a href="{{ award.awardURI }}" class="link link-primary">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}
+              </span>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-sm text-base-content/70">
+      {% if can_manage %}{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}{% else %}{% translate "No funding has been recorded." %}{% endif %}
+    </p>
+  {% endif %}
+</c-card>

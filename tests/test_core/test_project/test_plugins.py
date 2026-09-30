@@ -1446,30 +1446,46 @@ class TestOverviewFunding:
             "https://example.org/awards/42",
         ]
 
-    def test_a_project_without_funding_shows_a_visitor_no_funding_card(self, client):
+    def test_a_project_without_funding_still_shows_a_visitor_the_funding_card(
+        self, client
+    ):
         project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
-        with_funding = ProjectFactory(visibility=Visibility.PUBLIC, funding=[self.AWARD])
 
-        without = _page(client, project)
-        with_ = _page(client, with_funding)
+        response = _page(client, project)
 
-        assert len(without.page.select("h2.card-title")) == (
-            len(with_.page.select("h2.card-title")) - 1
-        )
+        assert response.page.select_one('[data-card="funding"]') is not None
+        assert response.page.select_one('[data-card="funding"] li') is None
 
-    def test_the_team_of_a_project_without_funding_still_gets_the_card(self, client):
+
+@pytest.mark.django_db
+class TestOverviewCardsAlwaysShown:
+    """FR-003 and the Edge Cases: a card the page has is shown even with nothing to put in it."""
+
+    SIDE_CARDS = ["details", "people", "identifiers", "funding", "citation"]
+
+    def test_a_bare_project_shows_every_side_card_to_a_visitor(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
-        user = UserFactory()
-        assign_perm("view_project", user, project)
-        assign_perm("change_project", user, project)
 
-        visitor_cards = len(_page(client, project).page.select("h2.card-title"))
-        client.force_login(user)
-        team_cards = len(_page(client, project).page.select("h2.card-title"))
+        response = _page(client, project)
 
-        # The team also gets the checklist and the manage controls, but it is the funding card
-        # that this compares: readiness adds one card, funding the other.
-        assert team_cards == visitor_cards + 2
+        for card in self.SIDE_CARDS:
+            assert response.page.select_one(f'[data-card="{card}"]') is not None, card
+
+    def test_a_project_with_no_dates_shows_the_progress_entry_in_details(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.page.select_one('[data-card="details"] [data-card="progress"]')
+
+    def test_the_readiness_checklist_stays_out_of_a_visitors_page(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.page.select_one('[data-card="readiness"]') is None
 
 
 @pytest.mark.django_db
