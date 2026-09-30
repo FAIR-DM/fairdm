@@ -166,6 +166,21 @@ def contributor_secondary(contributor, contribution=None):
 
 
 @register.simple_tag
+def contributor_affiliation(contributor, contribution=None):
+    """The organization a person is shown with: the one on this credit, else their primary one.
+
+    Returns:
+        An Organization, or None for an organization or a person with no affiliation.
+    """
+    if contributor is None or is_organization(contributor):
+        return None
+    if getattr(contribution, "affiliation_id", None):
+        return contribution.affiliation
+    primary = contributor.primary_affiliation()
+    return primary.organization if primary else None
+
+
+@register.simple_tag
 def contribution_roles(contribution):
     """A contribution's role labels, in vocabulary order."""
     if contribution is None or not hasattr(contribution, "roles"):

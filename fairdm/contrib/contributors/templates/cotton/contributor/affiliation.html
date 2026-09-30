@@ -1,0 +1,9 @@
+{% load contributor_tags %}{% comment %}
+  <c-contributor.affiliation> — the organization a person is shown with, linked to its page, with
+  its logo in front when `logo` is set. Nothing is written outside the root element.
+
+  Attributes:
+    organization – an Organization
+    :logo        – True to put the organization's logo before its name (default: name only)
+    class        – extra classes
+{% endcomment %}<c-vars organization :logo="False" class />{% if organization %}<span class="inline-flex items-center gap-1 min-w-0 max-w-full {{ class }}" {{ attrs }}>{% if logo %}<c-contributor.avatar :contributor="organization" size="w-5" class="shrink-0" />{% endif %}<a href="{{ organization.get_absolute_url }}" class="link link-hover truncate">{{ organization.name }}</a></span>{% endif %}

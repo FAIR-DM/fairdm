@@ -5,12 +5,13 @@
 
   Attributes:
     contributor – a Person, or a Contribution crediting one
+    :logo       – True to put the affiliation's logo before its name
     class       – extra classes on the card
 {% endcomment %}
-<c-vars contributor class />
+<c-vars contributor :logo="False" class />
 {% with c=contributor|as_contributor %}
   {% if c %}
-    {% contributor_secondary c contributor as affiliation %}
+    {% contributor_affiliation c contributor as affiliation %}
     {% contribution_roles contributor as roles %}
     {% with location=c.get_location_display counts=c.get_credit_counts %}
       <c-card.wrapper class="h-full {{ class }}">
@@ -19,7 +20,7 @@
         </figure>
         <div class="card-body items-center text-center">
           <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
-          {% if affiliation %}<p class="grow-0">{{ affiliation }}</p>{% endif %}
+          {% if affiliation %}<p class="grow-0 flex justify-center max-w-full"><c-contributor.affiliation :organization="affiliation" :logo="logo" /></p>{% endif %}
           {% if location %}
             <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
           {% endif %}
