@@ -159,3 +159,10 @@
 - Verified: `uv run pytest tests/test_core tests/test_templates tests/test_demo -q -n auto --dist loadscope`: 1570 passed, 7 skipped (already skipped); new tests red first. Pre-commit green.
 - Next: TC11.
 - Watch: two branch tests replaced and one removed, listed in D21.
+
+## 2026-09-30 · FIX-2 · TC11
+
+- Did: the sample's Edit, Descriptions, Keywords and Key Dates pages are registered with `menu=False`, so they leave the tab strip; a Manage menu in the sample header links to them for users holding `sample.change_sample`. Addresses and URL names unchanged. Docs updated.
+- Verified: `uv run pytest tests/test_core/test_sample tests/test_contrib/test_plugins tests/test_templates -q`: 544 passed, 7 skipped (already skipped); the two new behaviour tests failed first. Pre-commit green.
+- Next: TC12.
+- Watch: chose `menu=False` over `extra_views`, see D22. No existing test was edited.

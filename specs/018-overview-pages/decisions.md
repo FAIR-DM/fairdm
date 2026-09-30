@@ -339,3 +339,18 @@ it is given neither a location nor an empty line, so a caller must pass one.
 **Revisit if:** a record type gains funding, which would add the card to its page.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.
+
+## D22 — The sample's editing pages leave the tab strip with `menu=False`, not as `extra_views`
+
+The Edit, Descriptions, Keywords and Key Dates pages stay registered as plugins of their own and are
+registered with `menu=False`, so they drop out of the tab strip while the Manage menu in the
+sample's header links to them. Making them `extra_views` of the overview, as the dataset does, would
+rename their URL names (`sample:key-dates` would become `sample:overview-key-dates`) and break the
+two tests from `main` that reverse those names. This way the addresses and URL names are unchanged
+and each page keeps its own permission. The menu is shown on `sample.change_sample`, the right the
+pages themselves require.
+
+**Revisit if:** the sample's editing pages are moved under the overview for another reason, at which
+point the URL names change together with those two tests.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.

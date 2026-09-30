@@ -576,3 +576,68 @@ class TestOverviewCardsAlwaysShown:
             "related",
         ]:
             assert response.page.select_one(f'[data-card="{card}"]') is not None, card
+
+
+@pytest.mark.django_db
+class TestOverviewManageMenu:
+    """FR-036: the sample's editing pages are reached from a Manage menu, not from tabs."""
+
+    EDITING_PAGES = ["edit", "basic-information", "keywords", "key-dates"]
+
+    def _addresses(self, sample):
+        return [
+            reverse(f"sample:{name}", kwargs={"uuid": sample.uuid})
+            for name in self.EDITING_PAGES
+        ]
+
+    def _editor(self, dataset):
+        user = PersonFactory(is_active=True)
+        assign_perm("view_dataset", user, dataset)
+        assign_perm("change_dataset", user, dataset)
+        return user
+
+    def _tab_hrefs(self, response):
+        strip = response.page.select_one("ul.menu-horizontal")
+        return [a["href"] for a in strip.select("a")]
+
+    def test_the_tab_strip_lists_no_editing_page(self, client, rock, released):
+        client.force_login(self._editor(released))
+
+        response = _page(client, rock)
+
+        hrefs = self._tab_hrefs(response)
+        assert reverse("sample:overview", kwargs={"uuid": rock.uuid}) in hrefs
+        assert not set(hrefs) & set(self._addresses(rock))
+
+    def test_a_user_who_may_change_the_sample_sees_a_manage_menu_with_the_editing_pages(
+        self, client, rock, released
+    ):
+        client.force_login(self._editor(released))
+
+        response = _page(client, rock)
+
+        menu = response.page.select_one('[data-menu="manage"]')
+        assert menu is not None
+        assert [a["href"] for a in menu.select("a")] == self._addresses(rock)
+
+    def test_a_visitor_sees_no_manage_menu_and_no_editing_link(self, client, rock):
+        response = _page(client, rock)
+
+        assert response.page.select_one('[data-menu="manage"]') is None
+        page_hrefs = {a.get("href") for a in response.page.select("a")}
+        assert not page_hrefs & set(self._addresses(rock))
+
+    def test_a_user_who_may_only_view_the_sample_sees_no_manage_menu(
+        self, client, rock, released
+    ):
+        client.force_login(_team_member(released))
+
+        response = _page(client, rock)
+
+        assert response.page.select_one('[data-menu="manage"]') is None
+
+    def test_the_editing_pages_keep_their_addresses(self, rock):
+        assert self._addresses(rock) == [
+            f"/samples/{rock.uuid}/{segment}/"
+            for segment in ["edit", "basic-information", "keywords", "key-dates"]
+        ]

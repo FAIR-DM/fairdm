@@ -98,6 +98,16 @@ class Overview(TypedOverviewPlugin):
                 "can_manage": has_perm(
                     self.request, "dataset.change_dataset", sample.dataset
                 ),
+                "can_edit": has_perm(self.request, Edit.permission, sample),
+                "urls": {
+                    key: safe_reverse(f"sample:{name}", uuid=sample.uuid)
+                    for key, name in (
+                        ("update", "edit"),
+                        ("descriptions", "basic-information"),
+                        ("keywords", "keywords"),
+                        ("key_dates", "key-dates"),
+                    )
+                },
                 "sample_type": str(type(sample)._meta.verbose_name),
                 "status": status,
                 "lifecycle": self.get_timeline(
@@ -309,8 +319,9 @@ class Overview(TypedOverviewPlugin):
 
 
 # A plugin with no declared `permission` admits every request, anonymous included, so each
-# editing page below names the right it needs.
-@plugins.register(Sample, label=_("Edit"), icon="pencil", order=10)
+# editing page below names the right it needs. None of them is a tab: the overview's Manage
+# menu links to them.
+@plugins.register(Sample, label=_("Edit"), icon="pencil", menu=False)
 class Edit(UpdatePlugin):
     """Edit the sample's name and image."""
 
@@ -325,7 +336,7 @@ class Edit(UpdatePlugin):
     learn_more = user_guide("sample/edit")
 
 
-@plugins.register(Sample, label=_("Descriptions"), icon="description", order=510)
+@plugins.register(Sample, label=_("Descriptions"), icon="description", menu=False)
 class Descriptions(DescriptionsPlugin):
     """Edit the sample's descriptions."""
 
@@ -338,7 +349,7 @@ class Descriptions(DescriptionsPlugin):
     inline_model = SampleDescription
 
 
-@plugins.register(Sample, label=_("Keywords"), icon="keywords", order=520)
+@plugins.register(Sample, label=_("Keywords"), icon="keywords", menu=False)
 class Keywords(KeywordsPlugin):
     """Edit the sample's keywords."""
 
@@ -351,7 +362,7 @@ class Keywords(KeywordsPlugin):
     }
 
 
-@plugins.register(Sample, label=_("Key Dates"), icon="date", order=530)
+@plugins.register(Sample, label=_("Key Dates"), icon="date", menu=False)
 class KeyDates(KeyDatesPlugin):
     """Edit the sample's key dates."""
 
