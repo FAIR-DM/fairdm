@@ -1,24 +1,41 @@
-{# @description A contributor's avatar: their profile image cropped to a circle, or their initials when they have no image. Any other attribute is passed to the image or the initials badge. #}
-{# @prop contributor:text | description:"The contributor to show." #}
-{# @prop size:number | default:40 | description:"Width and height in pixels." #}
-{% load easy_thumbnails_tags %}
+{% load i18n easy_icons contributor_tags %}
+{% comment %}
+  <c-contributor.avatar> — one contributor's face or logo.
 
-<c-vars contributor size="40" />
-{% if contributor.image %}
-  <img src="{% thumbnail contributor.image 200x200 crop=True %}"
-       alt="{{ contributor.name }}"
-       class="rounded-circle"
-       width="{{ size }}"
-       height="{{ size }}"
-       {{ attrs }} />
-{% else %}
-  <div class="btn p-0 profile-icon bg-primary text-white"
-       style="width: {{ size }}px;
-              height: {{ size }}px;
-              font-size: calc({{ size }}px * 0.4);
-              font-weight: 600"
-       title="{{ contributor.name }}"
+  A person is a circle, an organization a rounded square. With no image a person shows their
+  initials and an organization a building, on a tint that stays the same for that contributor.
+
+  Decorative by default: put the name beside it. Standing alone, pass `label` so it is announced.
+
+  Attributes:
+    contributor – a Person, an Organization, or a Contribution (its contributor is drawn)
+    size        – xs 24px · sm 32px · md 40px (default) · lg 64px · xl 96px
+    link        – "true" wraps it in a link to the contributor's page, labelled with the name
+    label       – "true" gives a lone avatar the contributor's name as its accessible name
+    class       – extra classes
+{% endcomment %}
+<c-vars contributor size="md" link label class />
+{% with c=contributor|as_contributor %}
+  {% contributor_avatar c size as av %}
+  {% if link and c %}
+    <a href="{{ c.get_absolute_url }}"
+       class="contributor-avatar contributor-avatar--{{ size }}{% if av.organization %} contributor-avatar--organization{% endif %}{% if av.src %} contributor-avatar--image{% else %} contributor-avatar--tint-{{ av.tint }}{% endif %} {{ class }}"
+       aria-label="{{ c.name }}"
+       title="{{ c.name }}"
        {{ attrs }}>
-    {{ contributor.get_initials }}
-  </div>
-{% endif %}
+  {% else %}
+    <span class="contributor-avatar contributor-avatar--{{ size }}{% if av.organization %} contributor-avatar--organization{% endif %}{% if av.src %} contributor-avatar--image{% else %} contributor-avatar--tint-{{ av.tint }}{% endif %} {{ class }}"
+          {% if label %}role="img" aria-label="{{ c.name }}" title="{{ c.name }}"{% else %}aria-hidden="true"{% endif %}
+          {{ attrs }}>
+  {% endif %}
+    {% if av.src %}
+      <img src="{{ av.src }}" alt="" loading="lazy" />
+    {% elif av.initials %}
+      <span aria-hidden="true">{{ av.initials }}</span>
+    {% elif av.organization %}
+      <span class="contributor-avatar__icon" aria-hidden="true">{% icon "organization" %}</span>
+    {% else %}
+      <span class="contributor-avatar__icon" aria-hidden="true">{% icon "member" %}</span>
+    {% endif %}
+  {% if link and c %}</a>{% else %}</span>{% endif %}
+{% endwith %}

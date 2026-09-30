@@ -1,0 +1,12 @@
+{% load contributor_tags %}
+{% comment %}
+  <c-contribution.roles> — the roles on one credit, as text: "Project Leader · Contact Person".
+  Roles are labels, not states, so they are written out rather than drawn as badges.
+
+  Attributes:
+    contribution – a Contribution
+    class        – extra classes
+{% endcomment %}
+<c-vars contribution class />
+{% contribution_roles contribution as roles %}
+{% if roles %}<span class="{{ class }}" {{ attrs }}>{{ roles|join:" · " }}</span>{% endif %}

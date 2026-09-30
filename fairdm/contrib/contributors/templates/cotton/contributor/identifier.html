@@ -1,0 +1,31 @@
+{% load i18n easy_icons contributor_tags %}
+{% comment %}
+  <c-contributor.identifier> — a contributor's persistent identifier in full: the ORCID iD of a
+  person or the ROR ID of an organization, icon and address both linking to the record.
+
+  ORCID prefers this full form on profile and browse pages. The organization's name is never the
+  ROR link; a linked name reads as the organization's own website.
+
+  Attributes:
+    contributor – a Person, an Organization, or a Contribution
+    class       – extra classes
+{% endcomment %}
+<c-vars contributor class />
+{% with c=contributor|as_contributor %}
+  {% contributor_orcid c as orcid %}
+  {% contributor_ror c as ror %}
+  {% if orcid %}
+    <a href="{{ orcid.url }}" target="_blank" rel="noopener"
+       class="inline-flex items-center gap-1 link link-hover text-sm contributor-link {{ class }}" {{ attrs }}>
+      <span class="contributor-orcid" aria-hidden="true">{% if orcid.authenticated %}{% icon "orcid" %}{% else %}{% icon "orcid_unauthenticated" %}{% endif %}</span>
+      <span>{{ orcid.url }}</span>
+      {% if not orcid.authenticated %}<span class="text-base-content/70">{% translate "(unauthenticated)" %}</span>{% endif %}
+    </a>
+  {% elif ror %}
+    <a href="{{ ror.url }}" target="_blank" rel="noopener"
+       class="inline-flex items-center gap-1 link link-hover text-sm contributor-link {{ class }}" {{ attrs }}>
+      <span class="contributor-orcid" aria-hidden="true">{% icon "ror" %}</span>
+      <span>{{ ror.url }}</span>
+    </a>
+  {% endif %}
+{% endwith %}

@@ -1,25 +1,46 @@
-{# @description A card for a person with their avatar, a profile link, name, identifier and primary affiliation. Reads the context variable `obj`, the person. #}
-{% load fairdm contributor_tags easy_icons %}
+{% load i18n easy_icons contributor_tags %}
+{% comment %}
+  <c-contributor.card.person> — a person's directory card: face, name, where they work and are
+  based, their ORCID iD in full, the start of their profile and what they are credited on.
+  The whole card links to the person; the ORCID link stays a target of its own.
 
-{% with obj as contributor %}
-  <c-card class="h-100">
-    <c-card.body class="p-2">
-      <div class="row">
-        <div class="col-3 d-flex flex-column gap-2">
-          <c-avatar class="overflow-hidden rounded"
-                    :contributor="obj"
-                    only />
-          <c-components.link href="{{ obj.get_absolute_url }}"
-                             text="{% trans "Profile" %}"
-                             icon="arrow-right"
-                             icon_position="end" />
+  Attributes:
+    contributor – a Person, or a Contribution crediting one
+    heading     – heading level of the name (default "h3")
+    class       – extra classes
+{% endcomment %}
+<c-vars contributor heading="h3" class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% contributor_secondary c as affiliation %}
+    {% with location=c.get_location_display counts=c.get_credit_counts %}
+      <article class="contributor-card {{ class }}" {{ attrs }}>
+        <div class="contributor-card__head">
+          <c-contributor.avatar :contributor="c" size="lg" />
+          <div class="flex flex-col gap-1">
+            <{{ heading }} class="font-semibold leading-snug break-words">
+              <a href="{{ c.get_absolute_url }}" class="contributor-card__name link-hover">{{ c.name }}</a>
+            </{{ heading }}>
+            {% if affiliation %}<p class="text-sm">{{ affiliation }}</p>{% endif %}
+            {% if location %}
+              <p class="text-sm text-base-content/70 inline-flex items-center gap-1">
+                <span aria-hidden="true">{% icon "location" %}</span>{{ location }}
+              </p>
+            {% endif %}
+          </div>
         </div>
-        <div class="col py-1 d-flex flex-column">
-          <h2 class="fs-6 mb-0">{{ obj }}</h2>
-          <c-contributor.person.identifier />
-          <c-contributor.person.affiliations />
+        <c-contributor.identifier :contributor="c" class="contributor-card__above self-start max-w-full" />
+        {% if c.profile %}
+          <p class="contributor-card__about">{{ c.profile|striptags|truncatechars:220 }}</p>
+        {% endif %}
+        <div class="contributor-card__foot">
+          {% for label, count in counts.items %}
+            <span><span class="font-semibold text-base-content tabular-nums">{{ count }}</span> {{ label }}</span>
+          {% empty %}
+            <span>{% translate "Not credited on anything yet" %}</span>
+          {% endfor %}
         </div>
-      </div>
-    </c-card.body>
-  </c-card>
+      </article>
+    {% endwith %}
+  {% endif %}
 {% endwith %}

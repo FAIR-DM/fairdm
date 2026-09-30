@@ -1,0 +1,39 @@
+{% load i18n contributor_tags %}
+{% comment %}
+  <c-contributor.item> — avatar, name and one line beneath it. The unit for "who is this" in a
+  sidebar, a menu, a table cell or a short list.
+
+  The second line tells same-named contributors apart: a person's affiliation, an organization's
+  type and place. Given a contribution, it shows the roles on that credit instead.
+
+  Attributes:
+    contributor – a Person, an Organization, or a Contribution
+    size        – "sm" (32px avatar, default) or "md" (40px)
+    secondary   – text to show instead of the default second line; "none" to leave it out
+    :link       – False for plain text (default: the name links)
+    class       – extra classes
+{% endcomment %}
+<c-vars contributor size="sm" secondary :link="True" class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    <div class="flex items-center gap-3 min-w-0 {{ class }}" {{ attrs }}>
+      <c-contributor.avatar :contributor="c" size="{{ size }}" />
+      <div class="min-w-0 leading-tight">
+        <c-contributor.name :contributor="c" :link="link" class="font-medium" />
+        {% if secondary != "none" %}
+          {% if secondary %}
+            <div class="text-sm text-base-content/70 truncate">{{ secondary }}</div>
+          {% else %}
+            {% contribution_roles contributor as roles %}
+            {% if roles %}
+              <div class="text-sm text-base-content/70 truncate">{{ roles|join:" · " }}</div>
+            {% else %}
+              {% contributor_secondary c as line %}
+              {% if line %}<div class="text-sm text-base-content/70 truncate" title="{{ line }}">{{ line }}</div>{% endif %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}

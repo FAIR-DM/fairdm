@@ -1,0 +1,30 @@
+{% load i18n contributor_tags %}
+{% comment %}
+  <c-contributor.row> — one contributor as a row of a <c-list>: avatar, name with ORCID iD,
+  affiliation or type and place, and — given a contribution — the roles on that credit.
+
+  For long lists of contributors a reader scans down: a record's contributors, an organization's
+  members. The `actions` slot takes row controls such as edit and remove.
+
+  Attributes:
+    contributor – a Person, an Organization, or a Contribution
+    class       – extra classes on the row
+  Slots:
+    actions     – controls at the end of the row
+{% endcomment %}
+<c-vars contributor class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% contribution_roles contributor as roles %}
+    {% contributor_secondary c contributor as line %}
+    <li class="list-row items-center {{ class }}" {{ attrs }}>
+      <c-contributor.avatar :contributor="c" size="md" />
+      <div class="list-col-grow min-w-0">
+        <c-contributor.name :contributor="c" class="font-medium" />
+        {% if line %}<div class="text-sm text-base-content/70 truncate" title="{{ line }}">{{ line }}</div>{% endif %}
+        {% if roles %}<div class="text-sm mt-1">{{ roles|join:" · " }}</div>{% endif %}
+      </div>
+      {% if actions %}<div class="flex items-center gap-1">{{ actions }}</div>{% endif %}
+    </li>
+  {% endif %}
+{% endwith %}

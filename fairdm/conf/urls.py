@@ -48,7 +48,10 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+    from fairdm.contrib.contributors.views.gallery import ContributorGalleryView
+
     urlpatterns += [
+        path("dev/contributors/", ContributorGalleryView.as_view(), name="dev-contributor-gallery"),
         path(
             "400/",
             default_views.bad_request,

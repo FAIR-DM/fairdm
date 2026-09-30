@@ -1,0 +1,235 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Development gallery: every contributor component in every seeded state. DEBUG only.
+{% endcomment %}
+{% block page.content %}
+  {% if not seeded %}
+    <div role="alert" class="alert">
+      <span>No gallery data yet. Run <code>DJANGO_ENV=development python manage.py seed_contributors</code>.</span>
+    </div>
+  {% else %}
+    <nav aria-label="Components" class="flex flex-wrap gap-2 text-sm">
+      <a class="link" href="#avatar">Avatar</a> ·
+      <a class="link" href="#name">Name</a> ·
+      <a class="link" href="#chip">Chip</a> ·
+      <a class="link" href="#item">Item</a> ·
+      <a class="link" href="#stack">Stack</a> ·
+      <a class="link" href="#names">Names</a> ·
+      <a class="link" href="#byline">Byline</a> ·
+      <a class="link" href="#summary">Summary</a> ·
+      <a class="link" href="#row">Row</a> ·
+      <a class="link" href="#card">Cards</a>
+    </nav>
+
+    {# ---------------------------------------------------------------- avatar #}
+    <section id="avatar" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Avatar <code class="text-sm font-normal">&lt;c-contributor.avatar&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Face or logo alone. People are circles, organizations rounded squares. Decorative unless given <code>label</code> or <code>link</code>.</p>
+      </header>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr><th>State</th><th>xs · 24</th><th>sm · 32</th><th>md · 40</th><th>lg · 64</th><th>xl · 96</th></tr>
+          </thead>
+          <tbody>
+            {% for label, c in avatar_states %}
+              <tr>
+                <th scope="row" class="font-normal text-sm">{{ label }}</th>
+                <td><c-contributor.avatar :contributor="c" size="xs" /></td>
+                <td><c-contributor.avatar :contributor="c" size="sm" /></td>
+                <td><c-contributor.avatar :contributor="c" size="md" /></td>
+                <td><c-contributor.avatar :contributor="c" size="lg" /></td>
+                <td><c-contributor.avatar :contributor="c" size="xl" /></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 class="font-semibold text-sm mb-2">Fallback tints across many people</h3>
+        <div class="flex flex-wrap gap-2">
+          {% for c in people %}<c-contributor.avatar :contributor="c" size="md" link />{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {# ------------------------------------------------------------------ name #}
+    <section id="name" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Name <code class="text-sm font-normal">&lt;c-contributor.name&gt;</code></h2>
+        <p class="text-sm text-base-content/70">A name linked to its contributor, with the ORCID iD icon inline. The atom every other text component is built from.</p>
+      </header>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+        <div><dt class="text-base-content/70">Authenticated ORCID iD</dt><dd><c-contributor.name :contributor="spotlight.authenticated" /></dd></div>
+        <div><dt class="text-base-content/70">Unauthenticated ORCID iD</dt><dd><c-contributor.name :contributor="spotlight.unauthenticated" /></dd></div>
+        <div><dt class="text-base-content/70">No ORCID iD</dt><dd><c-contributor.name :contributor="spotlight.no_orcid" /></dd></div>
+        <div><dt class="text-base-content/70">Organization</dt><dd><c-contributor.name :contributor="spotlight.org" /></dd></div>
+        <div><dt class="text-base-content/70"><code>format="family_given"</code></dt><dd><c-contributor.name :contributor="spotlight.authenticated" format="family_given" /></dd></div>
+        <div><dt class="text-base-content/70"><code>format="family_initial"</code></dt><dd><c-contributor.name :contributor="spotlight.authenticated" format="family_initial" /></dd></div>
+        <div><dt class="text-base-content/70">Name in another script</dt><dd><c-contributor.name :contributor="spotlight.script" /></dd></div>
+        <div><dt class="text-base-content/70">Plain text, no icon</dt><dd><c-contributor.name :contributor="spotlight.authenticated" :link="False" :identifier="False" /></dd></div>
+      </dl>
+    </section>
+
+    {# ------------------------------------------------------------------ chip #}
+    <section id="chip" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Chip <code class="text-sm font-normal">&lt;c-contributor.chip&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Tiny avatar and name in a pill, for a name among other inline content: an active filter, a mention, a table cell.</p>
+      </header>
+      <div class="flex flex-wrap gap-2">
+        <c-contributor.chip :contributor="spotlight.authenticated" />
+        <c-contributor.chip :contributor="spotlight.unauthenticated" />
+        <c-contributor.chip :contributor="spotlight.script" />
+        <c-contributor.chip :contributor="spotlight.org" />
+        <c-contributor.chip :contributor="spotlight.org_bare" />
+        <c-contributor.chip :contributor="spotlight.long" />
+      </div>
+      <p class="text-sm">
+        Inline in a sentence: this dataset was curated by <c-contributor.chip :contributor="spotlight.authenticated" /> and hosted by <c-contributor.chip :contributor="spotlight.org" />.
+      </p>
+    </section>
+
+    {# ------------------------------------------------------------------ item #}
+    <section id="item" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Item <code class="text-sm font-normal">&lt;c-contributor.item&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Avatar, name and one line that tells same-named people apart: affiliation for a person, type and place for an organization, roles when given a credit.</p>
+      </header>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="flex flex-col gap-3">
+          <h3 class="font-semibold text-sm">size="sm" (default)</h3>
+          <c-contributor.item :contributor="spotlight.authenticated" />
+          <c-contributor.item :contributor="spotlight.no_orcid" />
+          <c-contributor.item :contributor="spotlight.org" />
+          <c-contributor.item :contributor="spotlight.org_bare" />
+        </div>
+        <div class="flex flex-col gap-3">
+          <h3 class="font-semibold text-sm">size="md"</h3>
+          <c-contributor.item :contributor="spotlight.unauthenticated" size="md" />
+          <c-contributor.item :contributor="spotlight.script" size="md" />
+          <c-contributor.item :contributor="spotlight.org_long" size="md" />
+        </div>
+        <div class="flex flex-col gap-3 max-w-64">
+          <h3 class="font-semibold text-sm">Given a credit, in a narrow column</h3>
+          {% for credit in few %}<c-contributor.item :contributor="credit" />{% endfor %}
+          <c-contributor.item :contributor="spotlight.long" />
+        </div>
+      </div>
+    </section>
+
+    {# ----------------------------------------------------------------- stack #}
+    <section id="stack" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Stack <code class="text-sm font-normal">&lt;c-contributor.stack&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Overlapping faces: who is involved, at a glance. Five faces, then a count linking to the full list.</p>
+      </header>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+        <div><dt class="text-base-content/70 mb-1">One</dt><dd><c-contributor.stack :contributors="one" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">Three</dt><dd><c-contributor.stack :contributors="few" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">{{ many|length }}, count links to the list</dt><dd><c-contributor.stack :contributors="many" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">{{ many|length }}, no list to link to</dt><dd><c-contributor.stack :contributors="many" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">size="xs"</dt><dd><c-contributor.stack :contributors="many" size="xs" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">size="md"</dt><dd><c-contributor.stack :contributors="many" size="md" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">size="lg"</dt><dd><c-contributor.stack :contributors="many" size="lg" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">Nobody credited</dt><dd class="text-base-content/70">(draws nothing)<c-contributor.stack :contributors="none" /></dd></div>
+      </dl>
+    </section>
+
+    {# ----------------------------------------------------------------- names #}
+    <section id="names" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Names <code class="text-sm font-normal">&lt;c-contributor.names&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Names in a row, joined as a sentence. Three names, then a count.</p>
+      </header>
+      <dl class="flex flex-col gap-3 text-sm">
+        <div><dt class="text-base-content/70">One</dt><dd><c-contributor.names :contributors="one" /></dd></div>
+        <div><dt class="text-base-content/70">Three</dt><dd><c-contributor.names :contributors="few" /></dd></div>
+        <div><dt class="text-base-content/70">{{ many|length }}, count links to the list</dt><dd><c-contributor.names :contributors="many" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70">With ORCID iDs</dt><dd><c-contributor.names :contributors="many" :identifier="True" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70">Citation style, everyone: <code>format="family_initial" max="0"</code></dt><dd><c-contributor.names :contributors="many" format="family_initial" max="0" /></dd></div>
+        <div><dt class="text-base-content/70">Nobody credited, with <code>empty</code></dt><dd><c-contributor.names :contributors="none" empty="No one is credited yet." /></dd></div>
+      </dl>
+    </section>
+
+    {# ---------------------------------------------------------------- byline #}
+    <section id="byline" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Byline <code class="text-sm font-normal">&lt;c-contributor.byline&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Names in a row, each with its face. The header of a record page.</p>
+      </header>
+      <dl class="flex flex-col gap-4 text-sm">
+        <div><dt class="text-base-content/70 mb-1">Three</dt><dd><c-contributor.byline :contributors="few" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">{{ many|length }}, six shown</dt><dd><c-contributor.byline :contributors="many" more_url="{{ many_url }}" /></dd></div>
+        <div><dt class="text-base-content/70 mb-1">size="sm", with ORCID iDs</dt><dd><c-contributor.byline :contributors="few" size="sm" :identifier="True" /></dd></div>
+      </dl>
+    </section>
+
+    {# --------------------------------------------------------------- summary #}
+    <section id="summary" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Summary <code class="text-sm font-normal">&lt;c-contributor.summary&gt;</code></h2>
+        <p class="text-sm text-base-content/70">A few faces and the first two names. The contributor line of a listing card, where the record is the subject.</p>
+      </header>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-box border border-base-300 p-4 flex flex-col gap-2">
+          <p class="font-semibold">Deep borehole campaign</p>
+          <c-contributor.summary :contributors="one" />
+        </div>
+        <div class="rounded-box border border-base-300 p-4 flex flex-col gap-2">
+          <p class="font-semibold">Heat flow along the Rhine Graben</p>
+          <c-contributor.summary :contributors="few" />
+        </div>
+        <div class="rounded-box border border-base-300 p-4 flex flex-col gap-2">
+          <p class="font-semibold">Global heat flow compilation</p>
+          <c-contributor.summary :contributors="many" :link="False" />
+        </div>
+      </div>
+    </section>
+
+    {# ------------------------------------------------------------------- row #}
+    <section id="row" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Row <code class="text-sm font-normal">&lt;c-contributor.row&gt;</code> in a <code class="text-sm font-normal">&lt;c-list&gt;</code></h2>
+        <p class="text-sm text-base-content/70">One contributor per row: a record's contributors, an organization's members. Given a credit it adds the roles; an <code>actions</code> slot takes row controls.</p>
+      </header>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <c-list title="Contributors of a record" class="rounded-box border border-base-300">
+          {% for credit in few %}<c-contributor.row :contributor="credit" />{% endfor %}
+          {% for credit in many|slice:"-2:" %}<c-contributor.row :contributor="credit" />{% endfor %}
+        </c-list>
+        <c-list title="With row actions" class="rounded-box border border-base-300">
+          {% for credit in one %}
+            <c-contributor.row :contributor="credit">
+              <c-slot name="actions">
+                <c-button text="Edit" size="sm" />
+                <c-button text="Remove" size="sm" />
+              </c-slot>
+            </c-contributor.row>
+          {% endfor %}
+          <c-contributor.row :contributor="spotlight.script" />
+          <c-contributor.row :contributor="spotlight.org_bare" />
+        </c-list>
+      </div>
+    </section>
+
+    {# ----------------------------------------------------------------- cards #}
+    <section id="card" class="flex flex-col gap-4 pt-6 border-t border-base-300">
+      <header>
+        <h2 class="text-xl font-semibold">Card <code class="text-sm font-normal">&lt;c-contributor.card&gt;</code></h2>
+        <p class="text-sm text-base-content/70">Directory card for the people and organization listings. Picks the person or organization card; the whole card links to the contributor.</p>
+      </header>
+      <h3 class="font-semibold">People</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for c in people|slice:":9" %}<c-contributor.card :contributor="c" heading="h4" />{% endfor %}
+        <c-contributor.card :contributor="spotlight.no_orcid" heading="h4" />
+      </div>
+      <h3 class="font-semibold">Organizations</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for c in organizations %}<c-contributor.card :contributor="c" heading="h4" />{% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock page.content %}

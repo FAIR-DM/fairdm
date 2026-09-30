@@ -22,6 +22,7 @@ class PersonListView(FairDMListView):
     filterset_class = PersonFilter
     queryset = Person.objects.real()
     list_item_template = "contributors/contributor_card.html"
+    grid = {"md": 2, "xl": 3}
     show_create_action = False
 
     def get_queryset(self):

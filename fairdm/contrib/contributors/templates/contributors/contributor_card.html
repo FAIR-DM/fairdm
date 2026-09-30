@@ -1,23 +1,5 @@
-<c-card>
-  <div class="flex align-center gap-3">
-    <c-avatar src="{{ object.get_photo_url }}"
-              alt="{{ user }}"
-              size="xxl" />
-    <div>
-      <h2 class="card-title">
-        {{ object }}
-      </h4>
-      <c-text muted>
-        Senior Researcher · University of Example
-      </c-text>
-      <c-text small>
-        Member since {{ object.added|date:"Y" }}. Sedimentary geochemistry and isotope analysis.
-      </c-text>
-      {{ object.get_absolute_url }}
-      <c-menu horizontal>
-        <c-menu.item label="{% trans "View profile" %}"
-                     href="{{ object.get_absolute_url }}"
-                     icon="overview" />
-      </c-menu>
-    </div>
-  </c-card>
+{% comment %}
+  One contributor in a listing: the people, organizations and team listings and a record's
+  contributors tab. `object` is a Person, an Organization or a Contribution.
+{% endcomment %}
+<c-contributor.card :contributor="object" />

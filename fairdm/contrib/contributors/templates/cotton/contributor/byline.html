@@ -1,0 +1,33 @@
+{% load i18n contributor_tags %}
+{% comment %}
+  <c-contributor.byline> — names in a row, each with its face. The header of a record page: who
+  made this, recognisable at a glance and each one a link.
+
+  Attributes:
+    contributors – contributions or contributors (a list or queryset)
+    max          – people shown before the count (default 6; 0 shows everyone)
+    total        – the real total, when `contributors` was already cut short
+    size         – avatar size, xs (default) or sm
+    :identifier  – True to follow each name with its ORCID iD icon (default: left out)
+    more_url     – where the full list lives
+    label        – accessible name of the list (default "Contributors")
+    class        – extra classes
+{% endcomment %}
+<c-vars contributors max="6" total size="xs" :identifier="False" more_url label class />
+{% split_contributors contributors max total as group %}
+{% if group.shown %}
+  <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm {{ class }}" aria-label="{% firstof label _('Contributors') %}" {{ attrs }}>
+    {% for c in group.shown %}
+      <li class="inline-flex items-center gap-2 min-w-0">
+        <c-contributor.avatar :contributor="c" size="{{ size }}" />
+        <c-contributor.name :contributor="c" :identifier="identifier" />
+      </li>
+    {% endfor %}
+    {% if group.more %}
+      <li>
+        {% blocktranslate count counter=group.more asvar others %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
+        {% if more_url %}<a href="{{ more_url }}" class="link link-hover contributor-link">{{ others }}</a>{% else %}<span class="text-base-content/70">{{ others }}</span>{% endif %}
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}

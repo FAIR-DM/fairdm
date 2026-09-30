@@ -1,14 +1,47 @@
-{# @description A card for an organisation with its logo, name, identifier icon and a link to its profile. Reads the context variables `obj`, the organisation, and `contributor`, whose default identifier icon is shown. #}
-<c-card class="overflow-hidden {{ obj.type }}">
-  <c-org.avatar :organization="obj" />
-  <div class="card-img-overlay pb-0" style="top: unset;">
-    <h5 class="card-title fs-6 mt-1 mb-3">{{ obj }}</h5>
-    {% if contributor.get_default_identifier %}
-      <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
-        <c-contributor.icon :contributor="contributor" />
-      </span>
-    {% endif %}
-  </div>
-  <a href="{{ obj.get_absolute_url }}"
-     class="stretched-link"><span class="visually-hidden">{% trans "View profile" %}</span></a>
-</c-card>
+{% load i18n easy_icons contributor_tags %}
+{% comment %}
+  <c-contributor.card.organization> — an organization's directory card: logo, name, what kind of
+  organization it is and where, its ROR ID in full, and how many people and records it counts.
+  The whole card links to the organization; the ROR link stays a target of its own.
+
+  Attributes:
+    contributor – an Organization, or a Contribution crediting one
+    heading     – heading level of the name (default "h3")
+    class       – extra classes
+{% endcomment %}
+<c-vars contributor heading="h3" class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% with location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
+      <article class="contributor-card {{ class }}" {{ attrs }}>
+        <div class="contributor-card__head">
+          <c-contributor.avatar :contributor="c" size="lg" />
+          <div class="flex flex-col gap-1">
+            <{{ heading }} class="font-semibold leading-snug break-words">
+              <a href="{{ c.get_absolute_url }}" class="contributor-card__name link-hover">{{ c.name }}</a>
+            </{{ heading }}>
+            {% if c.type %}<p class="text-sm">{{ c.get_type_display }}</p>{% endif %}
+            {% if location %}
+              <p class="text-sm text-base-content/70 inline-flex items-center gap-1">
+                <span aria-hidden="true">{% icon "location" %}</span>{{ location }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+        <c-contributor.identifier :contributor="c" class="contributor-card__above self-start max-w-full" />
+        {% if c.profile %}
+          <p class="contributor-card__about">{{ c.profile|striptags|truncatechars:220 }}</p>
+        {% endif %}
+        <div class="contributor-card__foot">
+          {% if members %}
+            <span>{% blocktranslate count counter=members %}<span class="font-semibold text-base-content tabular-nums">{{ counter }}</span> member{% plural %}<span class="font-semibold text-base-content tabular-nums">{{ counter }}</span> members{% endblocktranslate %}</span>
+          {% endif %}
+          {% for label, count in counts.items %}
+            <span><span class="font-semibold text-base-content tabular-nums">{{ count }}</span> {{ label }}</span>
+          {% endfor %}
+          {% if not members and not counts %}<span>{% translate "No members or credits yet" %}</span>{% endif %}
+        </div>
+      </article>
+    {% endwith %}
+  {% endif %}
+{% endwith %}
