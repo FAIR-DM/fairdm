@@ -1,0 +1,18 @@
+{% load contributor_tags %}
+{% comment %}
+  <c-contributor.row> — <c-contributor.item> as a DaisyUI list row, for use inside a <c-list>,
+  with an `actions` slot for buttons at the end of the row.
+
+  Attributes:
+    contributor – a Person, an Organization, or a Contribution
+    class       – extra classes on the row
+  Slots:
+    actions     – buttons at the end of the row
+{% endcomment %}
+<c-vars contributor class />
+{% if contributor|as_contributor %}
+  <c-list.row class="items-center {{ class }}">
+    <c-contributor.item :contributor="contributor" size="md" class="list-col-grow" />
+    {% if actions %}<div class="flex items-center">{{ actions }}</div>{% endif %}
+  </c-list.row>
+{% endif %}

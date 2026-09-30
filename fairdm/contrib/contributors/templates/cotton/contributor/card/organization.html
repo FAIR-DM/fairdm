@@ -1,14 +1,43 @@
-{# @description A card for an organisation with its logo, name, identifier icon and a link to its profile. Reads the context variables `obj`, the organisation, and `contributor`, whose default identifier icon is shown. #}
-<c-card class="overflow-hidden {{ obj.type }}">
-  <c-org.avatar :organization="obj" />
-  <div class="card-img-overlay pb-0" style="top: unset;">
-    <h5 class="card-title fs-6 mt-1 mb-3">{{ obj }}</h5>
-    {% if contributor.get_default_identifier %}
-      <span class="position-absolute top-0 start-0 ms-2 mt-1 z-1">
-        <c-contributor.icon :contributor="contributor" />
-      </span>
-    {% endif %}
-  </div>
-  <a href="{{ obj.get_absolute_url }}"
-     class="stretched-link"><span class="visually-hidden">{% trans "View profile" %}</span></a>
-</c-card>
+{% load i18n easy_icons contributor_tags %}
+{% comment %}
+  <c-contributor.card.organization> — an organization's card for the organizations listing: logo,
+  name with ROR ID, its type and place, and how many members and credits it has.
+
+  Attributes:
+    contributor – an Organization, or a Contribution crediting one
+    class       – extra classes on the card
+{% endcomment %}
+<c-vars contributor class />
+{% with c=contributor|as_contributor %}
+  {% if c %}
+    {% contribution_roles contributor as roles %}
+    {% with location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
+      <c-card.wrapper class="h-full py-5 {{ class }}">
+        <figure class="px-6 pt-6">
+          <c-contributor.avatar :contributor="c" size="xl" />
+        </figure>
+        <div class="card-body items-center text-center">
+          <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
+          {% if c.type %}<c-badge text="{{ c.get_type_display }}" variant="primary" class="badge-soft" />{% endif %}
+          {% if location %}
+            <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
+          {% endif %}
+          {% if roles %}
+            <div class="flex flex-wrap justify-center gap-1">
+              {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+            </div>
+          {% endif %}
+          <div class="card-actions justify-center mt-2">
+            {% if members %}
+              <c-badge variant="neutral" class="badge-soft">{% blocktranslate count counter=members %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktranslate %}</c-badge>
+            {% endif %}
+            {% for label, count in counts.items %}
+              <c-badge variant="neutral" class="badge-soft">{{ count }} {{ label }}</c-badge>
+            {% endfor %}
+            {% if not members and not counts %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
+          </div>
+        </div>
+      </c-card.wrapper>
+    {% endwith %}
+  {% endif %}
+{% endwith %}

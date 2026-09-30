@@ -1,0 +1,28 @@
+{% load i18n contributor_tags %}
+{% comment %}
+  <c-contributor.stack> — a DaisyUI avatar group: overlapping faces, then a "+N" placeholder for
+  the rest, which links to the full list when `more_url` is given.
+
+  Attributes:
+    contributors – contributions or contributors (a list or queryset)
+    max          – faces before the count (default 5)
+    total        – the real total, when `contributors` was already cut short
+    size         – c-avatar size: xs · sm (default) · md · lg
+    more_url     – where the full list lives
+    :link        – False when the faces sit inside another link (default: each face links)
+{% endcomment %}
+<c-vars contributors max="5" total size="sm" more_url :link="True" />
+{% split_contributors contributors max total as group %}
+{% if group.shown %}
+  <c-avatar.group size="{{ size }}">
+    {% for c in group.shown %}
+      {% if link %}<c-contributor.avatar :contributor="c" size="{{ size }}" link />{% else %}<c-contributor.avatar :contributor="c" size="{{ size }}" />{% endif %}
+    {% endfor %}
+    {% if group.more %}
+      {% blocktranslate count counter=group.more asvar more_label %}{{ counter }} more contributor{% plural %}{{ counter }} more contributors{% endblocktranslate %}
+      {% if more_url and link %}<a href="{{ more_url }}" aria-label="{{ more_label }}" title="{{ more_label }}" class="inline-flex rounded-full">{% endif %}
+      <c-avatar placeholder="+{{ group.more }}" size="{{ size }}" variant="neutral" alt="" />
+      {% if more_url and link %}</a>{% endif %}
+    {% endif %}
+  </c-avatar.group>
+{% endif %}
