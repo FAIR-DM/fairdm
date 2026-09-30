@@ -6,11 +6,11 @@
     contributor – a Person, an Organization, or a Contribution
     class       – extra classes on the card
 {% endcomment %}
-<c-vars contributor :logo="False" class />
+<c-vars contributor :icon="False" class />
 {% with c=contributor|as_contributor %}
   {% if c|is_organization %}
     <c-contributor.card.organization :contributor="contributor" class="{{ class }}" />
   {% elif c %}
-    <c-contributor.card.person :contributor="contributor" :logo="logo" class="{{ class }}" />
+    <c-contributor.card.person :contributor="contributor" :icon="icon" class="{{ class }}" />
   {% endif %}
 {% endwith %}

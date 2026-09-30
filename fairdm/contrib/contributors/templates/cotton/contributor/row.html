@@ -5,12 +5,12 @@
 
   Attributes:
     contributor – a Person, an Organization, or a Contribution
-    :logo       – True to put the affiliation's logo before its name
+    :icon       – True to put the organization icon before the affiliation
     class       – extra classes on the row
   Slots:
     actions     – buttons at the end of the row
 {% endcomment %}
-<c-vars contributor :logo="False" class />
+<c-vars contributor :icon="False" class />
 {% with c=contributor|as_contributor %}
   {% if c %}
     {% contribution_roles contributor as roles %}
@@ -21,7 +21,7 @@
       <div class="list-col-grow min-w-0">
         <c-contributor.name :contributor="c" />
         {% if organization %}
-          <div class="text-xs font-semibold text-base-content/70 flex"><c-contributor.affiliation :organization="organization" :logo="logo" /></div>
+          <div class="text-xs font-semibold text-base-content/70 flex"><c-contributor.affiliation :organization="organization" :icon="icon" /></div>
         {% elif line %}
           <div class="text-xs font-semibold text-base-content/70 truncate">{{ line }}</div>
         {% endif %}

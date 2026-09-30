@@ -94,11 +94,11 @@
           <c-contributor.item :contributor="spotlight.org_long" size="md" />
         </div>
         <div class="flex flex-col gap-3">
-          <h3 class="font-semibold text-sm">:logo="True"</h3>
-          <c-contributor.item :contributor="spotlight.authenticated" :logo="True" />
-          <c-contributor.item :contributor="spotlight.unauthenticated" :logo="True" />
-          <c-contributor.item :contributor="spotlight.script" size="md" :logo="True" />
-          <c-contributor.item :contributor="spotlight.long" size="md" :logo="True" />
+          <h3 class="font-semibold text-sm">:icon="True"</h3>
+          <c-contributor.item :contributor="spotlight.authenticated" :icon="True" />
+          <c-contributor.item :contributor="spotlight.unauthenticated" :icon="True" />
+          <c-contributor.item :contributor="spotlight.script" size="md" :icon="True" />
+          <c-contributor.item :contributor="spotlight.long" size="md" :icon="True" />
         </div>
         <div class="flex flex-col gap-3 max-w-64">
           <h3 class="font-semibold text-sm">Given a credit, in a narrow column</h3>
@@ -188,9 +188,9 @@
           {% for credit in few %}<c-contributor.row :contributor="credit" />{% endfor %}
           {% for credit in many|slice:"-2:" %}<c-contributor.row :contributor="credit" />{% endfor %}
         </c-list>
-        <c-list title="With the affiliation logo" class="bg-base-100 rounded-box shadow-sm">
-          {% for credit in few %}<c-contributor.row :contributor="credit" :logo="True" />{% endfor %}
-          <c-contributor.row :contributor="spotlight.long" :logo="True" />
+        <c-list title="With the organization icon" class="bg-base-100 rounded-box shadow-sm">
+          {% for credit in few %}<c-contributor.row :contributor="credit" :icon="True" />{% endfor %}
+          <c-contributor.row :contributor="spotlight.long" :icon="True" />
         </c-list>
         <c-list title="With row actions" class="bg-base-100 rounded-box shadow-sm">
           {% for credit in one %}
@@ -218,9 +218,9 @@
         {% for c in people|slice:":9" %}<c-contributor.card :contributor="c" />{% endfor %}
         <c-contributor.card :contributor="spotlight.no_orcid" />
       </div>
-      <h3 class="font-semibold">People, with the affiliation logo</h3>
+      <h3 class="font-semibold">People, with the organization icon</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {% for c in people|slice:":3" %}<c-contributor.card :contributor="c" :logo="True" />{% endfor %}
+        {% for c in people|slice:":3" %}<c-contributor.card :contributor="c" :icon="True" />{% endfor %}
       </div>
       <h3 class="font-semibold">Organizations</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
