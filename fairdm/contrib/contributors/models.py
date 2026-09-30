@@ -1265,7 +1265,10 @@ class Organization(Contributor):
     @property
     def summary(self):
         """The organisation's type and place, joined by a middle dot, or an empty string."""
-        parts = [self.get_type_display() if self.type else "", self.get_location_display() or ""]
+        parts = [
+            self.get_type_display() if self.type else "",
+            self.get_location_display() or "",
+        ]
         return " · ".join(str(p) for p in parts if p)
 
     def get_initials(self):

@@ -57,7 +57,11 @@ def as_contributor(value):
         value = value.contributor
     # A foreign key to the polymorphic base returns a plain Contributor; the display needs to
     # know whether it is a person or an organization.
-    if value is not None and type(value).__name__ == "Contributor" and hasattr(value, "get_real_instance"):
+    if (
+        value is not None
+        and type(value).__name__ == "Contributor"
+        and hasattr(value, "get_real_instance")
+    ):
         value = value.get_real_instance()
     return value
 
