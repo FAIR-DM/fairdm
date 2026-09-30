@@ -69,7 +69,7 @@ Add dataset and a Manage menu holding Edit details, Edit descriptions, Manage co
 for a user who may delete the project, Delete. A user who may delete a project but not change it
 sees a Manage menu holding only Delete.
 
-**Notices.** The team of a private project is told the project is private. A project whose status
+**Notices.** Someone who may change a private project is told the project is private. A project whose status
 is "Searching for collaborators" says so and names who to contact, the contact person or else the
 first leader.
 
@@ -142,9 +142,9 @@ announced as not available yet while the dataset is unpublished, and a Manage me
 details, Edit descriptions and, for a user who may delete the dataset, Delete. A user who may
 delete a dataset but not change it sees a Manage menu holding only Delete.
 
-**Notices.** A private dataset tells its team that only they can open the page. A public dataset
-that is not published yet tells a visitor that its data is not published, and tells the team that
-its records stay hidden until it is. A dataset with a Withdrawn date says it has been withdrawn
+**Notices.** A private dataset tells anyone who may change it that only people with access can
+open the page. A public dataset that is not published yet tells a visitor that its data is not
+published, and tells people who may change it that its records stay hidden until it is. A dataset with a Withdrawn date says it has been withdrawn
 and that the page stays so existing citations still resolve.
 
 **Figures.** Samples, measurements, contributors and related publications.
@@ -250,8 +250,8 @@ Those pages are not tabs. They keep their addresses (`/samples/<uuid>/edit/`,
 tab strip.
 
 **Notices.** A destroyed specimen says it no longer exists and that its record and measurements
-are kept. A sample whose dataset is not public and published tells the dataset's team that only
-they can see it.
+are kept. A sample whose dataset is not public and published says that only people with access to
+the dataset can see it.
 
 **Figures.** Measurements, related samples and people credited.
 
@@ -304,7 +304,7 @@ browser title.
 **Header.** The type as a badge. Where the registry describes the type, the badge opens that
 description in a dialog, with the type's keywords, the authority that maintains its schema and how
 to cite it. A type the registry does not describe opens nothing. A measurement whose dataset is not
-public and published tells the dataset's team that only they can see it.
+public and published says that only people with access to the dataset can see it.
 
 **Figures.** The result. A type that declares a `value` (and optionally an `uncertainty`) gets it
 shown as "value ± uncertainty unit" with no template of its own. A type that records its result
@@ -318,7 +318,7 @@ is the block a measurement type fills with its own fields.
   the date, the contributor role that performed it and the description that explains it.
 - *Measured on* shows the sample as a small version of its own header: its image or icon, type and
   status, name, local ID, dataset and keywords. A measurement recorded in a different dataset from
-  its sample says so, since that is how one team measures another team's specimens.
+  its sample says so, since that is how one group measures specimens another group collected.
 - *Other measurements on this sample* lists up to eight, most recent first, and counts the rest.
 
 **Side column.** Details (its project, dataset, licence, and when it was added and last updated),

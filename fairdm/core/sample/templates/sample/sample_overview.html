@@ -55,7 +55,7 @@
   {% endif %}
   {% if not sample.dataset.data_is_public %}
     <c-alert variant="info" icon="lock" soft>
-      <span>{% translate "Only the dataset's team can see this sample until the dataset is published." %}</span>
+      <span>{% translate "Only people with access to this dataset can see this sample until it is published." %}</span>
     </c-alert>
   {% endif %}
 {% endblock overview.notices %}

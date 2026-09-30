@@ -145,7 +145,7 @@ With one, its name is the card's title. With none, the card is titled "About" an
 
 ```django
 <c-card.descriptions :descriptions="descriptions" group="project-about">
-  <p>The team has not described this project yet.</p>
+  <p>No description has been added yet.</p>
 </c-card.descriptions>
 ```
 

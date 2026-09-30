@@ -50,7 +50,7 @@
 {% block overview.notices %}
   {% if can_manage and project.visibility != project.VISIBILITY.PUBLIC %}
     <c-alert variant="warning" icon="lock" soft>
-      <span>{% translate "This project is private. Only its team can open this page, and none of its datasets can be found by anyone else until the project is made public." %}</span>
+      <span>{% translate "This project is private. Only people with access to it can open this page, and none of its datasets can be found by anyone else until the project is made public." %}</span>
       <c-button href="{{ urls.update }}" text="{% translate 'Change visibility' %}" size="sm" />
     </c-alert>
   {% endif %}
@@ -82,7 +82,7 @@
           <c-button href="{{ urls.descriptions }}" text="{% translate 'Write an abstract' %}" icon="description" size="sm" variant="primary" />
         </div>
       {% else %}
-        <p class="text-base-content/70">{% translate "The team hasn't described this project yet." %}</p>
+        <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
       {% endif %}
     </c-card.descriptions>
   {% endblock overview.about %}

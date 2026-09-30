@@ -31,7 +31,7 @@
 {% block overview.notices %}
   {% if not measurement.dataset.data_is_public %}
     <c-alert variant="info" icon="lock" soft>
-      <span>{% translate "Only the dataset's team can see this measurement until the dataset is published." %}</span>
+      <span>{% translate "Only people with access to this dataset can see this measurement until it is published." %}</span>
     </c-alert>
   {% endif %}
 {% endblock overview.notices %}
@@ -108,7 +108,7 @@
       {% endif %}
       {% if other_dataset %}
         <c-alert variant="info" icon="info" soft class="mt-3">
-          <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one team measures specimens another team collected." %}</span>
+          <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one group measures specimens another group collected." %}</span>
         </c-alert>
       {% endif %}
     </c-card>

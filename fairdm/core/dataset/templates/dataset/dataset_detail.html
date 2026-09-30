@@ -54,7 +54,7 @@
 {% block overview.notices %}
   {% if access.state == "private" and can_manage %}
     <c-alert variant="warning" icon="lock" soft>
-      <span>{% translate "This dataset is private. Only its team can open this page." %}</span>
+      <span>{% translate "This dataset is private. Only people with access to it can open this page." %}</span>
       <c-button href="{{ urls.update }}" text="{% translate 'Change visibility' %}" size="sm" />
     </c-alert>
   {% elif access.state == "public" %}
@@ -63,7 +63,7 @@
         {% if can_manage %}
           {% translate "Anyone can read this description, but the records stay hidden until the dataset is published." %}
         {% else %}
-          {% translate "The data in this dataset hasn't been published yet. You can read what it holds, and the records open to everyone once the team publishes it." %}
+          {% translate "The data in this dataset hasn't been published yet. You can read what it holds, and the records open to everyone once the dataset is published." %}
         {% endif %}
       </span>
     </c-alert>
@@ -93,7 +93,7 @@
           <c-button href="{{ urls.descriptions }}" text="{% translate 'Write a description' %}" icon="description" size="sm" variant="primary" />
         </div>
       {% else %}
-        <p class="text-base-content/70">{% translate "The team hasn't described this dataset yet." %}</p>
+        <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
       {% endif %}
     </c-card.descriptions>
   {% endblock overview.about %}

@@ -173,3 +173,10 @@
 - Verified: `uv run pytest tests/test_core/test_measurement tests/test_templates -q`: 353 passed; the three new tests failed first. Pre-commit run below.
 - Next: TC13.
 - Watch: the name column is not nullable, so "no name" is the empty string; the test uses that.
+
+## 2026-09-30 · FIX-2 · TC13
+
+- Did: no shown string on the four pages or their cards says "team" any more: the private notices, the unpublished-data notices, the empty description lines, the partner-dataset notice and the readiness badge now speak of people with access, of a group, or say nothing about who. Searched the templates and the Python that builds shown strings; the only remaining "team" there is in identifiers, docstrings and comments. Docs that quoted or paraphrased the strings updated. All still `translate`d.
+- Verified: `uv run pytest tests/test_core tests/test_templates tests/test_demo -q -n auto --dist loadscope`: 1578 passed, 7 skipped (already skipped). Pre-commit green. No test pins copy.
+- Next: the full verify, then the report.
+- Watch: the docs still use "team" in prose that describes who may change a record.
