@@ -3,7 +3,7 @@
   "feature": "018-overview-pages",
   "branch": "018-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "GATE_MERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-09-29T15:41:45Z",
       "note": "S6 green; PR ready for the walkthrough"
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-09-30T13:36:51Z",
+      "note": "walkthrough approved; waiting for Sam's merge"
     }
   ],
   "gates": {
@@ -78,9 +83,9 @@
     },
     "walkthrough": {
       "approved_by": "SamuelJennings",
-      "at": "2026-09-30T10:43:39Z",
+      "at": "2026-09-30T13:36:41Z",
       "self_resolved": [
-        "no 'team' wording on the pages — fix in progress"
+        "second walkthrough \u2014 all seven requests done; approved as a solid start"
       ]
     }
   },
