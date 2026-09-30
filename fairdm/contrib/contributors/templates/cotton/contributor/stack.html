@@ -1,41 +1,28 @@
 {% load i18n contributor_tags %}
 {% comment %}
-  <c-contributor.stack> — overlapping faces: who is involved, at a glance. Past `max` the rest
-  are counted in a "+N" that links to the full list when `more_url` is given.
-
-  Each face links to the contributor and carries their name, so the stack can stand alone; put a
-  name list beside it when the names matter. At xs the faces are named but not linked: overlapped,
-  they are too small to be targets.
+  <c-contributor.stack> — a DaisyUI avatar group: overlapping faces, then a "+N" placeholder for
+  the rest, which links to the full list when `more_url` is given.
 
   Attributes:
     contributors – contributions or contributors (a list or queryset)
-    max          – faces shown before the count (default 5)
+    max          – faces before the count (default 5)
     total        – the real total, when `contributors` was already cut short
-    size         – xs · sm (default) · md · lg
+    size         – c-avatar size: xs · sm (default) · md · lg
     more_url     – where the full list lives
-    label        – accessible name of the group (default "Contributors")
-    class        – extra classes
+    :link        – False when the faces sit inside another link (default: each face links)
 {% endcomment %}
-<c-vars contributors max="5" total size="sm" more_url label class />
+<c-vars contributors max="5" total size="sm" more_url :link="True" />
 {% split_contributors contributors max total as group %}
 {% if group.shown %}
-  <ul class="contributor-stack {{ class }}"
-      aria-label="{% firstof label _('Contributors') %}"
-      {% if size == "xs" %}style="--contributor-stack-overlap: 0.375rem"{% elif size == "md" %}style="--contributor-stack-overlap: 0.625rem"{% elif size == "lg" %}style="--contributor-stack-overlap: 1rem"{% endif %}
-      {{ attrs }}>
+  <c-avatar.group size="{{ size }}">
     {% for c in group.shown %}
-      {# Overlapped, an xs face leaves less than the 24px target WCAG 2.5.8 asks of a link. #}
-      <li>{% if size == "xs" %}<c-contributor.avatar :contributor="c" size="xs" label />{% else %}<c-contributor.avatar :contributor="c" size="{{ size }}" link />{% endif %}</li>
+      {% if link %}<c-contributor.avatar :contributor="c" size="{{ size }}" link />{% else %}<c-contributor.avatar :contributor="c" size="{{ size }}" />{% endif %}
     {% endfor %}
     {% if group.more %}
-      <li>
-        {% blocktranslate count counter=group.more asvar more_label %}{{ counter }} more contributor{% plural %}{{ counter }} more contributors{% endblocktranslate %}
-        {% if more_url %}
-          <a href="{{ more_url }}" class="contributor-avatar contributor-avatar--{{ size }} contributor-stack__more" aria-label="{{ more_label }}" title="{{ more_label }}">+{{ group.more }}</a>
-        {% else %}
-          <span class="contributor-avatar contributor-avatar--{{ size }} contributor-stack__more" role="img" aria-label="{{ more_label }}" title="{{ more_label }}">+{{ group.more }}</span>
-        {% endif %}
-      </li>
+      {% blocktranslate count counter=group.more asvar more_label %}{{ counter }} more contributor{% plural %}{{ counter }} more contributors{% endblocktranslate %}
+      {% if more_url and link %}<a href="{{ more_url }}" aria-label="{{ more_label }}" title="{{ more_label }}" class="inline-flex rounded-full">{% endif %}
+      <c-avatar placeholder="+{{ group.more }}" size="{{ size }}" variant="neutral" alt="" />
+      {% if more_url and link %}</a>{% endif %}
     {% endif %}
-  </ul>
+  </c-avatar.group>
 {% endif %}

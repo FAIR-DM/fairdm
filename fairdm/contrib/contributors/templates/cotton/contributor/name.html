@@ -14,7 +14,7 @@
     class       – extra classes on the name
 {% endcomment %}<c-vars contributor format :link="True" :identifier="True" class />{% with c=contributor|as_contributor %}{% if c %}{% contributor_name c format as display_name %}<span class="inline-flex items-center gap-1 {{ class }}" {{ attrs }}>
       {% if link %}
-        <a href="{{ c.get_absolute_url }}" class="link link-hover contributor-link">{{ display_name }}</a>
+        <a href="{{ c.get_absolute_url }}" class="link link-hover">{{ display_name }}</a>
       {% else %}
         <span>{{ display_name }}</span>
       {% endif %}
@@ -22,13 +22,19 @@
         {% contributor_orcid c as orcid %}
         {% if orcid %}
           <a href="{{ orcid.url }}"
-             class="contributor-orcid contributor-link"
+             class="inline-flex"
              target="_blank"
              rel="noopener"
              title="{% if orcid.authenticated %}ORCID iD {{ orcid.value }}{% else %}{% blocktranslate with value=orcid.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
              aria-label="{% if orcid.authenticated %}{% blocktranslate with name=display_name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=display_name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}">
             {% if orcid.authenticated %}{% icon "orcid" %}{% else %}{% icon "orcid_unauthenticated" %}{% endif %}
           </a>
+        {% else %}
+          {% contributor_ror c as ror %}
+          {% if ror %}
+            <a href="{{ ror.url }}" class="inline-flex" target="_blank" rel="noopener" title="ROR ID {{ ror.value }}"
+               aria-label="{% blocktranslate with name=display_name %}ROR record of {{ name }}{% endblocktranslate %}">{% icon "ror" %}</a>
+          {% endif %}
         {% endif %}
       {% endif %}
     </span>{% endif %}{% endwith %}

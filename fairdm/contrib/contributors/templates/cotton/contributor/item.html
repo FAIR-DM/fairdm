@@ -1,37 +1,27 @@
-{% load i18n contributor_tags %}
+{% load contributor_tags %}
 {% comment %}
-  <c-contributor.item> — avatar, name and one line beneath it. The unit for "who is this" in a
-  sidebar, a menu, a table cell or a short list.
-
-  The second line tells same-named contributors apart: a person's affiliation, an organization's
-  type and place. Given a contribution, it shows the roles on that credit instead.
+  <c-contributor.item> — avatar with a name and one short line beneath: a person's affiliation,
+  an organization's type and place, or — given a contribution — the roles on that credit.
 
   Attributes:
     contributor – a Person, an Organization, or a Contribution
-    size        – "sm" (32px avatar, default) or "md" (40px)
-    secondary   – text to show instead of the default second line; "none" to leave it out
+    size        – avatar size, "sm" (default) or "md"
+    secondary   – text for the second line instead; "none" to leave it out
     :link       – False for plain text (default: the name links)
     class       – extra classes
 {% endcomment %}
 <c-vars contributor size="sm" secondary :link="True" class />
 {% with c=contributor|as_contributor %}
   {% if c %}
+    {% contribution_roles contributor as roles %}
+    {% contributor_secondary c contributor as line %}
     <div class="flex items-center gap-3 min-w-0 {{ class }}" {{ attrs }}>
       <c-contributor.avatar :contributor="c" size="{{ size }}" />
-      <div class="min-w-0 leading-tight">
-        <c-contributor.name :contributor="c" :link="link" class="font-medium" />
+      <div class="min-w-0">
+        <c-contributor.name :contributor="c" :link="link" />
         {% if secondary != "none" %}
-          {% if secondary %}
-            <div class="text-sm text-base-content/70 truncate">{{ secondary }}</div>
-          {% else %}
-            {% contribution_roles contributor as roles %}
-            {% if roles %}
-              <div class="text-sm text-base-content/70 truncate">{{ roles|join:" · " }}</div>
-            {% else %}
-              {% contributor_secondary c as line %}
-              {% if line %}<div class="text-sm text-base-content/70 truncate" title="{{ line }}">{{ line }}</div>{% endif %}
-            {% endif %}
-          {% endif %}
+          {% firstof secondary roles|join:", " line as text %}
+          {% if text %}<div class="text-xs uppercase font-semibold text-base-content/70 truncate">{{ text }}</div>{% endif %}
         {% endif %}
       </div>
     </div>

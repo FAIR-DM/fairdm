@@ -1,41 +1,29 @@
-{% load i18n easy_icons contributor_tags %}
+{% load contributor_tags %}
 {% comment %}
-  <c-contributor.avatar> — one contributor's face or logo.
+  <c-contributor.avatar> — a contributor's photo or logo, through django-mvp's <c-avatar>.
+  A person is round; an organization is a rounded box on the neutral colour. Without an image it
+  shows the contributor's initials.
 
-  A person is a circle, an organization a rounded square. With no image a person shows their
-  initials and an organization a building, on a tint that stays the same for that contributor.
-
-  Decorative by default: put the name beside it. Standing alone, pass `label` so it is announced.
+  Decorative by default: put the name beside it. Standing alone, pass `link` or `label`.
 
   Attributes:
-    contributor – a Person, an Organization, or a Contribution (its contributor is drawn)
-    size        – xs 24px · sm 32px · md 40px (default) · lg 64px · xl 96px
-    link        – "true" wraps it in a link to the contributor's page, labelled with the name
-    label       – "true" gives a lone avatar the contributor's name as its accessible name
-    class       – extra classes
+    contributor – a Person, an Organization, or a Contribution
+    size        – c-avatar size: xs · sm · md (default) · lg · xl · xxl
+    link        – wrap it in a link to the contributor, named for them
+    label       – name it for assistive technology without linking it
+    class       – extra classes on the avatar
 {% endcomment %}
 <c-vars contributor size="md" link label class />
 {% with c=contributor|as_contributor %}
-  {% contributor_avatar c size as av %}
-  {% if link and c %}
-    <a href="{{ c.get_absolute_url }}"
-       class="contributor-avatar contributor-avatar--{{ size }}{% if av.organization %} contributor-avatar--organization{% endif %}{% if av.src %} contributor-avatar--image{% else %} contributor-avatar--tint-{{ av.tint }}{% endif %} {{ class }}"
-       aria-label="{{ c.name }}"
-       title="{{ c.name }}"
-       {{ attrs }}>
-  {% else %}
-    <span class="contributor-avatar contributor-avatar--{{ size }}{% if av.organization %} contributor-avatar--organization{% endif %}{% if av.src %} contributor-avatar--image{% else %} contributor-avatar--tint-{{ av.tint }}{% endif %} {{ class }}"
-          {% if label %}role="img" aria-label="{{ c.name }}" title="{{ c.name }}"{% else %}aria-hidden="true"{% endif %}
-          {{ attrs }}>
+  {% if c %}
+    {% if link %}<a href="{{ c.get_absolute_url }}" aria-label="{{ c.name }}" title="{{ c.name }}" class="inline-flex rounded-box">{% endif %}
+    <c-avatar :for="c"
+              size="{{ size }}"
+              alt="{% if label %}{{ c.name }}{% endif %}"
+              placeholder="{{ c|initials }}"
+              shape="{% if c|is_organization %}rounded-box{% else %}rounded-full{% endif %}"
+              variant="{% if c|is_organization %}neutral{% else %}primary{% endif %}"
+              class="{{ class }}" />
+    {% if link %}</a>{% endif %}
   {% endif %}
-    {% if av.src %}
-      <img src="{{ av.src }}" alt="" loading="lazy" />
-    {% elif av.initials %}
-      <span aria-hidden="true">{{ av.initials }}</span>
-    {% elif av.organization %}
-      <span class="contributor-avatar__icon" aria-hidden="true">{% icon "organization" %}</span>
-    {% else %}
-      <span class="contributor-avatar__icon" aria-hidden="true">{% icon "member" %}</span>
-    {% endif %}
-  {% if link and c %}</a>{% else %}</span>{% endif %}
 {% endwith %}

@@ -1,46 +1,42 @@
 {% load i18n easy_icons contributor_tags %}
 {% comment %}
-  <c-contributor.card.person> — a person's directory card: face, name, where they work and are
-  based, their ORCID iD in full, the start of their profile and what they are credited on.
-  The whole card links to the person; the ORCID link stays a target of its own.
+  <c-contributor.card.person> — a person's card for the people listing: photo, name with ORCID
+  iD, affiliation and place, and what they are credited on.
 
   Attributes:
     contributor – a Person, or a Contribution crediting one
-    heading     – heading level of the name (default "h3")
-    class       – extra classes
+    class       – extra classes on the card
 {% endcomment %}
-<c-vars contributor heading="h3" class />
+<c-vars contributor class />
 {% with c=contributor|as_contributor %}
   {% if c %}
-    {% contributor_secondary c as affiliation %}
+    {% contributor_secondary c contributor as affiliation %}
+    {% contribution_roles contributor as roles %}
     {% with location=c.get_location_display counts=c.get_credit_counts %}
-      <article class="contributor-card {{ class }}" {{ attrs }}>
-        <div class="contributor-card__head">
-          <c-contributor.avatar :contributor="c" size="lg" />
-          <div class="flex flex-col gap-1">
-            <{{ heading }} class="font-semibold leading-snug break-words">
-              <a href="{{ c.get_absolute_url }}" class="contributor-card__name link-hover">{{ c.name }}</a>
-            </{{ heading }}>
-            {% if affiliation %}<p class="text-sm">{{ affiliation }}</p>{% endif %}
-            {% if location %}
-              <p class="text-sm text-base-content/70 inline-flex items-center gap-1">
-                <span aria-hidden="true">{% icon "location" %}</span>{{ location }}
-              </p>
-            {% endif %}
+      <c-card.wrapper class="h-full {{ class }}">
+        <figure class="px-6 pt-6">
+          <c-contributor.avatar :contributor="c" size="xl" />
+        </figure>
+        <div class="card-body items-center text-center">
+          <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
+          {% if affiliation %}<p class="grow-0">{{ affiliation }}</p>{% endif %}
+          {% if location %}
+            <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
+          {% endif %}
+          {% if roles %}
+            <div class="flex flex-wrap justify-center gap-1">
+              {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+            </div>
+          {% endif %}
+          <div class="card-actions justify-center mt-2">
+            {% for label, count in counts.items %}
+              <c-badge variant="neutral" class="badge-soft">{{ count }} {{ label }}</c-badge>
+            {% empty %}
+              <span class="text-sm text-base-content/70">{% translate "Not credited on anything yet" %}</span>
+            {% endfor %}
           </div>
         </div>
-        <c-contributor.identifier :contributor="c" class="contributor-card__above self-start max-w-full" />
-        {% if c.profile %}
-          <p class="contributor-card__about">{{ c.profile|striptags|truncatechars:220 }}</p>
-        {% endif %}
-        <div class="contributor-card__foot">
-          {% for label, count in counts.items %}
-            <span><span class="font-semibold text-base-content tabular-nums">{{ count }}</span> {{ label }}</span>
-          {% empty %}
-            <span>{% translate "Not credited on anything yet" %}</span>
-          {% endfor %}
-        </div>
-      </article>
+      </c-card.wrapper>
     {% endwith %}
   {% endif %}
 {% endwith %}

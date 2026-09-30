@@ -1,47 +1,43 @@
 {% load i18n easy_icons contributor_tags %}
 {% comment %}
-  <c-contributor.card.organization> — an organization's directory card: logo, name, what kind of
-  organization it is and where, its ROR ID in full, and how many people and records it counts.
-  The whole card links to the organization; the ROR link stays a target of its own.
+  <c-contributor.card.organization> — an organization's card for the organizations listing: logo,
+  name with ROR ID, its type and place, and how many members and credits it has.
 
   Attributes:
     contributor – an Organization, or a Contribution crediting one
-    heading     – heading level of the name (default "h3")
-    class       – extra classes
+    class       – extra classes on the card
 {% endcomment %}
-<c-vars contributor heading="h3" class />
+<c-vars contributor class />
 {% with c=contributor|as_contributor %}
   {% if c %}
+    {% contribution_roles contributor as roles %}
     {% with location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
-      <article class="contributor-card {{ class }}" {{ attrs }}>
-        <div class="contributor-card__head">
-          <c-contributor.avatar :contributor="c" size="lg" />
-          <div class="flex flex-col gap-1">
-            <{{ heading }} class="font-semibold leading-snug break-words">
-              <a href="{{ c.get_absolute_url }}" class="contributor-card__name link-hover">{{ c.name }}</a>
-            </{{ heading }}>
-            {% if c.type %}<p class="text-sm">{{ c.get_type_display }}</p>{% endif %}
-            {% if location %}
-              <p class="text-sm text-base-content/70 inline-flex items-center gap-1">
-                <span aria-hidden="true">{% icon "location" %}</span>{{ location }}
-              </p>
+      <c-card.wrapper class="h-full {{ class }}">
+        <figure class="px-6 pt-6">
+          <c-contributor.avatar :contributor="c" size="xl" />
+        </figure>
+        <div class="card-body items-center text-center">
+          <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
+          {% if c.type %}<c-badge text="{{ c.get_type_display }}" variant="primary" class="badge-soft" />{% endif %}
+          {% if location %}
+            <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
+          {% endif %}
+          {% if roles %}
+            <div class="flex flex-wrap justify-center gap-1">
+              {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+            </div>
+          {% endif %}
+          <div class="card-actions justify-center mt-2">
+            {% if members %}
+              <c-badge variant="neutral" class="badge-soft">{% blocktranslate count counter=members %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktranslate %}</c-badge>
             {% endif %}
+            {% for label, count in counts.items %}
+              <c-badge variant="neutral" class="badge-soft">{{ count }} {{ label }}</c-badge>
+            {% endfor %}
+            {% if not members and not counts %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
           </div>
         </div>
-        <c-contributor.identifier :contributor="c" class="contributor-card__above self-start max-w-full" />
-        {% if c.profile %}
-          <p class="contributor-card__about">{{ c.profile|striptags|truncatechars:220 }}</p>
-        {% endif %}
-        <div class="contributor-card__foot">
-          {% if members %}
-            <span>{% blocktranslate count counter=members %}<span class="font-semibold text-base-content tabular-nums">{{ counter }}</span> member{% plural %}<span class="font-semibold text-base-content tabular-nums">{{ counter }}</span> members{% endblocktranslate %}</span>
-          {% endif %}
-          {% for label, count in counts.items %}
-            <span><span class="font-semibold text-base-content tabular-nums">{{ count }}</span> {{ label }}</span>
-          {% endfor %}
-          {% if not members and not counts %}<span>{% translate "No members or credits yet" %}</span>{% endif %}
-        </div>
-      </article>
+      </c-card.wrapper>
     {% endwith %}
   {% endif %}
 {% endwith %}

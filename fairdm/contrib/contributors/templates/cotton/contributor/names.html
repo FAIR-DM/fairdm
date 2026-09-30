@@ -19,7 +19,7 @@
 {% split_contributors contributors max total as group %}
 {% if group.shown %}
   <span class="{{ class }}" {{ attrs }}>
-    {% for c in group.shown %}{% if not forloop.first %}{% if forloop.last and not group.more %} {% translate "and" %} {% else %}, {% endif %}{% endif %}<c-contributor.name :contributor="c" format="{{ format }}" :identifier="identifier" :link="link" />{% endfor %}{% if group.more %} {% translate "and" %} {% blocktranslate count counter=group.more asvar others %}{{ counter }} other{% plural %}{{ counter }} others{% endblocktranslate %}{% if more_url %}<a href="{{ more_url }}" class="link link-hover contributor-link">{{ others }}</a>{% else %}{{ others }}{% endif %}{% endif %}
+    {% for c in group.shown %}{% if not forloop.first %}{% if forloop.last and not group.more %} {% translate "and" %} {% else %}, {% endif %}{% endif %}<c-contributor.name :contributor="c" format="{{ format }}" :identifier="identifier" :link="link" />{% endfor %}{% if group.more %} {% translate "and" %} {% blocktranslate count counter=group.more asvar others %}{{ counter }} other{% plural %}{{ counter }} others{% endblocktranslate %}{% if more_url %}<a href="{{ more_url }}" class="link link-hover">{{ others }}</a>{% else %}{{ others }}{% endif %}{% endif %}
   </span>
 {% elif empty %}
   <span class="text-base-content/70 {{ class }}">{{ empty }}</span>

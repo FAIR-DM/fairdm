@@ -1,7 +1,6 @@
 {% load i18n contributor_tags %}
 {% comment %}
-  <c-contributor.byline> — names in a row, each with its face. The header of a record page: who
-  made this, recognisable at a glance and each one a link.
+  <c-contributor.byline> — names in a row, each with its avatar: the header of a record page.
 
   Attributes:
     contributors – contributions or contributors (a list or queryset)
@@ -18,7 +17,7 @@
 {% if group.shown %}
   <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm {{ class }}" aria-label="{% firstof label _('Contributors') %}" {{ attrs }}>
     {% for c in group.shown %}
-      <li class="inline-flex items-center gap-2 min-w-0">
+      <li class="flex items-center gap-2">
         <c-contributor.avatar :contributor="c" size="{{ size }}" />
         <c-contributor.name :contributor="c" :identifier="identifier" />
       </li>
@@ -26,7 +25,7 @@
     {% if group.more %}
       <li>
         {% blocktranslate count counter=group.more asvar others %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-        {% if more_url %}<a href="{{ more_url }}" class="link link-hover contributor-link">{{ others }}</a>{% else %}<span class="text-base-content/70">{{ others }}</span>{% endif %}
+        {% if more_url %}<a href="{{ more_url }}" class="link link-hover">{{ others }}</a>{% else %}<span class="text-base-content/70">{{ others }}</span>{% endif %}
       </li>
     {% endif %}
   </ul>

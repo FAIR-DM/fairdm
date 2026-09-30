@@ -41,14 +41,6 @@ def has_role(contribution, roles=None):
     return contribution.roles.filter(name__in=roles).exists()
 
 
-# The six fallback tints an avatar without an image can take. Mixed from theme colours in
-# `fairdm.css`, so they follow the theme; status colours are left out on purpose.
-AVATAR_TINTS = 6
-
-# Image alias per avatar size. The `contributors` aliases are not cropped, so the component
-# crops with `object-fit` and a 2x source keeps a face sharp on a high-density screen.
-AVATAR_IMAGE_ALIAS = {"xs": "small", "sm": "small", "md": "small", "lg": "small", "xl": "medium"}
-
 
 @register.filter
 def as_contributor(value):
@@ -90,40 +82,25 @@ def is_organization(contributor):
     return isinstance(contributor, Organization)
 
 
-@register.simple_tag
-def contributor_avatar(contributor, size="md"):
-    """Everything an avatar needs to draw one contributor.
+@register.filter
+def initials(contributor):
+    """The placeholder text for a contributor without a photo or logo.
 
-    Returns:
-        A dict with ``src`` (image URL or None), ``initials``, ``tint`` (0-5) and
-        ``organization`` (bool).
+    A person's given and family initials; an organization's first two words, which is its
+    acronym when the name starts with one ("GFZ Helmholtz…" gives "G").
     """
-    import hashlib
-
-    from easy_thumbnails.files import get_thumbnailer
-
-    src = None
-    if contributor is not None and contributor.image:
-        try:
-            src = get_thumbnailer(contributor.image)[AVATAR_IMAGE_ALIAS.get(size, "small")].url
-        except Exception:  # A missing or unreadable file falls back to initials, never a 500.
-            src = None
-
-    organization = is_organization(contributor)
-    initials = ""
-    if contributor is not None and not organization:
-        first = (getattr(contributor, "first_name", "") or "").strip()
-        last = (getattr(contributor, "last_name", "") or "").strip()
-        if first or last:
-            initials = (first[:1] + last[:1]).upper()
-        else:
-            words = (contributor.name or "").split()
-            if words:
-                initials = (words[0][:1] + (words[-1][:1] if len(words) > 1 else "")).upper()
-
-    key = str(getattr(contributor, "uuid", "") or getattr(contributor, "pk", ""))
-    tint = int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16) % AVATAR_TINTS
-    return {"src": src, "initials": initials, "tint": tint, "organization": organization}
+    if contributor is None:
+        return ""
+    first = (getattr(contributor, "first_name", "") or "").strip()
+    last = (getattr(contributor, "last_name", "") or "").strip()
+    if first or last:
+        return (first[:1] + last[:1]).upper()
+    words = (contributor.name or "").split()
+    if not words:
+        return ""
+    if words[0].isupper() and len(words[0]) <= 5:
+        return words[0]
+    return "".join(w[:1] for w in words if w[:1].isupper())[:2] or words[0][:1].upper()
 
 
 @register.simple_tag

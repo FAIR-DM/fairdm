@@ -1,18 +1,16 @@
 {% load contributor_tags %}
 {% comment %}
-  <c-contributor.card> — a contributor's directory card, the person or organization card as the
-  contributor calls for. For grids of contributors: the people and organization listings.
+  <c-contributor.card> — the person or organization card, whichever the contributor calls for.
 
   Attributes:
     contributor – a Person, an Organization, or a Contribution
-    heading     – heading level of the name (default "h3")
-    class       – extra classes
+    class       – extra classes on the card
 {% endcomment %}
-<c-vars contributor heading="h3" class />
+<c-vars contributor class />
 {% with c=contributor|as_contributor %}
   {% if c|is_organization %}
-    <c-contributor.card.organization :contributor="c" heading="{{ heading }}" class="{{ class }}" />
+    <c-contributor.card.organization :contributor="contributor" class="{{ class }}" />
   {% elif c %}
-    <c-contributor.card.person :contributor="c" heading="{{ heading }}" class="{{ class }}" />
+    <c-contributor.card.person :contributor="contributor" class="{{ class }}" />
   {% endif %}
 {% endwith %}
