@@ -76,11 +76,12 @@ page. This specification describes the design that review settled on.
   dataset the header's badges and notices already say it.
 - Q: In what order do the side column's cards appear? → A: The readiness checklist (team only),
   Details, a dataset's timeline, then People, Identifiers, Funding and the citation, then cards
-  particular to the record. Every page follows that order and leaves out what it does not have.
-- Q: Who appears in the People card? → A: Everyone credited who is not already named in the header,
-  as a grid of avatars. Each links to the contributor's page and shows their name on hover. After
-  three rows the rest are counted, and the count links to the same full list as the card's own
-  link. When everyone credited is already named in the header, the card is left out.
+  particular to the record. Every page follows that order. A card the record's kind of page has is
+  always shown, and says what is missing when there is nothing to show.
+- Q: Who appears in the People card? → A: Everyone credited, including the people named in the
+  header, as a grid of avatars. Each links to the contributor's page and shows their name on hover.
+  After three rows the rest are counted, and the count links to the same full list as the card's
+  own link.
 - Q: What replaces the dataset's per-type data tabs? → A: The same two charts the project page
   has: records by type, and how the number of samples and measurements grew over time. The row
   previews, field summaries and value ranges are gone from the page. An empty dataset shows its
@@ -109,6 +110,16 @@ page. This specification describes the design that review settled on.
 - Q: What do a measurement's breadcrumbs say? → A: The same as a sample's: the list of that kind of
   record, then this record. The trail no longer walks down through the project, dataset and sample,
   which the Details card already names.
+
+### Session 2026-09-30: walkthrough of the built pages
+
+- Q: Where do notices such as "This dataset is private" go? → A: Above the header, at the top of the
+  page, so they are read first.
+- Q: Are cards with nothing to show left out? → A: No. Every card a page has is shown, and says what
+  is missing. Only the readiness checklist stays hidden from anyone not on the record's team.
+- Q: How does a sample's team reach its editing pages (edit, descriptions, keywords, key dates)? →
+  A: From a Manage menu in the header, as on a dataset. They are not tabs beside the overview.
+- Q: What do the breadcrumbs and heading say for a measurement with no name? → A: Its portal ID.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -149,7 +160,7 @@ summary count only the datasets they may see.
 4. **Given** a project whose status is "Searching for collaborators", **When** anyone opens it,
    **Then** a notice says so and names who to contact.
 5. **Given** a project with leaders and other contributors, **When** it is opened, **Then** the
-   header names the leaders, and the People card shows everyone else and not the leaders.
+   header names the leaders, and the People card shows everyone credited, the leaders included.
 6. **Given** a project with more contributors than the People card shows, **When** it is opened,
    **Then** the card counts the rest and the count links to the full list of contributors.
 7. **Given** a project with one, two and several creators, **When** the citation is shown, **Then**
@@ -157,8 +168,7 @@ summary count only the datasets they may see.
 8. **Given** a project with a start and end date, **When** it is opened before, during and after
    that period, **Then** its timeline in the Details card says where the project stands for each.
 9. **Given** a project with funding, and one without, **When** each is opened by a visitor, **Then**
-   the first shows its funding and the second shows no funding card. **When** a member of the team
-   opens the second, **Then** the funding card says none is recorded.
+   the first shows its funding and the second shows a funding card saying none is recorded.
 10. **Given** any project, **When** its page is rendered, **Then** its schema.org description is in
     the page head.
 11. **Given** a project with no datasets, **When** a member of its team opens it, **Then** the page
@@ -318,11 +328,10 @@ member of its dataset's team, including the one recorded in a different dataset 
 ### Edge Cases
 
 - A record with none of the optional metadata filled in shows the first-run state on every page. A
-  card with nothing to show is either left out or says what is missing, never left blank.
+  card with nothing to show says what is missing, and is never left blank or left out.
 - A contributor credited on a record may be a person or an organisation. Citations, the header's
   people and the People card handle both.
-- Everyone credited on a project may be one of its leaders. The People card is then left out rather
-  than shown empty.
+- Nobody may be credited on a record yet. The People card then says so.
 - A creator's name may be very long, and so may a record's title. Neither breaks the header or the
   side column at any breakpoint.
 - A sample's status is stored as a vocabulary concept. The page reads its label wherever the status
@@ -338,14 +347,15 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 **The shared page anatomy**
 
-- **FR-001**: Every overview page MUST have, in order: a header, notices, a figures strip, and then
+- **FR-001**: Every overview page MUST have, in order: notices, a header, a figures strip, and then
   a wide content column beside a narrow side column. Below the `lg` breakpoint the two columns MUST
   stack with the content first.
 - **FR-002**: The header on every page MUST carry the record's image or icon, its badges, its name,
   the people behind it where the record names any (FR-025, FR-030), its keywords and its actions, in
   the same arrangement. Each person named there MUST link to their page.
-- **FR-003**: The side column on every page MUST present its cards in this order, leaving out any
-  that do not apply to the record:
+- **FR-003**: The side column on every page MUST present its cards in this order. A card the page
+  has MUST always be shown, saying what is missing when it has nothing to show. Only the readiness
+  checklist is left out, for anyone not on the record's team:
   1. the readiness checklist (team only, and only where the record has one)
   2. Details
   3. the record's timeline of key dates, where it has one
@@ -378,17 +388,15 @@ member of its dataset's team, including the one recorded in a different dataset 
   text, or saying none is chosen), its status where it has one, its dates, and how a machine reaches
   it (its API address, and metadata downloads as not yet available). A record MAY add entries of the
   same layout.
-- **FR-011**: The People card MUST show everyone credited on the record who is not already named in
+- **FR-011**: The People card MUST show everyone credited on the record, including anyone named in
   the header. Each MUST link to the contributor's page, and their name MUST be available on hover and
   to assistive technology. It MUST show at most eighteen, then count the rest, with a link to the
-  full list of contributors where the record has one. It MUST be left out when nobody remains to
-  show.
+  full list of contributors where the record has one. With nobody credited, it MUST say so.
 - **FR-012**: The Identifiers card MUST list every identifier the record carries, the team's own ID
   where there is one, and the record's portal ID with a way to copy it. DOIs and IGSNs MUST link to
   their resolver.
 - **FR-013**: The Funding card MUST list each award with its funder, title and number, linked where
-  the award records a link. It MUST be shown on records that carry funding, and to the team as an
-  empty state when none is recorded.
+  the award records a link. When none is recorded, it MUST say so.
 - **FR-014**: The citation card MUST give the record's citation with a way to copy it, and say when
   the citation points at the page because the record has no DOI.
 - **FR-015**: The descriptions card MUST show each description the record has, the abstract first.
@@ -460,7 +468,9 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-035**: The sample page MUST read only the base `Sample` model and what the registry says
   about the sample's type.
 - **FR-036**: Its header MUST carry the type and the status as badges. Where the registry describes
-  the type, the type badge MUST open that description in a dialog. Its figures MUST be
+  the type, the type badge MUST open that description in a dialog. Its actions MUST include, for
+  the dataset's team, a Manage menu leading to the sample's editing pages (edit, descriptions,
+  keywords, key dates), which MUST NOT appear as tabs beside the overview. Its figures MUST be
   measurements, related samples and people credited.
 - **FR-037**: Its content column MUST carry, in order: the type's own fields (left empty for the
   type to fill), notes, the history timeline, and the measurements made on it as one list, most
@@ -496,7 +506,8 @@ member of its dataset's team, including the one recorded in a different dataset 
   instead when the measurement has no DOI) follow, then its sample's location on a map where the
   sample has one and may be seen.
 - **FR-047**: Its breadcrumbs MUST lead from the list of measurements to the measurement, the same
-  way a sample's do.
+  way a sample's do. A measurement with no name MUST be called by its portal ID in the breadcrumbs
+  and the heading.
 
 **Extending a sample or measurement page by type**
 
