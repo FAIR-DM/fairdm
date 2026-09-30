@@ -21,7 +21,7 @@
         <c-contributor.name :contributor="c" :link="link" />
         {% if secondary != "none" %}
           {% firstof secondary roles|join:", " line as text %}
-          {% if text %}<div class="text-xs uppercase font-semibold text-base-content/70 truncate">{{ text }}</div>{% endif %}
+          {% if text %}<div class="text-xs font-semibold text-base-content/70 truncate">{{ text }}</div>{% endif %}
         {% endif %}
       </div>
     </div>
