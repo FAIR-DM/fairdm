@@ -1,7 +1,7 @@
 {% load contributor_tags %}
 {% comment %}
   <c-contributor.row> — one contributor as a DaisyUI list row, inside a <c-list>: avatar, name,
-  affiliation or type and place, and — given a contribution — its roles as badges.
+  affiliation or type and place, and — given a contribution — its roles as badges beneath.
 
   Attributes:
     contributor – a Person, an Organization, or a Contribution
@@ -19,12 +19,13 @@
       <div class="list-col-grow min-w-0">
         <c-contributor.name :contributor="c" />
         {% if line %}<div class="text-xs uppercase font-semibold text-base-content/70 truncate">{{ line }}</div>{% endif %}
+        {# Under the name, not in a column of their own: a column of badges starves the name. #}
+        {% if roles %}
+          <div class="flex flex-wrap gap-1 mt-1">
+            {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
+          </div>
+        {% endif %}
       </div>
-      {% if roles %}
-        <div class="flex flex-wrap gap-1 justify-end">
-          {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
-        </div>
-      {% endif %}
       {% if actions %}<div class="flex items-center">{{ actions }}</div>{% endif %}
     </c-list.row>
   {% endif %}
