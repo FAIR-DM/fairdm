@@ -75,6 +75,13 @@
         "remedied: REV-001..005, REV-007, SEC-001..003 (fix pass TC01-TC06)",
         "accepted with record: REV-006 test selectors (low), REV-008 helper placement (declined), SEC-004 demo tabs predate feature"
       ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-30T10:43:39Z",
+      "self_resolved": [
+        "no 'team' wording on the pages — fix in progress"
+      ]
     }
   },
   "stories": [
