@@ -19,8 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   portal roles described below. A portal already using the three previous groups keeps every
   member: they are renamed in place, not deleted, the next time the database is brought up to
   date.
+- **The `c-cards.statistic` component is gone.** Use `c-stats` with `c-stats.item` for a row of
+  figures. A portal template that includes `c-cards.statistic` needs the same change.
+- **`MeasurementDetailView` and the `measurement/detail.html` template are gone.** The measurement
+  page is now the overview plugin's, drawn by `measurement/measurement_overview.html` and its
+  `overview.*` blocks. A portal that subclassed the view or extended the template overrides the
+  matching block or plugin method instead, as described in
+  [Overview pages](docs/portal-development/overview-pages.md).
 
 ### Fixed
+
+- **A measurement with no value recorded was shown as "None".** Wherever it was printed,
+  including its breadcrumbs and lists of measurements, a measurement whose type declares a
+  value but has none recorded read "None". It is now shown by its name, or by its portal ID
+  when it has no name either.
 
 - **Migrating any database other than `default` failed.** Ten data migrations queried
   through the ORM without saying which database they were being applied to, so they read
@@ -87,9 +99,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that list configured, and django-mvp only warns and discards the setting. A portal including
   `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
   above it, since the landing page and its `account-center` URL name now come from django-mvp.
+- **django-mvp moves to 0.24, and FairDM now requires django-mvp-charts and pyecharts.** The
+  overview pages draw their charts with them, so a portal installing FairDM gets both, and adds
+  `mvp_charts` to `INSTALLED_APPS` if it does not build its apps from FairDM's own list.
+- **Breadcrumbs show the full name of each page** instead of a shortened one.
 
 ### Added
 
+- **Projects, datasets, samples and measurements open on one consistent overview page.** The
+  four pages share one layout (header, notices, a strip of figures, then content beside a side
+  column of shared cards) and one list of `overview.` template blocks, documented in
+  [Overview pages](docs/portal-development/overview-pages.md). The project page lists its five
+  most recently updated datasets, charts records by type and growth by month, shows the team a
+  readiness checklist, and counts for a visitor only the datasets they may see. The cards are
+  the `c-card.*` components, described in
+  [Cards](docs/portal-development/component_library/cards.md), and a portal changes a page by
+  overriding one block, or one method of `RecordOverviewPlugin`, which every overview plugin now
+  subclasses. Dates on these pages follow the active language, and every string on them is
+  translatable.
+- **The dataset page answers a reuser's questions in the order they ask them.** It shows whether
+  the data is published and under which licence, charts of its records by type and how they grew,
+  a timeline card of its key dates, its citation and its related publications worded from the
+  publication's side. A public dataset that is not published shows a visitor its description,
+  counts and charts, and never a record. The team sees a "Ready to publish?" checklist of seven
+  required and three recommended items until the dataset is published. See [Overview pages](docs/portal-development/overview-pages.md).
+- **The sample page follows the specimen, and a sample type adds its own fields by providing one
+  template.** It shows the type and status, a timeline joining each step's date, people and
+  notes, the measurements made on the sample (including those another team recorded in its own
+  dataset), a citation in DataCite's form for a physical object, a map and the related samples.
+  A measurement or related sample in a dataset the viewer may not see is counted and never named or
+  linked. A portal gives a sample type its page with `<app_label>/<model_name>_overview.html`, a
+  subtype inherits its parent type's page, and the demo's rock sample is the worked example. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
+  and `visible_to()` from `fairdm.core.managers.RecordVisibilityMixin`. See
+  [Overview pages](docs/portal-development/overview-pages.md).
+- **The measurement page shows the result and how it was obtained, and a measurement type adds its
+  own fields by providing one template.** It shows the result with its uncertainty, a timeline of
+  how the measurement was set up, made and taken down, the sample it was made on as a small version
+  of the sample's own header, the other measurements on that sample, a citation that suggests the
+  dataset when the measurement has no DOI, and a map of the sample's location. A measurement follows
+  its own dataset: it opens for everyone once that dataset is public and published, whatever the
+  state of its sample's dataset, and a sample in an unpublished dataset is described as one and
+  never named, linked or mapped. A portal gives a measurement type its page with
+  `<app_label>/<model_name>_overview.html`, and the demo's XRF measurement is the worked example.
+  See [Overview pages](docs/portal-development/overview-pages.md).
+- **`manage.py seed_overviews` loads development data for the overview pages**, and creates
+  `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
+  missing. It refuses to run outside development, leaves an existing account as it is, and
+  replaces only the projects it created. `fairdm.E501` now reports these three addresses on a
+  portal that is not in development. See
+  [Development accounts](docs/portal-development/development_accounts.md).
 - **Description text now has a 20,000-character ceiling.** Project, dataset, sample and
   measurement descriptions previously had no length limit anywhere between the editing page
   and the database. The limit is well beyond any real abstract or methods note, so ordinary

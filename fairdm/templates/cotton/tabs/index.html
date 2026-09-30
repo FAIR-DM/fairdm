@@ -1,0 +1,22 @@
+{% comment %}
+  <c-tabs> — daisyUI tabs built from radio inputs, so they switch with no
+  JavaScript and the panel stays in the page for search and printing.
+
+  Put <c-tabs.tab> children inside; every tab in one set takes the same
+  `group` so the browser treats them as one radio group.
+
+  Attributes:
+    variant – `border` (default), `lift` or `box`
+    size    – `sm` for a compact set
+    label   – accessible name for the tab set
+    class   – extra classes on the root
+
+  Candidate for django-mvp.
+{% endcomment %}
+<c-vars variant="border" size label class />
+<div role="tablist"
+     class="tabs {% if variant == 'lift' %}tabs-lift{% elif variant == 'box' %}tabs-box{% else %}tabs-border{% endif %} {% if size == 'sm' %}tabs-sm{% endif %} {{ class }}"
+     {% if label %}aria-label="{{ label }}"{% endif %}
+     {{ attrs }}>
+  {{ slot }}
+</div>

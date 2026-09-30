@@ -1,15 +1,13 @@
 """URL routes for the measurement pages."""
 
-from django.urls import path
+from django.urls import include, path
 
-from .views import MeasurementDetailView
+from fairdm.plugins import registry
+
+from .models import Measurement
 
 app_name = "measurement"
 
 urlpatterns = [
-    path(
-        "<str:uuid>/",
-        MeasurementDetailView.as_view(),
-        name="overview",
-    ),
+    path("<str:uuid>/", include(registry.get_urls_for_model(Measurement))),
 ]

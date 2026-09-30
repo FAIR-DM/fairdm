@@ -1,0 +1,35 @@
+{% load i18n fairdm %}
+{% comment %}
+  <c-card.descriptions> — the record's descriptions (abstract, methods, …). With more than one,
+  the tabs take the card header's place and each tab's name is the heading. With one, its name is
+  the card's title. With none, the card is titled "About" and shows the slot.
+
+  Attributes:
+    descriptions – [{label, value}], in the order the tabs appear
+    group        – a name for the tab set, unique on the page
+    class        – extra classes on the card
+  Slots:
+    (default)    – what to show when there are no descriptions
+{% endcomment %}
+<c-vars descriptions group class />
+{% if descriptions|length > 1 %}
+  <c-card.wrapper class="bg-base-100 {{ class }}">
+    <div class="card-body">
+      <c-tabs group="{{ group }}" class="tabs-header" label="{% translate 'Descriptions' %}">
+        {% for description in descriptions %}
+          <c-tabs.tab group="{{ group }}" label="{{ description.label }}" :checked="forloop.first" :flush="forloop.first">
+            <div class="prose max-w-none">{{ description.value|safe_markdown }}</div>
+          </c-tabs.tab>
+        {% endfor %}
+      </c-tabs>
+    </div>
+  </c-card.wrapper>
+{% elif descriptions %}
+  <c-card title="{{ descriptions.0.label }}" class="bg-base-100 {{ class }}">
+    <div class="prose max-w-none">{{ descriptions.0.value|safe_markdown }}</div>
+  </c-card>
+{% else %}
+  <c-card title="{% translate 'About' %}" class="bg-base-100 {{ class }}">
+    {{ slot }}
+  </c-card>
+{% endif %}

@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %}
+  <c-card.identifiers> — every identifier the record carries, the team's own ID and its portal
+  ID, as a small table. DOIs and IGSNs link to doi.org.
+
+  Attributes:
+    identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
+    portal_id    – the record's portal ID, with a copy button
+    local_id     – the team's own ID for the record, if it has one
+    class        – extra classes on the card
+{% endcomment %}
+<c-vars identifiers portal_id local_id class />
+<c-card title="{% translate 'Identifiers' %}" class="bg-base-100 {{ class }}" data-card="identifiers" only>
+  <table class="table table-xs">
+    <caption class="sr-only">{% translate "Identifiers" %}</caption>
+    <tbody>
+      {% for identifier in identifiers %}
+        <tr>
+          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{{ identifier.type }}</th>
+          <td class="pe-0 font-mono break-all">
+            {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary">{{ identifier.value }}</a>{% else %}{{ identifier.value }}{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      {% if local_id %}
+        <tr>
+          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Local ID" %}</th>
+          <td class="pe-0 font-mono break-all">{{ local_id }}</td>
+        </tr>
+      {% endif %}
+      {% if portal_id %}
+        <tr>
+          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
+          <td class="pe-0 font-mono break-all">
+            {{ portal_id }}
+            <button type="button" class="btn btn-ghost btn-xs"
+                    aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                    onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+              <c-icon name="copy" aria-hidden="true" only />
+            </button>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</c-card>

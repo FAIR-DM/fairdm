@@ -2,19 +2,11 @@
 
 from polymorphic.managers import PolymorphicQuerySet
 
+from fairdm.core.managers import RecordVisibilityMixin
 
-class SampleQuerySet(PolymorphicQuerySet):
+
+class SampleQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
     """QuerySet for samples, whose methods chain with the standard queryset operations."""
-
-    def published(self):
-        """Return the samples whose own dataset is published.
-
-        It is a bare filter with no ``select_related``, as it also builds filter choice lists.
-
-        Returns:
-            The samples in published datasets.
-        """
-        return self.filter(dataset__published=True)
 
     def with_related(self):
         """Load each sample's dataset, project and location, and prefetch its contributors and roles.

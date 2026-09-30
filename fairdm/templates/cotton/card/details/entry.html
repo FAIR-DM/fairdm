@@ -1,0 +1,20 @@
+{% comment %}
+  <c-card.details.entry> — one entry in the Details card: an icon and a title in capitals on one
+  row, then the value underneath. Every entry in the card uses it, including sections a page adds
+  itself (a project's timeline and funding), so the card reads as one list.
+
+  Attributes:
+    label  – the entry's title
+    icon   – an icon for it
+    class  – extra classes on the entry
+  Slots:
+    (default) – the value
+{% endcomment %}
+<c-vars label icon class />
+<div class="flex flex-col gap-1 min-w-0 {{ class }}" {{ attrs }}>
+  <dt class="flex items-center gap-2 text-sm uppercase font-semibold text-base-content/70">
+    {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" only />{% endif %}
+    {{ label }}
+  </dt>
+  <dd class="text-sm break-words">{{ slot }}</dd>
+</div>

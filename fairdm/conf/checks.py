@@ -357,7 +357,10 @@ def check_dev_accounts_absent(app_configs, **kwargs):
     from django.contrib.auth import get_user_model
 
     from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
-    from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_EMAILS
+    from fairdm.management.commands.create_dev_accounts import (
+        DEV_ACCOUNT_EMAILS,
+        EXAMPLE_ACCOUNT_EMAILS,
+    )
 
     # `check --deploy` runs every deploy check in any environment, and these accounts
     # belong in development.
@@ -371,9 +374,9 @@ def check_dev_accounts_absent(app_configs, **kwargs):
 
     try:
         found = sorted(
-            Person.objects.filter(email__in=DEV_ACCOUNT_EMAILS).values_list(
-                "email", flat=True
-            )
+            Person.objects.filter(
+                email__in=DEV_ACCOUNT_EMAILS | EXAMPLE_ACCOUNT_EMAILS
+            ).values_list("email", flat=True)
         )
     except UNREADABLE_DATABASE:
         return []

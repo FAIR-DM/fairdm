@@ -96,8 +96,11 @@ class Measurement(BasePolymorphicModel):
         ]
 
     def __str__(self):
-        """Show the measurement's value."""
-        return f"{self.get_value()}"
+        """Show the measurement's value, else its name, else its portal ID."""
+        value = self.get_value()
+        if value is not None and value != "":
+            return f"{value}"
+        return self.name or self.uuid
 
     def clean(self):
         """Refuse a bare ``Measurement``, which must be created as a subclass."""

@@ -179,6 +179,25 @@ class TestDatasetPublished:
 
 
 @pytest.mark.django_db
+class TestDatasetDataIsPublic:
+    @pytest.mark.parametrize(
+        ("visibility", "published", "expected"),
+        [
+            (Visibility.PUBLIC, True, True),
+            (Visibility.PUBLIC, False, False),
+            (Visibility.PRIVATE, True, False),
+            (Visibility.PRIVATE, False, False),
+        ],
+    )
+    def test_data_is_public_only_when_the_dataset_is_public_and_published(
+        self, visibility, published, expected
+    ):
+        dataset = DatasetFactory(visibility=visibility, published=published)
+
+        assert dataset.data_is_public is expected
+
+
+@pytest.mark.django_db
 class TestDatasetVisibilityGuarantees:
     def test_following_a_relation_to_a_private_dataset_still_finds_it(self):
         # Forward FK access uses `_base_manager`, not the privacy-first default manager.

@@ -2,25 +2,15 @@
 
 from polymorphic.managers import PolymorphicQuerySet
 
+from fairdm.core.managers import RecordVisibilityMixin
 
-class MeasurementQuerySet(PolymorphicQuerySet):
+
+class MeasurementQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
     """QuerySet for measurements, whose methods chain with the standard queryset operations.
 
     ``with_related()`` prefetches direct relationships without deep nesting, which views add
     themselves when needed. See docs/portal-development/measurements.md.
     """
-
-    def published(self):
-        """Return the measurements whose own dataset is published.
-
-        Deliberately ``dataset__published``, never ``sample__dataset__published``: a measurement's
-        presence is decided by the dataset that owns it, not the one that owns its sample. It is
-        a bare filter with no ``select_related``, as it also builds filter choice lists.
-
-        Returns:
-            The measurements in published datasets.
-        """
-        return self.filter(dataset__published=True)
 
     def with_related(self):
         """Load each measurement's sample and dataset, and prefetch its contributors and their roles.

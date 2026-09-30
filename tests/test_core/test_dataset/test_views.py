@@ -1062,22 +1062,28 @@ class TestNonCollectionPagesIgnorePublished:
             assertContains(response, "Listed Either Way")
             assertContains(response, dataset.uuid)
 
-    def test_dataset_overview_page_renders_identically_across_published_states(
+    def test_dataset_overview_page_shows_counts_but_no_records_until_published(
         self, client
     ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        from demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(dataset=dataset, name="Zq-4471 rift core")
         url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
 
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
         unpublished = client.get(url)
-
         Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
         published = client.get(url)
 
-        assert unpublished.status_code == 200
-        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
-            published
+        for response in (unpublished, published):
+            assert response.status_code == 200
+            page = BeautifulSoup(response.content, "html.parser")
+            assert page.select(".stat-value")[0].get_text(strip=True) == "1"
+            assertNotContains(response, sample.name)
+        assert (
+            len(BeautifulSoup(unpublished.content, "html.parser").select(".alert")) == 1
         )
+        assert BeautifulSoup(published.content, "html.parser").select(".alert") == []
 
     def test_dataset_update_page_renders_identically_across_published_states(
         self, client

@@ -17,3 +17,11 @@ layouts
 text
 
 ```
+
+```{toctree}
+:caption: Overview page cards
+:maxdepth: 2
+
+cards
+
+```

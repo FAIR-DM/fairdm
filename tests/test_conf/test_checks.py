@@ -809,3 +809,50 @@ class TestDevAccountsAbsent:
         from fairdm.conf import checks
 
         assert inspect.getsource(checks).count('"fairdm.E501"') == 1
+
+
+class TestDevAccountsAbsentReportsTheExampleAccounts:
+    """The accounts the overview development data signs in through are dev accounts too."""
+
+    @pytest.mark.parametrize(
+        "email",
+        [
+            "regular.user@example.com",
+            "staff.user@example.com",
+            "super.user@example.com",
+        ],
+    )
+    @override_settings(DJANGO_ENV="production")
+    def test_an_example_account_on_a_production_portal_is_named(self, db, email):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        get_user_model().objects.create_user(email=email, password="whatever")
+
+        errors = check_dev_accounts_absent(app_configs=None)
+
+        assert len(errors) == 1
+        assert errors[0].id == "fairdm.E501"
+        assert email in errors[0].msg
+
+    @override_settings(DJANGO_ENV="production")
+    def test_the_framework_and_example_accounts_are_reported_together(self, db):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        Person = get_user_model()
+        Person.objects.create_user(email="staff.user@example.com", password="x")
+        Person.objects.create_user(email="data.curator@fairdm.org", password="x")
+
+        errors = check_dev_accounts_absent(app_configs=None)
+
+        assert len(errors) == 1
+        assert "staff.user@example.com" in errors[0].msg
+        assert "data.curator@fairdm.org" in errors[0].msg
+
+    def test_a_development_portal_holding_them_reports_nothing(self, db):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        get_user_model().objects.create_user(
+            email="staff.user@example.com", password="x"
+        )
+
+        assert check_dev_accounts_absent(app_configs=None) == []

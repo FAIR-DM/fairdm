@@ -1,0 +1,371 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "018-overview-pages",
+  "branch": "018-overview-pages",
+  "repo": "FAIR-DM/fairdm",
+  "state": "GATE_MERGE",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-09-29T12:32:44Z",
+      "note": "specification revised to the reviewed prototype and merged in #378; epic #372, stories #368-371"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-09-29T12:55:46Z",
+      "note": "build branch cut from origin/main with the prototype merged in; earlier draft #374 closed, its plan void"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-09-29T12:56:42Z",
+      "note": "S3 green; dispatching the design reviewer"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-09-29T13:06:35Z",
+      "note": "S3R green; plan notified to Sam; starting US1"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-09-29T15:17:28Z",
+      "note": "all four stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-09-29T15:20:44Z",
+      "note": "S5 green; dispatching the reviewer"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-09-29T15:41:45Z",
+      "note": "S6 green; PR ready for the walkthrough"
+    },
+    {
+      "state": "GATE_MERGE",
+      "at": "2026-09-30T13:36:51Z",
+      "note": "walkthrough approved; waiting for Sam's merge"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-29T12:32:44Z",
+      "self_resolved": [
+        "merged in #378 (merge commit aaa4e79f)"
+      ]
+    },
+    "plan": {
+      "approved_by": "notified",
+      "at": "2026-09-29T13:06:35Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-09-29T13:06:19Z",
+      "self_resolved": [
+        "11 findings, all verified: 1 high, 4 medium, 6 low",
+        "high: dataset first-run state and record types kept (plan D1, T011)",
+        "mediums applied: locale dates, sequential stories, base-model permission check, tests in test_plugins.py",
+        "lows applied except the downward-visibility mismatch in CONTEXT.md, raised as a separate issue"
+      ]
+    },
+    "review": {
+      "approved_by": "reviewers (correctness, security)",
+      "at": "2026-09-29T15:41:32Z",
+      "self_resolved": [
+        "both approve; 0 critical, 0 high",
+        "remedied: REV-001..005, REV-007, SEC-001..003 (fix pass TC01-TC06)",
+        "accepted with record: REV-006 test selectors (low), REV-008 helper placement (declined), SEC-004 demo tabs predate feature"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-09-30T13:36:41Z",
+      "self_resolved": [
+        "second walkthrough \u2014 all seven requests done; approved as a solid start"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 368,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_overview.py",
+              "tests/test_core/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_overview.py tests/test_core/test_plugins.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_page.py",
+              "tests/test_templates/test_cards.py",
+              "tests/test_templates/test_includes.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates -q"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_project -q"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_overviews.py",
+              "tests/test_conf/test_checks.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo tests/test_conf/test_checks.py -q"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_base.py",
+              "tests/test_contrib/test_plugins/test_registration.py",
+              "tests/test_contrib/test_plugins/test_menus.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins -q"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core tests/test_templates tests/test_contrib/test_plugins tests/test_demo -q"
+            ],
+            "code": [
+              "fairdm/core/plugins.py:69"
+            ]
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py",
+              "tests/test_templates",
+              "tests/test_demo",
+              "tests/test_core/test_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests -q"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "documentation check over the branch diff against origin/main"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 369,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset/test_plugins.py -q -k TestOverview",
+              "uv run pytest tests/test_core/test_dataset/test_views.py -q -k TestNonCollectionPagesIgnorePublished"
+            ]
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset -q",
+              "render of every seeded dataset as visitor, staff.user and regular.user before and after: identical",
+              "uv run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "template example rendered as an override on a real dataset",
+              "forge verify --steps docs --base origin/main: only the five later-story names remain"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 370,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_sample/test_plugins.py -q",
+              "uv run pytest tests/test_core/test_sample/test_managers.py tests/test_core/test_dataset/test_models.py -q -k 'VisibleTo or DataIsPublic'"
+            ]
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_sample tests/test_core/test_measurement tests/test_core/test_managers.py -q",
+              "render of every seeded sample as visitor, staff.user and regular.user before and after: 423 pages identical",
+              "uv run pre-commit run --all-files"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --steps docs --base origin/main: only the two measurement-story names remain"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 371,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_measurement/test_plugins.py tests/test_core/test_measurement/test_managers.py tests/test_core/test_measurement/test_models.py::TestMeasurementViews -q: 55 passed"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_core/test_measurement tests/test_core/test_sample tests/test_core/test_project/test_plugins.py tests/test_core/test_dataset/test_plugins.py tests/test_core/test_overview.py tests/test_core/test_plugins.py tests/test_core/test_managers.py -q: 842 passed, 7 skipped",
+              "rendered 56 seeded records as visitor, staff.user and regular.user before and after: 168 responses identical"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "forge verify --steps docs --base origin/main: passed",
+              "forge verify --repo <worktree> --base origin/main: conformance, docs, lint, typecheck, test, build all passed"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 379,
+    "draft": false
+  }
+}
