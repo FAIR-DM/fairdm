@@ -79,7 +79,7 @@
         <h2 class="text-xl font-semibold">Item <code class="text-sm font-normal">&lt;c-contributor.item&gt;</code></h2>
         <p class="text-sm text-base-content/70">Avatar with a name and one short line: affiliation, an organization's type and place, or the roles on a credit.</p>
       </header>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="flex flex-col gap-3">
           <h3 class="font-semibold text-sm">size="sm" (default)</h3>
           <c-contributor.item :contributor="spotlight.authenticated" />
@@ -92,13 +92,6 @@
           <c-contributor.item :contributor="spotlight.unauthenticated" size="md" />
           <c-contributor.item :contributor="spotlight.script" size="md" />
           <c-contributor.item :contributor="spotlight.org_long" size="md" />
-        </div>
-        <div class="flex flex-col gap-3">
-          <h3 class="font-semibold text-sm">:icon="True"</h3>
-          <c-contributor.item :contributor="spotlight.authenticated" :icon="True" />
-          <c-contributor.item :contributor="spotlight.unauthenticated" :icon="True" />
-          <c-contributor.item :contributor="spotlight.script" size="md" :icon="True" />
-          <c-contributor.item :contributor="spotlight.long" size="md" :icon="True" />
         </div>
         <div class="flex flex-col gap-3 max-w-64">
           <h3 class="font-semibold text-sm">Given a credit, in a narrow column</h3>
@@ -188,10 +181,6 @@
           {% for credit in few %}<c-contributor.row :contributor="credit" />{% endfor %}
           {% for credit in many|slice:"-2:" %}<c-contributor.row :contributor="credit" />{% endfor %}
         </c-list>
-        <c-list title="With the organization icon" class="bg-base-100 rounded-box shadow-sm">
-          {% for credit in few %}<c-contributor.row :contributor="credit" :icon="True" />{% endfor %}
-          <c-contributor.row :contributor="spotlight.long" :icon="True" />
-        </c-list>
         <c-list title="With row actions" class="bg-base-100 rounded-box shadow-sm">
           {% for credit in one %}
             <c-contributor.row :contributor="credit">
@@ -217,10 +206,6 @@
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {% for c in people|slice:":9" %}<c-contributor.card :contributor="c" />{% endfor %}
         <c-contributor.card :contributor="spotlight.no_orcid" />
-      </div>
-      <h3 class="font-semibold">People, with the organization icon</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {% for c in people|slice:":3" %}<c-contributor.card :contributor="c" :icon="True" />{% endfor %}
       </div>
       <h3 class="font-semibold">Organizations</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

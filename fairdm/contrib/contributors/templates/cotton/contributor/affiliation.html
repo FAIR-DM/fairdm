@@ -1,9 +1,8 @@
 {% load contributor_tags %}{% comment %}
-  <c-contributor.affiliation> — the organization a person is shown with, linked to its page, with
-  the organization icon in front when `icon` is set. Nothing is written outside the root element.
+  <c-contributor.affiliation> — the organization a person is shown with, linked to its page, behind
+  the organization icon. Nothing is written outside the root element.
 
   Attributes:
     organization – an Organization
-    :icon        – True to put the organization icon before its name (default: name only)
     class        – extra classes
-{% endcomment %}<c-vars organization :icon="False" class />{% if organization %}<span class="inline-flex items-center gap-1 min-w-0 max-w-full {{ class }}" {{ attrs }}>{% if icon %}<c-icon name="organization" class="shrink-0" aria-hidden="true" />{% endif %}<a href="{{ organization.get_absolute_url }}" class="link link-hover truncate">{{ organization.name }}</a></span>{% endif %}
+{% endcomment %}<c-vars organization class />{% if organization %}<span class="inline-flex items-center gap-1 min-w-0 max-w-full {{ class }}" {{ attrs }}><c-icon name="organization" class="shrink-0" aria-hidden="true" /><a href="{{ organization.get_absolute_url }}" class="link link-hover truncate">{{ organization.name }}</a></span>{% endif %}
