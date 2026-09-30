@@ -166,3 +166,10 @@
 - Verified: `uv run pytest tests/test_core/test_sample tests/test_contrib/test_plugins tests/test_templates -q`: 544 passed, 7 skipped (already skipped); the two new behaviour tests failed first. Pre-commit green.
 - Next: TC12.
 - Watch: chose `menu=False` over `extra_views`, see D22. No existing test was edited.
+
+## 2026-09-30 · FIX-2 · TC12
+
+- Did: a measurement with no name is called by its portal ID in the breadcrumbs (`get_breadcrumbs` on its `Overview`), the page heading (`record_title` in the context, read by `overview/page.html`) and the browser title (`get_page_title`). Docs updated.
+- Verified: `uv run pytest tests/test_core/test_measurement tests/test_templates -q`: 353 passed; the three new tests failed first. Pre-commit run below.
+- Next: TC13.
+- Watch: the name column is not nullable, so "no name" is the empty string; the test uses that.

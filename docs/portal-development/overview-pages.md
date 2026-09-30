@@ -298,6 +298,9 @@ what the registry says about the measurement's type, never a field a particular 
 template is `measurement/measurement_overview.html`, and the page stays at
 `/measurement/<uuid>/`.
 
+A measurement with no name is called by its portal ID in the breadcrumbs, the heading and the
+browser title.
+
 **Header.** The type as a badge. Where the registry describes the type, the badge opens that
 description in a dialog, with the type's keywords, the authority that maintains its schema and how
 to cite it. A type the registry does not describe opens nothing. A measurement whose dataset is not

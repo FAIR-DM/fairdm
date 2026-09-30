@@ -49,8 +49,23 @@ class Overview(TypedOverviewPlugin):
     siblings_shown = 8
 
     def get_page_title(self):
-        """Title the page with the measurement's name."""
-        return self.base_object.name
+        """Title the page with the measurement's name, or its portal ID when it has none."""
+        return self.base_object.name or str(self.base_object.uuid)
+
+    def get_breadcrumbs(self):
+        """Name the measurement in the trail by its portal ID when it has no name.
+
+        Returns:
+            The trail, with the measurement's own entry reading as its portal ID when unnamed.
+        """
+        trail = super().get_breadcrumbs()
+        measurement = self.base_object
+        if measurement is not None and not measurement.name:
+            own_address = measurement.get_absolute_url()
+            for crumb in trail:
+                if crumb.get("href") == own_address:
+                    crumb["text"] = str(measurement.uuid)
+        return trail
 
     def get_context_data(self, **kwargs):
         """Add the measurement and everything the overview page draws."""
@@ -75,6 +90,7 @@ class Overview(TypedOverviewPlugin):
         context.update(
             {
                 "record": measurement,
+                "record_title": self.get_page_title(),
                 "overview_icon": "measurement",
                 "can_manage": has_perm(
                     self.request, "dataset.change_dataset", measurement.dataset

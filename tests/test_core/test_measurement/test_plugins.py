@@ -458,3 +458,33 @@ class TestOverviewCardsAlwaysShown:
         assert response.page.select_one('[data-card="location"]') is not None
         assert response.page.select_one(".overview-map") is None
         assertNotContains(response, "12.5")
+
+
+@pytest.mark.django_db
+class TestOverviewUnnamedMeasurement:
+    """FR-047: a measurement with no name is called by its portal ID."""
+
+    @pytest.fixture
+    def unnamed(self, released):
+        # The column is not nullable, so "no name" is the empty string.
+        sample = RockSampleFactory(dataset=released)
+        return XRFMeasurementFactory(dataset=released, sample=sample, name="")
+
+    def test_the_heading_is_the_portal_id(self, client, unnamed):
+        response = _page(client, unnamed)
+
+        assert response.page.h1.get_text(strip=True) == str(unnamed.uuid)
+
+    def test_the_browser_title_is_the_portal_id(self, client, unnamed):
+        response = _page(client, unnamed)
+
+        assert str(unnamed.uuid) in response.page.title.get_text()
+        assert "None" not in response.page.title.get_text()
+
+    def test_the_breadcrumbs_end_in_the_portal_id(self, client, unnamed):
+        response = _page(client, unnamed)
+
+        crumbs = response.page.select_one("nav[aria-label*=readcrumb], .breadcrumbs")
+        assert crumbs is not None
+        assert crumbs.get_text(" ", strip=True).endswith(str(unnamed.uuid))
+        assert "None" not in crumbs.get_text()

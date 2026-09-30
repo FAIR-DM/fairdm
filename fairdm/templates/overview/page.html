@@ -74,7 +74,7 @@
             {% block overview.badges %}{% endblock overview.badges %}
           </div>
 
-          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record.name }}</h1>
+          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record_title|default:record.name }}</h1>
 
           {% block overview.byline %}
             {% if header_people %}
