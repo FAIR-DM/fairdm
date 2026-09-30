@@ -1,8 +1,8 @@
 {% load i18n easy_icons contributor_tags %}
 {% comment %}
   <c-contributor.card.person> — a person's card for the people listing: photo, name with ORCID
-  iD and a mark when they have a portal account, their portal roles, affiliation and place, and
-  what they are credited on.
+  iD, affiliation and place, and the roles on a credit when given one. A person with a portal
+  account is marked in the top left corner, and the portal roles they hold close the card.
 
   Attributes:
     contributor – a Person, or a Contribution crediting one
@@ -14,18 +14,14 @@
     {% contributor_affiliation c contributor as affiliation %}
     {% contribution_roles contributor as roles %}
     {% contributor_portal_roles c as portal_roles %}
-    {% with location=c.get_location_display counts=c.get_credit_counts %}
+    {% with location=c.get_location_display %}
       <c-card.wrapper class="h-full {{ class }}">
+        <c-contributor.account :contributor="c" class="absolute top-0 start-0 p-4 text-xl" />
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" />
         </figure>
         <div class="card-body items-center text-center">
-          <h2 class="card-title"><c-contributor.name :contributor="c" :account="True" /></h2>
-          {% if portal_roles %}
-            <div class="flex flex-wrap justify-center gap-1">
-              {% for role in portal_roles %}<c-badge text="{{ role }}" size="sm" variant="primary" />{% endfor %}
-            </div>
-          {% endif %}
+          <h2 class="card-title"><c-contributor.name :contributor="c" /></h2>
           {% if affiliation %}<p class="grow-0 flex justify-center max-w-full"><c-contributor.affiliation :organization="affiliation" /></p>{% endif %}
           {% if location %}
             <p class="grow-0 text-sm text-base-content/70 flex items-center gap-1"><c-icon name="location" />{{ location }}</p>
@@ -35,13 +31,11 @@
               {% for role in roles %}<c-badge text="{{ role }}" size="sm" class="badge-soft" />{% endfor %}
             </div>
           {% endif %}
-          <div class="card-actions justify-center mt-2">
-            {% for label, count in counts.items %}
-              <c-badge variant="neutral" class="badge-soft">{{ count }} {{ label }}</c-badge>
-            {% empty %}
-              <span class="text-sm text-base-content/70">{% translate "Not credited on anything yet" %}</span>
-            {% endfor %}
-          </div>
+          {% if portal_roles %}
+            <div class="card-actions justify-center mt-2">
+              {% for role in portal_roles %}<c-badge text="{{ role }}" size="sm" variant="primary" />{% endfor %}
+            </div>
+          {% endif %}
         </div>
       </c-card.wrapper>
     {% endwith %}
