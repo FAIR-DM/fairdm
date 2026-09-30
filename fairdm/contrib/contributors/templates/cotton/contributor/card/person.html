@@ -15,7 +15,7 @@
     {% contribution_roles contributor as roles %}
     {% contributor_portal_roles c as portal_roles %}
     {% with location=c.get_location_display %}
-      <c-card.wrapper class="h-full {{ class }}">
+      <c-card.wrapper class="h-full py-4 {{ class }}">
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" />
         </figure>
