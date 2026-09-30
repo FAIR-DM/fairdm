@@ -343,7 +343,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                 "text": page["citation"]["text"],
             },
             "identifiers": self.get_identifiers(),
-            "people": self.get_people(exclude=leads),
+            "people": self.get_people(),
             "people_url": page["urls"]["contributors"],
             "header_people": leads,
             "header_people_label": gettext("Project leaders"),

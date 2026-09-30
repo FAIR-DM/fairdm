@@ -149,29 +149,23 @@ class RecordOverviewPlugin(OverviewPlugin):
             )
         return result
 
-    def get_people(self, entries=None, exclude=()) -> dict[str, Any]:
+    def get_people(self, entries=None) -> dict[str, Any]:
         """Work out what the People card shows.
 
         Args:
             entries: The record's credits, when the caller already has them. Defaults to
                 :meth:`get_credits`.
-            exclude: Contributors already named in the page header.
 
         Returns:
             The first ``people_shown`` faces, how many more there are and the total.
         """
         if entries is None:
             entries = self.get_credits()
-        named = {contributor.pk for contributor in exclude}
-        rest = [
-            entry["contributor"]
-            for entry in entries
-            if entry["contributor"].pk not in named
-        ]
+        everyone = [entry["contributor"] for entry in entries]
         return {
-            "shown": rest[: self.people_shown],
-            "more": max(len(rest) - self.people_shown, 0),
-            "total": len(rest),
+            "shown": everyone[: self.people_shown],
+            "more": max(len(everyone) - self.people_shown, 0),
+            "total": len(everyone),
         }
 
     def get_identifiers(self) -> list[dict[str, Any]]:

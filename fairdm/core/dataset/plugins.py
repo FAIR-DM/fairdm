@@ -376,7 +376,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "has_charts": bool(page["composition_chart"] or page["growth_chart"]),
             "citation": {"title": gettext("Citation"), "text": citation["text"]},
             "identifiers": self.get_identifiers(),
-            "people": self.get_people(exclude=creators),
+            "people": self.get_people(),
             "header_people": creators,
             "header_people_label": gettext("Creators"),
             "lifecycle": self.get_lifecycle(page["dates"]),

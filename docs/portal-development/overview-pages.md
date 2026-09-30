@@ -47,7 +47,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.details` | What the record belongs to, its licence, status, dates and how machines reach it. |
 | `overview.details_extra` | Inside Details: sections a record adds, such as a project's timeline. |
 | `overview.timeline` | Key dates in the record's life, on records that have their own card for them. |
-| `overview.people` | Everyone credited who is not already named in the header. |
+| `overview.people` | Everyone credited, the people named in the header included. |
 | `overview.identifiers` | DOI, IGSN and the rest, the team's own ID and the portal ID. |
 | `overview.funding` | Funding awards, on records that carry them. |
 | `overview.cite` | How to cite the record. |
@@ -488,7 +488,7 @@ plugins subclass it. A portal building its own page for a record can subclass it
 | `get_role_names(contribution)` | The names of the roles held on one credit. |
 | `get_contributors_with_role(entries, role)` | The contributors in `get_credits()` entries who hold a role. |
 | `get_credits()` | Everyone credited on the record, each contributor as its own type (person or organisation), with role labels and affiliation. |
-| `get_people(entries=None, exclude=())` | What the People card shows: `shown` (up to `people_shown`, eighteen by default), `more` and `total`. `exclude` names contributors already in the header. |
+| `get_people(entries=None)` | What the People card shows: `shown` (up to `people_shown`, eighteen by default), `more` and `total`. |
 | `get_identifiers()` | The record's identifiers with a doi.org link on a DOI or an IGSN. `resolvable_identifier_types` lists the types that link. |
 | `get_citation(authors=, year=, title=, link=)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` |
 | `get_timeline(steps, dates, descriptions, entries)` | One entry per step in a record's life, joining the date, the contributor role and the description of that step. Dated steps come first. |

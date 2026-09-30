@@ -26,7 +26,7 @@
       overview.details        what it belongs to, licence, status, dates, how machines reach it
         overview.details_extra  sections inside Details, e.g. a project's timeline
       overview.timeline       key dates in the record's life, where they have their own card
-      overview.people         everyone credited who isn't already named in the header
+      overview.people         everyone credited, the people named in the header included
       overview.identifiers    DOI, IGSN and the rest, the team's own ID and the portal ID
       overview.funding        funding awards, on records that carry them
       overview.cite           how to cite it
@@ -145,9 +145,7 @@
 
 
         {% block overview.people %}
-          {% if people.shown %}
-            <c-card.people :people="people" all_url="{{ people_url|default:'' }}" />
-          {% endif %}
+          <c-card.people :people="people" all_url="{{ people_url|default:'' }}" />
         {% endblock overview.people %}
 
         {% block overview.identifiers %}

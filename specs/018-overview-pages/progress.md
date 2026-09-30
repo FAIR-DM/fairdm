@@ -145,3 +145,10 @@
 - Verified: `uv run pytest tests/test_templates/test_overview_page.py -q`: 13 passed. Layout only, no new test.
 - Next: TC09.
 - Watch: none.
+
+## 2026-09-30 · FIX-2 · TC09
+
+- Did: `get_people` lists everyone credited (no `exclude`); the People card always renders, carries `data-card="people"` and says no one is credited yet when empty; docs updated.
+- Verified: `uv run pytest tests/test_core/test_project/test_plugins.py tests/test_templates tests/test_core/test_dataset tests/test_core/test_sample tests/test_core/test_measurement -q`: 1213 passed, 7 skipped (the skips were already there); the changed tests failed first. Pre-commit green.
+- Next: TC10.
+- Watch: five branch tests edited, listed in D20.

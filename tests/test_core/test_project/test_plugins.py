@@ -1165,14 +1165,18 @@ class TestOverviewPeople:
 
         assert response.context["header_people"] == [leader, manager]
 
-    def test_the_people_card_shows_everyone_else_and_not_the_leaders(
+    def test_the_people_card_shows_everyone_credited_the_leaders_included(
         self, client, overview_showcase
     ):
         response = _page(client, overview_showcase.project)
 
         shown = {c.pk for c in response.context["people"]["shown"]}
-        assert shown <= {p.pk for p in overview_showcase.others}
-        assert not shown & {p.pk for p in overview_showcase.leaders}
+        assert shown & {p.pk for p in overview_showcase.leaders} == {
+            p.pk for p in overview_showcase.leaders
+        }
+        assert response.context["people"]["total"] == len(overview_showcase.leaders) + len(
+            overview_showcase.others
+        )
 
     def test_the_card_draws_eighteen_faces_and_counts_the_rest(
         self, client, overview_showcase
@@ -1181,7 +1185,7 @@ class TestOverviewPeople:
 
         tiles = response.page.select("li[data-tip]")
         assert len(tiles) == 18
-        assert (response.context["people"]["more"], response.context["people"]["total"]) == (2, 20)
+        assert (response.context["people"]["more"], response.context["people"]["total"]) == (4, 22)
 
     def test_the_count_links_to_the_full_list_of_contributors(
         self, client, overview_showcase
@@ -1194,7 +1198,7 @@ class TestOverviewPeople:
         counted = [
             a
             for a in response.page.find_all("a", href=contributors_url)
-            if "2" in a.get_text()
+            if "4" in a.get_text()
         ]
         assert counted
 
@@ -1206,14 +1210,23 @@ class TestOverviewPeople:
         for tile in response.page.select("li[data-tip]"):
             assert tile.find("a")["aria-label"] == tile["data-tip"]
 
-    def test_when_everyone_credited_leads_the_people_card_is_left_out(self, client):
+    def test_a_leader_is_listed_in_the_people_card(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        project.add_contributor(PersonFactory(is_active=True), with_roles=["ProjectLeader"])
+        leader = PersonFactory(is_active=True)
+        project.add_contributor(leader, with_roles=["ProjectLeader"])
 
         response = _page(client, project)
 
-        assert response.page.select("li[data-tip]") == []
-        assert response.context["people"]["shown"] == []
+        assert [c.pk for c in response.context["people"]["shown"]] == [leader.pk]
+        assert len(response.page.select("li[data-tip]")) == 1
+
+    def test_with_nobody_credited_the_people_card_still_shows(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.context["people"]["total"] == 0
+        assert response.page.select_one('[data-card="people"]') is not None
 
     def test_an_organisation_credited_on_the_project_is_listed_like_a_person(
         self, client

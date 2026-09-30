@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}
-  <c-card.people> — everyone credited on the record who isn't already named in the page header,
-  as a grid of faces. Hovering a face shows the name; clicking it opens the contributor's page.
+  <c-card.people> — everyone credited on the record, as a grid of faces. With nobody credited it
+  says so. Hovering a face shows the name; clicking it opens the contributor's page.
   Three rows are shown; the rest are counted, linked to the full list.
 
   Attributes:
@@ -10,7 +10,7 @@
     class    – extra classes on the card
 {% endcomment %}
 <c-vars people all_url class />
-<c-card title="{% translate 'People' %}" class="bg-base-100 {{ class }}" only>
+<c-card title="{% translate 'People' %}" class="bg-base-100 {{ class }}" data-card="people" only>
   {% if all_url %}
     <c-slot name="actions"><c-button href="{{ all_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>
   {% endif %}
@@ -36,6 +36,6 @@
       {% endif %}
     {% endif %}
   {% else %}
-    <p class="text-sm text-base-content/70">{% translate "Everyone credited is named above." %}</p>
+    <p class="text-sm text-base-content/70">{% translate "No one is credited yet." %}</p>
   {% endif %}
 </c-card>

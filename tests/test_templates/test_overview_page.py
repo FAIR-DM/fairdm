@@ -71,15 +71,15 @@ class TestSideColumn:
 
         assert "READINESS-MARKER" not in html
 
-    def test_a_card_with_nobody_to_show_is_left_out(
+    def test_the_people_card_shows_when_nobody_is_credited(
         self, render_template, page_context
     ):
         page_context["people"] = {"shown": [], "more": 0, "total": 0}
 
         html = render_template("overview/page.html", page_context)
 
+        assert 'data-card="people"' in html
         assert "PEOPLE-MARKER" not in html
-        assert "Everyone credited" not in html
 
     def test_the_side_column_is_one_block_a_template_can_replace(
         self, child_template, render_template, page_context

@@ -302,3 +302,21 @@ way the sample's did, with `procedure_steps` and `siblings_shown` as attributes 
 onto the record's own manager.
 
 **ADR:** docs/adr/0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates.md
+
+## D20 — The People card lists everyone credited, so the tests that asserted the exclusion changed
+
+`get_people` no longer takes `exclude`: the header names the leaders or creators and the People card
+lists them again beside everyone else. Four tests written on this branch asserted the old rule and now
+assert the new one. In `tests/test_core/test_project/test_plugins.py`,
+`test_the_people_card_shows_everyone_else_and_not_the_leaders` became
+`test_the_people_card_shows_everyone_credited_the_leaders_included`;
+`test_when_everyone_credited_leads_the_people_card_is_left_out` became a test that a leader is listed
+and a test that the card still shows with nobody credited; the face count and the "and N other
+contributors" link moved from 20 to 22 people because the two leaders are counted. In
+`tests/test_templates/test_overview_page.py`, `test_a_card_with_nobody_to_show_is_left_out` became
+`test_the_people_card_shows_when_nobody_is_credited`. The card is found by a `data-card` attribute, not
+by its wording.
+
+**Revisit if:** the header stops naming people, which would make the repetition pointless.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
