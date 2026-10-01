@@ -9,20 +9,24 @@ from fairdm.core.project.models import Project
 from fairdm.management.commands.create_dev_accounts import (
     DEV_ACCOUNT_PASSWORD,
     EXAMPLE_ACCOUNTS,
+    PROFILE_ACCOUNTS,
 )
 
 
-def example_accounts() -> dict[str, Person]:
-    """Return the three example accounts by name, creating the ones that are missing.
+def create_accounts(accounts) -> dict[str, Person]:
+    """Return the accounts by name, creating the ones that are missing.
 
     An account that already exists is returned as it is: its password, names and rights stay
     whatever they were.
 
+    Args:
+        accounts: ``(email, first, last, is_staff, is_superuser)`` for each account.
+
     Returns:
-        ``regular.user``, ``staff.user`` and ``super.user``, keyed by the part before the ``@``.
+        The accounts, keyed by the part of the address before the ``@``.
     """
     users = {}
-    for email, first, last, staff, superuser in EXAMPLE_ACCOUNTS:
+    for email, first, last, staff, superuser in accounts:
         user = Person.objects.filter(email=email).first()
         if user is None:
             user = Person.objects.create_user(
@@ -40,6 +44,25 @@ def example_accounts() -> dict[str, Person]:
             )
         users[email.split("@")[0]] = user
     return users
+
+
+def example_accounts() -> dict[str, Person]:
+    """Return the three example accounts by name, creating the ones that are missing.
+
+    Returns:
+        ``regular.user``, ``staff.user`` and ``super.user``, keyed by the part before the ``@``.
+    """
+    return create_accounts(EXAMPLE_ACCOUNTS)
+
+
+def profile_accounts() -> dict[str, Person]:
+    """Return the accounts around the organization ``regular.user`` owns, creating missing ones.
+
+    Returns:
+        ``admin.user``, ``member.user`` and ``former-admin.user``, keyed by the part before
+        the ``@``.
+    """
+    return create_accounts(PROFILE_ACCOUNTS)
 
 
 def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
