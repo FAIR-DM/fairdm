@@ -8,3 +8,10 @@
 - Verified: `uv run pytest tests/test_conf/test_urls.py tests/test_templates/test_includes.py -q -n0` (15 passed, exit 0); `uv run pre-commit run --all-files` (all hooks passed, deptry included).
 - Next: T002, the pure helpers.
 - Watch: the route sits after the `mvp.urls` include, not before it, because Django reverses a name to the last pattern that carries it. See decisions.md.
+
+## 2026-10-01T10:14Z · Implementer US1 · T002
+
+- Did: added `test_profiles.py` with a class per helper (`link_host`, `language_names`, `ranked_shares`, `fill_slots`, `active_then_recent`).
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_profiles.py -q -n0` (18 passed, exit 0, all green on first run against the prototype). Mutated the `www.` prefix, the reserved slot and the active sort in `profiles.py` and watched three of the tests fail; restored the file afterwards. `uv run pre-commit run --all-files` clean.
+- Next: T003, model tests.
+- Watch: none.
