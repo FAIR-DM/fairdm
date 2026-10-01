@@ -165,7 +165,7 @@ person.portal_roles  # Labels of the portal roles held, e.g. ["Data Curator"]; [
 recent = person.get_recent_contributions(limit=5)
 project_contribs = person.get_contributions_by_type("project")
 has_contrib = person.has_contribution_to(some_project)
-co_contributors = person.get_co_contributors(limit=10)
+collaborators = person.get_collaborators(limit=10)
 
 # Add person to object - role names must be members of the fairdm-roles vocabulary
 # (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
@@ -302,6 +302,23 @@ owner = org.owner()  # Returns Person or None
 
 # GeoJSON export (if location set)
 geojson = org.as_geojson()
+```
+
+An organization's page reads who belongs to it and where it sits from four more methods:
+
+| Method | What it returns |
+| --- | --- |
+| `get_current_memberships()` | The affiliations of its members: verified and not ended, with the person loaded. The owner comes first, then the administrators, then the other members, each group by name. |
+| `has_member(user)` | `True` when the user has a current affiliation of type member or above. Pending and ended affiliations do not count, and a visitor is never a member. |
+| `is_managed_by(user)` | `True` when the user has a current affiliation of type administrator or owner. A portal role does not count. |
+| `get_hierarchy()` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (its direct sub-organizations by name). |
+
+```python
+for affiliation in org.get_current_memberships():
+    print(affiliation.person, affiliation.get_type_display())
+
+org.is_managed_by(request.user)
+org.get_hierarchy()["children"]
 ```
 
 ## Affiliation Model
@@ -501,7 +518,106 @@ person.get_credit_counts()
 # {'projects': 2, 'datasets': 1}
 
 # The contributors credited alongside this one, most frequent first (FR-035)
-person.get_co_contributors(limit=5)
+person.get_collaborators(limit=5)
+```
+
+### What a profile may show
+
+A contributor's overview page names only public work, and the methods below decide what that is.
+`get_public_projects()` and `get_public_datasets()` are the one source of what a profile lists and
+counts. The overview's figures and cards and the Projects and Datasets tabs all read them, so a
+figure always equals the number of entries behind its link. A subclass that has more work to show
+overrides both, and `Organization` does.
+
+```python
+person.get_public_projects()  # public projects the person is credited on
+person.get_public_datasets()  # public datasets they are credited on, outside private projects
+```
+
+An organization's two sources add what it owns. `Organization.get_public_projects()` returns the
+public projects it owns and those it is credited on, and `get_public_datasets()` returns the public
+datasets it is credited on and those inside the projects it owns, whether or not it is credited on
+them. Each is one queryset with nothing in it twice, and what the organization's members are
+credited on under their own names is not part of either.
+
+```python
+org.get_public_projects()  # public projects it owns or is credited on
+org.get_public_datasets()  # public datasets it is credited on or that sit in its projects
+```
+
+A private project hides everything beneath it, so a public dataset inside a private project is
+left out. `Dataset.objects.get_visible()` holds that rule, as `Project.objects.get_visible()` does
+for projects. Neither depends on who is asking: a project's member and the person themselves see
+the same lists as a visitor.
+
+`get_visible_contributions(user)` returns the person's credits on records a profile may name,
+newest first. Projects and datasets are those from the two methods above. A sample or measurement
+counts when `visible_to(user)` lets the user see it and its dataset's project, if it has one, is
+public. Each credit carries `kind`, which is `project`, `dataset`, `sample` or `measurement`.
+Projects and datasets also carry `record`. Samples and measurements are checked by id and never
+loaded, because no card lists them.
+
+```python
+contributions = person.get_visible_contributions(request.user)
+projects = [c.record for c in contributions if c.kind == "project"]
+```
+
+The role counts and the collaborators are worked out from those credits, so a role or a
+collaborator known only through a private record never appears:
+
+```python
+person.get_role_counts(contributions)
+# Counter({"Creator": 2, "Data Collector": 1})
+
+person.get_collaborators(contributions=contributions)
+# Contributors credited on the same records, most frequent first and ties by name.
+# Each carries collaboration_count.
+```
+
+The rest of what a profile reads from a contributor:
+
+| Member | What it returns |
+| --- | --- |
+| `get_links_display()` | One `{"url", "host"}` entry per recorded link, the host being the site it points at. |
+| `get_language_names()` | The names of the recorded languages in the active language. A code Django does not know is kept as written. |
+| `to_public_schema_org()` | The Schema.org description for the page head. It has no email address. A person's `affiliation` is kept only when it is the verified, current primary affiliation the page header shows. |
+| `Person.get_profile_completeness()` | One flag for each of `image`, `orcid`, `profile`, `primary_affiliation` and `links`. `orcid` is true only when the person has signed in with ORCID, and `primary_affiliation` only for a verified primary affiliation that has not ended. |
+| `Organization.get_record_completeness()` | One flag for each of `ror`, `image`, `type`, `location`, `profile` and `links`. `ror` needs an identifier of type ROR, and `location` needs both a city and a country. |
+| `Person.get_location_display()` | The city and country of the organization the header names as primary, or `None` without a verified primary affiliation that has not ended. |
+| `Person.member_since` | When the account was created, or `None` for a profile nobody has claimed. |
+| `Person.get_affiliation_history()` | `current` (verified affiliations that have not ended, the primary one first and the rest by organization name) and `past` (most recently ended first). Pending affiliations are left out. |
+| `Affiliation.start_display`, `Affiliation.end_display` | The date as precisely as it was recorded: a day, a month and year, or a year. An empty string when not recorded. |
+| `ContributorIdentifier.resolver_url` | The address the identifier resolves to, or `None` for a type with no resolver. |
+
+```python
+history = person.get_affiliation_history()
+for affiliation in history["current"]:
+    print(affiliation.organization, affiliation.start_display)
+```
+
+### Profile helpers
+
+`fairdm.contrib.contributors.profiles` holds the pure functions behind a profile page. None of them
+reads the database or a request, so each takes plain values.
+
+| Function | What it does |
+| --- | --- |
+| `link_host(url)` | The host of a link without a leading `www.`, or the link as written when it has no host. |
+| `language_names(codes)` | One name per ISO 639-1 code, in the active language and the order given. An unknown code is kept as written. |
+| `ranked_shares(counts)` | Ranks a mapping of counts, largest first, each entry as `{"label", "count", "percent"}` where the largest is 100. |
+| `fill_slots(items, slots, reserve=False)` | Fits a list into a fixed number of places and returns `shown`, `more` and `total`. With `reserve`, the last place is kept for a "+n more" entry when the list overflows. |
+| `checklist(items)` | Sums up a list of items that each carry a `done` flag: the `items`, how many are `done`, the `total` and whether all of them are `ready`. |
+| `active_then_recent(items, modified, active=None)` | Orders items with the active ones first and each group most recently updated first. `modified` and `active` are functions of one item. |
+
+```python
+from fairdm.contrib.contributors.profiles import fill_slots, link_host, ranked_shares
+
+link_host("https://www.github.com/someone")  # "github.com"
+ranked_shares({"Creator": 4, "Editor": 2})
+# [{"label": "Creator", "count": 4, "percent": 100},
+#  {"label": "Editor", "count": 2, "percent": 50}]
+fill_slots(list(range(12)), 10, reserve=True)
+# {"shown": [0, 1, 2, 3, 4, 5, 6, 7, 8], "more": 3, "total": 12}
 ```
 
 ### Deleting a Credit Withdraws Rights - Creating One Grants None

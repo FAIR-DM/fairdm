@@ -1,6 +1,7 @@
 """Tests for the includes the overview pages share: pending actions and the type badge."""
 
 import pytest
+from django_cotton import render_component
 
 pytestmark = pytest.mark.django_db
 
@@ -13,48 +14,31 @@ INFO = {
 
 
 class TestPendingAction:
-    def _render(self, render_template, **context):
+    def _render(self, request_, **attributes):
         source = {
             "label": "Publish",
             "icon": "download",
             "reason": "REASON-MARKER",
-            **context,
+            **attributes,
         }
-        return render_template("overview/includes/pending_action.html", source)
+        return render_component(request_, "actions.pending", **source)
 
-    def test_the_button_is_disabled(self, render_template, soup):
-        button = soup(self._render(render_template)).find("button")
+    def test_the_button_is_disabled(self, request_, soup):
+        button = soup(self._render(request_)).find("button")
 
         assert button.has_attr("disabled")
 
-    def test_it_never_submits_or_links_anywhere(self, render_template, soup):
-        page = soup(self._render(render_template))
+    def test_it_never_submits_or_links_anywhere(self, request_, soup):
+        page = soup(self._render(request_))
 
         assert page.find("button")["type"] == "button"
         assert page.find("a") is None
 
-    def test_it_says_why_to_a_pointer_and_to_a_screen_reader(
-        self, render_template, soup
-    ):
-        button = soup(self._render(render_template)).find("button")
+    def test_it_says_why_to_a_pointer_and_to_a_screen_reader(self, request_, soup):
+        button = soup(self._render(request_)).find("button")
 
         assert button["title"] == "REASON-MARKER"
         assert "REASON-MARKER" in button.find(class_="sr-only").get_text()
-
-    def test_it_announces_that_the_capability_is_not_available_yet(
-        self, render_template, soup
-    ):
-        button = soup(self._render(render_template)).find("button")
-
-        assert button.find(class_="badge") is not None
-
-    def test_a_button_among_others_that_make_the_state_plain_can_drop_the_badge(
-        self, render_template, soup
-    ):
-        button = soup(self._render(render_template, no_badge=True)).find("button")
-
-        assert button.find(class_="badge") is None
-        assert button["title"] == "REASON-MARKER"
 
 
 class TestTypeBadge:

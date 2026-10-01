@@ -1253,3 +1253,19 @@ class TestProjectMetaDescription:
         project = ProjectFactory()
 
         assert project.get_meta_description() is None
+
+
+@pytest.mark.django_db
+class TestProjectIsActive:
+    def test_a_project_in_progress_is_active(self):
+        project = ProjectFactory(status=ProjectStatus.IN_PROGRESS)
+
+        assert project.is_active is True
+
+    @pytest.mark.parametrize(
+        "status", [s for s in ProjectStatus if s != ProjectStatus.IN_PROGRESS]
+    )
+    def test_a_project_in_any_other_status_is_not_active(self, status):
+        project = ProjectFactory(status=status)
+
+        assert project.is_active is False

@@ -1,0 +1,181 @@
+{% extends "overview/page.html" %}
+{% load i18n humanize fairdm %}
+{% comment %}
+  A person's overview page: who they are, where they work, how to verify them, what they have
+  done in this portal and who they work with.
+
+  The anatomy comes from `overview/page.html`, shared with every record overview. A person has no
+  Details card: the facts it would hold are in the header. The context is gathered by the
+  `Overview` plugin in `fairdm/contrib/contributors/plugins/`. Everything counted or listed is
+  limited to the records the viewer can open.
+
+  Person blocks in the wide column: overview.about, overview.records, overview.roles,
+  overview.future. The facts column holds, in this order: overview.readiness,
+  overview.identifiers, overview.links, overview.affiliations, overview.people, overview.activity.
+{% endcomment %}
+
+{% block overview.notices %}
+  {% if is_inactive %}
+    <c-alert variant="warning" icon="info" soft>
+      <span>{% blocktranslate with name=person.name %}{{ name }}'s account is no longer active. The profile stays so their work remains credited.{% endblocktranslate %}</span>
+    </c-alert>
+  {% elif is_unclaimed %}
+    <c-alert variant="info" icon="info" soft>
+      <span>{% blocktranslate with name=person.name %}This profile was created so {{ name }} could be credited for their work. They haven't claimed it yet.{% endblocktranslate %}</span>
+      {% translate "Claim this profile" as label %}
+      {% translate "Sign in with ORCID to prove this profile is yours and take it over." as reason %}
+      <c-actions.pending label="{{ label }}" icon="verified" reason="{{ reason }}" />
+    </c-alert>
+  {% endif %}
+{% endblock overview.notices %}
+
+{% block overview.image %}
+  <c-contributor.avatar :contributor="person" size="xl" />
+{% endblock overview.image %}
+
+{% block overview.badges %}
+  {% if is_inactive %}
+    <span class="badge badge-soft badge-warning badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Inactive account" %}</span>
+  {% elif is_unclaimed %}
+    <span class="badge badge-soft badge-neutral badge-sm"><c-icon name="pending" aria-hidden="true" />{% translate "Unclaimed profile" %}</span>
+  {% else %}
+    <span class="badge badge-soft badge-success badge-sm"><c-icon name="verified" aria-hidden="true" />{% translate "Claimed profile" %}</span>
+  {% endif %}
+  {% for role in portal_roles %}
+    <span class="badge badge-soft badge-primary badge-sm">{{ role }}</span>
+  {% endfor %}
+{% endblock overview.badges %}
+
+{% block overview.name %}{{ person.name }}{% if identifier_url %}&#8288;<a href="{{ identifier_url }}" class="inline-flex align-middle ms-2 text-lg" target="_blank" rel="noopener"
+   title="{% if orcid_verified %}{% blocktranslate with value=identifier.value %}ORCID iD {{ value }}{% endblocktranslate %}{% else %}{% blocktranslate with value=identifier.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
+   aria-label="{% if orcid_verified %}{% blocktranslate with name=person.name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=person.name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}"><c-icon name="{% if orcid_verified %}orcid{% else %}orcid_unauthenticated{% endif %}" aria-hidden="true" only /></a>{% endif %}{% endblock overview.name %}
+
+{% block overview.byline %}
+  <div class="flex flex-col gap-1 text-sm min-w-0">
+    {% if primary_organization %}
+      <div class="min-w-0"><c-contributor.affiliation :organization="primary_organization" /></div>
+    {% endif %}
+    {% if location_text %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="location" aria-hidden="true" />{{ location_text }}
+      </div>
+    {% endif %}
+    {% if languages %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="globe" aria-hidden="true" /><span class="sr-only">{% translate "Languages" %}:</span>{{ languages }}
+      </div>
+    {% endif %}
+  </div>
+{% endblock overview.byline %}
+
+{% block overview.actions %}
+  <c-addons.share-dropdown size="sm" />
+  {% if api_url %}
+    <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
+  {% endif %}
+  {% if is_self %}
+    {% translate "Edit profile" as label %}
+    {% translate "Change your name, photo, biography, affiliations and links." as reason %}
+    <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" />
+  {% else %}
+    {% translate "Contact" as label %}
+    {% translate "Send a message through the portal, without either of you sharing an email address." as reason %}
+    <c-actions.pending label="{{ label }}" icon="email" reason="{{ reason }}" />
+  {% endif %}
+{% endblock overview.actions %}
+
+{% block overview.figures %}
+  <c-stats cols="1" lg="3" aria-label="{% translate 'Profile at a glance' %}">
+    <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.project|intcomma }}" href="{{ urls.projects }}" variant="info" icon="project" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.dataset|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    {% if member_since %}
+      <c-stats.item title="{% translate 'Member since' %}" value="{{ member_since|date:'Y' }}" desc="{{ member_since|date:'F' }}" icon="calendar" />
+    {% else %}
+      <c-stats.item title="{% translate 'Member since' %}" value="–" desc="{% translate 'Has no account on this portal' %}" icon="calendar" />
+    {% endif %}
+  </c-stats>
+{% endblock overview.figures %}
+
+{% block overview.main %}
+  {% block overview.about %}
+    <c-card title="{% translate 'About' %}" class="bg-base-100" data-card="about">
+      {% if person.profile %}
+        <div class="prose max-w-none">{{ person.profile|safe_markdown }}</div>
+      {% elif is_self %}
+        <c-missing>
+          <span>{% translate "You haven't written a biography yet. A few lines on your research help visitors recognise your work and see why your data matters." %}</span>
+          {% translate "Write your biography" as label %}
+          {% translate "Write a few lines about your research." as reason %}
+          <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" variant="primary" />
+        </c-missing>
+      {% else %}
+        <c-missing><span>{% translate "No biography has been added yet." %}</span></c-missing>
+      {% endif %}
+    </c-card>
+  {% endblock overview.about %}
+
+  {% block overview.records %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+      {% translate "Projects" as title %}
+      {% if is_self %}{% translate "You aren't credited on any public project yet. Credits are added by the people who manage each project." as empty %}{% else %}{% translate "Not credited on any public project yet." as empty %}{% endif %}
+      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" all_url="{{ urls.projects }}" empty="{{ empty }}" />
+      {% translate "Datasets" as title %}
+      {% if is_self %}{% translate "You aren't credited on any public dataset yet. Credits are added by the people who manage each dataset." as empty %}{% else %}{% translate "Not credited on any public dataset yet." as empty %}{% endif %}
+      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" all_url="{{ urls.datasets }}" empty="{{ empty }}" />
+    </div>
+  {% endblock overview.records %}
+
+  {% block overview.roles %}
+    <c-card.roles :roles="roles" />
+  {% endblock overview.roles %}
+
+  {% block overview.future %}
+    <c-card.placeholder title="{% translate 'Publications' %}"
+                        icon="literature"
+                        message="{% translate 'Papers and datasets from their ORCID record, next to the work credited in this portal.' %}" />
+    <c-card.placeholder title="{% translate 'Map' %}"
+                        icon="map"
+                        wide
+                        message="{% translate 'A map of every sample they are credited on that has a location.' %}" />
+  {% endblock overview.future %}
+{% endblock overview.main %}
+
+{% block overview.side %}
+  {% block overview.readiness %}
+    {% if readiness %}
+      <c-card.readiness :readiness="readiness"
+                        title="{{ readiness.title }}"
+                        summary="{{ readiness.summary }}"
+                        about="{{ readiness.about }}"
+                        badge="{{ readiness.badge }}" />
+    {% endif %}
+  {% endblock overview.readiness %}
+
+  {% block overview.identifiers %}
+    <c-card.identifiers :identifiers="identifiers" portal_id="{{ person.uuid }}" />
+  {% endblock overview.identifiers %}
+
+  {% block overview.links %}
+    <c-card.links :links="links" />
+  {% endblock overview.links %}
+
+  {% block overview.affiliations %}
+    <c-card.affiliations :affiliations="affiliations" />
+  {% endblock overview.affiliations %}
+
+  {% block overview.people %}
+    {% if people.shown %}
+      <c-card.people :people="people" title="{% translate 'Frequent collaborators' %}" />
+    {% else %}
+      <c-card title="{% translate 'Frequent collaborators' %}" class="bg-base-100" data-card="people">
+        <c-missing><span>{% translate "Nobody else is credited on the same records yet." %}</span></c-missing>
+      </c-card>
+    {% endif %}
+  {% endblock overview.people %}
+
+  {% block overview.activity %}
+    <c-card.placeholder title="{% translate 'Recent activity' %}"
+                        icon="activity"
+                        message="{% translate 'What they have added or changed lately: new samples, published datasets, projects joined.' %}" />
+  {% endblock overview.activity %}
+{% endblock overview.side %}

@@ -1,0 +1,74 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "approve",
+  "risk": "medium",
+  "scope": "Feature branch 019-contributor-overview-pages vs origin/main (git diff origin/main...HEAD, excluding specs/ and uv.lock). One pass carrying correctness + spec compliance (with the documentation pass) and the security lens.",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "craft-review/2026-09-28/e60c2a95", "loaded_via": "skill-tool"},
+    {"name": "craft-simplify", "receipt": "craft-simplify/2026-08-04/69038ce1", "loaded_via": "skill-tool"},
+    {"name": "craft-security", "receipt": "craft-security/2026-08-04/ea3d6742", "loaded_via": "skill-tool"}
+  ],
+  "findings": [
+    {
+      "id": "COR-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The Projects and Datasets tabs of a contributor draw every card with a wrong size figure: each project card says \"No datasets\" and each published dataset card says \"No samples\" and \"No measurements\", whatever the record holds. The tab's get_queryset returns the public source without the annotations and prefetches the cards read, so the figures the overview links to are false and each card also costs its own contributor and keyword queries.",
+      "evidence": "fairdm/contrib/contributors/plugins/person.py:19-21 and :36-38 return self.base_object.get_public_projects() / get_public_datasets() bare. fairdm/core/project/templates/project/project_card.html reads object.dataset_count and fairdm/core/dataset/templates/dataset/dataset_card.html reads object.sample_count and object.measurement_count, which only ProjectQuerySet.with_list_data() / DatasetQuerySet.with_list_data() annotate (ProjectListView.get_queryset and DatasetListView.get_queryset add them; the override skips super). Probe: a person credited on a public project holding one public dataset with two samples. /projects/ renders \"1 dataset\"; the person's contributor-projects tab renders \"No datasets\"; the contributor-datasets tab renders \"No samples\", \"No measurements\". The same omission exists on main (the old override returned self.base_object.projects.all()), but this diff rewrote both methods and now sends every overview figure and \"View all\" link to these tabs.",
+      "reproduction": "PersonFactory(); ProjectFactory(visibility=PUBLIC); DatasetFactory(project=..., visibility=PUBLIC, published=True); two RockSampleFactory(dataset=...); credit the person on the project and the dataset; GET contributor:contributor-projects and contributor:contributor-datasets as a visitor and read .record-card__count.",
+      "suggested_fix": "In ContributorProjects.get_queryset return self.base_object.get_public_projects().with_list_data().with_contributors(), and in ContributorDatasets.get_queryset return self.base_object.get_public_datasets().with_list_data(). Checked in the probe: the annotated querysets keep one row per record (len 1) and give dataset_count 1 and sample_count 2, for a person. Add one test per tab that reads the card's count."
+    },
+    {
+      "id": "DOC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Four attributes this diff adds to shared cards are missing from the attribute tables in the component documentation, so a portal developer reading the page cannot learn that the cards take them: title and empty on c-card.people, label on c-card.location, badge on c-card.readiness.",
+      "evidence": "fairdm/templates/cotton/card/people.html:14 declares <c-vars people all_url title empty class />; docs/portal-development/component_library/cards.md:68-71 lists only people and all_url. fairdm/templates/cotton/card/location.html:14 declares label; cards.md:174-178 lists location, title, empty. fairdm/templates/cotton/card/readiness.html:16 declares badge (default \"Edit access only\"); cards.md:189-194 lists title, summary, about, readiness. The contributor pages use all four (person.html:150 and :168, organization.html:163 and :177-178).",
+      "suggested_fix": "Add the four rows to the three tables in cards.md, each with its default."
+    },
+    {
+      "id": "COR-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A profile nobody ever claimed whose record has been deactivated shows a \"Member since\" date, although the person never had an account. FR-017 asks a profile with no account to say so in place of a date.",
+      "evidence": "fairdm/contrib/contributors/models.py Person.member_since returns date_joined for AccountState.INACTIVE, and account_state gives INACTIVE precedence over unclaimed (is_active False wins whatever is_claimed is). Probe: PersonFactory(is_claimed=False, is_active=False, email=None) renders the third figure as \"Member since 2026 October\". Reachable only by deactivating an unclaimed profile, for example from the admin.",
+      "suggested_fix": "Return date_joined only when self.is_claimed is true; otherwise None."
+    },
+    {
+      "id": "COR-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The organization page loads every credit the organization holds and counts its roles on each request, and then draws neither: the organization template has no roles card and no collaborators card.",
+      "evidence": "fairdm/contrib/contributors/plugins/overview.py:210-211 calls organization.get_visible_contributions(user) and passes it to get_shared_context, whose only use of it is the roles key at :106. fairdm/contrib/contributors/templates/contributors/overview/organization.html never reads roles (no c-card.roles, no overview.roles block), and docs/portal-development/overview-pages.md does not list roles among the keys the organization blocks read. get_visible_contributions costs the credit query, a roles prefetch and up to four visibility queries.",
+      "suggested_fix": "Move the roles key from get_shared_context into get_person_context, drop the contributions parameter from get_shared_context, and remove the get_visible_contributions call from get_organization_context."
+    },
+    {
+      "id": "COR-004",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "An affiliation that has ended but still carries is_primary is drawn under \"Previously\" with the Primary badge, while the header, the page head and the person's own checklist all treat the person as having no primary affiliation.",
+      "evidence": "fairdm/contrib/contributors/templates/cotton/card/affiliations/row.html:16 shows the badge on affiliation.is_primary alone, and affiliations.html:23-25 draws past rows through the same component. Person.get_affiliation_history() keeps is_primary on past affiliations. Read from the templates; the badge itself was not asserted in a probe.",
+      "suggested_fix": "Show the badge only when the affiliation has no end date: {% if affiliation.is_primary and not affiliation.end_date %}."
+    },
+    {
+      "id": "SEC-001",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "The Links card writes each recorded link into an href as stored. A link with a javascript: scheme that reaches the database without model validation is served as a clickable script link on a public page.",
+      "evidence": "fairdm/contrib/contributors/templates/cotton/card/links.html:16 renders href=\"{{ link.url }}\" from Contributor.get_links_display(), which passes self.links through unchanged. Probe: PersonFactory(links=[\"javascript:alert(1)\"]) renders href=\"javascript:alert(1)\" in the card. Person.full_clean() rejects the value (\"Invalid URL\"), so it takes a write path that skips full_clean (save(), a bulk update, a migration, a serializer without the model validator). The templates this replaces rendered links the same way on main, so the exposure is not new.",
+      "suggested_fix": "In get_links_display keep only links whose scheme is http or https."
+    }
+  ],
+  "notes": [
+    "Visibility held under every attempt: a visitor, the person and a superuser were each shown a person credited on a private project, a private dataset in a public project and a public dataset in a private project; none of the three names reached the overview, either tab's list, a count, the collaborators card, the roles card or the page head. A pending primary affiliation's organization and city appeared nowhere, and an ended primary affiliation's organization stayed out of the header and the page head.",
+    "Thirteen defects were reinstated one at a time by monkeypatch, with no file edited, and the page tests failed on each: the dataset rule without the project check (11 failures), private projects on a person (10), private owned projects on an organization (8), samples without the project check (2), collaborators and role counts over all credits (1 each), pending and ended members listed (1 each), pending affiliations in the history (1), the page head keeping the email (2) and an unshown affiliation (1), an ended administrator and an ordinary member treated as keeping the record (2 and 4).",
+    "The documented examples were run: both template extension examples render with every FairDM card kept, the three profiles helpers return exactly the documented values, and each documented model call resolves against the branch.",
+    "Every figure equals the entries behind its link by construction: the figure, the card badge and the tab read the same queryset, an organization's sources are one row per record, and Contribution is unique per contributor and record. The Members figure has no link.",
+    "For projects and datasets the collaborators and role counts use public records for every viewer, which is stricter than FR-007's \"records the viewer may open\"; samples and measurements do follow the viewer, so a dataset's team member sees a collaborator known through a sample in their private dataset but not one known through the dataset itself. The plan records this choice.",
+    "A superuser's Datasets tab names private projects in the listing's project filter, and the Projects tab's contributor filter lists every person. Both are the shared listing filters, present on /projects/ and /datasets/ too, and outside this diff.",
+    "docs/portal-development/overview-pages.md heads its block table \"The blocks only the contributor pages have\" but the table includes overview.readiness, overview.identifiers and overview.people, which record pages have too.",
+    "organization.html compares membership.type with the literals 3 and 2 where Affiliation.MembershipType names them.",
+    "731 tests in the contributor, component and demo test files pass on the branch. The full suite, coverage and migration checks were not run in this review."
+  ]
+}

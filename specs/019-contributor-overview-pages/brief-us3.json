@@ -1,0 +1,117 @@
+{
+  "story": "US3",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 389,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T014",
+    "T015",
+    "T016",
+    "T017"
+  ],
+  "context": {
+    "why": "The completeness checklist on both contributor pages, and the feature's final polish. US1 (person page, shared parts) and US2 (organization page) are accepted on this branch with tests and documentation. The checklist already renders from the reviewed prototype; its markup, wording and layout are settled. Pin the specification's behaviour with tests, fix what they find, document who sees the checklist, and clear the polish items.",
+    "spec_sections": [
+      "User Story 3 (all 8 acceptance scenarios)",
+      "FR-011",
+      "FR-012",
+      "FR-015",
+      "FR-025",
+      "FR-030 to FR-032",
+      "Clarifications"
+    ],
+    "plan_sections": [
+      "D3",
+      "D5",
+      "D8",
+      "Project structure"
+    ],
+    "prior_decisions": [
+      "decisions.md 'The checklist follows the affiliation, not the portal role': an organization's checklist and management menu are shown only to people whose current affiliation is administrator or owner. A portal role, staff status or superuser status does not show them. An ended affiliation does not count.",
+      "Spec FR-030: the ORCID item is in place only when the person has signed in with ORCID (orcid_is_authenticated), not when an iD was typed in. The photo and links are optional items.",
+      "Spec FR-012 and decisions.md D4: an action that is not available yet is the c-actions.pending component, disabled, saying why. The organization's management menu items are disabled menu entries.",
+      "Carried from US1 and US2: Person.get_location_display() reads primary_affiliation() without checking type or end date. In T016, make it use the same verified, current primary affiliation the header shows, with a test, since it is a public method with the same gap to_public_schema_org had.",
+      "Carried from US1: fairdm/contrib/contributors/templates/person/plugins/overview.html and organization/plugins/overview.html are no longer rendered by any plugin. In T016, confirm nothing references them (grep templates, Python and docs) and delete them; if anything does, leave them and say so in concerns.",
+      "T017 makemigrations: the pending migration in the third-party orbit package is known and not ours. The check that must be clean is over FairDM's own apps; state exactly what you ran."
+    ],
+    "acceptance": [
+      {
+        "task": "T014",
+        "given_when_then": "Given people and organizations with each item present and absent, when get_profile_completeness, get_record_completeness and checklist are called, then each flag and the done/total/ready summary are right, and a typed-in ORCID iD does not count as connected."
+      },
+      {
+        "task": "T015",
+        "given_when_then": "Given the states in US-3 scenarios 1 to 8, when the pages are requested as the person, another signed-in user, a visitor, an owner, an administrator, an ordinary member, a former administrator, a staff user and a superuser, then the checklist, the management menu, the edit-profile stand-in and the contact stand-in appear exactly where the scenarios and decisions say."
+      },
+      {
+        "task": "T016",
+        "given_when_then": "Given the failing tests from T014 and T015, when the fixes land, then all pass, the checklist and who sees it are documented, and the two carried items are done."
+      },
+      {
+        "task": "T017",
+        "given_when_then": "Given the finished branch, when makemigrations --check runs over FairDM's apps and the full gate runs, then both are clean, and every new string in the plugin and templates is marked for translation."
+      }
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages on branch 019-contributor-overview-pages; you work directly on the feature branch, one story at a time, no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. The suite stops at the first failures under that gate; `uv run pytest -q -n 4 --maxfail=0` shows them all (about two minutes, 3,282 tests). Commits are authored as the repository's bot already (git config is bound); do not change it.",
+    "verified_base": {
+      "commit": "88bf138d1fa16f22c83834948be5e3abbedf993c",
+      "verified_at": "2026-10-01T10:58:30Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "Fully green: the gate passed on US2's final commit and HEAD adds only the ledger and this brief. Anything red on arrival: report it, do not work around it."
+    },
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. tests/test_templates/ is the declared non-mirror path for component tests; see tests/test_templates/test_cards.py and tests/test_core/test_project/test_plugins.py for how specification 018 tested its pages and components. Line length 88. Docstrings follow the repo's documentation standard under docs/contributing/standards/. Public markdown you write (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, no bold-label bullet lists, reads as current state. US1's tests are your pattern: tests/test_contrib/test_contributors/test_plugins/test_overview.py (TestPersonOverview), its conftest.py, tests/test_templates/test_contributor_cards.py and tests/test_demo/.../test_seed_profiles.py. Add to those files; do not edit the tests US1 wrote.",
+    "glossary_terms": [
+      "Contributor, Person, Organization",
+      "Contribution",
+      "Collaborator",
+      "Member",
+      "Visibility",
+      "Roles"
+    ]
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T014-T017 in specs/019-contributor-overview-pages/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is the single brief commit on top of context.verified_base.commit (only the brief file differs).",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "Do not change the prototype's markup, wording or layout unless a requirement, a plan decision or a failing acceptance test requires it. No test asserts fixed wording, layout, width or stacking.",
+    "Do not add a migration. This feature adds no model field; if makemigrations wants to write one, report it.",
+    "Do not touch IdentifierLookup or AbstractIdentifier.get_absolute_url: the wrong resolver keys are a separate bug (#386).",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "The tests US1 and US2 wrote are pre-existing tests for this story: add to their files, do not modify their tests."
+  ]
+}

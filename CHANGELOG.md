@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- The Statistics and Network tabs of a contributor's page. Both were blank.
+- The templates `person/plugins/overview.html` and `organization/plugins/overview.html`. A
+  contributor's page is drawn from `contributors/overview/person.html` and
+  `contributors/overview/organization.html` now, so a portal that extended either old file extends
+  one of those.
+- The `overview/includes/pending_action.html` include is replaced by the `c-actions.pending`
+  component, which no longer shows a "Coming soon" badge on the button. A portal template that
+  includes the old file uses `<c-actions.pending label="..." reason="..." />` instead.
 - **The two dependencies licensed under the GPL are gone**, so a portal built on FairDM is
   not obliged to adopt that licence. Markdown editing moves from martor to django-markdownx,
   and the signup gate django-invitations provided is now FairDM's own setting. Portals that
@@ -29,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A person's own page now counts a primary affiliation toward their checklist only when it is
+  verified and has not ended, as the header does, and `Person.get_location_display()` follows the
+  same rule instead of naming the organization of a pending or ended primary affiliation.
+- The Projects and Datasets figures on a contributor's overview, and its "View all" links, did
+  not link to the matching tab.
+- `reverse("account-center")` is `/account-center/` again after the update to django-mvp 0.25.
 - **The contributor components did not render** (#349). `c-contributor.names` raised
   `TemplateDoesNotExist` on every use, and `c-contributor.avatar` drew Bootstrap markup the
   stylesheet does not define, with the text "None" in place of initials.
@@ -72,6 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A contributor's Projects and Datasets tabs, and the figures and cards on their overview, list
+  only public projects and public datasets, and a public dataset inside a private project is left
+  out. This holds for every viewer, including the contributor and the members of a private
+  project.
 - **The contributor components were rebuilt on django-mvp and DaisyUI, and some attributes
   changed.** `c-contributor.names` no longer takes `role` or `separator`, `c-contributor.name` and
   the person and organization cards take the contributor as an attribute rather than reading it
@@ -116,6 +134,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A person's page now tells a visitor who the person is, where they work, whether their ORCID iD
+  is authenticated, which public projects and datasets they are credited on, the contribution
+  roles they hold and who they work with most. The side column lists their identifiers, links and
+  affiliations. An unclaimed profile and an inactive account each say so, and capabilities FairDM
+  cannot offer yet, such as claiming a profile or contacting the person, are shown as not
+  available. The blocks are described in
+  [Overview pages](docs/portal-development/overview-pages.md#the-person-page), including the new
+  `overview.name`.
+- An organization's page now shows what it is, where it sits among the organizations around it,
+  its current members with the people who run it marked, and the public projects it owns or is
+  credited on and the public datasets inside the projects it owns. Its members' own credits are
+  not counted as the organization's. The people who keep the record see a checklist, and a
+  signed-in person who is not a member is shown asking to join as not available yet. The blocks
+  are described in
+  [Overview pages](docs/portal-development/overview-pages.md#the-organization-page).
+- The Projects and Datasets tabs of an organization list the same records as its overview, so a
+  figure on the page equals the number of entries behind its link.
+- A person sees a checklist of what a complete profile has on their own page, with editing the
+  profile offered as not available yet, and the owner and administrators of an organization see
+  the checklist of its record and a menu of management actions. Nobody else sees either, whatever
+  their portal role. Who sees what is described in
+  [Overview pages](docs/portal-development/overview-pages.md#the-profile-checklist).
+- The card `c-card.hierarchy`, and `Organization.get_current_memberships()`, `has_member()`,
+  `is_managed_by()`, `get_hierarchy()`, `get_public_projects()` and `get_public_datasets()`, are
+  documented in [Cards](docs/portal-development/component_library/cards.md#c-cardhierarchy) and
+  [Contributors](docs/portal-development/contributors.md#organization-properties).
+- The cards `c-card.records`, `c-card.roles`, `c-card.links` and `c-card.affiliations`, and the
+  `c-missing` notice, are documented in
+  [Cards](docs/portal-development/component_library/cards.md).
+- `Contributor.get_public_projects()`, `get_public_datasets()`, `get_visible_contributions()`,
+  `get_role_counts()`, `get_collaborators()` and `to_public_schema_org()`, and the helpers in
+  `fairdm.contrib.contributors.profiles`, are documented in
+  [Contributors](docs/portal-development/contributors.md#what-a-profile-may-show).
+- `manage.py seed_profiles` loads a person and an organization in every state the pages answer for.
+  It refuses to run outside development.
+- Pillow is a declared dependency of FairDM.
 - **Components for showing contributors.** `c-contributor.item`, `c-contributor.row` (a list
   row with an `actions` slot), `c-contributor.byline`, `c-contributor.stack`,
   `c-contributor.summary` and `c-contributor.affiliation` join the existing name, names, avatar and
@@ -402,7 +456,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and target person, success, failure reason), with `ClaimingAuditLogManager` filters —
   `for_person()`, `failures()`, `by_method()`, `recent()`.
 - Reporting methods on `Contributor`: `projects`, `datasets`, `samples`, `measurements`,
-  `get_credit_counts()`, `get_co_contributors()`, `has_contribution_to()`,
+  `get_credit_counts()`, `get_collaborators()`, `has_contribution_to()`,
   `get_recent_contributions()`, `get_contributions_by_type()`.
 - Export helpers `Contributor.to_datacite()` and `.to_schema_org()`, backed by
   `DataCiteTransform`, `SchemaOrgTransform`, `CSLJSONTransform`, `ORCIDTransform` and

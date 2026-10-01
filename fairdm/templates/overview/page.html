@@ -15,6 +15,7 @@
     overview.notices        alerts above the header, so they are read first
     overview.image          header: the record's image, or its icon
     overview.badges         header: status badges
+    overview.name           header: the name inside the heading
     overview.byline         header: the people behind the record (a project's leads, a
                             dataset's creators), avatar and name, no caption
     overview.keywords       header: keywords
@@ -74,7 +75,7 @@
             {% block overview.badges %}{% endblock overview.badges %}
           </div>
 
-          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{{ record_title|default:record.name }}</h1>
+          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{% block overview.name %}{{ record_title|default:record.name }}{% endblock overview.name %}</h1>
 
           {% block overview.byline %}
             {% if header_people %}

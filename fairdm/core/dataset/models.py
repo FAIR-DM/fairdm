@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -124,6 +124,19 @@ class DatasetQuerySet(QuerySet):
     datasets before a caller holds a queryset, so ``Dataset.all_objects`` is the route to every
     dataset.
     """
+
+    def get_visible(self) -> "DatasetQuerySet":
+        """Return the public datasets that are not inside a private project.
+
+        A private project hides everything beneath it, so a public dataset in one is left out.
+        A dataset with no project counts on its own visibility.
+
+        Returns:
+            The datasets a profile or a public listing may name.
+        """
+        return self.filter(visibility=Visibility.PUBLIC).filter(
+            Q(project__isnull=True) | Q(project__visibility=Visibility.PUBLIC)
+        )
 
     def published(self) -> "DatasetQuerySet":
         """Return the datasets whose ``published`` flag is set.

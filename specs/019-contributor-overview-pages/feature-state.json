@@ -1,0 +1,359 @@
+{
+ "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+ "feature": "019-contributor-overview-pages",
+ "branch": "019-contributor-overview-pages",
+ "repo": "FAIR-DM/fairdm",
+ "state": "REVIEW",
+ "state_history": [
+  {
+   "state": "QUEUED",
+   "at": "2026-10-01T09:56:07Z",
+   "note": "specification merged in #385; epic #384, stories #387-389"
+  },
+  {
+   "state": "PLAN",
+   "at": "2026-10-01T10:05:11Z",
+   "note": "build branch cut from origin/main with the prototype merged in; started ahead of the queue on the maintainer's instruction"
+  },
+  {
+   "state": "DESIGN_REVIEW",
+   "at": "2026-10-01T10:05:37Z",
+   "note": "plan, research and tasks written; draft PR #390 open"
+  },
+  {
+   "state": "IMPLEMENT",
+   "at": "2026-10-01T10:11:30Z",
+   "note": "design review applied; plan notified"
+  },
+  {
+   "state": "CONVERGE",
+   "at": "2026-10-01T11:13:05Z",
+   "note": "all three stories accepted"
+  },
+  {
+   "state": "REVIEW",
+   "at": "2026-10-01T11:15:49Z",
+   "note": "converged in one cycle: one test added, ADR verdicts recorded; gate green"
+  }
+ ],
+ "gates": {
+  "spec": {
+   "approved_by": "SamuelJennings",
+   "at": "2026-10-01T09:56:07Z",
+   "self_resolved": [
+    "merged in #385 (merge commit 1c77a957)"
+   ]
+  },
+  "plan": {
+   "approved_by": "notified",
+   "at": "2026-10-01T10:11:25Z"
+  },
+  "merge": {
+   "approved_by": null,
+   "at": null
+  },
+  "design_review": {
+   "approved_by": "design-reviewer",
+   "at": "2026-10-01T10:11:25Z",
+   "self_resolved": [
+    "8 findings: 2 high, 4 medium, 2 low; 7 verified, 1 likely",
+    "highs applied: affiliation kept out of the page head unless the header shows it (plan D4, T003, T005); one model source for public projects and datasets read by overview and tabs (plan D4, T005, T006, T011, T012)",
+    "mediums applied: project check on samples and measurements, account-center route, gettext_lazy in the tab module",
+    "carried as a watch item: ARCH-001, resolve samples and measurements to ids",
+    "lows applied: mixin fold and tab removal moved behind the tests; component tests find empty states by element"
+   ]
+  },
+  "review": {
+   "approved_by": "reviewer (correctness, documentation, security)",
+   "at": "2026-10-01T11:32:17Z",
+   "self_resolved": [
+    "approve; 0 critical, 0 high",
+    "remedied: COR-001 tab card counts, DOC-001 component tables, COR-002 member since, COR-003 unused role counts, COR-004 primary badge on past affiliations, SEC-001 non-web links"
+   ]
+  }
+ },
+ "stories": [
+  {
+   "id": "US1",
+   "priority": "P1",
+   "issue": 387,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T001",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_conf/test_urls.py tests/test_templates/test_includes.py -q -n0 (exit 0, 15 passed)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_conf/test_urls.py::TestAccountCenterRoutes",
+       "tests/test_templates/test_includes.py::TestPendingAction"
+      ]
+     }
+    },
+    {
+     "id": "T002",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_profiles.py -q -n0 (exit 0, 18 passed)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_contrib/test_contributors/test_profiles.py"
+      ]
+     }
+    },
+    {
+     "id": "T003",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 (exit 1: 12 new tests fail as intended, they drive T006)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_contrib/test_contributors/test_models.py::TestGetVisibleContributions",
+       "tests/test_contrib/test_contributors/test_models.py::TestPublicRecordSources",
+       "tests/test_contrib/test_contributors/test_models.py::TestVisibleRoleCounts",
+       "tests/test_contrib/test_contributors/test_models.py::TestVisibleCollaborators",
+       "tests/test_contrib/test_contributors/test_models.py::TestPersonAffiliationHistory",
+       "tests/test_contrib/test_contributors/test_models.py::TestPersonMemberSince",
+       "tests/test_contrib/test_contributors/test_models.py::TestAffiliationDisplay",
+       "tests/test_contrib/test_contributors/test_models.py::TestPublicSchemaOrg",
+       "tests/test_contrib/test_contributors/test_models.py::TestContributorLinks",
+       "tests/test_contrib/test_contributors/test_models.py::TestIdentifierResolverUrl"
+      ]
+     }
+    },
+    {
+     "id": "T004",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_templates/test_contributor_cards.py -q -n0 (exit 0, 18 passed)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_templates/test_contributor_cards.py::TestMissing",
+       "tests/test_templates/test_contributor_cards.py::TestRecordsCard",
+       "tests/test_templates/test_contributor_cards.py::TestRolesCard",
+       "tests/test_templates/test_contributor_cards.py::TestLinksCard",
+       "tests/test_templates/test_contributor_cards.py::TestAffiliationsCard"
+      ]
+     }
+    },
+    {
+     "id": "T005",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n0 (exit 1: 14 failed, 27 passed; the 14 are the gaps T006 fixes)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview",
+       "tests/test_contrib/test_contributors/test_plugins/test_person.py::TestContributorTabs"
+      ]
+     }
+    },
+    {
+     "id": "T006",
+     "status": "done",
+     "attempts": 3,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib tests/test_templates tests/test_conf tests/test_core/test_dataset tests/test_core/test_project -q -n 4 (exit 0, 1923 passed, 1 skipped)",
+       "uv run pre-commit run --all-files (exit 0)",
+       "uv run python manage.py makemigrations --check --dry-run contributors dataset project sample measurement (no changes)"
+      ],
+      "tests": [
+       "tests/test_contrib/test_contributors/test_models.py",
+       "tests/test_contrib/test_contributors/test_plugins/test_overview.py",
+       "tests/test_contrib/test_contributors/test_plugins/test_person.py",
+       "tests/test_core/test_dataset/test_models.py::TestDatasetQuerySetGetVisible"
+      ]
+     }
+    },
+    {
+     "id": "T007",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0 (exit 0, 13 passed)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ],
+      "tests": [
+       "tests/test_demo/test_management/test_commands/test_seed_profiles.py"
+      ]
+     }
+    },
+    {
+     "id": "T008",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run kit/forge verify --repo . --base origin/main --steps docs (exit 0, docs: passed)",
+       "uv run pre-commit run --all-files (exit 0)",
+       "scratch test of the extension example and the contributors.md snippets (run, not committed)"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "US2",
+   "priority": "P2",
+   "issue": 388,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T009",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_models.py tests/test_core/test_project/test_models.py -k \"TestOrganizationMemberships or TestOrganizationHasMember or TestOrganizationIsManagedBy or TestOrganizationHierarchy or TestProjectIsActive\" -q -n0 (26 passed, exit 0)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T010",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_templates/test_contributor_cards.py::TestHierarchyCard -q -n0 (5 passed, exit 0)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T011",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview -q -n0 (2 failed, 27 passed; the two failures are the Projects and Datasets tab comparison, red until T012)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T012",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors tests/test_templates tests/test_core/test_project tests/test_core/test_dataset -q -n 4 (1533 passed, exit 0)",
+       "uv run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationPublicRecordSources tests/test_contrib/test_contributors/test_plugins -q -n0 (76 passed, exit 0)",
+       "uv run python manage.py makemigrations --check --dry-run contributors project dataset sample measurement (no changes)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T013",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0 (18 passed, exit 0)",
+       "forge verify --repo . --base origin/main --steps docs (exit 0, docs: passed)",
+       "uv run pre-commit run --all-files (exit 0)",
+       "scratch test of the organization extension example and the model snippets (run, not committed)"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "US3",
+   "priority": "P3",
+   "issue": 389,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T014",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_profiles.py::TestChecklist tests/test_contrib/test_contributors/test_models.py::TestPersonProfileCompleteness tests/test_contrib/test_contributors/test_models.py::TestOrganizationRecordCompleteness -q -n0 (19 passed, 1 failed on purpose: a pending primary affiliation counts; T016 fixes it)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T015",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -k Checklist -q -n0 (33 passed, 1 failed on purpose: a pending primary affiliation is counted; T016 fixes it)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T016",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n 4 (778 passed, exit 0)",
+       "uv run pytest tests/test_contrib tests/test_demo -q -n 4 (949 passed, exit 0, before the template deletion)",
+       "grep over fairdm, docs, tests and demo for the two old template paths (no references)",
+       "uv run pre-commit run --all-files (exit 0)"
+      ]
+     }
+    },
+    {
+     "id": "T017",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run python manage.py makemigrations --check --dry-run <the 18 app labels of the fairdm and demo packages> (exit 0, No changes detected)",
+       "uv run python manage.py makemigrations --check --dry-run over every installed app (exit 1, only orbit 0008_alter_orbitentry_type, third-party and not ours)",
+       "scan of the contributor plugin and the page and card templates for text outside gettext and translate tags (two titles found and marked)",
+       "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n 4 (99 passed, exit 0)",
+       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "budgets": {
+  "converge_cycles": {
+   "used": 1,
+   "max": 2
+  },
+  "review_cycles": {
+   "used": 1,
+   "max": 1
+  },
+  "design_review_cycles": {
+   "used": 1,
+   "max": 1
+  },
+  "tokens": {
+   "used": 0,
+   "max": 120
+  }
+ }
+}

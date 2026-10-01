@@ -1,7 +1,8 @@
 # Overview pages
 
 Every project, dataset, sample and measurement opens on an **overview page**, the first tab of the
-record's tabbed detail view. It is written for three readers: someone deciding whether the data is
+record's tabbed detail view. A person's page and an organization's page follow the same anatomy, described under
+[the person page](#the-person-page) and [the organization page](#the-organization-page). It is written for three readers: someone deciding whether the data is
 usable to them, someone who has to cite it, and the team keeping the record complete. All four
 pages share one anatomy, one set of [cards](component_library/cards.md) and one list of template
 blocks, so a portal changes one piece of a page by overriding one block or one method, not by
@@ -38,6 +39,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.notices` | Alerts above the header, so they are read first. |
 | `overview.image` | Header: the record's image, or its icon. |
 | `overview.badges` | Header: status badges. |
+| `overview.name` | Header: the name inside the heading. A contributor's page follows the name with a link to its ORCID record. |
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
 | `overview.keywords` | Header: keywords. |
 | `overview.actions` | Header: buttons. Cite and Share by default. |
@@ -340,6 +342,210 @@ The sample's dataset is checked separately. A sample in a dataset that is not pu
 described as "an unpublished sample" on the page, in the citation and in the card. It is never
 named, linked or mapped. The list of other measurements leaves out those in datasets the viewer
 may not see, and its count leaves them out too.
+
+## The person page
+
+A person's page is where a credit on a dataset leads. It tells a visitor who the person is, where
+they work, whether their ORCID iD is authenticated, what they are credited on in this portal and who
+they work with. Its template is `contributors/overview/person.html`, and the `Overview` plugin in
+`fairdm.contrib.contributors.plugins` works out what it draws. Every contributor's page is open to
+everyone, including the page of an unclaimed profile and of an inactive account.
+
+The header has the person's photo or initials, whether the profile is claimed, unclaimed or belongs
+to an inactive account, each portal role the person holds, and their name followed by a link to
+their ORCID record. The link says, to sighted readers and to assistive technology, whether the iD
+is authenticated, meaning the person has signed in with that ORCID account. Beneath the name come
+the primary organization, linked to its page, that organization's location and the person's
+languages in the active language. Each is left out when it is not recorded. A person has no
+location of their own.
+
+An unclaimed profile and an inactive account each get a notice. The figures are the number of
+projects and of datasets the person is credited on, each linking to the matching tab, and when the
+account was created. A profile with no account says so in place of a date.
+
+The content column holds the biography, a Projects card and a Datasets card side by side, the
+contribution roles and two cards announced as not available yet, the person's publications and a
+map. Each record card lists at most five records, with projects in progress first and then the most
+recently updated, and links to the full list. The side column holds the readiness checklist for the
+person themselves, identifiers, links, affiliations, frequent collaborators and recent activity as
+not available yet. The collaborators card shows at most eighteen people and counts the rest. A
+person has no Details, funding or citation card.
+
+The blocks the contributor pages fill, in page order:
+
+| Block | What it holds |
+| --- | --- |
+| `overview.about` | The biography, or what an empty one is for. |
+| `overview.records` | The Projects and Datasets cards. |
+| `overview.roles` | The contribution roles card. |
+| `overview.future` | The publications and map cards, announced as not available yet. |
+| `overview.readiness` | The person's own checklist. |
+| `overview.identifiers` | The person's identifiers and portal ID. |
+| `overview.links` | The links card. |
+| `overview.affiliations` | The affiliations card. |
+| `overview.people` | The frequent collaborators card. |
+| `overview.activity` | Recent activity, announced as not available yet. |
+
+The blocks that mean the same on a record page keep their name. The Projects and Datasets tabs sit
+beside the overview.
+
+### Who sees what
+
+A project or dataset appears on a contributor's page, in a list or in a count, only when it is
+public. That holds for every viewer, including the person and the members of a private project.
+A public dataset inside a private project is left out as well. The Projects and Datasets tabs
+follow the same rule, so a figure always equals the number of entries behind its link.
+
+The role counts and the collaborators come from the credits on records the viewer may open. Someone
+who shares only a private record with the person is not named, and a role held only on private
+records is not counted. Neither the page nor its schema.org description in the head contains an
+email address, and the description names an affiliation only when it is the verified, current
+primary affiliation the header shows. [What a profile may show](contributors.md#what-a-profile-may-show)
+lists the methods behind this.
+
+### The profile checklist
+
+A person sees a checklist of what a complete profile has on their own page and nowhere else. A
+visitor, another signed-in user, a staff user and a superuser do not see it, because it follows
+the person and not a portal role. It says which items are in place, how many of the total, and that
+only the person can see it. Each item that is missing links to the page that fixes it where one
+exists.
+
+| Item | In place when |
+| --- | --- |
+| A profile photo, recommended | The person has uploaded one. |
+| An ORCID iD connected by signing in with ORCID | The person has signed in to the portal with an ORCID account. An iD typed into the profile does not count. The item links to the page where accounts are connected. |
+| A short biography | The profile text is not empty. |
+| A primary affiliation | The person has a verified primary affiliation that has not ended, the one the header shows. A pending request or an ended affiliation does not count. |
+| Links to your other profiles, recommended | The person has recorded at least one link. |
+
+On their own page the person is also offered editing the profile, shown as not available yet, in
+place of the contact action that everyone else is offered. An empty biography and an empty list of
+records speak to them directly. `Person.get_profile_completeness()` returns the flag for each item
+and the `checklist` helper turns the items into the summary the card draws.
+
+### Extending a contributor page
+
+Override the template, as for a record page. A template named `contributors/overview/person.html`
+in your portal's templates, ahead of FairDM's, extends the one it replaces. This adds a card to the
+end of the side column and keeps every card FairDM draws there:
+
+```django
+{% extends "contributors/overview/person.html" %}
+
+{% block overview.side %}
+  {{ block.super }}
+  <c-card title="Our research group" class="bg-base-100">
+    {{ person.name }} is a member of the group.
+  </c-card>
+{% endblock overview.side %}
+```
+
+The blocks read `record`, `person`, `is_self`, `is_unclaimed`, `is_inactive`, `affiliations`,
+`primary_organization`, `location_text`, `languages`, `portal_roles`, `identifier`,
+`identifier_url`, `orcid_verified`, `member_since`, `counts`, `projects`, `datasets`, `roles`,
+`identifiers`, `links`, `people`, `urls`, `api_url` and `json_ld`. The plugin's `records_shown`
+(five) and `collaborators_shown` (eighteen) say how many records each record card lists and how
+many faces the collaborators card draws.
+
+## The organization page
+
+An organization's page is where an owner or an affiliation leads. It tells a visitor what the
+organization is, where it sits among the organizations around it, who belongs to it and what
+research in this portal it is behind. It reuses the person page's template skeleton and cards. Its
+template is `contributors/overview/organization.html`, drawn by the same `Overview` plugin, and
+like every contributor's page it is open to everyone.
+
+The header has the organization's logo or its initials, its type, and its name followed by a link
+to its ROR record when it has a ROR ID. Beneath the name come the organization it is part of,
+linked to its page, its city and country, and its languages. Each is left out when it is not
+recorded. The actions are sharing the page and the organization's address in the API. A signed-in
+person who is not a current member is also offered asking to join, shown as not available yet. The
+people who keep the record are offered a menu of management actions instead, also not available
+yet.
+
+The figures are the organization's projects, its datasets and its current members. The first two
+link to the matching tabs.
+
+The content column holds the description, the members, a Projects card and a Datasets card, and a
+map of where its members work, announced as not available yet. The side column holds the
+readiness checklist for the people who keep the record, identifiers, links, a map of where the
+organization is based, the hierarchy and recent activity as not available yet. An organization has
+no Details, funding or citation card. The map of where it is based is left out when no location is
+recorded, because the header already names the city and country. Every other card is drawn and
+says what is missing.
+
+The blocks only the organization page has are `overview.members`, which holds the Members card,
+and `overview.hierarchy`, which holds the Hierarchy card. It also fills the blocks the person page
+defines (`overview.about`, `overview.records`, `overview.future`, `overview.readiness`,
+`overview.identifiers`, `overview.links`, `overview.activity`) and adds `overview.location` for the
+map of where the organization is based.
+
+### Members and hierarchy
+
+A member is a person with a verified affiliation to the organization that has not ended. A pending
+request and a former member are neither listed nor counted. The Members card lists the owner first,
+then the administrators, then the other members, each group by name, and marks the owner and the
+administrators. It has ten places. When there are more members than that, the tenth place counts
+the members not shown. `Organization.get_current_memberships()` returns the list and the plugin's
+`member_slots` sets the number of places.
+
+The Hierarchy card places the organization among its neighbours: its parent, the parent's
+sub-organizations with this one marked among them, and this organization's own direct
+sub-organizations, each group by name. Every organization in it other than this one links to its
+page. An organization with no parent starts the tree itself, and one with neither a parent nor
+sub-organizations shows a notice that none is recorded. `Organization.get_hierarchy()` returns the
+three groups, and [`c-card.hierarchy`](component_library/cards.md#c-cardhierarchy) draws them.
+
+### Whose work an organization's page counts
+
+An organization's projects are the public projects it owns and the public projects it is credited
+on. Its datasets are the public datasets it is credited on and the public datasets inside the
+projects it owns, whether or not it is credited on them. Nothing is counted twice, a record in a
+private project is left out, and what its members did under their own names is not counted as the
+organization's. A project the organization owns is marked as owned in the Projects card.
+
+`Organization.get_public_projects()` and `get_public_datasets()` return these two lists. The
+overview's figures and cards and the Projects and Datasets tabs all read them, so a figure always
+equals the number of entries behind its link.
+
+### Who keeps the record
+
+The checklist and the management menu are shown to the organization's owner and administrators,
+meaning the people whose current affiliation to it is of that kind. A portal role such as
+Community Manager does not count, because portal staff manage organizations from the administration
+interface, and neither does staff or superuser status. An ordinary member, a pending request and a
+former administrator whose affiliation has ended see neither. `Organization.is_managed_by(user)`
+answers it. Asking to join is offered to a signed-in user for whom neither `has_member(user)` nor
+`is_managed_by(user)` holds.
+
+The checklist lists a ROR identifier, a logo (recommended), the type of organization, a city and a
+country together, a description and a website (recommended). A ROR identifier is the only
+identifier type that counts toward the first item. The menu holds editing the details, managing the
+members and updating the record from ROR, each shown as not available yet.
+`Organization.get_record_completeness()` returns the flag for each item.
+
+### Extending an organization page
+
+Override the template as for the person page. This adds a card to the end of the side column and
+keeps every card FairDM draws there:
+
+```django
+{% extends "contributors/overview/organization.html" %}
+
+{% block overview.side %}
+  {{ block.super }}
+  <c-card title="Our partners" class="bg-base-100">
+    {{ organization.name }} works with several partners.
+  </c-card>
+{% endblock overview.side %}
+```
+
+The blocks read `record`, `organization`, `can_manage`, `is_member`, `members`, `projects`,
+`datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, `languages`, `identifier`,
+`identifier_url`, `identifiers`, `links`, `urls`, `api_url` and `json_ld`, and `readiness` for the
+people who keep the record. `records_shown` (five) and `member_slots` (ten) on the plugin say how
+many records each record card lists and how many places the Members card has.
 
 ## Giving a sample or measurement type its own page
 

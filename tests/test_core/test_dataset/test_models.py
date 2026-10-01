@@ -1627,3 +1627,35 @@ class TestDatasetCreationRecord:
 
     def test_created_by_field_is_not_editable(self):
         assert Dataset._meta.get_field("created_by").editable is False
+
+
+@pytest.mark.django_db
+class TestDatasetQuerySetGetVisible:
+    def test_a_public_dataset_in_a_public_project_is_visible(self):
+        dataset = DatasetFactory(
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+
+        assert dataset in Dataset.objects.get_visible()
+
+    def test_a_private_dataset_is_left_out(self):
+        dataset = DatasetFactory(
+            visibility=Visibility.PRIVATE,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+
+        assert dataset not in Dataset.all_objects.get_visible()
+
+    def test_a_public_dataset_in_a_private_project_is_left_out(self):
+        dataset = DatasetFactory(
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+        )
+
+        assert dataset not in Dataset.objects.get_visible()
+
+    def test_a_public_dataset_with_no_project_is_visible(self):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, project=None)
+
+        assert dataset in Dataset.objects.get_visible()

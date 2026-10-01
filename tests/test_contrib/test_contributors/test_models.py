@@ -1,12 +1,16 @@
 """Tests for the contributor models."""
 
+from datetime import date
+
 import pytest
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.utils.formats import date_format
 
 from fairdm.contrib.contributors.choices import AccountState, OrganizationType
 from fairdm.contrib.contributors.models import (
@@ -18,6 +22,7 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
+from fairdm.core.utils import assign_perm
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -26,6 +31,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.utils.choices import Visibility
 
 
 class TestContributorIdentity:
@@ -1078,9 +1084,9 @@ class TestContributorCredits:
             person.get_credit_counts()
 
 
-class TestCoContributors:
+class TestCollaborators:
     @pytest.mark.django_db
-    def test_orders_co_contributors_most_frequent_first(self, person):
+    def test_orders_collaborators_most_frequent_first(self, person):
         frequent = PersonFactory()
         occasional = PersonFactory()
         projects = ProjectFactory.create_batch(3)
@@ -1089,11 +1095,11 @@ class TestCoContributors:
             frequent.add_to(project)
         occasional.add_to(projects[0])
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert co_contributors[0] == frequent
-        assert occasional in co_contributors
-        assert co_contributors.index(frequent) < co_contributors.index(occasional)
+        assert collaborators[0] == frequent
+        assert occasional in collaborators
+        assert collaborators.index(frequent) < collaborators.index(occasional)
 
     @pytest.mark.django_db
     def test_excludes_the_contributor_credited_on_an_unrelated_object(self, person):
@@ -1105,10 +1111,10 @@ class TestCoContributors:
         stranger = PersonFactory()
         stranger.add_to(ProjectFactory())
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert collaborator in co_contributors
-        assert stranger not in co_contributors
+        assert collaborator in collaborators
+        assert stranger not in collaborators
 
     @pytest.mark.django_db
     def test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive(
@@ -1133,9 +1139,9 @@ class TestCoContributors:
             object_id=str(project.pk),
         )
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert false_positive not in co_contributors
+        assert false_positive not in collaborators
 
 
 class TestContributorIdentifierUniqueness:
@@ -1813,3 +1819,819 @@ class TestOrcidIsAuthenticated:
         SocialAccount.objects.create(user=person, provider="github", uid="42")
 
         assert person.orcid_is_authenticated is False
+
+
+def _credited(*records):
+    """What a credit on each record looks like in the visible contributions."""
+    kinds = {
+        "project": "project.Project",
+        "dataset": "dataset.Dataset",
+        "sample": "sample.Sample",
+        "measurement": "measurement.Measurement",
+    }
+    return {
+        (
+            next(
+                kind
+                for kind, label in kinds.items()
+                if isinstance(record, apps.get_model(label))
+            ),
+            str(record.pk),
+        )
+        for record in records
+    }
+
+
+def _records(contributions):
+    """The kind and id of each record the contributions are on."""
+    return {(c.kind, str(c.object_id)) for c in contributions}
+
+
+@pytest.mark.django_db
+class TestGetVisibleContributions:
+    def test_a_visitor_gets_the_public_records_only(self, credited_world):
+        world = credited_world
+
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        assert _records(contributions) == _credited(
+            world.public_project,
+            world.public_dataset,
+            world.public_sample,
+            world.public_measurement,
+        )
+
+    def test_the_person_gets_what_a_visitor_gets(self, credited_world):
+        world = credited_world
+
+        contributions = world.person.get_visible_contributions(world.person)
+
+        assert _records(contributions) == _records(
+            world.person.get_visible_contributions(AnonymousUser())
+        )
+
+    def test_a_member_of_a_private_project_does_not_get_it_listed(
+        self, credited_world
+    ):
+        world = credited_world
+        member = PersonFactory(is_active=True)
+        assign_perm("view_project", member, world.private_project)
+
+        contributions = world.person.get_visible_contributions(member)
+
+        assert _credited(world.private_project).isdisjoint(_records(contributions))
+
+    def test_a_public_dataset_inside_a_private_project_is_left_out(
+        self, credited_world
+    ):
+        world = credited_world
+
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        assert _credited(world.dataset_in_private_project).isdisjoint(
+            _records(contributions)
+        )
+
+    def test_a_sample_and_a_measurement_inside_a_private_project_are_left_out_for_its_team(
+        self, credited_world
+    ):
+        world = credited_world
+        member = PersonFactory(is_active=True)
+        assign_perm("view_project", member, world.private_project)
+        assign_perm("view_dataset", member, world.dataset_in_private_project)
+
+        records = _records(world.person.get_visible_contributions(member))
+
+        assert _credited(
+            world.sample_in_private_project, world.measurement_in_private_project
+        ).isdisjoint(records)
+
+    def test_a_sample_in_a_private_dataset_follows_who_may_open_the_dataset(
+        self, credited_world
+    ):
+        world = credited_world
+        world.person.add_to(world.private_sample)
+        team = PersonFactory(is_active=True)
+        assign_perm("view_dataset", team, world.private_dataset)
+
+        assert _credited(world.private_sample).isdisjoint(
+            _records(world.person.get_visible_contributions(AnonymousUser()))
+        )
+        assert _credited(world.private_sample) <= _records(
+            world.person.get_visible_contributions(team)
+        )
+
+    def test_each_contribution_says_which_kind_of_record_it_is(self, credited_world):
+        world = credited_world
+
+        kinds = {
+            contribution.kind
+            for contribution in world.person.get_visible_contributions(
+                AnonymousUser()
+            )
+        }
+
+        assert kinds == {"project", "dataset", "sample", "measurement"}
+
+
+@pytest.mark.django_db
+class TestPublicRecordSources:
+    def test_the_public_projects_are_the_credited_projects_that_are_public(
+        self, credited_world
+    ):
+        world = credited_world
+
+        assert set(world.person.get_public_projects()) == {world.public_project}
+
+    def test_the_public_datasets_leave_out_private_ones_and_those_in_private_projects(
+        self, credited_world
+    ):
+        world = credited_world
+
+        assert set(world.person.get_public_datasets()) == {world.public_dataset}
+
+    def test_they_equal_the_projects_and_datasets_among_the_public_credits(
+        self, credited_world
+    ):
+        world = credited_world
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        projects = {c.record for c in contributions if c.kind == "project"}
+        datasets = {c.record for c in contributions if c.kind == "dataset"}
+
+        assert projects == set(world.person.get_public_projects())
+        assert datasets == set(world.person.get_public_datasets())
+
+    def test_a_dataset_with_no_project_is_public_when_it_is_public(self, db):
+        person = PersonFactory()
+        dataset = DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        person.add_to(dataset)
+
+        assert set(person.get_public_datasets()) == {dataset}
+
+
+@pytest.mark.django_db
+class TestVisibleRoleCounts:
+    def test_a_role_held_only_on_a_private_record_is_not_counted(self, credited_world):
+        world = credited_world
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        counts = world.person.get_role_counts(contributions)
+
+        assert set(counts) == {"Creator", "Data Collector", "Researcher", "Support"}
+
+    def test_each_role_counts_the_records_it_is_held_on(self, credited_world):
+        world = credited_world
+        world.person.add_to(world.public_dataset, roles=["Creator"])
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        counts = world.person.get_role_counts(contributions)
+
+        assert counts["Creator"] == 2
+
+
+@pytest.mark.django_db
+class TestVisibleCollaborators:
+    def test_a_collaborator_known_only_through_a_private_record_is_absent(
+        self, credited_world
+    ):
+        world = credited_world
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        collaborators = list(world.person.get_collaborators(contributions=contributions))
+
+        assert world.private_mate not in collaborators
+        assert world.private_dataset_mate not in collaborators
+
+    def test_the_most_frequent_collaborator_comes_first(self, credited_world):
+        world = credited_world
+        contributions = world.person.get_visible_contributions(AnonymousUser())
+
+        collaborators = list(world.person.get_collaborators(contributions=contributions))
+
+        assert collaborators == [world.open_mate, world.sample_mate]
+        assert collaborators[0].collaboration_count == 2
+
+    def test_collaborators_with_the_same_count_are_ordered_by_name(self, db):
+        person = PersonFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        later = PersonFactory(name="Zed")
+        earlier = PersonFactory(name="Abe")
+        for contributor in (person, later, earlier):
+            contributor.add_to(project)
+        contributions = person.get_visible_contributions(AnonymousUser())
+
+        collaborators = list(person.get_collaborators(contributions=contributions))
+
+        assert collaborators == [earlier, later]
+
+    def test_a_collaborator_may_be_an_organization(self, db):
+        person = PersonFactory()
+        organization = OrganizationFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        person.add_to(project)
+        organization.add_to(project)
+        contributions = person.get_visible_contributions(AnonymousUser())
+
+        collaborators = list(person.get_collaborators(contributions=contributions))
+
+        assert collaborators == [organization]
+
+    def test_no_visible_credit_means_no_collaborators(self, db):
+        person = PersonFactory()
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        person.add_to(project)
+        PersonFactory().add_to(project)
+        contributions = person.get_visible_contributions(AnonymousUser())
+
+        assert list(person.get_collaborators(contributions=contributions)) == []
+
+
+@pytest.mark.django_db
+class TestPersonAffiliationHistory:
+    def test_the_primary_affiliation_leads_and_the_rest_follow_by_name(self, db):
+        person = PersonFactory()
+        primary = AffiliationFactory(
+            person=person, organization=OrganizationFactory(name="Zeta"), is_primary=True
+        )
+        beta = AffiliationFactory(person=person, organization=OrganizationFactory(name="Beta"))
+        alpha = AffiliationFactory(person=person, organization=OrganizationFactory(name="Alpha"))
+
+        history = person.get_affiliation_history()
+
+        assert history["current"] == [primary, alpha, beta]
+
+    def test_past_affiliations_come_with_the_most_recently_ended_first(self, db):
+        person = PersonFactory()
+        older = AffiliationFactory(person=person, start_date="2010", end_date="2014")
+        newer = AffiliationFactory(person=person, start_date="2015", end_date="2020-05")
+
+        history = person.get_affiliation_history()
+
+        assert history["past"] == [newer, older]
+        assert history["current"] == []
+
+    def test_a_pending_affiliation_is_left_out(self, db):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            type=Affiliation.MembershipType.PENDING,
+            is_primary=True,
+        )
+
+        history = person.get_affiliation_history()
+
+        assert history == {"current": [], "past": []}
+
+
+@pytest.mark.django_db
+class TestPersonMemberSince:
+    @pytest.mark.parametrize(
+        ("member_name", "has_date"),
+        [("ghost", False), ("invited", False), ("claimed", True), ("inactive", True)],
+    )
+    def test_the_date_is_given_for_a_profile_with_an_account_only(
+        self, contributor_population, member_name, has_date
+    ):
+        person = getattr(contributor_population, member_name)
+
+        assert (person.member_since is not None) is has_date
+
+    def test_the_date_is_when_the_account_was_created(self, contributor_population):
+        person = contributor_population.claimed
+
+        assert person.member_since == person.date_joined
+
+
+@pytest.mark.django_db
+class TestAffiliationDisplay:
+    @pytest.mark.parametrize(
+        ("recorded", "expected"),
+        [
+            ("2020", "2020"),
+            ("2020-03", date_format(date(2020, 3, 1), "YEAR_MONTH_FORMAT")),
+            ("2020-03-14", date_format(date(2020, 3, 14), "SHORT_DATE_FORMAT")),
+        ],
+    )
+    def test_a_date_is_shown_as_precisely_as_it_was_recorded(
+        self, recorded, expected
+    ):
+        affiliation = AffiliationFactory(start_date=recorded, end_date=recorded)
+
+        affiliation.refresh_from_db()
+
+        assert affiliation.start_display == expected
+        assert affiliation.end_display == expected
+
+    def test_a_date_that_was_not_recorded_is_an_empty_string(self):
+        affiliation = AffiliationFactory(start_date=None, end_date=None)
+
+        assert affiliation.start_display == ""
+        assert affiliation.end_display == ""
+
+
+@pytest.mark.django_db
+class TestPublicSchemaOrg:
+    def test_the_email_address_is_not_carried(self):
+        person = PersonFactory(email="private@example.org")
+
+        assert "email" not in person.to_public_schema_org()
+        assert "private@example.org" not in str(person.to_public_schema_org())
+
+    def test_the_verified_current_primary_affiliation_is_carried(self):
+        person = PersonFactory()
+        organization = OrganizationFactory(name="Current Institute")
+        AffiliationFactory(person=person, organization=organization, is_primary=True)
+
+        data = person.to_public_schema_org()
+
+        assert data["affiliation"]["name"] == "Current Institute"
+
+    def test_a_pending_primary_affiliation_is_not_carried(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(name="Pending Institute"),
+            type=Affiliation.MembershipType.PENDING,
+            is_primary=True,
+        )
+
+        assert "affiliation" not in person.to_public_schema_org()
+        assert "Pending Institute" not in str(person.to_public_schema_org())
+
+    def test_an_ended_primary_affiliation_is_not_carried(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(name="Former Institute"),
+            is_primary=True,
+            start_date="2010",
+            end_date="2015",
+        )
+
+        assert "affiliation" not in person.to_public_schema_org()
+
+    def test_an_organization_carries_no_email_either(self):
+        organization = OrganizationFactory()
+
+        assert "email" not in organization.to_public_schema_org()
+
+
+@pytest.mark.django_db
+class TestContributorLinks:
+    def test_each_link_is_named_by_its_site(self):
+        person = PersonFactory(links=["https://www.github.com/someone", "https://x.test/a"])
+
+        assert person.get_links_display() == [
+            {"url": "https://www.github.com/someone", "host": "github.com"},
+            {"url": "https://x.test/a", "host": "x.test"},
+        ]
+
+    def test_no_links_gives_an_empty_list(self):
+        assert PersonFactory(links=[]).get_links_display() == []
+
+
+@pytest.mark.django_db
+class TestIdentifierResolverUrl:
+    def test_a_type_with_a_resolver_links_to_it(self):
+        identifier = ContributorIdentifier.objects.create(
+            related=PersonFactory(), type="ORCID", value="0000-0001-2345-6789"
+        )
+
+        assert identifier.resolver_url == "https://orcid.org/0000-0001-2345-6789"
+
+    def test_a_type_with_no_resolver_has_no_link(self):
+        identifier = ContributorIdentifier.objects.create(
+            related=PersonFactory(), type="RESEARCHER_ID", value="A-1234-2020"
+        )
+
+        assert identifier.resolver_url is None
+
+
+@pytest.mark.django_db
+class TestOrganizationMemberships:
+    @staticmethod
+    def _join(organization, name, type=Affiliation.MembershipType.MEMBER, **kwargs):
+        return AffiliationFactory(
+            organization=organization,
+            person=PersonFactory(name=name, is_active=True),
+            type=type,
+            **kwargs,
+        )
+
+    def test_only_current_verified_members_are_listed(self):
+        organization = OrganizationFactory()
+        current = self._join(organization, "Current")
+        self._join(organization, "Pending", type=Affiliation.MembershipType.PENDING)
+        self._join(organization, "Former", start_date="2010", end_date="2014")
+        self._join(OrganizationFactory(), "Elsewhere")
+
+        assert organization.get_current_memberships() == [current]
+
+    def test_the_owner_comes_first_then_administrators_then_members_each_by_name(self):
+        organization = OrganizationFactory()
+        member_b = self._join(organization, "Beta")
+        member_a = self._join(organization, "Alpha")
+        admin_b = self._join(organization, "Yara", Affiliation.MembershipType.ADMIN)
+        admin_a = self._join(organization, "Xavier", Affiliation.MembershipType.ADMIN)
+        owner = self._join(organization, "Zed", Affiliation.MembershipType.OWNER)
+
+        assert organization.get_current_memberships() == [
+            owner,
+            admin_a,
+            admin_b,
+            member_a,
+            member_b,
+        ]
+
+    def test_an_organization_with_no_members_lists_none(self):
+        assert OrganizationFactory().get_current_memberships() == []
+
+
+@pytest.mark.django_db
+class TestOrganizationHasMember:
+    @pytest.mark.parametrize(
+        "type",
+        [
+            Affiliation.MembershipType.MEMBER,
+            Affiliation.MembershipType.ADMIN,
+            Affiliation.MembershipType.OWNER,
+        ],
+    )
+    def test_a_current_verified_affiliation_of_any_kind_counts(self, type):
+        affiliation = AffiliationFactory(type=type)
+
+        assert affiliation.organization.has_member(affiliation.person) is True
+
+    def test_a_pending_affiliation_does_not_count(self):
+        affiliation = AffiliationFactory(type=Affiliation.MembershipType.PENDING)
+
+        assert affiliation.organization.has_member(affiliation.person) is False
+
+    def test_an_ended_affiliation_does_not_count(self):
+        affiliation = AffiliationFactory(start_date="2010", end_date="2014")
+
+        assert affiliation.organization.has_member(affiliation.person) is False
+
+    def test_an_affiliation_to_another_organization_does_not_count(self):
+        affiliation = AffiliationFactory()
+
+        assert OrganizationFactory().has_member(affiliation.person) is False
+
+    def test_a_visitor_is_not_a_member(self):
+        assert OrganizationFactory().has_member(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestOrganizationIsManagedBy:
+    @pytest.mark.parametrize(
+        ("type", "managed"),
+        [
+            (Affiliation.MembershipType.OWNER, True),
+            (Affiliation.MembershipType.ADMIN, True),
+            (Affiliation.MembershipType.MEMBER, False),
+            (Affiliation.MembershipType.PENDING, False),
+        ],
+    )
+    def test_only_the_owner_and_administrators_keep_the_record(self, type, managed):
+        affiliation = AffiliationFactory(type=type)
+
+        assert affiliation.organization.is_managed_by(affiliation.person) is managed
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+    )
+    def test_an_ended_affiliation_does_not_count(self, type):
+        affiliation = AffiliationFactory(
+            type=type, start_date="2010", end_date="2014"
+        )
+
+        assert affiliation.organization.is_managed_by(affiliation.person) is False
+
+    def test_a_portal_role_does_not_count(self):
+        organization = OrganizationFactory()
+        staff = PersonFactory(is_active=True, is_staff=True, is_superuser=True)
+
+        assert organization.is_managed_by(staff) is False
+
+    def test_a_visitor_does_not_keep_any_record(self):
+        assert OrganizationFactory().is_managed_by(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestOrganizationHierarchy:
+    def test_it_gives_the_parent_the_siblings_with_this_one_among_them_and_the_children(
+        self,
+    ):
+        parent = OrganizationFactory(name="Parent")
+        organization = OrganizationFactory(name="Middle", parent=parent)
+        before = OrganizationFactory(name="Before", parent=parent)
+        after = OrganizationFactory(name="Zulu", parent=parent)
+        child_b = OrganizationFactory(name="Child B", parent=organization)
+        child_a = OrganizationFactory(name="Child A", parent=organization)
+        OrganizationFactory(name="Grandchild", parent=child_a)
+
+        hierarchy = organization.get_hierarchy()
+
+        assert hierarchy["parent"] == parent
+        assert hierarchy["siblings"] == [before, organization, after]
+        assert hierarchy["children"] == [child_a, child_b]
+
+    def test_without_a_parent_there_are_no_siblings(self):
+        organization = OrganizationFactory()
+        OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+
+        hierarchy = organization.get_hierarchy()
+
+        assert hierarchy["parent"] is None
+        assert hierarchy["siblings"] == []
+        assert hierarchy["children"] == [child]
+
+    def test_with_neither_a_parent_nor_children_it_is_empty(self):
+        hierarchy = OrganizationFactory().get_hierarchy()
+
+        assert hierarchy == {"parent": None, "siblings": [], "children": []}
+
+
+@pytest.mark.django_db
+class TestOrganizationPublicRecordSources:
+    def test_the_projects_are_the_public_ones_it_owns_and_those_it_is_credited_on(self):
+        organization = OrganizationFactory()
+        owned = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        credited = ProjectFactory(visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+        ProjectFactory(owner=organization, visibility=Visibility.PRIVATE)
+        private_credit = ProjectFactory(visibility=Visibility.PRIVATE)
+        organization.add_to(private_credit)
+        ProjectFactory(visibility=Visibility.PUBLIC)
+
+        assert set(organization.get_public_projects()) == {owned, credited}
+
+    def test_a_project_it_owns_and_is_credited_on_is_listed_once(self):
+        organization = OrganizationFactory()
+        project = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        organization.add_to(project)
+
+        assert list(organization.get_public_projects()) == [project]
+
+    def test_the_datasets_are_those_it_is_credited_on_and_those_in_its_projects(self):
+        organization = OrganizationFactory()
+        owned = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        inside = DatasetFactory(project=owned, visibility=Visibility.PUBLIC)
+        inside_credited = DatasetFactory(project=owned, visibility=Visibility.PUBLIC)
+        organization.add_to(inside_credited)
+        credited = DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+        DatasetFactory(project=owned, visibility=Visibility.PRIVATE)
+        DatasetFactory(visibility=Visibility.PUBLIC)
+
+        datasets = organization.get_public_datasets()
+
+        assert set(datasets) == {inside, inside_credited, credited}
+        assert len(datasets) == 3
+
+    def test_a_dataset_in_a_private_project_is_left_out_even_when_it_owns_the_project(
+        self,
+    ):
+        organization = OrganizationFactory()
+        private = ProjectFactory(owner=organization, visibility=Visibility.PRIVATE)
+        DatasetFactory(project=private, visibility=Visibility.PUBLIC)
+
+        assert list(organization.get_public_datasets()) == []
+
+    def test_what_its_members_are_credited_on_is_not_its_own(self):
+        organization = OrganizationFactory()
+        member = AffiliationFactory(organization=organization).person
+        member.add_to(ProjectFactory(visibility=Visibility.PUBLIC))
+        member.add_to(DatasetFactory(project=None, visibility=Visibility.PUBLIC))
+
+        assert list(organization.get_public_projects()) == []
+        assert list(organization.get_public_datasets()) == []
+
+    def test_the_credits_it_returns_are_for_records_it_is_credited_on_only(self):
+        organization = OrganizationFactory()
+        ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        credited = ProjectFactory(visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+
+        contributions = organization.get_visible_contributions(AnonymousUser())
+
+        assert [c.record for c in contributions] == [credited]
+
+
+@pytest.mark.django_db
+class TestPersonProfileCompleteness:
+    def test_a_bare_profile_has_none_of_the_items(self):
+        person = PersonFactory(profile="", links=[])
+
+        assert person.get_profile_completeness() == {
+            "image": False,
+            "orcid": False,
+            "profile": False,
+            "primary_affiliation": False,
+            "links": False,
+        }
+
+    def test_a_filled_in_profile_has_every_item(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory(
+            with_image=True, profile="A biography.", links=["https://example.org/me"]
+        )
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001")
+        AffiliationFactory(person=person, is_primary=True)
+
+        assert all(person.get_profile_completeness().values())
+
+    def test_each_item_is_counted_on_its_own(self):
+        person = PersonFactory(profile="A biography.", links=[])
+
+        complete = person.get_profile_completeness()
+
+        assert complete["profile"] is True
+        assert [key for key, done in complete.items() if done] == ["profile"]
+
+    def test_an_orcid_id_typed_in_is_not_connected(self):
+        person = PersonFactory()
+        ContributorIdentifier.objects.create(
+            related=person, type="ORCID", value="0000-0001-2345-6789"
+        )
+
+        assert person.get_profile_completeness()["orcid"] is False
+
+    def test_signing_in_with_orcid_is_connected(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory()
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001")
+
+        assert person.get_profile_completeness()["orcid"] is True
+
+    def test_an_affiliation_that_is_not_primary_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=False)
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+    def test_a_current_verified_primary_affiliation_counts(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=True)
+
+        assert person.get_profile_completeness()["primary_affiliation"] is True
+
+    def test_an_ended_primary_affiliation_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person, is_primary=True, start_date="2010", end_date="2014"
+        )
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+    def test_a_pending_primary_affiliation_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+
+@pytest.mark.django_db
+class TestOrganizationRecordCompleteness:
+    def test_a_bare_record_has_none_of_the_items(self):
+        organization = OrganizationFactory(
+            profile="", type="", city="", country="", links=[]
+        )
+
+        assert not any(organization.get_record_completeness().values())
+
+    def test_a_filled_in_record_has_every_item(self):
+        organization = OrganizationFactory(
+            with_image=True,
+            profile="A description.",
+            type=OrganizationType.EDUCATION,
+            city="Potsdam",
+            country="DE",
+            links=["https://example.org"],
+        )
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+
+        assert all(organization.get_record_completeness().values())
+
+    def test_only_a_ror_identifier_counts_as_the_ror_item(self):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ISNI", value="0000000121032683"
+        )
+
+        assert organization.get_record_completeness()["ror"] is False
+
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+
+        assert organization.get_record_completeness()["ror"] is True
+
+    @pytest.mark.parametrize(
+        ("kwargs", "complete"),
+        [
+            ({"city": "Potsdam", "country": "DE"}, True),
+            ({"city": "Potsdam", "country": ""}, False),
+            ({"city": "", "country": "DE"}, False),
+        ],
+    )
+    def test_the_location_needs_both_the_city_and_the_country(self, kwargs, complete):
+        organization = OrganizationFactory(**kwargs)
+
+        assert organization.get_record_completeness()["location"] is complete
+
+    def test_each_item_is_counted_on_its_own(self):
+        organization = OrganizationFactory(
+            profile="A description.", type="", city="", country="", links=[]
+        )
+
+        complete = organization.get_record_completeness()
+
+        assert [key for key, done in complete.items() if done] == ["profile"]
+
+
+@pytest.mark.django_db
+class TestPersonLocationDisplay:
+    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(self):
+        person = PersonFactory()
+        organization = OrganizationFactory(city="Potsdam", country="DE")
+        AffiliationFactory(person=person, organization=organization, is_primary=True)
+
+        assert person.get_location_display() == "Potsdam, Germany"
+
+    def test_a_person_without_a_primary_affiliation_has_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=False,
+        )
+
+        assert person.get_location_display() is None
+
+    def test_a_pending_primary_affiliation_gives_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        assert person.get_location_display() is None
+
+    def test_an_ended_primary_affiliation_gives_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+            start_date="2010",
+            end_date="2014",
+        )
+
+        assert person.get_location_display() is None
+
+    def test_it_reads_a_prefetch_of_the_affiliations(self, django_assert_num_queries):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+        )
+        person = Person.objects.prefetch_related("affiliations__organization").get(
+            pk=person.pk
+        )
+
+        with django_assert_num_queries(0):
+            person.get_location_display()
+
+
+class TestProfileSafety:
+    @pytest.mark.django_db
+    def test_a_link_that_is_not_a_web_address_is_left_out(self):
+        person = PersonFactory()
+        Person.objects.filter(pk=person.pk).update(
+            links=["javascript:alert(1)", "https://example.org/me"]
+        )
+        person.refresh_from_db()
+
+        assert [link["url"] for link in person.get_links_display()] == [
+            "https://example.org/me"
+        ]
+
+    @pytest.mark.django_db
+    def test_a_deactivated_profile_nobody_claimed_has_no_member_since(self):
+        person = PersonFactory(is_claimed=False, is_active=False, email=None)
+
+        assert person.member_since is None
