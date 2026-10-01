@@ -65,7 +65,7 @@
         {
           "id": "T001",
           "status": "done",
-          "attempts": 1,
+          "attempts": 2,
           "evidence": {
             "commands": [
               "uv run pytest tests/test_conf/test_urls.py tests/test_templates/test_includes.py -q -n0 (exit 0, 15 passed)",

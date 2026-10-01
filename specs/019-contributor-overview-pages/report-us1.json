@@ -1,0 +1,212 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "commits": [
+        "59a6a500"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_conf/test_urls.py tests/test_templates/test_includes.py -q -n0",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "commits": [
+        "17b1f03e"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_profiles.py::TestLinkHost",
+          "tests/test_contrib/test_contributors/test_profiles.py::TestLanguageNames",
+          "tests/test_contrib/test_contributors/test_profiles.py::TestRankedShares",
+          "tests/test_contrib/test_contributors/test_profiles.py::TestFillSlots",
+          "tests/test_contrib/test_contributors/test_profiles.py::TestActiveThenRecent"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_profiles.py -q -n0"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "commits": [
+        "c9bc325e"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestGetVisibleContributions",
+          "tests/test_contrib/test_contributors/test_models.py::TestPublicRecordSources",
+          "tests/test_contrib/test_contributors/test_models.py::TestVisibleRoleCounts",
+          "tests/test_contrib/test_contributors/test_models.py::TestVisibleCollaborators",
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonAffiliationHistory",
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonMemberSince",
+          "tests/test_contrib/test_contributors/test_models.py::TestAffiliationDisplay",
+          "tests/test_contrib/test_contributors/test_models.py::TestPublicSchemaOrg",
+          "tests/test_contrib/test_contributors/test_models.py::TestContributorLinks",
+          "tests/test_contrib/test_contributors/test_models.py::TestIdentifierResolverUrl"
+        ],
+        "criteria": [
+          "SC-002"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 (at the commit: 12 new tests red by design, 192 passed; green after T006, 204 passed)"
+        ],
+        "exit_code": 1
+      }
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "commits": [
+        "d3d4694b"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_contributor_cards.py::TestMissing",
+          "tests/test_templates/test_contributor_cards.py::TestRecordsCard",
+          "tests/test_templates/test_contributor_cards.py::TestRolesCard",
+          "tests/test_templates/test_contributor_cards.py::TestLinksCard",
+          "tests/test_templates/test_contributor_cards.py::TestAffiliationsCard"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_templates/test_contributor_cards.py -q -n0"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "commits": [
+        "808b8915"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview",
+          "tests/test_contrib/test_contributors/test_plugins/test_person.py::TestContributorTabs"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-003",
+          "SC-008"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n0 (at the commit: 14 failed by design, 27 passed; green after T006, 41 passed)"
+        ],
+        "exit_code": 1
+      }
+    },
+    {
+      "id": "T006",
+      "status": "done",
+      "commits": [
+        "0c7851bf",
+        "3c75c59e"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_dataset/test_models.py::TestDatasetQuerySetGetVisible"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-003",
+          "SC-008"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib tests/test_templates tests/test_conf tests/test_core/test_dataset tests/test_core/test_project -q -n 4",
+          "uv run pre-commit run --all-files",
+          "uv run python manage.py makemigrations --check --dry-run contributors dataset project sample measurement"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T007",
+      "status": "done",
+      "commits": [
+        "a5a81dde"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesRefusesOutsideDevelopment",
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesStates",
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesIsSafeToRunAgain"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T008",
+      "status": "done",
+      "commits": [
+        "4f6002a0"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The FairDM account-center route is declared after the django-mvp include, not ahead of it as the plan says.",
+      "why": "With the route first, reverse('account-center') still returned /account-center/account/, because Django reverses a name to the last pattern that carries it. After the include it returns /account-center/ and /account-center/login/ still answers; tests/test_conf/test_urls.py is untouched and passes.",
+      "decision_ref": "decisions.md#d8-the-account-center-route-comes-after-the-includes"
+    },
+    {
+      "what": "get_visible_contributions sets record on projects and datasets only; samples and measurements are resolved to ids, and I changed the helper in my own T003 tests to compare each credit's kind and object id.",
+      "why": "This is the D6 watch item, applied. No card lists a sample or a measurement. The T003 assertions compare the same expected records, and the edit touched only tests I wrote in this story.",
+      "decision_ref": "decisions.md#d10-samples-and-measurements-are-resolved-to-ids"
+    },
+    {
+      "what": "Added DatasetQuerySet.get_visible() in fairdm/core/dataset/models.py and a Contributor.get_public_projects() / get_public_datasets() pair, with four tests for the queryset method.",
+      "why": "Plan D4 requires one model source for each, and the project check on datasets has to live on the dataset queryset next to the project one. The plan did not name the methods.",
+      "decision_ref": "decisions.md#d9-the-two-public-sources-are-get_public_projects-and-get_public_datasets"
+    }
+  ],
+  "concerns": [
+    "T003 and T005 commits are red on purpose (12 and 14 new tests fail until T006), so commits 17b1f03e through 808b8915 are not individually green. The final tree is green: the full gate passed.",
+    "forge verify --repo . --base origin/main (full gate) ran once at the end: conformance, docs, uv:lint, uv:typecheck, uv:test, uv:build all passed (exit 0).",
+    "makemigrations --check over every installed app reports a pending migration for the third-party orbit package (orbit/migrations/0008_alter_orbitentry_type.py). It is not ours and not caused by this story; the five FairDM apps this story touches report no changes.",
+    "fairdm/contrib/contributors/templates/person/plugins/overview.html and organization/plugins/overview.html are older overview templates that no plugin renders any more. I left them alone as outside the story.",
+    "Organization still builds its own project and dataset lists in get_organization_context and does not override get_public_projects / get_public_datasets. That is US2's T012. The organization page keeps working: it reads get_record_entries, which I left in place, and the project check now also applies to the datasets it is credited on.",
+    "Person.get_location_display() reads primary_affiliation(), which includes pending and ended affiliations. The page does not use it (it asks the primary organization directly), but it is a public method with the same gap that to_public_schema_org had.",
+    "The seed command test takes about 22 seconds because each test runs the command.",
+    "Not documented, as US2 owns it: the organization page, c-card.hierarchy and the organization blocks."
+  ],
+  "blocked": []
+}
