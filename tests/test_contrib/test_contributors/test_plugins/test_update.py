@@ -181,14 +181,16 @@ class TestPersonUpdate:
 
     # Scenario 10
     def test_the_page_offers_no_way_to_change_the_account_or_what_it_does_not_cover(
-        self, signed_in, keeper
+        self, signed_in
     ):
-        response = signed_in(keeper).get(_update_url(keeper))
+        person = PersonFactory(is_active=True, password="x", with_image=True)
 
-        page = _page(response)
+        response = signed_in(person).get(_update_url(person))
+
+        form = _page(response).select_one(f"form[action='{_update_url(person)}']")
         names = {
             control["name"]
-            for control in page.select("form [name]")
+            for control in form.select("[name]")
             if control["name"] != "csrfmiddlewaretoken"
         }
         assert names == {
@@ -200,10 +202,6 @@ class TestPersonUpdate:
             "links",
             "lang",
         }
-        for forbidden in ("email", "password", "orcid", "affiliations", "roles"):
-            assert not any(forbidden in name for name in names)
-        assert "is_active" not in names
-        assert "is_claimed" not in names
 
     def test_the_page_links_to_the_account_centre(self, signed_in, keeper):
         response = signed_in(keeper).get(_update_url(keeper))

@@ -15,6 +15,7 @@ from fairdm.core.plugins import OverviewPlugin
 
 from ..models import Contributor
 from ..profiles import active_then_recent, checklist, fill_slots, ranked_shares
+from .update import Update
 
 
 @plugins.register(Contributor, label=_("Overview"), icon="overview", order=0)
@@ -32,6 +33,7 @@ class Overview(OverviewPlugin):
     """
 
     url_path = None
+    extra_views = [Update]
     collaborators_shown = 18
     records_shown = 5
     member_slots = 10
