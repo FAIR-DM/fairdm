@@ -131,3 +131,11 @@ life, it is updated in the task that changes the template, and the change is nam
 - [ ] T017 [US3] `test_plugins/test_update.py`, `TestWhoMayEdit`: SC-003 as one table. For each
   seeded kind of account against each kind of profile, the editing page opens exactly where
   FR-001 to FR-003a say, and every other combination is refused on GET and on POST.
+
+## Added during the build
+
+- [ ] T018 [US2] A stored record may fail the model's validation on a field the editing form does
+  not carry (a person's malformed identifier, an organization's malformed ROR). Saving then raises
+  a server error. Test first in `test_forms/test_profile.py`, for both forms: the form is invalid
+  and reports the problem as a form-level error, and nothing is saved. Then fix it in the shared
+  base of the two forms.
