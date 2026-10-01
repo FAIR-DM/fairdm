@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import Group
 from django.urls import NoReverseMatch, reverse
 
 from fairdm import plugins
@@ -1486,3 +1487,123 @@ class TestOrganizationChecklist:
             )
 
             assert (_checklist(page) is not None) == bool(_management_menu(page)), name
+
+
+def _edit_links(page, update_url):
+    """The links to the editing page itself, outside every card."""
+    return [
+        a
+        for a in page.select(f"a[href='{update_url}']")
+        if a.find_parent(attrs={"data-card": True}) is None
+    ]
+
+
+@pytest.mark.django_db
+class TestCommunityManagerOverview:
+    @pytest.mark.parametrize(
+        "make",
+        [
+            lambda: PersonFactory(is_active=True, is_claimed=False, email=None),
+            lambda: PersonFactory(
+                is_active=True, is_claimed=False, email="invited@example.org"
+            ),
+            lambda: PersonFactory(is_active=False, is_claimed=True, password="x"),
+        ],
+        ids=["unclaimed", "invited", "inactive"],
+    )
+    def test_a_person_without_an_active_account_is_offered_the_edit_action_once(
+        self, get_page, community_manager, make
+    ):
+        person = make()
+
+        response, page = get_page(person.get_absolute_url(), viewer=community_manager)
+
+        assert len(_edit_links(page, person.get_update_url())) == 1
+        assert response.context["can_edit"] is True
+
+    def test_a_person_with_an_active_account_is_offered_none(
+        self, get_page, community_manager, claimed_person
+    ):
+        update_url = claimed_person.get_update_url()
+
+        response, page = get_page(
+            claimed_person.get_absolute_url(), viewer=community_manager
+        )
+
+        assert page.select(f"a[href^='{update_url}']") == []
+        assert response.context["can_edit"] is False
+
+    # Scenario 11
+    def test_on_a_person_they_see_no_checklist(self, get_page, community_manager):
+        person = PersonFactory(
+            is_active=True, is_claimed=False, email=None, profile="", links=[]
+        )
+
+        response, page = get_page(person.get_absolute_url(), viewer=community_manager)
+
+        assert _card(page, "readiness") is None
+        assert "readiness" not in response.context
+
+    def test_on_an_organization_they_do_not_keep_they_see_one_edit_action_and_no_menu_or_checklist(
+        self, get_page, community_manager
+    ):
+        organization = OrganizationFactory(profile="", links=[])
+
+        response, page = get_page(
+            organization.get_absolute_url(), viewer=community_manager
+        )
+
+        assert len(_edit_links(page, organization.get_update_url())) == 1
+        assert _management_menu(page) == []
+        assert page.select("[data-card=readiness]") == []
+        assert response.context["can_edit"] is True
+        assert response.context["can_manage"] is False
+
+    # Edge case: one edit action, not two
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+    )
+    def test_an_administrator_who_is_also_a_community_manager_sees_one_edit_action(
+        self, get_page, community_manager, type
+    ):
+        organization = OrganizationFactory()
+        AffiliationFactory(
+            person=community_manager, organization=organization, type=type
+        )
+
+        _, page = get_page(organization.get_absolute_url(), viewer=community_manager)
+
+        update_url = organization.get_update_url()
+        assert [a["href"] for a in page.select(f"a[href='{update_url}']")] == [
+            update_url
+        ]
+        assert _management_menu(page)
+        assert _card(page, "readiness") is not None
+
+    # Scenario 9
+    @pytest.mark.parametrize("role", ["Data Curator", "Developer"])
+    def test_a_data_curator_or_developer_is_offered_no_edit_action(
+        self, get_page, claimed_person, role
+    ):
+        holder = PersonFactory(is_active=True, password="x")
+        holder.groups.add(Group.objects.get(name=role))
+        unclaimed = PersonFactory(is_active=True, is_claimed=False, email=None)
+        organization = OrganizationFactory()
+
+        for contributor in (unclaimed, claimed_person, organization):
+            response, page = get_page(contributor.get_absolute_url(), viewer=holder)
+
+            assert page.select(f"a[href^='{contributor.get_update_url()}']") == []
+            assert response.context["can_edit"] is False
+
+    def test_someone_removed_from_the_role_is_offered_no_edit_action(
+        self, get_page, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=False, email=None)
+        organization = OrganizationFactory()
+        community_manager.groups.clear()
+
+        for contributor in (person, organization):
+            _, page = get_page(contributor.get_absolute_url(), viewer=community_manager)
+
+            assert page.select(f"a[href^='{contributor.get_update_url()}']") == []

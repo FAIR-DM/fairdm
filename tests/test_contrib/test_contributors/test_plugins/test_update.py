@@ -15,7 +15,9 @@ from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
+from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.forms.profile import (
     OrganizationProfileForm,
     PersonProfileForm,
@@ -822,3 +824,364 @@ class TestStoredRecordThatFailsValidation:
         assert response.status_code == 200
         assert response.context["form"].non_field_errors()
         assert _organization_stored(organization) == before
+
+
+def _account_state(person):
+    person.refresh_from_db()
+    return (
+        person.is_active,
+        person.is_claimed,
+        person.last_login,
+        person.email,
+        person.account_state,
+    )
+
+
+def _unclaimed():
+    return PersonFactory(
+        name="Unclaimed Person", is_active=True, is_claimed=False, email=None
+    )
+
+
+def _invited():
+    return PersonFactory(
+        name="Invited Person",
+        email="invited@example.org",
+        is_active=True,
+        is_claimed=False,
+    )
+
+
+def _inactive():
+    return PersonFactory(
+        name="Inactive Person",
+        is_active=False,
+        is_claimed=True,
+        password="x",
+        last_login=timezone.now(),
+    )
+
+
+@pytest.mark.django_db
+class TestCommunityManagerUpdate:
+    @pytest.mark.parametrize("make", [_unclaimed, _invited, _inactive])
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_community_manager_may_open_and_save_a_person_who_has_no_active_account(
+        self, signed_in, community_manager, profile_data, make, method
+    ):
+        person = make()
+
+        response = getattr(signed_in(community_manager), method)(
+            _update_url(person), profile_data
+        )
+
+        assert response.status_code == (200 if method == "get" else 302)
+
+    @pytest.mark.parametrize("make", [_unclaimed, _invited, _inactive])
+    def test_a_save_stores_every_field_and_the_profile_shows_it(
+        self, signed_in, community_manager, profile_data, make
+    ):
+        person = make()
+
+        response = signed_in(community_manager).post(
+            _update_url(person), profile_data, follow=True
+        )
+
+        person.refresh_from_db()
+        assert response.status_code == 200
+        assert (person.name, person.profile, person.links, person.lang) == (
+            "Dr. Ada Lovelace",
+            "Mathematician and writer.",
+            ["https://example.org/ada", "http://example.org/notes"],
+            ["en", "fr"],
+        )
+        assert response.context["person"] == person
+
+    # FR-009
+    def test_the_form_is_the_one_the_keeper_gets_with_the_same_fields(
+        self, signed_in, community_manager, keeper
+    ):
+        own = signed_in(keeper).get(_update_url(keeper)).context["form"]
+
+        theirs = (
+            signed_in(community_manager).get(_update_url(_unclaimed())).context["form"]
+        )
+
+        assert type(theirs) is type(own)
+        assert list(theirs.fields) == list(own.fields)
+
+    def test_the_form_for_an_organization_is_the_one_its_owner_gets(
+        self, signed_in, community_manager, kept_organization
+    ):
+        organization = kept_organization.organization
+        own = signed_in(kept_organization.owner).get(_update_url(organization))
+
+        theirs = signed_in(community_manager).get(_update_url(organization))
+
+        assert type(theirs.context["form"]) is type(own.context["form"])
+        assert list(theirs.context["form"].fields) == list(own.context["form"].fields)
+
+    # Scenario 1, FR-020
+    def test_saving_an_unclaimed_profile_leaves_it_unclaimed(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _invited()
+        before = _account_state(person)
+
+        signed_in(community_manager).post(_update_url(person), profile_data)
+
+        assert _account_state(person) == before
+        assert person.account_state == AccountState.INVITED
+
+    # Scenario 3, FR-020
+    def test_saving_an_inactive_profile_leaves_the_account_inactive(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _inactive()
+        before = _account_state(person)
+
+        signed_in(community_manager).post(_update_url(person), profile_data)
+
+        assert _account_state(person) == before
+        assert person.is_active is False
+
+    # Scenario 4
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_person_with_an_active_account_is_refused_and_nothing_is_stored(
+        self, signed_in, community_manager, keeper, profile_data, method
+    ):
+        before = _stored(keeper)
+
+        response = getattr(signed_in(community_manager), method)(
+            _update_url(keeper), profile_data
+        )
+
+        assert response.status_code == 403
+        assert _stored(keeper) == before
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_an_active_account_that_signed_in_without_being_marked_claimed_is_refused(
+        self, signed_in, community_manager, profile_data, method
+    ):
+        person = PersonFactory(
+            name="Superuser Made",
+            is_active=True,
+            is_claimed=False,
+            password="x",
+            last_login=timezone.now(),
+        )
+        before = _stored(person)
+
+        response = getattr(signed_in(community_manager), method)(
+            _update_url(person), profile_data
+        )
+
+        assert response.status_code == 403
+        assert _stored(person) == before
+
+    # Scenario 5
+    def test_a_profile_claimed_after_the_page_was_opened_refuses_the_save(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _invited()
+        browser = signed_in(community_manager)
+        assert browser.get(_update_url(person)).status_code == 200
+        before = _stored(person)
+        person.is_claimed = True
+        person.last_login = timezone.now()
+        person.save()
+
+        response = browser.post(_update_url(person), profile_data)
+
+        assert response.status_code == 403
+        assert _stored(person) == before
+
+    def test_an_account_made_active_after_the_page_was_opened_refuses_the_save(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _inactive()
+        browser = signed_in(community_manager)
+        assert browser.get(_update_url(person)).status_code == 200
+        before = _stored(person)
+        person.is_active = True
+        person.save()
+
+        response = browser.post(_update_url(person), profile_data)
+
+        assert response.status_code == 403
+        assert _stored(person) == before
+
+    # Scenario 6
+    def test_after_reactivation_the_person_edits_and_sees_the_community_managers_changes(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _inactive()
+        signed_in(community_manager).post(_update_url(person), profile_data)
+        person.is_active = True
+        person.save()
+
+        own = signed_in(person)
+        page = own.get(_update_url(person))
+        saved = own.post(_update_url(person), {**profile_data, "name": "Back Again"})
+
+        assert page.status_code == 200
+        assert page.context["form"]["profile"].value() == "Mathematician and writer."
+        assert saved.status_code == 302
+        person.refresh_from_db()
+        assert person.name == "Back Again"
+        assert person.profile == "Mathematician and writer."
+
+    def test_after_reactivation_a_community_manager_is_refused(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _inactive()
+        person.is_active = True
+        person.save()
+        before = _stored(person)
+
+        for method in ("get", "post"):
+            response = getattr(signed_in(community_manager), method)(
+                _update_url(person), profile_data
+            )
+
+            assert response.status_code == 403
+        assert _stored(person) == before
+
+    # Scenario 7
+    def test_saving_an_organization_leaves_its_affiliations_unchanged(
+        self, signed_in, community_manager, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+        affiliations = set(
+            organization.affiliations.values_list("pk", "person_id", "type", "end_date")
+        )
+
+        response = signed_in(community_manager).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        organization.refresh_from_db()
+        assert response.status_code == 302
+        assert organization.name == "Potsdam Research Institute"
+        assert organization.city == "Potsdam"
+        assert (
+            set(
+                organization.affiliations.values_list(
+                    "pk", "person_id", "type", "end_date"
+                )
+            )
+            == affiliations
+        )
+
+    def test_an_organization_nobody_keeps_opens_and_saves(
+        self, signed_in, community_manager, organization_profile_data
+    ):
+        organization = OrganizationFactory(name="Nobody's Institute")
+
+        opened = signed_in(community_manager).get(_update_url(organization))
+        saved = signed_in(community_manager).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert opened.status_code == 200
+        assert saved.status_code == 302
+        organization.refresh_from_db()
+        assert organization.name == "Potsdam Research Institute"
+        assert not organization.affiliations.exists()
+
+    # Scenario 8
+    @pytest.mark.parametrize("make", [_unclaimed, _inactive])
+    def test_nothing_on_a_corrected_profile_names_the_community_manager(
+        self, signed_in, community_manager, profile_data, make
+    ):
+        community_manager.name = "Zebulon Quillfeather"
+        community_manager.email = "zebulon@example.org"
+        community_manager.save()
+        person = make()
+
+        response = signed_in(community_manager).post(
+            _update_url(person), profile_data, follow=True
+        )
+        page = response.content.decode()
+        visitor = Client().get(person.get_absolute_url()).content.decode()
+
+        for shown in (page, visitor):
+            assert "Zebulon" not in shown
+            assert "zebulon@example.org" not in shown
+
+    # Scenario 9
+    @pytest.mark.parametrize("role", ["Data Curator", "Developer"])
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_data_curator_or_developer_is_refused_a_person_and_an_organization(
+        self, signed_in, profile_data, organization_profile_data, role, method
+    ):
+        holder = PersonFactory(is_active=True, password="x")
+        holder.groups.add(Group.objects.get(name=role))
+        organization = OrganizationFactory(name="Nobody's Institute")
+        person = _unclaimed()
+        person_before = _stored(person)
+        organization_before = _organization_stored(organization)
+
+        for contributor, data in (
+            (person, profile_data),
+            (organization, organization_profile_data),
+        ):
+            response = getattr(signed_in(holder), method)(
+                _update_url(contributor), data
+            )
+
+            assert response.status_code == 403
+        assert _stored(person) == person_before
+        assert _organization_stored(organization) == organization_before
+
+    # Scenario 10
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_someone_removed_from_the_role_is_refused(
+        self, signed_in, community_manager, profile_data, method
+    ):
+        person = _unclaimed()
+        before = _stored(person)
+        community_manager.groups.clear()
+
+        response = getattr(signed_in(community_manager), method)(
+            _update_url(person), profile_data
+        )
+
+        assert response.status_code == 403
+        assert _stored(person) == before
+
+    def test_a_role_removed_after_the_page_was_opened_refuses_the_save(
+        self, signed_in, community_manager, profile_data
+    ):
+        person = _unclaimed()
+        browser = signed_in(community_manager)
+        assert browser.get(_update_url(person)).status_code == 200
+        before = _stored(person)
+        community_manager.groups.clear()
+
+        response = browser.post(_update_url(person), profile_data)
+
+        assert response.status_code == 403
+        assert _stored(person) == before
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_profile_that_does_not_exist_answers_not_found(
+        self, signed_in, community_manager, profile_data, method
+    ):
+        person = _unclaimed()
+        url = _update_url(person)
+        person.delete()
+
+        response = getattr(signed_in(community_manager), method)(url, profile_data)
+
+        assert response.status_code == 404
+
+    def test_the_line_about_where_the_account_is_managed_is_not_shown_to_a_community_manager(
+        self, signed_in, community_manager, keeper
+    ):
+        own = signed_in(keeper).get(_update_url(keeper))
+        theirs = signed_in(community_manager).get(_update_url(_unclaimed()))
+
+        centre = reverse("account-center")
+        assert centre in [a["href"] for a in _page(own).select("a[href]")]
+        assert centre not in [a["href"] for a in _page(theirs).select("a[href]")]

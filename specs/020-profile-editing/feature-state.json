@@ -289,8 +289,17 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestCommunityManagerOverview"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestCommunityManagerOverview -q -n0 (red: 21 failed, 25 passed; a community manager refused with 403 and no edit action offered)"
+            ]
+          }
         },
         {
           "id": "T015",
