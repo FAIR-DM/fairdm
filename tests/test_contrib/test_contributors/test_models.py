@@ -2418,3 +2418,143 @@ class TestOrganizationPublicRecordSources:
         contributions = organization.get_visible_contributions(AnonymousUser())
 
         assert [c.record for c in contributions] == [credited]
+
+
+@pytest.mark.django_db
+class TestPersonProfileCompleteness:
+    def test_a_bare_profile_has_none_of_the_items(self):
+        person = PersonFactory(profile="", links=[])
+
+        assert person.get_profile_completeness() == {
+            "image": False,
+            "orcid": False,
+            "profile": False,
+            "primary_affiliation": False,
+            "links": False,
+        }
+
+    def test_a_filled_in_profile_has_every_item(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory(
+            with_image=True, profile="A biography.", links=["https://example.org/me"]
+        )
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001")
+        AffiliationFactory(person=person, is_primary=True)
+
+        assert all(person.get_profile_completeness().values())
+
+    def test_each_item_is_counted_on_its_own(self):
+        person = PersonFactory(profile="A biography.", links=[])
+
+        complete = person.get_profile_completeness()
+
+        assert complete["profile"] is True
+        assert [key for key, done in complete.items() if done] == ["profile"]
+
+    def test_an_orcid_id_typed_in_is_not_connected(self):
+        person = PersonFactory()
+        ContributorIdentifier.objects.create(
+            related=person, type="ORCID", value="0000-0001-2345-6789"
+        )
+
+        assert person.get_profile_completeness()["orcid"] is False
+
+    def test_signing_in_with_orcid_is_connected(self):
+        from allauth.socialaccount.models import SocialAccount
+
+        person = PersonFactory()
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001")
+
+        assert person.get_profile_completeness()["orcid"] is True
+
+    def test_an_affiliation_that_is_not_primary_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=False)
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+    def test_a_current_verified_primary_affiliation_counts(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=True)
+
+        assert person.get_profile_completeness()["primary_affiliation"] is True
+
+    def test_an_ended_primary_affiliation_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person, is_primary=True, start_date="2010", end_date="2014"
+        )
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+    def test_a_pending_primary_affiliation_does_not_count(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        assert person.get_profile_completeness()["primary_affiliation"] is False
+
+
+@pytest.mark.django_db
+class TestOrganizationRecordCompleteness:
+    def test_a_bare_record_has_none_of_the_items(self):
+        organization = OrganizationFactory(
+            profile="", type="", city="", country="", links=[]
+        )
+
+        assert not any(organization.get_record_completeness().values())
+
+    def test_a_filled_in_record_has_every_item(self):
+        organization = OrganizationFactory(
+            with_image=True,
+            profile="A description.",
+            type=OrganizationType.EDUCATION,
+            city="Potsdam",
+            country="DE",
+            links=["https://example.org"],
+        )
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+
+        assert all(organization.get_record_completeness().values())
+
+    def test_only_a_ror_identifier_counts_as_the_ror_item(self):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ISNI", value="0000000121032683"
+        )
+
+        assert organization.get_record_completeness()["ror"] is False
+
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+
+        assert organization.get_record_completeness()["ror"] is True
+
+    @pytest.mark.parametrize(
+        ("kwargs", "complete"),
+        [
+            ({"city": "Potsdam", "country": "DE"}, True),
+            ({"city": "Potsdam", "country": ""}, False),
+            ({"city": "", "country": "DE"}, False),
+        ],
+    )
+    def test_the_location_needs_both_the_city_and_the_country(self, kwargs, complete):
+        organization = OrganizationFactory(**kwargs)
+
+        assert organization.get_record_completeness()["location"] is complete
+
+    def test_each_item_is_counted_on_its_own(self):
+        organization = OrganizationFactory(
+            profile="A description.", type="", city="", country="", links=[]
+        )
+
+        complete = organization.get_record_completeness()
+
+        assert [key for key, done in complete.items() if done] == ["profile"]

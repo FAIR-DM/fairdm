@@ -270,8 +270,14 @@
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_profiles.py::TestChecklist tests/test_contrib/test_contributors/test_models.py::TestPersonProfileCompleteness tests/test_contrib/test_contributors/test_models.py::TestOrganizationRecordCompleteness -q -n0 (19 passed, 1 failed on purpose: a pending primary affiliation counts; T016 fixes it)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ]
+          }
         },
         {
           "id": "T015",

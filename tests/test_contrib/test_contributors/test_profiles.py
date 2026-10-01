@@ -7,6 +7,7 @@ from django.utils import translation
 
 from fairdm.contrib.contributors.profiles import (
     active_then_recent,
+    checklist,
     fill_slots,
     language_names,
     link_host,
@@ -121,3 +122,30 @@ class TestActiveThenRecent:
             "old-idle",
             "old-active",
         ]
+
+
+class TestChecklist:
+    def test_the_items_are_kept_in_order_with_the_done_count_and_the_total(self):
+        items = [{"done": True}, {"done": False}, {"done": True}, {"done": False}]
+
+        summary = checklist(items)
+
+        assert summary["items"] == items
+        assert summary["done"] == 2
+        assert summary["total"] == 4
+        assert summary["ready"] is False
+
+    def test_a_checklist_with_everything_in_place_is_ready(self):
+        summary = checklist([{"done": True}, {"done": True}])
+
+        assert (summary["done"], summary["total"]) == (2, 2)
+        assert summary["ready"] is True
+
+    def test_one_missing_item_means_it_is_not_ready(self):
+        assert checklist([{"done": True}, {"done": False}])["ready"] is False
+
+    def test_nothing_in_place_counts_zero(self):
+        summary = checklist([{"done": False}, {"done": False}])
+
+        assert summary["done"] == 0
+        assert summary["ready"] is False

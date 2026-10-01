@@ -92,3 +92,10 @@
 - Verified: uv run pytest on the seed test file gives 18 passed. Mutated the seed command (the user as plain member instead of owner, no location on the complete organization, a parent on the empty one, no organization type) and each made a test fail; restored. forge verify docs step passed. I ran the Django extension example and the model snippets in a scratch test that I did not commit: the extension rendered the added card beside the cards FairDM draws and every context key the docs list was present. uv run pre-commit run --all-files clean.
 - Next: The full gate and the report.
 - Watch: The seed file now takes about 33 seconds because each test runs the command. The testing standard has no class-scoped database fixture and unittest setUpTestData is not allowed, so I could not share one run.
+
+## 2026-10-01T11:10Z · Implementer US3 · T014
+
+- Did: added TestChecklist to test_profiles.py (done count, total and ready for the items given), TestPersonProfileCompleteness and TestOrganizationRecordCompleteness to test_models.py. They pin each flag on its own, that an ORCID iD typed in is not connected and signing in with ORCID is, that only a ROR identifier counts as the ROR item, that a location needs both the city and the country, and that a primary affiliation counts only when current and verified.
+- Verified: 19 passed and 1 failed on the first run. The failure is real: a pending primary affiliation counts toward the checklist's affiliation item while the header names no organization for it. T016 fixes it. Probed by mutating the two methods (location with or, ROR as any identifier, ORCID as a typed identifier) and seven tests failed between them; restored. uv run pre-commit run --all-files clean.
+- Next: T015, the rendered pages for scenarios 1 to 8.
+- Watch: The commit leaves that one test red on purpose, as the task order asks; T016 makes it pass.
