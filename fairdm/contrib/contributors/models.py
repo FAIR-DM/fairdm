@@ -2,6 +2,7 @@
 
 import json
 import logging
+from collections import Counter, defaultdict
 
 from django.apps import apps
 from django.conf import settings
@@ -27,6 +28,7 @@ from research_vocabs.fields import ConceptManyToManyField
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.core.abstract import AbstractIdentifier
+from fairdm.core.overview import format_partial_date
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
@@ -36,6 +38,7 @@ from fairdm.utils.utils import default_image_path
 
 from .choices import AccountState, OrganizationType
 from .managers import AffiliationManager, ContributionManager, UserManager
+from .profiles import language_names, link_host
 from .validators import validate_iso_639_1_language_codes
 
 logger = logging.getLogger(__name__)
@@ -383,6 +386,108 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
         return contributor_to_schema_org(self)
 
+    def to_public_schema_org(self):
+        """Export the contributor as Schema.org metadata that is safe to publish on a page.
+
+        Returns:
+            The JSON-LD metadata without the email address, which a public page never shows.
+        """
+        data = self.to_schema_org()
+        data.pop("email", None)
+        return data
+
+    def get_links_display(self):
+        """List the contributor's links, each with the site it points at.
+
+        Returns:
+            One ``{"url", "host"}`` entry per link, in the order recorded.
+        """
+        return [{"url": url, "host": link_host(url)} for url in self.links or []]
+
+    def get_language_names(self):
+        """Name the contributor's languages in the active language.
+
+        Returns:
+            One name per recorded language code.
+        """
+        return language_names(self.lang)
+
+    def get_visible_contributions(self, user):
+        """List the contributor's credits on records the user may open, newest first.
+
+        A project counts when it is public, a dataset when it is not private, and a sample or
+        measurement when its own dataset lets the user see it. Each contribution returned
+        carries ``kind`` (``project``, ``dataset``, ``sample`` or ``measurement``) and
+        ``record``, the credited object as its own subtype.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            The contributions, with their roles prefetched.
+        """
+        kinds = {
+            "project": apps.get_model("project.Project"),
+            "dataset": apps.get_model("dataset.Dataset"),
+            "sample": apps.get_model("sample.Sample"),
+            "measurement": apps.get_model("measurement.Measurement"),
+        }
+        visible = {
+            "project": lambda: kinds["project"].objects.get_visible(),
+            "dataset": lambda: kinds["dataset"].objects.all(),
+            "sample": lambda: kinds["sample"].objects.visible_to(user),
+            "measurement": lambda: kinds["measurement"].objects.visible_to(user),
+        }
+        contributions = list(
+            self.contributions.select_related("content_type")
+            .prefetch_related("roles")
+            .order_by("-id")
+        )
+        ids_by_kind = defaultdict(set)
+        for contribution in contributions:
+            model_class = contribution.content_type.model_class()
+            contribution.kind = next(
+                (
+                    kind
+                    for kind, base in kinds.items()
+                    if model_class is not None and issubclass(model_class, base)
+                ),
+                None,
+            )
+            if contribution.kind:
+                ids_by_kind[contribution.kind].add(contribution.object_id)
+        records = {
+            kind: {
+                str(pk): obj for pk, obj in visible[kind]().in_bulk(list(ids)).items()
+            }
+            for kind, ids in ids_by_kind.items()
+        }
+        result = []
+        for contribution in contributions:
+            record = records.get(contribution.kind, {}).get(str(contribution.object_id))
+            if record is not None:
+                contribution.record = record
+                result.append(contribution)
+        return result
+
+    def get_role_counts(self, contributions=None):
+        """Count how many credits each contribution role is held on.
+
+        Args:
+            contributions: The credits to count over, such as those from
+                :meth:`get_visible_contributions`. Defaults to every credit.
+
+        Returns:
+            A ``Counter`` of role labels.
+        """
+        if contributions is None:
+            contributions = self.contributions.prefetch_related("roles")
+        return Counter(
+            role.label
+            for contribution in contributions
+            for role in contribution.roles.all()
+        )
+
     def get_recent_contributions(self, limit: int = 5):
         """Return the contributor's most recent contributions.
 
@@ -435,11 +540,13 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             content_type=content_type, object_id=obj.pk
         ).exists()
 
-    def get_co_contributors(self, limit: int | None = None):
+    def get_co_contributors(self, limit: int | None = None, contributions=None):
         """Return other contributors credited on the same objects, most frequent first.
 
         Args:
             limit: Maximum number of co-contributors to return. Defaults to all.
+            contributions: The credits to look for co-contributors on, such as those from
+                :meth:`get_visible_contributions`. Defaults to every credit.
 
         Returns:
             Contributors annotated with ``collaboration_count``.
@@ -448,9 +555,12 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             >>> person.get_co_contributors(limit=5)
             <QuerySet [<Person: Jane Smith>, <Person: Bob Wilson>, ...]>
         """
-        my_contributions = list(
-            self.contributions.values_list("content_type_id", "object_id")
-        )
+        if contributions is None:
+            my_contributions = list(
+                self.contributions.values_list("content_type_id", "object_id")
+            )
+        else:
+            my_contributions = [(c.content_type_id, c.object_id) for c in contributions]
         if not my_contributions:
             return Contributor.objects.none()
 
@@ -472,7 +582,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
                 )
             )
             .filter(collaboration_count__gt=0)
-            .order_by("-collaboration_count")
+            .order_by("-collaboration_count", "name")
         )
 
         if limit:
@@ -706,6 +816,53 @@ class Person(AbstractUser, Contributor):
         if first or last:
             return (first[:1] + last[:1]).upper()
         return super().get_initials()
+
+    @property
+    def member_since(self):
+        """When the person's account was created, or None for a profile nobody has claimed."""
+        if self.account_state in (AccountState.CLAIMED, AccountState.INACTIVE):
+            return self.date_joined
+        return None
+
+    def get_affiliation_history(self):
+        """Split the person's verified affiliations into current and past.
+
+        Returns:
+            ``current``, the primary affiliation first and the rest by organization name, and
+            ``past``, most recently ended first. Each affiliation has its organization loaded.
+        """
+        affiliations = list(
+            self.affiliations.select_related("organization").filter(
+                type__gte=Affiliation.MembershipType.MEMBER
+            )
+        )
+        current = sorted(
+            (a for a in affiliations if a.end_date is None),
+            key=lambda a: (not a.is_primary, a.organization.name),
+        )
+        past = sorted(
+            (a for a in affiliations if a.end_date is not None),
+            key=lambda a: str(a.end_date),
+            reverse=True,
+        )
+        return {"current": current, "past": past}
+
+    def get_profile_completeness(self):
+        """Say which parts of a complete profile the person has filled in.
+
+        Returns:
+            A flag for each of ``image``, ``orcid`` (connected by signing in with ORCID),
+            ``profile``, ``primary_affiliation`` and ``links``.
+        """
+        return {
+            "image": bool(self.image),
+            "orcid": self.orcid_is_authenticated,
+            "profile": bool(self.profile),
+            "primary_affiliation": self.affiliations.filter(
+                is_primary=True, end_date__isnull=True
+            ).exists(),
+            "links": bool(self.links),
+        }
 
     def current_affiliations(self):
         """Return the person's verified affiliations that have not ended.
@@ -952,6 +1109,16 @@ class Affiliation(models.Model):
             ),
         ]
 
+    @property
+    def start_display(self):
+        """The start of the affiliation, as precisely as it was recorded, or an empty string."""
+        return format_partial_date(self.start_date)
+
+    @property
+    def end_display(self):
+        """The end of the affiliation, as precisely as it was recorded, or an empty string."""
+        return format_partial_date(self.end_date)
+
     def clean(self):
         """Refuse a second membership of the same organisation with a readable message."""
         from django.core.exceptions import ValidationError
@@ -1163,6 +1330,88 @@ class Organization(Contributor):
             Affiliations with ``person`` selected.
         """
         return self.affiliations.select_related("person").all()
+
+    def get_current_memberships(self):
+        """List the organisation's verified current members, the people who run it first.
+
+        Returns:
+            Affiliations with ``person`` loaded: the owner, then administrators, then members,
+            each group by name.
+        """
+        memberships = (
+            self.get_memberships()
+            .current()
+            .filter(type__gte=Affiliation.MembershipType.MEMBER)
+            .prefetch_related("person__identifiers", "person__socialaccount_set")
+        )
+        return sorted(memberships, key=lambda m: (-m.type, m.person.name or ""))
+
+    def has_member(self, user) -> bool:
+        """Check whether a user is a verified current member.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user holds a current affiliation of type member or above.
+        """
+        if not getattr(user, "is_authenticated", False):
+            return False
+        return (
+            self.affiliations.current()
+            .filter(person_id=user.pk, type__gte=Affiliation.MembershipType.MEMBER)
+            .exists()
+        )
+
+    def is_managed_by(self, user) -> bool:
+        """Check whether a user keeps this organisation's record: its owner or an administrator.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user holds a current affiliation of type administrator or owner.
+        """
+        if not getattr(user, "is_authenticated", False):
+            return False
+        return (
+            self.affiliations.current()
+            .filter(person_id=user.pk, type__gte=Affiliation.MembershipType.ADMIN)
+            .exists()
+        )
+
+    def get_hierarchy(self):
+        """Place the organisation among the organisations around it.
+
+        Returns:
+            ``parent`` (or None), ``siblings`` (the parent's sub-organisations, this one
+            included, by name; empty without a parent) and ``children`` (this organisation's
+            direct sub-organisations, by name).
+        """
+        parent = self.parent
+        return {
+            "parent": parent,
+            "siblings": list(parent.sub_organizations.order_by("name"))
+            if parent
+            else [],
+            "children": list(self.sub_organizations.order_by("name")),
+        }
+
+    def get_record_completeness(self):
+        """Say which parts of a complete organisation record are filled in.
+
+        Returns:
+            A flag for each of ``ror``, ``image``, ``type``, ``location`` (city and country),
+            ``profile`` and ``links``.
+        """
+        return {
+            "ror": any(i.type == "ROR" for i in self.identifiers.all()),
+            "image": bool(self.image),
+            "type": bool(self.type),
+            "location": bool(self.city and self.country),
+            "profile": bool(self.profile),
+            "links": bool(self.links),
+        }
 
     def owner(self):
         """Return the organisation's current owner, derived through ``AffiliationQuerySet.owners()``.
@@ -1494,6 +1743,12 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
         help_text=_("The contributor this identifier belongs to."),
         on_delete=models.CASCADE,
     )
+
+    @property
+    def resolver_url(self):
+        """The address the identifier resolves to, or None for a type with no resolver."""
+        url = self.get_absolute_url()
+        return url if url and url.startswith("http") else None
 
     def clean(self):
         """Refuse a second identifier of the same type, with a message naming the type."""

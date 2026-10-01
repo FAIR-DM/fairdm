@@ -1,42 +1,31 @@
 """What the person and organization overview pages work out from a contributor.
 
-A contributor holds credits on other records rather than carrying credits of its own, so these
+A contributor holds contributions on other records rather than carrying contributions of its own, so these
 pages share the record overview skeleton (``overview/page.html``) and its cards but not
 ``RecordOverviewPlugin``. Everything counted or listed is limited to the records the viewer can
 open, so a profile never names a private record.
 """
 
-from collections import Counter, defaultdict
-
-from django.conf.locale import LANG_INFO
 from django.utils.translation import gettext
 
-from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
-from fairdm.core.measurement.models import Measurement
-from fairdm.core.overview import (
-    format_partial_date,
-    json_ld,
-    safe_reverse,
-    sentence_case,
-)
-from fairdm.core.project.models import Project
-from fairdm.core.sample.models import Sample
+from fairdm.core.overview import json_ld, safe_reverse
 
-from ..models import Affiliation, Contribution, Contributor
-
-# The record types a credit can point at, in the order the pages show them, with each type's
-# colour and icon from the record overview pages.
-KINDS = {
-    "project": {"model": Project, "variant": "info", "icon": "project"},
-    "dataset": {"model": Dataset, "variant": "success", "icon": "dataset"},
-    "sample": {"model": Sample, "variant": "secondary", "icon": "sample"},
-    "measurement": {"model": Measurement, "variant": "accent", "icon": "measurement"},
-}
+from ..profiles import active_then_recent, checklist, fill_slots, ranked_shares
 
 
 class ContributorOverviewMixin:
-    """Gathers the context of the person and organization overview pages."""
+    """Lays out the person and organization overview pages.
+
+    What a contributor has done, who it works with and what its record is missing are worked out
+    by the models. This class picks what each page shows, in what order and how much of it, and
+    supplies the page's own wording.
+
+    Attributes:
+        collaborators_shown: How many faces the Frequent collaborators card draws.
+        records_shown: How many projects, and how many datasets, their cards list.
+        member_slots: How many places the Members card has, the "+n" entry included.
+    """
 
     collaborators_shown = 18
     records_shown = 5
@@ -48,207 +37,80 @@ class ContributorOverviewMixin:
         """Lead the trail with the list of people or of organizations."""
         contributor = self.base_object
         if contributor.is_organization:
-            first = {"text": gettext("Organizations"), "href": safe_reverse("organization-list")}
+            first = {
+                "text": gettext("Organizations"),
+                "href": safe_reverse("organization-list"),
+            }
         else:
             first = {"text": gettext("People"), "href": safe_reverse("people-list")}
-        return [first, {"text": str(contributor), "href": contributor.get_absolute_url()}]
-
-    def visible_records(self, kind, ids):
-        """Return the records of one kind among ``ids`` that the viewer may open, keyed by id."""
-        user = self.request.user
-        if kind == "project":
-            queryset = Project.objects.get_visible()
-        elif kind == "dataset":
-            queryset = Dataset.objects.all()
-        else:
-            queryset = KINDS[kind]["model"].objects.visible_to(user)
-        return {str(pk): obj for pk, obj in queryset.in_bulk(list(ids)).items()}
-
-    def get_visible_credits(self, contributor=None):
-        """List the contributor's credits on records the viewer may open, newest first.
-
-        Each credit carries ``record`` (the credited object, as its own subtype), ``kind`` and
-        ``style`` (the kind's colour and icon).
-        """
-        contributor = contributor or self.base_object
-        credits = list(
-            contributor.contributions.select_related("content_type")
-            .prefetch_related("roles")
-            .order_by("-id")
-        )
-        ids_by_kind = defaultdict(set)
-        for credit in credits:
-            credit.kind = self.kind_of(credit.content_type.model_class())
-            if credit.kind:
-                ids_by_kind[credit.kind].add(credit.object_id)
-        records = {kind: self.visible_records(kind, ids) for kind, ids in ids_by_kind.items()}
-        visible = []
-        for credit in credits:
-            record = records.get(credit.kind, {}).get(str(credit.object_id))
-            if record is not None:
-                credit.record = record
-                credit.style = KINDS[credit.kind]
-                credit.type_label = sentence_case(record._meta.verbose_name)
-                visible.append(credit)
-        return visible
-
-    @staticmethod
-    def kind_of(model_class):
-        """Name the record kind a credited model belongs to, or None."""
-        for kind, entry in KINDS.items():
-            if model_class is not None and issubclass(model_class, entry["model"]):
-                return kind
-        return None
-
-    @staticmethod
-    def count_by_kind(credits):
-        """Count distinct credited records of each kind."""
-        counts = {kind: set() for kind in KINDS}
-        for credit in credits:
-            counts[credit.kind].add(credit.object_id)
-        return {kind: len(ids) for kind, ids in counts.items()}
-
-    @staticmethod
-    def get_roles(credits):
-        """Rank the roles held across the credits, with how many records each is held on."""
-        counts = Counter(role.label for credit in credits for role in credit.roles.all())
-        if not counts:
-            return []
-        most = max(counts.values())
         return [
-            {"label": label, "count": count, "percent": round(100 * count / most)}
-            for label, count in counts.most_common()
+            first,
+            {"text": str(contributor), "href": contributor.get_absolute_url()},
         ]
 
-    def get_collaborators(self, credits):
-        """Everyone else credited on the same visible records, most shared records first."""
-        pairs = {(c.content_type_id, c.object_id) for c in credits}
-        if not pairs:
-            return {"shown": [], "more": 0, "total": 0}
-        tally = Counter()
-        others = Contribution.objects.filter(
-            content_type_id__in={p[0] for p in pairs},
-            object_id__in={p[1] for p in pairs},
-        ).exclude(contributor=self.base_object).exclude(contributor__isnull=True)
-        for content_type_id, object_id, contributor_id in others.values_list(
-            "content_type_id", "object_id", "contributor_id"
-        ):
-            if (content_type_id, object_id) in pairs:
-                tally[contributor_id] += 1
-        ranked = [pk for pk, _ in tally.most_common()]
-        shown_ids = ranked[: self.collaborators_shown]
-        found = Contributor.objects.in_bulk(shown_ids)
-        shown = [found[pk] for pk in shown_ids if pk in found]
-        return {"shown": shown, "more": len(ranked) - len(shown), "total": len(ranked)}
-
-    def get_identifiers(self):
-        """Every identifier with the address it resolves to, in the Identifiers card's shape."""
-        return [
-            {
-                "type": identifier.get_type_display(),
-                "value": identifier.value,
-                "link": self.identifier_link(identifier),
-            }
-            for identifier in self.base_object.identifiers.all()
-        ]
-
-    @staticmethod
-    def identifier_link(identifier):
-        """The address an identifier resolves to, when it is one that resolves."""
-        url = identifier.get_absolute_url()
-        return url if url and url.startswith("http") else None
-
-    @staticmethod
-    def get_links(contributor):
-        """The contributor's links, each with the host name a reader recognises."""
-        from urllib.parse import urlparse
-
-        links = []
-        for url in contributor.links or []:
-            host = urlparse(url).netloc.removeprefix("www.")
-            links.append({"url": url, "host": host or url})
-        return links
-
-    @staticmethod
-    def language_names(codes):
-        """Name each ISO 639-1 code in the portal's language, keeping unknown codes as written."""
-        names = []
-        for code in codes or []:
-            info = LANG_INFO.get(code)
-            names.append(gettext(info["name"]) if info else code)
-        return ", ".join(names)
-
-    def get_json_ld(self):
-        """schema.org JSON-LD for the page, without the email address the page never shows."""
-        data = self.base_object.to_schema_org()
-        data.pop("email", None)
-        return json_ld(data)
-
-    @staticmethod
-    def readiness(items, title, about, badge):
-        """Shape a checklist for ``c-card.readiness``."""
-        done = sum(1 for item in items if item["done"])
-        total = len(items)
-        return {
-            "items": items,
-            "done": done,
-            "total": total,
-            "ready": done == total,
-            "title": title,
-            "summary": gettext("%(done)s of %(total)s in place") % {"done": done, "total": total},
-            "about": about,
-            "badge": badge,
-        }
-
-    def record_card(self, entries, active=None):
-        """Shape one record card: active records first, then the most recently updated.
+    def get_record_card(self, entries, active=None):
+        """Shape a Projects or Datasets card: active records first, then the most recent.
 
         Args:
-            entries: ``{"record", "roles", "owned"}`` dicts, one per record.
-            active: Says whether a record counts as active, or None when the type has no such state.
+            entries: ``{"record", "owned"}`` dicts, one per record.
+            active: Says whether a record counts as active, or None when the type has no such
+                state.
 
         Returns:
-            The first entries to show, how many more there are, and the total.
+            The entries to show, how many more there are, and the total.
         """
-        ordered = sorted(entries, key=lambda e: e["record"].modified, reverse=True)
-        if active is not None:
-            ordered.sort(key=lambda e: not active(e["record"]))
-        shown = ordered[: self.records_shown]
-        return {"shown": shown, "more": len(ordered) - len(shown), "total": len(ordered)}
+        ordered = active_then_recent(
+            entries,
+            modified=lambda entry: entry["record"].modified,
+            active=(lambda entry: active(entry["record"])) if active else None,
+        )
+        return fill_slots(ordered, self.records_shown)
 
     @staticmethod
-    def is_active_project(project):
-        """A project counts as active while it is in progress."""
-        return project.status == ProjectStatus.IN_PROGRESS
-
-    @staticmethod
-    def credit_entries(credits, kind):
-        """The credits on one kind of record, as record card entries."""
+    def get_record_entries(contributions, kind):
+        """The credited records of one kind, as record card entries."""
         return [
-            {"record": c.record, "roles": list(c.roles.all()), "owned": False}
-            for c in credits
+            {"record": c.record, "owned": False}
+            for c in contributions
             if c.kind == kind
         ]
 
-    def get_shared_context(self, credits):
+    def get_readiness(self, items, title, about, badge):
+        """Shape a checklist for ``c-card.readiness``, with the page's wording."""
+        readiness = checklist(items)
+        readiness.update(
+            title=title,
+            summary=gettext("%(done)s of %(total)s in place") % readiness,
+            about=about,
+            badge=badge,
+        )
+        return readiness
+
+    def get_shared_context(self, contributions):
         """The keys both pages and the shared skeleton read."""
         contributor = self.base_object
+        identifier = contributor.default_identifier
         return {
             "record": contributor,
-            "contributor": contributor,
-            "credits": credits,
-            "counts": self.count_by_kind(credits),
-            "roles": self.get_roles(credits),
-            "identifiers": self.get_identifiers(),
-            "links": self.get_links(contributor),
-            "json_ld": self.get_json_ld(),
+            "roles": ranked_shares(contributor.get_role_counts(contributions)),
+            "identifiers": [
+                {"type": i.get_type_display(), "value": i.value, "link": i.resolver_url}
+                for i in contributor.identifiers.all()
+            ],
+            "identifier": identifier,
+            "identifier_url": identifier.resolver_url if identifier else None,
+            "links": contributor.get_links_display(),
+            "languages": ", ".join(contributor.get_language_names()),
+            "json_ld": json_ld(contributor.to_public_schema_org()),
             "api_url": safe_reverse("api:contributor-detail", uuid=contributor.uuid),
             "urls": {
-                "projects": safe_reverse("contributor:contributorprojects", uuid=contributor.uuid),
-                "datasets": safe_reverse("contributor:contributordatasets", uuid=contributor.uuid),
+                "projects": safe_reverse(
+                    "contributor:contributorprojects", uuid=contributor.uuid
+                ),
+                "datasets": safe_reverse(
+                    "contributor:contributordatasets", uuid=contributor.uuid
+                ),
             },
-            "also_known_as": ", ".join(contributor.alternative_names or []),
-            "languages": self.language_names(contributor.lang),
         }
 
     # ------------------------------------------------------------------ person
@@ -256,67 +118,68 @@ class ContributorOverviewMixin:
     def get_person_context(self):
         """Everything the person page draws."""
         person = self.base_object
-        credits = self.get_visible_credits()
-        context = self.get_shared_context(credits)
-        is_self = self.request.user.is_authenticated and self.request.user.pk == person.pk
-
-        affiliations = list(
-            person.affiliations.select_related("organization")
-            .prefetch_related("organization__identifiers")
-            .filter(type__gte=Affiliation.MembershipType.MEMBER)
+        user = self.request.user
+        contributions = person.get_visible_contributions(user)
+        context = self.get_shared_context(contributions)
+        is_self = user.is_authenticated and user.pk == person.pk
+        affiliations = person.get_affiliation_history()
+        primary = next(
+            (a.organization for a in affiliations["current"] if a.is_primary), None
         )
-        current = sorted(
-            (a for a in affiliations if a.end_date is None),
-            key=lambda a: (not a.is_primary, a.organization.name),
-        )
-        past = sorted(
-            (a for a in affiliations if a.end_date is not None),
-            key=lambda a: str(a.end_date),
-            reverse=True,
-        )
-        for affiliation in affiliations:
-            affiliation.start_text = format_partial_date(affiliation.start_date)
-            affiliation.end_text = format_partial_date(affiliation.end_date)
-        primary = next((a.organization for a in current if a.is_primary), None)
-        orcid = next((i for i in person.identifiers.all() if i.type == "ORCID"), None)
         state = person.account_state
+        collaborators = person.get_co_contributors(contributions=contributions)
+        projects = self.get_record_entries(contributions, "project")
+        datasets = self.get_record_entries(contributions, "dataset")
 
         context.update(
             {
                 "overview_icon": "member",
                 "person": person,
                 "is_self": is_self,
-                "can_manage": is_self,
-                "account_state": state,
                 "is_unclaimed": state in ("ghost", "invited"),
                 "is_inactive": state == "inactive",
-                "affiliations": {"current": current, "past": past},
+                "affiliations": affiliations,
                 "primary_organization": primary,
                 "location_text": primary.get_location_display() if primary else "",
-                "orcid": orcid,
-                "orcid_url": self.identifier_link(orcid) if orcid else None,
                 "orcid_verified": person.orcid_is_authenticated,
                 "portal_roles": person.portal_roles,
-                "people": self.get_collaborators(credits),
-                "projects": self.record_card(
-                    self.credit_entries(credits, "project"), self.is_active_project
-                ),
-                "datasets": self.record_card(self.credit_entries(credits, "dataset")),
-                "member_since": person.date_joined if state in ("claimed", "inactive") else None,
+                "people": {
+                    "shown": list(collaborators[: self.collaborators_shown]),
+                    "more": max(collaborators.count() - self.collaborators_shown, 0),
+                },
+                "counts": {"project": len(projects), "dataset": len(datasets)},
+                "projects": self.get_record_card(projects, lambda p: p.is_active),
+                "datasets": self.get_record_card(datasets),
+                "member_since": person.member_since,
             }
         )
         if is_self:
-            context["readiness"] = self.readiness(
+            complete = person.get_profile_completeness()
+            context["readiness"] = self.get_readiness(
                 [
-                    {"label": gettext("A profile photo"), "done": bool(person.image), "required": False},
+                    {
+                        "label": gettext("A profile photo"),
+                        "done": complete["image"],
+                        "required": False,
+                    },
                     {
                         "label": gettext("ORCID iD connected by signing in with ORCID"),
-                        "done": person.orcid_is_authenticated,
+                        "done": complete["orcid"],
                         "url": safe_reverse("socialaccount_connections"),
                     },
-                    {"label": gettext("A short biography"), "done": bool(person.profile)},
-                    {"label": gettext("A primary affiliation"), "done": primary is not None},
-                    {"label": gettext("Links to your other profiles"), "done": bool(person.links), "required": False},
+                    {
+                        "label": gettext("A short biography"),
+                        "done": complete["profile"],
+                    },
+                    {
+                        "label": gettext("A primary affiliation"),
+                        "done": complete["primary_affiliation"],
+                    },
+                    {
+                        "label": gettext("Links to your other profiles"),
+                        "done": complete["links"],
+                        "required": False,
+                    },
                 ],
                 title=gettext("Your profile"),
                 about=gettext(
@@ -329,96 +192,76 @@ class ContributorOverviewMixin:
 
     # ------------------------------------------------------------ organization
 
-    def get_members(self, current):
-        """Fill the Members card: every member when they fit, else one slot kept for the rest.
-
-        Args:
-            current: The current memberships, in the order they are shown.
-
-        Returns:
-            The memberships to show, how many more there are, and the total.
-        """
-        shown = current
-        if len(current) > self.member_slots:
-            shown = current[: self.member_slots - 1]
-        return {"shown": shown, "more": len(current) - len(shown), "total": len(current)}
-
     def get_organization_context(self):
         """Everything the organization page draws."""
         organization = self.base_object
-        credits = self.get_visible_credits()
-        context = self.get_shared_context(credits)
         user = self.request.user
-
-        memberships = list(
-            organization.affiliations.select_related("person")
-            .prefetch_related("person__identifiers", "person__socialaccount_set")
-            .filter(type__gte=Affiliation.MembershipType.MEMBER)
-        )
-        current = sorted(
-            (m for m in memberships if m.end_date is None),
-            key=lambda m: (-m.type, m.person.name or ""),
-        )
-        managers = {
-            m.person_id for m in current if m.type >= Affiliation.MembershipType.ADMIN
-        }
-        can_manage = user.is_authenticated and user.pk in managers
-        is_member = user.is_authenticated and any(m.person_id == user.pk for m in current)
+        contributions = organization.get_visible_contributions(user)
+        context = self.get_shared_context(contributions)
+        members = organization.get_current_memberships()
+        can_manage = organization.is_managed_by(user)
 
         # The projects the organization owns, then those it is credited on, and the datasets of
-        # both: its own credits and everything in a project it owns.
-        owned = list(Project.objects.get_visible().filter(owner=organization))
+        # both: its own contributions and everything in a project it owns.
+        owned = list(organization.owned_projects.get_visible())
         owned_ids = {p.pk for p in owned}
-        projects = [{"record": p, "roles": [], "owned": True} for p in owned] + [
+        projects = [{"record": p, "owned": True} for p in owned] + [
             entry
-            for entry in self.credit_entries(credits, "project")
+            for entry in self.get_record_entries(contributions, "project")
             if entry["record"].pk not in owned_ids
         ]
-        datasets = self.credit_entries(credits, "dataset")
+        datasets = self.get_record_entries(contributions, "dataset")
         credited_ids = {entry["record"].pk for entry in datasets}
         datasets += [
-            {"record": d, "roles": [], "owned": False}
-            for d in Dataset.objects.filter(project__in=owned).exclude(pk__in=credited_ids)
+            {"record": d, "owned": False}
+            for d in Dataset.objects.filter(project__in=owned).exclude(
+                pk__in=credited_ids
+            )
         ]
-
-        ror = next((i for i in organization.identifiers.all() if i.type == "ROR"), None)
-        parent = organization.parent
-        hierarchy = {
-            "parent": parent,
-            "siblings": list(parent.sub_organizations.order_by("name")) if parent else [],
-            "children": list(organization.sub_organizations.order_by("name")),
-        }
 
         context.update(
             {
                 "overview_icon": "organization",
                 "organization": organization,
                 "can_manage": can_manage,
-                "is_member": is_member,
-                "members": self.get_members(current),
-                "projects": self.record_card(projects, self.is_active_project),
-                "datasets": self.record_card(datasets),
+                "is_member": organization.has_member(user),
+                "members": fill_slots(members, self.member_slots, reserve=True),
+                "projects": self.get_record_card(projects, lambda p: p.is_active),
+                "datasets": self.get_record_card(datasets),
                 "org_counts": {
-                    "members": len(current),
+                    "members": len(members),
                     "projects": len(projects),
                     "datasets": len(datasets),
                 },
-                "ror": ror,
-                "ror_url": self.identifier_link(ror) if ror else None,
-                "hierarchy": hierarchy,
+                "hierarchy": organization.get_hierarchy(),
                 "location_text": organization.get_location_display(),
                 "has_map": organization.location_id is not None,
             }
         )
         if can_manage:
-            context["readiness"] = self.readiness(
+            complete = organization.get_record_completeness()
+            context["readiness"] = self.get_readiness(
                 [
-                    {"label": gettext("A ROR identifier"), "done": ror is not None},
-                    {"label": gettext("A logo"), "done": bool(organization.image), "required": False},
-                    {"label": gettext("The type of organization"), "done": bool(organization.type)},
-                    {"label": gettext("City and country"), "done": bool(organization.city and organization.country)},
-                    {"label": gettext("A description"), "done": bool(organization.profile)},
-                    {"label": gettext("A website"), "done": bool(organization.links), "required": False},
+                    {"label": gettext("A ROR identifier"), "done": complete["ror"]},
+                    {
+                        "label": gettext("A logo"),
+                        "done": complete["image"],
+                        "required": False,
+                    },
+                    {
+                        "label": gettext("The type of organization"),
+                        "done": complete["type"],
+                    },
+                    {
+                        "label": gettext("City and country"),
+                        "done": complete["location"],
+                    },
+                    {"label": gettext("A description"), "done": complete["profile"]},
+                    {
+                        "label": gettext("A website"),
+                        "done": complete["links"],
+                        "required": False,
+                    },
                 ],
                 title=gettext("Organization record"),
                 about=gettext(
@@ -428,4 +271,3 @@ class ContributorOverviewMixin:
                 badge=gettext("Only admin can see this"),
             )
         return context
-

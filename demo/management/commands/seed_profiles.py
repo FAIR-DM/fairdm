@@ -12,7 +12,7 @@ replaces what it created.
 
 import io
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from allauth.socialaccount.models import SocialAccount
 from django.apps import apps
@@ -121,7 +121,9 @@ class Command(BaseCommand):
             call_command("seed_overviews")
         with transaction.atomic():
             self.showcase = Project.objects.filter(name=SHOWCASE).latest("pk")
-            self.datasets = list(Dataset.all_objects.filter(project=self.showcase).order_by("pk"))
+            self.datasets = list(
+                Dataset.all_objects.filter(project=self.showcase).order_by("pk")
+            )
             self.clear()
             orgs = self.organizations()
             people = self.people(orgs)
@@ -143,13 +145,15 @@ class Command(BaseCommand):
         # People and organizations `seed_overviews` made keep their credits; crediting them again
         # adds to the same credit rather than a second one.
         touched = Contributor.objects.filter(config__seed=SEED)
-        Contribution.objects.filter(contributor__in=touched.filter(config__created=True)).delete()
+        Contribution.objects.filter(
+            contributor__in=touched.filter(config__created=True)
+        ).delete()
         Affiliation.objects.filter(organization__in=touched).delete()
         Affiliation.objects.filter(person__in=touched).delete()
         # A credit records the affiliation it was made under, and protects that organization.
-        Contribution.objects.filter(affiliation__in=touched.filter(config__created=True)).update(
-            affiliation=None
-        )
+        Contribution.objects.filter(
+            affiliation__in=touched.filter(config__created=True)
+        ).update(affiliation=None)
         SocialAccount.objects.filter(user__config__seed=SEED).delete()
         ContributorIdentifier.objects.filter(related__in=touched).delete()
         created = touched.filter(config__created=True)
@@ -158,12 +162,18 @@ class Command(BaseCommand):
 
     def samples(self, n, offset=0):
         dataset_ids = [d.pk for d in self.datasets]
-        return list(Sample.objects.filter(dataset_id__in=dataset_ids).order_by("pk")[offset : offset + n])
+        return list(
+            Sample.objects.filter(dataset_id__in=dataset_ids).order_by("pk")[
+                offset : offset + n
+            ]
+        )
 
     def measurements(self, n, offset=0):
         dataset_ids = [d.pk for d in self.datasets]
         return list(
-            Measurement.objects.filter(dataset_id__in=dataset_ids).order_by("pk")[offset : offset + n]
+            Measurement.objects.filter(dataset_id__in=dataset_ids).order_by("pk")[
+                offset : offset + n
+            ]
         )
 
     def new(self, model, **fields):
@@ -184,9 +194,13 @@ class Command(BaseCommand):
             profile="Germany's largest scientific organisation, made up of eighteen research centres.",
         )
         helmholtz.save()
-        ContributorIdentifier.objects.create(related=helmholtz, type="ROR", value="0281dp749")
+        ContributorIdentifier.objects.create(
+            related=helmholtz, type="ROR", value="0281dp749"
+        )
 
-        kit, _ = Organization.objects.get_or_create(name="Karlsruhe Institute of Technology")
+        kit, _ = Organization.objects.get_or_create(
+            name="Karlsruhe Institute of Technology"
+        )
         self.mark(kit)
         kit.type = "education"
         kit.city, kit.country = "Karlsruhe", "DE"
@@ -254,17 +268,35 @@ class Command(BaseCommand):
         anna.alternative_names = ["A. M. Keller", "Anna Maria Keller"]
         anna.lang = ["de", "en", "fr"]
         anna.is_claimed = True
-        anna.date_joined = datetime(2023, 3, 14, tzinfo=timezone.utc)
+        anna.date_joined = datetime(2023, 3, 14, tzinfo=UTC)
         anna.synced_data = {"orcid-identifier": {"path": "0000-0002-1825-0097"}}
         anna.image.save("anna.png", ContentFile(portrait(3)), save=False)
         anna.save()
-        ContributorIdentifier.objects.create(related=anna, type="ORCID", value="0000-0002-1825-0097")
-        SocialAccount.objects.create(user=anna, provider="orcid", uid="0000-0002-1825-0097")
+        ContributorIdentifier.objects.create(
+            related=anna, type="ORCID", value="0000-0002-1825-0097"
+        )
+        SocialAccount.objects.create(
+            user=anna, provider="orcid", uid="0000-0002-1825-0097"
+        )
         if "Data Curator" in roles_group:
             anna.groups.add(roles_group["Data Curator"])
-        Affiliation.objects.create(person=anna, organization=orgs["agw"], type=MEMBER, is_primary=True, start_date="2020-04")
-        Affiliation.objects.create(person=anna, organization=orgs["kit"], type=ADMIN, start_date="2019")
-        Affiliation.objects.create(person=anna, organization=orgs["tuebingen"], type=MEMBER, start_date="2014-10", end_date="2019-03")
+        Affiliation.objects.create(
+            person=anna,
+            organization=orgs["agw"],
+            type=MEMBER,
+            is_primary=True,
+            start_date="2020-04",
+        )
+        Affiliation.objects.create(
+            person=anna, organization=orgs["kit"], type=ADMIN, start_date="2019"
+        )
+        Affiliation.objects.create(
+            person=anna,
+            organization=orgs["tuebingen"],
+            type=MEMBER,
+            start_date="2014-10",
+            end_date="2019-03",
+        )
         for sample in self.samples(9):
             anna.add_to(sample, ["Collection"])
         for sample in self.samples(3, offset=9):
@@ -277,8 +309,16 @@ class Command(BaseCommand):
         # An ORCID iD nobody has confirmed, and the owner of the university's record.
         tomas = self.mark(self.person("Tomás", "Oliveira"))
         tomas.save()
-        ContributorIdentifier.objects.create(related=tomas, type="ORCID", value="0000-0001-5109-3700")
-        Affiliation.objects.create(person=tomas, organization=orgs["kit"], type=OWNER, is_primary=True, start_date="2012")
+        ContributorIdentifier.objects.create(
+            related=tomas, type="ORCID", value="0000-0001-5109-3700"
+        )
+        Affiliation.objects.create(
+            person=tomas,
+            organization=orgs["kit"],
+            type=OWNER,
+            is_primary=True,
+            start_date="2012",
+        )
         for measurement in self.measurements(4, offset=6):
             tomas.add_to(measurement, ["MeasurementCollection"])
 
@@ -297,11 +337,24 @@ class Command(BaseCommand):
         for index, (first, last, key) in enumerate(team):
             person = self.mark(self.person(first, last))
             if index % 2 == 0:
-                person.image.save(f"team{index}.png", ContentFile(portrait(10 + index)), save=False)
+                person.image.save(
+                    f"team{index}.png", ContentFile(portrait(10 + index)), save=False
+                )
             person.save()
-            Affiliation.objects.create(person=person, organization=orgs[key], type=MEMBER, is_primary=True, start_date=str(2015 + index))
+            Affiliation.objects.create(
+                person=person,
+                organization=orgs[key],
+                type=MEMBER,
+                is_primary=True,
+                start_date=str(2015 + index),
+            )
             if key != "kit":
-                Affiliation.objects.create(person=person, organization=orgs["kit"], type=MEMBER, start_date=str(2015 + index))
+                Affiliation.objects.create(
+                    person=person,
+                    organization=orgs["kit"],
+                    type=MEMBER,
+                    start_date=str(2015 + index),
+                )
             for sample in self.samples(2, offset=12 + 2 * index):
                 person.add_to(sample, ["Collection"])
 
@@ -309,7 +362,13 @@ class Command(BaseCommand):
         me = self.mark(users["regular.user"])
         me.is_claimed = True
         me.save()
-        Affiliation.objects.create(person=me, organization=orgs["agw"], type=OWNER, is_primary=True, start_date="2024-09")
+        Affiliation.objects.create(
+            person=me,
+            organization=orgs["agw"],
+            type=OWNER,
+            is_primary=True,
+            start_date="2024-09",
+        )
         if len(self.datasets) > 1:
             me.add_to(self.datasets[1], ["DataCollector"])
         for sample in self.samples(2, offset=40):
@@ -336,11 +395,17 @@ class Command(BaseCommand):
             email="georg.lindemann@example.org",
             is_claimed=True,
             is_active=False,
-            date_joined=datetime(2021, 5, 2, tzinfo=timezone.utc),
+            date_joined=datetime(2021, 5, 2, tzinfo=UTC),
         )
         inactive.set_unusable_password()
         inactive.save()
-        Affiliation.objects.create(person=inactive, organization=orgs["kit"], type=MEMBER, start_date="2016", end_date="2022-06")
+        Affiliation.objects.create(
+            person=inactive,
+            organization=orgs["kit"],
+            type=MEMBER,
+            start_date="2016",
+            end_date="2022-06",
+        )
         if self.datasets:
             inactive.add_to(self.datasets[0], ["DataCollector"])
 
@@ -348,12 +413,19 @@ class Command(BaseCommand):
         wang = self.new(Person, first_name="晓明", last_name="王", name="王晓明")
         wang.set_unusable_password()
         wang.save()
-        ContributorIdentifier.objects.create(related=wang, type="ORCID", value="0000-0003-1415-9269")
+        ContributorIdentifier.objects.create(
+            related=wang, type="ORCID", value="0000-0003-1415-9269"
+        )
         for measurement in self.measurements(2, offset=12):
             wang.add_to(measurement, ["MeasurementPreparation"])
 
         # Credited on nothing and affiliated nowhere.
-        nobody = self.new(Person, first_name="Mireille", last_name="Dufresne", name="Mireille Dufresne")
+        nobody = self.new(
+            Person,
+            first_name="Mireille",
+            last_name="Dufresne",
+            name="Mireille Dufresne",
+        )
         nobody.set_unusable_password()
         nobody.save()
 
