@@ -22,3 +22,10 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0` gives 12 failed, 192 passed. The 12 failures are the new tests that find real gaps: private-project datasets, samples and measurements listed, roles and collaborators known only through them counted, a pending or ended primary affiliation in the schema.org data, and the two missing source methods. I read each failure and each is the symptom, not a fixture error. Mutating the collaborator tie order, the affiliation sort and filter, and the member-since states failed the matching tests; models.py restored. `uv run pre-commit run --all-files` clean.
 - Next: T004, component tests.
 - Watch: the tree is red on purpose until T006, which fixes these.
+
+## 2026-10-01T10:18Z · Implementer US1 · T004
+
+- Did: added `tests/test_templates/test_contributor_cards.py` with a class for `c-missing`, `c-card.records`, `c-card.roles`, `c-card.links` and `c-card.affiliations`. Entries are checked for where they link, counts for their numbers, and empty states are found by the card's `data-card` attribute and the alert role.
+- Verified: `uv run pytest tests/test_templates/test_contributor_cards.py -q -n0` (18 passed, exit 0; all green on first run against the prototype). Removed the link `rel` and the "more" link from the templates in turn and watched two tests fail; templates restored. `uv run pre-commit run --all-files` clean.
+- Next: T005, the page tests.
+- Watch: `c-card.hierarchy` is US2's and is not tested here.
