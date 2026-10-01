@@ -97,13 +97,12 @@ class Overview(OverviewPlugin):
         )
         return readiness
 
-    def get_shared_context(self, contributions):
+    def get_shared_context(self):
         """The keys both pages and the shared skeleton read."""
         contributor = self.base_object
         identifier = contributor.default_identifier
         return {
             "record": contributor,
-            "roles": ranked_shares(contributor.get_role_counts(contributions)),
             "identifiers": [
                 {"type": i.get_type_display(), "value": i.value, "link": i.resolver_url}
                 for i in contributor.identifiers.all()
@@ -131,7 +130,8 @@ class Overview(OverviewPlugin):
         person = self.base_object
         user = self.request.user
         contributions = person.get_visible_contributions(user)
-        context = self.get_shared_context(contributions)
+        context = self.get_shared_context()
+        context["roles"] = ranked_shares(person.get_role_counts(contributions))
         is_self = user.is_authenticated and user.pk == person.pk
         affiliations = person.get_affiliation_history()
         primary = next(
@@ -207,8 +207,7 @@ class Overview(OverviewPlugin):
         """Everything the organization page draws."""
         organization = self.base_object
         user = self.request.user
-        contributions = organization.get_visible_contributions(user)
-        context = self.get_shared_context(contributions)
+        context = self.get_shared_context()
         members = organization.get_current_memberships()
         can_manage = organization.is_managed_by(user)
 

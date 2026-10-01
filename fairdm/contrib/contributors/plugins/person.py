@@ -18,7 +18,9 @@ class ContributorProjects(Plugin, ProjectListView):
 
     def get_queryset(self, *args, **kwargs):
         """Limit to this contributor's projects."""
-        return self.base_object.get_public_projects()
+        return (
+            self.base_object.get_public_projects().with_list_data().with_contributors()
+        )
 
     def get_page_title(self):
         """Title the page "My Projects" on the user's own profile."""
@@ -35,7 +37,7 @@ class ContributorDatasets(Plugin, DatasetListView):
 
     def get_queryset(self, *args, **kwargs):
         """Limit to this contributor's datasets."""
-        return self.base_object.get_public_datasets()
+        return self.base_object.get_public_datasets().with_list_data()
 
     def get_page_title(self):
         """Title the page "My Datasets" on the user's own profile."""

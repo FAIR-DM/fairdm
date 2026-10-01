@@ -2615,3 +2615,23 @@ class TestPersonLocationDisplay:
 
         with django_assert_num_queries(0):
             person.get_location_display()
+
+
+class TestProfileSafety:
+    @pytest.mark.django_db
+    def test_a_link_that_is_not_a_web_address_is_left_out(self):
+        person = PersonFactory()
+        Person.objects.filter(pk=person.pk).update(
+            links=["javascript:alert(1)", "https://example.org/me"]
+        )
+        person.refresh_from_db()
+
+        assert [link["url"] for link in person.get_links_display()] == [
+            "https://example.org/me"
+        ]
+
+    @pytest.mark.django_db
+    def test_a_deactivated_profile_nobody_claimed_has_no_member_since(self):
+        person = PersonFactory(is_claimed=False, is_active=False, email=None)
+
+        assert person.member_since is None

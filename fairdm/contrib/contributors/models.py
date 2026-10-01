@@ -423,9 +423,15 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """List the contributor's links, each with the site it points at.
 
         Returns:
-            One ``{"url", "host"}`` entry per link, in the order recorded.
+            One ``{"url", "host"}`` entry per web link, in the order recorded. A link that is
+            not ``http`` or ``https`` is left out, so a page never draws a link that runs a
+            script.
         """
-        return [{"url": url, "host": link_host(url)} for url in self.links or []]
+        return [
+            {"url": url, "host": link_host(url)}
+            for url in self.links or []
+            if url.lower().startswith(("http://", "https://"))
+        ]
 
     def get_language_names(self):
         """Name the contributor's languages in the active language.
@@ -868,9 +874,7 @@ class Person(AbstractUser, Contributor):
     @property
     def member_since(self):
         """When the person's account was created, or None for a profile nobody has claimed."""
-        if self.account_state in (AccountState.CLAIMED, AccountState.INACTIVE):
-            return self.date_joined
-        return None
+        return self.date_joined if self.is_claimed else None
 
     def get_affiliation_history(self):
         """Split the person's verified affiliations into current and past.

@@ -13,6 +13,6 @@
     {% if affiliation.start_display or affiliation.end_display %}
       <span>{% if affiliation.start_display %}{{ affiliation.start_display }}{% else %}?{% endif %} – {% if affiliation.end_display %}{{ affiliation.end_display }}{% else %}{% translate "present" %}{% endif %}</span>
     {% endif %}
-    {% if affiliation.is_primary %}<span class="badge badge-soft badge-primary badge-xs">{% translate "Primary" %}</span>{% endif %}
+    {% if affiliation.is_primary and not affiliation.end_date %}<span class="badge badge-soft badge-primary badge-xs">{% translate "Primary" %}</span>{% endif %}
   </span>
 </li>

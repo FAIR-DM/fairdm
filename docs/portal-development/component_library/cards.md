@@ -69,6 +69,8 @@ to the full list when `all_url` is given. With nobody credited the card says so.
 | --- | --- |
 | `people` | A dictionary: `shown` (the contributors to draw), `more` (how many were left out) and `total`. `RecordOverviewPlugin.get_people()` builds it. |
 | `all_url` | Where the full list of contributors is. |
+| `title` | The card's title. Defaults to "People". |
+| `empty` | What to say when nobody is credited. Has a default. |
 
 ```django
 <c-card.people :people="people" all_url="{{ people_url }}" />
@@ -176,6 +178,7 @@ a location.
 | `location` | A location point with `x` (longitude), `y` (latitude) and `crs`. |
 | `title` | The card's title. Defaults to "Location". |
 | `empty` | What to say when there is no location. Without it, the component draws nothing. |
+| `label` | The map's name for assistive technology. Defaults to a name written for a sample. |
 
 ```django
 <c-card.location :location="sample.location" empty="No location recorded." />
@@ -191,6 +194,7 @@ published. Missing items come first, each linked to the page that fixes it where
 | `title` | The card's title. |
 | `summary` | One line on the overall state. |
 | `about` | One line on why the list matters. |
+| `badge` | Who can see the card. Defaults to "Edit access only". |
 | `readiness` | A dictionary: `items` (a list of `{"label", "done", "url"}`, plus `required` set to `False` for a recommended item), `done`, `total` and `ready`. |
 
 ```django

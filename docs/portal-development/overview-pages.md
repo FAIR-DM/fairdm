@@ -371,7 +371,7 @@ person themselves, identifiers, links, affiliations, frequent collaborators and 
 not available yet. The collaborators card shows at most eighteen people and counts the rest. A
 person has no Details, funding or citation card.
 
-The blocks only the contributor pages have, in page order:
+The blocks the contributor pages fill, in page order:
 
 | Block | What it holds |
 | --- | --- |

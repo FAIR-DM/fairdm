@@ -32,6 +32,18 @@ class TestContributorTabs:
 
         assert set(response.context["object_list"]) == {world.public_dataset}
 
+    def test_each_listed_record_carries_the_counts_its_card_draws(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        projects, _ = get_page(_tab_url(world.person, "projects"))
+        datasets, _ = get_page(_tab_url(world.person, "datasets"))
+
+        assert hasattr(projects.context["object_list"][0], "dataset_count")
+        assert hasattr(datasets.context["object_list"][0], "sample_count")
+        assert hasattr(datasets.context["object_list"][0], "measurement_count")
+
     @pytest.mark.parametrize("tab", ["projects", "datasets"])
     def test_the_person_and_a_member_of_a_private_project_see_what_a_visitor_sees(
         self, get_page, credited_world, tab

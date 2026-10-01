@@ -209,3 +209,14 @@ test was added without dispatching a story for it, because it is a single test w
 content.
 
 **ADR:** none. A test maintenance record.
+
+## D16. Review findings fixed directly
+
+The code review approved with no critical or high finding. Its two medium and four low findings
+were each a few lines, so they were fixed directly without a dispatched story: the two tabs load
+the counts their cards draw, three component tables in the documentation gained their missing
+attributes, an unclaimed and deactivated profile shows no account date, an organization's page no
+longer computes role counts it never shows, a past affiliation no longer carries the primary
+badge, and a link that is not a web address is left off the links card.
+
+**ADR:** none. A record of the review's fixes.

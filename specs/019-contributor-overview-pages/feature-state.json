@@ -62,6 +62,14 @@
     "carried as a watch item: ARCH-001, resolve samples and measurements to ids",
     "lows applied: mixin fold and tab removal moved behind the tests; component tests find empty states by element"
    ]
+  },
+  "review": {
+   "approved_by": "reviewer (correctness, documentation, security)",
+   "at": "2026-10-01T11:32:17Z",
+   "self_resolved": [
+    "approve; 0 critical, 0 high",
+    "remedied: COR-001 tab card counts, DOC-001 component tables, COR-002 member since, COR-003 unused role counts, COR-004 primary badge on past affiliations, SEC-001 non-web links"
+   ]
   }
  },
  "stories": [
