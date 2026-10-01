@@ -1,0 +1,171 @@
+"""The forms a person edits their profile with, and the field they type their lists into."""
+
+from django import forms
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _
+from easy_thumbnails.widgets import ImageClearableFileInput
+
+from fairdm.core import image_utils
+from fairdm.forms import ModelForm
+
+from ..models import Person
+from ..profiles import language_names
+from ..validators import ISO_639_1_CODES
+
+
+class LinesField(forms.CharField):
+    """A list of short entries typed one per line into a text area.
+
+    The cleaned value is a list. Blank lines are dropped, surrounding spaces are trimmed and an
+    entry typed twice is kept once, where it was first typed.
+
+    Args:
+        entry_validator: Called with each entry. A ``ValidationError`` it raises is reported
+            for the first entry at fault, with the entry in the error's ``params``.
+        **kwargs: Passed to ``CharField``.
+
+    Attributes:
+        entry_validator: The per-entry validator, or None.
+    """
+
+    default_error_messages = {
+        "invalid_entry": _("“%(entry)s” is not valid."),
+    }
+
+    def __init__(self, *, entry_validator=None, **kwargs):
+        kwargs.setdefault("widget", forms.Textarea(attrs={"rows": 4}))
+        super().__init__(**kwargs)
+        self.entry_validator = entry_validator
+
+    def prepare_value(self, value):
+        """Show a list one entry per line."""
+        if value is None:
+            return ""
+        if isinstance(value, list | tuple):
+            return "\n".join(value)
+        return value
+
+    def to_python(self, value):
+        """Split the text into a list of distinct, trimmed entries.
+
+        Args:
+            value: The submitted text.
+
+        Returns:
+            The entries in the order first typed, empty when nothing was typed.
+        """
+        text = super().to_python(value)
+        return list(
+            dict.fromkeys(line.strip() for line in text.splitlines() if line.strip())
+        )
+
+    def validate(self, value):
+        """Refuse an empty list when required, and the first entry the validator rejects.
+
+        Args:
+            value: The cleaned list.
+
+        Raises:
+            ValidationError: The field is required and empty, or an entry is not valid.
+        """
+        super().validate(value)
+        if self.entry_validator is None:
+            return
+        for entry in value:
+            try:
+                self.entry_validator(entry)
+            except ValidationError:
+                raise ValidationError(
+                    self.error_messages["invalid_entry"],
+                    code="invalid_entry",
+                    params={"entry": entry},
+                ) from None
+
+
+def language_choices():
+    """List the ISO 639-1 languages by name in the active language.
+
+    Returns:
+        ``(code, name)`` pairs sorted by name. A code Django has no name for is shown as written.
+    """
+    named = [(code, language_names([code])[0]) for code in ISO_639_1_CODES]
+    return sorted(named, key=lambda choice: choice[1].casefold())
+
+
+class PersonProfileForm(ModelForm):
+    """The page where a person edits their own profile.
+
+    A portal adds or drops fields by subclassing this form and naming the subclass in
+    ``FAIRDM_PROFILE_FORMS``.
+
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        image: The photo. Ticking the clear box removes it.
+        name: The name the person is publicly known by.
+        alternative_names: Other names, one per line.
+        profile: The biography.
+        links: Web addresses, one per line.
+        lang: The languages the person works in.
+    """
+
+    image = forms.ImageField(
+        required=False,
+        label=_("Photo"),
+        help_text=format_lazy(
+            _("JPEG, PNG or WebP, up to {size} MB."),
+            size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
+        ),
+        validators=[image_utils.validate_image_file_size],
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 150), "crop": True}
+        ),
+    )
+    alternative_names = LinesField(
+        required=False,
+        label=_("Alternative names"),
+        help_text=_("Other names you publish under, one per line."),
+    )
+    links = LinesField(
+        required=False,
+        label=_("Links"),
+        help_text=_("Web addresses of your other profiles, one per line."),
+        entry_validator=URLValidator(schemes=["http", "https"]),
+        error_messages={
+            "invalid_entry": _(
+                "“%(entry)s” is not a web address. Start it with http:// or https://."
+            ),
+        },
+    )
+    lang = forms.MultipleChoiceField(
+        required=False,
+        label=_("Languages"),
+        help_text=_("The languages you work in."),
+    )
+
+    class Meta:
+        model = Person
+        fields = ["image", "name", "alternative_names", "profile", "links", "lang"]
+        labels = {
+            "name": _("Name"),
+            "profile": _("Biography"),
+        }
+        help_texts = {
+            "name": _(
+                "The name you are publicly known by, as it appears on your credits."
+            ),
+            "profile": _("A few lines about your research. Markdown is supported."),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["lang"].choices = language_choices()
+        self.helper.form_tag = False
+
+    def clean_lang(self):
+        """Keep each language once, in the order chosen."""
+        return list(dict.fromkeys(self.cleaned_data["lang"]))
