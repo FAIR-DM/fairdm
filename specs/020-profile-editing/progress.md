@@ -117,3 +117,9 @@
 - Verified: `uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py tests/test_conf/test_checks.py -q -n0` gives 112 passed. `forge verify --repo . --base origin/main --steps docs` passes, and `uv run --group docs sphinx-build -b html docs` prints no warning for a page changed here. `uv run pre-commit run --all-files` passes.
 - Next: T017.
 - Watch: no pre-existing test changed.
+
+## 2026-10-01T18:50:00Z · Implementer US3 · T017
+- Did: `TestWhoMayEdit` in `test_update.py`, SC-003 as one table. After `seed_profiles`, every seeded account (the owner, an administrator, a member, a former administrator, a community manager, a data curator, a staff user, a superuser) and a visitor open and submit the editing page of every kind of profile: their own, an active person, an unclaimed one, an invited one, an inactive one, an active account that signed in without being marked claimed, the organization the owner keeps, one nobody keeps and another. The expected answer is written out from FR-001 to FR-003a in `_who_may_edit`, not read from `is_editable_by`. A refused request also stores nothing, and a visitor is sent to sign in.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit -q -n0` gives 3 passed. It passes on the first run because T015 had landed, so I probed it instead: giving superusers and staff a bypass in the person rule made 2 fail, and letting any group member edit an organization made 2 fail; both restored. `uv run pre-commit run --all-files` passes.
+- Next: T019.
+- Watch: the table seeds the development data once per test, about five seconds each.

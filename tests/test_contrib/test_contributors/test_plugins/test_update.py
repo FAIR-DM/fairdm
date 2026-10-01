@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.contrib.messages import get_messages
+from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
@@ -25,6 +26,7 @@ from fairdm.contrib.contributors.forms.profile import (
 from fairdm.contrib.contributors.models import (
     Affiliation,
     ContributorIdentifier,
+    Organization,
     Person,
 )
 from fairdm.factories import (
@@ -1191,3 +1193,118 @@ class TestCommunityManagerUpdate:
         centre = reverse("account-center")
         assert _page(own).select(f"[role=alert] a[href='{centre}']")
         assert not _page(theirs).select(f"[role=alert] a[href='{centre}']")
+
+
+ACCOUNTS = {
+    "owner": "regular.user@example.com",
+    "administrator": "admin.user@example.com",
+    "member": "member.user@example.com",
+    "former_administrator": "former-admin.user@example.com",
+    "community_manager": "community-manager.user@example.com",
+    "data_curator": "data-curator.user@example.com",
+    "staff": "staff.user@example.com",
+    "superuser": "super.user@example.com",
+}
+
+
+@pytest.fixture
+def world(db):
+    """The seeded accounts, one of each kind of profile and the organizations they relate to."""
+    call_command("seed_profiles", verbosity=0)
+    accounts = {key: Person.objects.get(email=email) for key, email in ACCOUNTS.items()}
+    seeded = Person.objects.filter(config__seed="profiles")
+    return SimpleNamespace(
+        accounts=accounts,
+        people={
+            "active_other": seeded.filter(
+                is_active=True, is_claimed=True, first_name="Anna"
+            ).get(),
+            "unclaimed": next(
+                p for p in seeded if p.account_state == AccountState.GHOST
+            ),
+            "invited": PersonFactory(
+                name="Invited Person",
+                email="invited@example.org",
+                is_active=True,
+                is_claimed=False,
+            ),
+            "inactive": seeded.get(is_active=False),
+            "signed_in_unmarked": PersonFactory(
+                name="Superuser Made",
+                is_active=True,
+                is_claimed=False,
+                password="x",
+                last_login=timezone.now(),
+            ),
+        },
+        organizations={
+            "owned": Organization.objects.get(
+                affiliations__person=accounts["owner"],
+                affiliations__type=Affiliation.MembershipType.OWNER,
+            ),
+            "nobody_keeps": Organization.objects.get(
+                name="Rhine Graben Geothermal Working Group"
+            ),
+            "other": Organization.objects.get(name="Karlsruhe Institute of Technology"),
+        },
+    )
+
+
+def _who_may_edit(account, profile_key):
+    """FR-001 to FR-003a, written out for the seeded accounts."""
+    if profile_key == "own":
+        return account != "visitor"
+    if profile_key in ("unclaimed", "invited", "inactive"):
+        return account == "community_manager"
+    if profile_key in ("active_other", "signed_in_unmarked"):
+        return False
+    if profile_key == "owned":
+        return account in ("owner", "administrator", "community_manager")
+    return account == "community_manager"
+
+
+def _profiles(world, account):
+    """Every profile the table asks about, for one account, as ``(key, contributor)``."""
+    profiles = list(world.people.items()) + list(world.organizations.items())
+    if account != "visitor":
+        profiles.append(("own", world.accounts[account]))
+    return profiles
+
+
+@pytest.mark.django_db
+class TestWhoMayEdit:
+    """SC-003: every seeded account against every kind of profile."""
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_the_editing_page_opens_exactly_where_the_rules_say_and_is_refused_everywhere_else(
+        self, world, profile_data, organization_profile_data, method
+    ):
+        wrong = []
+        for account in ("visitor", *ACCOUNTS):
+            browser = Client()
+            if account != "visitor":
+                browser.force_login(world.accounts[account])
+            for key, contributor in _profiles(world, account):
+                is_person = isinstance(contributor, Person)
+                data = profile_data if is_person else organization_profile_data
+                stored = _stored if is_person else _organization_stored
+                before = stored(contributor)
+
+                response = getattr(browser, method)(_update_url(contributor), data)
+
+                opened = 200 if method == "get" else 302
+                refused = 302 if account == "visitor" else 403
+                expected = opened if _who_may_edit(account, key) else refused
+                if response.status_code != expected:
+                    wrong.append((account, key, response.status_code, expected))
+                elif expected == refused and stored(contributor) != before:
+                    wrong.append((account, key, "stored something", expected))
+
+        assert wrong == []
+
+    def test_a_visitor_is_sent_to_sign_in(self, world):
+        for contributor in (*world.people.values(), *world.organizations.values()):
+            response = Client().get(_update_url(contributor))
+
+            assert response.url.startswith(reverse("account_login"))
+

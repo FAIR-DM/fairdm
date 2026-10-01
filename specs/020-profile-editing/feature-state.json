@@ -337,8 +337,16 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit -q -n0 (3 passed; passes on first run because T015 had landed, so probed by mutation instead)"
+            ]
+          }
         },
         {
           "id": "T019",
