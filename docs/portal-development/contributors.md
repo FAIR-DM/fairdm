@@ -311,6 +311,8 @@ An organization's page reads who belongs to it and where it sits from four more 
 | `get_current_memberships()` | The affiliations of its members: verified and not ended, with the person loaded. The owner comes first, then the administrators, then the other members, each group by name. |
 | `has_member(user)` | `True` when the user has a current affiliation of type member or above. Pending and ended affiliations do not count, and a visitor is never a member. |
 | `is_managed_by(user)` | `True` when the user has a current affiliation of type administrator or owner. A portal role does not count. |
+| `is_editable_by(user)` | `True` when the user is active and `is_managed_by(user)` holds. It decides who may open the [editing page](#editing-a-profile). |
+| `get_descendant_ids()` | The primary keys of every organization beneath this one, at any depth. |
 | `get_hierarchy()` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (its direct sub-organizations by name). |
 
 ```python
@@ -645,9 +647,9 @@ Contributions use Django's GenericForeignKey to link to:
 
 ## Editing a profile
 
-A person edits their own profile on a page of the overview plugin, at
-`contributor/<uuid>/update/`. The page shows one form for the kind of contributor it is opened for
-and saves it, then returns to the profile.
+A person edits their own profile, and an organization's owner and administrators edit its profile,
+on a page of the overview plugin at `contributor/<uuid>/update/`. The page shows one form for the
+kind of contributor it is opened for and saves it, then returns to the profile.
 
 ### Who may edit
 
@@ -661,11 +663,14 @@ person.is_editable_by(person)         # True: a person with an active account ed
 person.is_editable_by(other_person)   # False
 person.is_editable_by(superuser)      # False: a superuser gets nothing extra here
 person.is_editable_by(anonymous_user) # False
-organization.is_editable_by(person)   # False
+organization.is_editable_by(owner)   # True: the owner and the administrators with a current affiliation
+organization.is_editable_by(member)  # False: an ordinary member
 ```
 
-Holding a portal role does not change the answer. An organization's `is_editable_by` is `False`
-for everyone for now.
+An organization is editable by the people who keep its record, the ones `is_managed_by(user)`
+accepts, while their account is active. Holding a portal role does not change the answer, and
+neither does being a superuser. An organization with no owner and no administrators is editable by
+nobody.
 
 The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`. It declares its own
 `check`, `contributor_is_editable`, because an additional view is governed by its own check and
@@ -688,6 +693,39 @@ affiliations, portal roles and the account's state are never on it.
 
 `alternative_names` and `links` are lists typed one entry per line, which is what `LinesField`
 does.
+
+### The organization form
+
+`OrganizationProfileForm`, in the same module, edits `image` (the logo), `name`,
+`alternative_names`, `type`, `parent`, `city`, `country`, `profile` (the description), `website`
+and `links`, and nothing else. The ROR identifier, the members and the owner are never on it.
+
+- `image`, `name` and `alternative_names` behave as on the person form.
+- `type` and `country` are choices, and a value outside their lists is refused.
+- `parent` is a search over every organization, the same picker the affiliation form uses.
+- `website` and `links` are two fields over the one stored list `Organization.links`. The website
+  is stored first and the other links follow it, so an address typed in both places is stored
+  once. When the form opens, `website` shows the first stored link and `links` shows the rest.
+  Clearing the website therefore makes the next link the website the next time the form opens.
+  Every address must be an `http` or `https` address.
+
+### The parent loop rule
+
+An organization cannot be made part of itself or of one of its own sub-organizations at any depth.
+`Organization.clean()` refuses such a parent with an error on the `parent` field, code
+`parent_loop`, so the editing page and the administration interface refuse it alike.
+`Organization.get_descendant_ids()` returns the primary keys it checks against:
+
+```python
+university = Organization.objects.create(name="Example University")
+department = Organization.objects.create(name="Geology", parent=university)
+
+university.get_descendant_ids() == {department.pk}  # True
+university.parent = department
+university.full_clean()  # raises ValidationError on "parent"
+```
+
+The method returns an empty set for an organization that is not saved yet.
 
 ### `LinesField`
 
@@ -722,6 +760,7 @@ leaves out, or a portal that does not set it, keeps the shipped form:
 # settings.py
 FAIRDM_PROFILE_FORMS = {
     "person": "myportal.forms.PersonProfileForm",
+    "organization": "fairdm.contrib.contributors.forms.profile.OrganizationProfileForm",
 }
 ```
 
@@ -744,8 +783,11 @@ of `fields` in the same way.
 ```{note}
 A portal that overrides `contributors/overview/person.html` keeps the disabled edit button, the
 disabled biography prompt and unlinked checklist items until its template adopts the new
-`can_edit` and `update_url` values the overview supplies. See
-[the person page](overview-pages.md#the-person-page).
+`can_edit` and `update_url` values the overview supplies. A portal that overrides
+`contributors/overview/organization.html` keeps the disabled **Edit details** entry, the disabled
+description prompt and unlinked checklist items in the same way. See
+[the person page](overview-pages.md#the-person-page) and
+[the organization page](overview-pages.md#the-organization-page).
 ```
 
 ## Transform API

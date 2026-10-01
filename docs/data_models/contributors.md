@@ -155,6 +155,14 @@ assert department.parent == university
 assert department in university.sub_organizations.all()
 ```
 
+An organisation cannot be its own parent, nor the parent of one of its ancestors: `clean()` refuses
+a parent that is the organisation itself or any organisation beneath it, with an error on the
+`parent` field. `get_descendant_ids()` returns every organisation beneath one, at any depth:
+
+```python
+university.get_descendant_ids() == {department.pk}
+```
+
 Deleting a parent organisation does **not** delete its sub-organisations, their members or
 their credits. A surviving sub-organisation simply loses its parent:
 

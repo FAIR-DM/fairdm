@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Saving a profile returned to a page that failed with an unknown icon error while its "saved"
+  message was waiting, because `MESSAGE_TAGS` still held the old Bootstrap tag names. The setting
+  is removed, so Django's own message tags reach the alert. A portal that styles messages by the
+  old tag strings needs to set `MESSAGE_TAGS` itself.
 - `Contributor.get_update_url()` raised `NoReverseMatch` because it reversed a name no URL carried.
   It returns the address of the profile editing page.
 - A person's own page now counts a primary affiliation toward their checklist only when it is
@@ -146,6 +150,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
   unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
   [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- An organization's owner and administrators can edit its profile. **Edit details** in the
+  **Manage** menu, the description prompt and the logo, type, city and country, description and
+  website items on its checklist now lead to a page for changing the logo, name, alternative names,
+  type, the organization it is part of, city, country, description, website and other links. An
+  ordinary member, a stranger and a Data Curator are not offered it, and a request for it by any of
+  them is refused. A portal changes the fields through the `organization` entry of
+  `FAIRDM_PROFILE_FORMS`. A portal that overrides `contributors/overview/organization.html` keeps
+  the disabled **Edit details** entry, the disabled description prompt and the unlinked checklist
+  items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- `Organization.get_descendant_ids()` returns every organization beneath one, at any depth. An
+  organization can no longer be made part of itself or of one of its own sub-organizations, in the
+  editing page or in the administration interface.
+- `manage.py seed_profiles` creates `admin.user@example.com`, `member.user@example.com` and
+  `former-admin.user@example.com` around the organization `regular.user@example.com` owns.
 - `Contributor.is_editable_by(user)` says whether a user may edit a contributor's profile in the
   portal. `LinesField` is a form field for a list typed one entry per line.
 - A person's page now tells a visitor who the person is, where they work, whether their ORCID iD

@@ -464,7 +464,8 @@ to its ROR record when it has a ROR ID. Beneath the name come the organization i
 linked to its page, its city and country, and its languages. Each is left out when it is not
 recorded. The actions are sharing the page and the organization's address in the API. A signed-in
 person who is not a current member is also offered asking to join, shown as not available yet. The
-people who keep the record are offered a menu of management actions instead, also not available
+people who keep the record are offered a **Manage** menu instead. Its **Edit details** entry links
+to [the editing page](contributors.md#editing-a-profile), and its other entries are not available
 yet.
 
 The figures are the organization's projects, its datasets and its current members. The first two
@@ -525,8 +526,15 @@ answers it. Asking to join is offered to a signed-in user for whom neither `has_
 The checklist lists a ROR identifier, a logo (recommended), the type of organization, a city and a
 country together, a description and a website (recommended). A ROR identifier is the only
 identifier type that counts toward the first item. The menu holds editing the details, managing the
-members and updating the record from ROR, each shown as not available yet.
-`Organization.get_record_completeness()` returns the flag for each item.
+members and updating the record from ROR. Editing the details is a link to the editing page, and
+the other two are shown as not available yet. `Organization.get_record_completeness()` returns the
+flag for each item.
+
+Every item the editing page can fix links to its field, with the field's id as a fragment: the logo
+to `#id_image`, the type to `#id_type`, the city and country to `#id_city`, the description to
+`#id_profile` and the website to `#id_website`. The ROR item has no link. The description's prompt
+in the About card links to `#id_profile`. The link and the menu entry are offered to the people
+`Organization.is_editable_by(user)` accepts, which are the same people who keep the record.
 
 ### Extending an organization page
 
@@ -544,7 +552,7 @@ keeps every card FairDM draws there:
 {% endblock overview.side %}
 ```
 
-The blocks read `record`, `organization`, `can_manage`, `is_member`, `members`, `projects`,
+The blocks read `record`, `organization`, `can_manage`, `can_edit`, `update_url`, `is_member`, `members`, `projects`,
 `datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, `languages`, `identifier`,
 `identifier_url`, `identifiers`, `links`, `urls`, `api_url` and `json_ld`, and `readiness` for the
 people who keep the record. `records_shown` (five) and `member_slots` (ten) on the plugin say how
@@ -784,3 +792,8 @@ creating the missing ones, `remove_own_projects()` deletes the projects an earli
 `grant_team_rights(user, *records)` gives an account view, change and delete rights on the projects
 and datasets it is given. `staff.user` holds those rights on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
+`manage.py seed_profiles` also uses `profile_accounts()`, which returns the three accounts around
+the organization `regular.user` owns the same way. Both read their accounts through
+`create_accounts(accounts)`, which creates the missing ones of any list of
+`(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the
+address before the `@`.
