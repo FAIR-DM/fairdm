@@ -1,8 +1,8 @@
 # Overview pages
 
 Every project, dataset, sample and measurement opens on an **overview page**, the first tab of the
-record's tabbed detail view. A person's page follows the same anatomy, described under
-[the person page](#the-person-page). It is written for three readers: someone deciding whether the data is
+record's tabbed detail view. A person's page and an organization's page follow the same anatomy, described under
+[the person page](#the-person-page) and [the organization page](#the-organization-page). It is written for three readers: someone deciding whether the data is
 usable to them, someone who has to cite it, and the team keeping the record complete. All four
 pages share one anatomy, one set of [cards](component_library/cards.md) and one list of template
 blocks, so a portal changes one piece of a page by overriding one block or one method, not by
@@ -426,6 +426,97 @@ The blocks read `record`, `person`, `is_self`, `is_unclaimed`, `is_inactive`, `a
 `identifiers`, `links`, `people`, `urls`, `api_url` and `json_ld`. The plugin's `records_shown`
 (five) and `collaborators_shown` (eighteen) say how many records each record card lists and how
 many faces the collaborators card draws.
+
+## The organization page
+
+An organization's page is where an owner or an affiliation leads. It tells a visitor what the
+organization is, where it sits among the organizations around it, who belongs to it and what
+research in this portal it is behind. It reuses the person page's template skeleton and cards. Its
+template is `contributors/overview/organization.html`, drawn by the same `Overview` plugin, and
+like every contributor's page it is open to everyone.
+
+The header has the organization's logo or its initials, its type, and its name followed by a link
+to its ROR record when it has a ROR ID. Beneath the name come the organization it is part of,
+linked to its page, its city and country, and its languages. Each is left out when it is not
+recorded. The actions are sharing the page and the organization's address in the API. A signed-in
+person who is not a current member is also offered asking to join, shown as not available yet. The
+people who keep the record are offered a menu of management actions instead, also not available
+yet.
+
+The figures are the organization's projects, its datasets and its current members. The first two
+link to the matching tabs.
+
+The content column holds the description, the members, a Projects card and a Datasets card, and a
+map of where its members work, announced as not available yet. The side column holds the
+readiness checklist for the people who keep the record, identifiers, links, a map of where the
+organization is based, the hierarchy and recent activity as not available yet. An organization has
+no Details, funding or citation card. The map of where it is based is left out when no location is
+recorded, because the header already names the city and country. Every other card is drawn and
+says what is missing.
+
+The blocks only the organization page has are `overview.members`, which holds the Members card,
+and `overview.hierarchy`, which holds the Hierarchy card. It also fills the blocks the person page
+defines (`overview.about`, `overview.records`, `overview.future`, `overview.readiness`,
+`overview.identifiers`, `overview.links`, `overview.activity`) and adds `overview.location` for the
+map of where the organization is based.
+
+### Members and hierarchy
+
+A member is a person with a verified affiliation to the organization that has not ended. A pending
+request and a former member are neither listed nor counted. The Members card lists the owner first,
+then the administrators, then the other members, each group by name, and marks the owner and the
+administrators. It has ten places. When there are more members than that, the tenth place counts
+the members not shown. `Organization.get_current_memberships()` returns the list and the plugin's
+`member_slots` sets the number of places.
+
+The Hierarchy card places the organization among its neighbours: its parent, the parent's
+sub-organizations with this one marked among them, and this organization's own direct
+sub-organizations, each group by name. Every organization in it other than this one links to its
+page. An organization with no parent starts the tree itself, and one with neither a parent nor
+sub-organizations shows a notice that none is recorded. `Organization.get_hierarchy()` returns the
+three groups, and [`c-card.hierarchy`](component_library/cards.md#c-cardhierarchy) draws them.
+
+### Whose work an organization's page counts
+
+An organization's projects are the public projects it owns and the public projects it is credited
+on. Its datasets are the public datasets it is credited on and the public datasets inside the
+projects it owns, whether or not it is credited on them. Nothing is counted twice, a record in a
+private project is left out, and what its members did under their own names is not counted as the
+organization's. A project the organization owns is marked as owned in the Projects card.
+
+`Organization.get_public_projects()` and `get_public_datasets()` return these two lists. The
+overview's figures and cards and the Projects and Datasets tabs all read them, so a figure always
+equals the number of entries behind its link.
+
+### Who keeps the record
+
+The checklist and the management menu are shown to the organization's owner and administrators,
+meaning the people whose current affiliation to it is of that kind. A portal role such as
+Community Manager does not count, because portal staff manage organizations from the administration
+interface. `Organization.is_managed_by(user)` answers it. Asking to join is offered to a signed-in
+user for whom neither `has_member(user)` nor `is_managed_by(user)` holds.
+
+### Extending an organization page
+
+Override the template as for the person page. This adds a card to the end of the side column and
+keeps every card FairDM draws there:
+
+```django
+{% extends "contributors/overview/organization.html" %}
+
+{% block overview.side %}
+  {{ block.super }}
+  <c-card title="Our partners" class="bg-base-100">
+    {{ organization.name }} works with several partners.
+  </c-card>
+{% endblock overview.side %}
+```
+
+The blocks read `record`, `organization`, `can_manage`, `is_member`, `members`, `projects`,
+`datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, `languages`, `identifier`,
+`identifier_url`, `identifiers`, `links`, `urls`, `api_url` and `json_ld`, and `readiness` for the
+people who keep the record. `records_shown` (five) and `member_slots` (ten) on the plugin say how
+many records each record card lists and how many places the Members card has.
 
 ## Giving a sample or measurement type its own page
 

@@ -137,3 +137,27 @@ costs a query per kind and a row per credit. The T003 tests compare the kind and
 credit for the same reason.
 
 **Revisit if:** a card ever lists samples or measurements.
+
+## D11. An organization's two sources match credits with a subquery, not a join
+
+**Decision:** `Organization.get_public_projects()` and `get_public_datasets()` filter on
+`Q(pk__in=<credited records>) | Q(owner=self)` (and `project__owner=self` for datasets) and then
+apply `get_visible()`. They do not join through the contributions and call `distinct()`.
+
+**Why:** a join on the credits repeats a record the organization both owns and is credited on, and
+`distinct()` on a queryset the tabs then order and annotate invites duplicate or reordered rows. The
+subquery keeps the result one row per record, so a figure equals the entries behind its link
+(SC-003) without a second pass.
+
+**Revisit if:** the credited subquery shows up as a slow query on a portal with very many credits.
+
+## D12. The seed command already reached the organization states, so it is unchanged
+
+**Decision:** T013 adds tests for the three organization states FR-033 names and changes nothing in
+`seed_profiles`.
+
+**Why:** the command already seeds an organization with a logo, ROR ID, location, parent,
+sub-organizations, members and owned projects, one the signed-in user owns, and one with nothing
+recorded. The new tests fail when each of those is removed from the command.
+
+**Revisit if:** FR-033 names a further organization state.

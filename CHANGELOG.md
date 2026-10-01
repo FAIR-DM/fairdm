@@ -135,6 +135,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   available. The blocks are described in
   [Overview pages](docs/portal-development/overview-pages.md#the-person-page), including the new
   `overview.name`.
+- An organization's page now shows what it is, where it sits among the organizations around it,
+  its current members with the people who run it marked, and the public projects it owns or is
+  credited on and the public datasets inside the projects it owns. Its members' own credits are
+  not counted as the organization's. The people who keep the record see a checklist, and a
+  signed-in person who is not a member is shown asking to join as not available yet. The blocks
+  are described in
+  [Overview pages](docs/portal-development/overview-pages.md#the-organization-page).
+- The Projects and Datasets tabs of an organization list the same records as its overview, so a
+  figure on the page equals the number of entries behind its link.
+- The card `c-card.hierarchy`, and `Organization.get_current_memberships()`, `has_member()`,
+  `is_managed_by()`, `get_hierarchy()`, `get_public_projects()` and `get_public_datasets()`, are
+  documented in [Cards](docs/portal-development/component_library/cards.md#c-cardhierarchy) and
+  [Contributors](docs/portal-development/contributors.md#organization-properties).
 - The cards `c-card.records`, `c-card.roles`, `c-card.links` and `c-card.affiliations`, and the
   `c-missing` notice, are documented in
   [Cards](docs/portal-development/component_library/cards.md).
@@ -142,8 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `get_role_counts()`, `get_collaborators()` and `to_public_schema_org()`, and the helpers in
   `fairdm.contrib.contributors.profiles`, are documented in
   [Contributors](docs/portal-development/contributors.md#what-a-profile-may-show).
-- `manage.py seed_profiles` loads a person in every state the page answers for. It refuses to run
-  outside development.
+- `manage.py seed_profiles` loads a person and an organization in every state the pages answer for.
+  It refuses to run outside development.
 - Pillow is a declared dependency of FairDM.
 - **Components for showing contributors.** `c-contributor.item`, `c-contributor.row` (a list
   row with an `actions` slot), `c-contributor.byline`, `c-contributor.stack`,

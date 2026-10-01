@@ -6,7 +6,7 @@ from django.core.management.base import CommandError
 from django.test import override_settings
 
 from fairdm.contrib.contributors.choices import AccountState
-from fairdm.contrib.contributors.models import Person
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.factories import PersonFactory
 
@@ -26,10 +26,20 @@ def _is_non_latin(name):
     return any(ord(character) > 0x24F for character in name)
 
 
+def _seeded_organizations():
+    return list(Organization.objects.filter(config__seed="profiles"))
+
+
 @pytest.fixture
 def seeded(db):
     _seed()
     return _seeded_people()
+
+
+@pytest.fixture
+def seeded_organizations(db):
+    _seed()
+    return _seeded_organizations()
 
 
 @pytest.mark.django_db
@@ -97,6 +107,73 @@ class TestSeedProfilesStates:
         response = client.get(me.get_absolute_url())
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestSeedProfilesOrganizationStates:
+    def test_an_organization_with_everything_recorded_exists(self, seeded_organizations):
+        complete = [
+            o
+            for o in seeded_organizations
+            if all(o.get_record_completeness().values())
+            and o.location_id
+            and o.parent_id
+            and o.sub_organizations.exists()
+            and o.get_current_memberships()
+            and o.get_public_projects().filter(owner=o).exists()
+        ]
+
+        assert complete
+
+    def test_one_the_signed_in_user_owns_exists(self, seeded_organizations):
+        me = Person.objects.get(email=REGULAR_USER)
+
+        owned = [
+            o
+            for o in seeded_organizations
+            if o.affiliations.filter(
+                person=me, type=Affiliation.MembershipType.OWNER, end_date__isnull=True
+            ).exists()
+        ]
+
+        assert owned
+        assert all(o.is_managed_by(me) for o in owned)
+
+    def test_one_with_nothing_recorded_exists(self, seeded_organizations):
+        bare = [
+            o
+            for o in seeded_organizations
+            if not any(o.get_record_completeness().values())
+            and not o.location_id
+            and not o.parent_id
+            and not o.sub_organizations.exists()
+            and not o.affiliations.exists()
+            and not o.contributions.exists()
+            and not o.owned_projects.exists()
+            and not o.links
+        ]
+
+        assert bare
+
+    def test_every_seeded_organization_page_answers_for_a_visitor(
+        self, seeded_organizations, client
+    ):
+        for organization in seeded_organizations:
+            response = client.get(organization.get_absolute_url())
+
+            assert response.status_code == 200, organization
+
+    def test_every_organization_page_answers_for_the_signed_in_user_and_shows_the_checklist_only_to_the_owner(
+        self, seeded_organizations, client
+    ):
+        me = Person.objects.get(email=REGULAR_USER)
+        client.login(email=REGULAR_USER, password=DEV_ACCOUNT_PASSWORD)
+
+        for organization in seeded_organizations:
+            response = client.get(organization.get_absolute_url())
+
+            assert response.status_code == 200, organization
+            assert ("readiness" in response.context) is organization.is_managed_by(me)
 
 
 @pytest.mark.django_db

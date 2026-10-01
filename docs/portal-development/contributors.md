@@ -304,6 +304,23 @@ owner = org.owner()  # Returns Person or None
 geojson = org.as_geojson()
 ```
 
+An organization's page reads who belongs to it and where it sits from four more methods:
+
+| Method | What it returns |
+| --- | --- |
+| `get_current_memberships()` | The affiliations of its members: verified and not ended, with the person loaded. The owner comes first, then the administrators, then the other members, each group by name. |
+| `has_member(user)` | `True` when the user has a current affiliation of type member or above. Pending and ended affiliations do not count, and a visitor is never a member. |
+| `is_managed_by(user)` | `True` when the user has a current affiliation of type administrator or owner. A portal role does not count. |
+| `get_hierarchy()` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (its direct sub-organizations by name). |
+
+```python
+for affiliation in org.get_current_memberships():
+    print(affiliation.person, affiliation.get_type_display())
+
+org.is_managed_by(request.user)
+org.get_hierarchy()["children"]
+```
+
 ## Affiliation Model
 
 ### Time-Bound Relationships
@@ -510,11 +527,22 @@ A contributor's overview page names only public work, and the methods below deci
 `get_public_projects()` and `get_public_datasets()` are the one source of what a profile lists and
 counts. The overview's figures and cards and the Projects and Datasets tabs all read them, so a
 figure always equals the number of entries behind its link. A subclass that has more work to show
-overrides both.
+overrides both, and `Organization` does.
 
 ```python
 person.get_public_projects()  # public projects the person is credited on
 person.get_public_datasets()  # public datasets they are credited on, outside private projects
+```
+
+An organization's two sources add what it owns. `Organization.get_public_projects()` returns the
+public projects it owns and those it is credited on, and `get_public_datasets()` returns the public
+datasets it is credited on and those inside the projects it owns, whether or not it is credited on
+them. Each is one queryset with nothing in it twice, and what the organization's members are
+credited on under their own names is not part of either.
+
+```python
+org.get_public_projects()  # public projects it owns or is credited on
+org.get_public_datasets()  # public datasets it is credited on or that sit in its projects
 ```
 
 A private project hides everything beneath it, so a public dataset inside a private project is

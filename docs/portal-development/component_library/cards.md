@@ -11,7 +11,7 @@ record) are written with a leading colon, the way any Cotton component takes one
 `<c-card.people :people="people" />`. Every card also takes `class`, which adds classes to the
 card's outer element.
 
-A page draws every card it has and each says what is missing when it has nothing to show. Each card carries a `data-card` attribute (`details`, `people`, `identifiers`, `funding`, `citation`, `timeline`, `location`, `readiness`, `projects`, `datasets`, `roles`, `links`, `affiliations`) that tests and scripts can find it by.
+A page draws every card it has and each says what is missing when it has nothing to show. Each card carries a `data-card` attribute (`details`, `people`, `identifiers`, `funding`, `citation`, `timeline`, `location`, `readiness`, `projects`, `datasets`, `roles`, `links`, `affiliations`, `members`, `hierarchy`) that tests and scripts can find it by.
 
 ## The shared cards
 
@@ -220,7 +220,7 @@ status. The card counts every record, lists the ones it is given and links to th
                 all_url="{{ urls.projects }}" empty="Not credited on any public project yet." />
 ```
 
-`projects` is `fill_slots([{"record": project, "owned": False}, ...], 5)`. Ordering the records
+`projects` is `fill_slots([{"record": project, "owned": False}, ...], 5)`. An entry with `owned` set shows an owner badge, which an organization's page uses for the projects it owns. Ordering the records
 beforehand, for example with `active_then_recent()`, decides which ones are shown.
 
 ### `c-card.roles`
@@ -261,6 +261,23 @@ recorded. `c-card.affiliations.row` draws one affiliation and is used inside the
 
 ```django
 <c-card.affiliations :affiliations="affiliations" />
+```
+
+### `c-card.hierarchy`
+
+Where an organization sits among the organizations around it: its parent at the top, this
+organization among its siblings, and its own direct sub-organizations beneath it. This organization
+is highlighted and not a link, and every other one links to its page. With no parent, this
+organization is the top of the tree. With neither a parent nor sub-organizations the card says that
+none is recorded. `c-card.hierarchy.node` draws one organization and is used inside the card.
+
+| Attribute | What it takes |
+| --- | --- |
+| `organization` | The organization the page is about. |
+| `hierarchy` | A dictionary of `parent` (or `None`), `siblings` (the parent's sub-organizations, this one included) and `children`. `Organization.get_hierarchy()` returns it. |
+
+```django
+<c-card.hierarchy :organization="organization" :hierarchy="hierarchy" />
 ```
 
 ### `c-card.placeholder`

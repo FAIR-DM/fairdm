@@ -248,8 +248,16 @@
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0 (18 passed, exit 0)",
+              "forge verify --repo . --base origin/main --steps docs (exit 0, docs: passed)",
+              "uv run pre-commit run --all-files (exit 0)",
+              "scratch test of the organization extension example and the model snippets (run, not committed)"
+            ]
+          }
         }
       ]
     },
