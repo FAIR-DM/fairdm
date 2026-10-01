@@ -421,7 +421,9 @@ exists.
 
 On their own page the person is also offered **Edit profile**, a link to
 [the editing page](contributors.md#editing-a-profile), and the contact action shown as not
-available yet is left out. Everyone else is offered the contact action and no way to edit. The
+available yet is left out. A Community Manager looking at a profile nobody can sign in to is offered
+the same **Edit profile** button, with the contact action beside it and no checklist. Everyone else
+is offered the contact action and no way to edit. The
 links to the editing page carry the field's id as a fragment, `#id_image`, `#id_profile` and
 `#id_links`. An empty biography and an empty list of records speak to them directly, and the empty
 biography's prompt links to the biography field. `Person.get_profile_completeness()` returns the flag for each item
@@ -517,8 +519,9 @@ equals the number of entries behind its link.
 
 The checklist and the management menu are shown to the organization's owner and administrators,
 meaning the people whose current affiliation to it is of that kind. A portal role such as
-Community Manager does not count, because portal staff manage organizations from the administration
-interface, and neither does staff or superuser status. An ordinary member, a pending request and a
+Community Manager does not count, and neither does staff or superuser status. A Community Manager
+who does not keep the record is offered a single **Edit details** button instead of the menu, and no
+checklist, because the checklist is for the people who keep the record. An ordinary member, a pending request and a
 former administrator whose affiliation has ended see neither. `Organization.is_managed_by(user)`
 answers it. Asking to join is offered to a signed-in user for whom neither `has_member(user)` nor
 `is_managed_by(user)` holds.
@@ -533,8 +536,10 @@ flag for each item.
 Every item the editing page can fix links to its field, with the field's id as a fragment: the logo
 to `#id_image`, the type to `#id_type`, the city and country to `#id_city`, the description to
 `#id_profile` and the website to `#id_website`. The ROR item has no link. The description's prompt
-in the About card links to `#id_profile`. The link and the menu entry are offered to the people
-`Organization.is_editable_by(user)` accepts, which are the same people who keep the record.
+in the About card links to `#id_profile`. The link, the menu entry and the single button a Community Manager sees are offered to the people
+`Organization.is_editable_by(user)` accepts: the people who keep the record and every Community
+Manager. A Community Manager who also keeps the record sees the menu only, so there is one edit
+action either way.
 
 ### Extending an organization page
 

@@ -880,3 +880,23 @@ class TestDevAccountsAbsentReportsTheProfileAccounts:
         assert len(errors) == 1
         assert errors[0].id == "fairdm.E501"
         assert email in errors[0].msg
+
+
+class TestDevAccountsAbsentReportsTheRoleAccounts:
+    """The two role accounts the profile development data adds share the same password."""
+
+    @pytest.mark.parametrize(
+        "email",
+        ["community-manager.user@example.com", "data-curator.user@example.com"],
+    )
+    @override_settings(DJANGO_ENV="production")
+    def test_a_role_account_on_a_production_portal_is_named(self, db, email):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        get_user_model().objects.create_user(email=email, password="whatever")
+
+        errors = check_dev_accounts_absent(app_configs=None)
+
+        assert len(errors) == 1
+        assert errors[0].id == "fairdm.E501"
+        assert email in errors[0].msg

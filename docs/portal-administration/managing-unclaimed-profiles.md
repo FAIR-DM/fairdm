@@ -67,6 +67,28 @@ record. Only an *unclaimed* profile is claimed automatically this way.
 
 ---
 
+## Correcting a Profile from the Portal
+
+A Community Manager can correct an unclaimed profile, and the profile of an account that has been
+deactivated, without opening the administration interface. Open the profile in the portal and
+choose **Edit profile**. The page offers the same fields the person would get: the photo, the name,
+alternative names, the biography, links and languages.
+
+A Community Manager is offered the edit action only while nobody can sign in to the profile and keep
+it themselves:
+
+- the account is inactive, or
+- the profile is not claimed and its owner has never signed in, whether or not an invitation has
+  been sent.
+
+A profile with an active account is its owner's to maintain, and that includes an account made with
+`createsuperuser` or by signing up without email verification, which is active and in use even
+though nothing marks it as claimed. Saving a correction does not claim the profile, activate the
+account or mark the edit as the Community Manager's. If the person claims the profile or the account
+is reactivated while the editing page is open, the save is refused and nothing is stored.
+
+---
+
 ## Generating a Claim Link
 
 Use this when a contributor cannot claim their profile automatically (e.g. no ORCID on

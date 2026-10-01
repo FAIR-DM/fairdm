@@ -59,8 +59,8 @@ def profile_accounts() -> dict[str, Person]:
     """Return the accounts around the organization ``regular.user`` owns, creating missing ones.
 
     Returns:
-        ``admin.user``, ``member.user`` and ``former-admin.user``, keyed by the part before
-        the ``@``.
+        ``admin.user``, ``member.user``, ``former-admin.user``, ``community-manager.user`` and
+        ``data-curator.user``, keyed by the part before the ``@``.
     """
     return create_accounts(PROFILE_ACCOUNTS)
 

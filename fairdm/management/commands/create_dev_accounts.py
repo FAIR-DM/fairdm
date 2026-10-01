@@ -72,12 +72,15 @@ EXAMPLE_ACCOUNTS = (
     ("super.user@example.com", "Super", "User", True, True),
 )
 
-#: The accounts ``seed_profiles`` adds around the organization ``regular.user`` owns, in the same
-#: shape as ``EXAMPLE_ACCOUNTS`` and with the same password.
+#: The accounts ``seed_profiles`` adds around the organization ``regular.user`` owns, and the
+#: two that hold a portal role, in the same shape as ``EXAMPLE_ACCOUNTS`` and with the same
+#: password.
 PROFILE_ACCOUNTS = (
     ("admin.user@example.com", "Admin", "User", False, False),
     ("member.user@example.com", "Member", "User", False, False),
     ("former-admin.user@example.com", "Former Admin", "User", False, False),
+    ("community-manager.user@example.com", "Community Manager", "User", False, False),
+    ("data-curator.user@example.com", "Data Curator", "User", False, False),
 )
 EXAMPLE_ACCOUNT_EMAILS = frozenset(
     account[0] for account in (*EXAMPLE_ACCOUNTS, *PROFILE_ACCOUNTS)

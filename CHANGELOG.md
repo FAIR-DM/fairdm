@@ -147,8 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A person can edit their own profile. The edit action in the header of their page, the prompt to
   write a biography and the photo, biography and links items on their checklist now lead to a page
-  for changing the photo, name, alternative names, biography, links and languages. Nobody else is
-  offered it, and a request for it by anyone else is refused. A portal changes the fields by
+  for changing the photo, name, alternative names, biography, links and languages. While the
+  account is active nobody else is offered it, and a request for it by anyone else is refused. A portal changes the fields by
   naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
   `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
   unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
@@ -166,8 +166,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Organization.get_descendant_ids()` returns every organization beneath one, at any depth. An
   organization can no longer be made part of itself or of one of its own sub-organizations, in the
   editing page or in the administration interface.
+- A Community Manager can edit the profile of any organization and of any person who does not have
+  an active account: one nobody has claimed, one whose owner has not yet signed in, and one whose
+  account has been deactivated. A Community Manager who does not keep an organization is offered a
+  single **Edit details** button and no checklist. A person with an active account stays the only
+  one who can edit their profile, including an account that signed in without being marked claimed.
+  An edit is not marked as the Community Manager's, and it does not claim the profile, activate the
+  account or change an organization's members. The Data Curator and Developer roles give no right
+  to edit a profile, and the permissions of every role are unchanged.
+- `PortalRoles.is_held_by(user, role)` says whether a user is an active member of a role's group.
 - `manage.py seed_profiles` creates `admin.user@example.com`, `member.user@example.com` and
-  `former-admin.user@example.com` around the organization `regular.user@example.com` owns.
+  `former-admin.user@example.com` around the organization `regular.user@example.com` owns, and
+  `community-manager.user@example.com` and `data-curator.user@example.com`, which hold those roles.
 - `Contributor.is_editable_by(user)` says whether a user may edit a contributor's profile in the
   portal. `LinesField` is a form field for a list typed one entry per line.
 - A person's page now tells a visitor who the person is, where they work, whether their ORCID iD

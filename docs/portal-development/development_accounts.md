@@ -72,7 +72,7 @@ three `example.com` addresses on a portal that is not in development.
 ## Accounts for editing an organization's profile
 
 `manage.py seed_profiles` loads the person and organization pages in every state they answer for.
-On the organization `regular.user@example.com` owns, it adds three more accounts, each with the
+On the organization `regular.user@example.com` owns, it adds five more accounts, each with the
 password `password`:
 
 | Email | Affiliation to that organization |
@@ -80,6 +80,8 @@ password `password`:
 | `admin.user@example.com` | A current administrator. It may open and save the editing page. |
 | `member.user@example.com` | A current ordinary member. It is refused the editing page. |
 | `former-admin.user@example.com` | An administrator whose affiliation has ended. It is refused the editing page. |
+| `community-manager.user@example.com` | Holds the Community Manager role. It may open and save the editing page of any organization and of a person who does not have an active account. |
+| `data-curator.user@example.com` | Holds the Data Curator role. It is refused the editing page of every profile it does not own. |
 
 ```bash
 poetry run python manage.py seed_profiles
@@ -87,4 +89,4 @@ poetry run python manage.py seed_profiles
 
 The command creates an account only when its address is missing, so an account that already exists
 keeps its password. Like the other seeds, the command refuses to run outside development, and
-`fairdm.E501` reports these three addresses on a portal that is not in development.
+`fairdm.E501` reports these five addresses on a portal that is not in development.

@@ -7,17 +7,20 @@ from the portal, without asking an administrator.
 ## Who can edit it
 
 The organization's owner and its administrators, as long as their affiliation has not ended and
-their account is active. An ordinary member, someone with no affiliation to the organization and a
-person who only holds the Data Curator role are not offered the editing page, and a request for its
-address by any of them is refused. If an organization has no owner and no administrators, nobody
-can edit it from this page.
+their account is active, and the portal's Community Managers, who may edit any organization,
+including one with no owner or administrators. A Community Manager who does not keep the
+organization is offered a single **Edit details** button in the header in place of the **Manage**
+menu, and does not see its checklist. An ordinary member, someone with no affiliation to the
+organization and a person who only holds the Data Curator role are not offered the editing page, and
+a request for its address by any of them is refused.
 
 ## Open the editing page
 
 Sign in and open the organization. There are three ways to reach the editing page:
 
 - Open the **Manage** menu in the header and choose **Edit details**. The menu's other entries are
-  not available yet.
+  not available yet. A Community Manager who does not keep the organization chooses the **Edit
+  details** button instead.
 - Choose **Fix** next to the logo, type, city and country, description or website item on the
   organization's checklist. You arrive at the field that item asks for.
 - Choose **Write a description** in the About card when the organization has none yet.

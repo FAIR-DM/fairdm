@@ -311,7 +311,7 @@ An organization's page reads who belongs to it and where it sits from four more 
 | `get_current_memberships()` | The affiliations of its members: verified and not ended, with the person loaded. The owner comes first, then the administrators, then the other members, each group by name. |
 | `has_member(user)` | `True` when the user has a current affiliation of type member or above. Pending and ended affiliations do not count, and a visitor is never a member. |
 | `is_managed_by(user)` | `True` when the user has a current affiliation of type administrator or owner. A portal role does not count. |
-| `is_editable_by(user)` | `True` when the user is active and `is_managed_by(user)` holds. It decides who may open the [editing page](#editing-a-profile). |
+| `is_editable_by(user)` | `True` when the user is active and either `is_managed_by(user)` holds or the user holds the Community Manager role. It decides who may open the [editing page](#editing-a-profile). |
 | `get_descendant_ids()` | The primary keys of every organization beneath this one, at any depth. |
 | `get_hierarchy()` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (its direct sub-organizations by name). |
 
@@ -647,8 +647,8 @@ Contributions use Django's GenericForeignKey to link to:
 
 ## Editing a profile
 
-A person edits their own profile, and an organization's owner and administrators edit its profile,
-on a page of the overview plugin at `contributor/<uuid>/update/`. The page shows one form for the
+A person edits their own profile, an organization's owner and administrators edit its profile, and
+a Community Manager edits the profiles nobody else can, on a page of the overview plugin at `contributor/<uuid>/update/`. The page shows one form for the
 kind of contributor it is opened for and saves it, then returns to the profile.
 
 ### Who may edit
@@ -659,18 +659,29 @@ lost while the page is open refuses the save. It is not a Django permission, bec
 depends on the record and not only on what the user holds.
 
 ```python
-person.is_editable_by(person)         # True: a person with an active account edits their own profile
-person.is_editable_by(other_person)   # False
-person.is_editable_by(superuser)      # False: a superuser gets nothing extra here
-person.is_editable_by(anonymous_user) # False
-organization.is_editable_by(owner)   # True: the owner and the administrators with a current affiliation
-organization.is_editable_by(member)  # False: an ordinary member
+person.is_editable_by(person)             # True: a person with an active account edits their own profile
+person.is_editable_by(other_person)       # False
+person.is_editable_by(superuser)          # False: a superuser gets nothing extra here
+person.is_editable_by(anonymous_user)     # False
+unclaimed.is_editable_by(manager)         # True: a Community Manager, and nobody can sign in to the profile
+claimed.is_editable_by(manager)           # False: its owner has an active account
+organization.is_editable_by(owner)        # True: the owner and the administrators with a current affiliation
+organization.is_editable_by(member)       # False: an ordinary member
+organization.is_editable_by(manager)      # True: a Community Manager, even for an organization with no owner
 ```
 
-An organization is editable by the people who keep its record, the ones `is_managed_by(user)`
-accepts, while their account is active. Holding a portal role does not change the answer, and
-neither does being a superuser. An organization with no owner and no administrators is editable by
-nobody.
+A Community Manager is a user for whom `PortalRoles.is_held_by(user, PortalRoles.COMMUNITY_MANAGER)`
+is true. The Portal Administrator, Data Curator and Developer roles, and being a superuser, give no
+right to edit a profile, and the rule never asks Django for a permission.
+
+A person's profile is editable by a Community Manager only while nobody can sign in to it and keep
+it themselves: the account is inactive, or the person is not claimed and has never signed in
+(`last_login` is empty). `account_state` alone cannot say that, because an account made with
+`createsuperuser`, or by signing up on a portal that does not verify email addresses, is active and
+in use without being marked claimed. Such a person edits their own profile and nobody else does. An
+organization is editable by the people who keep its record, the ones `is_managed_by(user)`
+accepts, while their account is active, and by any active Community Manager, whether or not the
+organization has an owner.
 
 The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`. It declares its own
 `check`, `contributor_is_editable`, because an additional view is governed by its own check and

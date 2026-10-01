@@ -321,8 +321,19 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesRoleAccounts",
+              "tests/test_conf/test_checks.py::TestDevAccountsAbsentReportsTheRoleAccounts"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py tests/test_conf/test_checks.py -q -n0 (112 passed; red before: 8 failed)",
+              "forge verify --repo . --base origin/main --steps docs (passed)",
+              "uv run --group docs sphinx-build -b html docs (no warning naming a page this task changed)"
+            ]
+          }
         },
         {
           "id": "T017",

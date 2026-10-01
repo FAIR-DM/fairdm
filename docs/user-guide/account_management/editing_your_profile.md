@@ -12,8 +12,10 @@ Sign in and open your own profile. There are three ways to reach the editing pag
   at the field that item asks for.
 - Choose **Write your biography** in the About card when you have not written one yet.
 
-Only you see these links. Nobody else is offered the editing page for your profile, and a request
-for its address by anyone else is refused.
+Only you see these links while your account is active. Nobody else is offered the editing page for
+your profile, and a request for its address by anyone else is refused. The one exception is a
+profile nobody can sign in to, such as one nobody has claimed or one whose account has been
+deactivated: the portal's Community Managers can correct it until the person has an active account.
 
 ## What you can change
 

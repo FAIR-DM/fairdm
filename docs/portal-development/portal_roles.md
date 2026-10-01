@@ -39,11 +39,16 @@ PortalRoles.DATA_CURATOR.permissions
 `rights_carrying()` is the list that matters for access: holding any role on it gives a person the
 administration interface, and holding only the Developer role does not.
 
-To ask whether somebody holds a role, ask the ordinary Django question:
+To ask whether somebody holds a role, ask `PortalRoles.is_held_by(user, role)`. It is true for an
+authenticated, active user in the group named for the role, and false for a visitor, a deactivated
+account and a user in another role. A superuser in no group does not hold the role.
 
 ```python
-person.groups.filter(name=PortalRoles.DATA_CURATOR.name).exists()
+PortalRoles.is_held_by(person, PortalRoles.COMMUNITY_MANAGER)
 ```
+
+The answer reads the group and never a Django permission, so a Portal Administrator, who holds
+`contributors.change_person`, does not hold the Community Manager role.
 
 Deciding what a person may *do* is a different question, and the answer is never a role name. Ask
 the permission system:

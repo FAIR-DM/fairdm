@@ -9,11 +9,14 @@ from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.factories import PersonFactory
+from fairdm.portal_roles import PortalRoles
 
 REGULAR_USER = "regular.user@example.com"
 ADMIN_USER = "admin.user@example.com"
 MEMBER_USER = "member.user@example.com"
 FORMER_ADMIN_USER = "former-admin.user@example.com"
+COMMUNITY_MANAGER_USER = "community-manager.user@example.com"
+DATA_CURATOR_USER = "data-curator.user@example.com"
 
 
 def _seed():
@@ -284,3 +287,57 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
         for email in (ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER):
             assert Person.objects.filter(email=email).count() == 1
             assert organization.affiliations.filter(person__email=email).count() == 1
+
+
+@pytest.mark.django_db
+class TestSeedProfilesRoleAccounts:
+    @pytest.mark.parametrize(
+        ("email", "role"),
+        [
+            (COMMUNITY_MANAGER_USER, PortalRoles.COMMUNITY_MANAGER),
+            (DATA_CURATOR_USER, PortalRoles.DATA_CURATOR),
+        ],
+    )
+    def test_each_account_holds_its_role_and_only_that_one(
+        self, owned_organization, email, role
+    ):
+        person = Person.objects.get(email=email)
+
+        held = {r.name for r in PortalRoles.ROLES if PortalRoles.is_held_by(person, r)}
+
+        assert held == {role.name}
+
+    @pytest.mark.parametrize("email", [COMMUNITY_MANAGER_USER, DATA_CURATOR_USER])
+    def test_each_account_signs_in_with_the_shared_password_as_a_claimed_profile(
+        self, owned_organization, client, email
+    ):
+        assert client.login(email=email, password=DEV_ACCOUNT_PASSWORD)
+        assert Person.objects.get(email=email).account_state == AccountState.CLAIMED
+
+    def test_only_the_community_manager_may_edit_the_unclaimed_profile_and_an_organization_nobody_keeps(
+        self, owned_organization
+    ):
+        unclaimed = next(
+            person
+            for person in Person.objects.filter(config__seed="profiles")
+            if person.account_state == AccountState.GHOST
+        )
+        manager = Person.objects.get(email=COMMUNITY_MANAGER_USER)
+        curator = Person.objects.get(email=DATA_CURATOR_USER)
+
+        assert unclaimed.is_editable_by(manager) is True
+        assert unclaimed.is_editable_by(curator) is False
+        assert owned_organization.is_editable_by(manager) is True
+        assert owned_organization.is_editable_by(curator) is False
+
+    def test_a_second_run_leaves_each_account_once_and_in_its_role(
+        self, owned_organization
+    ):
+        _seed()
+
+        for email, role in (
+            (COMMUNITY_MANAGER_USER, PortalRoles.COMMUNITY_MANAGER),
+            (DATA_CURATOR_USER, PortalRoles.DATA_CURATOR),
+        ):
+            assert Person.objects.filter(email=email).count() == 1
+            assert PortalRoles.is_held_by(Person.objects.get(email=email), role)
