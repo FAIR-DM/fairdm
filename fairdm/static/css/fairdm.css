@@ -309,22 +309,29 @@
   aspect-ratio: 16 / 9;
 }
 
-/* The image banner on the overview pages: a 3:1 box with the image centred in it at full height.
- * The image keeps its own shape where that is between --banner-min-ratio and 3:1. A narrower
- * image is cropped top and bottom to the minimum, and a wider one is cropped at the sides to 3:1.
- * The box is 3:1, so the minimum width is the minimum ratio as a share of the box's width. */
+/* The image banner on the overview pages: a box of a set height with the image centred in it at
+ * full height. The image keeps its own shape where it fits. One narrower than --banner-min-ratio
+ * is cropped top and bottom to that ratio, and one wider than the box is cropped at the sides.
+ * The height is fixed, so the narrower the page, the more of the box the image fills. */
 .overview-banner {
+  --banner-height: 14rem;
   --banner-min-ratio: 2;
-  aspect-ratio: 3 / 1;
+  height: var(--banner-height);
   display: flex;
   justify-content: center;
   overflow: hidden;
 }
 
+@media (min-width: 48rem) {
+  .overview-banner {
+    --banner-height: 20rem;
+  }
+}
+
 .overview-banner img {
   height: 100%;
   width: auto;
-  min-width: calc(var(--banner-min-ratio) / 3 * 100%);
+  min-width: min(100%, calc(var(--banner-min-ratio) * var(--banner-height)));
   max-width: 100%;
   object-fit: cover;
 }
