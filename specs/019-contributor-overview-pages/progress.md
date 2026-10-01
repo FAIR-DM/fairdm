@@ -64,3 +64,10 @@
 - Verified: 26 passed on the first run, as the prototype already has these methods. Probed by mutation: dropping current() and the type floor in get_current_memberships, lowering is_managed_by to member, dropping current() in has_member, and making is_active always true each made the matching tests fail; the source is restored. Removing order_by(name) from get_hierarchy left the tests green because Contributor already orders by name, so that mutation changes nothing. uv run pre-commit run --all-files clean.
 - Next: T010, the c-card.hierarchy tests.
 - Watch: These methods needed no fix, so T012 has nothing to change in them.
+
+## 2026-10-01T10:40Z · Implementer US2 · T010
+
+- Did: added TestHierarchyCard to test_contributor_cards.py: parent with siblings and children, no parent, parent without children and neither, each found by the card data attribute and aria-current, never by wording. Every organization except this one links to its page and this one is marked and not linked; with nothing it shows the empty state and no list.
+- Verified: 5 passed on the first run against the prototype. Probed the template by mutation: never marking, always marking, ignoring children in the empty-state test and marking the wrong sibling each failed between one and four tests; the template is restored. uv run pre-commit run --all-files clean.
+- Next: T011, the organization page tests.
+- Watch: The component needed no change, so nothing from T010 reaches T012.

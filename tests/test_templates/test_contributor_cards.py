@@ -250,3 +250,95 @@ class TestAffiliationsCard:
 
         assert _empty_state(card) is not None
         assert card.select_one("ul") is None
+
+
+@pytest.mark.django_db
+class TestHierarchyCard:
+    def _render(self, request_, organization):
+        return render_component(
+            request_,
+            "card.hierarchy",
+            organization=organization,
+            hierarchy=organization.get_hierarchy(),
+        )
+
+    def _card(self, request_, soup, organization):
+        return soup(self._render(request_, organization)).select_one(
+            "[data-card=hierarchy]"
+        )
+
+    @staticmethod
+    def _linked(card):
+        return [a["href"] for a in card.select("ul a[href]")]
+
+    @staticmethod
+    def _marked(card):
+        return card.select("[aria-current=page]")
+
+    def test_with_a_parent_and_children_every_other_organization_links_and_this_one_does_not(
+        self, request_, soup
+    ):
+        parent = OrganizationFactory(name="Parent")
+        organization = OrganizationFactory(name="Middle", parent=parent)
+        sibling = OrganizationFactory(name="Sibling", parent=parent)
+        child = OrganizationFactory(name="Child", parent=organization)
+
+        card = self._card(request_, soup, organization)
+
+        assert sorted(self._linked(card)) == sorted(
+            o.get_absolute_url() for o in (parent, sibling, child)
+        )
+        assert organization.get_absolute_url() not in self._linked(card)
+        assert len(self._marked(card)) == 1
+        assert organization.name in self._marked(card)[0].get_text()
+
+    def test_this_organization_is_nested_among_its_siblings_and_above_its_children(
+        self, request_, soup
+    ):
+        parent = OrganizationFactory(name="Parent")
+        organization = OrganizationFactory(name="Middle", parent=parent)
+        child = OrganizationFactory(name="Child", parent=organization)
+
+        card = self._card(request_, soup, organization)
+
+        marked = self._marked(card)[0]
+        parent_link = card.select_one(f"a[href='{parent.get_absolute_url()}']")
+        child_link = card.select_one(f"a[href='{child.get_absolute_url()}']")
+        assert marked.find_parent("ul").find_parent("li").select_one("a") == parent_link
+        assert marked.find_parent("li").select_one("ul a") == child_link
+
+    def test_without_a_parent_it_starts_at_this_organization(self, request_, soup):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+
+        card = self._card(request_, soup, organization)
+
+        assert self._linked(card) == [child.get_absolute_url()]
+        assert len(self._marked(card)) == 1
+        assert card.select_one("ul > li > [aria-current=page]") is not None
+        assert _empty_state(card) is None
+
+    def test_with_a_parent_and_no_children_only_the_parent_and_siblings_are_shown(
+        self, request_, soup
+    ):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+        sibling = OrganizationFactory(parent=parent)
+
+        card = self._card(request_, soup, organization)
+
+        assert sorted(self._linked(card)) == sorted(
+            o.get_absolute_url() for o in (parent, sibling)
+        )
+        assert len(self._marked(card)) == 1
+
+    def test_with_neither_a_parent_nor_children_it_shows_its_empty_state(
+        self, request_, soup
+    ):
+        organization = OrganizationFactory()
+
+        card = self._card(request_, soup, organization)
+
+        assert _empty_state(card) is not None
+        assert card.select_one("ul") is None
+        assert self._marked(card) == []
