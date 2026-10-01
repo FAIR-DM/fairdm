@@ -9,9 +9,10 @@
   `fairdm/contrib/contributors/plugins/`. Everything counted or listed is limited to the records
   the viewer can open.
 
-  Organization blocks in the wide column: overview.about, overview.members, overview.projects,
-  overview.future. In the facts column: overview.location, overview.sub_organizations,
-  overview.links.
+  Organization blocks in the wide column: overview.about, overview.members, overview.records,
+  overview.future. The facts column holds, in this order: overview.readiness,
+  overview.identifiers, overview.location, overview.sub_organizations, overview.activity,
+  overview.links. An organization has no Details card: the facts it would hold are in the header.
 {% endcomment %}
 
 {% block overview.image %}
@@ -29,37 +30,38 @@
 {% endblock overview.badges %}
 
 {% block overview.byline %}
-  <div class="flex flex-col gap-1 text-sm">
+  <div class="flex flex-col gap-1 text-sm min-w-0">
     {% if organization.parent or location_text %}
-      <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
-        {% if organization.parent %}
-          <span class="flex items-center gap-2 min-w-0">
-            <span class="text-base-content/70">{% translate "Part of" %}</span>
-            <a href="{{ organization.parent.get_absolute_url }}" class="flex items-center gap-2 link link-hover min-w-0">
-              <c-contributor.avatar :contributor="organization.parent" size="xs" />
-              <span class="break-words">{{ organization.parent.name }}</span>
-            </a>
-          </span>
-        {% endif %}
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+        <c-contributor.affiliation :organization="organization.parent" />
         {% if location_text %}
-          <span class="flex items-center gap-1 text-base-content/70">
-            <c-icon name="location" aria-hidden="true" only />{{ location_text }}
+          <span class="inline-flex items-center gap-1 text-base-content/70">
+            <c-icon name="location" aria-hidden="true" />{{ location_text }}
           </span>
         {% endif %}
-      </p>
+      </div>
     {% endif %}
     {% if ror_url %}
-      <p>
+      <div>
         <a href="{{ ror_url }}" class="inline-flex items-center gap-2 link link-hover font-mono text-xs break-words">
           <c-icon name="ror" aria-hidden="true" only />{{ ror_url }}
         </a>
-      </p>
+      </div>
+    {% endif %}
+    {% if also_known_as or languages %}
+      <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
+        {% if also_known_as %}<li>{% blocktranslate with names=also_known_as %}Also known as {{ names }}{% endblocktranslate %}</li>{% endif %}
+        {% if languages %}<li>{% blocktranslate with names=languages %}Works in {{ names }}{% endblocktranslate %}</li>{% endif %}
+      </ul>
     {% endif %}
   </div>
 {% endblock overview.byline %}
 
 {% block overview.actions %}
   <c-addons.share-dropdown size="sm" />
+  {% if api_url %}
+    <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
+  {% endif %}
   {% if can_manage %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
       <c-menu>
@@ -89,9 +91,15 @@
       {% if organization.profile %}
         <div class="prose max-w-none">{{ organization.profile|safe_markdown }}</div>
       {% elif can_manage %}
-        <p class="text-base-content/70">{% translate "Nobody has described this organization yet. A short description tells visitors what it does and why its name appears on this portal's data." %}</p>
+        <c-alert variant="info" icon="info" soft class="text-sm">
+          <span>{% translate "Nobody has described this organization yet. A short description tells visitors what it does and why its name appears on this portal's data." %}</span>
+          {% translate "Write a description" as label %}
+          {% translate "Describe what the organization does." as reason %}
+          {% include "overview/includes/pending_action.html" with label=label icon="edit" reason=reason variant="primary" %}
+        </c-alert>
       {% else %}
-        <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
+        {% translate "No description has been added yet." as text %}
+        {% include "contributors/overview/includes/empty.html" %}
       {% endif %}
     </c-card>
   {% endblock overview.about %}
@@ -108,13 +116,13 @@
               <c-contributor.avatar :contributor="membership.person" size="md" />
               <div class="flex flex-col gap-1 min-w-0">
                 <c-contributor.name :contributor="membership.person" class="font-medium break-words" />
-                <span class="flex flex-wrap items-center gap-1 text-xs text-base-content/70">
+                <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70">
+                  {% if membership.start_date %}<span>{% blocktranslate with when=membership.start_date.date|date:"Y" %}Since {{ when }}{% endblocktranslate %}</span>{% endif %}
                   {% if membership.type == 3 %}
                     <span class="badge badge-soft badge-primary badge-xs">{% translate "Owner" %}</span>
                   {% elif membership.type == 2 %}
                     <span class="badge badge-soft badge-neutral badge-xs">{% translate "Administrator" %}</span>
                   {% endif %}
-                  {% if membership.start_date %}<span>{% blocktranslate with when=membership.start_date.date|date:"Y" %}Since {{ when }}{% endblocktranslate %}</span>{% endif %}
                 </span>
               </div>
             </li>
@@ -128,124 +136,81 @@
           </p>
         {% endif %}
       {% else %}
-        <p class="text-sm text-base-content/70">{% translate "Nobody has listed this organization as an affiliation yet." %}</p>
+        {% translate "Nobody has listed this organization as an affiliation yet." as text %}
+        {% include "contributors/overview/includes/empty.html" %}
       {% endif %}
     </c-card>
   {% endblock overview.members %}
 
-  {% block overview.projects %}
-    <c-card title="{% translate 'Projects' %}" class="bg-base-100" data-card="projects">
-      <c-slot name="badges">
-        {% if projects %}<span class="badge badge-ghost badge-sm">{{ projects|length }}</span>{% endif %}
-      </c-slot>
-      {% if projects %}
-        <ul class="list" aria-label="{% translate 'Projects the organization owns or is credited on' %}">
-          {% for entry in projects %}
-            <li class="list-row px-0">
-              <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-info)" aria-hidden="true"><c-icon name="project" only /></span>
-              <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                <a href="{{ entry.project.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.project.name }}</a>
-                <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  {% if entry.owned %}<span class="badge badge-soft badge-primary badge-xs">{% translate "Owner" %}</span>{% endif %}
-                  {% for role in entry.roles %}<span class="badge badge-soft badge-info badge-xs whitespace-nowrap">{{ role.label }}</span>{% endfor %}
-                  <span>{{ entry.project.get_status_display }}</span>
-                </span>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-sm text-base-content/70">{% translate "This organization doesn't own and isn't credited on any public project yet." %}</p>
-      {% endif %}
-    </c-card>
-  {% endblock overview.projects %}
+  {% block overview.records %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+      {% translate "Projects" as title %}
+      {% translate "This organization doesn't own and isn't credited on any public project yet." as empty %}
+      {% include "contributors/overview/includes/records_card.html" with card=projects kind="project" variant="info" all_url=urls.projects %}
+      {% translate "Datasets" as title %}
+      {% translate "No public dataset is credited to this organization or belongs to a project it owns yet." as empty %}
+      {% include "contributors/overview/includes/records_card.html" with card=datasets kind="dataset" variant="success" all_url=urls.datasets %}
+    </div>
+  {% endblock overview.records %}
 
   {% block overview.future %}
-    <c-card.placeholder title="{% translate 'Research footprint' %}"
+    <c-card.placeholder title="{% translate 'Output over time' %}"
+                        icon="chart"
+                        message="{% translate 'Datasets, samples and measurements from its members, by year added.' %}" />
+    <c-card.placeholder title="{% translate 'Map' %}"
                         icon="map"
                         wide
                         message="{% translate 'A map of every sample its members are credited on, to show where the organization works in the field.' %}" />
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-      <c-card.placeholder title="{% translate 'Output over time' %}"
-                          icon="chart"
-                          message="{% translate 'Datasets, samples and measurements from its members, by year added.' %}" />
-      <c-card.placeholder title="{% translate 'Recent activity' %}"
-                          icon="activity"
-                          message="{% translate 'The latest from its members: published datasets, new projects, people joining.' %}" />
-    </div>
   {% endblock overview.future %}
 {% endblock overview.main %}
 
-{% block overview.details %}
-  <c-card.details :rows="details" api_url="{{ api_url|default:'' }}">
-    <c-card.details.entry label="{% translate 'Type' %}" icon="organization">
-      {% if organization.type %}{{ organization.get_type_display|capfirst }}{% else %}<span class="text-base-content/70">{% translate "Not recorded" %}</span>{% endif %}
-    </c-card.details.entry>
-    {% if organization.parent %}
-      <c-card.details.entry label="{% translate 'Part of' %}" icon="relationships">
-        <a href="{{ organization.parent.get_absolute_url }}" class="link link-hover">{{ organization.parent.name }}</a>
-      </c-card.details.entry>
+{% block overview.side %}
+  {% block overview.readiness %}
+    {% if readiness %}
+      <c-card.readiness :readiness="readiness"
+                        title="{{ readiness.title }}"
+                        summary="{{ readiness.summary }}"
+                        about="{{ readiness.about }}"
+                        badge="{{ readiness.badge }}" />
     {% endif %}
-    <c-card.details.entry label="{% translate 'Location' %}" icon="location">
-      {% if location_text %}{{ location_text }}{% else %}<span class="text-base-content/70">{% translate "Not recorded" %}</span>{% endif %}
-    </c-card.details.entry>
-    {% if owner %}
-      <c-card.details.entry label="{% translate 'Record owner' %}" icon="member">
-        <a href="{{ owner.get_absolute_url }}" class="link link-hover">{{ owner.name }}</a>
-        <span class="block text-xs text-base-content/70 mt-1">{% translate "Keeps this organization's details up to date" %}</span>
-      </c-card.details.entry>
-    {% endif %}
-    {% if also_known_as %}
-      <c-card.details.entry label="{% translate 'Also known as' %}" icon="tag">{{ also_known_as }}</c-card.details.entry>
-    {% endif %}
-    {% if languages %}
-      <c-card.details.entry label="{% translate 'Languages' %}" icon="globe">{{ languages }}</c-card.details.entry>
-    {% endif %}
-    {% if organization.last_synced and organization.synced_data %}
-      <c-card.details.entry label="{% translate 'Updated from ROR' %}" icon="cloud_check">{{ organization.last_synced|date:"SHORT_DATE_FORMAT" }}</c-card.details.entry>
-    {% endif %}
-  </c-card.details>
-{% endblock overview.details %}
+  {% endblock overview.readiness %}
 
-{% block overview.timeline %}
+  {% block overview.identifiers %}
+    <c-card.identifiers :identifiers="identifiers" portal_id="{{ organization.uuid }}" />
+  {% endblock overview.identifiers %}
+
   {% block overview.location %}
     {% if has_map %}
       <c-card.location :location="organization.location"
                        label="{% blocktranslate with name=organization.name %}Map of where {{ name }} is based{% endblocktranslate %}" />
     {% endif %}
   {% endblock overview.location %}
-{% endblock overview.timeline %}
 
-{% block overview.people %}
   {% block overview.sub_organizations %}
     <c-card title="{% translate 'Sub-organizations' %}" class="bg-base-100" data-card="sub-organizations">
       {% if sub_organizations %}
         <ul class="flex flex-col gap-3 text-sm">
           {% for child in sub_organizations %}
-            <li class="flex items-center gap-3 min-w-0">
-              <c-contributor.avatar :contributor="child" size="sm" />
-              <a href="{{ child.get_absolute_url }}" class="link link-hover break-words min-w-0">{{ child.name }}</a>
-            </li>
+            <li class="min-w-0"><c-contributor.affiliation :organization="child" /></li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-sm text-base-content/70">{% translate "No institutes, departments or groups are recorded under this organization." %}</p>
+        {% translate "No institutes, departments or groups are recorded under this organization." as text %}
+        {% include "contributors/overview/includes/empty.html" %}
       {% endif %}
     </c-card>
   {% endblock overview.sub_organizations %}
-{% endblock overview.people %}
 
-{% block overview.identifiers %}
-  <c-card.identifiers :identifiers="identifiers" portal_id="{{ organization.uuid }}" />
-{% endblock overview.identifiers %}
+  {% block overview.activity %}
+    <c-card.placeholder title="{% translate 'Recent activity' %}"
+                        icon="activity"
+                        message="{% translate 'The latest from its members: published datasets, new projects, people joining.' %}" />
+  {% endblock overview.activity %}
 
-{% block overview.cite %}{% endblock overview.cite %}
-
-{% block overview.record_facts %}
   {% block overview.links %}
     {% include "contributors/overview/includes/links_card.html" %}
   {% endblock overview.links %}
-{% endblock overview.record_facts %}
+{% endblock overview.side %}
 
 {% block extra_js %}
   {{ block.super }}

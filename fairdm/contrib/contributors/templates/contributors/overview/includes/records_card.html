@@ -1,0 +1,43 @@
+{% load i18n humanize %}
+{% comment %}
+  The projects or the datasets a contributor is behind: active ones first, then the most recently
+  updated, five at most. Include with:
+    title, card ({shown, more, total}), kind ("project" or "dataset"), variant, all_url, empty
+{% endcomment %}
+<c-card title="{{ title }}" class="bg-base-100 min-w-0" data-card="{{ kind }}s">
+  <c-slot name="badges">
+    {% if card.total %}<span class="badge badge-ghost badge-sm">{{ card.total }}</span>{% endif %}
+  </c-slot>
+  <c-slot name="actions">
+    {% if card.total and all_url %}
+      <c-button href="{{ all_url }}" text="{% translate 'View all' %}" size="sm" />
+    {% endif %}
+  </c-slot>
+  {% if card.shown %}
+    <ul class="list">
+      {% for entry in card.shown %}
+        <li class="list-row px-0">
+          <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-{{ variant }})" aria-hidden="true"><c-icon name="{{ kind }}" only /></span>
+          <div class="list-col-grow min-w-0 flex flex-col gap-1">
+            <a href="{{ entry.record.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.record.name }}</a>
+            <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {% if kind == "project" %}
+                <span class="badge badge-soft badge-{{ entry.record.status_badge_variant }} badge-xs whitespace-nowrap">{{ entry.record.get_status_display }}</span>
+              {% endif %}
+              {% if entry.owned %}<span class="badge badge-outline badge-xs">{% translate "Owner" %}</span>{% endif %}
+              {% for role in entry.roles %}<span class="badge badge-outline badge-xs whitespace-nowrap">{{ role.label }}</span>{% endfor %}
+              <span>{% blocktranslate with when=entry.record.modified|naturalday:"SHORT_DATE_FORMAT" %}Updated {{ when }}{% endblocktranslate %}</span>
+            </span>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if card.more %}
+      <div>
+        <a href="{{ all_url }}" class="link link-primary text-sm">{% blocktranslate count counter=card.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}</a>
+      </div>
+    {% endif %}
+  {% else %}
+    {% include "contributors/overview/includes/empty.html" with text=empty %}
+  {% endif %}
+</c-card>

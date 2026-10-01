@@ -17,6 +17,7 @@
       {% endfor %}
     </dl>
   {% else %}
-    <p class="text-sm text-base-content/70">{% translate "No roles recorded yet. Roles appear here once a credit says how the work was done." %}</p>
+    {% translate "No roles recorded yet. Roles appear here once a credit says how the work was done." as text %}
+    {% include "contributors/overview/includes/empty.html" %}
   {% endif %}
 </c-card>

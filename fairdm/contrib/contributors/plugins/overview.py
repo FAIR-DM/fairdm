@@ -11,6 +11,7 @@ from collections import Counter, defaultdict
 from django.conf.locale import LANG_INFO
 from django.utils.translation import gettext
 
+from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
@@ -38,7 +39,7 @@ class ContributorOverviewMixin:
     """Gathers the context of the person and organization overview pages."""
 
     collaborators_shown = 18
-    credits_shown = 6
+    records_shown = 5
     members_shown = 12
 
     # ------------------------------------------------------------------ shared
@@ -184,7 +185,7 @@ class ContributorOverviewMixin:
         return json_ld(data)
 
     @staticmethod
-    def readiness(items, title, about):
+    def readiness(items, title, about, badge):
         """Shape a checklist for ``c-card.readiness``."""
         done = sum(1 for item in items if item["done"])
         total = len(items)
@@ -196,18 +197,46 @@ class ContributorOverviewMixin:
             "title": title,
             "summary": gettext("%(done)s of %(total)s in place") % {"done": done, "total": total},
             "about": about,
+            "badge": badge,
         }
+
+    def record_card(self, entries, active=None):
+        """Shape one record card: active records first, then the most recently updated.
+
+        Args:
+            entries: ``{"record", "roles", "owned"}`` dicts, one per record.
+            active: Says whether a record counts as active, or None when the type has no such state.
+
+        Returns:
+            The first entries to show, how many more there are, and the total.
+        """
+        ordered = sorted(entries, key=lambda e: e["record"].modified, reverse=True)
+        if active is not None:
+            ordered.sort(key=lambda e: not active(e["record"]))
+        shown = ordered[: self.records_shown]
+        return {"shown": shown, "more": len(ordered) - len(shown), "total": len(ordered)}
+
+    @staticmethod
+    def is_active_project(project):
+        """A project counts as active while it is in progress."""
+        return project.status == ProjectStatus.IN_PROGRESS
+
+    @staticmethod
+    def credit_entries(credits, kind):
+        """The credits on one kind of record, as record card entries."""
+        return [
+            {"record": c.record, "roles": list(c.roles.all()), "owned": False}
+            for c in credits
+            if c.kind == kind
+        ]
 
     def get_shared_context(self, credits):
         """The keys both pages and the shared skeleton read."""
         contributor = self.base_object
         return {
             "record": contributor,
-            "details": [],
             "contributor": contributor,
             "credits": credits,
-            "recent_credits": credits[: self.credits_shown],
-            "more_credits": max(len(credits) - self.credits_shown, 0),
             "counts": self.count_by_kind(credits),
             "roles": self.get_roles(credits),
             "identifiers": self.get_identifiers(),
@@ -269,6 +298,11 @@ class ContributorOverviewMixin:
                 "orcid_verified": person.orcid_is_authenticated,
                 "portal_roles": person.portal_roles,
                 "people": self.get_collaborators(credits),
+                "projects": self.record_card(
+                    self.credit_entries(credits, "project"), self.is_active_project
+                ),
+                "datasets": self.record_card(self.credit_entries(credits, "dataset")),
+                "member_since": person.date_joined if state == "claimed" else None,
             }
         )
         if is_self:
@@ -286,9 +320,10 @@ class ContributorOverviewMixin:
                 ],
                 title=gettext("Your profile"),
                 about=gettext(
-                    "Only you see this. A complete profile is how other researchers recognise "
-                    "your work and tell you apart from someone with the same name."
+                    "A complete profile is how other researchers recognise your work and tell "
+                    "you apart from someone with the same name."
                 ),
+                badge=gettext("Only you can see this"),
             )
         return context
 
@@ -315,24 +350,23 @@ class ContributorOverviewMixin:
             m.person_id for m in current if m.type >= Affiliation.MembershipType.ADMIN
         }
         can_manage = user.is_authenticated and user.pk in managers
-        owner = next(
-            (m.person for m in current if m.type == Affiliation.MembershipType.OWNER), None
-        )
         is_member = user.is_authenticated and any(m.person_id == user.pk for m in current)
 
-        # Projects the organization owns come first, then those it is credited on.
-        owned = list(Project.objects.get_visible().filter(owner=organization).order_by("name"))
+        # The projects the organization owns, then those it is credited on, and the datasets of
+        # both: its own credits and everything in a project it owns.
+        owned = list(Project.objects.get_visible().filter(owner=organization))
         owned_ids = {p.pk for p in owned}
-        credited_projects = [
-            c for c in credits if c.kind == "project" and c.record.pk not in owned_ids
+        projects = [{"record": p, "roles": [], "owned": True} for p in owned] + [
+            entry
+            for entry in self.credit_entries(credits, "project")
+            if entry["record"].pk not in owned_ids
         ]
-        projects = [{"project": p, "owned": True, "roles": []} for p in owned] + [
-            {"project": c.record, "owned": False, "roles": list(c.roles.all())}
-            for c in credited_projects
+        datasets = self.credit_entries(credits, "dataset")
+        credited_ids = {entry["record"].pk for entry in datasets}
+        datasets += [
+            {"record": d, "roles": [], "owned": False}
+            for d in Dataset.objects.filter(project__in=owned).exclude(pk__in=credited_ids)
         ]
-        datasets = set(
-            Dataset.objects.filter(project__in=owned).values_list("pk", flat=True)
-        ) | {c.record.pk for c in credits if c.kind == "dataset"}
 
         ror = next((i for i in organization.identifiers.all() if i.type == "ROR"), None)
         sub_organizations = list(organization.sub_organizations.order_by("name"))
@@ -349,8 +383,8 @@ class ContributorOverviewMixin:
                     "total": len(current),
                     "former": len(former),
                 },
-                "owner": owner,
-                "projects": projects,
+                "projects": self.record_card(projects, self.is_active_project),
+                "datasets": self.record_card(datasets),
                 "org_counts": {
                     "members": len(current),
                     "projects": len(projects),
@@ -375,10 +409,10 @@ class ContributorOverviewMixin:
                 ],
                 title=gettext("Organization record"),
                 about=gettext(
-                    "Only the organization's owners and administrators see this. A ROR "
-                    "identifier lets data repositories match this record to the same "
+                    "A ROR identifier lets data repositories match this record to the same "
                     "organization everywhere else."
                 ),
+                badge=gettext("Only administrators can see this"),
             )
         return context
 

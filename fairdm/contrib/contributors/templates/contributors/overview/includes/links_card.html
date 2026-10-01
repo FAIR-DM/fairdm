@@ -13,6 +13,7 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="text-sm text-base-content/70">{% translate "No links have been added." %}</p>
+    {% translate "No links have been added." as text %}
+    {% include "contributors/overview/includes/empty.html" %}
   {% endif %}
 </c-card>

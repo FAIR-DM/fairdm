@@ -1,13 +1,10 @@
 {% load i18n %}
-<li class="flex items-start gap-3 min-w-0">
-  <c-contributor.avatar :contributor="affiliation.organization" size="sm" />
-  <div class="flex flex-col gap-1 min-w-0">
-    <a href="{{ affiliation.organization.get_absolute_url }}" class="link link-hover font-medium break-words">{{ affiliation.organization.name }}</a>
-    <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2">
-      {% if affiliation.start_text or affiliation.end_text %}
-        <span>{% if affiliation.start_text %}{{ affiliation.start_text }}{% else %}?{% endif %} – {% if affiliation.end_text %}{{ affiliation.end_text }}{% else %}{% translate "present" %}{% endif %}</span>
-      {% endif %}
-      {% if affiliation.is_primary %}<span class="badge badge-soft badge-primary badge-xs">{% translate "Primary" %}</span>{% endif %}
-    </span>
-  </div>
+<li class="flex flex-col gap-1 min-w-0">
+  <c-contributor.affiliation :organization="affiliation.organization" class="font-medium" />
+  <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2">
+    {% if affiliation.start_text or affiliation.end_text %}
+      <span>{% if affiliation.start_text %}{{ affiliation.start_text }}{% else %}?{% endif %} – {% if affiliation.end_text %}{{ affiliation.end_text }}{% else %}{% translate "present" %}{% endif %}</span>
+    {% endif %}
+    {% if affiliation.is_primary %}<span class="badge badge-soft badge-primary badge-xs">{% translate "Primary" %}</span>{% endif %}
+  </span>
 </li>
