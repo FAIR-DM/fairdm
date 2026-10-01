@@ -140,8 +140,18 @@
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestProfileFormsSetting::test_a_field_the_portals_form_adds_is_saved_with_the_rest"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (24 passed)",
+              "forge verify --repo . --base origin/main --steps docs (passed)",
+              "uv run --group docs sphinx-build -b html docs /tmp/us1/docs_build3 (no warning for any page this story wrote or changed)"
+            ]
+          }
         }
       ]
     },
