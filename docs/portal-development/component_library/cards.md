@@ -11,7 +11,7 @@ record) are written with a leading colon, the way any Cotton component takes one
 `<c-card.people :people="people" />`. Every card also takes `class`, which adds classes to the
 card's outer element.
 
-A page draws every card it has and each says what is missing when it has nothing to show. Each card carries a `data-card` attribute (`details`, `people`, `identifiers`, `funding`, `citation`, `timeline`, `location`, `readiness`) that tests and scripts can find it by.
+A page draws every card it has and each says what is missing when it has nothing to show. Each card carries a `data-card` attribute (`details`, `people`, `identifiers`, `funding`, `citation`, `timeline`, `location`, `readiness`, `projects`, `datasets`, `roles`, `links`, `affiliations`) that tests and scripts can find it by.
 
 ## The shared cards
 
@@ -200,6 +200,69 @@ published. Missing items come first, each linked to the page that fixes it where
                   about="What search engines and repositories look for." />
 ```
 
+### `c-card.records`
+
+The projects or the datasets a contributor is behind, each linked to its page. A project shows its
+status. The card counts every record, lists the ones it is given and links to the full list. Its
+`data-card` is `projects` or `datasets`, following `kind`.
+
+| Attribute | What it takes |
+| --- | --- |
+| `title` | The card's title. |
+| `records` | A dictionary: `shown` (a list of `{"record", "owned"}`), `more` (how many do not fit) and `total`. `fill_slots()` builds it. |
+| `kind` | `project` or `dataset`. It picks the icon and, for a project, shows the status. |
+| `variant` | The theme colour of the record type. |
+| `all_url` | Where the full list lives. It is the "View all" button and the link on the count of the rest. |
+| `empty` | What to say when there are none. |
+
+```django
+<c-card.records title="Projects" :records="projects" kind="project" variant="info"
+                all_url="{{ urls.projects }}" empty="Not credited on any public project yet." />
+```
+
+`projects` is `fill_slots([{"record": project, "owned": False}, ...], 5)`. Ordering the records
+beforehand, for example with `active_then_recent()`, decides which ones are shown.
+
+### `c-card.roles`
+
+The contribution roles a contributor holds, most held first, each with the number of records it is
+held on and a bar showing its share of the most held role.
+
+| Attribute | What it takes |
+| --- | --- |
+| `roles` | A list of `{"label", "count", "percent"}`, the shape `ranked_shares()` returns. |
+
+```django
+<c-card.roles :roles="roles" />
+```
+
+### `c-card.links`
+
+A contributor's links elsewhere on the web, each named by the site it points at and opened without
+passing the page on to the site.
+
+| Attribute | What it takes |
+| --- | --- |
+| `links` | A list of `{"url", "host"}`, the shape `Contributor.get_links_display()` returns. |
+
+```django
+<c-card.links :links="links" />
+```
+
+### `c-card.affiliations`
+
+Where a person works and has worked. The current affiliations come first, the primary one marked,
+then the earlier ones. Each links to its organization and gives its period as precisely as it was
+recorded. `c-card.affiliations.row` draws one affiliation and is used inside the card.
+
+| Attribute | What it takes |
+| --- | --- |
+| `affiliations` | A dictionary of `current` and `past`, each a list of affiliations. `Person.get_affiliation_history()` returns it. |
+
+```django
+<c-card.affiliations :affiliations="affiliations" />
+```
+
 ### `c-card.placeholder`
 
 A card for something FairDM cannot show yet. It carries a "Coming soon" badge, one line on what
@@ -218,16 +281,12 @@ activity), so a planned feature always looks the same.
                     message="A map of every sample with a location." />
 ```
 
-A button for something that is not available yet is the `<c-actions.pending>` component.
-It is disabled and gives its reason to a pointer and to a screen reader:
-
-```django
-<c-actions.pending label="Publish" icon="upload" reason="Publishing is not available yet." />
-```
+A button for something that is not available yet is the `c-actions.pending` component, described
+under the general components.
 
 ## General components
 
-The pages also use four small components that are not cards.
+The pages also use a few small components that are not cards.
 
 ### `c-stats` and `c-stats.item`
 
@@ -284,4 +343,31 @@ measured and how far along it is.
 
 ```django
 <c-progress value="40" max="100" label="Year 2 of 5" />
+```
+
+### `c-missing`
+
+What a card says when it has nothing to show, drawn as a notice so it cannot be taken for a short
+line somebody wrote. The default slot holds the text, and anything that follows it, such as a
+button that fixes the gap.
+
+```django
+<c-missing><span>No links have been added.</span></c-missing>
+```
+
+### `c-actions.pending`
+
+A button for something that is not available yet. It is disabled, never submits or links, and gives
+its reason to a pointer and to a screen reader.
+
+| Attribute | What it takes |
+| --- | --- |
+| `label` | The button's text. |
+| `icon` | An icon before the text. |
+| `reason` | What the button will do once it exists. |
+| `variant` | `primary` for a filled button. The default is outlined. |
+| `size` | `xs` or `sm`. The default is `sm`. |
+
+```django
+<c-actions.pending label="Publish" icon="upload" reason="Publishing is not available yet." />
 ```

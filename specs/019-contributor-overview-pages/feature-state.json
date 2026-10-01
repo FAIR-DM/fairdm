@@ -181,8 +181,15 @@
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run kit/forge verify --repo . --base origin/main --steps docs (exit 0, docs: passed)",
+              "uv run pre-commit run --all-files (exit 0)",
+              "scratch test of the extension example and the contributors.md snippets (run, not committed)"
+            ]
+          }
         }
       ]
     },

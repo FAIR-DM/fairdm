@@ -23,7 +23,8 @@ The unit of citation and distribution, aligned with DataCite. A discrete body of
 and the next begins is the research team's decision, not the framework's: they may split by
 location, time, sample type, or any combination.
 
-A dataset's visibility is independent of its project's.
+A dataset has a visibility of its own, which decides who may open it while its project is public.
+A private project hides every dataset in it, whatever that dataset's own visibility is.
 
 Implemented by `Dataset` in `fairdm/core/dataset/models.py`.
 
@@ -61,6 +62,22 @@ and the portal account.
 The link between a contributor and a specific project, dataset, sample or measurement. There is one
 row per contributor per object, enforced by a uniqueness constraint on content type, object id and
 contributor. Roles accumulate on that single row rather than producing duplicates.
+
+### Collaborator
+
+Another contributor credited on the same project, dataset, sample or measurement as a given
+contributor. Collaborators are ranked by how many records they share with that contributor, and
+only records the viewer may open count: someone who shares nothing but a private record is not a
+collaborator on a profile page. A collaborator may be a person or an organization.
+
+Implemented by `Contributor.get_collaborators()` in `fairdm/contrib/contributors/models.py`.
+
+### Member
+
+A person with a verified affiliation to an organization that has not ended. A pending request and a
+former member are not members. Owner and administrator are kinds of member.
+
+Implemented by the `Affiliation` model: a type of member or above, with no end date.
 
 ## People, in three contexts
 
@@ -123,7 +140,9 @@ by `polymorphic_ctype`; queries return instances of the correct subtype without 
 `fairdm/utils/choices.py`.
 
 Access flows downward. A private project hides everything beneath it. Under a public project, each
-dataset's own visibility decides, and samples and measurements follow their dataset.
+dataset's own visibility decides, and samples and measurements follow their dataset. A
+contributor's page goes further and names only public projects and public datasets, for every
+viewer.
 
 Some docstrings in the dataset layer still refer to an `INTERNAL` visibility. No such value
 exists; treat those mentions as stale.

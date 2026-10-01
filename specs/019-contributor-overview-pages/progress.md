@@ -50,3 +50,10 @@
 - Verified: `uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0` (13 passed, exit 0, all green on first run against the prototype). Closed the inactive account and gave the non-Latin person a Latin name in the command and watched the two matching tests fail; command restored. `uv run pre-commit run --all-files` clean.
 - Next: T008, documentation.
 - Watch: the file takes about 22 seconds because each test runs the command.
+
+## 2026-10-01T10:32Z · Implementer US1 · T008
+
+- Did: added the `overview.name` block, a person page section and an extension example to `overview-pages.md`; `c-card.records`, `c-card.roles`, `c-card.links`, `c-card.affiliations`, `c-missing` and `c-actions.pending` to `cards.md`; the profile methods and the `profiles.py` helpers to `contributors.md`; Collaborator and Member to `CONTEXT.md`, with the two visibility sentences reconciled; and changelog entries under the existing headings.
+- Verified: `forge verify --repo . --base origin/main --steps docs` passed (it first reported two stale mentions of the removed tabs in my own text, which I reworded). I ran the Django template extension example and the Python snippets in a scratch test that I did not commit: the extension rendered the added card beside the cards FairDM draws, and the helper outputs matched the pages. `uv run pre-commit run --all-files` clean.
+- Next: the full gate and the report.
+- Watch: the organization page is not documented here; US2 owns it.

@@ -1,7 +1,8 @@
 # Overview pages
 
 Every project, dataset, sample and measurement opens on an **overview page**, the first tab of the
-record's tabbed detail view. It is written for three readers: someone deciding whether the data is
+record's tabbed detail view. A person's page follows the same anatomy, described under
+[the person page](#the-person-page). It is written for three readers: someone deciding whether the data is
 usable to them, someone who has to cite it, and the team keeping the record complete. All four
 pages share one anatomy, one set of [cards](component_library/cards.md) and one list of template
 blocks, so a portal changes one piece of a page by overriding one block or one method, not by
@@ -38,6 +39,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.notices` | Alerts above the header, so they are read first. |
 | `overview.image` | Header: the record's image, or its icon. |
 | `overview.badges` | Header: status badges. |
+| `overview.name` | Header: the name inside the heading. A contributor's page follows the name with a link to its ORCID record. |
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
 | `overview.keywords` | Header: keywords. |
 | `overview.actions` | Header: buttons. Cite and Share by default. |
@@ -340,6 +342,90 @@ The sample's dataset is checked separately. A sample in a dataset that is not pu
 described as "an unpublished sample" on the page, in the citation and in the card. It is never
 named, linked or mapped. The list of other measurements leaves out those in datasets the viewer
 may not see, and its count leaves them out too.
+
+## The person page
+
+A person's page is where a credit on a dataset leads. It tells a visitor who the person is, where
+they work, whether their ORCID iD is authenticated, what they are credited on in this portal and who
+they work with. Its template is `contributors/overview/person.html`, and the `Overview` plugin in
+`fairdm.contrib.contributors.plugins` works out what it draws. Every contributor's page is open to
+everyone, including the page of an unclaimed profile and of an inactive account.
+
+The header has the person's photo or initials, whether the profile is claimed, unclaimed or belongs
+to an inactive account, each portal role the person holds, and their name followed by a link to
+their ORCID record. The link says, to sighted readers and to assistive technology, whether the iD
+is authenticated, meaning the person has signed in with that ORCID account. Beneath the name come
+the primary organization, linked to its page, that organization's location and the person's
+languages in the active language. Each is left out when it is not recorded. A person has no
+location of their own.
+
+An unclaimed profile and an inactive account each get a notice. The figures are the number of
+projects and of datasets the person is credited on, each linking to the matching tab, and when the
+account was created. A profile with no account says so in place of a date.
+
+The content column holds the biography, a Projects card and a Datasets card side by side, the
+contribution roles and two cards announced as not available yet, the person's publications and a
+map. Each record card lists at most five records, with projects in progress first and then the most
+recently updated, and links to the full list. The side column holds the readiness checklist for the
+person themselves, identifiers, links, affiliations, frequent collaborators and recent activity as
+not available yet. The collaborators card shows at most eighteen people and counts the rest. A
+person has no Details, funding or citation card.
+
+The blocks only the contributor pages have, in page order:
+
+| Block | What it holds |
+| --- | --- |
+| `overview.about` | The biography, or what an empty one is for. |
+| `overview.records` | The Projects and Datasets cards. |
+| `overview.roles` | The contribution roles card. |
+| `overview.future` | The publications and map cards, announced as not available yet. |
+| `overview.readiness` | The person's own checklist. |
+| `overview.identifiers` | The person's identifiers and portal ID. |
+| `overview.links` | The links card. |
+| `overview.affiliations` | The affiliations card. |
+| `overview.people` | The frequent collaborators card. |
+| `overview.activity` | Recent activity, announced as not available yet. |
+
+The blocks that mean the same on a record page keep their name. The Projects and Datasets tabs sit
+beside the overview.
+
+### Who sees what
+
+A project or dataset appears on a contributor's page, in a list or in a count, only when it is
+public. That holds for every viewer, including the person and the members of a private project.
+A public dataset inside a private project is left out as well. The Projects and Datasets tabs
+follow the same rule, so a figure always equals the number of entries behind its link.
+
+The role counts and the collaborators come from the credits on records the viewer may open. Someone
+who shares only a private record with the person is not named, and a role held only on private
+records is not counted. Neither the page nor its schema.org description in the head contains an
+email address, and the description names an affiliation only when it is the verified, current
+primary affiliation the header shows. [What a profile may show](contributors.md#what-a-profile-may-show)
+lists the methods behind this.
+
+### Extending a contributor page
+
+Override the template, as for a record page. A template named `contributors/overview/person.html`
+in your portal's templates, ahead of FairDM's, extends the one it replaces. This adds a card to the
+end of the side column and keeps every card FairDM draws there:
+
+```django
+{% extends "contributors/overview/person.html" %}
+
+{% block overview.side %}
+  {{ block.super }}
+  <c-card title="Our research group" class="bg-base-100">
+    {{ person.name }} is a member of the group.
+  </c-card>
+{% endblock overview.side %}
+```
+
+The blocks read `record`, `person`, `is_self`, `is_unclaimed`, `is_inactive`, `affiliations`,
+`primary_organization`, `location_text`, `languages`, `portal_roles`, `identifier`,
+`identifier_url`, `orcid_verified`, `member_since`, `counts`, `projects`, `datasets`, `roles`,
+`identifiers`, `links`, `people`, `urls`, `api_url` and `json_ld`. The plugin's `records_shown`
+(five) and `collaborators_shown` (eighteen) say how many records each record card lists and how
+many faces the collaborators card draws.
 
 ## Giving a sample or measurement type its own page
 
