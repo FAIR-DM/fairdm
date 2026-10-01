@@ -139,3 +139,11 @@ life, it is updated in the task that changes the template, and the change is nam
   a server error. Test first in `test_forms/test_profile.py`, for both forms: the form is invalid
   and reports the problem as a form-level error, and nothing is saved. Then fix it in the shared
   base of the two forms.
+- [ ] T019 [US3] An organization created from ROR stores its identifier as the full address
+  (`https://ror.org/...`), which `Organization.clean` rejects, so its profile cannot be saved
+  (SC-002, US-3 scenario 7). Test first in `test_models.py`: `full_clean` accepts a ROR stored as
+  the bare identifier and as the full address, and still rejects a malformed one. Then make the
+  check accept both.
+- [ ] T020 [US3] A portal's form that leaves a shipped field out, as `contributors.md` says it may,
+  must build (FR-022). Test first in `test_forms/test_profile.py`: a subclass of each shipped form
+  without its languages, website or parent field builds and saves. Then fix the forms.
