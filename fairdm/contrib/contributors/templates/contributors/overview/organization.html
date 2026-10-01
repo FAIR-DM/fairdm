@@ -11,8 +11,8 @@
 
   Organization blocks in the wide column: overview.about, overview.members, overview.records,
   overview.future. The facts column holds, in this order: overview.readiness,
-  overview.identifiers, overview.location, overview.hierarchy, overview.activity,
-  overview.links. An organization has no Details card: the facts it would hold are in the header.
+  overview.identifiers, overview.links, overview.location, overview.hierarchy,
+  overview.activity. An organization has no Details card: the facts it would hold are in the header.
 {% endcomment %}
 
 {% block overview.image %}
@@ -73,9 +73,9 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Organization at a glance' %}">
-    <c-stats.item title="{% translate 'Members' %}" value="{{ org_counts.members|intcomma }}" icon="member" />
     <c-stats.item title="{% translate 'Projects' %}" value="{{ org_counts.projects|intcomma }}" href="{{ urls.projects }}" variant="info" icon="project" />
     <c-stats.item title="{% translate 'Datasets' %}" value="{{ org_counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Members' %}" value="{{ org_counts.members|intcomma }}" icon="member" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -170,6 +170,10 @@
     <c-card.identifiers :identifiers="identifiers" portal_id="{{ organization.uuid }}" />
   {% endblock overview.identifiers %}
 
+  {% block overview.links %}
+    {% include "contributors/overview/includes/links_card.html" %}
+  {% endblock overview.links %}
+
   {% block overview.location %}
     {% if has_map %}
       <c-card.location :location="organization.location"
@@ -222,10 +226,6 @@
                         icon="activity"
                         message="{% translate 'The latest from its members: published datasets, new projects, people joining.' %}" />
   {% endblock overview.activity %}
-
-  {% block overview.links %}
-    {% include "contributors/overview/includes/links_card.html" %}
-  {% endblock overview.links %}
 {% endblock overview.side %}
 
 {% block extra_js %}

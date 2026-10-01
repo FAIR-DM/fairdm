@@ -40,7 +40,7 @@ class ContributorOverviewMixin:
 
     collaborators_shown = 18
     records_shown = 5
-    members_shown = 10
+    member_slots = 10
 
     # ------------------------------------------------------------------ shared
 
@@ -329,6 +329,20 @@ class ContributorOverviewMixin:
 
     # ------------------------------------------------------------ organization
 
+    def get_members(self, current):
+        """Fill the Members card: every member when they fit, else one slot kept for the rest.
+
+        Args:
+            current: The current memberships, in the order they are shown.
+
+        Returns:
+            The memberships to show, how many more there are, and the total.
+        """
+        shown = current
+        if len(current) > self.member_slots:
+            shown = current[: self.member_slots - 1]
+        return {"shown": shown, "more": len(current) - len(shown), "total": len(current)}
+
     def get_organization_context(self):
         """Everything the organization page draws."""
         organization = self.base_object
@@ -381,11 +395,7 @@ class ContributorOverviewMixin:
                 "organization": organization,
                 "can_manage": can_manage,
                 "is_member": is_member,
-                "members": {
-                    "shown": current[: self.members_shown],
-                    "more": max(len(current) - self.members_shown, 0),
-                    "total": len(current),
-                },
+                "members": self.get_members(current),
                 "projects": self.record_card(projects, self.is_active_project),
                 "datasets": self.record_card(datasets),
                 "org_counts": {
