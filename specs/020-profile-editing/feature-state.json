@@ -1,0 +1,155 @@
+{
+ "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+ "feature": "020-profile-editing",
+ "branch": "020-profile-editing",
+ "repo": "FAIR-DM/fairdm",
+ "state": "QUEUED",
+ "state_history": [
+  {
+   "state": "QUEUED",
+   "at": "2026-10-01T10:40:37Z",
+   "note": "specification approved and merged in #392; epic #391, stories #393-395"
+  }
+ ],
+ "gates": {
+  "spec": {
+   "approved_by": "SamuelJennings",
+   "at": "2026-10-01T10:40:37Z",
+   "self_resolved": [
+    "approving review 5378168902 on #392 at commit e36f0860; the specification merged to main in that pull request"
+   ]
+  }
+ },
+ "stories": [
+  {
+   "id": "US1",
+   "priority": "P1",
+   "issue": 393,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T001",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T002",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T003",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T004",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T005",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T006",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US2",
+   "priority": "P2",
+   "issue": 394,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T007",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T008",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T009",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T010",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T011",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T012",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  },
+  {
+   "id": "US3",
+   "priority": "P3",
+   "issue": 395,
+   "status": "todo",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T013",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T014",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T015",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T016",
+     "status": "todo",
+     "attempts": 0
+    },
+    {
+     "id": "T017",
+     "status": "todo",
+     "attempts": 0
+    }
+   ]
+  }
+ ],
+ "budgets": {
+  "converge_cycles": {
+   "used": 0,
+   "max": 2
+  },
+  "review_cycles": {
+   "used": 0,
+   "max": 1
+  },
+  "design_review_cycles": {
+   "used": 0,
+   "max": 1
+  },
+  "tokens": {
+   "used": 0,
+   "max": 120
+  }
+ }
+}
