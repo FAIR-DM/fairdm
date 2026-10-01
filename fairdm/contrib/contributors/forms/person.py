@@ -4,6 +4,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 
+User = get_user_model()
+
 
 class SignupExtraForm(forms.ModelForm):
     """Collect first and last names during allauth signup.

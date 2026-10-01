@@ -683,7 +683,8 @@ affiliations, portal roles and the account's state are never on it.
 - `name` is required.
 - `links` accepts `http` and `https` addresses only.
 - `lang` is a multiple choice over the ISO 639-1 codes, named in the active language. Each code is
-  stored once.
+  stored once. `language_choices()`, in the same module, returns the `(code, name)` pairs it offers,
+  sorted by name.
 
 `alternative_names` and `links` are lists typed one entry per line, which is what `LinesField`
 does.
