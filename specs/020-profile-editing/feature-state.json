@@ -274,8 +274,18 @@
       "tasks": [
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestIsHeldBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy"
+            ],
+            "commands": [
+              "uv run pytest tests/test_portal_roles.py::TestIsHeldBy tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy -q -n0 (red: 13 failed, 26 passed; AttributeError is_held_by and community manager answers False)"
+            ]
+          }
         },
         {
           "id": "T014",

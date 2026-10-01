@@ -1,7 +1,7 @@
 """Tests for the four roles FairDM ships and installs into every portal."""
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 
@@ -382,3 +382,60 @@ class TestPermissionsForQueryCount:
     def test_a_role_with_no_declared_permissions_resolves_to_none(self):
         # `Permission.objects.filter(Q())` matches every row, which would hand the Developer role every permission.
         assert PortalRoles._permissions_for(PortalRoles.DEVELOPER) == []
+
+
+@pytest.mark.django_db
+class TestIsHeldBy:
+    @pytest.fixture
+    def holder(self):
+        user = PersonFactory(is_active=True, password="x")
+        user.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+        return user
+
+    def test_a_member_of_the_roles_group_holds_it(self, holder):
+        assert PortalRoles.is_held_by(holder, PortalRoles.COMMUNITY_MANAGER) is True
+
+    def test_a_member_of_another_role_does_not_hold_it(self):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert PortalRoles.is_held_by(curator, PortalRoles.COMMUNITY_MANAGER) is False
+
+    def test_a_deactivated_member_does_not_hold_it(self, holder):
+        holder.is_active = False
+        holder.save()
+
+        assert PortalRoles.is_held_by(holder, PortalRoles.COMMUNITY_MANAGER) is False
+
+    def test_a_visitor_does_not_hold_it(self):
+        assert (
+            PortalRoles.is_held_by(AnonymousUser(), PortalRoles.COMMUNITY_MANAGER)
+            is False
+        )
+
+    def test_a_superuser_in_no_group_does_not_hold_it(self):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert (
+            PortalRoles.is_held_by(superuser, PortalRoles.COMMUNITY_MANAGER) is False
+        )
+
+    def test_the_answer_is_for_the_role_asked_about(self, holder):
+        for role in PortalRoles.ROLES:
+            expected = role is PortalRoles.COMMUNITY_MANAGER
+            assert PortalRoles.is_held_by(holder, role) is expected
+
+    def test_a_portal_administrator_holds_the_change_person_permission_and_not_this_role(
+        self,
+    ):
+        administrator = PersonFactory(is_active=True, password="x")
+        administrator.groups.add(
+            Group.objects.get(name=PortalRoles.PORTAL_ADMINISTRATOR.name)
+        )
+
+        assert administrator.has_perm("contributors.change_person")
+        assert (
+            PortalRoles.is_held_by(administrator, PortalRoles.COMMUNITY_MANAGER) is False
+        )

@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import resolve
+from django.utils import timezone
 from django.utils.formats import date_format
 
 from fairdm.contrib.contributors.choices import AccountState, OrganizationType
@@ -2681,6 +2682,68 @@ class TestPersonIsEditableBy:
 
         assert person.is_editable_by(holder) is False
 
+    def test_a_community_manager_may_edit_an_unclaimed_person(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=False)
+
+        assert person.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_edit_an_invited_person_who_has_not_signed_in(
+        self, community_manager
+    ):
+        person = PersonFactory(
+            email="invited@example.org", is_active=True, is_claimed=False
+        )
+
+        assert person.account_state == AccountState.INVITED
+        assert person.is_editable_by(community_manager) is True
+
+    @pytest.mark.parametrize("claimed", [True, False])
+    def test_a_community_manager_may_edit_a_person_whose_account_is_inactive(
+        self, community_manager, claimed
+    ):
+        person = PersonFactory(is_active=False, is_claimed=claimed, password="x")
+
+        assert person.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_not_edit_a_person_with_an_active_account(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_community_manager_may_not_edit_an_active_account_that_has_signed_in_without_being_marked_claimed(
+        self, community_manager
+    ):
+        # `createsuperuser` and signing up where email is not verified leave such an account.
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+        person.last_login = timezone.now()
+        person.save()
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_person_removed_from_the_role_may_no_longer_edit_it(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=False)
+        community_manager.groups.clear()
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_community_manager_may_still_edit_their_own_profile(
+        self, community_manager
+    ):
+        assert community_manager.is_editable_by(community_manager) is True
+
+    def test_a_data_curator_may_not_edit_an_unclaimed_person(self):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        person = PersonFactory(is_active=True, is_claimed=False)
+
+        assert person.is_editable_by(curator) is False
+
 @pytest.mark.django_db
 class TestOrganizationDescendantIds:
     def test_an_organization_with_no_sub_organizations_has_none(self):
@@ -2847,6 +2910,30 @@ class TestOrganizationIsEditableBy:
 
         for user in (member, curator, superuser, AnonymousUser()):
             assert organization.is_editable_by(user) is False
+
+    def test_a_community_manager_may_edit_it(self, organization, community_manager):
+        assert organization.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_edit_one_with_no_owner(
+        self, organization, community_manager
+    ):
+        assert not organization.affiliations.exists()
+        assert organization.is_editable_by(community_manager) is True
+
+    def test_a_person_removed_from_the_role_may_no_longer_edit_it(
+        self, organization, community_manager
+    ):
+        community_manager.groups.clear()
+
+        assert organization.is_editable_by(community_manager) is False
+
+    def test_a_deactivated_community_manager_may_not_edit_it(
+        self, organization, community_manager
+    ):
+        community_manager.is_active = False
+        community_manager.save()
+
+        assert organization.is_editable_by(community_manager) is False
 
 
 class TestContributorUpdateUrl:

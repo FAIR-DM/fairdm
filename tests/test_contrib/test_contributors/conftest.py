@@ -4,6 +4,7 @@ from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.utils import get_anonymous_user
 from PIL import Image
@@ -23,6 +24,7 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
@@ -64,6 +66,14 @@ def unclaimed_person(db):
         first_name="Jane",
         last_name="Doe",
     )
+
+
+@pytest.fixture
+def community_manager(db):
+    """A person with an active account who holds the Community Manager role."""
+    manager = PersonFactory(is_active=True, is_claimed=True, password="x")
+    manager.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+    return manager
 
 
 @pytest.fixture
