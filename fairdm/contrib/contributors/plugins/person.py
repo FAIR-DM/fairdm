@@ -2,7 +2,7 @@
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin

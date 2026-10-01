@@ -103,3 +103,12 @@ django-mvp 0.25.1 moved its landing page to `account/` inside its own URL module
 its own `account-center/` route to that view, so the address people already use stays.
 
 **ADR:** none. It preserves existing behaviour across a dependency update.
+
+## D8. The `account-center` route comes after the includes
+
+The plan put FairDM's own `account-center/` route ahead of the `mvp.urls` include. With the route
+first, `reverse("account-center")` still returned `/account-center/account/`: Django reverses a name
+to the last pattern that carries it. The route now follows the `dac.urls` include. Requests to
+`/account-center/` match no pattern inside the includes, so they reach the route either way.
+
+**ADR:** none. It preserves existing behaviour across a dependency update.

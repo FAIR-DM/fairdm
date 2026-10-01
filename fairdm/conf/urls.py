@@ -6,6 +6,7 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
 from markdownx.views import MarkdownifyView
+from mvp.views.account import AccountCenterView
 
 from fairdm.views.generic import FairDMHomeView
 
@@ -24,6 +25,10 @@ urlpatterns = [
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     path("account-center/", include("mvp.urls")),
     path("account-center/", include("dac.urls")),
+    # django-mvp mounts its landing page at ``account/`` inside ``mvp.urls``. Django reverses a
+    # name to the last pattern that carries it, so this route, which keeps FairDM's address for
+    # the same view, has to come after the include.
+    path("account-center/", AccountCenterView.as_view(), name="account-center"),
     path("contact/", include("django_contact_form.urls")),
     path("select2/", include("django_select2.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
