@@ -43,3 +43,10 @@
 - Verified: `uv run pytest tests/test_contrib tests/test_templates tests/test_conf tests/test_core/test_dataset tests/test_core/test_project -q -n 4` (1923 passed, 1 skipped, exit 0); `uv run pre-commit run --all-files` clean; `makemigrations --check --dry-run` for the five core apps reports no changes. Added four tests for `DatasetQuerySet.get_visible`.
 - Next: T007, the seed command test.
 - Watch: the plan's attempt count here is three commits for one task. `person/plugins/overview.html` and `organization/plugins/overview.html` are older overview templates that nothing renders any more; I left them alone as out of scope. See D9 and D10 in decisions.md.
+
+## 2026-10-01T10:29Z · Implementer US1 · T007
+
+- Did: added `test_seed_profiles.py` next to the `seed_overviews` test: refusal outside development, one test per person state FR-033 names (complete profile, the signed-in user's incomplete one, unclaimed, inactive, credited on nothing, very long name, non-Latin name), every seeded page answering 200 for a visitor, the user's own page answering for them, and a rerun leaving the same people and a bystander alone. The seeded organization states are US2's (T013).
+- Verified: `uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0` (13 passed, exit 0, all green on first run against the prototype). Closed the inactive account and gave the non-Latin person a Latin name in the command and watched the two matching tests fail; command restored. `uv run pre-commit run --all-files` clean.
+- Next: T008, documentation.
+- Watch: the file takes about 22 seconds because each test runs the command.
