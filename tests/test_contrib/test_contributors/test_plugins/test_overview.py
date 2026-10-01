@@ -14,6 +14,7 @@ import pytest
 from django.urls import NoReverseMatch, reverse
 
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import OrganizationType
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contributor,
@@ -953,3 +954,348 @@ class TestOrganizationOverview:
         assert _figure(page, _tab_url(organization, "datasets")) == len(
             datasets.context["object_list"]
         )
+
+
+def _checklist(page):
+    """The checklist card's progress as (items in place, total items), or None without it."""
+    card = _card(page, "readiness")
+    if card is None:
+        return None
+    bar = card.select_one("progress")
+    return int(bar["value"]), int(bar["max"])
+
+
+def _icon(button):
+    """The markup of the icon a button carries."""
+    return str(button.select_one("i, svg"))
+
+
+@pytest.fixture
+def incomplete_person(db):
+    """A claimed person with a biography and nothing else on the checklist."""
+    return PersonFactory(
+        is_active=True, is_claimed=True, password="x", profile="A biography.", links=[]
+    )
+
+
+@pytest.mark.django_db
+class TestPersonChecklist:
+    # Scenario 1
+    def test_the_person_sees_each_item_and_how_many_are_in_place(
+        self, get_page, incomplete_person
+    ):
+        response, page = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        complete = incomplete_person.get_profile_completeness()
+        assert _checklist(page) == (sum(complete.values()), len(complete))
+        assert len(_card(page, "readiness").select("ul > li")) == len(complete)
+        assert _card(page, "readiness").select_one(".badge") is not None
+        items = response.context["readiness"]["items"]
+        assert [item["done"] for item in items] == [
+            complete[key]
+            for key in ("image", "orcid", "profile", "primary_affiliation", "links")
+        ]
+
+    def test_the_photo_and_the_links_are_optional_and_the_rest_are_not(
+        self, get_page, incomplete_person
+    ):
+        response, _ = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        items = response.context["readiness"]["items"]
+        assert [item.get("required", True) for item in items] == [
+            False,
+            True,
+            True,
+            True,
+            False,
+        ]
+
+    def test_a_profile_with_everything_in_place_is_ready(
+        self, get_page, incomplete_person, orcid_signed_in
+    ):
+        person = PersonFactory(
+            is_active=True,
+            is_claimed=True,
+            password="x",
+            with_image=True,
+            profile="A biography.",
+            links=["https://example.org/me"],
+        )
+        orcid_signed_in(person)
+        AffiliationFactory(person=person, is_primary=True)
+
+        response, page = get_page(person.get_absolute_url(), viewer=person)
+
+        assert _checklist(page) == (5, 5)
+        assert response.context["readiness"]["ready"] is True
+        assert _card(page, "readiness").select("a[href]") == []
+
+    # Scenario 2
+    @pytest.mark.parametrize("who", ["visitor", "signed_in", "staff", "superuser"])
+    def test_nobody_else_sees_the_checklist(self, get_page, incomplete_person, who):
+        viewer = {
+            "visitor": None,
+            "signed_in": PersonFactory(is_active=True, password="x"),
+            "staff": PersonFactory(is_active=True, is_staff=True, password="x"),
+            "superuser": PersonFactory(
+                is_active=True, is_staff=True, is_superuser=True, password="x"
+            ),
+        }[who]
+
+        response, page = get_page(incomplete_person.get_absolute_url(), viewer=viewer)
+
+        assert response.status_code == 200
+        assert _card(page, "readiness") is None
+        assert "readiness" not in response.context
+
+    # Scenario 3
+    def test_the_orcid_item_links_to_the_page_where_an_account_is_connected(
+        self, get_page, incomplete_person
+    ):
+        _, page = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        assert _hrefs(_card(page, "readiness")) == [reverse("socialaccount_connections")]
+
+    def test_connecting_orcid_puts_the_item_in_place_and_drops_its_link(
+        self, get_page, incomplete_person, orcid_signed_in
+    ):
+        _, before = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+        orcid_signed_in(incomplete_person)
+
+        _, after = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        assert _checklist(after) == (_checklist(before)[0] + 1, _checklist(before)[1])
+        assert _hrefs(_card(after, "readiness")) == []
+
+    # Scenario 4
+    def test_an_orcid_id_typed_in_does_not_put_the_item_in_place(
+        self, get_page, incomplete_person
+    ):
+        ContributorIdentifier.objects.create(
+            related=incomplete_person, type="ORCID", value="0000-0001-2345-6789"
+        )
+
+        _, page = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        complete = incomplete_person.get_profile_completeness()
+        assert complete["orcid"] is False
+        assert _checklist(page) == (sum(complete.values()), len(complete))
+        assert _hrefs(_card(page, "readiness")) == [reverse("socialaccount_connections")]
+
+    def test_a_pending_primary_affiliation_does_not_put_its_item_in_place(
+        self, get_page, incomplete_person
+    ):
+        AffiliationFactory(
+            person=incomplete_person,
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        _, page = get_page(
+            incomplete_person.get_absolute_url(), viewer=incomplete_person
+        )
+
+        assert _header(page).select_one("a[href*='/organization/']") is None
+        assert _checklist(page) == (1, 5)
+
+    # Scenario 5
+    def test_the_person_is_offered_editing_in_place_of_the_contact_action(
+        self, get_page, db
+    ):
+        person = PersonFactory(
+            is_active=True, is_claimed=True, password="x", profile=""
+        )
+
+        _, own = get_page(person.get_absolute_url(), viewer=person)
+        _, other = get_page(person.get_absolute_url())
+
+        (edit,) = _join_actions(own)
+        (contact,) = _join_actions(other)
+        biography_action = _card(own, "about").select_one("button[disabled]")
+        assert edit["type"] == contact["type"] == "button"
+        assert _icon(edit) == _icon(biography_action)
+        assert _icon(contact) != _icon(edit)
+
+    @pytest.mark.parametrize("who", ["visitor", "signed_in", "superuser"])
+    def test_anyone_else_is_offered_the_contact_action_and_not_editing(
+        self, get_page, db, who
+    ):
+        person = PersonFactory(
+            is_active=True, is_claimed=True, password="x", profile=""
+        )
+        _, visitor = get_page(person.get_absolute_url())
+        viewer = {
+            "visitor": None,
+            "signed_in": PersonFactory(is_active=True, password="x"),
+            "superuser": PersonFactory(
+                is_active=True, is_staff=True, is_superuser=True, password="x"
+            ),
+        }[who]
+
+        _, page = get_page(person.get_absolute_url(), viewer=viewer)
+
+        (contact,) = _join_actions(page)
+        (visitors_contact,) = _join_actions(visitor)
+        assert _icon(contact) == _icon(visitors_contact)
+        assert _card(page, "about").select_one("button[disabled]") is None
+
+
+@pytest.fixture
+def keeper_world(db):
+    """An organization with each kind of person around it, and nothing recorded on it."""
+    organization = OrganizationFactory(
+        profile="", type="", city="", country="", links=[], location=None
+    )
+    return SimpleNamespace(
+        organization=organization,
+        owner=_join(organization, "Owner", Affiliation.MembershipType.OWNER),
+        admin=_join(organization, "Admin", Affiliation.MembershipType.ADMIN),
+        member=_join(organization, "Member", Affiliation.MembershipType.MEMBER),
+        pending=_join(organization, "Pending", Affiliation.MembershipType.PENDING),
+        former_admin=_join(
+            organization,
+            "Former admin",
+            Affiliation.MembershipType.ADMIN,
+            start_date="2010",
+            end_date="2014",
+        ),
+        former_owner=_join(
+            organization,
+            "Former owner",
+            Affiliation.MembershipType.OWNER,
+            start_date="2010",
+            end_date="2014",
+        ),
+        stranger=PersonFactory(is_active=True, password="x"),
+        staff=PersonFactory(is_active=True, is_staff=True, password="x"),
+        superuser=PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        ),
+    )
+
+
+@pytest.mark.django_db
+class TestOrganizationChecklist:
+    # Scenario 6
+    @pytest.mark.parametrize("who", ["owner", "admin"])
+    def test_the_owner_and_the_administrators_see_the_checklist_and_the_menu(
+        self, get_page, keeper_world, who
+    ):
+        response, page = get_page(
+            keeper_world.organization.get_absolute_url(),
+            viewer=getattr(keeper_world, who),
+        )
+
+        complete = keeper_world.organization.get_record_completeness()
+        assert _checklist(page) == (sum(complete.values()), len(complete))
+        assert len(_card(page, "readiness").select("ul > li")) == len(complete)
+        assert _card(page, "readiness").select_one(".badge") is not None
+        assert [item["done"] for item in response.context["readiness"]["items"]] == [
+            complete[key]
+            for key in ("ror", "image", "type", "location", "profile", "links")
+        ]
+        assert _management_menu(page)
+
+    def test_the_logo_and_the_website_are_optional_and_the_rest_are_not(
+        self, get_page, keeper_world
+    ):
+        response, _ = get_page(
+            keeper_world.organization.get_absolute_url(), viewer=keeper_world.owner
+        )
+
+        items = response.context["readiness"]["items"]
+        assert [item.get("required", True) for item in items] == [
+            True,
+            False,
+            True,
+            True,
+            True,
+            False,
+        ]
+
+    def test_every_management_action_is_disabled(self, get_page, keeper_world):
+        _, page = get_page(
+            keeper_world.organization.get_absolute_url(), viewer=keeper_world.admin
+        )
+
+        disabled = _management_menu(page)
+        menu = disabled[0].find_parent("ul")
+        assert len(disabled) == len(menu.find_all("li", recursive=False))
+        assert menu.select("a[href], button:not([disabled])") == []
+
+    def test_a_record_with_everything_in_place_is_ready(self, get_page, db):
+        organization = OrganizationFactory(
+            with_image=True,
+            profile="A description.",
+            type=OrganizationType.EDUCATION,
+            city="Potsdam",
+            country="DE",
+            links=["https://example.org"],
+        )
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+        owner = _join(organization, "Owner", Affiliation.MembershipType.OWNER)
+
+        response, page = get_page(organization.get_absolute_url(), viewer=owner)
+
+        assert _checklist(page) == (6, 6)
+        assert response.context["readiness"]["ready"] is True
+
+    # Scenario 7
+    @pytest.mark.parametrize(
+        "who", ["member", "pending", "stranger", "visitor", "staff", "superuser"]
+    )
+    def test_nobody_else_sees_the_checklist_or_the_menu(
+        self, get_page, keeper_world, who
+    ):
+        viewer = None if who == "visitor" else getattr(keeper_world, who)
+
+        response, page = get_page(
+            keeper_world.organization.get_absolute_url(), viewer=viewer
+        )
+
+        assert response.status_code == 200
+        assert _checklist(page) is None
+        assert "readiness" not in response.context
+        assert _management_menu(page) == []
+
+    # Scenario 8
+    @pytest.mark.parametrize("who", ["former_admin", "former_owner"])
+    def test_a_former_administrator_sees_neither_the_checklist_nor_the_menu(
+        self, get_page, keeper_world, who
+    ):
+        response, page = get_page(
+            keeper_world.organization.get_absolute_url(),
+            viewer=getattr(keeper_world, who),
+        )
+
+        assert response.status_code == 200
+        assert _checklist(page) is None
+        assert "readiness" not in response.context
+        assert _management_menu(page) == []
+
+    def test_the_checklist_and_the_menu_are_shown_together_or_not_at_all(
+        self, get_page, keeper_world
+    ):
+        for name in vars(keeper_world):
+            if name == "organization":
+                continue
+            _, page = get_page(
+                keeper_world.organization.get_absolute_url(),
+                viewer=getattr(keeper_world, name),
+            )
+
+            assert (_checklist(page) is not None) == bool(_management_menu(page)), name

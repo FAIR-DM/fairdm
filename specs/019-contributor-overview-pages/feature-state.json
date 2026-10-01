@@ -281,8 +281,14 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -k Checklist -q -n0 (33 passed, 1 failed on purpose: a pending primary affiliation is counted; T016 fixes it)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ]
+          }
         },
         {
           "id": "T016",
