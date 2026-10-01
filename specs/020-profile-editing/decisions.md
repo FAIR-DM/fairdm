@@ -3,19 +3,17 @@
 Questions settled while writing the specification without asking the maintainer, with the reasoning
 behind each. The maintainer's own rulings are recorded under *Clarifications* in `spec.md`.
 
-## A claimed profile of a deactivated account stays closed to community managers
+## An invited person's profile is maintained by community managers
 
-The maintainer ruled that a community manager edits a person's profile only while it is unclaimed,
-and that a claimed profile is its owner's alone to maintain. A claimed profile whose account has
-been deactivated has an owner who cannot sign in. The specification keeps to the claim: the profile
-is still that person's, deactivation is often temporary, and the administration interface remains
-for a correction that cannot wait.
+The maintainer ruled that a person with an active account maintains their own profile and that in
+any other state the community managers do. A person who has been invited and has not yet signed in
+has no active account, so their profile falls to the community managers until they do.
 
-## A claim made while a community manager is editing wins
+## Regaining an active account takes the profile back
 
-The right to edit is checked again on save, so a profile claimed in the meantime refuses the
-community manager's save. The alternative would let a stale page overwrite what is now the
-owner's record.
+The right to edit is checked again on save. A profile claimed, or an account made active again,
+while a community manager has the editing page open refuses that save, because the record is now
+its owner's. Changes a community manager saved before that stay as they were left.
 
 ## Community managers get the edit action but not the checklist
 
