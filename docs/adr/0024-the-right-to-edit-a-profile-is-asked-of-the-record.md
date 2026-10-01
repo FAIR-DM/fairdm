@@ -2,19 +2,6 @@
 
 **Status:** accepted
 
-## Context
-
-A person's or an organization's profile can be edited in the portal. Who may do so depends on the
-record as much as on the user: a person edits their own profile, an organization's owner and
-current administrators edit its profile, and a community manager edits any organization and any
-person nobody can sign in as.
-
-Django's model permissions cannot say this. `contributors.change_person` is held by Portal
-Administrators as well as Community Managers, and only one of those roles may edit profiles in the
-portal. A model permission also knows nothing about the state of the profile being edited. The
-existing permission backend for organizations lets a superuser manage any organization, which the
-editing pages must not do.
-
 ## Decision
 
 Each contributor answers the question itself. `Contributor.is_editable_by(user)` returns False,
@@ -26,6 +13,19 @@ from a permission the role happens to hold.
 
 Superusers, staff and the holders of other portal roles get no right to edit from these pages.
 The administration interface, where they can change any record, is unchanged.
+
+## Why
+
+A person's or an organization's profile can be edited in the portal. Who may do so depends on the
+record as much as on the user: a person edits their own profile, an organization's owner and
+current administrators edit its profile, and a community manager edits any organization and any
+person nobody can sign in as.
+
+Django's model permissions cannot say this. `contributors.change_person` is held by Portal
+Administrators as well as Community Managers, and only one of those roles may edit profiles in the
+portal. A model permission also knows nothing about the state of the profile being edited. The
+existing permission backend for organizations lets a superuser manage any organization, which the
+editing pages must not do.
 
 ## Consequences
 
