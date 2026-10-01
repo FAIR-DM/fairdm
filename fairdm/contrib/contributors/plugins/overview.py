@@ -127,7 +127,7 @@ class ContributorOverviewMixin:
             (a.organization for a in affiliations["current"] if a.is_primary), None
         )
         state = person.account_state
-        collaborators = person.get_co_contributors(contributions=contributions)
+        collaborators = person.get_collaborators(contributions=contributions)
         projects = self.get_record_entries(contributions, "project")
         datasets = self.get_record_entries(contributions, "dataset")
 

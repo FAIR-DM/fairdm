@@ -540,19 +540,19 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             content_type=content_type, object_id=obj.pk
         ).exists()
 
-    def get_co_contributors(self, limit: int | None = None, contributions=None):
+    def get_collaborators(self, limit: int | None = None, contributions=None):
         """Return other contributors credited on the same objects, most frequent first.
 
         Args:
-            limit: Maximum number of co-contributors to return. Defaults to all.
-            contributions: The credits to look for co-contributors on, such as those from
+            limit: Maximum number of collaborators to return. Defaults to all.
+            contributions: The credits to look for collaborators on, such as those from
                 :meth:`get_visible_contributions`. Defaults to every credit.
 
         Returns:
             Contributors annotated with ``collaboration_count``.
 
         Example:
-            >>> person.get_co_contributors(limit=5)
+            >>> person.get_collaborators(limit=5)
             <QuerySet [<Person: Jane Smith>, <Person: Bob Wilson>, ...]>
         """
         if contributions is None:
@@ -574,7 +574,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
                 contributions__object_id=object_id,
             )
 
-        co_contributors = (
+        collaborators = (
             Contributor.objects.exclude(pk=self.pk)
             .annotate(
                 collaboration_count=Count(
@@ -586,8 +586,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         )
 
         if limit:
-            return co_contributors[:limit]
-        return co_contributors
+            return collaborators[:limit]
+        return collaborators
 
     def add_to(self, obj, roles=None):
         """Credit the contributor on an object, adding roles to any already recorded.

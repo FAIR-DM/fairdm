@@ -402,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and target person, success, failure reason), with `ClaimingAuditLogManager` filters —
   `for_person()`, `failures()`, `by_method()`, `recent()`.
 - Reporting methods on `Contributor`: `projects`, `datasets`, `samples`, `measurements`,
-  `get_credit_counts()`, `get_co_contributors()`, `has_contribution_to()`,
+  `get_credit_counts()`, `get_collaborators()`, `has_contribution_to()`,
   `get_recent_contributions()`, `get_contributions_by_type()`.
 - Export helpers `Contributor.to_datacite()` and `.to_schema_org()`, backed by
   `DataCiteTransform`, `SchemaOrgTransform`, `CSLJSONTransform`, `ORCIDTransform` and
