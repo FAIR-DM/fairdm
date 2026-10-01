@@ -1039,6 +1039,87 @@ class TestOrganizationOverview:
         )
 
 
+    # Scenario 1
+    @pytest.mark.parametrize("who", ["owner", "admin"])
+    def test_the_menus_edit_entry_links_to_the_editing_page_and_the_other_two_stay_disabled(
+        self, get_page, keeper_world, who
+    ):
+        organization = keeper_world.organization
+
+        response, page = get_page(
+            organization.get_absolute_url(), viewer=getattr(keeper_world, who)
+        )
+
+        disabled = _management_menu(page)
+        menu = disabled[0].find_parent("ul")
+        assert len(disabled) == 2
+        assert len(menu.find_all("li", recursive=False)) == 3
+        assert [a["href"] for a in menu.select("a[href]")] == [
+            organization.get_update_url()
+        ]
+        assert menu.select("button:not([disabled])") == []
+        assert response.context["can_edit"] is True
+        assert response.context["update_url"] == organization.get_update_url()
+
+    # Scenario 7
+    def test_the_checklist_items_the_page_can_fix_link_to_their_fields_and_the_ror_item_is_unchanged(
+        self, get_page, keeper_world
+    ):
+        organization = keeper_world.organization
+        update_url = organization.get_update_url()
+
+        response, page = get_page(
+            organization.get_absolute_url(), viewer=keeper_world.owner
+        )
+
+        urls = [item.get("url") for item in response.context["readiness"]["items"]]
+        assert urls == [
+            None,
+            f"{update_url}#id_image",
+            f"{update_url}#id_type",
+            f"{update_url}#id_city",
+            f"{update_url}#id_profile",
+            f"{update_url}#id_website",
+        ]
+        assert set(_hrefs(_card(page, "readiness"))) == set(urls) - {None}
+
+    def test_the_description_prompt_links_to_the_description_field(
+        self, get_page, keeper_world
+    ):
+        organization = keeper_world.organization
+
+        _, page = get_page(organization.get_absolute_url(), viewer=keeper_world.owner)
+
+        assert _hrefs(_card(page, "about")) == [
+            f"{organization.get_update_url()}#id_profile"
+        ]
+
+    # Scenario 8
+    @pytest.mark.parametrize(
+        "who",
+        [
+            "member",
+            "pending",
+            "stranger",
+            "visitor",
+            "staff",
+            "superuser",
+            "former_admin",
+            "former_owner",
+        ],
+    )
+    def test_nobody_else_is_offered_a_link_to_the_editing_page(
+        self, get_page, keeper_world, who
+    ):
+        organization = keeper_world.organization
+        viewer = None if who == "visitor" else getattr(keeper_world, who)
+
+        response, page = get_page(organization.get_absolute_url(), viewer=viewer)
+
+        assert page.select(f"a[href^='{organization.get_update_url()}']") == []
+        assert response.context["can_edit"] is False
+
+
 def _checklist(page):
     """The checklist card's progress as (items in place, total items), or None without it."""
     card = _card(page, "readiness")
@@ -1309,15 +1390,20 @@ class TestOrganizationChecklist:
             False,
         ]
 
-    def test_every_management_action_is_disabled(self, get_page, keeper_world):
-        _, page = get_page(
-            keeper_world.organization.get_absolute_url(), viewer=keeper_world.admin
-        )
+    def test_every_management_action_but_editing_is_disabled(
+        self, get_page, keeper_world
+    ):
+        organization = keeper_world.organization
+        _, page = get_page(organization.get_absolute_url(), viewer=keeper_world.admin)
 
         disabled = _management_menu(page)
         menu = disabled[0].find_parent("ul")
-        assert len(disabled) == len(menu.find_all("li", recursive=False))
-        assert menu.select("a[href], button:not([disabled])") == []
+        entries = menu.find_all("li", recursive=False)
+        assert len(disabled) == len(entries) - 1
+        assert [a["href"] for a in menu.select("a[href]")] == [
+            organization.get_update_url()
+        ]
+        assert menu.select("button:not([disabled])") == []
 
     # FR-032
     @pytest.mark.parametrize(("who", "offered"), [("owner", True), ("member", False)])
@@ -1329,10 +1415,12 @@ class TestOrganizationChecklist:
             viewer=getattr(keeper_world, who),
         )
 
-        action = _card(page, "about").select_one("button")
+        action = _card(page, "about").select_one("a[href], button")
         assert (action is not None) is offered
         if offered:
-            assert action.has_attr("disabled")
+            assert action["href"] == (
+                f"{keeper_world.organization.get_update_url()}#id_profile"
+            )
 
     def test_a_record_with_everything_in_place_is_ready(self, get_page, db):
         organization = OrganizationFactory(

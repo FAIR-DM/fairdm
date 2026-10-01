@@ -63,3 +63,10 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k TestOrganizationUpdate` stops at collection with `ImportError: cannot import name 'OrganizationProfileForm'`, the expected red. `uv run pre-commit run --all-files` passes.
 - Next: T010, the overview tests.
 - Watch: a deactivated administrator is redirected to sign in, not refused with 403, because Django signs the account out first (brief and decisions D10).
+
+## 2026-10-01T17:15:00Z · Implementer US2 · T010
+- Did: added to `TestOrganizationOverview` the menu's edit entry linking to the editing page with the other two entries still disabled (owner and administrator), the checklist links (logo `#id_image`, type `#id_type`, city and country `#id_city`, description `#id_profile`, website `#id_website`, the ROR item without a link), the description prompt linking to `#id_profile`, and no link to the editing page for a member, a pending member, a stranger, a visitor, staff, a superuser and an ended administrator or owner.
+- Changed two pre-existing tests that pin the disabled stand-ins this story brings to life, as `tasks.md` allows: `TestOrganizationChecklist::test_every_management_action_is_disabled` is now `test_every_management_action_but_editing_is_disabled` (the edit entry is the one link, every other entry is disabled), and `test_only_the_people_who_keep_the_record_are_offered_writing_its_description` now expects a link to `#id_profile` instead of a disabled button. Nothing else in the file changed.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k "TestOrganizationOverview or TestOrganizationChecklist"` gives 14 failed, 43 passed. The failures are a missing `can_edit` key in the context, no link in the menu's edit entry and a disabled button where a link is expected. That is the expected red.
+- Next: T011, the implementation.
+- Watch: the community manager's single edit button is US3's and is not tested here.
