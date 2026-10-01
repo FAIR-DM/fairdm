@@ -63,14 +63,14 @@ the overview both ask it.
 **Revisit if:** a third kind of editor is added, at which point a permission backend may read
 better than a growing method.
 
-**ADR:** none. It follows the shape 019 set with `is_managed_by`, local to contributors.
+**ADR:** docs/adr/0024-the-right-to-edit-a-profile-is-asked-of-the-record.md
 
 ## D3. Superusers get nothing extra on the editing pages
 
 The specification lists who may edit and ends "nobody else", and SC-003 holds every seeded account
 to that list. A superuser changes any record in the administration interface, as before.
 
-**ADR:** none. A reading of the specification.
+**ADR:** docs/adr/0024-the-right-to-edit-a-profile-is-asked-of-the-record.md
 
 ## D4. Editing your own profile is tested on who is signed in
 
@@ -118,7 +118,7 @@ form cannot otherwise be replaced from a portal's own code.
 
 **Revisit if:** registered pages gain a general way to be replaced.
 
-**ADR:** none yet. Judged again at convergence, once the code exists.
+**ADR:** none. One setting, documented in the developer guide, following a setting the package already uses.
 
 ## D9. A person's given and family names are not on the editing page
 
@@ -150,7 +150,7 @@ gets the shipped form without the setting being read back through a default.
 **Revisit if:** the organization form lands and the two maps start to drift; the page could then
 read the setting's default instead.
 
-**ADR:** none.
+**ADR:** none. Where a default lives, local to one class.
 
 ## D12. The ISO 639-1 code list is a module constant
 
@@ -158,7 +158,7 @@ The languages field offers the same codes the model's validator accepts. The set
 validator function, so it moved to `ISO_639_1_CODES` in `validators.py` and the function reads it
 there. No behaviour of the validator changed.
 
-**ADR:** none.
+**ADR:** none. A constant moved within its module.
 
 ## D13. Checklist links changed three existing overview tests
 
@@ -169,7 +169,7 @@ is connected. The links to the editing fields are asserted in full by the new te
 `TestPersonOverview`. Named here because `tasks.md` allows changing only tests that pinned a
 disabled stand-in; these pinned the absence of links the story adds.
 
-**ADR:** none.
+**ADR:** none. A test maintenance record.
 
 ## D14. The saved message crashed the page a save returns to
 
@@ -187,7 +187,7 @@ the two tests that open the page after a save (`TestReturnToTheOverview`) fail w
 
 **Revisit if:** a portal's own templates style messages by the old tag strings.
 
-**ADR:** none.
+**ADR:** none. Removal of an unused setting, named in the changelog.
 
 ## D15. The parent field uses the package's organization picker
 
@@ -200,7 +200,7 @@ choice" a narrowed queryset would give.
 
 **Revisit if:** the picker should hide the organizations that would be refused.
 
-**ADR:** none.
+**ADR:** none. A widget choice for one field.
 
 ## D16. Editing an organization requires an active account
 
@@ -209,7 +209,7 @@ does not look at the account, and an inactive account must not keep the right ev
 sign-in backend lets it stay signed in (D10). There is no superuser or community manager term in
 this story.
 
-**ADR:** none.
+**ADR:** none. Covered by the record of who may edit, ADR 0024.
 
 ## D17. One base form for the two profile forms
 
@@ -220,7 +220,7 @@ Django's own handling for every error on a field the form has, and the page need
 
 **Revisit if:** a third kind of form needs the same, at which point it is already shared.
 
-**ADR:** none.
+**ADR:** none. A base class local to one module.
 
 ## D18. A stored ROR address fails the model's own check
 
@@ -233,7 +233,7 @@ and are not affected. Left alone, because the check is outside this story's file
 answer (accept the address, or store the bare identifier) is the model's to settle. Reported in the
 completion report.
 
-**ADR:** none.
+**ADR:** none. A defect record, fixed by D19.
 
 ## D19. A stored ROR address validates
 
@@ -244,4 +244,19 @@ as D18 left it. This settles the open point D18 reported.
 
 **Revisit if:** the model should store only the bare identifier, which would be a data migration.
 
-**ADR:** none.
+**ADR:** none. A validation detail on one field.
+
+## D20. A manager's page has no disabled edit entry
+
+Everyone who sees the management menu or the About card's prompt on an organization may edit it,
+so the disabled versions of the edit entry and the prompt had no viewer and were removed.
+
+**ADR:** none. A template cleanup.
+
+## D21. The migration smoke test fails now and then, on main as well
+
+`tests/test_smoke.py::TestMigrations::test_every_model_change_has_a_migration` failed in one of
+four full parallel runs on main and at the same rate on this branch, and passes alone. It is not
+caused by this feature and is left for its own fix.
+
+**ADR:** none. A defect record for another piece of work.

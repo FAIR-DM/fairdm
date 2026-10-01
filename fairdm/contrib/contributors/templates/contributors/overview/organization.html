@@ -59,11 +59,7 @@
   {% if can_manage %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
       <c-menu>
-        {% if can_edit %}
-          <c-menu.item href="{{ update_url }}" icon="edit" label="{% translate 'Edit details' %}" />
-        {% else %}
-          <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="edit" aria-hidden="true" />{% translate "Edit details" %}</span></li>
-        {% endif %}
+        <c-menu.item href="{{ update_url }}" icon="edit" label="{% translate 'Edit details' %}" />
         <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="member" aria-hidden="true" />{% translate "Manage members" %}</span></li>
         <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="import" aria-hidden="true" />{% translate "Update from ROR" %}</span></li>
       </c-menu>
@@ -93,13 +89,7 @@
       {% elif can_manage %}
         <c-missing>
           <span>{% translate "Nobody has described this organization yet. A short description tells visitors what it does and why its name appears on this portal's data." %}</span>
-          {% if can_edit %}
-            <c-button href="{{ update_url }}#id_profile" text="{% translate 'Write a description' %}" icon="edit" size="sm" variant="primary" />
-          {% else %}
-            {% translate "Write a description" as label %}
-            {% translate "Describe what the organization does." as reason %}
-            <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" variant="primary" />
-          {% endif %}
+          <c-button href="{{ update_url }}#id_profile" text="{% translate 'Write a description' %}" icon="edit" size="sm" variant="primary" />
         </c-missing>
       {% else %}
         <c-missing><span>{% translate "No description has been added yet." %}</span></c-missing>
