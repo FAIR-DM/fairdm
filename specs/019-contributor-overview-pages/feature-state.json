@@ -93,8 +93,26 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 (exit 1: 12 new tests fail as intended, they drive T006)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py::TestGetVisibleContributions",
+              "tests/test_contrib/test_contributors/test_models.py::TestPublicRecordSources",
+              "tests/test_contrib/test_contributors/test_models.py::TestVisibleRoleCounts",
+              "tests/test_contrib/test_contributors/test_models.py::TestVisibleCollaborators",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonAffiliationHistory",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonMemberSince",
+              "tests/test_contrib/test_contributors/test_models.py::TestAffiliationDisplay",
+              "tests/test_contrib/test_contributors/test_models.py::TestPublicSchemaOrg",
+              "tests/test_contrib/test_contributors/test_models.py::TestContributorLinks",
+              "tests/test_contrib/test_contributors/test_models.py::TestIdentifierResolverUrl"
+            ]
+          }
         },
         {
           "id": "T004",

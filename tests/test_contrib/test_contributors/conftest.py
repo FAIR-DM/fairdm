@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from guardian.utils import get_anonymous_user
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import (
     Affiliation,
     ContributorIdentifier,
@@ -13,11 +14,13 @@ from fairdm.contrib.contributors.models import (
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
     UserFactory,
 )
+from fairdm.utils.choices import Visibility
 
 
 @pytest.fixture
@@ -248,4 +251,77 @@ def contributor_population(db):
         contributor_role=contributor_role,
         creator_credit=creator_credit,
         contributor_credit=contributor_credit,
+    )
+
+
+@pytest.fixture
+def credited_world(db):
+    """A person credited on public and private records of every kind.
+
+    Each private record has its own mate, credited there under a role held nowhere else, so a
+    test can tell a role or a collaborator that is known only through a private record.
+    """
+    person = PersonFactory(email="credited@example.com", is_active=True)
+    public_project = ProjectFactory(visibility=Visibility.PUBLIC)
+    private_project = ProjectFactory(visibility=Visibility.PRIVATE)
+    public_dataset = DatasetFactory(
+        project=public_project, visibility=Visibility.PUBLIC, published=True
+    )
+    private_dataset = DatasetFactory(
+        project=public_project, visibility=Visibility.PRIVATE, published=False
+    )
+    dataset_in_private_project = DatasetFactory(
+        project=private_project, visibility=Visibility.PUBLIC, published=True
+    )
+    public_sample = RockSampleFactory(dataset=public_dataset)
+    private_sample = RockSampleFactory(dataset=private_dataset)
+    sample_in_private_project = RockSampleFactory(dataset=dataset_in_private_project)
+    public_measurement = ExampleMeasurementFactory(
+        dataset=public_dataset, sample=public_sample
+    )
+    measurement_in_private_project = ExampleMeasurementFactory(
+        dataset=dataset_in_private_project, sample=sample_in_private_project
+    )
+
+    open_mate = PersonFactory(email="open-mate@example.com")
+    sample_mate = PersonFactory(email="sample-mate@example.com")
+    private_mate = PersonFactory(email="private-mate@example.com")
+    private_dataset_mate = PersonFactory(email="private-dataset-mate@example.com")
+
+    for record, roles in [
+        (public_project, ["Creator"]),
+        (private_project, ["Supervisor"]),
+        (public_dataset, ["DataCollector"]),
+        (private_dataset, ["Editor"]),
+        (dataset_in_private_project, ["Producer"]),
+        (public_sample, ["Researcher"]),
+        (sample_in_private_project, ["Sponsor"]),
+        (public_measurement, ["Support"]),
+        (measurement_in_private_project, ["Other"]),
+    ]:
+        person.add_to(record, roles=roles)
+    for record in (public_project, public_dataset):
+        open_mate.add_to(record)
+    sample_mate.add_to(public_sample)
+    for record in (private_project, dataset_in_private_project, sample_in_private_project):
+        private_mate.add_to(record)
+    private_dataset_mate.add_to(private_dataset)
+    private_dataset_mate.add_to(private_sample)
+
+    return SimpleNamespace(
+        person=person,
+        public_project=public_project,
+        private_project=private_project,
+        public_dataset=public_dataset,
+        private_dataset=private_dataset,
+        dataset_in_private_project=dataset_in_private_project,
+        public_sample=public_sample,
+        private_sample=private_sample,
+        sample_in_private_project=sample_in_private_project,
+        public_measurement=public_measurement,
+        measurement_in_private_project=measurement_in_private_project,
+        open_mate=open_mate,
+        sample_mate=sample_mate,
+        private_mate=private_mate,
+        private_dataset_mate=private_dataset_mate,
     )

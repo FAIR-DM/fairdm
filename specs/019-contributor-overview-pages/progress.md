@@ -15,3 +15,10 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_profiles.py -q -n0` (18 passed, exit 0, all green on first run against the prototype). Mutated the `www.` prefix, the reserved slot and the active sort in `profiles.py` and watched three of the tests fail; restored the file afterwards. `uv run pre-commit run --all-files` clean.
 - Next: T003, model tests.
 - Watch: none.
+
+## 2026-10-01T10:17Z · Implementer US1 · T003
+
+- Did: added a `credited_world` fixture (a person credited on public and private projects, datasets, samples and measurements, with a mate on each private record) and ten test classes in `test_models.py` for visible contributions, the public project and dataset sources (`get_public_projects`, `get_public_datasets`, which do not exist yet), role counts, collaborators, affiliation history, member since, affiliation date display, `to_public_schema_org`, link display and identifier resolver URLs.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0` gives 12 failed, 192 passed. The 12 failures are the new tests that find real gaps: private-project datasets, samples and measurements listed, roles and collaborators known only through them counted, a pending or ended primary affiliation in the schema.org data, and the two missing source methods. I read each failure and each is the symptom, not a fixture error. Mutating the collaborator tie order, the affiliation sort and filter, and the member-since states failed the matching tests; models.py restored. `uv run pre-commit run --all-files` clean.
+- Next: T004, component tests.
+- Watch: the tree is red on purpose until T006, which fixes these.
