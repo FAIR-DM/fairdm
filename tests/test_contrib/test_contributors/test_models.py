@@ -2682,11 +2682,171 @@ class TestPersonIsEditableBy:
         assert person.is_editable_by(holder) is False
 
 @pytest.mark.django_db
-class TestOrganizationIsEditableBy:
-    def test_nobody_may_edit_it_yet(self, owner_affiliation):
-        organization = owner_affiliation.organization
+class TestOrganizationDescendantIds:
+    def test_an_organization_with_no_sub_organizations_has_none(self):
+        organization = OrganizationFactory()
 
-        assert organization.is_editable_by(owner_affiliation.person) is False
+        assert organization.get_descendant_ids() == set()
+
+    def test_the_children_are_included(self):
+        organization = OrganizationFactory()
+        first = OrganizationFactory(parent=organization)
+        second = OrganizationFactory(parent=organization)
+        OrganizationFactory()
+
+        assert organization.get_descendant_ids() == {first.pk, second.pk}
+
+    def test_the_grandchildren_are_included(self):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+        great_grandchild = OrganizationFactory(parent=grandchild)
+
+        assert organization.get_descendant_ids() == {
+            child.pk,
+            grandchild.pk,
+            great_grandchild.pk,
+        }
+
+    def test_the_parent_and_the_siblings_are_not_included(self):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+        OrganizationFactory(parent=parent)
+
+        assert organization.get_descendant_ids() == set()
+
+    def test_a_loop_already_stored_does_not_run_forever(self):
+        first = OrganizationFactory()
+        second = OrganizationFactory(parent=first)
+        Organization.objects.filter(pk=first.pk).update(parent=second)
+        first.refresh_from_db()
+
+        assert first.get_descendant_ids() == {first.pk, second.pk}
+
+
+@pytest.mark.django_db
+class TestOrganizationParentLoop:
+    def test_the_organization_itself_is_refused_as_its_parent(self):
+        organization = OrganizationFactory()
+        organization.parent = organization
+
+        with pytest.raises(ValidationError) as refused:
+            organization.full_clean()
+
+        assert set(refused.value.message_dict) == {"parent"}
+
+    def test_an_organization_beneath_it_is_refused_as_its_parent(self):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+
+        for beneath in (child, grandchild):
+            organization.parent = beneath
+            with pytest.raises(ValidationError) as refused:
+                organization.full_clean()
+
+            assert set(refused.value.message_dict) == {"parent"}
+
+    def test_an_unrelated_organization_is_accepted(self):
+        organization = OrganizationFactory()
+        organization.parent = OrganizationFactory()
+
+        organization.full_clean()
+
+    def test_an_organization_that_already_has_children_of_its_own_may_gain_a_parent(
+        self,
+    ):
+        organization = OrganizationFactory()
+        OrganizationFactory(parent=organization)
+        organization.parent = OrganizationFactory()
+
+        organization.full_clean()
+
+    def test_an_organization_not_saved_yet_may_have_any_parent(self):
+        organization = OrganizationFactory.build(parent=OrganizationFactory())
+
+        organization.full_clean(exclude=["uuid"])
+
+
+@pytest.mark.django_db
+class TestOrganizationIsEditableBy:
+    @pytest.fixture
+    def organization(self):
+        return OrganizationFactory()
+
+    def _joined(self, organization, type, **kwargs):
+        person = PersonFactory(is_active=True, password="x")
+        AffiliationFactory(person=person, organization=organization, type=type, **kwargs)
+        return person
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+    )
+    def test_the_owner_and_an_administrator_may_edit_it(self, organization, type):
+        keeper = self._joined(organization, type)
+
+        assert organization.is_editable_by(keeper) is True
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.MEMBER, Affiliation.MembershipType.PENDING]
+    )
+    def test_an_ordinary_member_may_not_edit_it(self, organization, type):
+        member = self._joined(organization, type)
+
+        assert organization.is_editable_by(member) is False
+
+    def test_a_stranger_may_not_edit_it(self, organization):
+        stranger = PersonFactory(is_active=True, password="x")
+
+        assert organization.is_editable_by(stranger) is False
+
+    def test_a_visitor_may_not_edit_it(self, organization):
+        assert organization.is_editable_by(AnonymousUser()) is False
+
+    def test_an_administrator_whose_affiliation_has_ended_may_not_edit_it(
+        self, organization
+    ):
+        former = self._joined(
+            organization,
+            Affiliation.MembershipType.ADMIN,
+            start_date="2010",
+            end_date="2014",
+        )
+
+        assert organization.is_editable_by(former) is False
+
+    def test_a_deactivated_administrator_may_not_edit_it(self, organization):
+        keeper = self._joined(organization, Affiliation.MembershipType.ADMIN)
+        keeper.is_active = False
+        keeper.save()
+
+        assert organization.is_editable_by(keeper) is False
+
+    def test_a_data_curator_may_not_edit_it(self, organization):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert organization.is_editable_by(curator) is False
+
+    def test_a_superuser_who_keeps_no_record_may_not_edit_it(self, organization):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert organization.is_editable_by(superuser) is False
+
+    def test_an_organization_with_no_owner_or_administrators_is_editable_by_none_of_them(
+        self, organization
+    ):
+        member = self._joined(organization, Affiliation.MembershipType.MEMBER)
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        for user in (member, curator, superuser, AnonymousUser()):
+            assert organization.is_editable_by(user) is False
 
 
 class TestContributorUpdateUrl:
