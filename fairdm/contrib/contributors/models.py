@@ -918,15 +918,16 @@ class Person(AbstractUser, Contributor):
 
         Returns:
             A flag for each of ``image``, ``orcid`` (connected by signing in with ORCID),
-            ``profile``, ``primary_affiliation`` and ``links``.
+            ``profile``, ``primary_affiliation`` (verified and not ended, as the header shows
+            it) and ``links``.
         """
         return {
             "image": bool(self.image),
             "orcid": self.orcid_is_authenticated,
             "profile": bool(self.profile),
-            "primary_affiliation": self.affiliations.filter(
-                is_primary=True, end_date__isnull=True
-            ).exists(),
+            "primary_affiliation": self.current_affiliations()
+            .filter(is_primary=True)
+            .exists(),
             "links": bool(self.links),
         }
 
@@ -1059,12 +1060,24 @@ class Person(AbstractUser, Contributor):
         return None
 
     def get_location_display(self):
-        """Return the primary affiliation's organisation city and country.
+        """Return the city and country of the organisation the profile names as primary.
+
+        That is the verified primary affiliation that has not ended, the one the page header
+        shows. Reads ``affiliations.all()``, so a prefetch costs no query per person.
 
         Returns:
-            The location text, or None when there is no primary affiliation.
+            The location text, or None when there is no such affiliation.
         """
-        aff = self.primary_affiliation()
+        aff = next(
+            (
+                a
+                for a in self.affiliations.all()
+                if a.is_primary
+                and a.end_date is None
+                and a.type >= Affiliation.MembershipType.MEMBER
+            ),
+            None,
+        )
         if aff and aff.organization:
             org = aff.organization
             parts = []

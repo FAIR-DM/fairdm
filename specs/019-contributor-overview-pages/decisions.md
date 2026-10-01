@@ -161,3 +161,30 @@ sub-organizations, members and owned projects, one the signed-in user owns, and 
 recorded. The new tests fail when each of those is removed from the command.
 
 **Revisit if:** FR-033 names a further organization state.
+
+## D13. The checklist's affiliation item and a person's location follow the header
+
+**Decision:** `Person.get_profile_completeness()` counts a primary affiliation only when it is
+verified and has not ended, and `Person.get_location_display()` reads the same affiliation. The
+location filters `affiliations.all()` in Python so a listing that prefetches affiliations still
+costs no query per person.
+
+**Why:** the header and the schema.org description already name an organization only for a verified,
+current primary affiliation. The checklist marked a pending request as in place while the header
+showed no organization, and the public location method named the organization of a pending or ended
+primary affiliation, the same gap `to_public_schema_org` had. The person's card in listings calls
+the location method, so it needed to stay prefetch-friendly.
+
+**Revisit if:** `primary_affiliation()` itself is changed to apply the rule, which would let both
+methods read it.
+
+## D14. The two old plugin templates are deleted
+
+**Decision:** `person/plugins/overview.html` and `organization/plugins/overview.html` are removed.
+
+**Why:** the `Overview` plugin names its templates in `get_template_names`, so nothing resolves
+them. A search of the templates, the Python code, the tests and the documentation found no
+reference to either path.
+
+**Revisit if:** a portal extends one of them; the changelog entry for this branch would then need a
+removal note.

@@ -581,6 +581,9 @@ The rest of what a profile reads from a contributor:
 | `get_links_display()` | One `{"url", "host"}` entry per recorded link, the host being the site it points at. |
 | `get_language_names()` | The names of the recorded languages in the active language. A code Django does not know is kept as written. |
 | `to_public_schema_org()` | The Schema.org description for the page head. It has no email address. A person's `affiliation` is kept only when it is the verified, current primary affiliation the page header shows. |
+| `Person.get_profile_completeness()` | One flag for each of `image`, `orcid`, `profile`, `primary_affiliation` and `links`. `orcid` is true only when the person has signed in with ORCID, and `primary_affiliation` only for a verified primary affiliation that has not ended. |
+| `Organization.get_record_completeness()` | One flag for each of `ror`, `image`, `type`, `location`, `profile` and `links`. `ror` needs an identifier of type ROR, and `location` needs both a city and a country. |
+| `Person.get_location_display()` | The city and country of the organization the header names as primary, or `None` without a verified primary affiliation that has not ended. |
 | `Person.member_since` | When the account was created, or `None` for a profile nobody has claimed. |
 | `Person.get_affiliation_history()` | `current` (verified affiliations that have not ended, the primary one first and the rest by organization name) and `past` (most recently ended first). Pending affiliations are left out. |
 | `Affiliation.start_display`, `Affiliation.end_display` | The date as precisely as it was recorded: a day, a month and year, or a year. An empty string when not recorded. |
@@ -603,6 +606,7 @@ reads the database or a request, so each takes plain values.
 | `language_names(codes)` | One name per ISO 639-1 code, in the active language and the order given. An unknown code is kept as written. |
 | `ranked_shares(counts)` | Ranks a mapping of counts, largest first, each entry as `{"label", "count", "percent"}` where the largest is 100. |
 | `fill_slots(items, slots, reserve=False)` | Fits a list into a fixed number of places and returns `shown`, `more` and `total`. With `reserve`, the last place is kept for a "+n more" entry when the list overflows. |
+| `checklist(items)` | Sums up a list of items that each carry a `done` flag: the `items`, how many are `done`, the `total` and whether all of them are `ready`. |
 | `active_then_recent(items, modified, active=None)` | Orders items with the active ones first and each group most recently updated first. `modified` and `active` are functions of one item. |
 
 ```python

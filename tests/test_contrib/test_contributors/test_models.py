@@ -2558,3 +2558,60 @@ class TestOrganizationRecordCompleteness:
         complete = organization.get_record_completeness()
 
         assert [key for key, done in complete.items() if done] == ["profile"]
+
+
+@pytest.mark.django_db
+class TestPersonLocationDisplay:
+    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(self):
+        person = PersonFactory()
+        organization = OrganizationFactory(city="Potsdam", country="DE")
+        AffiliationFactory(person=person, organization=organization, is_primary=True)
+
+        assert person.get_location_display() == "Potsdam, Germany"
+
+    def test_a_person_without_a_primary_affiliation_has_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=False,
+        )
+
+        assert person.get_location_display() is None
+
+    def test_a_pending_primary_affiliation_gives_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        assert person.get_location_display() is None
+
+    def test_an_ended_primary_affiliation_gives_no_location(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+            start_date="2010",
+            end_date="2014",
+        )
+
+        assert person.get_location_display() is None
+
+    def test_it_reads_a_prefetch_of_the_affiliations(self, django_assert_num_queries):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(city="Potsdam", country="DE"),
+            is_primary=True,
+        )
+        person = Person.objects.prefetch_related("affiliations__organization").get(
+            pk=person.pk
+        )
+
+        with django_assert_num_queries(0):
+            person.get_location_display()

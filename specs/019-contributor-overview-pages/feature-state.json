@@ -292,8 +292,16 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n 4 (778 passed, exit 0)",
+              "uv run pytest tests/test_contrib tests/test_demo -q -n 4 (949 passed, exit 0, before the template deletion)",
+              "grep over fairdm, docs, tests and demo for the two old template paths (no references)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ]
+          }
         },
         {
           "id": "T017",

@@ -403,6 +403,27 @@ email address, and the description names an affiliation only when it is the veri
 primary affiliation the header shows. [What a profile may show](contributors.md#what-a-profile-may-show)
 lists the methods behind this.
 
+### The profile checklist
+
+A person sees a checklist of what a complete profile has on their own page and nowhere else. A
+visitor, another signed-in user, a staff user and a superuser do not see it, because it follows
+the person and not a portal role. It says which items are in place, how many of the total, and that
+only the person can see it. Each item that is missing links to the page that fixes it where one
+exists.
+
+| Item | In place when |
+| --- | --- |
+| A profile photo, recommended | The person has uploaded one. |
+| An ORCID iD connected by signing in with ORCID | The person has signed in to the portal with an ORCID account. An iD typed into the profile does not count. The item links to the page where accounts are connected. |
+| A short biography | The profile text is not empty. |
+| A primary affiliation | The person has a verified primary affiliation that has not ended, the one the header shows. A pending request or an ended affiliation does not count. |
+| Links to your other profiles, recommended | The person has recorded at least one link. |
+
+On their own page the person is also offered editing the profile, shown as not available yet, in
+place of the contact action that everyone else is offered. An empty biography and an empty list of
+records speak to them directly. `Person.get_profile_completeness()` returns the flag for each item
+and the `checklist` helper turns the items into the summary the card draws.
+
 ### Extending a contributor page
 
 Override the template, as for a record page. A template named `contributors/overview/person.html`
@@ -493,8 +514,16 @@ equals the number of entries behind its link.
 The checklist and the management menu are shown to the organization's owner and administrators,
 meaning the people whose current affiliation to it is of that kind. A portal role such as
 Community Manager does not count, because portal staff manage organizations from the administration
-interface. `Organization.is_managed_by(user)` answers it. Asking to join is offered to a signed-in
-user for whom neither `has_member(user)` nor `is_managed_by(user)` holds.
+interface, and neither does staff or superuser status. An ordinary member, a pending request and a
+former administrator whose affiliation has ended see neither. `Organization.is_managed_by(user)`
+answers it. Asking to join is offered to a signed-in user for whom neither `has_member(user)` nor
+`is_managed_by(user)` holds.
+
+The checklist lists a ROR identifier, a logo (recommended), the type of organization, a city and a
+country together, a description and a website (recommended). A ROR identifier is the only
+identifier type that counts toward the first item. The menu holds editing the details, managing the
+members and updating the record from ROR, each shown as not available yet.
+`Organization.get_record_completeness()` returns the flag for each item.
 
 ### Extending an organization page
 

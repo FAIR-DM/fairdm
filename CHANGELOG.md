@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - The Statistics and Network tabs of a contributor's page. Both were blank.
+- The templates `person/plugins/overview.html` and `organization/plugins/overview.html`. A
+  contributor's page is drawn from `contributors/overview/person.html` and
+  `contributors/overview/organization.html` now, so a portal that extended either old file extends
+  one of those.
 - The `overview/includes/pending_action.html` include is replaced by the `c-actions.pending`
   component, which no longer shows a "Coming soon" badge on the button. A portal template that
   includes the old file uses `<c-actions.pending label="..." reason="..." />` instead.
@@ -33,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A person's own page now counts a primary affiliation toward their checklist only when it is
+  verified and has not ended, as the header does, and `Person.get_location_display()` follows the
+  same rule instead of naming the organization of a pending or ended primary affiliation.
 - The Projects and Datasets figures on a contributor's overview, and its "View all" links, did
   not link to the matching tab.
 - `reverse("account-center")` is `/account-center/` again after the update to django-mvp 0.25.
@@ -144,6 +151,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [Overview pages](docs/portal-development/overview-pages.md#the-organization-page).
 - The Projects and Datasets tabs of an organization list the same records as its overview, so a
   figure on the page equals the number of entries behind its link.
+- A person sees a checklist of what a complete profile has on their own page, with editing the
+  profile offered as not available yet, and the owner and administrators of an organization see
+  the checklist of its record and a menu of management actions. Nobody else sees either, whatever
+  their portal role. Who sees what is described in
+  [Overview pages](docs/portal-development/overview-pages.md#the-profile-checklist).
 - The card `c-card.hierarchy`, and `Organization.get_current_memberships()`, `has_member()`,
   `is_managed_by()`, `get_hierarchy()`, `get_public_projects()` and `get_public_datasets()`, are
   documented in [Cards](docs/portal-development/component_library/cards.md#c-cardhierarchy) and
