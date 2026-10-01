@@ -1821,8 +1821,30 @@ class TestOrcidIsAuthenticated:
         assert person.orcid_is_authenticated is False
 
 
+def _credited(*records):
+    """What a credit on each record looks like in the visible contributions."""
+    kinds = {
+        "project": "project.Project",
+        "dataset": "dataset.Dataset",
+        "sample": "sample.Sample",
+        "measurement": "measurement.Measurement",
+    }
+    return {
+        (
+            next(
+                kind
+                for kind, label in kinds.items()
+                if isinstance(record, apps.get_model(label))
+            ),
+            str(record.pk),
+        )
+        for record in records
+    }
+
+
 def _records(contributions):
-    return {contribution.record for contribution in contributions}
+    """The kind and id of each record the contributions are on."""
+    return {(c.kind, str(c.object_id)) for c in contributions}
 
 
 @pytest.mark.django_db
@@ -1832,12 +1854,12 @@ class TestGetVisibleContributions:
 
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        assert _records(contributions) == {
+        assert _records(contributions) == _credited(
             world.public_project,
             world.public_dataset,
             world.public_sample,
             world.public_measurement,
-        }
+        )
 
     def test_the_person_gets_what_a_visitor_gets(self, credited_world):
         world = credited_world
@@ -1857,7 +1879,7 @@ class TestGetVisibleContributions:
 
         contributions = world.person.get_visible_contributions(member)
 
-        assert world.private_project not in _records(contributions)
+        assert _credited(world.private_project).isdisjoint(_records(contributions))
 
     def test_a_public_dataset_inside_a_private_project_is_left_out(
         self, credited_world
@@ -1866,7 +1888,9 @@ class TestGetVisibleContributions:
 
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        assert world.dataset_in_private_project not in _records(contributions)
+        assert _credited(world.dataset_in_private_project).isdisjoint(
+            _records(contributions)
+        )
 
     def test_a_sample_and_a_measurement_inside_a_private_project_are_left_out_for_its_team(
         self, credited_world
@@ -1878,8 +1902,9 @@ class TestGetVisibleContributions:
 
         records = _records(world.person.get_visible_contributions(member))
 
-        assert world.sample_in_private_project not in records
-        assert world.measurement_in_private_project not in records
+        assert _credited(
+            world.sample_in_private_project, world.measurement_in_private_project
+        ).isdisjoint(records)
 
     def test_a_sample_in_a_private_dataset_follows_who_may_open_the_dataset(
         self, credited_world
@@ -1889,10 +1914,10 @@ class TestGetVisibleContributions:
         team = PersonFactory(is_active=True)
         assign_perm("view_dataset", team, world.private_dataset)
 
-        assert world.private_sample not in _records(
-            world.person.get_visible_contributions(AnonymousUser())
+        assert _credited(world.private_sample).isdisjoint(
+            _records(world.person.get_visible_contributions(AnonymousUser()))
         )
-        assert world.private_sample in _records(
+        assert _credited(world.private_sample) <= _records(
             world.person.get_visible_contributions(team)
         )
 

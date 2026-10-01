@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Lower
 from django.templatetags.static import static
 from django.urls import reverse
@@ -33,6 +33,7 @@ from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
+from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
@@ -336,6 +337,28 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         Dataset = apps.get_model("dataset.Dataset")
         return Dataset.objects.filter(contributors__contributor=self)
 
+    def get_public_projects(self):
+        """List the public projects this contributor is credited on.
+
+        The one source behind a contributor's page: its figure, its card and its Projects tab.
+        A subclass that has more projects to show overrides it.
+
+        Returns:
+            The projects, as a queryset.
+        """
+        return self.projects.get_visible()
+
+    def get_public_datasets(self):
+        """List the public datasets this contributor is credited on, outside private projects.
+
+        The one source behind a contributor's page: its figure, its card and its Datasets tab.
+        A subclass that has more datasets to show overrides it.
+
+        Returns:
+            The datasets, as a queryset.
+        """
+        return self.datasets.get_visible()
+
     @property
     def samples(self):
         """The samples this contributor is credited on, whatever their concrete type."""
@@ -413,12 +436,14 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return language_names(self.lang)
 
     def get_visible_contributions(self, user):
-        """List the contributor's credits on records the user may open, newest first.
+        """List the contributor's credits on records a profile may name, newest first.
 
-        A project counts when it is public, a dataset when it is not private, and a sample or
-        measurement when its own dataset lets the user see it. Each contribution returned
-        carries ``kind`` (``project``, ``dataset``, ``sample`` or ``measurement``) and
-        ``record``, the credited object as its own subtype.
+        A project or dataset counts only when it is one of :meth:`get_public_projects` or
+        :meth:`get_public_datasets`, whoever is asking. A sample or measurement counts when its
+        own dataset lets the user see it and that dataset's project, where it has one, is
+        public. Each contribution returned carries ``kind`` (``project``, ``dataset``,
+        ``sample`` or ``measurement``). Projects and datasets also carry ``record``; samples and
+        measurements are resolved to ids and not loaded, as no card lists them.
 
         Args:
             user: The user, or an anonymous user for a visitor.
@@ -432,11 +457,18 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             "sample": apps.get_model("sample.Sample"),
             "measurement": apps.get_model("measurement.Measurement"),
         }
+        in_public_project = Q(dataset__project__isnull=True) | Q(
+            dataset__project__visibility=Visibility.PUBLIC
+        )
         visible = {
-            "project": lambda: kinds["project"].objects.get_visible(),
-            "dataset": lambda: kinds["dataset"].objects.all(),
-            "sample": lambda: kinds["sample"].objects.visible_to(user),
-            "measurement": lambda: kinds["measurement"].objects.visible_to(user),
+            "project": self.get_public_projects(),
+            "dataset": self.get_public_datasets(),
+            "sample": kinds["sample"]
+            .objects.visible_to(user)
+            .filter(in_public_project),
+            "measurement": kinds["measurement"]
+            .objects.visible_to(user)
+            .filter(in_public_project),
         }
         contributions = list(
             self.contributions.select_related("content_type")
@@ -456,18 +488,32 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             )
             if contribution.kind:
                 ids_by_kind[contribution.kind].add(contribution.object_id)
-        records = {
-            kind: {
-                str(pk): obj for pk, obj in visible[kind]().in_bulk(list(ids)).items()
-            }
-            for kind, ids in ids_by_kind.items()
-        }
+        records = {}
+        visible_ids = {}
+        for kind, ids in ids_by_kind.items():
+            if kind in ("project", "dataset"):
+                records[kind] = {
+                    str(pk): obj for pk, obj in visible[kind].in_bulk(list(ids)).items()
+                }
+                visible_ids[kind] = set(records[kind])
+            else:
+                visible_ids[kind] = {
+                    str(pk)
+                    for pk in visible[kind]
+                    .filter(pk__in=list(ids))
+                    .values_list("pk", flat=True)
+                }
         result = []
         for contribution in contributions:
-            record = records.get(contribution.kind, {}).get(str(contribution.object_id))
-            if record is not None:
-                contribution.record = record
-                result.append(contribution)
+            if str(contribution.object_id) not in visible_ids.get(
+                contribution.kind, ()
+            ):
+                continue
+            if contribution.kind in records:
+                contribution.record = records[contribution.kind][
+                    str(contribution.object_id)
+                ]
+            result.append(contribution)
         return result
 
     def get_role_counts(self, contributions=None):
@@ -564,14 +610,16 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         if not my_contributions:
             return Contributor.objects.none()
 
-        from django.db.models import Count, Q
-
-        # Match exact (content_type, object_id) pairs; separate filters could pair across objects.
-        shared_credit = Q()
+        ids_by_type = defaultdict(set)
         for content_type_id, object_id in my_contributions:
+            ids_by_type[content_type_id].add(object_id)
+        # One condition per kind of record, each matching the type and the id together, so a
+        # credit on one record is never paired with the type of another.
+        shared_credit = Q()
+        for content_type_id, object_ids in ids_by_type.items():
             shared_credit |= Q(
                 contributions__content_type_id=content_type_id,
-                contributions__object_id=object_id,
+                contributions__object_id__in=object_ids,
             )
 
         collaborators = (
@@ -846,6 +894,24 @@ class Person(AbstractUser, Contributor):
             reverse=True,
         )
         return {"current": current, "past": past}
+
+    def to_public_schema_org(self):
+        """Export the person as Schema.org metadata that is safe to publish on a page.
+
+        The affiliation is kept only when it is the verified, current primary affiliation the
+        page header shows, so the metadata never names an organization the page does not.
+
+        Returns:
+            The JSON-LD metadata without the email address and without an affiliation the page
+            leaves out.
+        """
+        data = super().to_public_schema_org()
+        shown = next(
+            (a for a in self.get_affiliation_history()["current"] if a.is_primary), None
+        )
+        if shown is None:
+            data.pop("affiliation", None)
+        return data
 
     def get_profile_completeness(self):
         """Say which parts of a complete profile the person has filled in.

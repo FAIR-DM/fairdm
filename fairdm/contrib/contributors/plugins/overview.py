@@ -105,10 +105,10 @@ class ContributorOverviewMixin:
             "api_url": safe_reverse("api:contributor-detail", uuid=contributor.uuid),
             "urls": {
                 "projects": safe_reverse(
-                    "contributor:contributorprojects", uuid=contributor.uuid
+                    "contributor:contributor-projects", uuid=contributor.uuid
                 ),
                 "datasets": safe_reverse(
-                    "contributor:contributordatasets", uuid=contributor.uuid
+                    "contributor:contributor-datasets", uuid=contributor.uuid
                 ),
             },
         }
@@ -128,8 +128,8 @@ class ContributorOverviewMixin:
         )
         state = person.account_state
         collaborators = person.get_collaborators(contributions=contributions)
-        projects = self.get_record_entries(contributions, "project")
-        datasets = self.get_record_entries(contributions, "dataset")
+        projects = [{"record": p, "owned": False} for p in person.get_public_projects()]
+        datasets = [{"record": d, "owned": False} for d in person.get_public_datasets()]
 
         context.update(
             {
