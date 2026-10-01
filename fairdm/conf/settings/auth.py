@@ -90,4 +90,5 @@ SOCIALACCOUNT_FORMS = {
 # fields; a kind left out keeps the shipped form.
 FAIRDM_PROFILE_FORMS = {
     "person": "fairdm.contrib.contributors.forms.profile.PersonProfileForm",
+    "organization": "fairdm.contrib.contributors.forms.profile.OrganizationProfileForm",
 }

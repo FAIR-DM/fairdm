@@ -1,5 +1,6 @@
-"""The forms a person edits their profile with, and the field they type their lists into."""
+"""The forms a person or an organization is edited with, and the field lists are typed into."""
 
+from dal import autocomplete
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -10,7 +11,7 @@ from easy_thumbnails.widgets import ImageClearableFileInput
 from fairdm.core import image_utils
 from fairdm.forms import ModelForm
 
-from ..models import Person
+from ..models import Organization, Person
 from ..profiles import language_names
 from ..validators import ISO_639_1_CODES
 
@@ -169,3 +170,117 @@ class PersonProfileForm(ModelForm):
     def clean_lang(self):
         """Keep each language once, in the order chosen."""
         return list(dict.fromkeys(self.cleaned_data["lang"]))
+
+
+class OrganizationProfileForm(ModelForm):
+    """The page where an organization's owner or an administrator edits its profile.
+
+    The website and the other links are two fields over the one stored list of links, the
+    website first. A portal adds or drops fields by subclassing this form and naming the
+    subclass in ``FAIRDM_PROFILE_FORMS``.
+
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        image: The logo. Ticking the clear box removes it.
+        name: The organization's name.
+        alternative_names: Other names, one per line.
+        parent: The organization this one is part of. The organization itself and any
+            organization beneath it are refused.
+        website: The first stored link. Clearing it promotes the next link on reopening.
+        links: The other web addresses, one per line.
+    """
+
+    image = forms.ImageField(
+        required=False,
+        label=_("Logo"),
+        help_text=format_lazy(
+            _("JPEG, PNG or WebP, up to {size} MB."),
+            size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
+        ),
+        validators=[image_utils.validate_image_file_size],
+        widget=ImageClearableFileInput(
+            thumbnail_options={"size": (150, 150), "crop": True}
+        ),
+    )
+    alternative_names = LinesField(
+        required=False,
+        label=_("Alternative names"),
+        help_text=_("Other names the organization is known by, one per line."),
+    )
+    parent = forms.ModelChoiceField(
+        queryset=Organization.objects.all(),
+        required=False,
+        label=_("Part of"),
+        help_text=_("The organization this one belongs to, if any."),
+        widget=autocomplete.ModelSelect2(url="autocomplete:organization"),
+    )
+    website = forms.CharField(
+        required=False,
+        label=_("Website"),
+        help_text=_("The organization's own web address."),
+        validators=[
+            URLValidator(
+                schemes=["http", "https"],
+                message=_("Enter a web address starting with http:// or https://."),
+            )
+        ],
+    )
+    links = LinesField(
+        required=False,
+        label=_("Other links"),
+        help_text=_(
+            "Web addresses of other pages about the organization, one per line."
+        ),
+        entry_validator=URLValidator(schemes=["http", "https"]),
+        error_messages={
+            "invalid_entry": _(
+                "“%(entry)s” is not a web address. Start it with http:// or https://."
+            ),
+        },
+    )
+
+    class Meta:
+        model = Organization
+        fields = [
+            "image",
+            "name",
+            "alternative_names",
+            "type",
+            "parent",
+            "city",
+            "country",
+            "profile",
+            "website",
+            "links",
+        ]
+        labels = {
+            "name": _("Name"),
+            "type": _("Type"),
+            "city": _("City"),
+            "country": _("Country"),
+            "profile": _("Description"),
+        }
+        help_texts = {
+            "name": _("The name the organization is publicly known by."),
+            "profile": _(
+                "A few lines about what the organization does. Markdown is supported."
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        stored = self.instance.links or []
+        self.initial["website"] = stored[0] if stored else ""
+        self.initial["links"] = stored[1:]
+        self.helper.form_tag = False
+
+    def clean(self):
+        """Store the website first among the links, and no link twice."""
+        cleaned = super().clean()
+        if "website" in cleaned and "links" in cleaned:
+            website = [cleaned["website"]] if cleaned["website"] else []
+            cleaned["links"] = list(dict.fromkeys([*website, *cleaned["links"]]))
+        return cleaned

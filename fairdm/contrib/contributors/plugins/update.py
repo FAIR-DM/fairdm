@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from fairdm.contrib.plugins import Plugin
 from fairdm.views import FairDMUpdateView
 
-from ..forms.profile import PersonProfileForm
+from ..forms.profile import OrganizationProfileForm, PersonProfileForm
 from ..models import Contributor
 
 
@@ -47,7 +47,10 @@ class Update(Plugin, FairDMUpdateView):
     page_title = _("Edit profile")
     success_message = _("Your changes were saved.")
     template_name = "contributors/plugins/update.html"
-    shipped_forms = {"person": PersonProfileForm}
+    shipped_forms = {
+        "person": PersonProfileForm,
+        "organization": OrganizationProfileForm,
+    }
 
     def get_form_class(self):
         """Use the portal's form for this kind of contributor, else the shipped one."""
@@ -56,7 +59,9 @@ class Update(Plugin, FairDMUpdateView):
         return import_string(path) if path else self.shipped_forms[kind]
 
     def get_page_title(self):
-        """Title the page as it is declared, with no model name interpolated."""
+        """Title the page for a person or an organization, with no model name interpolated."""
+        if self.base_object.is_organization:
+            return _("Edit organization")
         return self.page_title
 
     def get_success_url(self):

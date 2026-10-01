@@ -1360,11 +1360,30 @@ class Organization(Contributor):
         return self.name
 
     def clean(self):
-        """Validate the links and the ROR identifier."""
+        """Refuse a parent that would make the organization part of itself, then validate the links and the ROR identifier."""
         from django.core.exceptions import ValidationError
         from django.core.validators import URLValidator
 
         super().clean()
+
+        if (
+            self.pk
+            and self.parent_id
+            and (
+                self.parent_id == self.pk or self.parent_id in self.get_descendant_ids()
+            )
+        ):
+            raise ValidationError(
+                {
+                    "parent": ValidationError(
+                        _(
+                            "An organization cannot be part of itself or of one of "
+                            "its own sub-organizations."
+                        ),
+                        code="parent_loop",
+                    )
+                }
+            )
 
         if self.links:
             url_validator = URLValidator()
@@ -1515,6 +1534,45 @@ class Organization(Contributor):
             .filter(person_id=user.pk, type__gte=Affiliation.MembershipType.ADMIN)
             .exists()
         )
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this organization's profile: the people who keep its record.
+
+        The owner and the administrators with a current affiliation may, while their account is
+        active. A superuser, a holder of a portal role and an ordinary member get no right from
+        that alone.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user is active and keeps this organization's record.
+        """
+        return bool(getattr(user, "is_active", False) and self.is_managed_by(user))
+
+    def get_descendant_ids(self):
+        """Find every organization beneath this one, at any depth.
+
+        Walks the chain downward a level at a time, so a loop already stored ends when it
+        comes back to an organization it has seen.
+
+        Returns:
+            The primary keys of the sub-organizations, their own sub-organizations and so on.
+            Empty for an organization that is not saved yet.
+        """
+        found = set()
+        level = {self.pk} if self.pk else set()
+        while level:
+            level = (
+                set(
+                    Organization.objects.filter(parent_id__in=level).values_list(
+                        "pk", flat=True
+                    )
+                )
+                - found
+            )
+            found |= level
+        return found
 
     def get_hierarchy(self):
         """Place the organisation among the organisations around it.

@@ -218,6 +218,7 @@ class Overview(OverviewPlugin):
         context = self.get_shared_context()
         members = organization.get_current_memberships()
         can_manage = organization.is_managed_by(user)
+        update_url = organization.get_update_url()
 
         projects = [
             {"record": p, "owned": p.owner_id == organization.pk}
@@ -232,6 +233,8 @@ class Overview(OverviewPlugin):
                 "overview_icon": "organization",
                 "organization": organization,
                 "can_manage": can_manage,
+                "can_edit": organization.is_editable_by(user),
+                "update_url": update_url,
                 "is_member": organization.has_member(user),
                 "members": fill_slots(members, self.member_slots, reserve=True),
                 "projects": self.get_record_card(projects, lambda p: p.is_active),
@@ -254,20 +257,28 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A logo"),
                         "done": complete["image"],
+                        "url": f"{update_url}#id_image",
                         "required": False,
                     },
                     {
                         "label": gettext("The type of organization"),
                         "done": complete["type"],
+                        "url": f"{update_url}#id_type",
                     },
                     {
                         "label": gettext("City and country"),
                         "done": complete["location"],
+                        "url": f"{update_url}#id_city",
                     },
-                    {"label": gettext("A description"), "done": complete["profile"]},
+                    {
+                        "label": gettext("A description"),
+                        "done": complete["profile"],
+                        "url": f"{update_url}#id_profile",
+                    },
                     {
                         "label": gettext("A website"),
                         "done": complete["links"],
+                        "url": f"{update_url}#id_website",
                         "required": False,
                     },
                 ],

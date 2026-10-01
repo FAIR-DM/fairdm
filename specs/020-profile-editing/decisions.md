@@ -188,3 +188,25 @@ the two tests that open the page after a save (`TestReturnToTheOverview`) fail w
 **Revisit if:** a portal's own templates style messages by the old tag strings.
 
 **ADR:** none.
+
+## D15. The parent field uses the package's organization picker
+
+`AffiliationForm` already selects an organization with django-autocomplete-light's `ModelSelect2`
+against `autocomplete:organization`, so the parent field uses the same widget. The two select2
+widgets in `forms/widgets.py` are multiple choice and do not fit a single parent. The picker
+searches every organization, the one being edited included, and the refusal then arrives as an
+error on the field naming the reason (code `parent_loop`) instead of the generic "not a valid
+choice" a narrowed queryset would give.
+
+**Revisit if:** the picker should hide the organizations that would be refused.
+
+**ADR:** none.
+
+## D16. Editing an organization requires an active account
+
+`Organization.is_editable_by` is `is_managed_by(user)` and `user.is_active`. `is_managed_by` alone
+does not look at the account, and an inactive account must not keep the right even where the
+sign-in backend lets it stay signed in (D10). There is no superuser or community manager term in
+this story.
+
+**ADR:** none.

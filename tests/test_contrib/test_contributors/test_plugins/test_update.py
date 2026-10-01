@@ -38,6 +38,10 @@ class ExtraNamesPersonForm(PersonProfileForm):
         fields = [*PersonProfileForm.Meta.fields, "first_name", "last_name"]
 
 
+class PortalOrganizationForm(OrganizationProfileForm):
+    """A portal's own organization form, named in ``FAIRDM_PROFILE_FORMS`` below."""
+
+
 def _update_url(contributor):
     return reverse("contributor:overview-update", kwargs={"uuid": contributor.uuid})
 
@@ -339,6 +343,35 @@ class TestProfileFormsSetting:
         assert settings.FAIRDM_PROFILE_FORMS["person"] == (
             "fairdm.contrib.contributors.forms.profile.PersonProfileForm"
         )
+
+    def test_the_shipped_setting_names_the_shipped_organization_form(self, settings):
+        assert settings.FAIRDM_PROFILE_FORMS["organization"] == (
+            "fairdm.contrib.contributors.forms.profile.OrganizationProfileForm"
+        )
+
+    def test_the_shipped_organization_form_is_used_when_the_setting_is_absent(
+        self, signed_in, kept_organization, settings
+    ):
+        del settings.FAIRDM_PROFILE_FORMS
+
+        response = signed_in(kept_organization.owner).get(
+            _update_url(kept_organization.organization)
+        )
+
+        assert type(response.context["form"]) is OrganizationProfileForm
+
+    def test_the_portals_own_organization_form_is_used_when_the_setting_names_one(
+        self, signed_in, kept_organization, settings
+    ):
+        settings.FAIRDM_PROFILE_FORMS = {
+            "organization": f"{__name__}.PortalOrganizationForm",
+        }
+
+        response = signed_in(kept_organization.owner).get(
+            _update_url(kept_organization.organization)
+        )
+
+        assert type(response.context["form"]) is PortalOrganizationForm
 
 
 def _organization_stored(organization):
