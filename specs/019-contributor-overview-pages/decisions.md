@@ -48,3 +48,39 @@ the behaviour at the limit. How the lists look is not specified.
 Wording, icons, colours, badge styles and spacing were reviewed on the prototype and are not
 restated. A requirement here says what the page tells a reader, and the prototype branch
 `sketch/contributor-profiles` shows how it was agreed to look.
+
+## D1. The build starts from the prototype
+
+The prototype branch is merged onto the build branch and its markup, copy and layout are kept.
+Tests are written against the specification's scenarios, and a test that fails drives a fix.
+
+**ADR:** none. The same approach as specification 018, local to how this feature was built.
+
+## D2. One plugin class, no mixin
+
+The prototype's `ContributorOverviewMixin` has a single user. It is folded into the registered
+`Overview` plugin.
+
+**ADR:** none. A local simplification, nothing downstream inherits it.
+
+## D3. A public dataset inside a private project is not listed
+
+The prototype filters datasets on their own visibility. The glossary says a private project hides
+everything beneath it, so a contributor's page checks the project as well.
+
+**ADR:** none. It applies an existing rule and adds no new one.
+
+## D4. The pending-action tests follow the component, and the badge tests go
+
+`overview/includes/pending_action.html` became the `c-actions.pending` component. Three existing
+tests move to it unchanged in what they assert. Two expected a "Coming soon" badge on the button,
+which the maintainer removed in review of the prototype; they are deleted.
+
+**ADR:** none. A test maintenance record.
+
+## D5. Pillow is declared directly
+
+The development data command draws placeholder logos with Pillow, and FairDM's image fields need
+it at run time already.
+
+**ADR:** none. It records an existing dependency, and changes no behaviour.
