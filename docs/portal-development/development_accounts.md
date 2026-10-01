@@ -12,7 +12,7 @@ Two commands create development accounts, for two different purposes:
 | --- | --- | --- |
 | `manage.py create_dev_accounts` | Five accounts at `fairdm.org`, one per portal role and one holding none | Seeing what each [portal role](portal_roles.md) can do |
 | `manage.py seed_overviews` | Three accounts at `example.com`: a regular user, a staff user and a superuser | Opening the [overview pages](overview-pages.md) as a visitor, as a team member and as an administrator |
-| `manage.py seed_profiles` | Three more accounts at `example.com`, around the organization `regular.user` owns: an administrator, an ordinary member and a former administrator | Opening and saving an [organization's editing page](contributors.md#editing-a-profile) as each kind of person around it |
+| `manage.py seed_profiles` | Five more accounts at `example.com`: an administrator, an ordinary member and a former administrator of the organization `regular.user` owns, a community manager and a data curator | Opening and saving an [organization's editing page](contributors.md#editing-a-profile) as each kind of person around it |
 
 ```bash
 poetry run python manage.py create_dev_accounts

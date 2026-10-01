@@ -1,0 +1,100 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "approve",
+  "risk": "medium",
+  "scope": "Feature branch 020-profile-editing vs origin/main (git diff origin/main...HEAD), everything outside specs/. One reviewer carrying correctness, spec-compliance, documentation and security lenses. Probed in a throwaway pytest module under /tmp (removed): form mass assignment, link schemes, image types, the parent loop on stored looped data, subclassed forms from the docs, all HTTP methods against the editing page as a stranger, the ?next redirect, and output escaping of name, biography and links on the editing and overview pages.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "findings": [
+    {
+      "id": "RV-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Two documentation pages say seed_profiles / profile_accounts() give three accounts; the code creates and returns five.",
+      "evidence": "docs/portal-development/development_accounts.md:15 ('Three more accounts ... an administrator, an ordinary member and a former administrator') and docs/portal-development/overview-pages.md:800 ('profile_accounts(), which returns the three accounts around the organization'). fairdm/management/commands/create_dev_accounts.py:78-84 defines five PROFILE_ACCOUNTS, demo/seed/common.py profile_accounts() returns all five (its own docstring lists five), and development_accounts.md:75 on the same page says five.",
+      "reproduction": "profile_accounts().keys() -> admin.user, member.user, former-admin.user, community-manager.user, data-curator.user.",
+      "suggested_fix": "Change 'Three more accounts ...' in development_accounts.md:15 and 'the three accounts' in overview-pages.md:800 to name all five, including the Community Manager and Data Curator accounts."
+    },
+    {
+      "id": "RV-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The photo and logo fields say 'JPEG, PNG or WebP' but accept any raster format Pillow reads.",
+      "evidence": "fairdm/contrib/contributors/forms/profile.py:149 and :228 declare forms.ImageField with only validate_image_file_size. The help text on both, and the field tables in docs/user-guide/account_management/editing_your_profile.md and editing_an_organizations_profile.md, name JPEG, PNG or WebP. Probe: GIF, BMP and TIFF uploads to PersonProfileForm all returned is_valid() True. SVG is refused, and the stored file is re-encoded to WebP by the model field's resize_source, so there is no stored-content risk; the gap is between what the page states and what it does.",
+      "reproduction": "PersonProfileForm(data, {'image': SimpleUploadedFile('a.gif', <20x20 GIF bytes>)}, instance=person).is_valid() -> True.",
+      "suggested_fix": "Either add a FileExtensionValidator(['jpg','jpeg','png','webp']) to both image fields, or drop the format list from the two help texts and the two user-guide rows."
+    },
+    {
+      "id": "RV-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A portal's organization form that keeps `website` and drops `links` accepts a website and silently stores nothing.",
+      "evidence": "fairdm/contrib/contributors/forms/profile.py:313-318: clean() merges the website into the stored list only when both 'website' and 'links' are in cleaned_data. `website` is not a model field, so without `links` it never reaches the instance. docs/portal-development/contributors.md ('To drop a field, leave it out of `fields` in the same way') presents dropping any field as safe and names only lang, website and parent as tested.",
+      "reproduction": "Subclass OrganizationProfileForm with Meta.fields minus 'links'; post website='https://new.org' for an organization whose links are ['https://w.org','https://b.org']; is_valid() True, save() succeeds, links are unchanged.",
+      "suggested_fix": "In clean(), when 'links' is not a form field, build cleaned['links'] from the website followed by the instance's stored links after the first, and add 'links' handling in save, or state in contributors.md that `website` requires `links`."
+    },
+    {
+      "id": "RV-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "test_a_posted_value_for_a_field_the_page_does_not_carry_is_ignored cannot fail, and no test posts a real unlisted model field.",
+      "evidence": "tests/test_contrib/test_contributors/test_plugins/test_update.py:725-738 posts 'identifiers', 'members', 'owner' or 'ror' = 'x' and asserts no identifier exists and affiliations are unchanged. None of those names is a writable field on Organization, so no form, however wide its Meta.fields, would create an identifier or affiliation from the string 'x'; the test also does not assert the post succeeded. The real guard for FR-010 is the rendered control-name set (test_update.py:211 and :698), which is sound. A regression that added e.g. 'email', 'is_active', 'is_claimed' or 'is_superuser' to PersonProfileForm.Meta.fields would be caught only by that GET-side name set, not by any POST.",
+      "reproduction": "Add 'location' or 'synced_data' to OrganizationProfileForm.Meta.fields: the parametrised test stays green.",
+      "suggested_fix": "Replace the parameters with real fields of the model the page must not write (person: email, is_active, is_claimed, is_superuser, is_staff, first_name; organization: location, synced_data), post them alongside valid data, assert a 302 and assert each stored value is unchanged."
+    },
+    {
+      "id": "RV-005",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A stored record that fails model validation on a field the page does not carry makes the whole editing page unusable, with an error the editor has no way to act on.",
+      "evidence": "fairdm/contrib/contributors/forms/profile.py:115-127 moves such errors to the form as a whole and saves nothing. Probe: a claimed person whose email is None gets non-field error 'Claimed users cannot remove their email address.' on every save of their own profile (Person.clean, models.py:815), although the page has no email field; a malformed ORCID or ROR identifier does the same. The behaviour is deliberate and documented in contributors.md, and is better than the server error it replaces. Whether the states are reachable on a real portal (an ORCID sign-in that yields no email, an imported identifier) was not established.",
+      "suggested_fix": "None required for this feature. If the state proves reachable, the smallest change is for the non-field message to say the problem is outside this page and where it is corrected."
+    },
+    {
+      "id": "RV-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "LinesField puts no bound on the number or length of entries stored in the alternative names and links JSON fields.",
+      "evidence": "fairdm/contrib/contributors/forms/profile.py:51-63 (to_python). Probe: 20,000 alternative names of ~50-250 characters each validated and would be stored, and are then rendered on the public overview page. The only ceiling is Django's DATA_UPLOAD_MAX_MEMORY_SIZE (2.5 MB per request). Reachable by any signed-in person on their own profile; the consequence is a slow, oversized public page for that one profile.",
+      "reproduction": "PersonProfileForm({'name': 'N', 'alternative_names': '\\n'.join(str(i)*50 for i in range(20000))}, instance=person).is_valid() -> True.",
+      "suggested_fix": "Give LinesField a max_entries argument checked in validate(), and set it (for example 50) on the four uses."
+    },
+    {
+      "id": "RV-007",
+      "severity": "low",
+      "confidence": "speculative",
+      "claim": "One script in the package still looks for the old Bootstrap message class that the removed MESSAGE_TAGS used to emit.",
+      "evidence": "fairdm/conf/settings/apps.py no longer sets MESSAGE_TAGS (previously SUCCESS -> 'success alert-success'). fairdm/contrib/contributors/static/contributors/js/contributor-filter.js:67 queries '.alert-success' inside '#contribution-modal-content' to decide when to close the modal and reload. No template or Python in fairdm/, demo/ or tests/ reads message.tags for the old strings, and that script also depends on bootstrap.Modal, so it is likely already dead. Not established whether the modal's response ever rendered a django.contrib.messages tag.",
+      "suggested_fix": "Confirm whether the contribution modal is still served; if it is, key the script on something other than the message tag."
+    }
+  ],
+  "notes": [
+    "Access rule: confirmed gated on every method. A signed-in stranger gets 403 on GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS for both a person and an organization; a visitor is redirected to sign in; the check re-runs at POST, so a profile claimed or reactivated mid-edit refuses the save (tests at test_update.py:990 and :1006 change the record between GET and POST and assert 403 plus unchanged stored values). The overview pages offer the action from the same is_editable_by call.",
+    "Mass assignment: a POST carrying is_superuser, is_staff, email, is_claimed, is_active, first_name and password to PersonProfileForm changed none of them; the base ModelForm's explicit_fields plus an allowlisted Meta.fields holds.",
+    "Output escaping: a name of '<script>…</script>\"><img …>', a biography containing a script tag and a link containing '\"onmouseover=' all render escaped or sanitised on the editing page and the overview. safe_markdown strips script, iframe, event handlers, style attributes and javascript: hrefs. Link schemes are limited to http and https by the form.",
+    "Redirect: a posted or query-string next=https://evil.example/ is ignored; the save always returns to the profile's own address.",
+    "Parent loop: get_descendant_ids terminates on a loop already stored (A part of B, B part of A) and such a record can still be given a valid parent or have it cleared.",
+    "FAIRDM_PROFILE_FORMS: import_string receives only the settings value; no request input reaches it.",
+    "Docs examples run as written: the is_editable_by block, the LinesField example (returns the documented list), the Meta subclass adding first_name and last_name (both saved), and forms without lang, website or parent.",
+    "fairdm/contrib/plugins/access.py:111 says an additional view's predicate is read from the owning plugin, while plugins/update.py and contributors.md say an additional view is governed by its own check. The code agrees with the latter (plugin_class is bound on the instance, and has_permission passes the class), so the access.py docstring is the stale one. The page's safety depends on this staying as it is; the refusal tests would catch a change.",
+    "The docstring first line of Organization.clean (models.py) and the module docstring of demo/management/commands/seed_profiles.py run past the line length used around them.",
+    "forms/profile.py module docstring: 'and the field lists are typed into' reads as a dropped word.",
+    "specs/020-profile-editing/feature-state.json was already modified in the working tree when this review started; not touched by the review."
+  ]
+}

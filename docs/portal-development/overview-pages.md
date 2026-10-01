@@ -797,8 +797,8 @@ creating the missing ones, `remove_own_projects()` deletes the projects an earli
 `grant_team_rights(user, *records)` gives an account view, change and delete rights on the projects
 and datasets it is given. `staff.user` holds those rights on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
-`manage.py seed_profiles` also uses `profile_accounts()`, which returns the three accounts around
-the organization `regular.user` owns the same way. Both read their accounts through
+`manage.py seed_profiles` also uses `profile_accounts()`, which returns the five accounts the
+editing pages are tried with the same way. Both read their accounts through
 `create_accounts(accounts)`, which creates the missing ones of any list of
 `(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the
 address before the `@`.

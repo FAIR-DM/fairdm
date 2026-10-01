@@ -805,7 +805,10 @@ class PersonProfileForm(BasePersonProfileForm):
 
 The page then shows the two extra inputs and stores what is entered. To drop a field, leave it out
 of `fields` in the same way. A form without `lang`, `website` or `parent` builds and saves. Without
-`website`, the `links` field shows every stored link, the first one included.
+`website`, the `links` field shows every stored link, the first one included. A form that keeps
+`website` has to keep `links` as well, because the website is stored as the first of the links.
+
+`LinesField` accepts at most `max_entries` lines, 50 unless the field says otherwise.
 
 ```{note}
 A portal that overrides `contributors/overview/person.html` keeps the disabled edit button, the

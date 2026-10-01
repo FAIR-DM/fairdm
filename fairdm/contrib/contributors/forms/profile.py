@@ -1,9 +1,9 @@
-"""The forms a person or an organization is edited with, and the field lists are typed into."""
+"""The forms a person or an organization is edited with, and the field their lists are typed into."""
 
 from dal import autocomplete
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.core.validators import URLValidator
+from django.core.validators import FileExtensionValidator, URLValidator
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
@@ -25,20 +25,24 @@ class LinesField(forms.CharField):
     Args:
         entry_validator: Called with each entry. A ``ValidationError`` it raises is reported
             for the first entry at fault, with the entry in the error's ``params``.
+        max_entries: The most entries the field accepts.
         **kwargs: Passed to ``CharField``.
 
     Attributes:
         entry_validator: The per-entry validator, or None.
+        max_entries: The most entries the field accepts.
     """
 
     default_error_messages = {
         "invalid_entry": _("“%(entry)s” is not valid."),
+        "too_many": _("Enter no more than %(max)d lines."),
     }
 
-    def __init__(self, *, entry_validator=None, **kwargs):
+    def __init__(self, *, entry_validator=None, max_entries=50, **kwargs):
         kwargs.setdefault("widget", forms.Textarea(attrs={"rows": 4}))
         super().__init__(**kwargs)
         self.entry_validator = entry_validator
+        self.max_entries = max_entries
 
     def prepare_value(self, value):
         """Show a list one entry per line."""
@@ -69,9 +73,16 @@ class LinesField(forms.CharField):
             value: The cleaned list.
 
         Raises:
-            ValidationError: The field is required and empty, or an entry is not valid.
+            ValidationError: The field is required and empty, has too many entries, or an
+                entry is not valid.
         """
         super().validate(value)
+        if len(value) > self.max_entries:
+            raise ValidationError(
+                self.error_messages["too_many"],
+                code="too_many",
+                params={"max": self.max_entries},
+            )
         if self.entry_validator is None:
             return
         for entry in value:
@@ -153,7 +164,10 @@ class PersonProfileForm(ProfileForm):
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
         ),
-        validators=[image_utils.validate_image_file_size],
+        validators=[
+            image_utils.validate_image_file_size,
+            FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
+        ],
         widget=ImageClearableFileInput(
             thumbnail_options={"size": (150, 150), "crop": True}
         ),
@@ -232,7 +246,10 @@ class OrganizationProfileForm(ProfileForm):
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
         ),
-        validators=[image_utils.validate_image_file_size],
+        validators=[
+            image_utils.validate_image_file_size,
+            FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
+        ],
         widget=ImageClearableFileInput(
             thumbnail_options={"size": (150, 150), "crop": True}
         ),

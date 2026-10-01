@@ -260,3 +260,19 @@ four full parallel runs on main and at the same rate on this branch, and passes 
 caused by this feature and is left for its own fix.
 
 **ADR:** none. A defect record for another piece of work.
+
+## D22. Review findings fixed directly
+
+The code review approved with no critical or high finding. Five of its seven low findings were a
+few lines each and were fixed without a dispatched story: the two documentation pages that said
+three seeded accounts now say five, the photo and logo fields refuse formats the page does not
+name, a list field accepts at most 50 lines, the developer guide says a form that keeps the
+website field has to keep the links field, and the test that posted fields the page does not
+carry now posts real model fields and checks each stored value.
+
+Two were carried. A stored record that fails the model's validation on a field the page does not
+carry cannot be saved from the page, and the message does not yet say where to correct it. An old
+script for a contribution dialog looks for a message class the removed setting used to supply,
+and the dialog it belongs to already depends on a library the package no longer loads.
+
+**ADR:** none. A record of the review's fixes.

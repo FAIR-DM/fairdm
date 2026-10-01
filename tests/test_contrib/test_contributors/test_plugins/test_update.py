@@ -207,6 +207,36 @@ class TestPersonUpdate:
         keeper.refresh_from_db()
         assert keeper.modified == modified
 
+    def test_a_posted_value_for_a_field_the_page_does_not_carry_is_ignored(
+        self, signed_in, keeper, profile_data
+    ):
+        email = keeper.email
+
+        response = signed_in(keeper).post(
+            _update_url(keeper),
+            {
+                **profile_data,
+                "email": "taken.over@example.com",
+                "is_active": "",
+                "is_claimed": "",
+                "is_superuser": "on",
+                "is_staff": "on",
+                "first_name": "Replaced",
+                "password": "replaced",
+            },
+        )
+
+        assert response.status_code == 302
+        stored = Person.objects.get(pk=keeper.pk)
+        assert stored.name == profile_data["name"]
+        assert stored.email.lower() == email.lower()
+        assert stored.is_active
+        assert stored.is_claimed
+        assert not stored.is_superuser
+        assert not stored.is_staff
+        assert stored.first_name == keeper.first_name
+        assert stored.password == keeper.password
+
     # Scenario 10
     def test_the_page_offers_no_way_to_change_the_account_or_what_it_does_not_cover(
         self, signed_in
@@ -721,19 +751,33 @@ class TestOrganizationUpdate:
             "links",
         }
 
-    @pytest.mark.parametrize("field", ["identifiers", "members", "owner", "ror"])
     def test_a_posted_value_for_a_field_the_page_does_not_carry_is_ignored(
-        self, signed_in, kept_organization, organization_profile_data, field
+        self, signed_in, kept_organization, organization_profile_data
     ):
         organization = kept_organization.organization
         members_before = set(organization.affiliations.values_list("pk", flat=True))
+        synced_before = organization.synced_data
 
-        signed_in(kept_organization.owner).post(
-            _update_url(organization), {**organization_profile_data, field: "x"}
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization),
+            {
+                **organization_profile_data,
+                "synced_data": '{"id": "https://ror.org/000000000"}',
+                "location": "1",
+                "uuid": "c-replaced",
+                "identifiers": "x",
+                "members": "x",
+            },
         )
 
-        assert not organization.identifiers.exists()
-        assert set(organization.affiliations.values_list("pk", flat=True)) == members_before
+        assert response.status_code == 302
+        stored = Organization.objects.get(pk=organization.pk)
+        assert stored.name == organization_profile_data["name"]
+        assert stored.synced_data == synced_before
+        assert stored.location_id is None
+        assert stored.uuid == organization.uuid
+        assert not stored.identifiers.exists()
+        assert set(stored.affiliations.values_list("pk", flat=True)) == members_before
 
     # Scenario 11
     @pytest.mark.parametrize("method", ["get", "post"])

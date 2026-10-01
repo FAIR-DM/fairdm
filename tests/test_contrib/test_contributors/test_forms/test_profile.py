@@ -27,6 +27,14 @@ class TestLinesField:
     def test_a_repeated_entry_is_kept_once_in_the_order_first_seen(self):
         assert LinesField().clean("b\na\nb\nc\na") == ["b", "a", "c"]
 
+    def test_more_entries_than_the_field_accepts_are_refused(self):
+        field = LinesField(max_entries=2)
+
+        assert field.clean("a\nb") == ["a", "b"]
+        with pytest.raises(ValidationError) as refused:
+            field.clean("a\nb\nc")
+        assert refused.value.code == "too_many"
+
     def test_spaces_around_an_entry_are_trimmed(self):
         assert LinesField().clean("  first  \n\tsecond ") == ["first", "second"]
 
@@ -160,6 +168,15 @@ class TestPersonProfileForm:
         form = PersonProfileForm(profile_data, {"image": upload}, instance=person)
 
         assert form.has_error("image", code="invalid_image")
+
+    def test_an_image_in_a_format_the_page_does_not_name_is_refused(
+        self, person, profile_data, image_upload
+    ):
+        form = PersonProfileForm(
+            profile_data, {"image": image_upload("photo.gif")}, instance=person
+        )
+
+        assert form.has_error("image", code="invalid_extension")
 
     def test_an_image_over_the_size_limit_is_refused_on_the_photo_field(
         self, person, profile_data, image_upload, monkeypatch
