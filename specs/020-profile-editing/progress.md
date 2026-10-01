@@ -13,3 +13,9 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k "TestPersonIsEditableBy or TestOrganizationIsEditableBy or TestContributorUpdateUrl"` gives 11 failed, for `AttributeError: no attribute 'is_editable_by'` and `NoReverseMatch: contributor-update`. That is the expected red. `uv run pre-commit run --all-files` passes.
 - Next: T003, the page tests.
 - Watch: the organization test lives in its own class so the next story can extend it.
+
+## 2026-10-01T16:30:00Z · Implementer US1 · T003
+- Did: wrote `test_plugins/test_update.py` with `TestPersonUpdate` (scenarios 2 to 6 and 8 to 11 against the real page, a superuser who is somebody else, a missing profile, the changed name on a credited record) and `TestProfileFormsSetting` (setting absent, naming the other kind only, naming a portal form, the shipped default). Moved the `image_upload` and `profile_data` fixtures from the new `test_forms/conftest.py` up to `test_contributors/conftest.py` so the form tests and the page tests share them; no existing fixture changed.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0` stops at collection with `ModuleNotFoundError: fairdm.contrib.contributors.forms.profile`, the expected red. `uv run pre-commit run --all-files` passes.
+- Next: T004, the overview tests.
+- Watch: the checks on message level and field error codes, not wording. The credited-record test requests the project's overview, so it will show whether that page lists its credits; if not, T005 moves it to the page that does.

@@ -1,9 +1,12 @@
 """Fixtures for contributor system tests."""
 
+from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.utils import get_anonymous_user
+from PIL import Image
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import (
@@ -330,3 +333,27 @@ def credited_world(db):
         private_mate=private_mate,
         private_dataset_mate=private_dataset_mate,
     )
+
+
+@pytest.fixture
+def image_upload():
+    """Build a small valid image upload."""
+
+    def build(name="photo.png"):
+        buffer = BytesIO()
+        Image.new("RGB", (20, 20), "blue").save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    return build
+
+
+@pytest.fixture
+def profile_data():
+    """Every field of a person's profile form, filled in with valid values."""
+    return {
+        "name": "Dr. Ada Lovelace",
+        "alternative_names": "A. Lovelace\nAugusta Ada King",
+        "profile": "Mathematician and writer.",
+        "links": "https://example.org/ada\nhttp://example.org/notes",
+        "lang": ["en", "fr"],
+    }

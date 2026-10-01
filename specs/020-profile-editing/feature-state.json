@@ -92,8 +92,17 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestPersonUpdate",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestProfileFormsSetting"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (red: collection error, ModuleNotFoundError for forms.profile, exit 2)"
+            ]
+          }
         },
         {
           "id": "T004",
