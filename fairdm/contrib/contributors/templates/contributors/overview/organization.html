@@ -67,7 +67,7 @@
   {% elif user.is_authenticated and not is_member %}
     {% translate "Request to join" as label %}
     {% translate "Ask the organization's administrators to add you as a member, so it shows as your affiliation." as reason %}
-    {% include "overview/includes/pending_action.html" with label=label icon="add" reason=reason %}
+    <c-actions.pending label="{{ label }}" icon="add" reason="{{ reason }}" />
   {% endif %}
 {% endblock overview.actions %}
 
@@ -85,15 +85,14 @@
       {% if organization.profile %}
         <div class="prose max-w-none">{{ organization.profile|safe_markdown }}</div>
       {% elif can_manage %}
-        <c-alert variant="info" icon="info" soft class="text-sm">
+        <c-missing>
           <span>{% translate "Nobody has described this organization yet. A short description tells visitors what it does and why its name appears on this portal's data." %}</span>
           {% translate "Write a description" as label %}
           {% translate "Describe what the organization does." as reason %}
-          {% include "overview/includes/pending_action.html" with label=label icon="edit" reason=reason variant="primary" %}
-        </c-alert>
+          <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" variant="primary" />
+        </c-missing>
       {% else %}
-        {% translate "No description has been added yet." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
+        <c-missing><span>{% translate "No description has been added yet." %}</span></c-missing>
       {% endif %}
     </c-card>
   {% endblock overview.about %}
@@ -130,8 +129,7 @@
           {% endif %}
         </ul>
       {% else %}
-        {% translate "Nobody has listed this organization as an affiliation yet." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
+        <c-missing><span>{% translate "Nobody has listed this organization as an affiliation yet." %}</span></c-missing>
       {% endif %}
     </c-card>
   {% endblock overview.members %}
@@ -140,10 +138,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       {% translate "Projects" as title %}
       {% translate "This organization doesn't own and isn't credited on any public project yet." as empty %}
-      {% include "contributors/overview/includes/records_card.html" with card=projects kind="project" variant="info" all_url=urls.projects %}
+      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" all_url="{{ urls.projects }}" empty="{{ empty }}" />
       {% translate "Datasets" as title %}
       {% translate "No public dataset is credited to this organization or belongs to a project it owns yet." as empty %}
-      {% include "contributors/overview/includes/records_card.html" with card=datasets kind="dataset" variant="success" all_url=urls.datasets %}
+      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" all_url="{{ urls.datasets }}" empty="{{ empty }}" />
     </div>
   {% endblock overview.records %}
 
@@ -171,7 +169,7 @@
   {% endblock overview.identifiers %}
 
   {% block overview.links %}
-    {% include "contributors/overview/includes/links_card.html" %}
+    <c-card.links :links="links" />
   {% endblock overview.links %}
 
   {% block overview.location %}
@@ -182,43 +180,7 @@
   {% endblock overview.location %}
 
   {% block overview.hierarchy %}
-    <c-card title="{% translate 'Organization hierarchy' %}" class="bg-base-100" data-card="hierarchy">
-      {% if hierarchy.parent or hierarchy.children %}
-        <ul class="menu menu-sm w-full p-0">
-          {% if hierarchy.parent %}
-            <li>
-              {% include "contributors/overview/includes/hierarchy_node.html" with node=hierarchy.parent %}
-              <ul>
-                {% for sibling in hierarchy.siblings %}
-                  <li>
-                    {% include "contributors/overview/includes/hierarchy_node.html" with node=sibling %}
-                    {% if sibling.pk == organization.pk and hierarchy.children %}
-                      <ul>
-                        {% for child in hierarchy.children %}
-                          <li>{% include "contributors/overview/includes/hierarchy_node.html" with node=child %}</li>
-                        {% endfor %}
-                      </ul>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </li>
-          {% else %}
-            <li>
-              {% include "contributors/overview/includes/hierarchy_node.html" with node=organization %}
-              <ul>
-                {% for child in hierarchy.children %}
-                  <li>{% include "contributors/overview/includes/hierarchy_node.html" with node=child %}</li>
-                {% endfor %}
-              </ul>
-            </li>
-          {% endif %}
-        </ul>
-      {% else %}
-        {% translate "No parent organization and no institutes, departments or groups are recorded for this organization." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
-      {% endif %}
-    </c-card>
+    <c-card.hierarchy :organization="organization" :hierarchy="hierarchy" />
   {% endblock overview.hierarchy %}
 
   {% block overview.activity %}

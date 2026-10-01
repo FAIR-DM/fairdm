@@ -1,6 +1,14 @@
 {% load i18n %}
+{% comment %}
+  <c-card.affiliations.row> — one affiliation in the Affiliations card: the organization, the
+  period, and whether it is the primary one.
+
+  Attributes:
+    affiliation  – an Affiliation carrying `start_text` and `end_text`
+{% endcomment %}
+<c-vars affiliation />
 <li class="flex flex-col gap-1 min-w-0">
-  <c-contributor.affiliation :organization="affiliation.organization" class="font-medium" />
+  <c-contributor.affiliation :organization="affiliation.organization" class="font-medium" only />
   <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2">
     {% if affiliation.start_text or affiliation.end_text %}
       <span>{% if affiliation.start_text %}{{ affiliation.start_text }}{% else %}?{% endif %} – {% if affiliation.end_text %}{{ affiliation.end_text }}{% else %}{% translate "present" %}{% endif %}</span>

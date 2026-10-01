@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}
+  <c-actions.pending> — a button for something FairDM can't do yet. It is disabled, and its title
+  says what it will do.
+
+  Attributes:
+    label    – the button's text
+    icon     – an icon before the text
+    reason   – what the button will do once it exists
+    variant  – "primary" for a filled button (default: outlined)
+    size     – "xs" or "sm" (default "sm")
+{% endcomment %}
+<c-vars label icon reason variant size="sm" />
+<button type="button"
+        class="btn btn-{{ size }} {% if variant == 'primary' %}btn-primary{% else %}btn-outline{% endif %}"
+        disabled
+        title="{{ reason }}">
+  {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" only />{% endif %}
+  {{ label }}
+  <span class="sr-only">{% translate "Not available yet." %} {{ reason }}</span>
+</button>

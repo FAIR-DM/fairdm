@@ -136,7 +136,7 @@
           <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
             {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
             {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a filterable table." as reason %}
-            {% include "overview/includes/pending_action.html" with label=label icon="data" reason=reason size="xs" %}
+            <c-actions.pending label="{{ label }}" icon="data" reason="{{ reason }}" size="xs" />
           </div>
         {% endif %}
       </c-card>

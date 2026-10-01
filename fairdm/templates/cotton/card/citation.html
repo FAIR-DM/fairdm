@@ -24,6 +24,6 @@
     </button>
     {% translate "Export" as label %}
     {% translate "The citation in APA, BibTeX and other formats." as reason %}
-    {% include "overview/includes/pending_action.html" with label=label icon="download" reason=reason %}
+    <c-actions.pending label="{{ label }}" icon="download" reason="{{ reason }}" only />
   </c-slot>
 </c-card>

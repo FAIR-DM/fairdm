@@ -1,21 +1,30 @@
 {% load i18n humanize %}
 {% comment %}
-  The projects or the datasets a contributor is behind: active ones first, then the most recently
-  updated, five at most. Include with:
-    title, card ({shown, more, total}), kind ("project" or "dataset"), variant, all_url, empty
+  <c-card.records> — the projects or the datasets a contributor is behind: active ones first,
+  then the most recently updated.
+
+  Attributes:
+    title    – the card's title
+    records  – {shown: [{record, owned}], more: int, total: int}
+    kind     – "project" or "dataset", which picks the icon and what each row says
+    variant  – the theme colour of the record type
+    all_url  – where the full list lives, shown as "View all" and on the count
+    empty    – what to say when there are none
+    class    – extra classes on the card
 {% endcomment %}
-<c-card title="{{ title }}" class="bg-base-100 min-w-0" data-card="{{ kind }}s">
+<c-vars title records kind variant all_url empty class />
+<c-card title="{{ title }}" class="bg-base-100 min-w-0 {{ class }}" data-card="{{ kind }}s" only>
   <c-slot name="badges">
-    {% if card.total %}<span class="badge badge-ghost badge-sm">{{ card.total }}</span>{% endif %}
+    {% if records.total %}<span class="badge badge-ghost badge-sm">{{ records.total }}</span>{% endif %}
   </c-slot>
   <c-slot name="actions">
-    {% if card.total and all_url %}
-      <c-button href="{{ all_url }}" text="{% translate 'View all' %}" size="sm" />
+    {% if records.total and all_url %}
+      <c-button href="{{ all_url }}" text="{% translate 'View all' %}" size="sm" only />
     {% endif %}
   </c-slot>
-  {% if card.shown %}
+  {% if records.shown %}
     <ul class="list">
-      {% for entry in card.shown %}
+      {% for entry in records.shown %}
         <li class="list-row px-0">
           <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-{{ variant }})" aria-hidden="true"><c-icon name="{{ kind }}" only /></span>
           <div class="list-col-grow min-w-0 flex flex-col gap-1">
@@ -31,12 +40,12 @@
         </li>
       {% endfor %}
     </ul>
-    {% if card.more %}
+    {% if records.more %}
       <div>
-        <a href="{{ all_url }}" class="link link-primary text-sm">{% blocktranslate count counter=card.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}</a>
+        <a href="{{ all_url }}" class="link link-primary text-sm">{% blocktranslate with counter=records.more %}and {{ counter }} more{% endblocktranslate %}</a>
       </div>
     {% endif %}
   {% else %}
-    {% include "contributors/overview/includes/empty.html" with text=empty %}
+    <c-missing only><span>{{ empty }}</span></c-missing>
   {% endif %}
 </c-card>

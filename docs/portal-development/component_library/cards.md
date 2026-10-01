@@ -218,11 +218,11 @@ activity), so a planned feature always looks the same.
                     message="A map of every sample with a location." />
 ```
 
-A button for something that is not available yet is the include `overview/includes/pending_action.html`.
-It is disabled, says "Coming soon" and gives its reason to a pointer and to a screen reader:
+A button for something that is not available yet is the `<c-actions.pending>` component.
+It is disabled and gives its reason to a pointer and to a screen reader:
 
 ```django
-{% include "overview/includes/pending_action.html" with label="Publish" icon="upload" reason="Publishing is not available yet." %}
+<c-actions.pending label="Publish" icon="upload" reason="Publishing is not available yet." />
 ```
 
 ## General components

@@ -1,0 +1,32 @@
+{% load i18n %}
+{% comment %}
+  <c-card.affiliations> — where a person works and has worked: current affiliations first, the
+  primary one marked, then earlier ones.
+
+  Attributes:
+    affiliations  – {current: [affiliation], past: [affiliation]}, each affiliation carrying
+                    `start_text` and `end_text`
+    class         – extra classes on the card
+{% endcomment %}
+<c-vars affiliations class />
+<c-card title="{% translate 'Affiliations' %}" class="bg-base-100 {{ class }}" data-card="affiliations" only>
+  {% if affiliations.current or affiliations.past %}
+    {% if affiliations.current %}
+      <ul class="flex flex-col gap-3 text-sm">
+        {% for affiliation in affiliations.current %}
+          <c-card.affiliations.row :affiliation="affiliation" only />
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if affiliations.past %}
+      <p class="text-xs uppercase font-semibold text-base-content/60 mt-2">{% translate "Previously" %}</p>
+      <ul class="flex flex-col gap-3 text-sm">
+        {% for affiliation in affiliations.past %}
+          <c-card.affiliations.row :affiliation="affiliation" only />
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% else %}
+    <c-missing only><span>{% translate "No affiliations have been recorded." %}</span></c-missing>
+  {% endif %}
+</c-card>

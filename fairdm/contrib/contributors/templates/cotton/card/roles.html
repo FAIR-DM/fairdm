@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}
+  <c-card.roles> — the contribution roles a contributor holds, most held first, with how many
+  records each is held on.
+
+  Attributes:
+    roles  – [{label, count, percent}], percent being the share of the most held role
+    class  – extra classes on the card
+{% endcomment %}
+<c-vars roles class />
+<c-card title="{% translate 'Roles' %}" class="bg-base-100 {{ class }}" data-card="roles" only>
+  {% if roles %}
+    <dl class="flex flex-col gap-3 text-sm">
+      {% for role in roles %}
+        <div class="flex flex-col gap-1">
+          <div class="flex items-baseline justify-between gap-3">
+            <dt>{{ role.label }}</dt>
+            <dd class="tabular-nums text-base-content/70">{% blocktranslate count counter=role.count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</dd>
+          </div>
+          <c-progress value="{{ role.percent }}" max="100" label="{{ role.label }}: {{ role.count }}" only />
+        </div>
+      {% endfor %}
+    </dl>
+  {% else %}
+    <c-missing only><span>{% translate "No roles recorded yet. Roles appear here once a credit says how the work was done." %}</span></c-missing>
+  {% endif %}
+</c-card>

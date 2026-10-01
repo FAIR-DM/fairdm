@@ -33,7 +33,7 @@
   {% if can_manage and not dataset.data_is_public %}
     {% translate "Publish" as label %}
     {% translate "Checks the list under Ready to publish?, mints a DOI and releases the data." as reason %}
-    {% include "overview/includes/pending_action.html" with label=label icon="upload" reason=reason variant="primary" %}
+    <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" />
   {% endif %}
   {% if can_manage or directory.delete_url %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
@@ -106,7 +106,7 @@
             <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
             {% translate "Import data" as label %}
             {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
-            {% include "overview/includes/pending_action.html" with label=label icon="import" reason=reason variant="primary" %}
+            <c-actions.pending label="{{ label }}" icon="import" reason="{{ reason }}" variant="primary" />
           </div>
         {% else %}
           <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>

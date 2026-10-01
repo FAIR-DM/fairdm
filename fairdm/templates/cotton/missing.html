@@ -1,0 +1,8 @@
+{% comment %}
+  <c-missing> — what a card says when it has nothing to show, set in an alert so it can't be
+  mistaken for a short line somebody wrote.
+
+  The default slot is the text, and anything that follows it, such as a button that fixes it.
+{% endcomment %}
+<c-vars class />
+<c-alert variant="info" icon="info" soft class="text-sm {{ class }}" only>{{ slot }}</c-alert>

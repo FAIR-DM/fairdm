@@ -24,7 +24,7 @@
       <span>{% blocktranslate with name=person.name %}This profile was created so {{ name }} could be credited for their work. They haven't claimed it yet.{% endblocktranslate %}</span>
       {% translate "Claim this profile" as label %}
       {% translate "Sign in with ORCID to prove this profile is yours and take it over." as reason %}
-      {% include "overview/includes/pending_action.html" with label=label icon="verified" reason=reason %}
+      <c-actions.pending label="{{ label }}" icon="verified" reason="{{ reason }}" />
     </c-alert>
   {% endif %}
 {% endblock overview.notices %}
@@ -76,11 +76,11 @@
   {% if is_self %}
     {% translate "Edit profile" as label %}
     {% translate "Change your name, photo, biography, affiliations and links." as reason %}
-    {% include "overview/includes/pending_action.html" with label=label icon="edit" reason=reason %}
+    <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" />
   {% else %}
     {% translate "Contact" as label %}
     {% translate "Send a message through the portal, without either of you sharing an email address." as reason %}
-    {% include "overview/includes/pending_action.html" with label=label icon="email" reason=reason %}
+    <c-actions.pending label="{{ label }}" icon="email" reason="{{ reason }}" />
   {% endif %}
 {% endblock overview.actions %}
 
@@ -102,15 +102,14 @@
       {% if person.profile %}
         <div class="prose max-w-none">{{ person.profile|safe_markdown }}</div>
       {% elif is_self %}
-        <c-alert variant="info" icon="info" soft class="text-sm">
+        <c-missing>
           <span>{% translate "You haven't written a biography yet. A few lines on your research help visitors recognise your work and see why your data matters." %}</span>
           {% translate "Write your biography" as label %}
           {% translate "Write a few lines about your research." as reason %}
-          {% include "overview/includes/pending_action.html" with label=label icon="edit" reason=reason variant="primary" %}
-        </c-alert>
+          <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" variant="primary" />
+        </c-missing>
       {% else %}
-        {% translate "No biography has been added yet." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
+        <c-missing><span>{% translate "No biography has been added yet." %}</span></c-missing>
       {% endif %}
     </c-card>
   {% endblock overview.about %}
@@ -119,15 +118,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       {% translate "Projects" as title %}
       {% if is_self %}{% translate "You aren't credited on any public project yet. Credits are added by the people who manage each project." as empty %}{% else %}{% translate "Not credited on any public project yet." as empty %}{% endif %}
-      {% include "contributors/overview/includes/records_card.html" with card=projects kind="project" variant="info" all_url=urls.projects %}
+      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" all_url="{{ urls.projects }}" empty="{{ empty }}" />
       {% translate "Datasets" as title %}
       {% if is_self %}{% translate "You aren't credited on any public dataset yet. Credits are added by the people who manage each dataset." as empty %}{% else %}{% translate "Not credited on any public dataset yet." as empty %}{% endif %}
-      {% include "contributors/overview/includes/records_card.html" with card=datasets kind="dataset" variant="success" all_url=urls.datasets %}
+      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" all_url="{{ urls.datasets }}" empty="{{ empty }}" />
     </div>
   {% endblock overview.records %}
 
   {% block overview.roles %}
-    {% include "contributors/overview/includes/roles_card.html" %}
+    <c-card.roles :roles="roles" />
   {% endblock overview.roles %}
 
   {% block overview.future %}
@@ -157,32 +156,11 @@
   {% endblock overview.identifiers %}
 
   {% block overview.links %}
-    {% include "contributors/overview/includes/links_card.html" %}
+    <c-card.links :links="links" />
   {% endblock overview.links %}
 
   {% block overview.affiliations %}
-    <c-card title="{% translate 'Affiliations' %}" class="bg-base-100" data-card="affiliations">
-      {% if affiliations.current or affiliations.past %}
-        {% if affiliations.current %}
-          <ul class="flex flex-col gap-3 text-sm">
-            {% for affiliation in affiliations.current %}
-              {% include "contributors/overview/includes/affiliation_row.html" %}
-            {% endfor %}
-          </ul>
-        {% endif %}
-        {% if affiliations.past %}
-          <p class="text-xs uppercase font-semibold text-base-content/60 mt-2">{% translate "Previously" %}</p>
-          <ul class="flex flex-col gap-3 text-sm">
-            {% for affiliation in affiliations.past %}
-              {% include "contributors/overview/includes/affiliation_row.html" %}
-            {% endfor %}
-          </ul>
-        {% endif %}
-      {% else %}
-        {% translate "No affiliations have been recorded." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
-      {% endif %}
-    </c-card>
+    <c-card.affiliations :affiliations="affiliations" />
   {% endblock overview.affiliations %}
 
   {% block overview.people %}
@@ -190,8 +168,7 @@
       <c-card.people :people="people" title="{% translate 'Frequent collaborators' %}" />
     {% else %}
       <c-card title="{% translate 'Frequent collaborators' %}" class="bg-base-100" data-card="people">
-        {% translate "Nobody else is credited on the same records yet." as text %}
-        {% include "contributors/overview/includes/empty.html" %}
+        <c-missing><span>{% translate "Nobody else is credited on the same records yet." %}</span></c-missing>
       </c-card>
     {% endif %}
   {% endblock overview.people %}
