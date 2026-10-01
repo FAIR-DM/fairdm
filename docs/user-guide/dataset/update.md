@@ -12,7 +12,9 @@ page applies.
 
 ## What you can change
 
-- **Cover image** — a picture representing the dataset, such as a map of sample sites.
+- **Cover image** — a picture representing the dataset, such as a map of sample sites. It is shown
+  as a banner across the top of the dataset's page, three times as wide as it is tall, and an image
+  of another shape is cropped to that around its centre when you upload it.
 - **Name** — a clear, descriptive title.
 - **Project** — the project the dataset belongs to. The list offers only your own projects.
 - **Licence** — how others may use the dataset.

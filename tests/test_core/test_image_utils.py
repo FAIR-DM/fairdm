@@ -168,6 +168,85 @@ class TestImageThumbnailAliases:
         assert url, f"core_large thumbnail URL should be non-empty, got: {url!r}"
 
 
+    @pytest.mark.django_db
+    def test_core_banner_alias_is_three_to_one(self):
+        import factory
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory(
+            image=factory.django.ImageField(width=3000, height=2000)
+        )
+
+        thumbnail = project.image["core_banner"]
+
+        assert (thumbnail.width, thumbnail.height) == (1800, 600)
+
+
+class TestCropToRatio:
+    @pytest.mark.parametrize(
+        ("size", "expected"),
+        [
+            ((800, 600), (800, 267)),  # too tall: rows are cut
+            ((4000, 500), (1500, 500)),  # too wide: columns are cut
+            ((900, 300), (900, 300)),  # already 3:1: untouched
+        ],
+    )
+    def test_the_image_is_cut_to_the_ratio(self, size, expected):
+        from fairdm.core.image_utils import crop_to_ratio
+        from PIL import Image
+
+        cropped = crop_to_ratio(Image.new("RGB", size), ratio=(3, 1))
+
+        assert cropped.size == expected
+
+    def test_the_cut_keeps_the_centre(self):
+        from fairdm.core.image_utils import crop_to_ratio
+        from PIL import Image
+
+        image = Image.new("RGB", (300, 300), color=(0, 0, 0))
+        image.paste((255, 255, 255), (0, 100, 300, 200))  # a white band across the middle
+
+        cropped = crop_to_ratio(image, ratio=(3, 1))
+
+        assert cropped.getpixel((0, 0)) == (255, 255, 255)
+        assert cropped.getpixel((299, 99)) == (255, 255, 255)
+
+    def test_an_image_is_left_alone_when_no_ratio_is_asked_for(self):
+        from fairdm.core.image_utils import crop_to_ratio
+        from PIL import Image
+
+        image = Image.new("RGB", (800, 600))
+
+        assert crop_to_ratio(image).size == (800, 600)
+
+
+@pytest.mark.django_db
+class TestUploadedImageRatio:
+    @pytest.mark.parametrize(
+        "factory_name",
+        ["ProjectFactory", "DatasetFactory"],
+    )
+    def test_an_uploaded_image_is_stored_at_three_to_one(self, factory_name):
+        import factory
+        import fairdm.factories as factories
+
+        record = getattr(factories, factory_name)(
+            image=factory.django.ImageField(width=800, height=600)
+        )
+
+        assert (record.image.width, record.image.height) == (800, 267)
+
+    def test_a_large_upload_is_scaled_down_after_the_cut(self):
+        import factory
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory(
+            image=factory.django.ImageField(width=3000, height=2000)
+        )
+
+        assert (project.image.width, project.image.height) == (2400, 800)
+
+
 class TestImageFieldUniformity:
     @pytest.mark.django_db
     @pytest.mark.parametrize(
