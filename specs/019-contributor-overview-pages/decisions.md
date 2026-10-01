@@ -125,6 +125,8 @@ the two methods in the organization story without touching the pages.
 
 **Revisit if:** a contributor ever needs a different public rule per record type.
 
+**ADR:** none. Two method names local to the contributors app.
+
 ## D10. Samples and measurements are resolved to ids
 
 **Decision:** `get_visible_contributions` marks each contribution with `kind`, and with `record`
@@ -137,6 +139,8 @@ costs a query per kind and a row per credit. The T003 tests compare the kind and
 credit for the same reason.
 
 **Revisit if:** a card ever lists samples or measurements.
+
+**ADR:** none. An implementation detail of one method.
 
 ## D11. An organization's two sources match credits with a subquery, not a join
 
@@ -151,6 +155,8 @@ subquery keeps the result one row per record, so a figure equals the entries beh
 
 **Revisit if:** the credited subquery shows up as a slow query on a portal with very many credits.
 
+**ADR:** none. A query-shape choice inside one method.
+
 ## D12. The seed command already reached the organization states, so it is unchanged
 
 **Decision:** T013 adds tests for the three organization states FR-033 names and changes nothing in
@@ -161,6 +167,8 @@ sub-organizations, members and owned projects, one the signed-in user owns, and 
 recorded. The new tests fail when each of those is removed from the command.
 
 **Revisit if:** FR-033 names a further organization state.
+
+**ADR:** none. A record that nothing changed.
 
 ## D13. The checklist's affiliation item and a person's location follow the header
 
@@ -178,6 +186,8 @@ the location method, so it needed to stay prefetch-friendly.
 **Revisit if:** `primary_affiliation()` itself is changed to apply the rule, which would let both
 methods read it.
 
+**ADR:** none. It applies the rule the header already follows to two more places.
+
 ## D14. The two old plugin templates are deleted
 
 **Decision:** `person/plugins/overview.html` and `organization/plugins/overview.html` are removed.
@@ -188,3 +198,14 @@ reference to either path.
 
 **Revisit if:** a portal extends one of them; the changelog entry for this branch would then need a
 removal note.
+
+**ADR:** none. Removal of unused files.
+
+## D15. One test added at convergence, written directly
+
+Checking the requirements against the tests found FR-032 untested for organizations: the people
+who keep a record are offered writing its description, as not yet available. One parametrised
+test was added without dispatching a story for it, because it is a single test with no design
+content.
+
+**ADR:** none. A test maintenance record.

@@ -1235,6 +1235,21 @@ class TestOrganizationChecklist:
         assert len(disabled) == len(menu.find_all("li", recursive=False))
         assert menu.select("a[href], button:not([disabled])") == []
 
+    # FR-032
+    @pytest.mark.parametrize(("who", "offered"), [("owner", True), ("member", False)])
+    def test_only_the_people_who_keep_the_record_are_offered_writing_its_description(
+        self, get_page, keeper_world, who, offered
+    ):
+        _, page = get_page(
+            keeper_world.organization.get_absolute_url(),
+            viewer=getattr(keeper_world, who),
+        )
+
+        action = _card(page, "about").select_one("button")
+        assert (action is not None) is offered
+        if offered:
+            assert action.has_attr("disabled")
+
     def test_a_record_with_everything_in_place_is_ready(self, get_page, db):
         organization = OrganizationFactory(
             with_image=True,
