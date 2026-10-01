@@ -3,7 +3,7 @@
   "feature": "020-profile-editing",
   "branch": "020-profile-editing",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -14,6 +14,11 @@
       "state": "PLAN",
       "at": "2026-10-01T15:41:56Z",
       "note": "build branch cut from origin/main at 27a7b65c; started alongside #383 on the maintainer's instruction"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-01T15:42:25Z",
+      "note": "plan and tasks written; one reviewer, three lenses"
     }
   ],
   "gates": {
@@ -157,7 +162,7 @@
       "max": 1
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
