@@ -10,7 +10,6 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.core.dataset.models import Dataset
 from fairdm.core.overview import json_ld, safe_reverse
 from fairdm.core.plugins import OverviewPlugin
 
@@ -86,15 +85,6 @@ class Overview(OverviewPlugin):
             active=(lambda entry: active(entry["record"])) if active else None,
         )
         return fill_slots(ordered, self.records_shown)
-
-    @staticmethod
-    def get_record_entries(contributions, kind):
-        """The credited records of one kind, as record card entries."""
-        return [
-            {"record": c.record, "owned": False}
-            for c in contributions
-            if c.kind == kind
-        ]
 
     def get_readiness(self, items, title, about, badge):
         """Shape a checklist for ``c-card.readiness``, with the page's wording."""
@@ -222,22 +212,12 @@ class Overview(OverviewPlugin):
         members = organization.get_current_memberships()
         can_manage = organization.is_managed_by(user)
 
-        # The projects the organization owns, then those it is credited on, and the datasets of
-        # both: its own contributions and everything in a project it owns.
-        owned = list(organization.owned_projects.get_visible())
-        owned_ids = {p.pk for p in owned}
-        projects = [{"record": p, "owned": True} for p in owned] + [
-            entry
-            for entry in self.get_record_entries(contributions, "project")
-            if entry["record"].pk not in owned_ids
+        projects = [
+            {"record": p, "owned": p.owner_id == organization.pk}
+            for p in organization.get_public_projects()
         ]
-        datasets = self.get_record_entries(contributions, "dataset")
-        credited_ids = {entry["record"].pk for entry in datasets}
-        datasets += [
-            {"record": d, "owned": False}
-            for d in Dataset.objects.filter(project__in=owned).exclude(
-                pk__in=credited_ids
-            )
+        datasets = [
+            {"record": d, "owned": False} for d in organization.get_public_datasets()
         ]
 
         context.update(

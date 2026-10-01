@@ -1397,6 +1397,31 @@ class Organization(Contributor):
         """
         return self.affiliations.select_related("person").all()
 
+    def get_public_projects(self):
+        """List the public projects the organisation owns or is credited on, none twice.
+
+        Returns:
+            The projects, as a queryset.
+        """
+        Project = apps.get_model("project.Project")
+        return Project.objects.filter(
+            Q(pk__in=self.projects.values("pk")) | Q(owner=self)
+        ).get_visible()
+
+    def get_public_datasets(self):
+        """List the public datasets the organisation is credited on or that sit in its projects.
+
+        A dataset in a private project is left out, whoever owns the project, and none is
+        listed twice.
+
+        Returns:
+            The datasets, as a queryset.
+        """
+        Dataset = apps.get_model("dataset.Dataset")
+        return Dataset.objects.filter(
+            Q(pk__in=self.datasets.values("pk")) | Q(project__owner=self)
+        ).get_visible()
+
     def get_current_memberships(self):
         """List the organisation's verified current members, the people who run it first.
 

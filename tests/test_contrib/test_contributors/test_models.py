@@ -2352,3 +2352,69 @@ class TestOrganizationHierarchy:
         hierarchy = OrganizationFactory().get_hierarchy()
 
         assert hierarchy == {"parent": None, "siblings": [], "children": []}
+
+
+@pytest.mark.django_db
+class TestOrganizationPublicRecordSources:
+    def test_the_projects_are_the_public_ones_it_owns_and_those_it_is_credited_on(self):
+        organization = OrganizationFactory()
+        owned = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        credited = ProjectFactory(visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+        ProjectFactory(owner=organization, visibility=Visibility.PRIVATE)
+        private_credit = ProjectFactory(visibility=Visibility.PRIVATE)
+        organization.add_to(private_credit)
+        ProjectFactory(visibility=Visibility.PUBLIC)
+
+        assert set(organization.get_public_projects()) == {owned, credited}
+
+    def test_a_project_it_owns_and_is_credited_on_is_listed_once(self):
+        organization = OrganizationFactory()
+        project = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        organization.add_to(project)
+
+        assert list(organization.get_public_projects()) == [project]
+
+    def test_the_datasets_are_those_it_is_credited_on_and_those_in_its_projects(self):
+        organization = OrganizationFactory()
+        owned = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        inside = DatasetFactory(project=owned, visibility=Visibility.PUBLIC)
+        inside_credited = DatasetFactory(project=owned, visibility=Visibility.PUBLIC)
+        organization.add_to(inside_credited)
+        credited = DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+        DatasetFactory(project=owned, visibility=Visibility.PRIVATE)
+        DatasetFactory(visibility=Visibility.PUBLIC)
+
+        datasets = organization.get_public_datasets()
+
+        assert set(datasets) == {inside, inside_credited, credited}
+        assert len(datasets) == 3
+
+    def test_a_dataset_in_a_private_project_is_left_out_even_when_it_owns_the_project(
+        self,
+    ):
+        organization = OrganizationFactory()
+        private = ProjectFactory(owner=organization, visibility=Visibility.PRIVATE)
+        DatasetFactory(project=private, visibility=Visibility.PUBLIC)
+
+        assert list(organization.get_public_datasets()) == []
+
+    def test_what_its_members_are_credited_on_is_not_its_own(self):
+        organization = OrganizationFactory()
+        member = AffiliationFactory(organization=organization).person
+        member.add_to(ProjectFactory(visibility=Visibility.PUBLIC))
+        member.add_to(DatasetFactory(project=None, visibility=Visibility.PUBLIC))
+
+        assert list(organization.get_public_projects()) == []
+        assert list(organization.get_public_datasets()) == []
+
+    def test_the_credits_it_returns_are_for_records_it_is_credited_on_only(self):
+        organization = OrganizationFactory()
+        ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        credited = ProjectFactory(visibility=Visibility.PUBLIC)
+        organization.add_to(credited)
+
+        contributions = organization.get_visible_contributions(AnonymousUser())
+
+        assert [c.record for c in contributions] == [credited]
