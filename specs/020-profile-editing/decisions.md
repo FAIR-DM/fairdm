@@ -284,3 +284,12 @@ family name, type and parent, city and country). The grouping is drawn with the 
 shell already styles. It has no test, because it is judged by eye.
 
 **ADR:** none. A layout choice.
+
+## D24. The image has a column of its own
+
+Asked for by the maintainer: the photo or logo sits in a column to the right of the sections on a
+wide screen. On a narrow screen it follows them, because the stylesheet the pages load has no
+utility for reordering. The column's heading is "Photo" or "Logo", so the input's own label
+became "Image file" to avoid saying the word twice.
+
+**ADR:** none. A layout choice.

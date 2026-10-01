@@ -19,7 +19,8 @@ deactivated: the portal's Community Managers can correct it until the person has
 
 ## What you can change
 
-The page groups the fields under three headings: Name, About you and Elsewhere online.
+The page groups the fields under three headings: Name, About you and Elsewhere online. The photo
+has a column of its own beside them on a wide screen.
 
 | Field | What to enter |
 | --- | --- |

@@ -123,16 +123,19 @@ class ProfileForm(ModelForm):
     Attributes:
         sections: ``(heading, rows)`` pairs, in page order. A row is a field name, or a tuple
             of field names drawn side by side on a wide screen.
+        aside: One ``(heading, rows)`` pair drawn in a column of its own, to the right of the
+            sections on a wide screen and after them on a narrow one. None for no such column.
     """
 
     sections: tuple = ()
+    aside: tuple | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_tag = False
 
     def get_layout(self):
-        """Group the fields under the headings ``sections`` names.
+        """Group the fields under the headings ``sections`` and ``aside`` name.
 
         A field the form does not carry is left out, and a section left with no field is not
         drawn. A field no section names, as a portal's subclass may add, follows the last
@@ -141,24 +144,47 @@ class ProfileForm(ModelForm):
         Returns:
             The crispy layout.
         """
-        placed = set()
-        layout = []
-        for heading, rows in self.sections:
-            drawn = []
-            for row in rows:
-                names = [row] if isinstance(row, str) else list(row)
-                names = [name for name in names if name in self.fields]
-                placed.update(names)
-                if len(names) > 1:
-                    drawn.append(
-                        Div(*names, css_class="grid grid-cols-1 md:grid-cols-2 gap-x-6")
-                    )
-                else:
-                    drawn.extend(names)
-            if drawn:
-                layout.append(Fieldset(heading, *drawn))
-        layout.extend(name for name in self.fields if name not in placed)
-        return Layout(*layout)
+        placed: set[str] = set()
+        aside = self.get_section(*self.aside, placed) if self.aside else None
+        main = [
+            section
+            for heading, rows in self.sections
+            if (section := self.get_section(heading, rows, placed))
+        ]
+        main.extend(name for name in self.fields if name not in placed)
+        if aside is None:
+            return Layout(*main)
+        return Layout(
+            Div(
+                Div(*main, css_class="lg:col-span-2 min-w-0"),
+                Div(aside, css_class="min-w-0"),
+                css_class="grid grid-cols-1 lg:grid-cols-3 gap-x-8",
+            )
+        )
+
+    def get_section(self, heading, rows, placed):
+        """Build one section's fieldset from the fields the form carries.
+
+        Args:
+            heading: The section's heading.
+            rows: Field names, or tuples of names that share a row.
+            placed: The names already drawn, added to as this section draws its own.
+
+        Returns:
+            The fieldset, or None when the form carries none of the section's fields.
+        """
+        drawn = []
+        for row in rows:
+            names = [row] if isinstance(row, str) else list(row)
+            names = [name for name in names if name in self.fields]
+            placed.update(names)
+            if len(names) > 1:
+                drawn.append(
+                    Div(*names, css_class="grid grid-cols-1 md:grid-cols-2 gap-x-6")
+                )
+            else:
+                drawn.extend(names)
+        return Fieldset(heading, *drawn) if drawn else None
 
     def _update_errors(self, errors):
         """Move errors the model raised for a field this form lacks to the form's own errors.
@@ -198,7 +224,7 @@ class PersonProfileForm(ProfileForm):
 
     image = forms.ImageField(
         required=False,
-        label=_("Photo"),
+        label=_("Image file"),
         help_text=format_lazy(
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
@@ -262,9 +288,10 @@ class PersonProfileForm(ProfileForm):
 
     sections = (
         (_("Name"), [("first_name", "last_name"), "name", "alternative_names"]),
-        (_("About you"), ["image", "profile", "lang"]),
+        (_("About you"), ["profile", "lang"]),
         (_("Elsewhere online"), ["links"]),
     )
+    aside = (_("Photo"), ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -299,7 +326,7 @@ class OrganizationProfileForm(ProfileForm):
 
     image = forms.ImageField(
         required=False,
-        label=_("Logo"),
+        label=_("Image file"),
         help_text=format_lazy(
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
@@ -378,11 +405,12 @@ class OrganizationProfileForm(ProfileForm):
         }
 
     sections = (
-        (_("Identity"), ["image", "name", "alternative_names", ("type", "parent")]),
+        (_("Identity"), ["name", "alternative_names", ("type", "parent")]),
         (_("Location"), [("city", "country")]),
         (_("About"), ["profile"]),
         (_("Online"), ["website", "links"]),
     )
+    aside = (_("Logo"), ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
