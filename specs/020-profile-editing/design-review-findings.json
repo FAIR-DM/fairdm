@@ -1,0 +1,95 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Single design reviewer carrying all three lenses (finding id prefix names the lens: SPEC = spec-compliance, SEC = security, ARCH = architecture). Reviewed specs/020-profile-editing/plan.md, research.md, tasks.md and decisions.md against spec.md, CONSTITUTION.md (Articles I-III, V, XIII) and docs/contributing/standards/testing.md (sections 1 and 4). Code read: fairdm/contrib/plugins/base.py and access.py in full; fairdm/core/project/plugins.py:43-135 and the check/permission lines of fairdm/core/dataset/plugins.py; fairdm/contrib/contributors/models.py (Contributor fields, get_update_url, get_links_display, Person, account_state, clean, portal_roles, name parts, completeness, Organization, clean, has_member, is_managed_by, get_hierarchy); managers.py (_create_user, create_superuser, create_unclaimed); signals.py and services/claiming.py (where is_claimed is set); adapters.py; permissions.py; plugins/overview.py in full; utils/transforms.py (every read and write of links, givenName/familyName); fairdm/portal_roles.py (outline); fairdm/conf/settings/auth.py and addons.py, fairdm/conf/development.py; fairdm/registry/config.py (header); docs/portal-development/create_a_plugin.md (reusable plugins); demo/management/commands/seed_profiles.py (outline). Resolved packages read in .venv: Django 5.2.17 contrib/auth/__init__.py get_user and contrib/auth/backends.py ModelBackend.get_user; django-allauth 65.19.4 account/auth_backends.py. One probe was run against the URL configuration (read-only) to settle which class's check governs an additional view. Both sides checked: for D2, the dispatch path (has_permission passes the class) and the navigation path (menu_check), GET and POST, visitor and signed-in, record missing and record unresolvable; for the deactivated-user claim, the editor being deactivated and the profile's subject being deactivated or reactivated, under ModelBackend and under allauth's backend; for D1, the person's own side and the community manager's side of each account state, and each path that creates an account (signup with and without mandatory email verification, createsuperuser, create_unclaimed, the claiming services); for D5, every reader of links (overview card, checklist, schema.org export, DataCite export, admin) and every writer (schema.org import, ROR import, seed data), and the form round trip in both directions. Not reviewed: template markup, wording and layout; the shared form page template; c-card.readiness; image_utils.validate_image_file_size; the documentation pages named in D6.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] Plan D1 lets a community manager edit any person whose account_state is not 'claimed'. An account can be active, signed in and in use while is_claimed is False, so its state reads 'invited' and every community manager may edit that person's profile. FR-003a says the profile of a person with an active account is editable only by that person. Research settles only the person's own side of this state ('A person's own profile when the account is signed in but not marked claimed') and leaves the community manager's side as 'anything other than claimed'.",
+      "evidence": "models.py:744-759: account_state is CLAIMED only when is_claimed is true; an active person with an email and is_claimed False is INVITED. is_claimed is set to True only by services/claiming.py:60, 123, 184, services/merge.py:61 and create_dev_accounts.py:129. managers.py:101-160: create_user and create_superuser never set it, so every account made with createsuperuser is active, can sign in and is 'invited'. signals.py:30 and claiming.py:100: an ordinary signup is claimed only when ACCOUNT_EMAIL_VERIFICATION is 'mandatory'; fairdm/conf/development.py:56 sets it to 'none', so under the package's own development settings no self-registered account is ever claimed. plan.md D1 Person bullet and research.md 'A person's own profile when the account is signed in but not marked claimed'. spec.md FR-003a, FR-003 ('invited and has not signed in'), SC-003. No task tests this state: T002 and T013 name unclaimed, invited, inactive and active people only.",
+      "reproduction": "Create an account with createsuperuser (or sign up with ACCOUNT_EMAIL_VERIFICATION other than 'mandatory') and sign in. As a community manager, request that person's editing page: is_editable_by returns True, the page opens and the save is stored, while the person can also edit it.",
+      "suggested_fix": "plan.md D1, Person bullet: state the community manager's right as 'the person's account is inactive, or the person is not claimed and has never signed in (last_login is None)', in place of 'account_state is not claimed'. research.md and decisions.md D4: say the same. tasks.md T013: add the case 'an active person who has signed in and is not marked claimed (as createsuperuser makes one) is not editable by a community manager and is editable by themself'. No other mechanism is needed; the claim flag on those creation paths is out of this feature's scope."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The fault is in spec.md, not the plan. The clarification 'a changed name appears on every credit, list and citation' and FR-019 cannot hold with the fields FR-007 allows. The form edits `name` only, and a person's given and family names are separate stored fields that the DataCite and schema.org exports and the formatted-name template tag read in preference to `name`. After a name change those keep the old name.",
+      "evidence": "spec.md Clarifications ('Is a person's name on their profile the same name their credits show? Yes. There is one record'), FR-007 ('and nothing else'), FR-019. models.py:737-741: Person.save fills name from first_name and last_name only when name is blank, never the other way. models.py:958-993: get_full_name_display returns the first and last names whenever either is set. utils/transforms.py:139-143 and 220-223: givenName and familyName are exported from first_name and last_name; :350-351 the same for citation authors. templatetags/contributor_tags.py:88-89 formats credits through get_full_name_display when a name format is given. core/dataset/plugins.py:802 writes givenName from first_name. plan.md D3 lists `name` and not the name parts; research.md removes UserProfileForm because it offers first and last name 'which the specification does not'. tasks.md T003 checks only that the changed name 'shows on a record the person is credited on'.",
+      "reproduction": "A person stored as first_name 'Anna', last_name 'Becker', name 'Anna Becker' changes their name to 'Anna Schmidt' and saves. Their profile and plain credits say Schmidt. The dataset's DataCite and schema.org metadata still give familyName 'Becker', and any credit drawn with a name format still says Becker.",
+      "suggested_fix": "Do not settle this in plan.md. Raise it to the maintainer as a correction to spec.md: either the editing page also offers given and family name (a change to FR-007), or the specification says the name parts are out of scope and narrows the 'every citation' clarification. Until that is ruled, record it in decisions.md and tell the US-1 implementer that T003's FR-019 case covers `name` only."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] FAIRDM_PROFILE_FORMS is justified and nothing in the codebase already does the job, but the plan does not say what happens when a portal sets only one of its two keys. A plain lookup would answer 500 on the other editing page.",
+      "evidence": "Justification checked: Contributor is not registered with a model configuration (no registration in fairdm/contrib/contributors/), so registry/config.py's form_class does not reach it. The page is an additional view of a plugin the package registers itself, and registration.py has no way to replace or remove a registered plugin, so the subclass-and-register route in docs/portal-development/create_a_plugin.md:263-275 does not reach it either. spec.md FR-022 requires a documented way to change the fields, CONSTITUTION.md Article XIII prefers a documented setting, and auth.py:79-86 (ACCOUNT_FORMS, SOCIALACCOUNT_FORMS) is the precedent. Gap: plan.md D2 'read from FAIRDM_PROFILE_FORMS' and D3 'maps person and organization to the two shipped forms' give no fallback. The documented example (T006) has a portal adding a field to the person form, which is exactly a one-key override.",
+      "suggested_fix": "plan.md D2: get_form_class() uses the portal's entry for the record's kind and falls back to the shipped form when the key or the setting is absent. tasks.md T001 or T003: one case, 'a setting naming only the person form still opens the organization page with the shipped form'. No further mechanism."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] D5 is consistent with every reader of `links`, with one consequence the plan does not state: a website cannot be cleared while other links exist. The first remaining link is promoted to Website the next time the form is read, the checklist's 'A website' item stays ticked and the schema.org `url` becomes that link.",
+      "evidence": "Readers checked and unaffected: models.py:422-434 get_links_display keeps stored order; plugins/overview.py:112, 191, 262 (card and bool(links) checklist items); utils/transforms.py:267-271 exports links[0] as schema.org `url`, which agrees with website-first; :521-524 DataCite exports all links; admin.py:601 leaves links out of the form. Writers: transforms.py:818-822 stores ROR's links first and the Wikipedia address last, which agrees; an organization whose ROR record has only a Wikipedia address will show it as its website. plan.md D3 ('website first') and tasks.md T008 ('clearing the website keeps the other links') stop at the save and do not say what the next read shows.",
+      "reproduction": "Organization with links [site, wiki]. Clear Website, leave wiki under Other links, save: stored [wiki]. Reopen: Website shows wiki, Other links is empty.",
+      "suggested_fix": "decisions.md D5: add this as a known consequence under 'Revisit if'. Nothing to build. The US-2 implementer should not write a test that expects an empty Website field on reopening."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Research's claim that a deactivated user cannot be signed in holds for the configured backends, and it means a deactivated editor with a live session is treated as a visitor: redirected to sign in, not answered 403. is_editable_by's inactive branch is therefore not reachable through the page.",
+      "evidence": ".venv/lib/python3.13/site-packages/django/contrib/auth/backends.py:230-235 (Django 5.2.17): ModelBackend.get_user returns None when user_can_authenticate fails, and contrib/auth/__init__.py:295-311 then yields AnonymousUser on the next request. allauth/account/auth_backends.py:20 (65.19.4) subclasses ModelBackend and overrides neither method. fairdm/conf/settings/auth.py:34-42: those two are the only configured backends that authenticate. spec.md US-2 scenario 9 ('whose account has been deactivated ... they are refused'); tasks.md T007 tests it on the model, T009 lists no deactivated editor.",
+      "suggested_fix": "No plan change. Implementation briefs: a page-level test of a deactivated editor must expect the redirect to sign in, and the inactive branch stays in is_editable_by because a portal may configure a backend that keeps inactive users signed in."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[security] The fault, if it is one, is in spec.md. FR-008 lets an organization's keeper choose any other organization as its parent, and the chosen parent's own overview page then lists this organization among its sub-organizations without that parent's keepers agreeing.",
+      "evidence": "plan.md D3: 'parent offers every other organization'. models.py:1491-1506: get_hierarchy returns the parent's sub_organizations as `children`, which the organization overview draws. spec.md FR-008 and FR-012 forbid only loops.",
+      "suggested_fix": "No plan change. Record in decisions.md as raised with the maintainer for the specification that covers organization membership."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] The parent field 'offers every other organization' as a select. A portal that has imported organizations from ROR renders every one of them on each open of the editing page.",
+      "evidence": "plan.md D3. transforms.py:805-825 and Organization.from_ror (models.py:1375) create organizations in bulk from ROR.",
+      "suggested_fix": "No task added. Implementation brief: use whichever organization-select widget the package already uses elsewhere if one exists (fairdm/contrib/contributors/forms/widgets.py), otherwise a plain select and a note in decisions.md."
+    }
+  ],
+  "notes": [
+    "D2 holds, for a reason other than the one access.py gives. can_open's docstring says the check is read from the owning plugin, but plugin_class is passed to as_view and so lives on the view instance, while has_permission passes self.__class__. At dispatch the additional view's own check governs: a probe of the mounted project:overview-update pattern showed initkwargs plugin_class = Overview, class-level plugin_class = None, governing check = Update's own. fairdm/core/project/plugins.py:51-53 documents the same. The contributor Overview declares no check, so either reading admits the same people here. PermissionRequiredMixin runs it for every HTTP method; a visitor is redirected to sign in and a signed-in user without the right gets 403; nothing in fairdm or django-mvp sets raise_exception.",
+    "fairdm/core/project/plugins.py:118 ('An additional view inherits its owner's check') contradicts lines 51-53 of the same file and the observed behaviour. Pre-existing, outside this feature.",
+    "research.md says a visitor is redirected and a signed-in user gets a 403 with no file citation; the citation is django/contrib/auth/mixins.py handle_no_permission in the resolved Django 5.2.17.",
+    "plan.md's constitution table justifies the setting and LinesField in one row; Article II asks for the justification under a Complexity Tracking heading, which the plan does not have.",
+    "decisions.md 'A parent that would form a loop is refused' says the administration interface has guarded this until now; decisions.md D6 and research.md say it does not. D6 is the correct one.",
+    "spec.md's Input paragraph and research.md D5 call the checklist item 'A website' met by any link; plan.md D4 sends its Fix link to #id_website. Consistent, worth one sentence in D4.",
+    "tasks.md T012 and T016 call the account naming 'the fleet's <role>.user@example.com rule'; a contributor reading the repository cannot look that up. Name the rule or drop the phrase.",
+    "T013 places TestIsHeldBy in tests/test_portal_roles.py, which exists and mirrors fairdm/portal_roles.py. The new tests/test_contrib/test_contributors/test_forms/ package mirrors forms/profile.py. Both conform to the testing standard."
+  ]
+}

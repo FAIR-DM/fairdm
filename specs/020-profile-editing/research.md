@@ -18,7 +18,9 @@ feature, so everything below is what the plan needs settled.
   additional view of their `Overview` plugin: `Plugin` plus `FairDMUpdateView`, mounted at
   `update/`, with a `check(request, obj)` that decides who may open it. `Plugin` is a
   `PermissionRequiredMixin`, so the check runs on every request, GET and POST alike. A visitor
-  is redirected to sign in and a signed-in user without the right gets a 403.
+  is redirected to sign in and a signed-in user without the right gets a 403
+  (`handle_no_permission` in Django's `contrib/auth/mixins.py`). An additional view is governed
+  by its own `check`, not its owner's.
 - **Who keeps an organization.** `Organization.is_managed_by(user)`: a current affiliation of type
   administrator or owner. 019 uses it for the checklist and the management menu.
 - **Account states.** `Person.account_state` is one of inactive, claimed, invited and ghost. Only
@@ -51,9 +53,13 @@ untouched.
 
 ### A person's own profile when the account is signed in but not marked claimed
 
-Only an active account can sign in, so "the signed-in user is this person" is the test for editing
-your own profile. A community manager's right is tested on the profile's state: anything other
-than claimed.
+Only an active account can sign in (`ModelBackend.get_user` returns nothing for an inactive user,
+and allauth's backend inherits it), so "the signed-in user is this person" is the test for editing
+your own profile. A community manager's right cannot rest on `account_state` alone: `is_claimed`
+is set only by the claiming and merge services, so an account made with `createsuperuser`, or by
+signing up where email verification is off, is active and in use while still reading as invited.
+The test is therefore: the account is inactive, or the person is not claimed and has never signed
+in.
 
 ### Lists in a form
 

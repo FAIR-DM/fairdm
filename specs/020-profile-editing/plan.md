@@ -36,6 +36,13 @@ request (FR-005). Layout, width, stacking and copy get no tests
 | X Cohesion | The rule on the models, the fields in the forms, the wiring in the plugin |
 | XVII Demo | `seed_profiles` reaches every account and profile state the three stories name |
 
+## Complexity tracking
+
+| Addition | Why it is needed | Simpler alternative, and why not |
+|---|---|---|
+| `FAIRDM_PROFILE_FORMS` setting | FR-022 requires a documented way for a portal to change the fields | Re-registering the page: a registered page cannot be replaced or removed from a portal's code. The model configuration's `form_class`: contributors have no model configuration |
+| `LinesField` | Three list fields across two forms, and no list field exists | A JSON text box: a person would have to type brackets and quotes |
+
 ## Design
 
 ### D1. Who may edit: `is_editable_by(user)`
@@ -44,7 +51,10 @@ request (FR-005). Layout, width, stacking and copy get no tests
 overridden on both subclasses:
 
 - **`Person`**: True when the user is this person. Otherwise True only when the user is a
-  community manager and the person's `account_state` is not claimed.
+  community manager and the person has no active account: the account is inactive, or the
+  person is not claimed and has never signed in (`last_login` is None). `account_state` alone is
+  not enough, because an account made with `createsuperuser`, or by signing up on a portal that
+  does not verify email addresses, is active and in use without being marked claimed.
 - **`Organization`**: True when `is_managed_by(user)` or the user is a community manager.
 
 "Is a community manager" is `PortalRoles.is_held_by(user, PortalRoles.COMMUNITY_MANAGER)`, a new
@@ -61,7 +71,8 @@ in `Overview.extra_views`:
 - `check = staticmethod(lambda request, obj: obj is not None and obj.is_editable_by(request.user))`
   written as a named module function. `Plugin` runs it on every request, so a right lost while
   the page is open refuses the save (FR-005, FR-003a, US-3 scenario 5)
-- `get_form_class()` returns the person or organization form, read from `FAIRDM_PROFILE_FORMS`
+- `get_form_class()` returns the portal's entry in `FAIRDM_PROFILE_FORMS` for the record's kind,
+  and the shipped form when the setting or that key is absent
 - on success: a "saved" message and a redirect to the overview page (FR-018). The page's cancel
   link goes to the same place
 - the page title is "Edit profile" for a person and "Edit organization" for an organization
@@ -103,7 +114,8 @@ The `Overview` plugin adds to the context:
 - on each checklist item this feature can fix, `url`: the editing page's address with the field's
   id as its fragment. Person: photo `#id_image`, biography `#id_profile`, links `#id_links`.
   Organization: logo `#id_image`, type `#id_type`, city and country `#id_city`, description
-  `#id_profile`, website `#id_website`. ORCID, primary affiliation and ROR stay as they are
+  `#id_profile`, website `#id_website` (the item is met by any link, and the website field is
+  where the first one is typed). ORCID, primary affiliation and ROR stay as they are
   (FR-017)
 
 Templates:

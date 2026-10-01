@@ -41,8 +41,7 @@ with. Marking such fields now would describe behaviour that does not exist.
 ## A parent that would form a loop is refused
 
 An organization that is part of itself, directly or through others, breaks every page that walks
-the chain upward. The administration interface is where this has been guarded until now, and the
-editing page keeps the same rule.
+the chain upward. Nothing guarded this before, so the rule goes on the model (D6 below).
 
 # Decisions made while planning and building
 
@@ -76,7 +75,9 @@ to that list. A superuser changes any record in the administration interface, as
 ## D4. Editing your own profile is tested on who is signed in
 
 Only an active account can sign in, so the signed-in user being the person is enough. A community
-manager's right is tested on the profile's state: anything other than claimed.
+manager may edit a person whose account is inactive, or who is not claimed and has never signed
+in. The account state alone would hand them the profiles of people who signed up without email
+verification, or were made with `createsuperuser`, since nothing marks those accounts claimed.
 
 **ADR:** none. Local to this feature.
 
@@ -85,6 +86,10 @@ manager's right is tested on the profile's state: anything other than claimed.
 There is no website field and 019's checklist counts any link as "A website". The form offers
 "Website" and "Other links" and stores them together, website first, so the stored shape and
 everything that reads it stay as they are.
+
+A consequence: clearing the website and saving makes the next link the website when the form is
+reopened, and an organization imported from ROR with only a Wikipedia address shows that as its
+website.
 
 **Revisit if:** a website needs to be told apart from other links anywhere but this form.
 
@@ -114,3 +119,24 @@ form cannot otherwise be replaced from a portal's own code.
 **Revisit if:** registered pages gain a general way to be replaced.
 
 **ADR:** none yet. Judged again at convergence, once the code exists.
+
+## D9. A person's given and family names are not on the editing page
+
+The specification lists the fields and says "nothing else", and given and family name are not
+among them. Citations and exported metadata are built from the given and family names where they
+are set, so a changed name reaches credits and lists but not those. Raised with the maintainer as
+a question about the specification. Until it is ruled, the page edits `name` only.
+
+**ADR:** none. An open question on the specification.
+
+## D10. Design review: what was carried instead of changed
+
+- An owner may make their organization part of any other organization, which then lists it among
+  its sub-organizations. The specification forbids only loops. Left as specified, and noted for
+  the specification that covers organization membership.
+- The parent field is a plain select unless the package already has an organization picker.
+- A deactivated editor is signed out by Django, so a page test of one expects the redirect to
+  sign in. The inactive check stays in `is_editable_by` for portals whose sign-in backend keeps
+  inactive users signed in.
+
+**ADR:** none. Review notes for this feature.

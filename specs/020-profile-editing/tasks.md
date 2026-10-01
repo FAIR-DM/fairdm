@@ -29,7 +29,8 @@ life, it is updated in the task that changes the template, and the change is nam
 - [ ] T002 [US1] `tests/test_contrib/test_contributors/test_models.py`, `TestPersonIsEditableBy`:
   the person themself; another signed-in person; a visitor; a superuser who is somebody else; a
   person holding the Data Curator, Developer or Portal Administrator role and no other. Only the
-  first may edit. `TestContributorUpdateUrl`: `get_update_url()` is the editing page's address.
+  first may edit. A person who has signed in and is not marked claimed (as `createsuperuser`
+  makes one) may edit their own profile. `TestContributorUpdateUrl`: `get_update_url()` is the editing page's address.
 - [ ] T003 [US1] `tests/test_contrib/test_contributors/test_plugins/test_update.py`,
   `TestPersonUpdate`: US-1 scenarios 2 to 6 and 8 to 11 against the real page. A save redirects
   to the overview and leaves a success message (FR-018). A refused save stores nothing, answers
@@ -38,6 +39,8 @@ life, it is updated in the task that changes the template, and the change is nam
   and nothing is stored (SC-004). The page has no input for email, password, ORCID iD,
   affiliations, roles or account status, and links to the account centre (FR-010). A changed name
   shows on a record the person is credited on (FR-019). A profile that does not exist answers 404.
+  With `FAIRDM_PROFILE_FORMS` naming a form for one kind only, the other kind's page still opens
+  with the shipped form. The changed-name case covers `name` only (decisions D9).
 - [ ] T004 [US1] `test_plugins/test_overview.py`, added to `TestPersonOverview`: on their own
   profile the header's edit action is a link to the editing page (scenario 1); the checklist's
   photo, biography and links items each link to the editing page with the field's id as the
@@ -76,7 +79,8 @@ life, it is updated in the task that changes the template, and the change is nam
   leaves the sub-organizations as they were (scenario 5).
 - [ ] T009 [US2] `test_plugins/test_update.py`, `TestOrganizationUpdate`: US-2 scenarios 2 to 6 and
   8 to 11 against the real page, for the owner, an administrator, a member, a stranger, a Data
-  Curator, an ended administrator and a visitor. No input for the ROR identifier, members or
+  Curator, an ended administrator and a visitor. A deactivated administrator is signed out by
+  Django, so that request is redirected to sign in. No input for the ROR identifier, members or
   owner (FR-010). A changed name shows on a project the organization owns and on a member's
   profile (FR-019).
 - [ ] T010 [US2] `test_plugins/test_overview.py`, added to `TestOrganizationOverview`: for the
@@ -90,7 +94,7 @@ life, it is updated in the task that changes the template, and the change is nam
   organization overview context and template changes.
 - [ ] T012 [US2] `seed_profiles` gains, on the organization the regular user owns, an
   administrator, an ordinary member and an administrator whose affiliation has ended, each a
-  sign-in account named by the fleet's `<role>.user@example.com` rule. The seed command's test
+  sign-in account at `example.com` with the password the other development accounts share. The seed command's test
   under `tests/test_demo/` covers them. Documentation: a user-guide page on editing an
   organization's profile; `OrganizationProfileForm` and the loop rule in `contributors.md`; the
   changelog entry extended. The docs check passes.
@@ -101,7 +105,8 @@ life, it is updated in the task that changes the template, and the change is nam
   member of another role; a deactivated member; a visitor; a superuser in no group.
   `test_models.py`, added to `TestPersonIsEditableBy` and `TestOrganizationIsEditableBy`: a
   community manager may edit an unclaimed, an invited and an inactive person and any
-  organization, including one with no owner; may not edit a person with an active account; a
+  organization, including one with no owner; may not edit a person with an active account, including one who has signed in and is not
+  marked claimed; a
   person removed from the role may not (scenario 10); the Data Curator's permissions are the same
   set as before (SC-005, asserted against the declared tuple's content, not its length).
 - [ ] T014 [US3] `test_plugins/test_update.py`, `TestCommunityManagerUpdate`: scenarios 1 to 10.
