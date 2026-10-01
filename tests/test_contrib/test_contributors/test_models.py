@@ -2206,3 +2206,149 @@ class TestIdentifierResolverUrl:
         )
 
         assert identifier.resolver_url is None
+
+
+@pytest.mark.django_db
+class TestOrganizationMemberships:
+    @staticmethod
+    def _join(organization, name, type=Affiliation.MembershipType.MEMBER, **kwargs):
+        return AffiliationFactory(
+            organization=organization,
+            person=PersonFactory(name=name, is_active=True),
+            type=type,
+            **kwargs,
+        )
+
+    def test_only_current_verified_members_are_listed(self):
+        organization = OrganizationFactory()
+        current = self._join(organization, "Current")
+        self._join(organization, "Pending", type=Affiliation.MembershipType.PENDING)
+        self._join(organization, "Former", start_date="2010", end_date="2014")
+        self._join(OrganizationFactory(), "Elsewhere")
+
+        assert organization.get_current_memberships() == [current]
+
+    def test_the_owner_comes_first_then_administrators_then_members_each_by_name(self):
+        organization = OrganizationFactory()
+        member_b = self._join(organization, "Beta")
+        member_a = self._join(organization, "Alpha")
+        admin_b = self._join(organization, "Yara", Affiliation.MembershipType.ADMIN)
+        admin_a = self._join(organization, "Xavier", Affiliation.MembershipType.ADMIN)
+        owner = self._join(organization, "Zed", Affiliation.MembershipType.OWNER)
+
+        assert organization.get_current_memberships() == [
+            owner,
+            admin_a,
+            admin_b,
+            member_a,
+            member_b,
+        ]
+
+    def test_an_organization_with_no_members_lists_none(self):
+        assert OrganizationFactory().get_current_memberships() == []
+
+
+@pytest.mark.django_db
+class TestOrganizationHasMember:
+    @pytest.mark.parametrize(
+        "type",
+        [
+            Affiliation.MembershipType.MEMBER,
+            Affiliation.MembershipType.ADMIN,
+            Affiliation.MembershipType.OWNER,
+        ],
+    )
+    def test_a_current_verified_affiliation_of_any_kind_counts(self, type):
+        affiliation = AffiliationFactory(type=type)
+
+        assert affiliation.organization.has_member(affiliation.person) is True
+
+    def test_a_pending_affiliation_does_not_count(self):
+        affiliation = AffiliationFactory(type=Affiliation.MembershipType.PENDING)
+
+        assert affiliation.organization.has_member(affiliation.person) is False
+
+    def test_an_ended_affiliation_does_not_count(self):
+        affiliation = AffiliationFactory(start_date="2010", end_date="2014")
+
+        assert affiliation.organization.has_member(affiliation.person) is False
+
+    def test_an_affiliation_to_another_organization_does_not_count(self):
+        affiliation = AffiliationFactory()
+
+        assert OrganizationFactory().has_member(affiliation.person) is False
+
+    def test_a_visitor_is_not_a_member(self):
+        assert OrganizationFactory().has_member(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestOrganizationIsManagedBy:
+    @pytest.mark.parametrize(
+        ("type", "managed"),
+        [
+            (Affiliation.MembershipType.OWNER, True),
+            (Affiliation.MembershipType.ADMIN, True),
+            (Affiliation.MembershipType.MEMBER, False),
+            (Affiliation.MembershipType.PENDING, False),
+        ],
+    )
+    def test_only_the_owner_and_administrators_keep_the_record(self, type, managed):
+        affiliation = AffiliationFactory(type=type)
+
+        assert affiliation.organization.is_managed_by(affiliation.person) is managed
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+    )
+    def test_an_ended_affiliation_does_not_count(self, type):
+        affiliation = AffiliationFactory(
+            type=type, start_date="2010", end_date="2014"
+        )
+
+        assert affiliation.organization.is_managed_by(affiliation.person) is False
+
+    def test_a_portal_role_does_not_count(self):
+        organization = OrganizationFactory()
+        staff = PersonFactory(is_active=True, is_staff=True, is_superuser=True)
+
+        assert organization.is_managed_by(staff) is False
+
+    def test_a_visitor_does_not_keep_any_record(self):
+        assert OrganizationFactory().is_managed_by(AnonymousUser()) is False
+
+
+@pytest.mark.django_db
+class TestOrganizationHierarchy:
+    def test_it_gives_the_parent_the_siblings_with_this_one_among_them_and_the_children(
+        self,
+    ):
+        parent = OrganizationFactory(name="Parent")
+        organization = OrganizationFactory(name="Middle", parent=parent)
+        before = OrganizationFactory(name="Before", parent=parent)
+        after = OrganizationFactory(name="Zulu", parent=parent)
+        child_b = OrganizationFactory(name="Child B", parent=organization)
+        child_a = OrganizationFactory(name="Child A", parent=organization)
+        OrganizationFactory(name="Grandchild", parent=child_a)
+
+        hierarchy = organization.get_hierarchy()
+
+        assert hierarchy["parent"] == parent
+        assert hierarchy["siblings"] == [before, organization, after]
+        assert hierarchy["children"] == [child_a, child_b]
+
+    def test_without_a_parent_there_are_no_siblings(self):
+        organization = OrganizationFactory()
+        OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+
+        hierarchy = organization.get_hierarchy()
+
+        assert hierarchy["parent"] is None
+        assert hierarchy["siblings"] == []
+        assert hierarchy["children"] == [child]
+
+    def test_with_neither_a_parent_nor_children_it_is_empty(self):
+        hierarchy = OrganizationFactory().get_hierarchy()
+
+        assert hierarchy == {"parent": None, "siblings": [], "children": []}

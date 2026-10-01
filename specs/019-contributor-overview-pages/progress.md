@@ -57,3 +57,10 @@
 - Verified: `forge verify --repo . --base origin/main --steps docs` passed (it first reported two stale mentions of the removed tabs in my own text, which I reworded). I ran the Django template extension example and the Python snippets in a scratch test that I did not commit: the extension rendered the added card beside the cards FairDM draws, and the helper outputs matched the pages. `uv run pre-commit run --all-files` clean.
 - Next: the full gate and the report.
 - Watch: the organization page is not documented here; US2 owns it.
+
+## 2026-10-01T10:39Z · Implementer US2 · T009
+
+- Did: added model tests for Organization.get_current_memberships (current and verified only, owner then administrators then members each by name), has_member and is_managed_by (pending, ended and portal-role cases), get_hierarchy (parent, siblings, children; no parent; neither) and Project.is_active (in progress only).
+- Verified: 26 passed on the first run, as the prototype already has these methods. Probed by mutation: dropping current() and the type floor in get_current_memberships, lowering is_managed_by to member, dropping current() in has_member, and making is_active always true each made the matching tests fail; the source is restored. Removing order_by(name) from get_hierarchy left the tests green because Contributor already orders by name, so that mutation changes nothing. uv run pre-commit run --all-files clean.
+- Next: T010, the c-card.hierarchy tests.
+- Watch: These methods needed no fix, so T012 has nothing to change in them.
