@@ -1,0 +1,126 @@
+{
+  "story": "US2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 388,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T009",
+    "T010",
+    "T011",
+    "T012",
+    "T013"
+  ],
+  "context": {
+    "why": "The organization's overview page. US1 is accepted on this branch: the person page, the shared visibility rule, the model sources Contributor.get_public_projects() / get_public_datasets(), DatasetQuerySet.get_visible(), the folded Overview plugin, the component tests and the documentation for the person page all exist. The organization page already renders from the reviewed prototype; its markup, wording and layout are settled. Pin the specification's behaviour with tests, fix what they find, and document the page.",
+    "spec_sections": [
+      "User Story 2 (all 12 acceptance scenarios)",
+      "Edge Cases",
+      "FR-004",
+      "FR-006 to FR-012",
+      "FR-024 to FR-029",
+      "FR-033",
+      "Clarifications"
+    ],
+    "plan_sections": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D7",
+      "Project structure"
+    ],
+    "prior_decisions": [
+      "plan D4 and design review: Organization overrides get_public_projects() and get_public_datasets() to add the public projects it owns and the public datasets inside them, with nothing twice and its members' own credits left out. The overview's figures and cards and the Projects and Datasets tabs read those sources, and the list-building in the plugin's get_organization_context goes. A figure always equals the number of entries behind its link (SC-003).",
+      "decisions.md D9 and D10 (written in US1): the two public sources and how samples and measurements are resolved to ids. Read those two entries before touching get_visible_contributions.",
+      "Spec clarification: a member is a person with a verified affiliation (type member or above) that has not ended. Pending and former members are neither shown nor counted.",
+      "decisions.md 'The checklist follows the affiliation, not the portal role' and 'The organization's map is left out when no location is recorded'.",
+      "US1 concern carried: Person.get_location_display() reads primary_affiliation() without checking type or end date. Not used by the page; leave it unless a US2 test needs it.",
+      "US1 concern carried: the seed command test is slow because each test runs the command. If you add organization states to it, share one run across the tests of a class where the testing standard allows."
+    ],
+    "acceptance": [
+      {
+        "task": "T009",
+        "given_when_then": "Given organizations with current, pending and ended affiliations of each kind and a parent/child structure, when the model methods are called, then they behave as tasks.md T009 lists; Project.is_active is true only for a project in progress."
+      },
+      {
+        "task": "T010",
+        "given_when_then": "Given the three hierarchy shapes, when c-card.hierarchy renders, then this organization is marked and not linked, every other one links to its page, and with neither parent nor children the card shows its empty state (found by element or data attribute)."
+      },
+      {
+        "task": "T011",
+        "given_when_then": "Given the states in US-2 scenarios 1 to 12, when the page is requested as a visitor and signed in, then each scenario's Then holds, and for an organization that owns a project it is not credited on the Projects and Datasets figures equal the number of entries in the matching tab."
+      },
+      {
+        "task": "T012",
+        "given_when_then": "Given the failing tests from T009 to T011, when the fixes land, then all pass and the plugin no longer builds the organization's project and dataset lists itself."
+      },
+      {
+        "task": "T013",
+        "given_when_then": "Given a development environment, when seed_profiles runs, then every organization state FR-033 names exists and its page answers 200; the organization page, its blocks and c-card.hierarchy are documented and the docs step passes."
+      }
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages on branch 019-contributor-overview-pages; you work directly on the feature branch, one story at a time, no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. The suite stops at the first failures under that gate; `uv run pytest -q -n 4 --maxfail=0` shows them all (about two minutes, 3,282 tests). Commits are authored as the repository's bot already (git config is bound); do not change it.",
+    "verified_base": {
+      "commit": "baf51e5876d8948ff2cbf0296c11bc8ac8cc9a6d",
+      "verified_at": "2026-10-01T10:37:29Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "Fully green: the gate passed on US1's final commit and HEAD adds only the ledger and this brief. Anything red on arrival: report it, do not work around it."
+    },
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. tests/test_templates/ is the declared non-mirror path for component tests; see tests/test_templates/test_cards.py and tests/test_core/test_project/test_plugins.py for how specification 018 tested its pages and components. Line length 88. Docstrings follow the repo's documentation standard under docs/contributing/standards/. Public markdown you write (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, no bold-label bullet lists, reads as current state. US1's tests are your pattern: tests/test_contrib/test_contributors/test_plugins/test_overview.py (TestPersonOverview), its conftest.py, tests/test_templates/test_contributor_cards.py and tests/test_demo/.../test_seed_profiles.py. Add to those files; do not edit the tests US1 wrote.",
+    "glossary_terms": [
+      "Contributor, Person, Organization",
+      "Contribution",
+      "Collaborator",
+      "Member",
+      "Visibility",
+      "Roles"
+    ]
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T009-T013 in specs/019-contributor-overview-pages/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is the single brief commit on top of context.verified_base.commit (only the brief file differs).",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. If a pre-existing test must change, mark the task blocked and say why.",
+    "Do not change the prototype's markup, wording or layout unless a requirement, a plan decision or a failing acceptance test requires it. No test asserts fixed wording, layout, width or stacking.",
+    "Do not add a migration. This feature adds no model field; if makemigrations wants to write one, report it.",
+    "Do not touch IdentifierLookup or AbstractIdentifier.get_absolute_url: the wrong resolver keys are a separate bug (#386).",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Do not write the checklist tests or change get_record_completeness / get_profile_completeness: US3 owns them.",
+    "US1's tests are pre-existing tests for this story: do not modify them. If an organization fix makes one fail, the fix is wrong or the task is blocked."
+  ]
+}
