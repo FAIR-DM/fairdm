@@ -305,8 +305,17 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run python manage.py makemigrations --check --dry-run <the 18 app labels of the fairdm and demo packages> (exit 0, No changes detected)",
+              "uv run python manage.py makemigrations --check --dry-run over every installed app (exit 1, only orbit 0008_alter_orbitentry_type, third-party and not ours)",
+              "scan of the contributor plugin and the page and card templates for text outside gettext and translate tags (two titles found and marked)",
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n 4 (99 passed, exit 0)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+            ]
+          }
         }
       ]
     }

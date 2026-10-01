@@ -47,7 +47,7 @@
 {% endblock overview.badges %}
 
 {% block overview.name %}{{ person.name }}{% if identifier_url %}&#8288;<a href="{{ identifier_url }}" class="inline-flex align-middle ms-2 text-lg" target="_blank" rel="noopener"
-   title="{% if orcid_verified %}ORCID iD {{ identifier.value }}{% else %}{% blocktranslate with value=identifier.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
+   title="{% if orcid_verified %}{% blocktranslate with value=identifier.value %}ORCID iD {{ value }}{% endblocktranslate %}{% else %}{% blocktranslate with value=identifier.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
    aria-label="{% if orcid_verified %}{% blocktranslate with name=person.name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=person.name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}"><c-icon name="{% if orcid_verified %}orcid{% else %}orcid_unauthenticated{% endif %}" aria-hidden="true" only /></a>{% endif %}{% endblock overview.name %}
 
 {% block overview.byline %}

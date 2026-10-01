@@ -30,7 +30,7 @@
 {% endblock overview.badges %}
 
 {% block overview.name %}{{ organization.name }}{% if identifier_url %}&#8288;<a href="{{ identifier_url }}" class="inline-flex align-middle ms-2 text-lg" target="_blank" rel="noopener"
-   title="ROR ID {{ identifier.value }}"
+   title="{% blocktranslate with value=identifier.value %}ROR ID {{ value }}{% endblocktranslate %}"
    aria-label="{% blocktranslate with name=organization.name %}ROR record of {{ name }}{% endblocktranslate %}"><c-icon name="ror" aria-hidden="true" only /></a>{% endif %}{% endblock overview.name %}
 
 {% block overview.byline %}

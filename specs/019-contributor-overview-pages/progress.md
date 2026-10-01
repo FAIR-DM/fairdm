@@ -113,3 +113,10 @@
 - Verified: the two T014 and T015 tests that were red pass. tests/test_contrib plus tests/test_demo gave 949 passed before the deletion, and tests/test_contributors plus tests/test_templates gave 778 passed after it. uv run pre-commit run --all-files clean.
 - Next: T017, the polish checks and the full gate.
 - Watch: The person card in listings also calls get_location_display, so a pending or ended primary affiliation no longer shows a place there either. primary_affiliation() and primary_organization still apply no verification; the card's organization line reads them. That is outside this story and is in the report's concerns.
+
+## 2026-10-01T12:15Z · Implementer US3 · T017
+
+- Did: ran makemigrations --check --dry-run over the 18 apps of the fairdm and demo packages (No changes detected, exit 0) and over every installed app, where the only pending change is the third-party orbit migration 0008_alter_orbitentry_type. Scanned the contributor plugin and every page and card template this feature added for text outside gettext and translate tags: the ROR iD title on the organization header and the authenticated ORCID title on the person header were plain text and are now marked. The repository has no locale catalogue to regenerate.
+- Verified: tests/test_contrib/test_contributors/test_plugins gives 99 passed after the change. The full gate, forge verify --repo . --base origin/main, exited 0 with conformance, docs, lint, typecheck, test and build all passed.
+- Next: the completion report.
+- Watch: The gate ran with the two template edits staged and not yet committed; the commit contains exactly those edits plus the ledger and this entry.
