@@ -85,3 +85,9 @@
 - Verified: `uv run pytest tests/test_demo tests/test_conf/test_checks.py -q -n0` gave 122 passed and 1 failed before the last test edit (the failure was my test holding a deleted organization across a second run, fixed in the test); `uv run pytest tests/test_demo -q -n0` then gave 49 passed. `forge verify --repo . --base origin/main --steps docs` passes. `uv run --group docs sphinx-build -b html docs` builds with no warning naming a page this story wrote or changed. The `PROFILE_ACCOUNTS` split passes `uv run pre-commit run --all-files`.
 - Next: T018.
 - Watch: `portal-administration/roles.md` and the community manager parts of the docs belong to US3.
+
+## 2026-10-01T19:00:00Z · Implementer US2 · T018
+- Did: tests first, `TestProfileFormsWhenTheStoredRecordFailsValidation` in `test_forms/test_profile.py` (for both forms: invalid instead of raising, a form-level error and no field blamed, nothing saved, an error on a field the form has still on that field) and `TestStoredRecordThatFailsValidation` in `test_update.py` (the page answers 200 with the form error for a person and for an organization, nothing stored). Then `ProfileForm`, a shared base of the two forms whose `_update_errors` moves an error the model raised for a field the form lacks to the form's own errors; the repeated `form_tag = False` moved into it. Documented under "What both forms share" in `contributors.md`, and in the changelog.
+- Verified: before the fix `uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k "WhenTheStoredRecord or TestStoredRecordThatFails"` gave 12 failed, each `ValueError: '<Form>' has no field named 'identifiers'`. After it, the two files give 127 passed.
+- Next: the full verify and the completion report.
+- Watch: decisions D18, an organization whose stored ROR identifier is the full address cannot be saved from the page.

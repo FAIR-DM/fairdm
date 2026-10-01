@@ -2,7 +2,7 @@
 
 from dal import autocomplete
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.core.validators import URLValidator
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
@@ -95,7 +95,39 @@ def language_choices():
     return sorted(named, key=lambda choice: choice[1].casefold())
 
 
-class PersonProfileForm(ModelForm):
+class ProfileForm(ModelForm):
+    """What the person and organization editing forms share.
+
+    The editing page supplies the ``<form>`` tag and the buttons, so the crispy helper draws
+    neither. A stored record can fail the model's validation on a field the form does not carry,
+    such as a malformed identifier. Django refuses to attach that error to a missing field and
+    raises, so it is reported on the form as a whole instead.
+
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.form_tag = False
+
+    def _update_errors(self, errors):
+        """Move errors the model raised for a field this form lacks to the form's own errors.
+
+        Args:
+            errors: The ``ValidationError`` from the model's validation.
+        """
+        if hasattr(errors, "error_dict"):
+            kept = {}
+            for field, field_errors in errors.error_dict.items():
+                target = field if field in self.fields else NON_FIELD_ERRORS
+                kept.setdefault(target, []).extend(field_errors)
+            errors = ValidationError(kept)
+        super()._update_errors(errors)
+
+
+class PersonProfileForm(ProfileForm):
     """The page where a person edits their own profile.
 
     A portal adds or drops fields by subclassing this form and naming the subclass in
@@ -165,14 +197,13 @@ class PersonProfileForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["lang"].choices = language_choices()
-        self.helper.form_tag = False
 
     def clean_lang(self):
         """Keep each language once, in the order chosen."""
         return list(dict.fromkeys(self.cleaned_data["lang"]))
 
 
-class OrganizationProfileForm(ModelForm):
+class OrganizationProfileForm(ProfileForm):
     """The page where an organization's owner or an administrator edits its profile.
 
     The website and the other links are two fields over the one stored list of links, the
@@ -275,7 +306,6 @@ class OrganizationProfileForm(ModelForm):
         stored = self.instance.links or []
         self.initial["website"] = stored[0] if stored else ""
         self.initial["links"] = stored[1:]
-        self.helper.form_tag = False
 
     def clean(self):
         """Store the website first among the links, and no link twice."""

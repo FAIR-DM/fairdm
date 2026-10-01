@@ -20,7 +20,7 @@ from fairdm.contrib.contributors.forms.profile import (
     OrganizationProfileForm,
     PersonProfileForm,
 )
-from fairdm.contrib.contributors.models import Affiliation
+from fairdm.contrib.contributors.models import Affiliation, ContributorIdentifier
 from fairdm.factories import (
     AffiliationFactory,
     OrganizationFactory,
@@ -788,3 +788,37 @@ class TestReturnToTheOverview:
         assert response.status_code == 200
         assert response.redirect_chain == [(organization.get_absolute_url(), 302)]
         assert [m.level for m in response.context["messages"]] == [messages.SUCCESS]
+
+
+@pytest.mark.django_db
+class TestStoredRecordThatFailsValidation:
+    def test_a_person_whose_stored_identifier_is_malformed_gets_a_form_error_not_a_server_error(
+        self, signed_in, keeper, profile_data
+    ):
+        ContributorIdentifier.objects.create(
+            related=keeper, type="ORCID", value="not-an-orcid"
+        )
+        before = _stored(keeper)
+
+        response = signed_in(keeper).post(_update_url(keeper), profile_data)
+
+        assert response.status_code == 200
+        assert response.context["form"].non_field_errors()
+        assert _stored(keeper) == before
+
+    def test_an_organization_whose_stored_identifier_is_malformed_gets_a_form_error_not_a_server_error(
+        self, signed_in, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="not-a-ror"
+        )
+        before = _organization_stored(organization)
+
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 200
+        assert response.context["form"].non_field_errors()
+        assert _organization_stored(organization) == before

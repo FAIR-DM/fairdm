@@ -1,5 +1,7 @@
 """Tests for the profile editing forms: the list field, the person's form and the organization's."""
 
+from types import SimpleNamespace
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -10,6 +12,7 @@ from fairdm.contrib.contributors.forms.profile import (
     OrganizationProfileForm,
     PersonProfileForm,
 )
+from fairdm.contrib.contributors.models import ContributorIdentifier
 from fairdm.core import image_utils
 from fairdm.factories import OrganizationFactory, PersonFactory
 
@@ -449,3 +452,74 @@ class TestOrganizationProfileForm:
 
         assert form.has_error("image")
         assert not form.has_error("name")
+
+
+@pytest.fixture(params=["person", "organization"])
+def stored_record_failing_validation(request, db, profile_data, organization_profile_data):
+    """A record whose stored identifier fails the model's validation, and the form for it.
+
+    The identifier is not a field of either form, so the failure is one the form lacks a field
+    for. A malformed value can only be stored by bypassing ``ContributorIdentifier.clean``.
+    """
+    if request.param == "person":
+        record = PersonFactory(name="Before")
+        ContributorIdentifier.objects.create(
+            related=record, type="ORCID", value="not-an-orcid"
+        )
+        return SimpleNamespace(
+            record=record,
+            form_class=PersonProfileForm,
+            data={**profile_data, "name": "After"},
+        )
+    record = OrganizationFactory(name="Before")
+    ContributorIdentifier.objects.create(related=record, type="ROR", value="not-a-ror")
+    return SimpleNamespace(
+        record=record,
+        form_class=OrganizationProfileForm,
+        data={**organization_profile_data, "name": "After"},
+    )
+
+
+@pytest.mark.django_db
+class TestProfileFormsWhenTheStoredRecordFailsValidation:
+    def test_the_form_is_invalid_instead_of_raising(
+        self, stored_record_failing_validation
+    ):
+        stored = stored_record_failing_validation
+        form = stored.form_class(stored.data, instance=stored.record)
+
+        assert form.is_valid() is False
+
+    def test_the_problem_is_reported_as_a_form_level_error(
+        self, stored_record_failing_validation
+    ):
+        stored = stored_record_failing_validation
+        form = stored.form_class(stored.data, instance=stored.record)
+
+        assert form.non_field_errors()
+        assert "identifiers" not in form.errors
+
+    def test_no_field_the_form_has_is_blamed(self, stored_record_failing_validation):
+        stored = stored_record_failing_validation
+        form = stored.form_class(stored.data, instance=stored.record)
+
+        assert set(form.errors) == {"__all__"}
+
+    def test_nothing_is_saved(self, stored_record_failing_validation):
+        stored = stored_record_failing_validation
+        form = stored.form_class(stored.data, instance=stored.record)
+
+        form.is_valid()
+
+        stored.record.refresh_from_db()
+        assert stored.record.name == "Before"
+
+    def test_an_error_on_a_field_the_form_has_still_lands_on_that_field(
+        self, stored_record_failing_validation
+    ):
+        stored = stored_record_failing_validation
+        data = {**stored.data, "name": ""}
+        form = stored.form_class(data, instance=stored.record)
+
+        assert form.has_error("name", code="required")
+        assert form.non_field_errors()

@@ -694,6 +694,17 @@ affiliations, portal roles and the account's state are never on it.
 `alternative_names` and `links` are lists typed one entry per line, which is what `LinesField`
 does.
 
+### What both forms share
+
+`PersonProfileForm` and `OrganizationProfileForm` extend `ProfileForm`, in the same module, so a
+portal's own form can extend it too. It draws no `<form>` tag, because the editing page supplies it
+and the buttons.
+
+A stored record can fail the model's validation on a field the form does not carry, such as an
+identifier that was stored malformed. `ProfileForm` reports that failure as an error on the form as
+a whole, in `form.non_field_errors()`, and saves nothing. Without it Django raises a `ValueError`
+for an error on a field the form lacks, and the editing page answers with a server error.
+
 ### The organization form
 
 `OrganizationProfileForm`, in the same module, edits `image` (the logo), `name`,

@@ -39,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Saving a profile whose stored record fails validation on a field the form does not carry, such
+  as a malformed identifier, answered with a server error. The form is now invalid, the problem is
+  reported on the form as a whole and nothing is saved.
 - Saving a profile returned to a page that failed with an unknown icon error while its "saved"
   message was waiting, because `MESSAGE_TAGS` still held the old Bootstrap tag names. The setting
   is removed, so Django's own message tags reach the alert. A portal that styles messages by the

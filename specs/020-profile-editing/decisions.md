@@ -210,3 +210,27 @@ sign-in backend lets it stay signed in (D10). There is no superuser or community
 this story.
 
 **ADR:** none.
+
+## D17. One base form for the two profile forms
+
+An error the model raises for a field the form lacks is attached to the form as a whole, in
+`ProfileForm._update_errors`, which both profile forms extend. Overriding `_update_errors` keeps
+Django's own handling for every error on a field the form has, and the page needs nothing more. The
+`form_tag = False` line both forms repeated moved into the same base.
+
+**Revisit if:** a third kind of form needs the same, at which point it is already shared.
+
+**ADR:** none.
+
+## D18. A stored ROR address fails the model's own check
+
+`Organization.clean` matches a stored ROR identifier against `^0[a-z0-9]{6}[0-9]{2}$`, the bare
+identifier. `update_identifier` stores `synced_data["id"]`, and ROR's records give that as the full
+address (`https://ror.org/02nr0ka47`), which fails the check: `full_clean` on an organization holding
+it reports an error on `identifiers`. With the fix in D17 such an organization shows a form-level
+error and cannot be saved from the editing page. The seeded organizations store bare identifiers
+and are not affected. Left alone, because the check is outside this story's files and the right
+answer (accept the address, or store the bare identifier) is the model's to settle. Reported in the
+completion report.
+
+**ADR:** none.
