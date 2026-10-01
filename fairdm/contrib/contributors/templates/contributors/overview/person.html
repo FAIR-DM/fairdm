@@ -48,6 +48,7 @@
 
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
+    {% if also_known_as %}<p class="text-xs text-base-content/70 break-words">{{ also_known_as }}</p>{% endif %}
     {% if primary_organization or location_text %}
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
         <c-contributor.affiliation :organization="primary_organization" />
@@ -68,12 +69,15 @@
         {% if not orcid_verified %}<span class="sr-only">{% translate "Not confirmed by signing in with ORCID" %}</span>{% endif %}
       </div>
     {% endif %}
-    {% if also_known_as or languages or member_since %}
-      <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
-        {% if also_known_as %}<li>{% blocktranslate with names=also_known_as %}Also known as {{ names }}{% endblocktranslate %}</li>{% endif %}
-        {% if languages %}<li>{% blocktranslate with names=languages %}Speaks {{ names }}{% endblocktranslate %}</li>{% endif %}
-        {% if member_since %}<li>{% blocktranslate with when=member_since|date:"YEAR_MONTH_FORMAT" %}Member since {{ when }}{% endblocktranslate %}</li>{% endif %}
-      </ul>
+    {% if languages %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="globe" aria-hidden="true" /><span class="sr-only">{% translate "Languages" %}:</span>{{ languages }}
+      </div>
+    {% endif %}
+    {% if member_since %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="calendar" aria-hidden="true" />{% blocktranslate with when=member_since|date:"YEAR_MONTH_FORMAT" %}Member since {{ when }}{% endblocktranslate %}
+      </div>
     {% endif %}
   </div>
 {% endblock overview.byline %}

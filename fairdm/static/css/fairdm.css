@@ -351,6 +351,12 @@
   overflow: hidden;
 }
 
+/* Names on the faces of a People card. Kept narrow, and opened towards the middle of the row,
+   so a long name wraps inside the card instead of widening the page. */
+[data-card="people"] .tooltip::before {
+  max-width: 10rem;
+}
+
 /* An organization's logo in an overview header: the size of the record image beside it, the
    whole logo shown on a tile, since logos are often wide wordmarks that cropping would cut. */
 .overview-logo {

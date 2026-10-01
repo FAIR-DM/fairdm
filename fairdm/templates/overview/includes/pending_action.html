@@ -1,10 +1,8 @@
 {% load i18n %}
 {% comment %}
-  A button for something FairDM can't do yet. It is disabled, labelled "Coming soon" so it never
-  reads as broken, and its title says what it will do.
+  A button for something FairDM can't do yet. It is disabled, and its title says what it will do.
 
-  Include with: label, icon, reason, and optionally variant ("primary"), size ("xs" or "sm"),
-  and no_badge=True where the button sits among others that make the state plain.
+  Include with: label, icon, reason, and optionally variant ("primary") and size ("xs" or "sm").
 {% endcomment %}
 <button type="button"
         class="btn btn-{{ size|default:'sm' }} {% if variant == 'primary' %}btn-primary{% else %}btn-outline{% endif %}"
@@ -12,6 +10,5 @@
         title="{{ reason }}">
   {% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" />{% endif %}
   {{ label }}
-  {% if not no_badge %}<span class="badge badge-ghost badge-xs">{% translate "Coming soon" %}</span>{% endif %}
   <span class="sr-only">{% translate "Not available yet." %} {{ reason }}</span>
 </button>

@@ -31,6 +31,7 @@
 
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
+    {% if also_known_as %}<p class="text-xs text-base-content/70 break-words">{{ also_known_as }}</p>{% endif %}
     {% if organization.parent or location_text %}
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
         <c-contributor.affiliation :organization="organization.parent" />
@@ -48,11 +49,10 @@
         </a>
       </div>
     {% endif %}
-    {% if also_known_as or languages %}
-      <ul class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/70">
-        {% if also_known_as %}<li>{% blocktranslate with names=also_known_as %}Also known as {{ names }}{% endblocktranslate %}</li>{% endif %}
-        {% if languages %}<li>{% blocktranslate with names=languages %}Works in {{ names }}{% endblocktranslate %}</li>{% endif %}
-      </ul>
+    {% if languages %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="globe" aria-hidden="true" /><span class="sr-only">{% translate "Languages" %}:</span>{{ languages }}
+      </div>
     {% endif %}
   </div>
 {% endblock overview.byline %}
@@ -65,9 +65,9 @@
   {% if can_manage %}
     <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
       <c-menu>
-        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="edit" aria-hidden="true" />{% translate "Edit details" %}<span class="badge badge-ghost badge-xs">{% translate "Coming soon" %}</span></span></li>
-        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="member" aria-hidden="true" />{% translate "Manage members" %}<span class="badge badge-ghost badge-xs">{% translate "Coming soon" %}</span></span></li>
-        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="import" aria-hidden="true" />{% translate "Update from ROR" %}<span class="badge badge-ghost badge-xs">{% translate "Coming soon" %}</span></span></li>
+        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="edit" aria-hidden="true" />{% translate "Edit details" %}</span></li>
+        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="member" aria-hidden="true" />{% translate "Manage members" %}</span></li>
+        <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="import" aria-hidden="true" />{% translate "Update from ROR" %}</span></li>
       </c-menu>
     </c-dropdown>
   {% elif user.is_authenticated and not is_member %}

@@ -19,7 +19,8 @@
   {% if people.shown %}
     <ul class="grid grid-cols-6 gap-2">
       {% for contributor in people.shown %}
-        <li class="tooltip" data-tip="{{ contributor }}">
+        {# The name opens towards the middle of the row, so a long one never runs off the page. #}
+        <li class="tooltip {% if forloop.counter0|divisibleby:6 or forloop.counter|add:4|divisibleby:6 or forloop.counter|add:3|divisibleby:6 %}tooltip-right{% else %}tooltip-left{% endif %}" data-tip="{{ contributor }}">
           <a href="{{ contributor.get_absolute_url }}" class="block rounded-full" aria-label="{{ contributor }}">
             <c-avatar :for="contributor" alt="" size="w-full" only />
           </a>

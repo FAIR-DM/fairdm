@@ -412,7 +412,7 @@ class ContributorOverviewMixin:
                     "A ROR identifier lets data repositories match this record to the same "
                     "organization everywhere else."
                 ),
-                badge=gettext("Only administrators can see this"),
+                badge=gettext("Only admin can see this"),
             )
         return context
 
