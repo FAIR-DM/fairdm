@@ -122,7 +122,9 @@ class ProfileForm(ModelForm):
 
     Attributes:
         sections: ``(heading, rows)`` pairs, in page order. A row is a field name, or a tuple
-            of field names drawn side by side on a wide screen.
+            of field names drawn side by side on a wide screen. A heading of None draws the
+            rows with no fieldset and no heading, which is how a form's first group is drawn:
+            a heading at the very top of a form reads as a stray divider.
         aside: One ``(heading, rows)`` pair drawn in a column of its own, to the right of the
             sections on a wide screen and after them on a narrow one. None for no such column.
     """
@@ -146,32 +148,31 @@ class ProfileForm(ModelForm):
         """
         placed: set[str] = set()
         aside = self.get_section(*self.aside, placed) if self.aside else None
-        main = [
-            section
-            for heading, rows in self.sections
-            if (section := self.get_section(heading, rows, placed))
-        ]
+        main = []
+        for heading, rows in self.sections:
+            main.extend(self.get_section(heading, rows, placed))
         main.extend(name for name in self.fields if name not in placed)
-        if aside is None:
+        if not aside:
             return Layout(*main)
         return Layout(
             Div(
                 Div(*main, css_class="lg:col-span-2 min-w-0"),
-                Div(aside, css_class="min-w-0"),
+                Div(*aside, css_class="min-w-0"),
                 css_class="grid grid-cols-1 lg:grid-cols-3 gap-x-8",
             )
         )
 
     def get_section(self, heading, rows, placed):
-        """Build one section's fieldset from the fields the form carries.
+        """Build one section from the fields the form carries.
 
         Args:
-            heading: The section's heading.
+            heading: The section's heading, or None to draw the rows on their own.
             rows: Field names, or tuples of names that share a row.
             placed: The names already drawn, added to as this section draws its own.
 
         Returns:
-            The fieldset, or None when the form carries none of the section's fields.
+            The layout objects to draw: one fieldset, the bare rows when there is no heading,
+            or nothing when the form carries none of the section's fields.
         """
         drawn = []
         for row in rows:
@@ -184,7 +185,9 @@ class ProfileForm(ModelForm):
                 )
             else:
                 drawn.extend(names)
-        return Fieldset(heading, *drawn) if drawn else None
+        if not drawn or heading is None:
+            return drawn
+        return [Fieldset(heading, *drawn)]
 
     def _update_errors(self, errors):
         """Move errors the model raised for a field this form lacks to the form's own errors.
@@ -224,7 +227,7 @@ class PersonProfileForm(ProfileForm):
 
     image = forms.ImageField(
         required=False,
-        label=_("Image file"),
+        label=_("Photo"),
         help_text=format_lazy(
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
@@ -287,11 +290,11 @@ class PersonProfileForm(ProfileForm):
         }
 
     sections = (
-        (_("Name"), [("first_name", "last_name"), "name", "alternative_names"]),
+        (None, [("first_name", "last_name"), "name", "alternative_names"]),
         (_("About you"), ["profile", "lang"]),
         (_("Elsewhere online"), ["links"]),
     )
-    aside = (_("Photo"), ["image"])
+    aside = (None, ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -326,7 +329,7 @@ class OrganizationProfileForm(ProfileForm):
 
     image = forms.ImageField(
         required=False,
-        label=_("Image file"),
+        label=_("Logo"),
         help_text=format_lazy(
             _("JPEG, PNG or WebP, up to {size} MB."),
             size=image_utils.MAX_IMAGE_UPLOAD_BYTES // (1024 * 1024),
@@ -405,12 +408,12 @@ class OrganizationProfileForm(ProfileForm):
         }
 
     sections = (
-        (_("Identity"), ["name", "alternative_names", ("type", "parent")]),
+        (None, ["name", "alternative_names", ("type", "parent")]),
         (_("Location"), [("city", "country")]),
         (_("About"), ["profile"]),
         (_("Online"), ["website", "links"]),
     )
-    aside = (_("Logo"), ["image"])
+    aside = (None, ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

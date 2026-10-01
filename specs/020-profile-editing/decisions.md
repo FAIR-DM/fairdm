@@ -289,7 +289,8 @@ shell already styles. It has no test, because it is judged by eye.
 
 Asked for by the maintainer: the photo or logo sits in a column to the right of the sections on a
 wide screen. On a narrow screen it follows them, because the stylesheet the pages load has no
-utility for reordering. The column's heading is "Photo" or "Logo", so the input's own label
-became "Image file" to avoid saying the word twice.
+utility for reordering. Neither the column nor the form's first group has a heading: the
+maintainer ruled that a form never starts with a titled fieldset, because the heading draws as a
+divider at the very top of the form.
 
 **ADR:** none. A layout choice.

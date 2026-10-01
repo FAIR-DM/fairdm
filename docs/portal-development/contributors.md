@@ -721,12 +721,15 @@ a row is one field name or a tuple of names drawn side by side on a wide screen:
 ```python
 class PersonProfileForm(ProfileForm):
     sections = (
-        (_("Name"), [("first_name", "last_name"), "name", "alternative_names"]),
+        (None, [("first_name", "last_name"), "name", "alternative_names"]),
         (_("About you"), ["profile", "lang"]),
         (_("Elsewhere online"), ["links"]),
     )
-    aside = (_("Photo"), ["image"])
+    aside = (None, ["image"])
 ```
+
+A heading of `None` draws the rows with no heading. Each form's first group has none, because a
+heading at the very top of a form reads as a stray divider.
 
 `aside` is one more `(heading, rows)` pair, drawn in a column of its own to the right of the
 sections on a wide screen and after them on a narrow one. Both shipped forms put the image there.
