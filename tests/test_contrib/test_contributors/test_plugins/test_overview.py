@@ -504,6 +504,89 @@ class TestPersonOverview:
             datasets.context["object_list"]
         )
 
+    # Scenario 1
+    def test_on_their_own_profile_the_header_action_links_to_the_editing_page(
+        self, get_page, claimed_person
+    ):
+        update_url = reverse(
+            "contributor:overview-update", kwargs={"uuid": claimed_person.uuid}
+        )
+
+        _, page = get_page(claimed_person.get_absolute_url(), viewer=claimed_person)
+
+        links = [
+            a
+            for a in page.select(f"a[href='{update_url}']")
+            if a.find_parent(attrs={"data-card": True}) is None
+        ]
+        assert len(links) == 1
+
+    # Scenario 7
+    def test_each_checklist_item_the_page_can_fix_links_to_its_field(
+        self, get_page, db
+    ):
+        person = PersonFactory(
+            is_active=True,
+            is_claimed=True,
+            password="x",
+            profile="",
+            links=[],
+        )
+        update_url = reverse(
+            "contributor:overview-update", kwargs={"uuid": person.uuid}
+        )
+
+        response, page = get_page(person.get_absolute_url(), viewer=person)
+
+        urls = [item.get("url") for item in response.context["readiness"]["items"]]
+        assert urls == [
+            f"{update_url}#id_image",
+            reverse("socialaccount_connections"),
+            f"{update_url}#id_profile",
+            None,
+            f"{update_url}#id_links",
+        ]
+        assert set(_hrefs(_card(page, "readiness"))) == {
+            f"{update_url}#id_image",
+            reverse("socialaccount_connections"),
+            f"{update_url}#id_profile",
+            f"{update_url}#id_links",
+        }
+
+    def test_the_about_prompt_links_to_the_biography_field(self, get_page, db):
+        person = PersonFactory(
+            is_active=True, is_claimed=True, password="x", profile=""
+        )
+        update_url = reverse(
+            "contributor:overview-update", kwargs={"uuid": person.uuid}
+        )
+
+        _, page = get_page(person.get_absolute_url(), viewer=person)
+
+        assert _hrefs(_card(page, "about")) == [f"{update_url}#id_profile"]
+
+    # Scenario 8
+    @pytest.mark.parametrize("who", ["visitor", "signed_in", "staff", "superuser"])
+    def test_someone_elses_profile_offers_no_link_to_the_editing_page(
+        self, get_page, claimed_person, who
+    ):
+        viewer = {
+            "visitor": None,
+            "signed_in": PersonFactory(is_active=True, password="x"),
+            "staff": PersonFactory(is_active=True, is_staff=True, password="x"),
+            "superuser": PersonFactory(
+                is_active=True, is_staff=True, is_superuser=True, password="x"
+            ),
+        }[who]
+        update_url = reverse(
+            "contributor:overview-update", kwargs={"uuid": claimed_person.uuid}
+        )
+
+        response, page = get_page(claimed_person.get_absolute_url(), viewer=viewer)
+
+        assert page.select(f"a[href^='{update_url}']") == []
+        assert response.context["can_edit"] is False
+
 
 def _members(page):
     """The places of the members card, as the person each links to or None for a count."""
@@ -1121,12 +1204,10 @@ class TestPersonChecklist:
         _, own = get_page(person.get_absolute_url(), viewer=person)
         _, other = get_page(person.get_absolute_url())
 
-        (edit,) = _join_actions(own)
         (contact,) = _join_actions(other)
-        biography_action = _card(own, "about").select_one("button[disabled]")
-        assert edit["type"] == contact["type"] == "button"
-        assert _icon(edit) == _icon(biography_action)
-        assert _icon(contact) != _icon(edit)
+        assert contact["type"] == "button"
+        assert _join_actions(own) == []
+        assert _card(own, "about").select_one("button[disabled]") is None
 
     @pytest.mark.parametrize("who", ["visitor", "signed_in", "superuser"])
     def test_anyone_else_is_offered_the_contact_action_and_not_editing(

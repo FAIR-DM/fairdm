@@ -106,8 +106,17 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonChecklist::test_the_person_is_offered_editing_in_place_of_the_contact_action"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k \"TestPersonOverview or TestPersonChecklist\" (red: 8 failed, 47 passed; NoReverseMatch overview-update and the header stand-in still disabled)"
+            ]
+          }
         },
         {
           "id": "T005",

@@ -19,3 +19,10 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0` stops at collection with `ModuleNotFoundError: fairdm.contrib.contributors.forms.profile`, the expected red. `uv run pre-commit run --all-files` passes.
 - Next: T004, the overview tests.
 - Watch: the checks on message level and field error codes, not wording. The credited-record test requests the project's overview, so it will show whether that page lists its credits; if not, T005 moves it to the page that does.
+
+## 2026-10-01T16:45:00Z · Implementer US1 · T004
+- Did: added to `TestPersonOverview` the header edit link on a person's own profile, each checklist item's link and fragment (photo `#id_image`, biography `#id_profile`, links `#id_links`; ORCID unchanged, primary affiliation without a link), the About prompt's link to `#id_profile`, and no link to the editing page on someone else's profile for a visitor, a signed-in person, staff and a superuser.
+- Changed a pre-existing test, as `tasks.md` allows for a disabled stand-in this story brings to life: `TestPersonChecklist::test_the_person_is_offered_editing_in_place_of_the_contact_action` pinned the edit action and the biography prompt as disabled buttons. It now asserts that a person's own page has no disabled stand-in in the header or the About card, while someone else's page still has the Contact one. Nothing else in the file changed.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k "TestPersonOverview or TestPersonChecklist"` gives 8 failed, 47 passed. The failures are `NoReverseMatch: overview-update` and the stand-in still being disabled. That is the expected red. `uv run pre-commit run --all-files` passes.
+- Next: T005, the implementation.
+- Watch: the organization page is untouched in this story.
