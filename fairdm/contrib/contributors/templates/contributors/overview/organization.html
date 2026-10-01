@@ -11,7 +11,7 @@
 
   Organization blocks in the wide column: overview.about, overview.members, overview.records,
   overview.future. The facts column holds, in this order: overview.readiness,
-  overview.identifiers, overview.location, overview.sub_organizations, overview.activity,
+  overview.identifiers, overview.location, overview.hierarchy, overview.activity,
   overview.links. An organization has no Details card: the facts it would hold are in the header.
 {% endcomment %}
 
@@ -35,14 +35,12 @@
 
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
-    {% if organization.parent or location_text %}
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
-        <c-contributor.affiliation :organization="organization.parent" />
-        {% if location_text %}
-          <span class="inline-flex items-center gap-1 text-base-content/70">
-            <c-icon name="location" aria-hidden="true" />{{ location_text }}
-          </span>
-        {% endif %}
+    {% if organization.parent %}
+      <div class="min-w-0"><c-contributor.affiliation :organization="organization.parent" /></div>
+    {% endif %}
+    {% if location_text %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="location" aria-hidden="true" />{{ location_text }}
       </div>
     {% endif %}
     {% if languages %}
@@ -123,14 +121,14 @@
               </div>
             </li>
           {% endfor %}
+          {% if members.more %}
+            {% comment %}Stands in for a link to the full member list, which has no page yet.{% endcomment %}
+            <li class="flex items-center gap-3 min-w-0 text-base-content/70" title="{% translate 'The full member list is not available yet.' %}">
+              <c-avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
+              <span>{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</span>
+            </li>
+          {% endif %}
         </ul>
-        {% if members.more or members.former %}
-          <p class="text-sm text-base-content/70">
-            {% if members.more %}{% blocktranslate count counter=members.more %}and {{ counter }} more member{% plural %}and {{ counter }} more members{% endblocktranslate %}{% endif %}
-            {% if members.more and members.former %}·{% endif %}
-            {% if members.former %}{% blocktranslate count counter=members.former %}{{ counter }} former member{% plural %}{{ counter }} former members{% endblocktranslate %}{% endif %}
-          </p>
-        {% endif %}
       {% else %}
         {% translate "Nobody has listed this organization as an affiliation yet." as text %}
         {% include "contributors/overview/includes/empty.html" %}
@@ -150,9 +148,6 @@
   {% endblock overview.records %}
 
   {% block overview.future %}
-    <c-card.placeholder title="{% translate 'Output over time' %}"
-                        icon="chart"
-                        message="{% translate 'Datasets, samples and measurements from its members, by year added.' %}" />
     <c-card.placeholder title="{% translate 'Map' %}"
                         icon="map"
                         wide
@@ -182,20 +177,45 @@
     {% endif %}
   {% endblock overview.location %}
 
-  {% block overview.sub_organizations %}
-    <c-card title="{% translate 'Sub-organizations' %}" class="bg-base-100" data-card="sub-organizations">
-      {% if sub_organizations %}
-        <ul class="flex flex-col gap-3 text-sm">
-          {% for child in sub_organizations %}
-            <li class="min-w-0"><c-contributor.affiliation :organization="child" /></li>
-          {% endfor %}
+  {% block overview.hierarchy %}
+    <c-card title="{% translate 'Organization hierarchy' %}" class="bg-base-100" data-card="hierarchy">
+      {% if hierarchy.parent or hierarchy.children %}
+        <ul class="menu menu-sm w-full p-0">
+          {% if hierarchy.parent %}
+            <li>
+              {% include "contributors/overview/includes/hierarchy_node.html" with node=hierarchy.parent %}
+              <ul>
+                {% for sibling in hierarchy.siblings %}
+                  <li>
+                    {% include "contributors/overview/includes/hierarchy_node.html" with node=sibling %}
+                    {% if sibling.pk == organization.pk and hierarchy.children %}
+                      <ul>
+                        {% for child in hierarchy.children %}
+                          <li>{% include "contributors/overview/includes/hierarchy_node.html" with node=child %}</li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% else %}
+            <li>
+              {% include "contributors/overview/includes/hierarchy_node.html" with node=organization %}
+              <ul>
+                {% for child in hierarchy.children %}
+                  <li>{% include "contributors/overview/includes/hierarchy_node.html" with node=child %}</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
         </ul>
       {% else %}
-        {% translate "No institutes, departments or groups are recorded under this organization." as text %}
+        {% translate "No parent organization and no institutes, departments or groups are recorded for this organization." as text %}
         {% include "contributors/overview/includes/empty.html" %}
       {% endif %}
     </c-card>
-  {% endblock overview.sub_organizations %}
+  {% endblock overview.hierarchy %}
 
   {% block overview.activity %}
     <c-card.placeholder title="{% translate 'Recent activity' %}"

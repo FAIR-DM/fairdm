@@ -52,14 +52,12 @@
 
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
-    {% if primary_organization or location_text %}
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
-        <c-contributor.affiliation :organization="primary_organization" />
-        {% if location_text %}
-          <span class="inline-flex items-center gap-1 text-base-content/70">
-            <c-icon name="location" aria-hidden="true" />{{ location_text }}
-          </span>
-        {% endif %}
+    {% if primary_organization %}
+      <div class="min-w-0"><c-contributor.affiliation :organization="primary_organization" /></div>
+    {% endif %}
+    {% if location_text %}
+      <div class="flex items-center gap-1 text-base-content/70">
+        <c-icon name="location" aria-hidden="true" />{{ location_text }}
       </div>
     {% endif %}
     {% if languages %}

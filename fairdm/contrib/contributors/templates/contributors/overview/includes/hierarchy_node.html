@@ -1,0 +1,9 @@
+{% comment %}
+  One organization in the hierarchy tree: the building icon and its name. The organization the
+  page is about is marked as the current one and is not a link.
+{% endcomment %}
+{% if node.pk == organization.pk %}
+  <span class="menu-active" aria-current="page"><c-icon name="organization" aria-hidden="true" /><span class="break-words">{{ node.name }}</span></span>
+{% else %}
+  <a href="{{ node.get_absolute_url }}"><c-icon name="organization" aria-hidden="true" /><span class="break-words">{{ node.name }}</span></a>
+{% endif %}

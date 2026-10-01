@@ -58,6 +58,8 @@ class ContributorProjects(Plugin, ProjectListView):
 class ContributorDatasets(Plugin, DatasetListView):
     """List the datasets a contributor is credited on."""
 
+    page_title = _("Datasets")
+
     def get_queryset(self, *args, **kwargs):
         """Limit to this contributor's datasets."""
         return self.base_object.datasets.all()

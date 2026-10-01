@@ -40,7 +40,7 @@ class ContributorOverviewMixin:
 
     collaborators_shown = 18
     records_shown = 5
-    members_shown = 12
+    members_shown = 10
 
     # ------------------------------------------------------------------ shared
 
@@ -345,7 +345,6 @@ class ContributorOverviewMixin:
             (m for m in memberships if m.end_date is None),
             key=lambda m: (-m.type, m.person.name or ""),
         )
-        former = [m for m in memberships if m.end_date is not None]
         managers = {
             m.person_id for m in current if m.type >= Affiliation.MembershipType.ADMIN
         }
@@ -369,7 +368,12 @@ class ContributorOverviewMixin:
         ]
 
         ror = next((i for i in organization.identifiers.all() if i.type == "ROR"), None)
-        sub_organizations = list(organization.sub_organizations.order_by("name"))
+        parent = organization.parent
+        hierarchy = {
+            "parent": parent,
+            "siblings": list(parent.sub_organizations.order_by("name")) if parent else [],
+            "children": list(organization.sub_organizations.order_by("name")),
+        }
 
         context.update(
             {
@@ -381,7 +385,6 @@ class ContributorOverviewMixin:
                     "shown": current[: self.members_shown],
                     "more": max(len(current) - self.members_shown, 0),
                     "total": len(current),
-                    "former": len(former),
                 },
                 "projects": self.record_card(projects, self.is_active_project),
                 "datasets": self.record_card(datasets),
@@ -392,7 +395,7 @@ class ContributorOverviewMixin:
                 },
                 "ror": ror,
                 "ror_url": self.identifier_link(ror) if ror else None,
-                "sub_organizations": sub_organizations,
+                "hierarchy": hierarchy,
                 "location_text": organization.get_location_display(),
                 "has_map": organization.location_id is not None,
             }
