@@ -51,3 +51,9 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k "TestOrganizationDescendantIds or TestOrganizationParentLoop or TestOrganizationIsEditableBy"` gives 9 failed, 12 passed. The failures are `AttributeError: no attribute 'get_descendant_ids'`, `DID NOT RAISE ValidationError` for the loop, and `is_editable_by` returning False for an owner and an administrator. That is the expected red.
 - Next: T008, the form tests.
 - Watch: the passing tests are guards for rules that already hold (an unrelated parent, a member being refused) and stay in to keep the implementation from over-reaching.
+
+## 2026-10-01T16:40:00Z · Implementer US2 · T008
+- Did: added `TestOrganizationProfileForm` to `test_forms/test_profile.py` (the exact field set, every field saved, the website shown from and saved as the first stored link with no repeat, clearing the website keeping the other links, non-web addresses refused on their field, a required name, type and country outside their lists refused, the organization itself and one beneath it refused as parent with code `parent_loop` on the `parent` field, a refused parent storing nothing and keeping the rest typed, an unrelated parent and one with children of its own accepted, clearing the parent leaving the sub-organizations, the logo cleared and size-limited). The `organization_profile_data` fixture sits beside `profile_data` in `test_contributors/conftest.py`.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0` stops at collection with `ImportError: cannot import name 'OrganizationProfileForm'`, the expected red.
+- Next: T009, the page tests.
+- Watch: the error code `parent_loop` is mine, set on the model's loop refusal in T011.

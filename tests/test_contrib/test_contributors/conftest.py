@@ -357,3 +357,19 @@ def profile_data():
         "links": "https://example.org/ada\nhttp://example.org/notes",
         "lang": ["en", "fr"],
     }
+
+
+@pytest.fixture
+def organization_profile_data():
+    """Every field of an organization's profile form, filled in with valid values."""
+    return {
+        "name": "Potsdam Research Institute",
+        "alternative_names": "PRI\nInstitut Potsdam",
+        "type": "education",
+        "parent": "",
+        "city": "Potsdam",
+        "country": "DE",
+        "profile": "Studies the Earth system.",
+        "website": "https://example.org",
+        "links": "https://example.net/wiki\nhttps://example.org/news",
+    }

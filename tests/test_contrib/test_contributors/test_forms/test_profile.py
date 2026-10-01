@@ -1,13 +1,17 @@
-"""Tests for the profile editing forms: the list field and the person's form."""
+"""Tests for the profile editing forms: the list field, the person's form and the organization's."""
 
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.validators import URLValidator
 
-from fairdm.contrib.contributors.forms.profile import LinesField, PersonProfileForm
+from fairdm.contrib.contributors.forms.profile import (
+    LinesField,
+    OrganizationProfileForm,
+    PersonProfileForm,
+)
 from fairdm.core import image_utils
-from fairdm.factories import PersonFactory
+from fairdm.factories import OrganizationFactory, PersonFactory
 
 
 class TestLinesField:
@@ -184,3 +188,264 @@ class TestPersonProfileForm:
 
         person.refresh_from_db()
         assert not person.image
+
+
+@pytest.mark.django_db
+class TestOrganizationProfileForm:
+    def test_the_form_offers_the_logo_name_alternative_names_type_parent_city_country_description_website_and_links_only(
+        self, organization
+    ):
+        form = OrganizationProfileForm(instance=organization)
+
+        assert set(form.fields) == {
+            "image",
+            "name",
+            "alternative_names",
+            "type",
+            "parent",
+            "city",
+            "country",
+            "profile",
+            "website",
+            "links",
+        }
+
+    def test_a_valid_form_saves_every_field(
+        self, organization, organization_profile_data, image_upload
+    ):
+        parent = OrganizationFactory()
+        organization_profile_data["parent"] = parent.pk
+        form = OrganizationProfileForm(
+            organization_profile_data, {"image": image_upload()}, instance=organization
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.name == "Potsdam Research Institute"
+        assert organization.alternative_names == ["PRI", "Institut Potsdam"]
+        assert organization.type == "education"
+        assert organization.parent == parent
+        assert organization.city == "Potsdam"
+        assert organization.country == "DE"
+        assert organization.profile == "Studies the Earth system."
+        assert organization.image
+
+    def test_the_website_is_shown_from_the_first_stored_link_and_the_rest_as_other_links(
+        self, organization
+    ):
+        organization.links = ["https://example.org", "https://example.net/wiki"]
+        organization.save()
+
+        form = OrganizationProfileForm(instance=organization)
+
+        assert form["website"].value() == "https://example.org"
+        assert form["links"].value() == "https://example.net/wiki"
+
+    def test_an_organization_with_no_links_shows_no_website(self, organization):
+        organization.links = []
+        organization.save()
+
+        form = OrganizationProfileForm(instance=organization)
+
+        assert not form["website"].value()
+        assert not form["links"].value()
+
+    def test_the_website_is_saved_as_the_first_link_with_the_other_links_after_it_and_no_repeat(
+        self, organization, organization_profile_data
+    ):
+        # The other links repeat the website, as a person might type it.
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.links == [
+            "https://example.org",
+            "https://example.net/wiki",
+            "https://example.org/news",
+        ]
+
+    def test_the_same_address_typed_as_website_and_among_the_other_links_is_stored_once(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["links"] = "https://example.org\nhttps://example.net"
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.links == ["https://example.org", "https://example.net"]
+
+    def test_clearing_the_website_keeps_the_other_links(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["website"] = ""
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.links == [
+            "https://example.net/wiki",
+            "https://example.org/news",
+        ]
+
+    def test_clearing_the_website_and_the_other_links_leaves_no_links(
+        self, organization, organization_profile_data
+    ):
+        organization.links = ["https://example.org"]
+        organization.save()
+        organization_profile_data["website"] = ""
+        organization_profile_data["links"] = ""
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.links == []
+
+    @pytest.mark.parametrize("field", ["website", "links"])
+    def test_an_address_that_is_not_http_or_https_is_refused_on_its_field(
+        self, organization, organization_profile_data, field
+    ):
+        organization_profile_data[field] = "ftp://example.org/files"
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.has_error(field)
+        assert not form.has_error("name")
+
+    def test_a_name_is_required(self, organization, organization_profile_data):
+        organization_profile_data["name"] = ""
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.has_error("name", code="required")
+
+    def test_a_type_outside_the_list_is_refused_on_the_type_field(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["type"] = "spaceship"
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.has_error("type", code="invalid_choice")
+
+    def test_a_country_outside_the_list_is_refused_on_the_country_field(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["country"] = "XX"
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.has_error("country", code="invalid_choice")
+
+    def test_a_type_and_a_country_may_be_left_empty(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["type"] = ""
+        organization_profile_data["country"] = ""
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+
+    def test_the_organization_itself_is_refused_as_its_parent_with_the_reason_on_the_field(
+        self, organization, organization_profile_data
+    ):
+        organization_profile_data["parent"] = organization.pk
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.has_error("parent", code="parent_loop")
+        assert not form.has_error("name")
+
+    def test_an_organization_beneath_it_is_refused_as_its_parent_with_the_reason_on_the_field(
+        self, organization, organization_profile_data
+    ):
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+
+        for beneath in (child, grandchild):
+            organization_profile_data["parent"] = beneath.pk
+            form = OrganizationProfileForm(
+                organization_profile_data, instance=organization
+            )
+
+            assert form.has_error("parent", code="parent_loop")
+
+    def test_a_refused_parent_stores_nothing_and_keeps_what_was_typed_in_the_other_fields(
+        self, organization, organization_profile_data
+    ):
+        before = organization.name
+        organization_profile_data["parent"] = organization.pk
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert not form.is_valid()
+        assert form["profile"].value() == "Studies the Earth system."
+        assert form["city"].value() == "Potsdam"
+        organization.refresh_from_db()
+        assert organization.name == before
+
+    def test_an_unrelated_organization_and_one_with_children_of_its_own_are_accepted_as_parent(
+        self, organization, organization_profile_data
+    ):
+        unrelated = OrganizationFactory()
+        with_children = OrganizationFactory()
+        OrganizationFactory(parent=with_children)
+
+        for parent in (unrelated, with_children):
+            organization_profile_data["parent"] = parent.pk
+            form = OrganizationProfileForm(
+                organization_profile_data, instance=organization
+            )
+
+            assert form.is_valid(), form.errors
+
+    def test_clearing_the_parent_leaves_the_sub_organizations_as_they_were(
+        self, organization_profile_data
+    ):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+        child = OrganizationFactory(parent=organization)
+        organization_profile_data["parent"] = ""
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        child.refresh_from_db()
+        assert organization.parent is None
+        assert child.parent == organization
+        assert list(organization.sub_organizations.all()) == [child]
+
+    def test_the_form_opens_with_the_stored_parent_chosen(self):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+
+        form = OrganizationProfileForm(instance=organization)
+
+        assert form["parent"].value() == parent.pk
+
+    def test_a_cleared_logo_is_removed(self, organization_profile_data):
+        organization = OrganizationFactory(with_image=True)
+        organization_profile_data["image-clear"] = "on"
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert not organization.image
+
+    def test_an_image_over_the_size_limit_is_refused_on_the_logo_field(
+        self, organization, organization_profile_data, image_upload, monkeypatch
+    ):
+        monkeypatch.setattr(image_utils, "MAX_IMAGE_UPLOAD_BYTES", 10)
+        form = OrganizationProfileForm(
+            organization_profile_data, {"image": image_upload()}, instance=organization
+        )
+
+        assert form.has_error("image")
+        assert not form.has_error("name")
