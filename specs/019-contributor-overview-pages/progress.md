@@ -93,28 +93,28 @@
 - Next: The full gate and the report.
 - Watch: The seed file now takes about 33 seconds because each test runs the command. The testing standard has no class-scoped database fixture and unittest setUpTestData is not allowed, so I could not share one run.
 
-## 2026-10-01T11:10Z · Implementer US3 · T014
+## 2026-10-01T11:00Z · Implementer US3 · T014
 
 - Did: added TestChecklist to test_profiles.py (done count, total and ready for the items given), TestPersonProfileCompleteness and TestOrganizationRecordCompleteness to test_models.py. They pin each flag on its own, that an ORCID iD typed in is not connected and signing in with ORCID is, that only a ROR identifier counts as the ROR item, that a location needs both the city and the country, and that a primary affiliation counts only when current and verified.
 - Verified: 19 passed and 1 failed on the first run. The failure is real: a pending primary affiliation counts toward the checklist's affiliation item while the header names no organization for it. T016 fixes it. Probed by mutating the two methods (location with or, ROR as any identifier, ORCID as a typed identifier) and seven tests failed between them; restored. uv run pre-commit run --all-files clean.
 - Next: T015, the rendered pages for scenarios 1 to 8.
 - Watch: The commit leaves that one test red on purpose, as the task order asks; T016 makes it pass.
 
-## 2026-10-01T11:25Z · Implementer US3 · T015
+## 2026-10-01T11:04Z · Implementer US3 · T015
 
 - Did: added TestPersonChecklist and TestOrganizationChecklist to test_overview.py for scenarios 1 to 8, with the incomplete_person and keeper_world fixtures. A person's checklist is shown to that person and not to a visitor, another signed-in user, a staff user or a superuser; its progress equals the completeness flags, the photo and the links are optional, the ORCID item links to the connected-accounts page and a typed-in iD leaves it open, and editing replaces the contact action only on the person's own page. The organization checklist and the all-disabled management menu are shown to an owner and an administrator and to nobody else: not a member, a pending request, a stranger, a visitor, staff, a superuser, or a former administrator or owner whose affiliation ended. Elements are found by data-card, the progress element, hrefs and the icon each button carries, never by wording.
 - Verified: 33 passed and 1 failed. The failure is the same defect T014 found, seen on the page: a pending primary affiliation counts as in place though the header names no organization. One test of mine was wrong at first (it picked the wrong menu list) and I fixed the test. Probed by mutating the plugin and the person template: showing the person checklist to everyone, showing the organization checklist to any signed-in user, making the ORCID item always done, letting staff manage, and swapping the edit and contact branch failed between 2 and 11 tests each; restored. uv run pre-commit run --all-files clean.
 - Next: T016, the fixes and the documentation.
 - Watch: Scenarios 6 to 8 were partly covered by US2's tests; the new class adds the former administrator, the pending request and the superuser cases and does not edit US2's tests.
 
-## 2026-10-01T11:45Z · Implementer US3 · T016
+## 2026-10-01T11:07Z · Implementer US3 · T016
 
 - Did: Person.get_profile_completeness now counts a primary affiliation only when it is verified and has not ended, which is what the header shows. Person.get_location_display reads the same affiliation, filtered in Python over affiliations.all() so a prefetch still costs no query per person; TestPersonLocationDisplay was written first and failed for the pending and ended cases. Deleted person/plugins/overview.html and organization/plugins/overview.html after a search of fairdm, docs, tests and demo found no reference. Documented the checklist, its items and who sees it in overview-pages.md, the completeness methods, the location rule and the checklist helper in contributors.md, and the changelog (Added, Fixed and Removed). Decisions D13 and D14 recorded.
 - Verified: the two T014 and T015 tests that were red pass. tests/test_contrib plus tests/test_demo gave 949 passed before the deletion, and tests/test_contributors plus tests/test_templates gave 778 passed after it. uv run pre-commit run --all-files clean.
 - Next: T017, the polish checks and the full gate.
 - Watch: The person card in listings also calls get_location_display, so a pending or ended primary affiliation no longer shows a place there either. primary_affiliation() and primary_organization still apply no verification; the card's organization line reads them. That is outside this story and is in the report's concerns.
 
-## 2026-10-01T12:15Z · Implementer US3 · T017
+## 2026-10-01T11:10Z · Implementer US3 · T017
 
 - Did: ran makemigrations --check --dry-run over the 18 apps of the fairdm and demo packages (No changes detected, exit 0) and over every installed app, where the only pending change is the third-party orbit migration 0008_alter_orbitentry_type. Scanned the contributor plugin and every page and card template this feature added for text outside gettext and translate tags: the ROR iD title on the organization header and the authenticated ORCID title on the person header were plain text and are now marked. The repository has no locale catalogue to regenerate.
 - Verified: tests/test_contrib/test_contributors/test_plugins gives 99 passed after the change. The full gate, forge verify --repo . --base origin/main, exited 0 with conformance, docs, lint, typecheck, test and build all passed.
