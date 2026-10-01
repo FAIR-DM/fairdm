@@ -5,16 +5,29 @@ asks on every request, shows the right form, and stores nothing when it refuses.
 asserts a sentence, a width or an order of fields.
 """
 
+from types import SimpleNamespace
+
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib import messages
+from django.contrib.auth.models import Group
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import reverse
 
-from fairdm.contrib.contributors.forms.profile import PersonProfileForm
-from fairdm.factories import PersonFactory, ProjectFactory
+from fairdm.contrib.contributors.forms.profile import (
+    OrganizationProfileForm,
+    PersonProfileForm,
+)
+from fairdm.contrib.contributors.models import Affiliation
+from fairdm.factories import (
+    AffiliationFactory,
+    OrganizationFactory,
+    PersonFactory,
+    ProjectFactory,
+)
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
@@ -326,3 +339,392 @@ class TestProfileFormsSetting:
         assert settings.FAIRDM_PROFILE_FORMS["person"] == (
             "fairdm.contrib.contributors.forms.profile.PersonProfileForm"
         )
+
+
+def _organization_stored(organization):
+    organization.refresh_from_db()
+    return (
+        organization.name,
+        organization.profile,
+        organization.links,
+        organization.city,
+        organization.parent_id,
+    )
+
+
+def _join(organization, type, **kwargs):
+    person = PersonFactory(is_active=True, is_claimed=True, password="x")
+    AffiliationFactory(person=person, organization=organization, type=type, **kwargs)
+    return person
+
+
+@pytest.fixture
+def kept_organization(db):
+    """An organization with something to change and one of each kind of person around it."""
+    organization = OrganizationFactory(
+        name="Original Institute",
+        profile="Original description.",
+        links=["https://example.org/original"],
+        city="Berlin",
+    )
+    deactivated = _join(organization, Affiliation.MembershipType.ADMIN)
+    deactivated.is_active = False
+    deactivated.save()
+    curator = PersonFactory(is_active=True, password="x")
+    curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+    return SimpleNamespace(
+        organization=organization,
+        owner=_join(organization, Affiliation.MembershipType.OWNER),
+        admin=_join(organization, Affiliation.MembershipType.ADMIN),
+        member=_join(organization, Affiliation.MembershipType.MEMBER),
+        former_admin=_join(
+            organization,
+            Affiliation.MembershipType.ADMIN,
+            start_date="2010",
+            end_date="2014",
+        ),
+        deactivated_admin=deactivated,
+        stranger=PersonFactory(is_active=True, password="x"),
+        curator=curator,
+        superuser=PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        ),
+    )
+
+
+@pytest.mark.django_db
+class TestOrganizationUpdate:
+    # Scenario 2
+    @pytest.mark.parametrize("who", ["owner", "admin"])
+    def test_a_save_returns_to_the_overview_and_says_it_was_saved(
+        self, signed_in, kept_organization, organization_profile_data, who
+    ):
+        organization = kept_organization.organization
+
+        response = signed_in(getattr(kept_organization, who)).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 302
+        assert response.url == organization.get_absolute_url()
+        levels = [m.level for m in get_messages(response.wsgi_request)]
+        assert levels == [messages.SUCCESS]
+
+    @pytest.mark.parametrize("who", ["owner", "admin"])
+    def test_a_save_stores_every_field_and_the_overview_shows_them(
+        self, signed_in, kept_organization, organization_profile_data, image_upload, who
+    ):
+        organization = kept_organization.organization
+        parent = OrganizationFactory(name="Parent Institute")
+        browser = signed_in(getattr(kept_organization, who))
+
+        browser.post(
+            _update_url(organization),
+            {
+                **organization_profile_data,
+                "parent": parent.pk,
+                "image": image_upload(),
+            },
+        )
+
+        organization.refresh_from_db()
+        assert organization.name == "Potsdam Research Institute"
+        assert organization.alternative_names == ["PRI", "Institut Potsdam"]
+        assert organization.type == "education"
+        assert organization.parent == parent
+        assert organization.city == "Potsdam"
+        assert organization.country == "DE"
+        assert organization.profile == "Studies the Earth system."
+        assert organization.links[0] == "https://example.org"
+        assert organization.image
+        shown = browser.get(organization.get_absolute_url()).context["organization"]
+        assert shown.name == "Potsdam Research Institute"
+
+    def test_the_form_is_the_organization_form_opened_with_what_is_stored(
+        self, signed_in, kept_organization
+    ):
+        organization = kept_organization.organization
+
+        response = signed_in(kept_organization.owner).get(_update_url(organization))
+
+        form = response.context["form"]
+        assert type(form) is OrganizationProfileForm
+        assert form["name"].value() == "Original Institute"
+        assert form["website"].value() == "https://example.org/original"
+        assert form["city"].value() == "Berlin"
+
+    # Scenario 3
+    def test_a_changed_name_shows_on_a_project_the_organization_owns_and_on_a_members_profile(
+        self, signed_in, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+        project = ProjectFactory(owner=organization, visibility=Visibility.PUBLIC)
+        member = kept_organization.member
+        Affiliation.objects.filter(person=member, organization=organization).update(
+            is_primary=True
+        )
+
+        signed_in(kept_organization.owner).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        on_project = Client().get(project.get_absolute_url()).content.decode()
+        on_member = Client().get(member.get_absolute_url()).content.decode()
+        assert "Potsdam Research Institute" in on_project
+        assert "Original Institute" not in on_project
+        assert "Potsdam Research Institute" in on_member
+        assert "Original Institute" not in on_member
+
+    # Scenario 4
+    @pytest.mark.parametrize("beneath", ["itself", "child", "grandchild"])
+    def test_a_parent_that_would_form_a_loop_stores_nothing_and_is_reported_on_the_field(
+        self, signed_in, kept_organization, organization_profile_data, beneath
+    ):
+        organization = kept_organization.organization
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+        chosen = {"itself": organization, "child": child, "grandchild": grandchild}[
+            beneath
+        ]
+        before = _organization_stored(organization)
+
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization), {**organization_profile_data, "parent": chosen.pk}
+        )
+
+        assert response.status_code == 200
+        assert response.context["form"].has_error("parent", code="parent_loop")
+        assert _organization_stored(organization) == before
+
+    # Scenario 5
+    def test_clearing_the_parent_makes_the_organization_part_of_nothing_and_leaves_its_children(
+        self, signed_in, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+        organization.parent = OrganizationFactory()
+        organization.save()
+        child = OrganizationFactory(parent=organization)
+
+        signed_in(kept_organization.owner).post(
+            _update_url(organization), {**organization_profile_data, "parent": ""}
+        )
+
+        organization.refresh_from_db()
+        child.refresh_from_db()
+        assert organization.parent is None
+        assert child.parent == organization
+
+    # Scenario 6
+    def test_a_cleared_name_stores_nothing_and_keeps_what_else_was_typed(
+        self, signed_in, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization), {**organization_profile_data, "name": ""}
+        )
+
+        assert response.status_code == 200
+        form = response.context["form"]
+        assert form.has_error("name", code="required")
+        assert form["profile"].value() == "Studies the Earth system."
+        assert form["city"].value() == "Potsdam"
+        assert _organization_stored(organization) == before
+
+    @pytest.mark.parametrize(
+        ("field", "value", "code"),
+        [
+            ("type", "spaceship", "invalid_choice"),
+            ("country", "XX", "invalid_choice"),
+            ("links", "https://example.org/ok\nnot a link", "invalid_entry"),
+        ],
+    )
+    def test_a_refused_entry_stores_nothing_and_is_reported_on_its_field(
+        self, signed_in, kept_organization, organization_profile_data, field, value, code
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization), {**organization_profile_data, field: value}
+        )
+
+        assert response.status_code == 200
+        assert response.context["form"].has_error(field, code=code)
+        assert _organization_stored(organization) == before
+
+    def test_a_removed_logo_leaves_the_organization_without_one(
+        self, signed_in, organization_profile_data
+    ):
+        organization = OrganizationFactory(with_image=True)
+        owner = _join(organization, Affiliation.MembershipType.OWNER)
+
+        signed_in(owner).post(
+            _update_url(organization),
+            {**organization_profile_data, "image-clear": "on"},
+        )
+
+        organization.refresh_from_db()
+        assert not organization.image
+
+    # Scenario 7
+    def test_a_field_filled_in_from_the_checklist_is_counted_as_in_place_after_the_save(
+        self, signed_in, organization_profile_data, image_upload
+    ):
+        organization = OrganizationFactory(
+            profile="", type="", city="", country="", links=[], location=None
+        )
+        owner = _join(organization, Affiliation.MembershipType.OWNER)
+        browser = signed_in(owner)
+        before = browser.get(organization.get_absolute_url()).context["readiness"]
+
+        browser.post(
+            _update_url(organization),
+            {**organization_profile_data, "image": image_upload()},
+        )
+        after = browser.get(organization.get_absolute_url()).context["readiness"]
+
+        done_before = [item["done"] for item in before["items"]]
+        done_after = [item["done"] for item in after["items"]]
+        # Every item but the ROR identifier, which the page does not edit.
+        assert done_before[1:] == [False] * 5
+        assert done_after[1:] == [True] * 5
+        assert done_after[0] == done_before[0]
+
+    # Scenario 8
+    @pytest.mark.parametrize("who", ["member", "stranger", "curator", "superuser"])
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_someone_who_does_not_keep_the_record_is_refused_and_nothing_is_stored(
+        self, signed_in, kept_organization, organization_profile_data, who, method
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = getattr(signed_in(getattr(kept_organization, who)), method)(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 403
+        assert _organization_stored(organization) == before
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_visitor_is_sent_to_sign_in_and_nothing_is_stored(
+        self, kept_organization, organization_profile_data, method
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = getattr(Client(), method)(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 302
+        assert response.url.startswith(reverse("account_login"))
+        assert _organization_stored(organization) == before
+
+    # Scenario 9
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_an_administrator_whose_affiliation_has_ended_is_refused_and_nothing_is_stored(
+        self, signed_in, kept_organization, organization_profile_data, method
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = getattr(signed_in(kept_organization.former_admin), method)(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 403
+        assert _organization_stored(organization) == before
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_a_deactivated_administrator_is_signed_out_and_nothing_is_stored(
+        self, signed_in, kept_organization, organization_profile_data, method
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+
+        response = getattr(signed_in(kept_organization.deactivated_admin), method)(
+            _update_url(organization), organization_profile_data
+        )
+
+        assert response.status_code == 302
+        assert response.url.startswith(reverse("account_login"))
+        assert _organization_stored(organization) == before
+
+    # Scenario 10
+    def test_the_page_offers_no_way_to_change_the_ror_identifier_the_members_or_the_owner(
+        self, signed_in, kept_organization
+    ):
+        organization = kept_organization.organization
+
+        response = signed_in(kept_organization.owner).get(_update_url(organization))
+
+        form = _page(response).select_one(f"form[action='{_update_url(organization)}']")
+        names = {
+            control["name"]
+            for control in form.select("[name]")
+            if control["name"] != "csrfmiddlewaretoken"
+        }
+        assert names == {
+            "image",
+            "name",
+            "alternative_names",
+            "type",
+            "parent",
+            "city",
+            "country",
+            "profile",
+            "website",
+            "links",
+        }
+
+    @pytest.mark.parametrize("field", ["identifiers", "members", "owner", "ror"])
+    def test_a_posted_value_for_a_field_the_page_does_not_carry_is_ignored(
+        self, signed_in, kept_organization, organization_profile_data, field
+    ):
+        organization = kept_organization.organization
+        members_before = set(organization.affiliations.values_list("pk", flat=True))
+
+        signed_in(kept_organization.owner).post(
+            _update_url(organization), {**organization_profile_data, field: "x"}
+        )
+
+        assert not organization.identifiers.exists()
+        assert set(organization.affiliations.values_list("pk", flat=True)) == members_before
+
+    # Scenario 11
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_an_organization_nobody_keeps_is_refused_to_anyone_who_is_not_a_community_manager(
+        self, signed_in, organization_profile_data, method
+    ):
+        organization = OrganizationFactory(name="Nobody's Institute")
+        member = _join(organization, Affiliation.MembershipType.MEMBER)
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+        before = _organization_stored(organization)
+
+        for user in (member, curator, superuser):
+            response = getattr(signed_in(user), method)(
+                _update_url(organization), organization_profile_data
+            )
+
+            assert response.status_code == 403
+        assert _organization_stored(organization) == before
+
+    def test_opening_the_page_and_leaving_changes_nothing(
+        self, signed_in, kept_organization
+    ):
+        organization = kept_organization.organization
+        before = _organization_stored(organization)
+        modified = organization.modified
+
+        signed_in(kept_organization.owner).get(_update_url(organization))
+
+        assert _organization_stored(organization) == before
+        organization.refresh_from_db()
+        assert organization.modified == modified

@@ -57,3 +57,9 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0` stops at collection with `ImportError: cannot import name 'OrganizationProfileForm'`, the expected red.
 - Next: T009, the page tests.
 - Watch: the error code `parent_loop` is mine, set on the model's loop refusal in T011.
+
+## 2026-10-01T17:00:00Z · Implementer US2 · T009
+- Did: added `TestOrganizationUpdate` to `test_plugins/test_update.py` against the real page: scenarios 2 to 6 and 8 to 11 for the owner, an administrator, a member, a stranger, a Data Curator, a superuser, an ended administrator, a deactivated administrator and a visitor; the form it opens with; every field stored; a changed name on a project the organization owns and on a member's profile; a loop parent refused on the field for itself, a child and a grandchild; the parent cleared with its children left; the cleared name keeping the rest typed; a refused type, country and link; a removed logo; the checklist counting what was filled in after the save; no input for the ROR identifier, members or owner; an organization nobody keeps refused to everyone but a community manager. Every refused request asserts nothing stored.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k TestOrganizationUpdate` stops at collection with `ImportError: cannot import name 'OrganizationProfileForm'`, the expected red. `uv run pre-commit run --all-files` passes.
+- Next: T010, the overview tests.
+- Watch: a deactivated administrator is redirected to sign in, not refused with 403, because Django signs the account out first (brief and decisions D10).
