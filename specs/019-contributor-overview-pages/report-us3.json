@@ -1,0 +1,127 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T014",
+      "status": "done",
+      "commits": [
+        "b8501ab7"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_profiles.py::TestChecklist",
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonProfileCompleteness",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationRecordCompleteness"
+        ],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_profiles.py::TestChecklist tests/test_contrib/test_contributors/test_models.py::TestPersonProfileCompleteness tests/test_contrib/test_contributors/test_models.py::TestOrganizationRecordCompleteness -q -n0 (19 passed, 1 failed on purpose: a pending primary affiliation counted; fixed in T016)",
+          "uv run pre-commit run --all-files (exit 0)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "commits": [
+        "6c7714ea"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonChecklist",
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationChecklist"
+        ],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -k Checklist -q -n0 (33 passed, 1 failed on purpose: the same pending primary affiliation defect, seen on the page; fixed in T016)",
+          "uv run pre-commit run --all-files (exit 0)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T016",
+      "status": "done",
+      "commits": [
+        "80bd7ddf"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonLocationDisplay"
+        ],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n 4 (778 passed, exit 0)",
+          "uv run pytest tests/test_contrib tests/test_demo -q -n 4 (949 passed, exit 0, before the template deletion)",
+          "uv run pre-commit run --all-files (exit 0)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "commits": [
+        "7877e131"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run python manage.py makemigrations --check --dry-run <the 18 app labels of the fairdm and demo packages> (exit 0, No changes detected)",
+          "uv run python manage.py makemigrations --check --dry-run over every installed app (exit 1, only the third-party orbit migration 0008_alter_orbitentry_type)",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n 4 (99 passed, exit 0)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T014 and T015 each leave one test red on purpose, and T016 makes them pass.",
+      "why": "The brief orders the tests before the fixes in separate tasks. The red test is a pending primary affiliation counted as in place on the checklist while the header names no organization.",
+      "decision_ref": "decisions.md#d13-the-checklists-affiliation-item-and-a-persons-location-follow-the-header"
+    },
+    {
+      "what": "Person.get_location_display filters affiliations.all() in Python instead of calling get_affiliation_history.",
+      "why": "The person card in listings calls it per person and a prefetch of the affiliations must keep costing no query per person; a test pins that.",
+      "decision_ref": "decisions.md#d13-the-checklists-affiliation-item-and-a-persons-location-follow-the-header"
+    },
+    {
+      "what": "Two plugin templates were deleted: person/plugins/overview.html and organization/plugins/overview.html, with a changelog entry under Removed.",
+      "why": "A search of fairdm, docs, tests and demo found no reference, and the Overview plugin names its templates itself.",
+      "decision_ref": "decisions.md#d14-the-two-old-plugin-templates-are-deleted"
+    },
+    {
+      "what": "Two titles in the person and organization headers (the authenticated ORCID iD and the ROR iD) were marked for translation.",
+      "why": "T017 asks that every new string in the templates is marked; the scan found these two as plain text.",
+      "decision_ref": "decisions.md#d14-the-two-old-plugin-templates-are-deleted"
+    }
+  ],
+  "concerns": [
+    "Person.primary_affiliation() and Person.primary_organization apply no verification or end-date check. cotton/contributor/card/person.html reads primary_organization for the organization line of a person card in listings, so a pending or ended primary affiliation can still name an organization there. Outside this story.",
+    "makemigrations --check over every installed app still reports the third-party orbit migration 0008_alter_orbitentry_type; over the 18 apps of the fairdm and demo packages it reports no changes.",
+    "The checklist on a person's own page has no test for its first-person biography stand-in beyond US1's; FR-032 for organizations (a description stand-in for managers) was not in scenarios 1 to 8 and has no new test."
+  ],
+  "blocked": []
+}
