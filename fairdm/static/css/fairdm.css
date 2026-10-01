@@ -309,6 +309,12 @@
   aspect-ratio: 16 / 9;
 }
 
+/* The 3:1 box of the image banner on the overview pages. The image keeps its own shape and is
+ * fitted inside the box. Named like Tailwind's utility, for the same reason. */
+.aspect-\[3\/1\] {
+  aspect-ratio: 3 / 1;
+}
+
 /* The icon on a figure in a stats strip: a rounded tile tinted with the record type's colour,
  * so the strip reads by colour and shape before the numbers are read. The colour comes from
  * the stat's `variant` through --stat-color; without one the tile stays neutral. django-mvp's

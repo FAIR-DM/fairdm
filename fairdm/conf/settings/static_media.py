@@ -90,6 +90,8 @@ THUMBNAIL_ALIASES = {
     "": {
         "core_small": {"size": (600, 400), "crop": "smart"},
         "core_large": {"size": (1200, 800), "crop": "smart"},
+        # The overview page banner: fitted inside a 3:1 box at the image's own shape, never cropped.
+        "core_banner": {"size": (2400, 800), "crop": False},
     },
     "contributors": {
         "thumb": {"size": (48, 48), "crop": False},
