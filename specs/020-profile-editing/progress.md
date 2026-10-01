@@ -123,3 +123,9 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit -q -n0` gives 3 passed. It passes on the first run because T015 had landed, so I probed it instead: giving superusers and staff a bypass in the person rule made 2 fail, and letting any group member edit an organization made 2 fail; both restored. `uv run pre-commit run --all-files` passes.
 - Next: T019.
 - Watch: the table seeds the development data once per test, about five seconds each.
+
+## 2026-10-01T19:10:00Z · Implementer US3 · T019
+- Did: `TestOrganizationRorIdentifier` in `test_models.py` (the bare identifier and the full address validate; five malformed values, bare and as an address, still fail on `identifiers`), and a page test that a community manager saves an organization whose ROR is stored as the full address. Then `Organization.clean` removes a leading `https://ror.org/` before matching, nothing more. Documented in `contributors.md` and the changelog; decision D19.
+- Verified: before the fix `uv run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationRorIdentifier -q -n0` gave 1 failed, 6 passed (the full address rejected), and the page test failed with the same cause; after it `test_models.py` is green. `uv run pre-commit run --all-files` passes.
+- Next: T020.
+- Watch: `Organization.update_identifier` (the after-create hook) created no identifier when I passed `synced_data` with an `id` to `Organization.objects.create` or `OrganizationFactory`, so the tests create the identifier directly. I did not find out why; it is outside this task and goes in the report.

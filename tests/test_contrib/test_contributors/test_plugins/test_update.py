@@ -1082,6 +1082,22 @@ class TestCommunityManagerUpdate:
             == affiliations
         )
 
+    def test_an_organization_whose_ror_is_stored_as_the_full_address_saves(
+        self, signed_in, community_manager, organization_profile_data
+    ):
+        organization = OrganizationFactory(name="Created From ROR")
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+        )
+
+        response = signed_in(community_manager).post(
+            _update_url(organization), organization_profile_data
+        )
+
+        organization.refresh_from_db()
+        assert response.status_code == 302
+        assert organization.name == "Potsdam Research Institute"
+
     def test_an_organization_nobody_keeps_opens_and_saves(
         self, signed_in, community_manager, organization_profile_data
     ):

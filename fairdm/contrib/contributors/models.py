@@ -1414,7 +1414,7 @@ class Organization(Contributor):
             ror_pattern = r"^0[a-z0-9]{6}[0-9]{2}$"
             import re
 
-            if not re.match(ror_pattern, ror.value):
+            if not re.match(ror_pattern, ror.value.removeprefix("https://ror.org/")):
                 raise ValidationError(
                     {
                         "identifiers": _(

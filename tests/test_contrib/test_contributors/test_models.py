@@ -2745,6 +2745,41 @@ class TestPersonIsEditableBy:
         assert person.is_editable_by(curator) is False
 
 @pytest.mark.django_db
+class TestOrganizationRorIdentifier:
+    @pytest.mark.parametrize("value", ["02nr0ka47", "https://ror.org/02nr0ka47"])
+    def test_a_ror_stored_as_the_bare_identifier_or_the_full_address_validates(
+        self, value
+    ):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value=value
+        )
+
+        organization.full_clean()
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "not-a-ror",
+            "https://ror.org/not-a-ror",
+            "https://example.org/02nr0ka47",
+            "https://ror.org/02nr0ka47/extra",
+            "12nr0ka47",
+        ],
+    )
+    def test_a_malformed_ror_still_fails_on_the_identifiers_field(self, value):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value=value
+        )
+
+        with pytest.raises(ValidationError) as error:
+            organization.full_clean()
+
+        assert "identifiers" in error.value.message_dict
+
+
+@pytest.mark.django_db
 class TestOrganizationDescendantIds:
     def test_an_organization_with_no_sub_organizations_has_none(self):
         organization = OrganizationFactory()

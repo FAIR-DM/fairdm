@@ -234,3 +234,14 @@ answer (accept the address, or store the bare identifier) is the model's to sett
 completion report.
 
 **ADR:** none.
+
+## D19. A stored ROR address validates
+
+`Organization.clean` removes a leading `https://ror.org/` from a stored ROR value before matching
+the bare-identifier pattern, so both forms validate and a malformed value of either form still
+fails on `identifiers`. `update_identifier` is unchanged and still stores the address it is given,
+as D18 left it. This settles the open point D18 reported.
+
+**Revisit if:** the model should store only the bare identifier, which would be a data migration.
+
+**ADR:** none.

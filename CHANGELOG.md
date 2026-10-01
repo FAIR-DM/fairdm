@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- An organization created from ROR could not be saved from its editing page or in the
+  administration interface, because `Organization.clean()` accepted only the bare ROR identifier
+  and the identifier is stored as the full address. It now accepts both, and still refuses a
+  malformed one.
 - Saving a profile whose stored record fails validation on a field the form does not carry, such
   as a malformed identifier, answered with a server error. The form is now invalid, the problem is
   reported on the form as a whole and nothing is saved.

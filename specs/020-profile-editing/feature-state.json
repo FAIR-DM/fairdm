@@ -350,8 +350,18 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationRorIdentifier",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate::test_an_organization_whose_ror_is_stored_as_the_full_address_saves"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationRorIdentifier -q -n0 (red: 1 failed, 6 passed; the full address rejected)",
+              "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 (green after the fix)"
+            ]
+          }
         },
         {
           "id": "T020",

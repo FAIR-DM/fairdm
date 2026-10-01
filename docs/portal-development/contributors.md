@@ -197,6 +197,10 @@ org = Organization.from_ror("https://ror.org/04aj4c181")
 ror_id = org.identifiers.filter(type="ROR").first()
 ```
 
+A stored ROR identifier may be the bare identifier (`04aj4c181`) or the full address
+(`https://ror.org/04aj4c181`), which is how `from_ror` stores it. `Organization.clean()` accepts
+both and refuses a value that is neither.
+
 ### Organization Ownership
 
 `manage_organization` is **derived, not stored** (decisions.md D13). No django-guardian row is
