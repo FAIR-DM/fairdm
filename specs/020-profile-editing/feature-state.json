@@ -120,8 +120,23 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestContributorUpdateUrl",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonChecklist"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors -q -n0 (733 passed)",
+              "uv run python manage.py makemigrations --check --dry-run (only a third-party orbit migration is proposed; none for fairdm)"
+            ]
+          }
         },
         {
           "id": "T006",

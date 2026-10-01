@@ -140,3 +140,33 @@ a question about the specification. Until it is ruled, the page edits `name` onl
   inactive users signed in.
 
 **ADR:** none. Review notes for this feature.
+
+## D11. The shipped fallback form lives on the page, the default in the setting
+
+`FAIRDM_PROFILE_FORMS` ships with a `person` entry (the documented default). `Update` also keeps
+its own `shipped_forms` map, so a portal that deletes the setting or names only another kind still
+gets the shipped form without the setting being read back through a default.
+
+**Revisit if:** the organization form lands and the two maps start to drift; the page could then
+read the setting's default instead.
+
+**ADR:** none.
+
+## D12. The ISO 639-1 code list is a module constant
+
+The languages field offers the same codes the model's validator accepts. The set lived inside the
+validator function, so it moved to `ISO_639_1_CODES` in `validators.py` and the function reads it
+there. No behaviour of the validator changed.
+
+**ADR:** none.
+
+## D13. Checklist links changed three existing overview tests
+
+The person checklist now links the photo, biography and links items to their fields (FR-017).
+Three existing tests asserted that the ORCID item's link was the checklist's only link, so they
+now assert on the ORCID link itself: it is present while the item is missing, and gone once ORCID
+is connected. The links to the editing fields are asserted in full by the new tests in
+`TestPersonOverview`. Named here because `tasks.md` allows changing only tests that pinned a
+disabled stand-in; these pinned the absence of links the story adds.
+
+**ADR:** none.

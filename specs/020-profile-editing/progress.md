@@ -26,3 +26,14 @@
 - Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k "TestPersonOverview or TestPersonChecklist"` gives 8 failed, 47 passed. The failures are `NoReverseMatch: overview-update` and the stand-in still being disabled. That is the expected red. `uv run pre-commit run --all-files` passes.
 - Next: T005, the implementation.
 - Watch: the organization page is untouched in this story.
+
+## 2026-10-01T17:30:00Z · Implementer US1 · T005
+- Did, in four commits:
+  - `Contributor.is_editable_by` (False), the `Person` override (the signed-in active person themself), `get_update_url()` reversing `contributor:overview-update`, and `UserProfileForm` deleted with its imports.
+  - `forms/profile.py` with `LinesField`, `language_choices` and `PersonProfileForm`; `FAIRDM_PROFILE_FORMS` in `conf/settings/auth.py`; the ISO 639-1 code set moved to `ISO_639_1_CODES` in `validators.py`.
+  - `plugins/update.py` with `Update` (its own named `check`, `get_form_class` reading the setting) added to `Overview.extra_views`, and `contributors/plugins/update.html` for a Save and Cancel pair and the account centre line.
+  - The person overview: `can_edit` and `update_url` in the context, a working edit link, the About prompt linking to `#id_profile`, and checklist links to `#id_image`, `#id_profile` and `#id_links`. The Contact stand-in still shows on anyone else's profile.
+- Pre-existing tests changed (named per `tasks.md`): the three `TestPersonChecklist` tests that asserted the ORCID link was the checklist's only link now assert on the ORCID link itself (see decisions D13). The disabled-stand-in test changed in T004.
+- Verified: `uv run pytest tests/test_contrib/test_contributors -q -n0` gives 733 passed. `uv run pre-commit run --all-files` passes. `uv run python manage.py makemigrations --check --dry-run` proposes only a third-party `orbit` migration, none for fairdm. Mutation probes: removing the image size validator, removing the language de-duplication and replacing the page's `check` with True each made the matching tests fail, and restoring them made them pass.
+- Next: T006, the documentation.
+- Watch: `Person.clean` raises errors keyed to `email` and `identifiers`, which the editing form does not carry. Django's model form raises `ValueError` for an error on a field the form lacks, so a person whose stored ORCID identifier is malformed would get a server error on save. Not reachable through the forms that exist today; left alone.

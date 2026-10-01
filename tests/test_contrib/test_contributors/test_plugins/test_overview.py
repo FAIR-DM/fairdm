@@ -1143,7 +1143,7 @@ class TestPersonChecklist:
             incomplete_person.get_absolute_url(), viewer=incomplete_person
         )
 
-        assert _hrefs(_card(page, "readiness")) == [reverse("socialaccount_connections")]
+        assert reverse("socialaccount_connections") in _hrefs(_card(page, "readiness"))
 
     def test_connecting_orcid_puts_the_item_in_place_and_drops_its_link(
         self, get_page, incomplete_person, orcid_signed_in
@@ -1158,7 +1158,10 @@ class TestPersonChecklist:
         )
 
         assert _checklist(after) == (_checklist(before)[0] + 1, _checklist(before)[1])
-        assert _hrefs(_card(after, "readiness")) == []
+        assert reverse("socialaccount_connections") in _hrefs(_card(before, "readiness"))
+        assert reverse("socialaccount_connections") not in _hrefs(
+            _card(after, "readiness")
+        )
 
     # Scenario 4
     def test_an_orcid_id_typed_in_does_not_put_the_item_in_place(
@@ -1175,7 +1178,7 @@ class TestPersonChecklist:
         complete = incomplete_person.get_profile_completeness()
         assert complete["orcid"] is False
         assert _checklist(page) == (sum(complete.values()), len(complete))
-        assert _hrefs(_card(page, "readiness")) == [reverse("socialaccount_connections")]
+        assert reverse("socialaccount_connections") in _hrefs(_card(page, "readiness"))
 
     def test_a_pending_primary_affiliation_does_not_put_its_item_in_place(
         self, get_page, incomplete_person

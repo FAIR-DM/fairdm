@@ -135,6 +135,7 @@ class Overview(OverviewPlugin):
         context = self.get_shared_context()
         context["roles"] = ranked_shares(person.get_role_counts(contributions))
         is_self = user.is_authenticated and user.pk == person.pk
+        update_url = person.get_update_url()
         affiliations = person.get_affiliation_history()
         primary = next(
             (a.organization for a in affiliations["current"] if a.is_primary), None
@@ -149,6 +150,8 @@ class Overview(OverviewPlugin):
                 "overview_icon": "member",
                 "person": person,
                 "is_self": is_self,
+                "can_edit": person.is_editable_by(user),
+                "update_url": update_url,
                 "is_unclaimed": state in ("ghost", "invited"),
                 "is_inactive": state == "inactive",
                 "affiliations": affiliations,
@@ -173,6 +176,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A profile photo"),
                         "done": complete["image"],
+                        "url": f"{update_url}#id_image",
                         "required": False,
                     },
                     {
@@ -183,6 +187,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A short biography"),
                         "done": complete["profile"],
+                        "url": f"{update_url}#id_profile",
                     },
                     {
                         "label": gettext("A primary affiliation"),
@@ -191,6 +196,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("Links to your other profiles"),
                         "done": complete["links"],
+                        "url": f"{update_url}#id_links",
                         "required": False,
                     },
                 ],
