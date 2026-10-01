@@ -361,6 +361,8 @@ def image_upload():
 def profile_data():
     """Every field of a person's profile form, filled in with valid values."""
     return {
+        "first_name": "Ada",
+        "last_name": "Lovelace",
         "name": "Dr. Ada Lovelace",
         "alternative_names": "A. Lovelace\nAugusta Ada King",
         "profile": "Mathematician and writer.",

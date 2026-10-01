@@ -33,17 +33,18 @@ from fairdm.factories import (
     AffiliationFactory,
     OrganizationFactory,
     PersonFactory,
+    PointFactory,
     ProjectFactory,
 )
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
-class ExtraNamesPersonForm(PersonProfileForm):
+class LocatedPersonForm(PersonProfileForm):
     """The portal form the contributors guide shows, named in ``FAIRDM_PROFILE_FORMS`` below."""
 
     class Meta(PersonProfileForm.Meta):
-        fields = [*PersonProfileForm.Meta.fields, "first_name", "last_name"]
+        fields = [*PersonProfileForm.Meta.fields, "location"]
 
 
 class PortalOrganizationForm(OrganizationProfileForm):
@@ -105,6 +106,18 @@ class TestPersonUpdate:
         assert response.url == keeper.get_absolute_url()
         levels = [m.level for m in get_messages(response.wsgi_request)]
         assert levels == [messages.SUCCESS]
+
+    def test_a_changed_given_and_family_name_reach_the_citation_name(
+        self, signed_in, keeper, profile_data
+    ):
+        signed_in(keeper).post(
+            _update_url(keeper),
+            {**profile_data, "first_name": "Augusta", "last_name": "King"},
+        )
+
+        keeper.refresh_from_db()
+        assert (keeper.given, keeper.family) == ("Augusta", "King")
+        assert keeper.name == profile_data["name"]
 
     def test_a_save_stores_every_field(self, signed_in, keeper, profile_data):
         signed_in(keeper).post(_update_url(keeper), profile_data)
@@ -221,7 +234,6 @@ class TestPersonUpdate:
                 "is_claimed": "",
                 "is_superuser": "on",
                 "is_staff": "on",
-                "first_name": "Replaced",
                 "password": "replaced",
             },
         )
@@ -234,7 +246,6 @@ class TestPersonUpdate:
         assert stored.is_claimed
         assert not stored.is_superuser
         assert not stored.is_staff
-        assert stored.first_name == keeper.first_name
         assert stored.password == keeper.password
 
     # Scenario 10
@@ -254,6 +265,8 @@ class TestPersonUpdate:
         assert names == {
             "image",
             "image-clear",
+            "first_name",
+            "last_name",
             "name",
             "alternative_names",
             "profile",
@@ -354,27 +367,28 @@ class TestProfileFormsSetting:
         self, signed_in, keeper, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.ExtraNamesPersonForm",
+            "person": f"{__name__}.LocatedPersonForm",
         }
 
         response = signed_in(keeper).get(_update_url(keeper))
 
-        assert type(response.context["form"]) is ExtraNamesPersonForm
+        assert type(response.context["form"]) is LocatedPersonForm
 
     def test_a_field_the_portals_form_adds_is_saved_with_the_rest(
         self, signed_in, keeper, profile_data, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.ExtraNamesPersonForm",
+            "person": f"{__name__}.LocatedPersonForm",
         }
 
+        point = PointFactory()
+
         signed_in(keeper).post(
-            _update_url(keeper),
-            {**profile_data, "first_name": "Ada", "last_name": "Lovelace"},
+            _update_url(keeper), {**profile_data, "location": point.pk}
         )
 
         keeper.refresh_from_db()
-        assert (keeper.first_name, keeper.last_name) == ("Ada", "Lovelace")
+        assert keeper.location == point
         assert keeper.name == "Dr. Ada Lovelace"
 
     def test_the_shipped_setting_names_the_shipped_person_form(self, settings):

@@ -86,6 +86,8 @@ class TestPersonProfileForm:
 
         assert set(form.fields) == {
             "image",
+            "first_name",
+            "last_name",
             "name",
             "alternative_names",
             "profile",

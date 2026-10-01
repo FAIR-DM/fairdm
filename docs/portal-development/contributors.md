@@ -694,13 +694,13 @@ not edit gets a 403. `Contributor.get_update_url()` returns its address.
 
 ### The person form
 
-`PersonProfileForm` in `fairdm.contrib.contributors.forms.profile` edits `image`, `name`,
-`alternative_names`, `profile`, `links` and `lang`, and nothing else. Email, password, identifiers,
+`PersonProfileForm` in `fairdm.contrib.contributors.forms.profile` edits `image`, `first_name`,
+`last_name`, `name`, `alternative_names`, `profile`, `links` and `lang`, and nothing else. Email, password, identifiers,
 affiliations, portal roles and the account's state are never on it.
 
 - `image` follows the project form: the file must be an image, `validate_image_file_size` refuses
   one over the limit and names it, and a clear box removes the photo.
-- `name` is required.
+- `name` is required. `first_name` and `last_name` are what citations and exported metadata use.
 - `links` accepts `http` and `https` addresses only.
 - `lang` is a multiple choice over the ISO 639-1 codes, named in the active language. Each code is
   stored once. `language_choices()`, in the same module, returns the `(code, name)` pairs it offers,
@@ -714,6 +714,21 @@ does.
 `PersonProfileForm` and `OrganizationProfileForm` extend `ProfileForm`, in the same module, so a
 portal's own form can extend it too. It draws no `<form>` tag, because the editing page supplies it
 and the buttons.
+
+Each form groups its fields under headings. `sections` is a tuple of `(heading, rows)` pairs, and
+a row is one field name or a tuple of names drawn side by side on a wide screen:
+
+```python
+class PersonProfileForm(ProfileForm):
+    sections = (
+        (_("Name"), [("first_name", "last_name"), "name", "alternative_names"]),
+        (_("About you"), ["image", "profile", "lang"]),
+        (_("Elsewhere online"), ["links"]),
+    )
+```
+
+A field the form does not carry is left out of its section, and a field no section names is drawn
+after the last one. A portal's subclass sets `sections` to place a field it adds.
 
 A stored record can fail the model's validation on a field the form does not carry, such as an
 identifier that was stored malformed. `ProfileForm` reports that failure as an error on the form as
@@ -790,8 +805,8 @@ FAIRDM_PROFILE_FORMS = {
 }
 ```
 
-This form adds the given and family name, which the shipped form leaves out. Both are fields of
-`Person`, so the model form saves them with no further code:
+This form adds the person's location, which the shipped form leaves out. It is a field of
+`Person`, so the model form saves it with no further code:
 
 ```python
 # myportal/forms.py
@@ -800,10 +815,10 @@ from fairdm.contrib.contributors.forms.profile import PersonProfileForm as BaseP
 
 class PersonProfileForm(BasePersonProfileForm):
     class Meta(BasePersonProfileForm.Meta):
-        fields = [*BasePersonProfileForm.Meta.fields, "first_name", "last_name"]
+        fields = [*BasePersonProfileForm.Meta.fields, "location"]
 ```
 
-The page then shows the two extra inputs and stores what is entered. To drop a field, leave it out
+The page then shows the extra input after the last section and stores what is chosen. To drop a field, leave it out
 of `fields` in the same way. A form without `lang`, `website` or `parent` builds and saves. Without
 `website`, the `links` field shows every stored link, the first one included. A form that keeps
 `website` has to keep `links` as well, because the website is stored as the first of the links.

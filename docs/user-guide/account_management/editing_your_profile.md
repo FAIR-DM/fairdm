@@ -19,11 +19,14 @@ deactivated: the portal's Community Managers can correct it until the person has
 
 ## What you can change
 
+The page groups the fields under three headings: Name, About you and Elsewhere online.
+
 | Field | What to enter |
 | --- | --- |
-| Photo | A JPEG, PNG or WebP image. The page names the size limit. To remove your photo, tick the clear box next to it. Your initials are shown in its place. |
-| Name | The name you are publicly known by. It is required, and it appears on every credit that names you. |
+| Given name and family name | The two parts of your name as citations use them. |
+| Display name | The name you are publicly known by. It is required, and it appears on every credit that names you. |
 | Alternative names | Other names you publish under, one per line. |
+| Photo | A JPEG, PNG or WebP image. The page names the size limit. To remove your photo, tick the clear box next to it. Your initials are shown in its place. |
 | Biography | A few lines about your research. Markdown is supported. |
 | Links | Web addresses of your other profiles, one per line. Each must start with `http://` or `https://`. |
 | Languages | The languages you work in. Choose as many as you need. |

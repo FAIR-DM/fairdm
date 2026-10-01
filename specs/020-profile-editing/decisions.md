@@ -120,14 +120,13 @@ form cannot otherwise be replaced from a portal's own code.
 
 **ADR:** none. One setting, documented in the developer guide, following a setting the package already uses.
 
-## D9. A person's given and family names are not on the editing page
+## D9. A person's given and family names are on the editing page
 
-The specification lists the fields and says "nothing else", and given and family name are not
-among them. Citations and exported metadata are built from the given and family names where they
-are set, so a changed name reaches credits and lists but not those. Raised with the maintainer as
-a question about the specification. Until it is ruled, the page edits `name` only.
+Citations and exported metadata are built from the given and family names where they are set, so
+a page that edited only the display name would leave citations uncorrected. The maintainer ruled
+that both go on the page, and the specification's field list and FR-007 say so.
 
-**ADR:** none. An open question on the specification.
+**ADR:** none. A field list, stated in the specification.
 
 ## D10. Design review: what was carried instead of changed
 
@@ -276,3 +275,12 @@ script for a contribution dialog looks for a message class the removed setting u
 and the dialog it belongs to already depends on a library the package no longer loads.
 
 **ADR:** none. A record of the review's fixes.
+
+## D23. The editing forms are grouped into sections
+
+Asked for by the maintainer when walking the pages: the fields read as one undivided run. Each
+form now names its sections, and short related fields share a row on a wide screen (given and
+family name, type and parent, city and country). The grouping is drawn with the fieldset the page
+shell already styles. It has no test, because it is judged by eye.
+
+**ADR:** none. A layout choice.

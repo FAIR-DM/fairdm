@@ -155,7 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A person can edit their own profile. The edit action in the header of their page, the prompt to
   write a biography and the photo, biography and links items on their checklist now lead to a page
-  for changing the photo, name, alternative names, biography, links and languages. While the
+  for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the
   account is active nobody else is offered it, and a request for it by anyone else is refused. A portal changes the fields by
   naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
   `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the

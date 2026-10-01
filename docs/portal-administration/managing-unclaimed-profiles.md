@@ -71,8 +71,8 @@ record. Only an *unclaimed* profile is claimed automatically this way.
 
 A Community Manager can correct an unclaimed profile, and the profile of an account that has been
 deactivated, without opening the administration interface. Open the profile in the portal and
-choose **Edit profile**. The page offers the same fields the person would get: the photo, the name,
-alternative names, the biography, links and languages.
+choose **Edit profile**. The page offers the same fields the person would get: the photo, the given and
+family name, the display name, alternative names, the biography, links and languages.
 
 A Community Manager is offered the edit action only while nobody can sign in to the profile and keep
 it themselves:

@@ -29,6 +29,8 @@ The checklist item for the ROR identifier stays as it is. The editing page does 
 
 ## What you can change
 
+The page groups the fields under four headings: Identity, Location, About and Online.
+
 | Field | What to enter |
 | --- | --- |
 | Logo | A JPEG, PNG or WebP image. The page names the size limit. To remove the logo, tick the clear box next to it. The organization's initials are shown in its place. |

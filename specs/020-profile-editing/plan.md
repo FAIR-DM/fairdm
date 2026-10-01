@@ -88,13 +88,15 @@ in `Overview.extra_views`:
 - **`LinesField`**: a `CharField` on a text area, one entry per line. It returns a list with
   blank lines dropped and repeats removed, first occurrence kept (FR-014). An optional
   per-entry validator reports the first bad entry by its text.
-- **`PersonProfileForm`**: `image`, `name`, `alternative_names`, `profile`, `links`, `lang`
-  (FR-007). `name` is required. `links` entries must be `http` or `https` addresses. `lang` is a
+- **`PersonProfileForm`**: `image`, `first_name`, `last_name`, `name`, `alternative_names`,
+  `profile`, `links`, `lang` (FR-007). `name` is required. `links` entries must be `http` or `https` addresses. `lang` is a
   multiple choice over the ISO 639-1 codes the model's validator accepts.
 - **`OrganizationProfileForm`**: `image`, `name`, `alternative_names`, `type`, `parent`, `city`,
   `country`, `profile`, `website`, `links` (FR-008). `website` and `links` are read from and
   written to the stored `links` list, website first. `parent` offers every other organization and
   refuses the organization itself and anything beneath it, with a message on the field (FR-012).
+- Both: the fields are grouped under headings, drawn as fieldsets, with short related fields
+  side by side on a wide screen.
 - Both: the image field follows `ProjectForm` (`validate_image_file_size`, a clearable input), so
   a photo or logo can be removed (FR-015) and an oversized one is refused with the limit named.
   The widget's `id` is Django's default, `id_<field>`.

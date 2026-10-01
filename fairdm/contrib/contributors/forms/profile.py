@@ -1,5 +1,6 @@
 """The forms a person or an organization is edited with, and the field their lists are typed into."""
 
+from crispy_forms.layout import Div, Fieldset, Layout
 from dal import autocomplete
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -110,18 +111,54 @@ class ProfileForm(ModelForm):
     """What the person and organization editing forms share.
 
     The editing page supplies the ``<form>`` tag and the buttons, so the crispy helper draws
-    neither. A stored record can fail the model's validation on a field the form does not carry,
+    neither. ``sections`` groups the fields under headings, and ``get_layout`` draws them. A stored
+    record can fail the model's validation on a field the form does not carry,
     such as a malformed identifier. Django refuses to attach that error to a missing field and
     raises, so it is reported on the form as a whole instead.
 
     Args:
         *args: Passed to ``ModelForm``.
         **kwargs: Passed to ``ModelForm``.
+
+    Attributes:
+        sections: ``(heading, rows)`` pairs, in page order. A row is a field name, or a tuple
+            of field names drawn side by side on a wide screen.
     """
+
+    sections: tuple = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_tag = False
+
+    def get_layout(self):
+        """Group the fields under the headings ``sections`` names.
+
+        A field the form does not carry is left out, and a section left with no field is not
+        drawn. A field no section names, as a portal's subclass may add, follows the last
+        section.
+
+        Returns:
+            The crispy layout.
+        """
+        placed = set()
+        layout = []
+        for heading, rows in self.sections:
+            drawn = []
+            for row in rows:
+                names = [row] if isinstance(row, str) else list(row)
+                names = [name for name in names if name in self.fields]
+                placed.update(names)
+                if len(names) > 1:
+                    drawn.append(
+                        Div(*names, css_class="grid grid-cols-1 md:grid-cols-2 gap-x-6")
+                    )
+                else:
+                    drawn.extend(names)
+            if drawn:
+                layout.append(Fieldset(heading, *drawn))
+        layout.extend(name for name in self.fields if name not in placed)
+        return Layout(*layout)
 
     def _update_errors(self, errors):
         """Move errors the model raised for a field this form lacks to the form's own errors.
@@ -150,6 +187,8 @@ class PersonProfileForm(ProfileForm):
 
     Attributes:
         image: The photo. Ticking the clear box removes it.
+        first_name: The given name, as citations use it.
+        last_name: The family name, as citations use it.
         name: The name the person is publicly known by.
         alternative_names: Other names, one per line.
         profile: The biography.
@@ -196,17 +235,36 @@ class PersonProfileForm(ProfileForm):
 
     class Meta:
         model = Person
-        fields = ["image", "name", "alternative_names", "profile", "links", "lang"]
+        fields = [
+            "image",
+            "first_name",
+            "last_name",
+            "name",
+            "alternative_names",
+            "profile",
+            "links",
+            "lang",
+        ]
         labels = {
-            "name": _("Name"),
+            "first_name": _("Given name"),
+            "last_name": _("Family name"),
+            "name": _("Display name"),
             "profile": _("Biography"),
         }
         help_texts = {
+            "first_name": _("Used with your family name in citations."),
+            "last_name": _("Used with your given name in citations."),
             "name": _(
                 "The name you are publicly known by, as it appears on your credits."
             ),
             "profile": _("A few lines about your research. Markdown is supported."),
         }
+
+    sections = (
+        (_("Name"), [("first_name", "last_name"), "name", "alternative_names"]),
+        (_("About you"), ["image", "profile", "lang"]),
+        (_("Elsewhere online"), ["links"]),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -318,6 +376,13 @@ class OrganizationProfileForm(ProfileForm):
                 "A few lines about what the organization does. Markdown is supported."
             ),
         }
+
+    sections = (
+        (_("Identity"), ["image", "name", "alternative_names", ("type", "parent")]),
+        (_("Location"), [("city", "country")]),
+        (_("About"), ["profile"]),
+        (_("Online"), ["website", "links"]),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
