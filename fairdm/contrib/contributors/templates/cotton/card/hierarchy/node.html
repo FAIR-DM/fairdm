@@ -1,0 +1,14 @@
+{% comment %}
+  <c-card.hierarchy.node> — one organization in the hierarchy tree: the building icon and its
+  name, linked to its page.
+
+  Attributes:
+    node     – the organization
+    current  – marks the organization the page is about, which is highlighted and not a link
+{% endcomment %}
+<c-vars node current=False />
+{% if current %}
+  <span class="menu-active" aria-current="page"><c-icon name="organization" aria-hidden="true" only /><span class="break-words">{{ node.name }}</span></span>
+{% else %}
+  <a href="{{ node.get_absolute_url }}"><c-icon name="organization" aria-hidden="true" only /><span class="break-words">{{ node.name }}</span></a>
+{% endif %}

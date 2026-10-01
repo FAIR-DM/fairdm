@@ -1078,9 +1078,9 @@ class TestContributorCredits:
             person.get_credit_counts()
 
 
-class TestCoContributors:
+class TestCollaborators:
     @pytest.mark.django_db
-    def test_orders_co_contributors_most_frequent_first(self, person):
+    def test_orders_collaborators_most_frequent_first(self, person):
         frequent = PersonFactory()
         occasional = PersonFactory()
         projects = ProjectFactory.create_batch(3)
@@ -1089,11 +1089,11 @@ class TestCoContributors:
             frequent.add_to(project)
         occasional.add_to(projects[0])
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert co_contributors[0] == frequent
-        assert occasional in co_contributors
-        assert co_contributors.index(frequent) < co_contributors.index(occasional)
+        assert collaborators[0] == frequent
+        assert occasional in collaborators
+        assert collaborators.index(frequent) < collaborators.index(occasional)
 
     @pytest.mark.django_db
     def test_excludes_the_contributor_credited_on_an_unrelated_object(self, person):
@@ -1105,10 +1105,10 @@ class TestCoContributors:
         stranger = PersonFactory()
         stranger.add_to(ProjectFactory())
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert collaborator in co_contributors
-        assert stranger not in co_contributors
+        assert collaborator in collaborators
+        assert stranger not in collaborators
 
     @pytest.mark.django_db
     def test_a_contributor_matching_content_type_and_object_id_separately_is_not_a_false_positive(
@@ -1133,9 +1133,9 @@ class TestCoContributors:
             object_id=str(project.pk),
         )
 
-        co_contributors = list(person.get_co_contributors())
+        collaborators = list(person.get_collaborators())
 
-        assert false_positive not in co_contributors
+        assert false_positive not in collaborators
 
 
 class TestContributorIdentifierUniqueness:

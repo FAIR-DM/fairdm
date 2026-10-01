@@ -96,7 +96,7 @@ dependencies = [
     "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.24.0,<0.25.0)",
+    "django-mvp (>=0.25.1,<0.26.0)",
     "django-mvp-charts (>=0.2.0,<0.3.0)",
     "pyecharts (>=2.1.0,<3.0.0)",
     "django-accounts-center (>=0.8.0,<0.9.0)",

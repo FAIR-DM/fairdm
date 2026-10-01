@@ -165,7 +165,7 @@ person.portal_roles  # Labels of the portal roles held, e.g. ["Data Curator"]; [
 recent = person.get_recent_contributions(limit=5)
 project_contribs = person.get_contributions_by_type("project")
 has_contrib = person.has_contribution_to(some_project)
-co_contributors = person.get_co_contributors(limit=10)
+collaborators = person.get_collaborators(limit=10)
 
 # Add person to object - role names must be members of the fairdm-roles vocabulary
 # (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
@@ -501,7 +501,7 @@ person.get_credit_counts()
 # {'projects': 2, 'datasets': 1}
 
 # The contributors credited alongside this one, most frequent first (FR-035)
-person.get_co_contributors(limit=5)
+person.get_collaborators(limit=5)
 ```
 
 ### Deleting a Credit Withdraws Rights - Creating One Grants None

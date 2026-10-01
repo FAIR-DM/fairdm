@@ -1,0 +1,51 @@
+{% load i18n humanize %}
+{% comment %}
+  <c-card.records> — the projects or the datasets a contributor is behind: active ones first,
+  then the most recently updated.
+
+  Attributes:
+    title    – the card's title
+    records  – {shown: [{record, owned}], more: int, total: int}
+    kind     – "project" or "dataset", which picks the icon and what each row says
+    variant  – the theme colour of the record type
+    all_url  – where the full list lives, shown as "View all" and on the count
+    empty    – what to say when there are none
+    class    – extra classes on the card
+{% endcomment %}
+<c-vars title records kind variant all_url empty class />
+<c-card title="{{ title }}" class="bg-base-100 min-w-0 {{ class }}" data-card="{{ kind }}s" only>
+  <c-slot name="badges">
+    {% if records.total %}<span class="badge badge-ghost badge-sm">{{ records.total }}</span>{% endif %}
+  </c-slot>
+  <c-slot name="actions">
+    {% if records.total and all_url %}
+      <c-button href="{{ all_url }}" text="{% translate 'View all' %}" size="sm" only />
+    {% endif %}
+  </c-slot>
+  {% if records.shown %}
+    <ul class="list">
+      {% for entry in records.shown %}
+        <li class="list-row px-0">
+          <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-{{ variant }})" aria-hidden="true"><c-icon name="{{ kind }}" only /></span>
+          <div class="list-col-grow min-w-0 flex flex-col gap-1">
+            <a href="{{ entry.record.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.record.name }}</a>
+            <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {% if kind == "project" %}
+                <span class="badge badge-soft badge-{{ entry.record.status_badge_variant }} badge-xs whitespace-nowrap">{{ entry.record.get_status_display }}</span>
+              {% endif %}
+              {% if entry.owned %}<span class="badge badge-outline badge-xs">{% translate "Owner" %}</span>{% endif %}
+              <span>{% blocktranslate with when=entry.record.modified|naturalday:"SHORT_DATE_FORMAT" %}Updated {{ when }}{% endblocktranslate %}</span>
+            </span>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if records.more %}
+      <div>
+        <a href="{{ all_url }}" class="link link-primary text-sm">{% blocktranslate with counter=records.more %}and {{ counter }} more{% endblocktranslate %}</a>
+      </div>
+    {% endif %}
+  {% else %}
+    <c-missing only><span>{{ empty }}</span></c-missing>
+  {% endif %}
+</c-card>

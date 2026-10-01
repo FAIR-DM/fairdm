@@ -7,15 +7,16 @@
   Attributes:
     location – a location Point (x = longitude, y = latitude, crs), or nothing
     title    – the card's title (default "Location")
+    label    – the map's accessible name (default: where the sample was taken)
     empty    – what to say when there is no location; with none given, the card isn't shown
     class    – extra classes on the card
 {% endcomment %}
-<c-vars location title empty class />
+<c-vars location title label empty class />
 {% if location or empty %}
   <c-card title="{{ title|default:_('Location') }}" class="bg-base-100 {{ class }}" data-card="location" only>
     {% if location %}
       <div class="overview-map bg-base-200" role="img"
-           aria-label="{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}"
+           aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"
            data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
       <dl class="grid grid-cols-2 gap-3 text-sm">
         <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>

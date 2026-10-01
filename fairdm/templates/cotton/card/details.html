@@ -48,7 +48,7 @@
         {% endif %}
         {% translate "Metadata downloads" as downloads %}
         {% translate "The DataCite JSON and schema.org JSON-LD records, served from this address." as reason %}
-        {% include "overview/includes/pending_action.html" with label=downloads icon="download" reason=reason size="xs" %}
+        <c-actions.pending label="{{ downloads }}" icon="download" reason="{{ reason }}" size="xs" only />
       </span>
     </c-card.details.entry>
   </dl>

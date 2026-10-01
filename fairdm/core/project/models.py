@@ -174,6 +174,11 @@ class Project(BaseModel):
     }
 
     @property
+    def is_active(self):
+        """Whether work on the project is under way: its status is in progress."""
+        return self.status == self.STATUS_CHOICES.IN_PROGRESS
+
+    @property
     def status_badge_variant(self):
         """Return the theme colour name for this project's status badge.
 

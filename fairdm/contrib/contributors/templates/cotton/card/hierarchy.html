@@ -1,0 +1,52 @@
+{% load i18n %}
+{% comment %}
+  <c-card.hierarchy> — where an organization sits: its parent at the top, then the organization
+  among its siblings, then its own direct children. With no parent, the organization is the root.
+
+  Attributes:
+    organization  – the organization the page is about
+    hierarchy     – {parent, siblings: [organization], children: [organization]}; siblings
+                    include the organization itself
+    class         – extra classes on the card
+{% endcomment %}
+<c-vars organization hierarchy class />
+<c-card title="{% translate 'Organization hierarchy' %}" class="bg-base-100 {{ class }}" data-card="hierarchy" only>
+  {% if hierarchy.parent or hierarchy.children %}
+    <ul class="menu menu-sm w-full p-0">
+      {% if hierarchy.parent %}
+        <li>
+          <c-card.hierarchy.node :node="hierarchy.parent" only />
+          <ul>
+            {% for sibling in hierarchy.siblings %}
+              <li>
+                {% if sibling.pk == organization.pk %}
+                  <c-card.hierarchy.node :node="sibling" current only />
+                  {% if hierarchy.children %}
+                    <ul>
+                      {% for child in hierarchy.children %}
+                        <li><c-card.hierarchy.node :node="child" only /></li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                {% else %}
+                  <c-card.hierarchy.node :node="sibling" only />
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% else %}
+        <li>
+          <c-card.hierarchy.node :node="organization" current only />
+          <ul>
+            {% for child in hierarchy.children %}
+              <li><c-card.hierarchy.node :node="child" only /></li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endif %}
+    </ul>
+  {% else %}
+    <c-missing only><span>{% translate "No parent organization and no institutes, departments or groups are recorded for this organization." %}</span></c-missing>
+  {% endif %}
+</c-card>
