@@ -196,7 +196,8 @@ class PersonProfileForm(ProfileForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["lang"].choices = language_choices()
+        if "lang" in self.fields:
+            self.fields["lang"].choices = language_choices()
 
     def clean_lang(self):
         """Keep each language once, in the order chosen."""
@@ -304,8 +305,10 @@ class OrganizationProfileForm(ProfileForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         stored = self.instance.links or []
-        self.initial["website"] = stored[0] if stored else ""
-        self.initial["links"] = stored[1:]
+        if "website" in self.fields:
+            self.initial["website"] = stored[0] if stored else ""
+            stored = stored[1:]
+        self.initial["links"] = stored
 
     def clean(self):
         """Store the website first among the links, and no link twice."""

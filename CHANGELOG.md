@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A portal's profile form that leaves the languages field out of `Meta.fields`, as the contributors
+  guide says it may, raised `KeyError` when it was built. An organization form without the website
+  field also hid the first stored link from the links field, so saving it dropped that link. Both
+  forms now work without those fields.
 - An organization created from ROR could not be saved from its editing page or in the
   administration interface, because `Organization.clean()` accepted only the bare ROR identifier
   and the identifier is stored as the full address. It now accepts both, and still refuses a

@@ -804,7 +804,8 @@ class PersonProfileForm(BasePersonProfileForm):
 ```
 
 The page then shows the two extra inputs and stores what is entered. To drop a field, leave it out
-of `fields` in the same way.
+of `fields` in the same way. A form without `lang`, `website` or `parent` builds and saves. Without
+`website`, the `links` field shows every stored link, the first one included.
 
 ```{note}
 A portal that overrides `contributors/overview/person.html` keeps the disabled edit button, the

@@ -523,3 +523,83 @@ class TestProfileFormsWhenTheStoredRecordFailsValidation:
 
         assert form.has_error("name", code="required")
         assert form.non_field_errors()
+
+
+class PersonFormWithoutLanguages(PersonProfileForm):
+    class Meta(PersonProfileForm.Meta):
+        fields = [f for f in PersonProfileForm.Meta.fields if f != "lang"]
+
+
+class OrganizationFormWithoutWebsite(OrganizationProfileForm):
+    class Meta(OrganizationProfileForm.Meta):
+        fields = [f for f in OrganizationProfileForm.Meta.fields if f != "website"]
+
+
+class OrganizationFormWithoutParent(OrganizationProfileForm):
+    class Meta(OrganizationProfileForm.Meta):
+        fields = [f for f in OrganizationProfileForm.Meta.fields if f != "parent"]
+
+
+@pytest.mark.django_db
+class TestFormsWithADroppedField:
+    """A portal drops a field by leaving it out of ``Meta.fields``, as the guide says it may."""
+
+    def test_a_person_form_without_languages_builds_and_saves(self, profile_data):
+        person = PersonFactory(lang=["de"])
+
+        form = PersonFormWithoutLanguages(profile_data, instance=person)
+
+        assert "lang" not in form.fields
+        assert form.is_valid(), form.errors
+        form.save()
+        person.refresh_from_db()
+        assert person.name == "Dr. Ada Lovelace"
+        assert person.lang == ["de"]
+
+    def test_an_organization_form_without_a_website_builds_and_saves(
+        self, organization_profile_data
+    ):
+        organization = OrganizationFactory(links=["https://example.org/old"])
+
+        form = OrganizationFormWithoutWebsite(
+            organization_profile_data, instance=organization
+        )
+
+        assert "website" not in form.fields
+        assert form.is_valid(), form.errors
+        form.save()
+        organization.refresh_from_db()
+        assert organization.name == "Potsdam Research Institute"
+        assert organization.links == [
+            "https://example.net/wiki",
+            "https://example.org/news",
+        ]
+
+    def test_an_organization_form_without_a_website_shows_every_stored_link(self):
+        organization = OrganizationFactory(
+            links=["https://example.org/first", "https://example.org/second"]
+        )
+
+        form = OrganizationFormWithoutWebsite(instance=organization)
+
+        assert form["links"].value() == (
+            "https://example.org/first\nhttps://example.org/second"
+        )
+
+    def test_an_organization_form_without_a_parent_builds_and_saves(
+        self, organization_profile_data
+    ):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+
+        form = OrganizationFormWithoutParent(
+            organization_profile_data, instance=organization
+        )
+
+        assert "parent" not in form.fields
+        assert form.is_valid(), form.errors
+        form.save()
+        organization.refresh_from_db()
+        assert organization.name == "Potsdam Research Institute"
+        assert organization.parent == parent
+

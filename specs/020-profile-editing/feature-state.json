@@ -365,8 +365,17 @@
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestFormsWithADroppedField"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_forms/test_profile.py::TestFormsWithADroppedField -q -n0 (red: 2 failed, 2 passed; KeyError lang, and the first stored link missing from links)",
+              "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (170 passed after the fix)"
+            ]
+          }
         }
       ]
     }
