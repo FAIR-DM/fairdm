@@ -164,38 +164,104 @@
       "tasks": [
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationDescendantIds",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationParentLoop",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k \"TestOrganizationDescendantIds or TestOrganizationParentLoop or TestOrganizationIsEditableBy\" (red: 9 failed; AttributeError get_descendant_ids, DID NOT RAISE ValidationError, is_editable_by False for owner and administrator)"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestOrganizationProfileForm"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0 (red: ImportError for OrganizationProfileForm, collection error)"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestOrganizationUpdate"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k TestOrganizationUpdate (red: ImportError for OrganizationProfileForm, collection error)"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationChecklist"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k \"TestOrganizationOverview or TestOrganizationChecklist\" (red: 14 failed; KeyError can_edit, no link in the menu's edit entry, disabled button where a link is expected)"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py",
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors -q -n0 (831 passed)",
+              "uv run python manage.py makemigrations --check --dry-run (only a third-party orbit migration is proposed; none for fairdm)"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesKeepersOfTheOwnedOrganization",
+              "tests/test_conf/test_checks.py::TestDevAccountsAbsentReportsTheProfileAccounts"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo -q -n0 (49 passed)",
+              "forge verify --repo . --base origin/main --steps docs (passed)"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestProfileFormsWhenTheStoredRecordFailsValidation",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestStoredRecordThatFailsValidation"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (red: 12 failed with ValueError no field named identifiers; then 127 passed)"
+            ]
+          }
         }
       ]
     },
