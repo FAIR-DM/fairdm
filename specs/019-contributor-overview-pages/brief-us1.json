@@ -1,0 +1,139 @@
+{
+  "story": "US1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 387,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T001",
+    "T002",
+    "T003",
+    "T004",
+    "T005",
+    "T006",
+    "T007",
+    "T008"
+  ],
+  "context": {
+    "why": "A person's overview page, plus everything both contributor pages share. A reviewed working prototype of both pages is already on this branch: its markup, wording and layout are settled with the maintainer. Your job is to pin the specification's behaviour with tests, fix what the tests find, apply the visibility rule everywhere it must hold, and document the result. A test that passes at once against the prototype is fine.",
+    "spec_sections": [
+      "User Story 1 (all 15 acceptance scenarios)",
+      "Edge Cases",
+      "FR-001 to FR-023",
+      "FR-033",
+      "Clarifications"
+    ],
+    "plan_sections": [
+      "Starting state",
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D6",
+      "D7",
+      "D8",
+      "Project structure"
+    ],
+    "prior_decisions": [
+      "decisions.md 'Private projects and datasets are left out for every viewer': projects and datasets appear on a contributor's page only when public, for every viewer including the person and members of the private project.",
+      "decisions.md D3 and plan D4: a public dataset inside a private project is not listed; the same project check applies to samples and measurements inside get_visible_contributions; the shared visible_to is left alone.",
+      "decisions.md D4: the three pending_action tests move to the c-actions.pending component with the same assertions; the two tests expecting a 'Coming soon' badge on the button are deleted. These five tests in tests/test_templates/test_includes.py are the only pre-existing tests you may change.",
+      "decisions.md D7: FairDM keeps /account-center/ by declaring its own route to django-mvp's landing view in fairdm/conf/urls.py ahead of the includes. tests/test_conf/test_urls.py stays untouched and must pass.",
+      "decisions.md D6 watch item: samples and measurements are resolved to visible ids, not loaded as objects, and collaborators are found without one query condition per credit. Apply in T006 if it stays simple; say so in concerns if it does not.",
+      "Design review: to_public_schema_org keeps `affiliation` only when it is the verified, current primary affiliation the header shows. Change it there, not in the shared Schema.org transform.",
+      "Design review: one model source each for a contributor's public projects and public datasets; the overview's figures and cards and the Projects and Datasets tabs read them, so a figure always equals the number of entries behind its link. Organization's additions (owned projects) belong to US2: build the Contributor-level sources so Organization can override them, and do not rework the organization page beyond keeping it working.",
+      "The ProjectFilter may already apply get_visible() to the Projects tab; scenario 14 may pass at once for projects. The Datasets tab's cards print the dataset's project name, so the project check matters there."
+    ],
+    "acceptance": [
+      {
+        "task": "T001",
+        "given_when_then": "Given the branch as it stands, when the lint gate and the existing suite run, then deptry passes with Pillow declared, reverse('account-center') is '/account-center/' and /account-center/login/ still answers, the pending-action assertions hold against c-actions.pending, and plugins/person.py uses gettext_lazy."
+      },
+      {
+        "task": "T002",
+        "given_when_then": "Given the pure helpers in profiles.py, when called with plain values, then each behaves as tasks.md T002 lists."
+      },
+      {
+        "task": "T003",
+        "given_when_then": "Given a person credited on public and private projects and datasets, a public dataset in a private project, and samples and measurements under each, when get_visible_contributions is called for a visitor, for the person and for a member of the private project, then only the public ones are returned in every case; role counts and collaborators over them never include a role or contributor known only through a private record; to_public_schema_org carries no email and no pending or ended primary affiliation."
+      },
+      {
+        "task": "T004",
+        "given_when_then": "Given each new component, when rendered with its documented inputs and with nothing, then it links each entry as FR-018 to FR-023 say and shows its empty state, found by element or data attribute and never by its sentence."
+      },
+      {
+        "task": "T005",
+        "given_when_then": "Given the states in US-1 scenarios 1 to 15, when the page or tab is requested through the test client as a visitor and signed in, then each scenario's Then holds; a pending primary affiliation's organization is absent from the whole response; each figure equals the number of entries in its tab; the Datasets tab answers 200."
+      },
+      {
+        "task": "T006",
+        "given_when_then": "Given the failing tests from T002 to T005, when the fixes land, then all pass, the mixin is folded into one registered Overview class, and the Statistics and Network tabs are gone."
+      },
+      {
+        "task": "T007",
+        "given_when_then": "Given a development environment, when seed_profiles runs, then every person state FR-033 names exists and its page answers 200; outside development the command refuses."
+      },
+      {
+        "task": "T008",
+        "given_when_then": "Given the documentation, when the docs step of the gate runs, then it passes, the contributor pages' blocks and the new components and model methods are documented with examples that run, and CONTEXT.md defines Collaborator and Member."
+      }
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/019-contributor-overview-pages on branch 019-contributor-overview-pages; you work directly on the feature branch, one story at a time, no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. The suite stops at the first failures under that gate; `uv run pytest -q -n 4 --maxfail=0` shows them all (about two minutes, 3,282 tests). Commits are authored as the repository's bot already (git config is bound); do not change it.",
+    "verified_base": {
+      "commit": "7056f81a72c774f3162f4f290275d194cdad9f57",
+      "verified_at": "2026-10-01T10:12:11Z",
+      "steps": [
+        "typecheck",
+        "build",
+        "conformance"
+      ],
+      "note": "The base is red in exactly these known ways, all yours to clear in this story: 6 of 3,282 tests fail (five TestPendingAction tests in tests/test_templates/test_includes.py, and TestAccountCenterRoutes.test_reverse_account_center_still_resolves_to_the_same_address), deptry reports PIL in demo/management/commands/seed_profiles.py, and the docs step reports six undocumented names (ContributorOverviewMixin, active_then_recent, fill_slots, language_names, link_host, ranked_shares). ruff, mypy, build and conformance pass. Anything else red on arrival: report it, do not work around it."
+    },
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. tests/test_templates/ is the declared non-mirror path for component tests; see tests/test_templates/test_cards.py and tests/test_core/test_project/test_plugins.py for how specification 018 tested its pages and components. Line length 88. Docstrings follow the repo's documentation standard under docs/contributing/standards/. Public markdown you write (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, no bold-label bullet lists, reads as current state.",
+    "glossary_terms": [
+      "Contributor, Person, Organization",
+      "Contribution",
+      "People, in three contexts",
+      "Roles",
+      "Visibility",
+      "Plugin"
+    ]
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T001-T008 in specs/019-contributor-overview-pages/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is the single brief commit on top of context.verified_base.commit (only the brief file differs).",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief names. If another pre-existing test must change, mark the task blocked and say why.",
+    "Do not change the prototype's markup, wording or layout unless a requirement, a plan decision or a failing acceptance test requires it. No test asserts fixed wording, layout, width or stacking.",
+    "Do not add a migration. This feature adds no model field; if makemigrations wants to write one, report it.",
+    "Do not touch IdentifierLookup or AbstractIdentifier.get_absolute_url: the wrong resolver keys are a separate bug (#386).",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Do not write the organization page's tests or change Organization's methods beyond what keeps them working: US2 owns them. Do not write the checklist tests: US3 owns them."
+  ]
+}
