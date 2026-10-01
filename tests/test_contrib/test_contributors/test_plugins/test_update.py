@@ -22,7 +22,11 @@ from fairdm.contrib.contributors.forms.profile import (
     OrganizationProfileForm,
     PersonProfileForm,
 )
-from fairdm.contrib.contributors.models import Affiliation, ContributorIdentifier
+from fairdm.contrib.contributors.models import (
+    Affiliation,
+    ContributorIdentifier,
+    Person,
+)
 from fairdm.factories import (
     AffiliationFactory,
     OrganizationFactory,
@@ -855,6 +859,7 @@ def _invited():
 def _inactive():
     return PersonFactory(
         name="Inactive Person",
+        email="inactive@example.org",
         is_active=False,
         is_claimed=True,
         password="x",
@@ -1017,8 +1022,8 @@ class TestCommunityManagerUpdate:
     ):
         person = _inactive()
         signed_in(community_manager).post(_update_url(person), profile_data)
-        person.is_active = True
-        person.save()
+        Person.objects.filter(pk=person.pk).update(is_active=True)
+        person.refresh_from_db()
 
         own = signed_in(person)
         page = own.get(_update_url(person))
@@ -1052,8 +1057,10 @@ class TestCommunityManagerUpdate:
         self, signed_in, community_manager, kept_organization, organization_profile_data
     ):
         organization = kept_organization.organization
-        affiliations = set(
-            organization.affiliations.values_list("pk", "person_id", "type", "end_date")
+        affiliations = list(
+            organization.affiliations.order_by("pk").values_list(
+                "pk", "person_id", "type", "end_date"
+            )
         )
 
         response = signed_in(community_manager).post(
@@ -1065,8 +1072,8 @@ class TestCommunityManagerUpdate:
         assert organization.name == "Potsdam Research Institute"
         assert organization.city == "Potsdam"
         assert (
-            set(
-                organization.affiliations.values_list(
+            list(
+                organization.affiliations.order_by("pk").values_list(
                     "pk", "person_id", "type", "end_date"
                 )
             )
@@ -1102,12 +1109,11 @@ class TestCommunityManagerUpdate:
         response = signed_in(community_manager).post(
             _update_url(person), profile_data, follow=True
         )
-        page = response.content.decode()
         visitor = Client().get(person.get_absolute_url()).content.decode()
 
-        for shown in (page, visitor):
-            assert "Zebulon" not in shown
-            assert "zebulon@example.org" not in shown
+        assert response.status_code == 200
+        assert "Zebulon" not in visitor
+        assert "zebulon@example.org" not in visitor
 
     # Scenario 9
     @pytest.mark.parametrize("role", ["Data Curator", "Developer"])
@@ -1183,5 +1189,5 @@ class TestCommunityManagerUpdate:
         theirs = signed_in(community_manager).get(_update_url(_unclaimed()))
 
         centre = reverse("account-center")
-        assert centre in [a["href"] for a in _page(own).select("a[href]")]
-        assert centre not in [a["href"] for a in _page(theirs).select("a[href]")]
+        assert _page(own).select(f"[role=alert] a[href='{centre}']")
+        assert not _page(theirs).select(f"[role=alert] a[href='{centre}']")

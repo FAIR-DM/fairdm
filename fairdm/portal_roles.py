@@ -144,6 +144,25 @@ class PortalRoles:
         return [role.name for role in cls.ROLES]
 
     @classmethod
+    def is_held_by(cls, user, role: PortalRole) -> bool:
+        """Say whether a user is an active member of a role's group.
+
+        The check reads the group, never a Django permission: a Portal Administrator holds
+        ``contributors.change_person`` and does not hold the Community Manager role. A superuser
+        in no group holds no role.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+            role: The role to look for.
+
+        Returns:
+            True when the user is authenticated, active and in the group named ``role.name``.
+        """
+        if not (user.is_authenticated and user.is_active):
+            return False
+        return bool(user.groups.filter(name=role.name).exists())
+
+    @classmethod
     def rights_carrying(cls) -> list[str]:
         """Return the stored names of the roles that hold at least one permission.
 

@@ -33,6 +33,7 @@ from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
@@ -755,18 +756,31 @@ class Person(AbstractUser, Contributor):
         super().save(*args, **kwargs)
 
     def is_editable_by(self, user) -> bool:
-        """Say whether a user may edit this profile: only the person it describes.
+        """Say whether a user may edit this profile: the person it describes, or a community manager.
 
-        A superuser, an administrator and the holder of any portal role get no right from
-        that alone.
+        A community manager may edit it only while nobody can sign in to it and keep it
+        themselves: the account is inactive, or the person never claimed it and never signed in.
+        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
+        is active and in use without being marked claimed. A superuser, an administrator and the
+        holder of any other portal role get no right from that alone.
 
         Args:
             user: The user, or an anonymous user for a visitor.
 
         Returns:
-            True when the user is this person and has an active account.
+            True when the user is this person with an active account, or an active community
+            manager and the person has no active account.
         """
-        return bool(user.is_authenticated and user.is_active and user.pk == self.pk)
+        if not (user.is_authenticated and user.is_active):
+            return False
+        if user.pk == self.pk:
+            return True
+        unreachable = not self.is_active or (
+            not self.is_claimed and self.last_login is None
+        )
+        return unreachable and PortalRoles.is_held_by(
+            user, PortalRoles.COMMUNITY_MANAGER
+        )
 
     @property
     def account_state(self) -> AccountState:
@@ -1536,19 +1550,24 @@ class Organization(Contributor):
         )
 
     def is_editable_by(self, user) -> bool:
-        """Say whether a user may edit this organization's profile: the people who keep its record.
+        """Say whether a user may edit this organization's profile.
 
-        The owner and the administrators with a current affiliation may, while their account is
-        active. A superuser, a holder of a portal role and an ordinary member get no right from
-        that alone.
+        The owner and the administrators with a current affiliation may, and so may a community
+        manager, while their account is active. A superuser, the holder of any other portal
+        role and an ordinary member get no right from that alone.
 
         Args:
             user: The user, or an anonymous user for a visitor.
 
         Returns:
-            True when the user is active and keeps this organization's record.
+            True when the user is active and keeps this organization's record or is a community
+            manager.
         """
-        return bool(getattr(user, "is_active", False) and self.is_managed_by(user))
+        if not getattr(user, "is_active", False):
+            return False
+        return self.is_managed_by(user) or PortalRoles.is_held_by(
+            user, PortalRoles.COMMUNITY_MANAGER
+        )
 
     def get_descendant_ids(self):
         """Find every organization beneath this one, at any depth.

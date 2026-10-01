@@ -68,6 +68,8 @@
         <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="import" aria-hidden="true" />{% translate "Update from ROR" %}</span></li>
       </c-menu>
     </c-dropdown>
+  {% elif can_edit %}
+    <c-button href="{{ update_url }}" text="{% translate 'Edit details' %}" icon="edit" size="sm" />
   {% elif user.is_authenticated and not is_member %}
     {% translate "Request to join" as label %}
     {% translate "Ask the organization's administrators to add you as a member, so it shows as your affiliation." as reason %}

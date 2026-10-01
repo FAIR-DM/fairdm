@@ -303,8 +303,21 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_portal_roles.py::TestIsHeldBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestCommunityManagerOverview"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_portal_roles.py -q -n0 (935 passed)",
+              "uv run python manage.py makemigrations --check --dry-run (proposes only the third-party orbit migration, none for fairdm)"
+            ]
+          }
         },
         {
           "id": "T016",
