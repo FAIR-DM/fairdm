@@ -149,8 +149,21 @@
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib tests/test_templates tests/test_conf tests/test_core/test_dataset tests/test_core/test_project -q -n 4 (exit 0, 1923 passed, 1 skipped)",
+              "uv run pre-commit run --all-files (exit 0)",
+              "uv run python manage.py makemigrations --check --dry-run contributors dataset project sample measurement (no changes)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_person.py",
+              "tests/test_core/test_dataset/test_models.py::TestDatasetQuerySetGetVisible"
+            ]
+          }
         },
         {
           "id": "T007",

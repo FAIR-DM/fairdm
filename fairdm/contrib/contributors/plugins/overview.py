@@ -7,14 +7,19 @@ open, so a profile never names a private record.
 """
 
 from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
+from fairdm import plugins
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.overview import json_ld, safe_reverse
+from fairdm.core.plugins import OverviewPlugin
 
+from ..models import Contributor
 from ..profiles import active_then_recent, checklist, fill_slots, ranked_shares
 
 
-class ContributorOverviewMixin:
+@plugins.register(Contributor, label=_("Overview"), icon="overview", order=0)
+class Overview(OverviewPlugin):
     """Lays out the person and organization overview pages.
 
     What a contributor has done, who it works with and what its record is missing are worked out
@@ -27,11 +32,27 @@ class ContributorOverviewMixin:
         member_slots: How many places the Members card has, the "+n" entry included.
     """
 
+    url_path = None
     collaborators_shown = 18
     records_shown = 5
     member_slots = 10
 
     # ------------------------------------------------------------------ shared
+
+    def get_template_names(self):
+        """Draw the person or the organization page."""
+        if self.base_object.is_organization:
+            return ["contributors/overview/organization.html"]
+        return ["contributors/overview/person.html"]
+
+    def get_context_data(self, **kwargs):
+        """Add everything the person or organization page draws."""
+        context = super().get_context_data(**kwargs)
+        if self.base_object.is_organization:
+            context.update(self.get_organization_context())
+        else:
+            context.update(self.get_person_context())
+        return context
 
     def get_breadcrumbs(self):
         """Lead the trail with the list of people or of organizations."""

@@ -112,3 +112,28 @@ to the last pattern that carries it. The route now follows the `dac.urls` includ
 `/account-center/` match no pattern inside the includes, so they reach the route either way.
 
 **ADR:** none. It preserves existing behaviour across a dependency update.
+
+## D9. The two public sources are `get_public_projects` and `get_public_datasets`
+
+**Decision:** `Contributor.get_public_projects()` and `get_public_datasets()` return the credited
+public projects and the credited public datasets outside private projects. The overview page, its
+cards and figures, both tabs and `get_visible_contributions` read them. The dataset rule is a
+`DatasetQuerySet.get_visible()` method, matching `ProjectQuerySet.get_visible()`.
+
+**Why:** a count then cannot disagree with the list behind its link, and Organization can override
+the two methods in the organization story without touching the pages.
+
+**Revisit if:** a contributor ever needs a different public rule per record type.
+
+## D10. Samples and measurements are resolved to ids
+
+**Decision:** `get_visible_contributions` marks each contribution with `kind`, and with `record`
+only for projects and datasets. Samples and measurements are checked against `visible_to(user)` and
+the project rule by id, and never loaded. `get_collaborators` builds one condition per kind of
+record, matching the ids with `__in`, instead of one per credit.
+
+**Why:** no card lists a sample or a measurement, and loading polymorphic rows to throw them away
+costs a query per kind and a row per credit. The T003 tests compare the kind and the id of each
+credit for the same reason.
+
+**Revisit if:** a card ever lists samples or measurements.
