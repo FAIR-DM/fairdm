@@ -1,0 +1,136 @@
+{
+  "story": "US2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 394,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/020-profile-editing",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T007",
+    "T008",
+    "T009",
+    "T010",
+    "T011",
+    "T012",
+    "T018"
+  ],
+  "context": {
+    "why": "The organization half of profile editing. US1 is accepted on this branch: Contributor.is_editable_by (base False, Person override), LinesField and PersonProfileForm in forms/profile.py, the Update page in plugins/update.py with its shipped_forms map and FAIRDM_PROFILE_FORMS fallback, the person overview wiring, and the docs. This story adds the organization form, the parent loop guard on the model, who keeps an organization, the organization overview wiring, development data, and one robustness fix shared by both forms (T018). Community managers come in US3.",
+    "spec_sections": [
+      "User Story 2 (all 11 acceptance scenarios)",
+      "Edge Cases",
+      "FR-002",
+      "FR-004 to FR-006",
+      "FR-008 to FR-019",
+      "Clarifications"
+    ],
+    "plan_sections": [
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D6"
+    ],
+    "prior_decisions": [
+      "decisions.md D2, D3, D5, D6, D10, and the entries US1 wrote (D11 onward). Read those entries.",
+      "Organization.is_editable_by in this story: is_managed_by(user) and the user is active. No superuser bypass, no community manager yet.",
+      "Website and links (D5): the form's `website` and `links` fields are read from and written to the stored `links` list, website first, no repeats. Clearing the website makes the next link the website on reopening: do not write a test that expects an empty website field after that.",
+      "The loop guard goes in Organization.clean, keyed to the `parent` field, using a new Organization.get_descendant_ids(). The form's parent field offers organizations and reports the refusal on the field with the reason.",
+      "Parent picker: use an organization-select widget the package already has if one fits (look in fairdm/contrib/contributors/forms/widgets.py and fairdm/contrib/autocomplete), otherwise a plain select, and note which in decisions.md.",
+      "A deactivated administrator is signed out by Django (ModelBackend.get_user), so a page test of one expects the redirect to sign in. The model-level test of is_editable_by with an inactive user still expects False.",
+      "Organization overview: when can_manage, the menu's 'Edit details' entry becomes a working link and the other two entries stay disabled. Pass `can_edit` and `update_url` in the context as the person page does. The single edit button for an editor who does not keep the record is US3's.",
+      "Update.page_title: 'Edit organization' for an organization. Update.shipped_forms gains the organization form.",
+      "T018: Django's model form raises ValueError when Model.clean raises an error keyed to a field the form lacks. Fix it once in a shared base for the two profile forms (override _post_clean or _update_errors so such errors become non-field errors), test first, for both forms.",
+      "Seed accounts in seed_profiles follow the existing example_accounts pattern in demo/seed/common.py: addresses at example.com, password `password`. Use admin.user@example.com for the administrator, member.user@example.com for the member, former-admin.user@example.com for the ended administrator, on the organization regular.user@example.com owns. If fairdm.E501 or EXAMPLE_ACCOUNT_EMAILS in fairdm/management/commands/create_dev_accounts.py needs to know these addresses, add them there."
+    ],
+    "acceptance": [
+      {
+        "task": "T007",
+        "given_when_then": "Given the organization shapes and users in tasks.md T007, when the model methods and full_clean are called, then descendants, the loop refusal and is_editable_by behave as listed."
+      },
+      {
+        "task": "T008",
+        "given_when_then": "Given OrganizationProfileForm, when bound with the cases in tasks.md T008, then fields, website/links round trip, required name, list choices and parent refusals behave as listed."
+      },
+      {
+        "task": "T009",
+        "given_when_then": "Given US-2 scenarios 2 to 6 and 8 to 11, when the real page is opened and submitted as each kind of user, then each Then holds and refused requests store nothing."
+      },
+      {
+        "task": "T010",
+        "given_when_then": "Given an owner, an administrator, a member and a stranger on the organization overview, when it renders, then the menu's edit entry and the five checklist items link as tasks.md T010 lists and nobody else is offered an edit link."
+      },
+      {
+        "task": "T011",
+        "given_when_then": "Given the failing tests from T007 to T010, when the implementation lands, then all pass with no migration."
+      },
+      {
+        "task": "T012",
+        "given_when_then": "Given a development environment, when seed_profiles runs, then the three new accounts exist with their affiliations, the seed test covers them, and the docs step passes."
+      },
+      {
+        "task": "T018",
+        "given_when_then": "Given a stored person or organization that fails model validation on a field the form lacks, when the form is submitted, then it is invalid with a form-level error and nothing is saved, instead of raising."
+      }
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/020-profile-editing on branch 020-profile-editing; you work directly on the feature branch, one story at a time, no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked): leave it running and do not commit those files or media/.",
+    "verified_base": {
+      "commit": "628090256fc901dcbfa7db92fd57f926664adb11",
+      "verified_at": "2026-10-01T16:11:49Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "Fully green on US1's final commit; the commits since change only files under specs/020-profile-editing/."
+    },
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_overview.py and its conftest.py (page tests of the overview), tests/test_core/test_project/test_plugins.py (tests of a project's Update page), fairdm/core/project/plugins.py Update and fairdm/core/project/forms.py ProjectForm (the page and form pattern this feature copies). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state. Every user-facing string is translatable. US1's tests are your pattern: tests/test_contrib/test_contributors/test_forms/test_profile.py, test_plugins/test_update.py (TestPersonUpdate), test_plugins/test_overview.py and the conftest fixtures beside them. Add to those files.",
+    "glossary_terms": [
+      "Contributor, Person, Organization",
+      "Member",
+      "Portal role"
+    ]
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by name through the Skill tool, or read the path in required_skills. Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T007-T012 and T018 in specs/020-profile-editing/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is the brief commit on top of context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story, with one exception stated in tasks.md: a pre-existing test that pins a disabled stand-in this story brings to life is updated in the task that changes the template, and named in progress.md.",
+    "Do not add a migration. This feature adds no model field; if makemigrations wants to write one, report it.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id or data attribute.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Superusers get no bypass in is_editable_by (decisions D3). Do not route the rule through Django permissions or the OrganizationPermissionBackend (decisions D2).",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "US1's tests are pre-existing tests for this story: do not modify them, except a test that pins a disabled organization stand-in this story brings to life.",
+    "Do not build the community manager rule, PortalRoles.is_held_by or the community manager and data curator seed accounts: US3 owns them."
+  ]
+}
