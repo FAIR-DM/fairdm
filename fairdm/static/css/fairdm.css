@@ -309,10 +309,24 @@
   aspect-ratio: 16 / 9;
 }
 
-/* The 3:1 box of the image banner on the overview pages. The image keeps its own shape and is
- * fitted inside the box. Named like Tailwind's utility, for the same reason. */
-.aspect-\[3\/1\] {
+/* The image banner on the overview pages: a 3:1 box with the image centred in it at full height.
+ * The image keeps its own shape where that is between --banner-min-ratio and 3:1. A narrower
+ * image is cropped top and bottom to the minimum, and a wider one is cropped at the sides to 3:1.
+ * The box is 3:1, so the minimum width is the minimum ratio as a share of the box's width. */
+.overview-banner {
+  --banner-min-ratio: 2;
   aspect-ratio: 3 / 1;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.overview-banner img {
+  height: 100%;
+  width: auto;
+  min-width: calc(var(--banner-min-ratio) / 3 * 100%);
+  max-width: 100%;
+  object-fit: cover;
 }
 
 /* The icon on a figure in a stats strip: a rounded tile tinted with the record type's colour,
