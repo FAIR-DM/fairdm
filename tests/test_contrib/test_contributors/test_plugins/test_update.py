@@ -728,3 +728,30 @@ class TestOrganizationUpdate:
         assert _organization_stored(organization) == before
         organization.refresh_from_db()
         assert organization.modified == modified
+
+
+@pytest.mark.django_db
+class TestReturnToTheOverview:
+    def test_the_page_a_save_returns_to_opens_and_shows_the_saved_message_for_a_person(
+        self, signed_in, keeper, profile_data
+    ):
+        response = signed_in(keeper).post(
+            _update_url(keeper), profile_data, follow=True
+        )
+
+        assert response.status_code == 200
+        assert response.redirect_chain == [(keeper.get_absolute_url(), 302)]
+        assert [m.level for m in response.context["messages"]] == [messages.SUCCESS]
+
+    def test_the_page_a_save_returns_to_opens_and_shows_the_saved_message_for_an_organization(
+        self, signed_in, kept_organization, organization_profile_data
+    ):
+        organization = kept_organization.organization
+
+        response = signed_in(kept_organization.owner).post(
+            _update_url(organization), organization_profile_data, follow=True
+        )
+
+        assert response.status_code == 200
+        assert response.redirect_chain == [(organization.get_absolute_url(), 302)]
+        assert [m.level for m in response.context["messages"]] == [messages.SUCCESS]

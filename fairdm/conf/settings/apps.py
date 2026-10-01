@@ -9,8 +9,6 @@ template context processors after ``setup()`` returns.
 
 import socket
 
-from django.contrib.messages import constants as messages
-
 from fairdm.conf.environment import env
 
 BASE_DIR = globals()["BASE_DIR"]
@@ -185,14 +183,6 @@ PARLER_LANGUAGES = {
 
 FIXTURE_DIRS = (str(BASE_DIR / "fixtures"),)
 LOCALE_PATHS = [str(BASE_DIR / "project" / "locale")]
-
-MESSAGE_TAGS = {
-    messages.DEBUG: "debug alert-secondary",
-    messages.INFO: "info alert-info",
-    messages.SUCCESS: "success alert-success",
-    messages.WARNING: "warning alert-warning",
-    messages.ERROR: "error alert-danger",
-}
 
 # The gateway address of each local network, for the debug toolbar.
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())

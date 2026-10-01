@@ -170,3 +170,21 @@ is connected. The links to the editing fields are asserted in full by the new te
 disabled stand-in; these pinned the absence of links the story adds.
 
 **ADR:** none.
+
+## D14. The saved message crashed the page a save returns to
+
+Saving a profile redirects to the overview with a success message. The message list is drawn by
+django-mvp's `messages` component, which hands each message's `level_tag` to the alert as its
+variant and icon name. `MESSAGE_TAGS` in `fairdm/conf/settings/apps.py` still held the old
+Bootstrap-era mapping (`"success alert-success"`), so the tag was not an icon name and the overview
+raised `IconNotFoundError` for as long as a message was waiting. The first story's tests stopped at
+the redirect and never opened the page it leads to. The setting is removed, so Django's own tags
+(`success`, `error`, `warning`, `info`, `debug`) reach the component. Nothing in `fairdm/` or `demo/`
+reads `message.tags`.
+
+This is outside the files the story names. It is a separate commit so it can be reverted alone, and
+the two tests that open the page after a save (`TestReturnToTheOverview`) fail without it.
+
+**Revisit if:** a portal's own templates style messages by the old tag strings.
+
+**ADR:** none.
