@@ -261,7 +261,12 @@ def credited_world(db):
     Each private record has its own mate, credited there under a role held nowhere else, so a
     test can tell a role or a collaborator that is known only through a private record.
     """
-    person = PersonFactory(email="credited@example.com", is_active=True)
+    person = PersonFactory(
+        email="credited@example.com",
+        is_active=True,
+        is_claimed=True,
+        password="testpass123",
+    )
     public_project = ProjectFactory(visibility=Visibility.PUBLIC)
     private_project = ProjectFactory(visibility=Visibility.PRIVATE)
     public_dataset = DatasetFactory(

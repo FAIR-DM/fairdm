@@ -1,0 +1,498 @@
+"""Tests for the contributor overview pages, requested through the test client.
+
+A page is read as a visitor and signed in. Cards are found by their ``data-card`` attribute,
+figures by the tab they link to, and notices by the alert role outside any card. Nothing here
+asserts a sentence, a width or an order of sections.
+"""
+
+import json
+import re
+from datetime import UTC, datetime
+
+import pytest
+from django.urls import NoReverseMatch, reverse
+
+from fairdm import plugins
+from fairdm.contrib.contributors.models import Contributor, ContributorIdentifier
+from fairdm.core.project.models import Project
+from fairdm.core.utils import assign_perm
+from fairdm.factories import (
+    AffiliationFactory,
+    DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
+    ProjectFactory,
+)
+from fairdm.utils.choices import Visibility
+
+CARDS = ["about", "projects", "datasets", "roles", "identifiers", "links", "affiliations"]
+
+
+def _tab_url(person, tab):
+    return reverse(f"contributor:contributor-{tab}", kwargs={"uuid": person.uuid})
+
+
+def _card(page, name):
+    return page.select_one(f"[data-card={name}]")
+
+
+def _hrefs(card):
+    return [a["href"] for a in card.select("a[href]")]
+
+
+def _entries(page, card_name):
+    """The links to records a card lists, leaving out its link to the full list."""
+    return [a["href"] for a in _card(page, card_name).select("ul a[href]")]
+
+
+def _figure(page, url):
+    """The number in the figure whose title links to ``url``."""
+    link = page.select_one(f".stat a[href='{url}']")
+    assert link is not None, f"no figure links to {url}"
+    value = link.find_parent(class_="stat").select_one(".stat-value").get_text(strip=True)
+    return int(value.replace(",", ""))
+
+
+def _notices(page):
+    """The alerts the page shows outside its cards."""
+    return [
+        alert
+        for alert in page.select("[role=alert]")
+        if alert.find_parent(attrs={"data-card": True}) is None
+    ]
+
+
+def _header(page):
+    return page.select_one("h1").parent
+
+
+def _public_project(**kwargs):
+    return ProjectFactory(visibility=Visibility.PUBLIC, **kwargs)
+
+
+@pytest.fixture
+def claimed_person(db):
+    return PersonFactory(is_active=True, is_claimed=True, password="testpass123")
+
+
+@pytest.mark.django_db
+class TestPersonOverview:
+    def test_the_page_answers_for_a_visitor(self, get_page, credited_world):
+        response, _ = get_page(credited_world.person.get_absolute_url())
+
+        assert response.status_code == 200
+
+    def test_a_contributor_that_does_not_exist_answers_not_found(self, get_page, db):
+        response, _ = get_page("/contributor/cDoesNotExist/")
+
+        assert response.status_code == 404
+
+    # Scenario 1
+    def test_the_cards_list_the_public_projects_and_datasets_only(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        _, page = get_page(world.person.get_absolute_url())
+
+        assert _entries(page, "projects") == [world.public_project.get_absolute_url()]
+        assert _entries(page, "datasets") == [world.public_dataset.get_absolute_url()]
+
+    def test_the_figures_count_the_public_projects_and_datasets_only(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        _, page = get_page(world.person.get_absolute_url())
+
+        assert _figure(page, _tab_url(world.person, "projects")) == 1
+        assert _figure(page, _tab_url(world.person, "datasets")) == 1
+
+    def test_no_private_record_is_named_anywhere_on_the_page(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        response, _ = get_page(world.person.get_absolute_url())
+
+        content = response.content.decode()
+        for record in (
+            world.private_project,
+            world.private_dataset,
+            world.dataset_in_private_project,
+        ):
+            assert record.get_absolute_url() not in content
+            assert record.name not in content
+
+    # Scenario 2
+    def test_a_member_of_a_private_project_does_not_see_it_listed(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+        member = PersonFactory(is_active=True)
+        assign_perm("view_project", member, world.private_project)
+
+        _, page = get_page(world.person.get_absolute_url(), viewer=member)
+
+        assert world.private_project.get_absolute_url() not in _entries(page, "projects")
+        assert _figure(page, _tab_url(world.person, "projects")) == 1
+
+    def test_the_person_sees_the_same_public_work_as_a_visitor(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        _, page = get_page(world.person.get_absolute_url(), viewer=world.person)
+
+        assert _entries(page, "projects") == [world.public_project.get_absolute_url()]
+        assert _entries(page, "datasets") == [world.public_dataset.get_absolute_url()]
+
+    # Scenario 3
+    def test_someone_who_shares_only_a_private_record_is_not_a_collaborator(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        _, page = get_page(world.person.get_absolute_url())
+
+        collaborators = _hrefs(_card(page, "people"))
+        assert world.open_mate.get_absolute_url() in collaborators
+        assert world.private_mate.get_absolute_url() not in collaborators
+        assert world.private_dataset_mate.get_absolute_url() not in collaborators
+
+    # Scenario 4
+    def test_a_card_lists_five_records_with_those_in_progress_first(
+        self, get_page, claimed_person
+    ):
+        statuses = [Project.STATUS_CHOICES.IN_PROGRESS] * 3 + [
+            Project.STATUS_CHOICES.COMPLETE
+        ] * 4
+        projects = [_public_project(status=status) for status in statuses]
+        for day, project in enumerate(projects, start=1):
+            claimed_person.add_to(project)
+            Project.objects.filter(pk=project.pk).update(
+                modified=datetime(2026, 1, day, tzinfo=UTC)
+            )
+        in_progress = [p for p in projects if p.is_active]
+        others = [p for p in projects if not p.is_active]
+        expected = sorted(in_progress, key=lambda p: -p.pk) + sorted(
+            others, key=lambda p: -p.pk
+        )
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        assert _entries(page, "projects") == [
+            p.get_absolute_url() for p in expected[:5]
+        ]
+
+    def test_the_card_offers_the_full_list_of_what_it_cannot_show(
+        self, get_page, claimed_person
+    ):
+        for _ in range(7):
+            claimed_person.add_to(_public_project())
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        all_url = _tab_url(claimed_person, "projects")
+        assert all_url in _hrefs(_card(page, "projects"))
+        assert _figure(page, all_url) == 7
+
+    # Scenario 5
+    def test_an_authenticated_orcid_id_and_a_typed_in_one_are_linked_and_told_apart(
+        self, get_page, claimed_person, orcid_signed_in
+    ):
+        signed_in = PersonFactory(is_active=True, is_claimed=True, password="x")
+        authenticated = ContributorIdentifier.objects.create(
+            related=signed_in, type="ORCID", value="0000-0001-1111-2222"
+        )
+        orcid_signed_in(signed_in)
+        typed = ContributorIdentifier.objects.create(
+            related=claimed_person, type="ORCID", value="0000-0001-2345-6789"
+        )
+
+        _, first = get_page(signed_in.get_absolute_url())
+        _, second = get_page(claimed_person.get_absolute_url())
+
+        first_link = _header(first).select_one(f"a[href='{authenticated.resolver_url}']")
+        second_link = _header(second).select_one(f"a[href='{typed.resolver_url}']")
+        assert first_link is not None
+        assert second_link is not None
+        assert first_link["aria-label"] != second_link["aria-label"]
+        assert str(first_link.select_one("i, svg")) != str(second_link.select_one("i, svg"))
+
+    def test_a_person_with_no_orcid_id_has_no_orcid_link(self, get_page, claimed_person):
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        assert _header(page).select_one("a[href*='orcid.org']") is None
+
+    # Scenario 6
+    def test_an_unclaimed_profile_gets_a_notice_with_the_claim_action_disabled(
+        self, get_page, unclaimed_person
+    ):
+        _, page = get_page(unclaimed_person.get_absolute_url())
+
+        (notice,) = _notices(page)
+        button = notice.select_one("button")
+        assert button.has_attr("disabled")
+        assert button["type"] == "button"
+
+    def test_an_unclaimed_profile_says_in_its_figure_that_there_is_no_account(
+        self, get_page, unclaimed_person
+    ):
+        _, page = get_page(unclaimed_person.get_absolute_url())
+
+        figure = page.select(".stat")[-1]
+        assert unclaimed_person.member_since is None
+        assert figure.select_one(".stat-value").get_text(strip=True) == "–"
+        assert figure.select_one(".stat-desc") is not None
+
+    def test_a_claimed_profile_has_no_notice_and_shows_the_year_of_its_account(
+        self, get_page, claimed_person
+    ):
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        assert _notices(page) == []
+        figure = page.select(".stat")[-1]
+        assert figure.select_one(".stat-value").get_text(strip=True) == str(
+            claimed_person.date_joined.year
+        )
+
+    # Scenario 7
+    def test_an_inactive_account_gets_a_notice_and_keeps_its_credited_work(
+        self, get_page, db
+    ):
+        person = PersonFactory(is_active=False, is_claimed=True, password="x")
+        project = _public_project()
+        person.add_to(project)
+
+        response, page = get_page(person.get_absolute_url())
+
+        assert response.status_code == 200
+        (notice,) = _notices(page)
+        assert notice.select_one("button") is None
+        assert _entries(page, "projects") == [project.get_absolute_url()]
+
+    # Scenario 8
+    def test_the_header_names_the_primary_organization_and_its_location(
+        self, get_page, claimed_person
+    ):
+        organization = OrganizationFactory(city="Potsdam", country="DE")
+        AffiliationFactory(
+            person=claimed_person, organization=organization, is_primary=True
+        )
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        header = _header(page)
+        assert header.select_one(f"a[href='{organization.get_absolute_url()}']")
+        assert organization.get_location_display()
+        assert organization.get_location_display() in header.get_text()
+
+    def test_the_affiliations_card_lists_current_then_past_with_dates_as_recorded(
+        self, get_page, claimed_person
+    ):
+        primary = AffiliationFactory(
+            person=claimed_person,
+            organization=OrganizationFactory(name="Zeta Institute"),
+            is_primary=True,
+            start_date="2021-04",
+        )
+        other = AffiliationFactory(
+            person=claimed_person, organization=OrganizationFactory(name="Alpha Lab")
+        )
+        older = AffiliationFactory(
+            person=claimed_person, start_date="2008", end_date="2012-06-30"
+        )
+        newer = AffiliationFactory(
+            person=claimed_person, start_date="2013", end_date="2017"
+        )
+        for affiliation in (primary, older, newer):
+            affiliation.refresh_from_db()
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        card = _card(page, "affiliations")
+        assert _entries(page, "affiliations") == [
+            a.organization.get_absolute_url() for a in (primary, other, newer, older)
+        ]
+        rows = [row.get_text() for row in card.select("li")]
+        assert primary.start_display in rows[0]
+        assert older.start_display in rows[3] and older.end_display in rows[3]
+        assert older.end_display != older.start_display
+
+    # Scenario 9
+    def test_a_pending_primary_affiliation_names_its_organization_nowhere(
+        self, get_page, claimed_person
+    ):
+        organization = OrganizationFactory(name="PENDING-ORG-MARKER", city="Pendingville")
+        AffiliationFactory(
+            person=claimed_person,
+            organization=organization,
+            is_primary=True,
+            type=AffiliationFactory._meta.model.MembershipType.PENDING,
+        )
+
+        response, page = get_page(claimed_person.get_absolute_url())
+
+        content = response.content.decode()
+        assert "PENDING-ORG-MARKER" not in content
+        assert "Pendingville" not in content
+        assert organization.get_absolute_url() not in content
+
+    def test_without_a_primary_affiliation_the_header_names_no_organization(
+        self, get_page, claimed_person
+    ):
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        assert _header(page).select_one("a[href^='/contributor/']") is None
+
+    # Scenario 10
+    def test_each_role_is_listed_with_its_count_most_frequent_first(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+        world.person.add_to(world.public_dataset, roles=["Creator"])
+
+        _, page = get_page(world.person.get_absolute_url())
+
+        card = _card(page, "roles")
+        names = [dt.get_text(strip=True) for dt in card.select("dt")]
+        counts = [int(re.search(r"\d+", dd.get_text()).group()) for dd in card.select("dd")]
+        assert names[0] == "Creator"
+        assert counts[0] == 2
+        assert counts == sorted(counts, reverse=True)
+
+    def test_a_role_held_only_on_a_private_record_is_not_listed(
+        self, get_page, credited_world
+    ):
+        world = credited_world
+
+        _, page = get_page(world.person.get_absolute_url())
+
+        names = {dt.get_text(strip=True) for dt in _card(page, "roles").select("dt")}
+        assert names == {"Creator", "Data Collector", "Researcher", "Support"}
+
+    # Scenario 11
+    def test_the_collaborators_card_shows_eighteen_and_counts_the_rest(
+        self, get_page, claimed_person
+    ):
+        project = _public_project()
+        claimed_person.add_to(project)
+        mates = [PersonFactory() for _ in range(20)]
+        for mate in mates:
+            mate.add_to(project)
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        card = _card(page, "people")
+        faces = card.select("li")
+        assert len(faces) == 18
+        assert "2" in card.get_text()
+        assert {a["href"] for a in card.select("li a")} <= {
+            mate.get_absolute_url() for mate in mates
+        }
+
+    def test_each_collaborator_links_to_their_page_and_is_named_on_hover_and_to_screen_readers(
+        self, get_page, claimed_person
+    ):
+        project = _public_project()
+        mate = PersonFactory(name="Collaborator Name")
+        claimed_person.add_to(project)
+        mate.add_to(project)
+
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        face = _card(page, "people").select_one("li")
+        assert face["data-tip"] == "Collaborator Name"
+        link = face.select_one("a")
+        assert link["href"] == mate.get_absolute_url()
+        assert link["aria-label"] == "Collaborator Name"
+
+    # Scenario 12
+    def test_a_person_with_nothing_still_shows_every_card_and_says_what_is_missing(
+        self, get_page, claimed_person
+    ):
+        _, page = get_page(claimed_person.get_absolute_url())
+        claimed_person.refresh_from_db()
+
+        shown = [card["data-card"] for card in page.select("[data-card]")]
+        for name in ("projects", "datasets", "roles", "links", "affiliations", "people"):
+            assert name in shown
+            assert _card(page, name).select_one("[role=alert], p") is not None
+        assert "identifiers" in shown
+
+    def test_a_person_with_no_biography_is_told_so_where_the_biography_goes(
+        self, get_page, db
+    ):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x", profile="")
+
+        _, page = get_page(person.get_absolute_url())
+
+        assert _card(page, "about").select_one("[role=alert]") is not None
+
+    # Scenario 13
+    def test_the_page_head_carries_the_schema_org_description(
+        self, get_page, claimed_person
+    ):
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        script = page.select_one("head script[type='application/ld+json']")
+        data = json.loads(script.string)
+        assert data["@type"] == "Person"
+        assert data["name"] == claimed_person.name
+
+    def test_neither_the_page_nor_its_description_contains_the_email_address(
+        self, get_page, claimed_person
+    ):
+        claimed_person.email = "secret.address@example.org"
+        claimed_person.save()
+
+        response, _ = get_page(claimed_person.get_absolute_url())
+        signed_in, _ = get_page(claimed_person.get_absolute_url(), viewer=claimed_person)
+
+        assert "secret.address@example.org" not in response.content.decode()
+        assert "secret.address@example.org" not in signed_in.content.decode()
+
+    # Scenario 15
+    def test_the_first_tab_is_the_overview_and_there_is_no_statistics_or_network_tab(
+        self, get_page, claimed_person
+    ):
+        _, page = get_page(claimed_person.get_absolute_url())
+
+        base = f"/contributor/{claimed_person.uuid}/"
+        tabs = [a["href"] for a in page.select("a[href]") if a["href"].startswith(base)]
+        assert tabs[0] == claimed_person.get_absolute_url()
+        assert not [href for href in tabs if href.rstrip("/").endswith(("statistics", "network"))]
+        for name in ("statistics", "network"):
+            with pytest.raises(NoReverseMatch):
+                reverse(f"contributor:{name}", kwargs={"uuid": claimed_person.uuid})
+
+    def test_the_overview_tab_carries_the_name_every_record_gives_its_first_tab(self, db):
+        def first_tab(model):
+            plugins.registry.get_urls_for_model(model)
+            return plugins.registry.get_plugin_menu_for_model(model).children[0]
+
+        assert str(first_tab(Contributor).name) == str(first_tab(Project).name)
+        assert first_tab(Contributor).view_name == "contributor:overview"
+
+    # SC-003
+    @pytest.mark.parametrize("who", ["visitor", "person", "member"])
+    def test_each_figure_equals_the_number_of_entries_in_its_tab(
+        self, get_page, credited_world, who
+    ):
+        world = credited_world
+        member = PersonFactory(is_active=True)
+        assign_perm("view_project", member, world.private_project)
+        viewer = {"visitor": None, "person": world.person, "member": member}[who]
+        person = world.person
+
+        _, page = get_page(person.get_absolute_url(), viewer=viewer)
+        projects, _ = get_page(_tab_url(person, "projects"), viewer=viewer)
+        datasets, _ = get_page(_tab_url(person, "datasets"), viewer=viewer)
+
+        assert _figure(page, _tab_url(person, "projects")) == len(
+            projects.context["object_list"]
+        )
+        assert _figure(page, _tab_url(person, "datasets")) == len(
+            datasets.context["object_list"]
+        )

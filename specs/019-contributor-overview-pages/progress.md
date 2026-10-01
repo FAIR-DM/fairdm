@@ -29,3 +29,10 @@
 - Verified: `uv run pytest tests/test_templates/test_contributor_cards.py -q -n0` (18 passed, exit 0; all green on first run against the prototype). Removed the link `rel` and the "more" link from the templates in turn and watched two tests fail; templates restored. `uv run pre-commit run --all-files` clean.
 - Next: T005, the page tests.
 - Watch: `c-card.hierarchy` is US2's and is not tested here.
+
+## 2026-10-01T10:23Z · Implementer US1 · T005
+
+- Did: added `test_plugins/` with `TestPersonOverview` (scenarios 1 to 13 and 15, SC-003, the not-found case) and `TestContributorTabs` (scenario 14, the Datasets tab answering 200), with fixtures in the package `conftest.py`.
+- Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n0` gives 14 failed, 27 passed. I read each failure: the Projects and Datasets figures and the View all link render `href="None"` (the plugin reverses `contributor:contributorprojects`, the route is `contributor-projects`); the Datasets card and tab list a public dataset inside a private project; a collaborator and roles known only through private records are shown; a pending primary affiliation's organization is in the schema.org description in the head; the Statistics and Network tabs still exist. Mutated the card and collaborator limits, the unclaimed flag, the active-first sort and the project filter and watched the matching tests fail; all restored. `uv run pre-commit run --all-files` clean.
+- Next: T006, the fixes.
+- Watch: the Datasets-tab 200 test (#248) and the Projects-tab visibility test pass against the prototype, as the brief expects.

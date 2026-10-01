@@ -134,8 +134,18 @@
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n0 (exit 1: 14 failed, 27 passed; the 14 are the gaps T006 fixes)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ],
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview",
+              "tests/test_contrib/test_contributors/test_plugins/test_person.py::TestContributorTabs"
+            ]
+          }
         },
         {
           "id": "T006",
