@@ -1,187 +1,201 @@
 {
- "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
- "feature": "020-profile-editing",
- "branch": "020-profile-editing",
- "repo": "FAIR-DM/fairdm",
- "state": "DESIGN_REVIEW",
- "state_history": [
-  {
-   "state": "QUEUED",
-   "at": "2026-10-01T10:40:37Z",
-   "note": "specification approved and merged in #392; epic #391, stories #393-395"
-  },
-  {
-   "state": "PLAN",
-   "at": "2026-10-01T15:41:56Z",
-   "note": "build branch cut from origin/main at 27a7b65c; started alongside #383 on the maintainer's instruction"
-  },
-  {
-   "state": "DESIGN_REVIEW",
-   "at": "2026-10-01T15:42:25Z",
-   "note": "plan and tasks written; one reviewer, three lenses"
-  }
- ],
- "gates": {
-  "spec": {
-   "approved_by": "SamuelJennings",
-   "at": "2026-10-01T10:40:37Z",
-   "self_resolved": [
-    "approving review 5378168902 on #392 at commit e36f0860; the specification merged to main in that pull request"
-   ]
-  },
-  "plan": {
-   "approved_by": "open",
-   "at": "2026-10-01T15:47:50Z"
-  },
-  "merge": {
-   "approved_by": null,
-   "at": null
-  },
-  "design_review": {
-   "approved_by": "design-reviewer",
-   "at": "2026-10-01T15:47:50Z",
-   "self_resolved": [
-    "7 findings: 1 high, 1 medium, 5 low",
-    "high applied: a community manager edits a person only when the account is inactive, or unclaimed and never signed in (plan D1, T002, T013)",
-    "medium raised with the maintainer: given and family names feed citations and are not on the page (decisions D9)",
-    "lows carried as notes into the briefs (decisions D10); setting falls back to the shipped form"
-   ]
-  }
- },
- "stories": [
-  {
-   "id": "US1",
-   "priority": "P1",
-   "issue": 393,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "020-profile-editing",
+  "branch": "020-profile-editing",
+  "repo": "FAIR-DM/fairdm",
+  "state": "IMPLEMENT",
+  "state_history": [
     {
-     "id": "T001",
-     "status": "todo",
-     "attempts": 0
+      "state": "QUEUED",
+      "at": "2026-10-01T10:40:37Z",
+      "note": "specification approved and merged in #392; epic #391, stories #393-395"
     },
     {
-     "id": "T002",
-     "status": "todo",
-     "attempts": 0
+      "state": "PLAN",
+      "at": "2026-10-01T15:41:56Z",
+      "note": "build branch cut from origin/main at 27a7b65c; started alongside #383 on the maintainer's instruction"
     },
     {
-     "id": "T003",
-     "status": "todo",
-     "attempts": 0
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-01T15:42:25Z",
+      "note": "plan and tasks written; one reviewer, three lenses"
     },
     {
-     "id": "T004",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T005",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T006",
-     "status": "todo",
-     "attempts": 0
+      "state": "IMPLEMENT",
+      "at": "2026-10-01T15:48:11Z",
+      "note": "plan gate open; design review applied"
     }
-   ]
-  },
-  {
-   "id": "US2",
-   "priority": "P2",
-   "issue": 394,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T007",
-     "status": "todo",
-     "attempts": 0
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-01T10:40:37Z",
+      "self_resolved": [
+        "approving review 5378168902 on #392 at commit e36f0860; the specification merged to main in that pull request"
+      ]
     },
-    {
-     "id": "T008",
-     "status": "todo",
-     "attempts": 0
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-01T15:47:50Z"
     },
-    {
-     "id": "T009",
-     "status": "todo",
-     "attempts": 0
+    "merge": {
+      "approved_by": null,
+      "at": null
     },
-    {
-     "id": "T010",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T011",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T012",
-     "status": "todo",
-     "attempts": 0
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-01T15:47:50Z",
+      "self_resolved": [
+        "7 findings: 1 high, 1 medium, 5 low",
+        "high applied: a community manager edits a person only when the account is inactive, or unclaimed and never signed in (plan D1, T002, T013)",
+        "medium raised with the maintainer: given and family names feed citations and are not on the page (decisions D9)",
+        "lows carried as notes into the briefs (decisions D10); setting falls back to the shipped form"
+      ]
     }
-   ]
   },
-  {
-   "id": "US3",
-   "priority": "P3",
-   "issue": 395,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
+  "stories": [
     {
-     "id": "T013",
-     "status": "todo",
-     "attempts": 0
+      "id": "US1",
+      "priority": "P1",
+      "issue": 393,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestLinesField",
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestPersonProfileForm"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0 (red: ModuleNotFoundError for forms.profile, exit 2)"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     },
     {
-     "id": "T014",
-     "status": "todo",
-     "attempts": 0
+      "id": "US2",
+      "priority": "P2",
+      "issue": 394,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     },
     {
-     "id": "T015",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T016",
-     "status": "todo",
-     "attempts": 0
-    },
-    {
-     "id": "T017",
-     "status": "todo",
-     "attempts": 0
+      "id": "US3",
+      "priority": "P3",
+      "issue": 395,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     }
-   ]
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    }
+  },
+  "pr": {
+    "number": 400,
+    "draft": true
   }
- ],
- "budgets": {
-  "converge_cycles": {
-   "used": 0,
-   "max": 2
-  },
-  "review_cycles": {
-   "used": 0,
-   "max": 1
-  },
-  "design_review_cycles": {
-   "used": 1,
-   "max": 1
-  },
-  "tokens": {
-   "used": 0,
-   "max": 120
-  }
- },
- "pr": {
-  "number": 400,
-  "draft": true
- }
 }
