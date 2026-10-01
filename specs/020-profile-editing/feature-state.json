@@ -77,8 +77,18 @@
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy",
+              "tests/test_contrib/test_contributors/test_models.py::TestContributorUpdateUrl"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k \"TestPersonIsEditableBy or TestOrganizationIsEditableBy or TestContributorUpdateUrl\" (red: 11 failed; AttributeError is_editable_by, NoReverseMatch contributor-update)"
+            ]
+          }
         },
         {
           "id": "T003",

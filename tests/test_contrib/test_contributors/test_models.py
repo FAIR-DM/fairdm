@@ -6,10 +6,11 @@ import pytest
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.urls import resolve
 from django.utils.formats import date_format
 
 from fairdm.contrib.contributors.choices import AccountState, OrganizationType
@@ -31,6 +32,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
@@ -2635,3 +2637,65 @@ class TestProfileSafety:
         person = PersonFactory(is_claimed=False, is_active=False, email=None)
 
         assert person.member_since is None
+
+
+@pytest.mark.django_db
+class TestPersonIsEditableBy:
+    def test_a_person_may_edit_their_own_profile(self, person):
+        assert person.is_editable_by(person) is True
+
+    def test_a_person_who_signed_in_without_being_marked_claimed_may_edit_their_own_profile(
+        self,
+    ):
+        # `createsuperuser` makes an active account that nothing marks as claimed.
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+
+        assert person.is_editable_by(person) is True
+
+    def test_another_signed_in_person_may_not_edit_it(self, person):
+        stranger = PersonFactory(is_active=True, password="x")
+
+        assert person.is_editable_by(stranger) is False
+
+    def test_a_visitor_may_not_edit_it(self, person):
+        assert person.is_editable_by(AnonymousUser()) is False
+
+    def test_a_superuser_who_is_somebody_else_may_not_edit_it(self, person):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert person.is_editable_by(superuser) is False
+
+    @pytest.mark.parametrize(
+        "role",
+        [
+            PortalRoles.DATA_CURATOR,
+            PortalRoles.DEVELOPER,
+            PortalRoles.PORTAL_ADMINISTRATOR,
+        ],
+    )
+    def test_a_holder_of_one_of_these_portal_roles_may_not_edit_it(self, person, role):
+        holder = PersonFactory(is_active=True, password="x")
+        holder.groups.add(Group.objects.get(name=role.name))
+
+        assert person.is_editable_by(holder) is False
+
+@pytest.mark.django_db
+class TestOrganizationIsEditableBy:
+    def test_nobody_may_edit_it_yet(self, owner_affiliation):
+        organization = owner_affiliation.organization
+
+        assert organization.is_editable_by(owner_affiliation.person) is False
+
+
+class TestContributorUpdateUrl:
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("factory", [PersonFactory, OrganizationFactory])
+    def test_the_address_is_the_editing_page_of_the_overview(self, factory):
+        contributor = factory()
+
+        match = resolve(contributor.get_update_url())
+
+        assert match.view_name == "contributor:overview-update"
+        assert match.kwargs == {"uuid": contributor.uuid}
