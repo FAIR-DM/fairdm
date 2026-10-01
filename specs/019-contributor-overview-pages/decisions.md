@@ -84,3 +84,22 @@ The development data command draws placeholder logos with Pillow, and FairDM's i
 it at run time already.
 
 **ADR:** none. It records an existing dependency, and changes no behaviour.
+
+## D6. Design review: what was applied and what is carried
+
+One reviewer, three lenses, one round. Two high findings were applied as plan edits: the page head
+keeps an affiliation only when the header shows it, and each contributor has one model source for
+its public projects and one for its public datasets, read by the overview and by both tabs. The
+medium and low findings were applied too: the project check extends to samples and measurements,
+the `account-center` cause is named with its fix, the tab module's strings become lazy, and the
+mixin fold and tab removal move behind the tests that pin the page. One is carried as a watch
+item: samples and measurements are resolved to ids, not loaded as objects.
+
+**ADR:** none. A record of the review, with each change made in the plan.
+
+## D7. FairDM keeps the `/account-center/` address
+
+django-mvp 0.25.1 moved its landing page to `account/` inside its own URL module. FairDM declares
+its own `account-center/` route to that view, so the address people already use stays.
+
+**ADR:** none. It preserves existing behaviour across a dependency update.

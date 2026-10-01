@@ -55,7 +55,7 @@ Measured on the branch with the prototype merged (commit 98a231c7), 2026-10-01:
 | V Security | Visibility is decided in one model method and on the QuerySets (D4), never in a template. JSON-LD goes through the existing escaping helper and carries no email |
 | VI / XVI Documentation | New components, blocks, model methods and helpers are documented in the story that introduces them |
 | VII Dependencies | Pillow declared because the code imports it. `deptry` green |
-| VIII i18n | The prototype's templates and plugin strings already translate. Tasks check each string as tests touch it |
+| VIII i18n | The prototype's templates translate. The tab module's import-time strings move to `gettext_lazy` (D8) |
 | X Cohesion | What a contributor has done lives on the models, pure formatting in `profiles.py`, page layout on the plugin |
 | XVII Demo | `seed_profiles` reaches every state both pages answer for (FR-033) |
 
@@ -111,20 +111,28 @@ One rule, in one place. `Contributor.get_visible_contributions(user)` returns th
   only `Dataset.objects`, which leaves out private datasets but would list a public dataset inside
   a private project. The glossary says a private project hides everything beneath it, so the
   project is checked too
-- samples and measurements the user may open (`visible_to(user)`)
+- samples and measurements the user may open (`visible_to(user)`) and whose dataset's project,
+  where it has one, is public. The extra condition is applied inside
+  `get_visible_contributions`, and the shared `visible_to` is left alone. Samples and
+  measurements are resolved to visible ids, not loaded as objects, because no card lists them,
+  and collaborators are found from those ids without one query condition per credit
 
 Projects and datasets ignore who is asking (FR-006). The collaborators and the role counts are
 computed from the returned credits (FR-007), so they follow the same rule without a second
 filter.
 
-The same public project and dataset QuerySets are used in three more places, so no list can
-disagree with a count (SC-003):
+There is one source for "this contributor's public projects" and one for "this contributor's
+public datasets", on the model. For a person they are the credited ones. `Organization` overrides
+both to add the projects it owns and the datasets inside them (FR-026), with nothing twice. The
+overview's figures and cards and the Projects and Datasets tabs all read those two sources, so a
+count cannot disagree with the list its link leads to (SC-003, FR-008). This replaces the
+list-building in the prototype's `get_organization_context`.
 
-- the organization's owned projects, and the datasets inside them
-- the Projects tab and the Datasets tab of a contributor (FR-008)
-
-The page's JSON-LD comes from `to_public_schema_org()`, which drops the email address (FR-009,
-FR-010).
+The page's JSON-LD comes from `to_public_schema_org()`. It drops the email address (FR-009), and
+it keeps `affiliation` only when that is the verified, current primary affiliation the header
+shows (FR-010): `primary_affiliation()` does not check the affiliation's type or end date, so a
+pending or ended primary affiliation would otherwise reach the page head. The change is made in
+`to_public_schema_org`, not in the shared Schema.org transform, which projects also call.
 
 Every contributor's page is open to everyone (FR-005). The plugin declares no permission check
 beyond the object existing.
@@ -157,8 +165,15 @@ runs it and requests each seeded page.
 - **Pillow** is imported by `seed_profiles` to draw placeholder logos. FairDM's image fields
   already need Pillow at run time, so it is declared as a direct dependency instead of being
   reached through another package.
-- **`account-center`**: find why the name now resolves to `/account-center/account/` under
-  django-mvp 0.25.1 and restore `/account-center/`. The existing test stays as it is.
+- **`account-center`**: django-mvp 0.25.1 mounts its landing page at `account/` inside
+  `mvp.urls` (`mvp/urls.py:45`), and `fairdm/conf/urls.py` includes `mvp.urls` under
+  `account-center/`, so the name now resolves to `/account-center/account/`. FairDM keeps its
+  address: `fairdm/conf/urls.py` declares its own `account-center/` route to the same landing
+  view, ahead of the includes. The existing tests stay as they are, and `/account-center/login/`
+  keeps answering.
+- **`plugins/person.py`** imports `gettext` as `_` and uses it in class attributes and decorator
+  arguments, which bind at import. It imports `gettext_lazy` instead (Article VIII). The
+  `gettext` calls inside methods in `plugins/overview.py` run per request and stay.
 - **The five `pending_action.html` tests** move to the component: the same assertions against
   `c-actions.pending` (disabled, never submits or links, says why to a pointer and to a screen
   reader). The two that expect a "Coming soon" badge on the button are removed: the maintainer

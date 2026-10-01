@@ -1,0 +1,92 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Single design reviewer carrying all three lenses (finding id prefix names the lens: SPEC = spec-compliance, SEC = security, ARCH = architecture). Reviewed specs/019-contributor-overview-pages/plan.md, tasks.md, research.md, decisions.md against spec.md, CONSTITUTION.md (Articles I-X), CONTEXT.md and docs/contributing/standards/testing.md. Code read: fairdm/contrib/contributors/models.py (Contributor.projects/datasets/samples/measurements, get_visible_contributions, get_role_counts, get_collaborators, to_public_schema_org, Person affiliation methods, Affiliation constraints/save, Organization membership methods), managers.py (AffiliationQuerySet), utils/transforms.py (SchemaOrgTransform.export), plugins/overview.py, plugins/person.py, templates contributors/overview/{person,organization}.html (links only) and cotton/card/records.html, fairdm/core/managers.py, fairdm/core/dataset/models.py, views.py, filters.py, plugins.py (visibility checks), fairdm/core/project/models.py, views.py, filters.py, fairdm/core/plugins.py (OverviewPlugin, _visible_through), dataset_card.html, fairdm/conf/urls.py, tests/test_conf/test_urls.py, and the resolved django-mvp 0.25.1 in .venv (mvp/urls.py, dac/urls.py). D4 branches checked: Dataset.objects (excludes PRIVATE only, no project term), Dataset.all_objects, ProjectQuerySet.get_visible (visibility=PUBLIC), visible_to for a visitor / a holder of a global dataset permission / a dataset team member, get_collaborators and get_role_counts with and without the contributions argument (the only callers pass the visible list), both tabs' get_queryset overrides, the organization's owned-project and owned-dataset branches, and every key SchemaOrgTransform.export writes. Not reviewed: the prototype's markup, wording and layout; the API endpoint behind api:contributor-detail; seed_profiles.py.",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95", "loaded_via": "skill-tool"},
+    {"name": "craft-security", "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742", "loaded_via": "skill-tool"},
+    {"name": "craft-simplify", "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1", "loaded_via": "skill-tool"}
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "The page's JSON-LD can name an affiliation the page itself hides. Plan D4 says to_public_schema_org() only drops the email, and T003 only tests for the email. The affiliation in the JSON-LD comes from a different rule than the one the header and the affiliations card use, so a pending (unverified) primary affiliation is published in the page head as the person's affiliation, against FR-010 and US-1 scenario 9.",
+      "evidence": "fairdm/contrib/contributors/utils/transforms.py:231-237 writes data[\"affiliation\"] from contributor.primary_affiliation(). fairdm/contrib/contributors/models.py:777-786 returns the first affiliation with is_primary=True, with no check on type or end_date. The page uses Person.get_affiliation_history() (models.py:827-848), which keeps only type >= MEMBER, and plugins/overview.py:126-128 takes the header's organization from its current list. Nothing stops a pending affiliation being primary: the only constraints are one row per person and organization and one primary per person (models.py:1099-1110), and Affiliation.save (1143-1154) only demotes other primaries. models.py:389-397 to_public_schema_org pops \"email\" and nothing else. plan.md D4 ('which drops the email address (FR-009, FR-010)') and tasks.md T003 ('to_public_schema_org carries no email') cover FR-009 only. spec.md FR-010: the head 'MUST carry nothing the viewer could not read on the page'; scenario 9: a pending affiliation's organization 'appears nowhere on it'.",
+      "reproduction": "A person whose only affiliation is type PENDING with is_primary=True. Request the overview page as a visitor: the header and the affiliations card name no organization, and the JSON-LD script in the head carries affiliation.name (and the organization's ROR id).",
+      "suggested_fix": "plan.md D4: state that to_public_schema_org() also keeps `affiliation` only when it is the same verified, current primary affiliation the header shows, and drops it otherwise. Make the change in to_public_schema_org, not in the shared SchemaOrgTransform (fairdm/core/project/transforms.py:203 also calls to_schema_org). tasks.md T003: add the case 'a pending primary affiliation is absent from to_public_schema_org'. tasks.md T005 scenario 9: build the pending affiliation as the primary one and assert the organization's name is absent from the whole response, head included."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "SC-003 cannot be met for an organization by any task in the plan. The organization's Projects and Datasets figures and its 'View all' links count owned plus credited records, and they link to tabs that list credited records only. An organization that owns a project without being credited on it shows a count the tab never reaches. No task tests that a count equals the entries behind its link, for either page.",
+      "evidence": "plugins/overview.py:206-220 builds the organization's projects as owned_projects.get_visible() plus credited ones, and its datasets as credited ones plus Dataset.objects.filter(project__in=owned). organization.html:76-77 and 141-144 link those counts and cards to urls.projects and urls.datasets. plugins/person.py:46-48 and 63-65 return self.base_object.projects.all() and .datasets.all(), which models.py:327-337 define as filter(contributors__contributor=self), credited only. plan.md D4 lists 'the organization's owned projects, and the datasets inside them' and 'the Projects tab and the Datasets tab' as separate places that share a QuerySet, and never says the organization's tab includes owned records. tasks.md T005 covers scenario 14 (no private record in a tab) and T011 covers scenarios 1-12, none of which compares a count with its tab. spec.md SC-003: 'Every count on either page equals the number of entries reached by following its link, for the same viewer'; FR-026 defines the organization's projects and datasets.",
+      "reproduction": "An organization that owns one public project holding one public dataset and is credited on neither. The overview shows Projects 1 and Datasets 1. Following either link opens an empty tab.",
+      "suggested_fix": "plan.md D4: name one source per kind for 'this contributor's public projects' and 'this contributor's public datasets' on the model, with the organization's version adding owned projects and the datasets inside them, and have both the overview and the two tabs read it. That replaces the list-building in get_organization_context rather than adding to it. tasks.md T011: add 'for an organization that owns a project it is not credited on, the Projects and Datasets figures equal the number of entries in the matching tab'. tasks.md T005: the same equality for a person with public and private credits."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Plan D4 applies 'a private project hides everything beneath it' to datasets and not to samples and measurements. A credit on a sample in a public, published dataset inside a private project still reaches the role counts and the collaborators, so the page can name a collaborator known only through a record under a private project, while the dataset itself is left off the page for that same reason.",
+      "evidence": "fairdm/core/managers.py:74-88: visible_to(user) filters on dataset__visibility and dataset__published (and team datasets) and has no project term. models.py:438-439 uses it unchanged for samples and measurements, and plan.md D4 bullet 3 keeps that. plan.md D4 bullet 2 and decisions.md 'D3' add the project check to datasets only, citing the glossary rule (CONTEXT.md, Visibility: 'A private project hides everything beneath it'). spec.md SC-002 asks for 'no collaborator known only through a private record'. Note the code elsewhere treats such a sample as openable by a visitor (fairdm/core/plugins.py:469-474), so FR-007 read literally is met; the gap is against the rule the plan itself adopted in D4.",
+      "reproduction": "Person A and person B are both credited on one sample. Its dataset is public and published and sits in a private project. A visitor opens A's page: the dataset is not listed, and B is shown as a frequent collaborator.",
+      "suggested_fix": "plan.md D4 bullet 3: say which rule holds. Either apply the same 'the dataset's project, where it has one, is public' condition to samples and measurements inside get_visible_contributions (one extra filter there, leaving the shared visible_to alone), with the matching case added to T003; or state that samples and measurements follow visible_to alone and why the dataset rule does not extend to them. The first is consistent with decisions.md 'D3'."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Plan D8 and T001 commit to restoring reverse(\"account-center\") == \"/account-center/\" while leaving the test untouched, without knowing the cause ('find why'). The cause is in the resolved package and it means the address cannot be restored by configuration: the task is an undecided design question inside a housekeeping bullet, with no requirement in the spec behind it.",
+      "evidence": ".venv/lib/python3.13/site-packages/mvp/urls.py:44-46 (django-mvp 0.25.1) mounts the landing page at \"account/\" and its docstring (lines 3-14) tells a project to include mvp.urls at the site root. fairdm/conf/urls.py:25-26 includes mvp.urls and dac.urls under \"account-center/\", which yields /account-center/account/. tests/test_conf/test_urls.py:7-8 pins \"/account-center/\", and line 25 pins /account-center/login/ from dac.allauth. research.md states the change 'with django-mvp 0.25.1' with no file citation; plan.md D8 says 'find why ... and restore'.",
+      "suggested_fix": "plan.md D8: cite mvp/urls.py:45 as the cause and name the one edit, chosen from what the package allows: keep /account-center/ with a FairDM-owned route for the landing page, or accept the package's address and record the test change in decisions.md the way the two badge tests are recorded. Whichever is chosen, /account-center/login/ (test_urls.py:25) has to keep answering. If the choice changes an address users have bookmarked, it is the maintainer's call, not a housekeeping item."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The tab labels and page titles in plugins/person.py are translated once at import, not per request, so the first tab's name and the Projects and Datasets titles never follow the active language. The plan's constitution check says the plugin strings 'already translate' and T017 only checks that strings are marked.",
+      "evidence": "fairdm/contrib/contributors/plugins/person.py:5 imports `gettext as _`, then uses it in decorator arguments and class attributes evaluated at import (lines 17, 40, 43, 57, 60). The record plugins use gettext_lazy (fairdm/core/project/plugins.py:9, fairdm/core/plugins.py:59). CONSTITUTION.md Article VIII: Python strings 'are wrapped with gettext_lazy imported as _'. spec.md clarification 'Are the pages translatable? Yes. Every label ...' and FR-002 (the first tab carries the same name as every record's first tab). The import predates the prototype (same line on main), and T001 and T006 edit this module.",
+      "suggested_fix": "tasks.md T001: add 'plugins/person.py imports gettext_lazy as _' (the in-method gettext calls in plugins/overview.py run per request and stay). plan.md constitution table, Article VIII row: drop 'already translate' for the plugin module."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "medium",
+      "confidence": "likely",
+      "claim": "The public, unauthenticated overview does work that grows with every credit a contributor holds: it loads every contribution, fetches every credited sample and measurement as a full object, then builds one OR term per visible credit to find collaborators. People are routinely credited on each sample of a dataset, so a person with a few thousand credits makes each page view fetch thousands of polymorphic rows, and on SQLite the collaborator query can fail outright on expression depth. The plan sets performance aside ('not a goal') and no task bounds it.",
+      "evidence": "models.py:441-471 lists all contributions and calls in_bulk on every credited id per kind (polymorphic for samples and measurements). models.py:566-573 ORs one Q per contribution into a single Count filter. plugins/overview.py:112-131 runs both on every request to a page FR-005 opens to everyone. Only the samples' and measurements' identities and roles are used: no card lists them. Not measured, and the SQLite depth failure is from the engine's documented limit, not a run.",
+      "suggested_fix": "No new task. plan.md D4: add one sentence that samples and measurements are resolved to visible ids, not loaded as objects, and that collaborators are found from those ids without one condition per credit. Carry it into the US-1 brief as a watch item for T006."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "T001 puts a behaviour-preserving refactor (folding the mixin), two deletions (the Statistics and Network plugins), a dependency declaration, a URL fix and a test migration into one task that runs before any test of the pages exists. If the suite goes red afterwards, nothing says which of the five did it.",
+      "evidence": "tasks.md T001 lists five unrelated edits under one checkbox; T002-T005, the first tests of the pages, come after it. The 'tests first' rule at the top of tasks.md applies to every story.",
+      "suggested_fix": "tasks.md: keep T001 for what the suite needs to go green (Pillow, the pending-action tests, the account-center decision) and move 'fold the mixin' and 'delete the two plugins' into T006, after T005 has pinned scenario 15 and the page's behaviour. No task added."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "T004 can be read as asking for wording assertions. 'Say what is missing when given nothing' and 'render their documented inputs' are right as conditional-state and link-target tests, and wrong if the test matches the empty-state sentence or a heading.",
+      "evidence": "tasks.md T004. docs/contributing/standards/testing.md section 1: fixed wording is never asserted, elements are found by fixture data, role or id. cotton/card/records.html:17 already gives the card a data-card hook and passes the empty text in from the caller.",
+      "suggested_fix": "tasks.md T004: reword to 'each shows its empty state when given nothing (found by the component's element or data attribute, never by its sentence) and links each entry where FR-018 to FR-023 say'."
+    }
+  ],
+  "notes": [
+    "decisions.md numbers its build decisions D1-D5 and plan.md numbers its design sections D1-D8 for different things (decisions D3 is plan D4, decisions D4 and D5 are plan D8). tasks.md cites 'plan D4' and 'plan D8', so the references resolve, but a reader of decisions.md alone will mis-map them.",
+    "CONTEXT.md says both 'A dataset's visibility is independent of its project's' (Dataset) and 'A private project hides everything beneath it' (Visibility). plan D4 leans on the second. T008 already edits CONTEXT.md and could reconcile the two sentences.",
+    "plan.md D4 calls the dataset rule 'public'; the code and the docstring at models.py:418 say 'not private'. With a two-value Visibility they are the same set. One wording would be clearer.",
+    "plan.md project structure lists tests/test_contrib/test_contributors/test_plugins/, which does not exist yet and needs its __init__.py.",
+    "The module docstring of plugins/person.py still lists 'statistics and network' and should lose them when the two plugins go.",
+    "research.md says the two tabs have 'no visibility filter'. That is true of their get_queryset, but ProjectFilter.__init__ (fairdm/core/project/filters.py:50-51) applies get_visible() to the queryset it is given, so the Projects tab may already hide private projects through the filterset. T005 scenario 14 will show which, and may pass at once for projects.",
+    "The dataset card on the Datasets tab prints the dataset's project name (dataset_card.html:90-95). Plan D4's project check is what keeps a private project's name off that tab, which is a stronger reason for the rule than the one decisions.md gives.",
+    "D4 was otherwise checked and holds: get_collaborators and get_role_counts are only ever called with the visible contributions (plugins/overview.py:95, 130), their unfiltered default has no other caller in fairdm/ or demo/, and SchemaOrgTransform.export writes no project, dataset or collaborator.",
+    "The schema allows one top-level lens and no per-finding lens field, so the lens is carried in each finding's id prefix."
+  ]
+}
