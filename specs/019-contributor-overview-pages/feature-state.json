@@ -3,7 +3,7 @@
   "feature": "019-contributor-overview-pages",
   "branch": "019-contributor-overview-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-01T10:11:30Z",
       "note": "design review applied; plan notified"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-01T11:13:05Z",
+      "note": "all three stories accepted"
     }
   ],
   "gates": {
@@ -265,7 +270,7 @@
       "id": "US3",
       "priority": "P3",
       "issue": 389,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -322,7 +327,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
