@@ -1,0 +1,123 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {"name": "craft-tdd", "receipt": "craft-tdd/2026-09-28/b19e4d07", "loaded_via": "skill-tool"},
+    {"name": "craft-increments", "receipt": "craft-increments/2026-09-28/3f7d8b12", "loaded_via": "skill-tool"}
+  ],
+  "tasks": [
+    {
+      "id": "T009",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationMemberships",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationHasMember",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsManagedBy",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationHierarchy",
+          "tests/test_core/test_project/test_models.py::TestProjectIsActive"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py tests/test_core/test_project/test_models.py -k \"TestOrganizationMemberships or TestOrganizationHasMember or TestOrganizationIsManagedBy or TestOrganizationHierarchy or TestProjectIsActive\" -q -n0 (26 passed)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["3db8d576"]
+    },
+    {
+      "id": "T010",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_contributor_cards.py::TestHierarchyCard"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_templates/test_contributor_cards.py::TestHierarchyCard -q -n0 (5 passed)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["b0502809"]
+    },
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview"
+        ],
+        "criteria": ["SC-002", "SC-003", "SC-005"],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview -q -n0 (2 failed, 27 passed at this commit; the two failures are the SC-003 tab comparison, fixed in T012)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["5983f85a"]
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationPublicRecordSources"
+        ],
+        "criteria": ["SC-003"],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_templates tests/test_core/test_project tests/test_core/test_dataset -q -n 4 (1533 passed)",
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationPublicRecordSources tests/test_contrib/test_contributors/test_plugins -q -n0 (76 passed)",
+          "uv run python manage.py makemigrations --check --dry-run contributors project dataset sample measurement (no changes)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["86eecfa9"]
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesOrganizationStates"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py -q -n0 (18 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs (docs: passed)",
+          "uv run pre-commit run --all-files",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build all passed; exit 0)"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["7e0a3436"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T011 is committed with two of its tests failing, and T012 turns them green in the next commit.",
+      "why": "The task order puts the page tests before the fix and the tests found a real defect: the Projects and Datasets tabs of an organization left out the projects it owns and is not credited on.",
+      "decision_ref": "decisions.md#d11-an-organizations-two-sources-match-credits-with-a-subquery-not-a-join"
+    },
+    {
+      "what": "seed_profiles is unchanged; T013 only adds tests for its organization states.",
+      "why": "The command already seeds the three organization states FR-033 names, and the new tests fail when each is removed from it.",
+      "decision_ref": "decisions.md#d12-the-seed-command-already-reached-the-organization-states-so-it-is-unchanged"
+    },
+    {
+      "what": "The overview plugin's get_record_entries helper is removed.",
+      "why": "Moving the organization's list-building to the model left it without a caller.",
+      "decision_ref": "decisions.md#d11-an-organizations-two-sources-match-credits-with-a-subquery-not-a-join"
+    }
+  ],
+  "concerns": [
+    "tests/test_demo/test_management/test_commands/test_seed_profiles.py now takes about 33 seconds because every test runs the seed command. The testing standard has no class-scoped database fixture and bans unittest setUpTestData, so one run could not be shared across a class.",
+    "uv run python manage.py makemigrations --check --dry-run over every app names a pending alteration to orbit.OrbitEntry.type in the third-party orbit package (orbit/migrations/0008_alter_orbitentry_type.py). It is not this feature's; the check over contributors, project, dataset, sample and measurement is clean.",
+    "In T009 and T010 every new test passed on first run because the prototype already implemented the behaviour. I probed them by mutation instead: each mechanism change failed a test, except removing order_by('name') in Organization.get_hierarchy, which changes nothing because Contributor already orders by name.",
+    "Forcing has_map true in the overview plugin fails no test: the location card draws nothing without a location, so the page is identical. The map-absent test still pins the visible behaviour.",
+    "Person.get_location_display() still reads primary_affiliation() without checking its type or end date (carried from US1); no US2 test needed it, so it is untouched.",
+    "Bare `ruff format` rewrites lines in US1's test files that the repo's pre-commit run leaves alone; I reverted that, and only ran pre-commit afterwards."
+  ],
+  "blocked": []
+}
