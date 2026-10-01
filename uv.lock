@@ -1484,7 +1484,7 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.24.0"
+version = "0.25.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "crispy-tailwind" },
@@ -1495,9 +1495,9 @@ dependencies = [
     { name = "django-flex-menus" },
     { name = "mergedeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/6f/69bf15c87bf0a67989695780984bf579b745ed9bffbc7eb3095bc474c3dc/django_mvp-0.24.0.tar.gz", hash = "sha256:afe4bbf3f946673a1bfbb21ebc7a43f247cb1db7a9819a5878fdd9b30d2315a8", size = 279253, upload-time = "2026-09-23T08:14:54.337Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/e9/a48b73cd2b36833f6eb5af0c4c12afab59c42b3f791ed28f88b55e7edab4/django_mvp-0.25.1.tar.gz", hash = "sha256:38873d643593af1bfdd50b993e7003cf7942ef5161bec16575ffd331c81ba88b", size = 284427, upload-time = "2026-09-29T20:27:11.028Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/d4/aa77c39d7b10bb737549dc3626699204fc75877c0fab3787e4c24520f1e9/django_mvp-0.24.0-py3-none-any.whl", hash = "sha256:969a2b991d090064b777d96712317972745ac57e0b7566659759dcc8417da3b8", size = 324458, upload-time = "2026-09-23T08:14:52.567Z" },
+    { url = "https://files.pythonhosted.org/packages/32/3c/a24d5635ac959716a3d9f68ca8d48f70a77ca6e4e581af1ef9f87aa09edf/django_mvp-0.25.1-py3-none-any.whl", hash = "sha256:ff22f75f4466f2a478747ba70294be0d3edc6226c8f60e2838b7fdc4577409c9", size = 340677, upload-time = "2026-09-29T20:27:09.448Z" },
 ]
 
 [[package]]
@@ -2174,7 +2174,7 @@ requires-dist = [
     { name = "django-markdownx", specifier = ">=4.0.11,<5.0.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
-    { name = "django-mvp", specifier = ">=0.24.0,<0.25.0" },
+    { name = "django-mvp", specifier = ">=0.25.1,<0.26.0" },
     { name = "django-mvp-charts", specifier = ">=0.2.0,<0.3.0" },
     { name = "django-orbit", extras = ["mcp"], specifier = ">=0.12.1,<0.13.0" },
     { name = "django-ordered-model", specifier = ">=3.7.4,<4.0.0" },
