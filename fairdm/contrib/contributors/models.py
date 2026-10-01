@@ -224,8 +224,22 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
-        """Return the URL of the contributor's edit page."""
-        return reverse("contributor-update", kwargs={"uuid": self.uuid})
+        """Return the URL of the page where the contributor's profile is edited."""
+        return reverse("contributor:overview-update", kwargs={"uuid": self.uuid})
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this contributor's profile in the portal.
+
+        The editing page asks on every request and the overview pages ask before they offer an
+        edit action. A contributor nobody may edit is the default; each subclass names who may.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user may open and save the editing page.
+        """
+        return False
 
     def get_identifier_icon(self):
         """Return the icon for the contributor's default identifier scheme.
@@ -739,6 +753,20 @@ class Person(AbstractUser, Contributor):
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this profile: only the person it describes.
+
+        A superuser, an administrator and the holder of any portal role get no right from
+        that alone.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user is this person and has an active account.
+        """
+        return bool(user.is_authenticated and user.is_active and user.pk == self.pk)
 
     @property
     def account_state(self) -> AccountState:
