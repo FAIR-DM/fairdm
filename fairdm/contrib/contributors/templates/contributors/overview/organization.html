@@ -29,9 +29,12 @@
   {% endif %}
 {% endblock overview.badges %}
 
+{% block overview.name %}{{ organization.name }}{% if ror_url %}&#8288;<a href="{{ ror_url }}" class="inline-flex align-middle ms-2 text-lg" target="_blank" rel="noopener"
+   title="ROR ID {{ ror.value }}"
+   aria-label="{% blocktranslate with name=organization.name %}ROR record of {{ name }}{% endblocktranslate %}"><c-icon name="ror" aria-hidden="true" only /></a>{% endif %}{% endblock overview.name %}
+
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
-    {% if also_known_as %}<p class="text-xs text-base-content/70 break-words">{{ also_known_as }}</p>{% endif %}
     {% if organization.parent or location_text %}
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
         <c-contributor.affiliation :organization="organization.parent" />
@@ -40,13 +43,6 @@
             <c-icon name="location" aria-hidden="true" />{{ location_text }}
           </span>
         {% endif %}
-      </div>
-    {% endif %}
-    {% if ror_url %}
-      <div>
-        <a href="{{ ror_url }}" class="inline-flex items-center gap-2 link link-hover font-mono text-xs break-words">
-          <c-icon name="ror" aria-hidden="true" only />{{ ror_url }}
-        </a>
       </div>
     {% endif %}
     {% if languages %}

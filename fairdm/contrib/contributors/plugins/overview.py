@@ -302,7 +302,7 @@ class ContributorOverviewMixin:
                     self.credit_entries(credits, "project"), self.is_active_project
                 ),
                 "datasets": self.record_card(self.credit_entries(credits, "dataset")),
-                "member_since": person.date_joined if state == "claimed" else None,
+                "member_since": person.date_joined if state in ("claimed", "inactive") else None,
             }
         )
         if is_self:

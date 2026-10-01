@@ -46,9 +46,12 @@
   {% endfor %}
 {% endblock overview.badges %}
 
+{% block overview.name %}{{ person.name }}{% if orcid_url %}&#8288;<a href="{{ orcid_url }}" class="inline-flex align-middle ms-2 text-lg" target="_blank" rel="noopener"
+   title="{% if orcid_verified %}ORCID iD {{ orcid.value }}{% else %}{% blocktranslate with value=orcid.value %}ORCID iD {{ value }} (unauthenticated){% endblocktranslate %}{% endif %}"
+   aria-label="{% if orcid_verified %}{% blocktranslate with name=person.name %}ORCID record of {{ name }}{% endblocktranslate %}{% else %}{% blocktranslate with name=person.name %}ORCID record of {{ name }} (unauthenticated){% endblocktranslate %}{% endif %}"><c-icon name="{% if orcid_verified %}orcid{% else %}orcid_unauthenticated{% endif %}" aria-hidden="true" only /></a>{% endif %}{% endblock overview.name %}
+
 {% block overview.byline %}
   <div class="flex flex-col gap-1 text-sm min-w-0">
-    {% if also_known_as %}<p class="text-xs text-base-content/70 break-words">{{ also_known_as }}</p>{% endif %}
     {% if primary_organization or location_text %}
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
         <c-contributor.affiliation :organization="primary_organization" />
@@ -59,24 +62,9 @@
         {% endif %}
       </div>
     {% endif %}
-    {% if orcid_url %}
-      <div>
-        <a href="{{ orcid_url }}" class="inline-flex items-center gap-2 link link-hover font-mono text-xs break-words"
-           {% if not orcid_verified %}title="{% translate 'Not confirmed by signing in with ORCID' %}"{% endif %}>
-          <c-icon name="{% if orcid_verified %}orcid{% else %}orcid_unauthenticated{% endif %}" aria-hidden="true" only />
-          {{ orcid_url }}
-        </a>
-        {% if not orcid_verified %}<span class="sr-only">{% translate "Not confirmed by signing in with ORCID" %}</span>{% endif %}
-      </div>
-    {% endif %}
     {% if languages %}
       <div class="flex items-center gap-1 text-base-content/70">
         <c-icon name="globe" aria-hidden="true" /><span class="sr-only">{% translate "Languages" %}:</span>{{ languages }}
-      </div>
-    {% endif %}
-    {% if member_since %}
-      <div class="flex items-center gap-1 text-base-content/70">
-        <c-icon name="calendar" aria-hidden="true" />{% blocktranslate with when=member_since|date:"YEAR_MONTH_FORMAT" %}Member since {{ when }}{% endblocktranslate %}
       </div>
     {% endif %}
   </div>
@@ -99,11 +87,14 @@
 {% endblock overview.actions %}
 
 {% block overview.figures %}
-  <c-stats cols="2" lg="4" aria-label="{% translate 'Credited work at a glance' %}">
+  <c-stats cols="1" lg="3" aria-label="{% translate 'Profile at a glance' %}">
     <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.project|intcomma }}" href="{{ urls.projects }}" variant="info" icon="project" />
     <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.dataset|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.sample|intcomma }}" variant="secondary" icon="sample" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurement|intcomma }}" variant="accent" icon="measurement" />
+    {% if member_since %}
+      <c-stats.item title="{% translate 'Member since' %}" value="{{ member_since|date:'YEAR_MONTH_FORMAT' }}" icon="calendar" />
+    {% else %}
+      <c-stats.item title="{% translate 'Member since' %}" value="–" desc="{% translate 'Has no account on this portal' %}" icon="calendar" />
+    {% endif %}
   </c-stats>
 {% endblock overview.figures %}
 
