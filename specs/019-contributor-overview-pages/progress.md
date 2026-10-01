@@ -71,3 +71,10 @@
 - Verified: 5 passed on the first run against the prototype. Probed the template by mutation: never marking, always marking, ignoring children in the empty-state test and marking the wrong sibling each failed between one and four tests; the template is restored. uv run pre-commit run --all-files clean.
 - Next: T011, the organization page tests.
 - Watch: The component needed no change, so nothing from T010 reaches T012.
+
+## 2026-10-01T10:45Z · Implementer US2 · T011
+
+- Did: added TestOrganizationOverview with its helpers and an owner_world fixture to test_overview.py: scenarios 1 to 12 as a visitor and signed in (owned and credited projects listed once with the owned ones marked, datasets of an owned project counted without a credit, private records neither counted nor named for a visitor, a member and a manager, members credits not counted, members listed current and verified only in owner, administrator, member order, ten places with the last counting the rest, the hierarchy in document order, the map only with a location, asking to join and the management menu, every card but the map with nothing recorded, the schema.org description) and the SC-003 comparison of each figure with its tab for an organization that owns a project it is not credited on.
+- Verified: 27 passed and 2 failed against the prototype. I read the failures: the Projects tab lists only the credited projects, so the owned project is missing from it and the figure disagrees with the tab. That is the plan D4 defect T012 fixes. Probed the passing tests by mutating the plugin: listing private owned projects, never marking owned, dropping the owned-project filter, dropping the dataset de-duplication, changing the member places, making every manager a member and over-counting members each failed several tests. Forcing has_map true did not fail any: the location card draws nothing without a location, so the page is the same. uv run pre-commit run --all-files clean.
+- Next: T012, the model sources.
+- Watch: The commit leaves the two tab tests red on purpose, as the task order asks; the next commit makes them pass.

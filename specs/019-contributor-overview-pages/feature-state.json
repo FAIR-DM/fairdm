@@ -224,8 +224,14 @@
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview -q -n0 (2 failed, 27 passed; the two failures are the Projects and Datasets tab comparison, red until T012)",
+              "uv run pre-commit run --all-files (exit 0)"
+            ]
+          }
         },
         {
           "id": "T012",

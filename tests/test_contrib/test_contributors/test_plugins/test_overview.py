@@ -8,12 +8,17 @@ asserts a sentence, a width or an order of sections.
 import json
 import re
 from datetime import UTC, datetime
+from types import SimpleNamespace
 
 import pytest
 from django.urls import NoReverseMatch, reverse
 
 from fairdm import plugins
-from fairdm.contrib.contributors.models import Contributor, ContributorIdentifier
+from fairdm.contrib.contributors.models import (
+    Affiliation,
+    Contributor,
+    ContributorIdentifier,
+)
 from fairdm.core.project.models import Project
 from fairdm.core.utils import assign_perm
 from fairdm.factories import (
@@ -21,6 +26,7 @@ from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
+    PointFactory,
     ProjectFactory,
 )
 from fairdm.utils.choices import Visibility
@@ -494,5 +500,456 @@ class TestPersonOverview:
             projects.context["object_list"]
         )
         assert _figure(page, _tab_url(person, "datasets")) == len(
+            datasets.context["object_list"]
+        )
+
+
+def _members(page):
+    """The places of the members card, as the person each links to or None for a count."""
+    places = []
+    for place in _card(page, "members").select("ul > li"):
+        link = place.select_one("a[href]")
+        places.append(link["href"] if link else None)
+    return places
+
+
+def _owned_marks(page, card_name):
+    """The links in a records card whose row carries the owner badge."""
+    return [
+        row.select_one("a[href]")["href"]
+        for row in _card(page, card_name).select("ul > li")
+        if row.select_one(".badge-outline")
+    ]
+
+
+def _join_actions(page):
+    """The disabled buttons in the page header, outside every card."""
+    return [
+        button
+        for button in page.select("button[disabled]")
+        if button.find_parent(attrs={"data-card": True}) is None
+    ]
+
+
+def _management_menu(page):
+    return [
+        item
+        for item in page.select("li.menu-disabled")
+        if item.find_parent(attrs={"data-card": True}) is None
+    ]
+
+
+def _join(organization, name, type=Affiliation.MembershipType.MEMBER, **kwargs):
+    person = PersonFactory(name=name, is_active=True, is_claimed=True, password="x")
+    AffiliationFactory(organization=organization, person=person, type=type, **kwargs)
+    return person
+
+
+@pytest.fixture
+def owner_world(db):
+    """An organization that owns projects and is credited on others, public and private.
+
+    The organization owns a public project holding a public dataset it is not credited on, a
+    public dataset it is credited on and a private dataset, and owns a private project holding a
+    public dataset. It is credited on a public project, which it does not own, and on a private
+    one. One more public project is both owned and credited. A member has credits of their own.
+    """
+    organization = OrganizationFactory(name="Owning Institute")
+    owned = _public_project(owner=organization)
+    owned_and_credited = _public_project(owner=organization)
+    owned_private = ProjectFactory(owner=organization, visibility=Visibility.PRIVATE)
+    credited = _public_project()
+    credited_private = ProjectFactory(visibility=Visibility.PRIVATE)
+    inside_not_credited = DatasetFactory(
+        project=owned, visibility=Visibility.PUBLIC, published=True
+    )
+    inside_credited = DatasetFactory(
+        project=owned, visibility=Visibility.PUBLIC, published=True
+    )
+    inside_private = DatasetFactory(
+        project=owned, visibility=Visibility.PRIVATE, published=False
+    )
+    inside_private_project = DatasetFactory(
+        project=owned_private, visibility=Visibility.PUBLIC, published=True
+    )
+    credited_dataset = DatasetFactory(
+        project=credited, visibility=Visibility.PUBLIC, published=True
+    )
+    credited_private_dataset = DatasetFactory(
+        project=credited, visibility=Visibility.PRIVATE, published=False
+    )
+    for record in (
+        owned_and_credited,
+        credited,
+        credited_private,
+        inside_credited,
+        credited_dataset,
+        credited_private_dataset,
+    ):
+        organization.add_to(record)
+    member = _join(organization, "Member Person")
+    members_project = _public_project()
+    members_dataset = DatasetFactory(
+        project=members_project, visibility=Visibility.PUBLIC, published=True
+    )
+    member.add_to(members_project)
+    member.add_to(members_dataset)
+    return SimpleNamespace(
+        organization=organization,
+        owned=owned,
+        owned_and_credited=owned_and_credited,
+        owned_private=owned_private,
+        credited=credited,
+        credited_private=credited_private,
+        inside_not_credited=inside_not_credited,
+        inside_credited=inside_credited,
+        inside_private=inside_private,
+        inside_private_project=inside_private_project,
+        credited_dataset=credited_dataset,
+        credited_private_dataset=credited_private_dataset,
+        member=member,
+        members_project=members_project,
+        members_dataset=members_dataset,
+    )
+
+
+@pytest.mark.django_db
+class TestOrganizationOverview:
+    def test_the_page_answers_for_a_visitor_and_signed_in(self, get_page, owner_world):
+        url = owner_world.organization.get_absolute_url()
+
+        visitor, _ = get_page(url)
+        signed_in, _ = get_page(url, viewer=owner_world.member)
+
+        assert visitor.status_code == 200
+        assert signed_in.status_code == 200
+
+    # Scenario 1
+    def test_the_owned_and_the_credited_projects_are_both_listed_once_with_the_owned_marked(
+        self, get_page, owner_world
+    ):
+        world = owner_world
+
+        _, page = get_page(world.organization.get_absolute_url())
+
+        listed = _entries(page, "projects")
+        assert sorted(listed) == sorted(
+            p.get_absolute_url()
+            for p in (world.owned, world.owned_and_credited, world.credited)
+        )
+        assert sorted(_owned_marks(page, "projects")) == sorted(
+            p.get_absolute_url() for p in (world.owned, world.owned_and_credited)
+        )
+
+    # Scenario 2
+    def test_the_public_datasets_of_an_owned_project_count_whether_or_not_it_is_credited_on_them(
+        self, get_page, owner_world
+    ):
+        world = owner_world
+
+        _, page = get_page(world.organization.get_absolute_url())
+
+        listed = _entries(page, "datasets")
+        assert world.inside_not_credited.get_absolute_url() in listed
+        assert world.inside_credited.get_absolute_url() in listed
+        assert len(listed) == len(set(listed))
+
+    def test_the_figures_equal_the_projects_and_datasets_listed(
+        self, get_page, owner_world
+    ):
+        world = owner_world
+        organization = world.organization
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert _figure(page, _tab_url(organization, "projects")) == 3
+        assert _figure(page, _tab_url(organization, "datasets")) == 3
+        assert len(_entries(page, "datasets")) == 3
+
+    # Scenario 3
+    @pytest.mark.parametrize("who", ["visitor", "member", "manager"])
+    def test_no_private_record_is_counted_or_named_anywhere_on_the_page(
+        self, get_page, owner_world, who
+    ):
+        world = owner_world
+        manager = _join(
+            world.organization, "Manager Person", Affiliation.MembershipType.OWNER
+        )
+        viewer = {"visitor": None, "member": world.member, "manager": manager}[who]
+        for private in (world.owned_private, world.credited_private):
+            assign_perm("view_project", world.member, private)
+        assign_perm("view_dataset", world.member, world.inside_private)
+
+        response, page = get_page(world.organization.get_absolute_url(), viewer=viewer)
+
+        content = response.content.decode()
+        for record in (
+            world.owned_private,
+            world.credited_private,
+            world.inside_private,
+            world.inside_private_project,
+            world.credited_private_dataset,
+        ):
+            assert record.get_absolute_url() not in content
+            assert record.name not in content
+        assert _figure(page, _tab_url(world.organization, "projects")) == 3
+        assert _figure(page, _tab_url(world.organization, "datasets")) == 3
+
+    # Scenario 4
+    def test_the_records_of_its_members_are_not_counted_as_its_own(
+        self, get_page, owner_world
+    ):
+        world = owner_world
+
+        response, page = get_page(world.organization.get_absolute_url())
+
+        content = response.content.decode()
+        assert world.members_project.get_absolute_url() not in content
+        assert world.members_dataset.get_absolute_url() not in content
+        assert _figure(page, _tab_url(world.organization, "projects")) == 3
+
+    # Scenario 5
+    def test_only_current_verified_members_are_listed_and_counted_in_their_order(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory()
+        member_b = _join(organization, "Beta")
+        member_a = _join(organization, "Alpha")
+        admin = _join(organization, "Yara", Affiliation.MembershipType.ADMIN)
+        owner = _join(organization, "Zed", Affiliation.MembershipType.OWNER)
+        pending = _join(organization, "Pending", Affiliation.MembershipType.PENDING)
+        former = _join(organization, "Former", start_date="2010", end_date="2014")
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert _members(page) == [
+            p.get_absolute_url() for p in (owner, admin, member_a, member_b)
+        ]
+        content = str(page)
+        for gone in (pending, former):
+            assert gone.get_absolute_url() not in content
+        assert (
+            page.select(".stat")[-1].select_one(".stat-value").get_text(strip=True)
+            == "4"
+        )
+
+    # Scenario 6
+    def test_the_last_place_counts_the_members_not_shown(self, get_page, db):
+        organization = OrganizationFactory()
+        people = [_join(organization, f"Member {n:02d}") for n in range(13)]
+
+        _, page = get_page(organization.get_absolute_url())
+
+        places = _members(page)
+        assert len(places) == 10
+        assert places[:9] == [p.get_absolute_url() for p in people[:9]]
+        assert places[9] is None
+        assert "+4" in _card(page, "members").select("ul > li")[9].get_text()
+        assert (
+            page.select(".stat")[-1].select_one(".stat-value").get_text(strip=True)
+            == "13"
+        )
+
+    def test_ten_members_fill_the_card_without_a_count(self, get_page, db):
+        organization = OrganizationFactory()
+        people = [_join(organization, f"Member {n:02d}") for n in range(10)]
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert _members(page) == [p.get_absolute_url() for p in people]
+
+    # Scenarios 7 and 8
+    def test_the_hierarchy_lists_the_parent_the_siblings_with_this_one_and_its_children(
+        self, get_page, db
+    ):
+        parent = OrganizationFactory(name="Parent")
+        organization = OrganizationFactory(name="Middle", parent=parent)
+        before = OrganizationFactory(name="Before", parent=parent)
+        after = OrganizationFactory(name="Zulu", parent=parent)
+        child_a = OrganizationFactory(name="Child A", parent=organization)
+        child_b = OrganizationFactory(name="Child B", parent=organization)
+
+        _, page = get_page(organization.get_absolute_url())
+
+        card = _card(page, "hierarchy")
+        assert _hrefs(card) == [
+            o.get_absolute_url() for o in (parent, before, child_a, child_b, after)
+        ]
+        marked = card.select("[aria-current=page]")
+        assert len(marked) == 1
+        assert marked[0].select_one("a") is None
+
+    def test_without_a_parent_the_hierarchy_starts_at_this_organization(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+
+        _, page = get_page(organization.get_absolute_url())
+
+        card = _card(page, "hierarchy")
+        assert _hrefs(card) == [child.get_absolute_url()]
+        assert card.select_one("ul > li > [aria-current=page]") is not None
+
+    def test_with_neither_a_parent_nor_children_the_hierarchy_says_none_is_recorded(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory()
+
+        _, page = get_page(organization.get_absolute_url())
+
+        card = _card(page, "hierarchy")
+        assert card.select_one("[role=alert]") is not None
+        assert card.select_one("ul") is None
+
+    # Scenario 9
+    def test_an_organization_with_a_location_shows_a_map(self, get_page, db):
+        organization = OrganizationFactory(location=PointFactory())
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert _card(page, "location") is not None
+
+    def test_an_organization_without_a_location_shows_no_map_and_no_empty_card(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory(city="Potsdam", country="DE")
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert _card(page, "location") is None
+
+    # Scenario 10
+    def test_a_signed_in_person_who_is_not_a_member_sees_asking_to_join_as_not_available(
+        self, get_page, owner_world
+    ):
+        stranger = PersonFactory(is_active=True)
+
+        _, page = get_page(owner_world.organization.get_absolute_url(), viewer=stranger)
+
+        (button,) = _join_actions(page)
+        assert button["type"] == "button"
+        assert _management_menu(page) == []
+
+    def test_a_person_with_only_a_pending_request_may_still_ask_to_join(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory()
+        pending = _join(organization, "Pending", Affiliation.MembershipType.PENDING)
+
+        _, page = get_page(organization.get_absolute_url(), viewer=pending)
+
+        assert len(_join_actions(page)) == 1
+
+    def test_a_visitor_is_not_offered_asking_to_join(self, get_page, owner_world):
+        _, page = get_page(owner_world.organization.get_absolute_url())
+
+        assert _join_actions(page) == []
+        assert _management_menu(page) == []
+
+    def test_a_current_member_is_not_offered_asking_to_join(
+        self, get_page, owner_world
+    ):
+        _, page = get_page(
+            owner_world.organization.get_absolute_url(), viewer=owner_world.member
+        )
+
+        assert _join_actions(page) == []
+        assert _management_menu(page) == []
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.ADMIN, Affiliation.MembershipType.OWNER]
+    )
+    def test_those_who_keep_the_record_get_the_management_menu_and_the_checklist(
+        self, get_page, db, type
+    ):
+        organization = OrganizationFactory()
+        manager = _join(organization, "Manager", type)
+
+        _, page = get_page(organization.get_absolute_url(), viewer=manager)
+
+        assert _management_menu(page)
+        assert _join_actions(page) == []
+        assert _card(page, "readiness") is not None
+
+    def test_a_portal_role_alone_does_not_show_the_checklist_or_the_menu(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory()
+        staff = PersonFactory(is_active=True, is_staff=True, is_superuser=True)
+
+        _, page = get_page(organization.get_absolute_url(), viewer=staff)
+
+        assert _card(page, "readiness") is None
+        assert _management_menu(page) == []
+
+    @pytest.mark.parametrize("who", ["visitor", "member"])
+    def test_the_checklist_is_shown_to_no_one_who_does_not_keep_the_record(
+        self, get_page, owner_world, who
+    ):
+        viewer = {"visitor": None, "member": owner_world.member}[who]
+
+        _, page = get_page(owner_world.organization.get_absolute_url(), viewer=viewer)
+
+        assert _card(page, "readiness") is None
+
+    # Scenario 11
+    def test_an_organization_with_nothing_recorded_still_shows_every_card_but_the_map(
+        self, get_page, db
+    ):
+        organization = OrganizationFactory(
+            name="Bare Organization", profile="", city="", country="", location=None
+        )
+
+        _, page = get_page(organization.get_absolute_url())
+
+        shown = [card["data-card"] for card in page.select("[data-card]")]
+        for name in (
+            "about",
+            "members",
+            "projects",
+            "datasets",
+            "links",
+            "hierarchy",
+        ):
+            assert name in shown
+            assert _card(page, name).select_one("[role=alert], p") is not None
+        assert "identifiers" in shown
+        assert "location" not in shown
+
+    # Scenario 12
+    def test_the_page_head_carries_the_schema_org_description(
+        self, get_page, owner_world
+    ):
+        organization = owner_world.organization
+
+        _, page = get_page(organization.get_absolute_url())
+
+        script = page.select_one("head script[type='application/ld+json']")
+        data = json.loads(script.string)
+        assert data["@type"] == "Organization"
+        assert data["name"] == organization.name
+
+    # SC-003
+    @pytest.mark.parametrize("who", ["visitor", "member"])
+    def test_each_figure_equals_the_number_of_entries_in_its_tab_for_an_organization_that_owns_a_project_it_is_not_credited_on(
+        self, get_page, owner_world, who
+    ):
+        world = owner_world
+        organization = world.organization
+        viewer = {"visitor": None, "member": world.member}[who]
+
+        _, page = get_page(organization.get_absolute_url(), viewer=viewer)
+        projects, _ = get_page(_tab_url(organization, "projects"), viewer=viewer)
+        datasets, _ = get_page(_tab_url(organization, "datasets"), viewer=viewer)
+
+        assert world.owned.pk in {p.pk for p in projects.context["object_list"]}
+        assert world.inside_not_credited.pk in {
+            d.pk for d in datasets.context["object_list"]
+        }
+        assert _figure(page, _tab_url(organization, "projects")) == len(
+            projects.context["object_list"]
+        )
+        assert _figure(page, _tab_url(organization, "datasets")) == len(
             datasets.context["object_list"]
         )
