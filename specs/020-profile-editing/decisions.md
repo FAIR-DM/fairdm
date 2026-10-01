@@ -3,12 +3,19 @@
 Questions settled while writing the specification without asking the maintainer, with the reasoning
 behind each. The maintainer's own rulings are recorded under *Clarifications* in `spec.md`.
 
-## Community managers edit people as well as organizations
+## A claimed profile of a deactivated account stays closed to community managers
 
-The maintainer ruled that community managers, not data curators, hold the right to edit. The request
-spoke of organization profiles. The specification extends the same right to person profiles because
-specification 017 gives the Community Manager role the right to change both, and because an
-unclaimed profile or an inactive account otherwise has nobody who can correct it in the portal.
+The maintainer ruled that a community manager edits a person's profile only while it is unclaimed,
+and that a claimed profile is its owner's alone to maintain. A claimed profile whose account has
+been deactivated has an owner who cannot sign in. The specification keeps to the claim: the profile
+is still that person's, deactivation is often temporary, and the administration interface remains
+for a correction that cannot wait.
+
+## A claim made while a community manager is editing wins
+
+The right to edit is checked again on save, so a profile claimed in the meantime refuses the
+community manager's save. The alternative would let a stale page overwrite what is now the
+owner's record.
 
 ## Community managers get the edit action but not the checklist
 

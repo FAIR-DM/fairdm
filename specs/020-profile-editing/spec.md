@@ -19,8 +19,9 @@ yet. This is the specification that makes it available.
 name, alternative names, biography, links and languages. An organization's profile needs to be
 editable from its page by its owner and administrators: logo, name, alternative names, type, parent
 organization, city and country, description, website and links. People holding the Community
-Manager portal role can edit any person's or organization's profile the same way, which is also how
-an unclaimed profile gets corrected. The Data Curator role is unchanged and has no rights over
+Manager portal role can edit any organization's profile the same way, and a person's profile for as
+long as nobody has claimed it. Once a profile is claimed, the person it describes is the only one
+who maintains it. The Data Curator role is unchanged and has no rights over
 people or organizations. Each item on an overview page's completeness checklist leads to the field
 that fixes it.
 
@@ -36,12 +37,15 @@ that fixes it.
   owner or administrator type and has not ended, the same people 019 shows the organization's
   checklist to. An ordinary member, and an owner or administrator whose affiliation has ended, may
   not edit.
-- Q: A community manager corrects somebody's profile. Is the edit marked as theirs anywhere a
-  reader can see, or is the person told? → A: No to both. It is an ordinary edit, as 017 ruled for
-  a curator correcting a research record.
-- Q: Nobody can sign in as an unclaimed profile or an inactive account. Who edits those? → A: Only a
-  community manager. The edit changes nothing about whether the profile is claimed or the account
-  active.
+- Q: May a community manager edit any person's profile? → A: Only one that nobody has claimed. Once
+  a profile is claimed, the person it describes is solely responsible for maintaining it, and a
+  community manager can no longer edit it in the portal.
+- Q: A claimed profile belongs to an account that has since been deactivated. Who edits it? → A:
+  Nobody, in the portal. The rule follows the claim, not whether the account is active. The
+  administration interface is unchanged.
+- Q: A community manager corrects an unclaimed profile or an organization. Is the edit marked as
+  theirs anywhere a reader can see? → A: No. It is an ordinary edit, as 017 ruled for a curator
+  correcting a research record. The edit does not change whether the profile is claimed.
 - Q: May an organization be made part of itself, or of one of the organizations beneath it? → A:
   No. Either choice is refused and the editor is told why.
 - Q: A field such as an organization's name may have been filled from ROR. May it be edited by
@@ -153,42 +157,50 @@ member and as someone whose administrator affiliation has ended.
 
 ---
 
-### User Story 3 - A community manager corrects any profile (Priority: P3)
+### User Story 3 - A community manager corrects an unclaimed profile or any organization (Priority: P3)
 
 A community manager notices that a person credited on a dataset, who has never signed in, has a
 misspelt name and no biography, and that an organization nobody owns has no country. They open each
 profile, find the same edit action its keeper would see, and correct the record from the portal
-without going to the administration interface.
+without going to the administration interface. On the profile of someone who has claimed it they
+find no edit action, because that profile is its owner's to maintain.
 
 **Why this priority**: Most profiles are kept by the people they describe once the first two
-stories exist. This story covers the ones that have nobody: unclaimed profiles, inactive accounts,
-and organizations with no owner.
+stories exist. This story covers the ones that have nobody: unclaimed profiles and organizations
+with no owner.
 
-**Independent Test**: Load development data. Sign in as the seeded Community Manager and edit a
-claimed person, an unclaimed person and an organization that account has no affiliation to. Sign in
-as the seeded Data Curator and try the same.
+**Independent Test**: Load development data. Sign in as the seeded Community Manager and edit an
+unclaimed person and an organization that account has no affiliation to, then try a claimed person.
+Sign in as the seeded Data Curator and try all three.
 
 **Acceptance Scenarios**:
 
-1. **Given** a person holding the Community Manager role, **When** they open any person's profile
-   or any organization's page, **Then** the working edit action is offered, and it leads to the
-   same editing page with the same fields the profile's own keeper would get.
-2. **Given** a community manager who edits an unclaimed profile or the profile of an inactive
-   account and saves, **When** the profile is opened, **Then** it shows the new values and is still
-   unclaimed or inactive as it was.
-3. **Given** a community manager who edits an organization they have no affiliation to and saves,
+1. **Given** a person holding the Community Manager role, **When** they open an unclaimed person's
+   profile or any organization's page, **Then** the working edit action is offered, and it leads to
+   the same editing page with the same fields the profile's own keeper would get.
+2. **Given** a community manager who edits an unclaimed profile and saves, **When** the profile is
+   opened, **Then** it shows the new values and is still unclaimed.
+3. **Given** a community manager on the profile of a person who has claimed it, **When** the page
+   is shown, **Then** no edit action is offered. **When** they request its editing page directly,
+   **Then** they are refused and nothing is changed.
+4. **Given** an unclaimed profile a community manager has open for editing, **When** the person
+   claims it before the community manager saves, **Then** the save is refused and nothing is
+   changed.
+5. **Given** a claimed profile whose account has been deactivated, **When** a community manager
+   requests its editing page, **Then** they are refused.
+6. **Given** a community manager who edits an organization they have no affiliation to and saves,
    **When** the page is opened, **Then** it shows the new values and the organization's owner,
    administrators and members are unchanged.
-4. **Given** a profile a community manager has corrected, **When** anyone reads it, **Then**
+7. **Given** a profile a community manager has corrected, **When** anyone reads it, **Then**
    nothing on it marks the correction as a community manager's.
-5. **Given** a person holding the Data Curator role or the Developer role and no other, **When**
+8. **Given** a person holding the Data Curator role or the Developer role and no other, **When**
    they open somebody else's profile or an organization they do not keep, **Then** no edit action
    is offered and a direct request for the editing page is refused.
-6. **Given** a person who holds the Community Manager role and is removed from it, **When** they
-   next request another person's editing page, **Then** they are refused.
-7. **Given** a community manager on somebody else's profile, **When** the page is shown, **Then**
-   the completeness checklist is still not shown to them, because 019 shows it only to the people
-   who keep the record.
+9. **Given** a person who holds the Community Manager role and is removed from it, **When** they
+   next request an unclaimed person's editing page, **Then** they are refused.
+10. **Given** a community manager on an unclaimed profile or an organization they do not keep,
+    **When** the page is shown, **Then** the completeness checklist is still not shown to them,
+    because 019 shows it only to the people who keep the record.
 
 ---
 
@@ -203,8 +215,8 @@ as the seeded Data Curator and try the same.
   of what was typed stays in the form.
 - A person who is both an organization's administrator and a community manager sees one edit
   action, not two.
-- An editor may lose the right to edit while the page is open, because their affiliation was ended
-  or their role removed. Saving is then refused and nothing is changed.
+- An editor may lose the right to edit while the page is open, because their affiliation was ended,
+  their role removed, or the profile claimed. Saving is then refused and nothing is changed.
 - A profile that does not exist answers "not found" on its editing page, as it does on its overview.
 - An organization that is the parent of others may itself be given a parent. Only a choice that
   would make an organization part of itself, directly or through others, is refused.
@@ -218,9 +230,12 @@ as the seeded Data Curator and try the same.
 - **FR-001**: A person with an active account MUST be able to edit their own profile.
 - **FR-002**: A person whose affiliation to an organization is of the owner or administrator type
   and has not ended MUST be able to edit that organization's profile.
-- **FR-003**: A person holding the Community Manager portal role MUST be able to edit any person's
-  profile and any organization's profile, including an unclaimed profile, the profile of an
-  inactive account and an organization with no owner.
+- **FR-003**: A person holding the Community Manager portal role MUST be able to edit any
+  organization's profile, including an organization with no owner, and any person's profile that
+  has not been claimed.
+- **FR-003a**: A claimed profile MUST be editable in the portal only by the person it describes.
+  This holds when that person's account has been deactivated, and it holds from the moment the
+  profile is claimed, including for an editing page that was already open.
 - **FR-004**: Nobody else may edit a profile. In particular the Data Curator and Developer roles,
   ordinary membership of an organization, and an ended owner or administrator affiliation give no
   right to edit. The permissions the Data Curator role holds MUST NOT change.
@@ -271,7 +286,7 @@ as the seeded Data Curator and try the same.
 **How an edit is recorded**
 
 - **FR-020**: An edit by a community manager MUST NOT be marked as theirs anywhere a reader can
-  see, and MUST NOT change whether the profile is claimed, whether the account is active, or who
+  see, and MUST NOT change whether the profile is claimed or who
   owns, administers or belongs to the organization.
 
 **Documentation**
@@ -303,7 +318,7 @@ as the seeded Data Curator and try the same.
 - **SC-002**: An organization's owner can bring its checklist from nothing in place to every item
   this feature covers in place in a single visit to the editing page.
 - **SC-003**: For every seeded account, the set of profiles whose editing page opens is exactly the
-  set FR-001 to FR-003 give that account, and every other editing page refuses it.
+  set FR-001 to FR-003a give that account, and every other editing page refuses it.
 - **SC-004**: No request by someone without the right to edit changes any stored value, whether the
   request opens the page or submits it.
 - **SC-005**: The permissions held by the Data Curator role are the same after this feature as
@@ -327,6 +342,8 @@ as the seeded Data Curator and try the same.
   to join an organization, and creating or deleting people and organizations are outside this
   specification.
 - Email address, password and connected sign-ins stay on the account pages the portal already has.
+- A claimed profile whose owner can no longer sign in is corrected in the administration interface,
+  which this feature leaves as it is.
 - Portal Administrators who are not also community managers get no right to edit profiles in the
   portal from this feature. What they can already do in the administration interface is unchanged.
 - The administration interface keeps every ability it has today. This feature adds a route in the
