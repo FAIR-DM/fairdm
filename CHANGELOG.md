@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `UserProfileForm`, which nothing used. `PersonProfileForm` is the form a person edits their own
+  profile with.
 - The Statistics and Network tabs of a contributor's page. Both were blank.
 - The templates `person/plugins/overview.html` and `organization/plugins/overview.html`. A
   contributor's page is drawn from `contributors/overview/person.html` and
@@ -37,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `Contributor.get_update_url()` raised `NoReverseMatch` because it reversed a name no URL carried.
+  It returns the address of the profile editing page.
 - A person's own page now counts a primary affiliation toward their checklist only when it is
   verified and has not ended, as the header does, and `Person.get_location_display()` follows the
   same rule instead of naming the organization of a pending or ended primary affiliation.
@@ -134,6 +138,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A person can edit their own profile. The edit action in the header of their page, the prompt to
+  write a biography and the photo, biography and links items on their checklist now lead to a page
+  for changing the photo, name, alternative names, biography, links and languages. Nobody else is
+  offered it, and a request for it by anyone else is refused. A portal changes the fields by
+  naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
+  `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
+  unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- `Contributor.is_editable_by(user)` says whether a user may edit a contributor's profile in the
+  portal. `LinesField` is a form field for a list typed one entry per line.
 - A person's page now tells a visitor who the person is, where they work, whether their ORCID iD
   is authenticated, which public projects and datasets they are credited on, the contribution
   roles they hold and who they work with most. The side column lists their identifiers, links and

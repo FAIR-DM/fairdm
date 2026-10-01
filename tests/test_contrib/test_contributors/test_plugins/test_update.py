@@ -18,8 +18,11 @@ from fairdm.factories import PersonFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 
 
-class ExtraFieldPersonForm(PersonProfileForm):
-    """A portal's own person form, named in ``FAIRDM_PROFILE_FORMS`` by the tests below."""
+class ExtraNamesPersonForm(PersonProfileForm):
+    """The portal form the contributors guide shows, named in ``FAIRDM_PROFILE_FORMS`` below."""
+
+    class Meta(PersonProfileForm.Meta):
+        fields = [*PersonProfileForm.Meta.fields, "first_name", "last_name"]
 
 
 def _update_url(contributor):
@@ -296,12 +299,28 @@ class TestProfileFormsSetting:
         self, signed_in, keeper, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.ExtraFieldPersonForm",
+            "person": f"{__name__}.ExtraNamesPersonForm",
         }
 
         response = signed_in(keeper).get(_update_url(keeper))
 
-        assert type(response.context["form"]) is ExtraFieldPersonForm
+        assert type(response.context["form"]) is ExtraNamesPersonForm
+
+    def test_a_field_the_portals_form_adds_is_saved_with_the_rest(
+        self, signed_in, keeper, profile_data, settings
+    ):
+        settings.FAIRDM_PROFILE_FORMS = {
+            "person": f"{__name__}.ExtraNamesPersonForm",
+        }
+
+        signed_in(keeper).post(
+            _update_url(keeper),
+            {**profile_data, "first_name": "Ada", "last_name": "Lovelace"},
+        )
+
+        keeper.refresh_from_db()
+        assert (keeper.first_name, keeper.last_name) == ("Ada", "Lovelace")
+        assert keeper.name == "Dr. Ada Lovelace"
 
     def test_the_shipped_setting_names_the_shipped_person_form(self, settings):
         assert settings.FAIRDM_PROFILE_FORMS["person"] == (

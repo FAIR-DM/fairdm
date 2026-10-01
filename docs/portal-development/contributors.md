@@ -643,6 +643,110 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
 
+## Editing a profile
+
+A person edits their own profile on a page of the overview plugin, at
+`contributor/<uuid>/update/`. The page shows one form for the kind of contributor it is opened for
+and saves it, then returns to the profile.
+
+### Who may edit
+
+`Contributor.is_editable_by(user)` is the one place that decides. The page asks it when it opens
+and again when it saves, and the overview page asks it before offering an edit action, so a right
+lost while the page is open refuses the save. It is not a Django permission, because the answer
+depends on the record and not only on what the user holds.
+
+```python
+person.is_editable_by(person)         # True: a person with an active account edits their own profile
+person.is_editable_by(other_person)   # False
+person.is_editable_by(superuser)      # False: a superuser gets nothing extra here
+person.is_editable_by(anonymous_user) # False
+organization.is_editable_by(person)   # False
+```
+
+Holding a portal role does not change the answer. An organization's `is_editable_by` is `False`
+for everyone for now.
+
+The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`. It declares its own
+`check`, `contributor_is_editable`, because an additional view is governed by its own check and
+not by its owner's. A visitor who is not signed in is sent to sign in, and a signed-in user who may
+not edit gets a 403. `Contributor.get_update_url()` returns its address.
+
+### The person form
+
+`PersonProfileForm` in `fairdm.contrib.contributors.forms.profile` edits `image`, `name`,
+`alternative_names`, `profile`, `links` and `lang`, and nothing else. Email, password, identifiers,
+affiliations, portal roles and the account's state are never on it.
+
+- `image` follows the project form: the file must be an image, `validate_image_file_size` refuses
+  one over the limit and names it, and a clear box removes the photo.
+- `name` is required.
+- `links` accepts `http` and `https` addresses only.
+- `lang` is a multiple choice over the ISO 639-1 codes, named in the active language. Each code is
+  stored once.
+
+`alternative_names` and `links` are lists typed one entry per line, which is what `LinesField`
+does.
+
+### `LinesField`
+
+`LinesField` is a `CharField` on a text area whose cleaned value is a list. It trims each line,
+drops empty lines and keeps a repeated entry once, where it was first typed. A list given as the
+initial value is shown one entry per line.
+
+An optional `entry_validator` is called with each entry. The first entry it rejects is reported
+with the code `invalid_entry`, and the entry is available to the message as `%(entry)s`:
+
+```python
+from django.core.validators import URLValidator
+
+from fairdm.contrib.contributors.forms.profile import LinesField
+
+websites = LinesField(
+    required=False,
+    entry_validator=URLValidator(schemes=["http", "https"]),
+    error_messages={"invalid_entry": "%(entry)s is not a web address."},
+)
+websites.clean("https://example.org\n\nhttps://example.org\nhttps://example.net")
+# ['https://example.org', 'https://example.net']
+```
+
+### Changing the fields: `FAIRDM_PROFILE_FORMS`
+
+A portal changes what the page offers by subclassing the shipped form and naming the subclass in
+`FAIRDM_PROFILE_FORMS`, which maps the kind of contributor to a dotted path. A kind the setting
+leaves out, or a portal that does not set it, keeps the shipped form:
+
+```python
+# settings.py
+FAIRDM_PROFILE_FORMS = {
+    "person": "myportal.forms.PersonProfileForm",
+}
+```
+
+This form adds the given and family name, which the shipped form leaves out. Both are fields of
+`Person`, so the model form saves them with no further code:
+
+```python
+# myportal/forms.py
+from fairdm.contrib.contributors.forms.profile import PersonProfileForm as BasePersonProfileForm
+
+
+class PersonProfileForm(BasePersonProfileForm):
+    class Meta(BasePersonProfileForm.Meta):
+        fields = [*BasePersonProfileForm.Meta.fields, "first_name", "last_name"]
+```
+
+The page then shows the two extra inputs and stores what is entered. To drop a field, leave it out
+of `fields` in the same way.
+
+```{note}
+A portal that overrides `contributors/overview/person.html` keeps the disabled edit button, the
+disabled biography prompt and unlinked checklist items until its template adopts the new
+`can_edit` and `update_url` values the overview supplies. See
+[the person page](overview-pages.md#the-person-page).
+```
+
 ## Transform API
 
 The transform classes in `fairdm.contrib.contributors.utils.transforms` provide bidirectional

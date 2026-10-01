@@ -413,15 +413,18 @@ exists.
 
 | Item | In place when |
 | --- | --- |
-| A profile photo, recommended | The person has uploaded one. |
+| A profile photo, recommended | The person has uploaded one. The item links to the photo field of the editing page. |
 | An ORCID iD connected by signing in with ORCID | The person has signed in to the portal with an ORCID account. An iD typed into the profile does not count. The item links to the page where accounts are connected. |
-| A short biography | The profile text is not empty. |
+| A short biography | The profile text is not empty. The item links to the biography field of the editing page. |
 | A primary affiliation | The person has a verified primary affiliation that has not ended, the one the header shows. A pending request or an ended affiliation does not count. |
-| Links to your other profiles, recommended | The person has recorded at least one link. |
+| Links to your other profiles, recommended | The person has recorded at least one link. The item links to the links field of the editing page. |
 
-On their own page the person is also offered editing the profile, shown as not available yet, in
-place of the contact action that everyone else is offered. An empty biography and an empty list of
-records speak to them directly. `Person.get_profile_completeness()` returns the flag for each item
+On their own page the person is also offered **Edit profile**, a link to
+[the editing page](contributors.md#editing-a-profile), and the contact action shown as not
+available yet is left out. Everyone else is offered the contact action and no way to edit. The
+links to the editing page carry the field's id as a fragment, `#id_image`, `#id_profile` and
+`#id_links`. An empty biography and an empty list of records speak to them directly, and the empty
+biography's prompt links to the biography field. `Person.get_profile_completeness()` returns the flag for each item
 and the `checklist` helper turns the items into the summary the card draws.
 
 ### Extending a contributor page
@@ -441,7 +444,7 @@ end of the side column and keeps every card FairDM draws there:
 {% endblock overview.side %}
 ```
 
-The blocks read `record`, `person`, `is_self`, `is_unclaimed`, `is_inactive`, `affiliations`,
+The blocks read `record`, `person`, `is_self`, `can_edit`, `update_url`, `is_unclaimed`, `is_inactive`, `affiliations`,
 `primary_organization`, `location_text`, `languages`, `portal_roles`, `identifier`,
 `identifier_url`, `orcid_verified`, `member_since`, `counts`, `projects`, `datasets`, `roles`,
 `identifiers`, `links`, `people`, `urls`, `api_url` and `json_ld`. The plugin's `records_shown`
