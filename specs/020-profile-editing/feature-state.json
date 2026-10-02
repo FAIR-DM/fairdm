@@ -3,7 +3,7 @@
   "feature": "020-profile-editing",
   "branch": "020-profile-editing",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-01T17:49:49Z",
       "note": "review approved; walkthrough laid out on #400"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-02T10:01:07Z",
+      "note": "PR #400 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -54,8 +59,8 @@
       "at": "2026-10-01T15:47:50Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-02T10:00:57Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -77,8 +82,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-02T09:18:06Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-02T10:00:57Z",
       "self_resolved": []
     }
   },
@@ -423,7 +428,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 43.48,
       "max": 120
     }
   },
