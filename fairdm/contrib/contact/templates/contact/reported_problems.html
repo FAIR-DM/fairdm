@@ -1,0 +1,118 @@
+{% extends "page_view.html" %}
+{% load i18n humanize %}
+{% comment %}
+  The problems readers have reported on one record, for the people who can fix them.
+
+  Open reports are the work to do, so they are what the page opens on. Resolved ones are a record
+  to look back at and sit behind the second tab. A dataset's list also carries the reports on its
+  samples and measurements, each naming the record it is about.
+
+  Resolving happens in the row: a note is optional, so it is one field that opens under the report,
+  and the button that sends it says what will happen.
+{% endcomment %}
+
+{% block page.title %}
+  <c-page.title title="{{ page.title }}" subtitle="{{ record }}">
+    <c-slot name="actions">
+      <c-button href="{{ back_url }}" text="{% translate 'Back' %}" icon="arrow-left" size="sm" />
+    </c-slot>
+  </c-page.title>
+{% endblock page.title %}
+
+{% block page.content %}
+  <div class="w-full lg:max-w-4xl flex flex-col gap-4">
+    <div role="tablist" class="tabs tabs-border" aria-label="{% translate 'Reports by state' %}">
+      <a role="tab" href="{{ list_url }}" class="tab{% if show == 'open' %} tab-active{% endif %}"{% if show == 'open' %} aria-selected="true"{% endif %}>
+        {% translate "Open" %}<span class="badge badge-sm ms-2">{{ open_count }}</span>
+      </a>
+      <a role="tab" href="{{ list_url }}?show=resolved" class="tab{% if show == 'resolved' %} tab-active{% endif %}"{% if show == 'resolved' %} aria-selected="true"{% endif %}>
+        {% translate "Resolved" %}<span class="badge badge-sm ms-2">{{ resolved_count }}</span>
+      </a>
+    </div>
+
+    {% if reports %}
+      <c-card.wrapper class="bg-base-100">
+        <c-list label="{% if show == 'open' %}{% translate 'Open reports' %}{% else %}{% translate 'Resolved reports' %}{% endif %}">
+          {% for report in reports %}
+            <c-list.row>
+              <c-avatar :for="report.reporter" alt="" size="sm" />
+              <div class="list-col-grow flex flex-col gap-1 min-w-0">
+                <div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+                  <a href="{{ report.reporter.get_absolute_url }}" class="link link-hover font-semibold">{{ report.reporter }}</a>
+                  <time class="text-base-content/70" datetime="{{ report.created|date:'c' }}" title="{{ report.created }}">{{ report.created|naturaltime }}</time>
+                </div>
+                {% if is_dataset %}
+                  <div class="text-sm">
+                    <span class="badge badge-ghost badge-sm">{{ report.kind|capfirst }}</span>
+                    {% if report.record == record %}
+                      <span class="text-base-content/70">{% translate "This dataset" %}</span>
+                    {% else %}
+                      <a href="{{ report.record.get_absolute_url }}" class="link link-primary break-words">{{ report.record }}</a>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="list-col-wrap flex flex-col gap-3">
+                <p class="whitespace-pre-line break-words">{{ report.description }}</p>
+
+                {% if report.state == "open" %}
+                  <details class="collapse collapse-arrow bg-base-200">
+                    <summary class="collapse-title text-sm font-semibold">{% translate "Mark as resolved" %}</summary>
+                    <div class="collapse-content">
+                      <form method="post" action="{{ list_url }}{{ report.pk }}/resolve/" class="flex flex-col gap-3">
+                        {% csrf_token %}
+                        <label class="flex flex-col gap-1">
+                          <span class="text-sm font-semibold">{% translate "Note to the person who reported it" %} <span class="font-normal text-base-content/70">{% translate "(optional)" %}</span></span>
+                          <textarea name="note" rows="3" maxlength="1000" class="textarea w-full" aria-describedby="note-help-{{ report.pk }}"></textarea>
+                          <span id="note-help-{{ report.pk }}" class="text-sm text-base-content/70">{% blocktranslate with name=report.reporter %}{{ name }} is told by email that this is resolved, with your note if you write one.{% endblocktranslate %}</span>
+                        </label>
+                        <div>
+                          <c-button text="{% translate 'Resolve and notify' %}" icon="check" type="submit" variant="primary" size="sm" />
+                        </div>
+                      </form>
+                    </div>
+                  </details>
+                {% else %}
+                  <div class="bg-base-200 rounded-box p-4 flex flex-col gap-2">
+                    <p class="text-sm text-base-content/70">
+                      {% blocktranslate with name=report.resolved_by|default:_("someone") when=report.resolved|naturaltime %}Resolved by {{ name }}, {{ when }}{% endblocktranslate %}
+                    </p>
+                    {% if report.note %}
+                      <p class="whitespace-pre-line break-words">{{ report.note }}</p>
+                    {% else %}
+                      <p class="text-sm text-base-content/70">{% translate "No note was written." %}</p>
+                    {% endif %}
+                    <form method="post" action="{{ list_url }}{{ report.pk }}/reopen/">
+                      {% csrf_token %}
+                      <input type="hidden" name="show" value="resolved">
+                      <c-button text="{% translate 'Reopen' %}" icon="undo" type="submit" size="sm" />
+                    </form>
+                  </div>
+                {% endif %}
+              </div>
+            </c-list.row>
+          {% endfor %}
+        </c-list>
+      </c-card.wrapper>
+    {% else %}
+      <c-card.wrapper class="bg-base-100">
+        <div class="card-body items-center text-center gap-2">
+          <c-icon name="success" class="text-3xl text-base-content/60" aria-hidden="true" />
+          {% if show == "open" %}
+            <p class="font-semibold">{% translate "No open reports" %}</p>
+            <p class="text-base-content/70">
+              {% if is_dataset %}
+                {% translate "Nobody has reported a problem with this dataset, or its samples and measurements, that is still waiting." %}
+              {% else %}
+                {% translate "Nobody has reported a problem with this record that is still waiting." %}
+              {% endif %}
+            </p>
+          {% else %}
+            <p class="font-semibold">{% translate "Nothing resolved yet" %}</p>
+            <p class="text-base-content/70">{% translate "Reports you mark as resolved are kept here, with the note you wrote." %}</p>
+          {% endif %}
+        </div>
+      </c-card.wrapper>
+    {% endif %}
+  </div>
+{% endblock page.content %}

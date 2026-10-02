@@ -1,0 +1,102 @@
+{% extends "form_view.html" %}
+{% load i18n %}
+{% comment %}
+  The page behind both page actions: Contact (`mode` is "contact") and Report a problem ("report").
+
+  One page for both because the job is the same: say something about one record and send it. What
+  differs is who it goes to, and what the sender needs to know before sending. That goes directly
+  above the button, where it is read at the moment of deciding.
+
+  `blocked` is "unverified" or "limit" when the visitor cannot send. The form is then left out, so
+  nobody writes a message they cannot send.
+{% endcomment %}
+
+{% block page.content %}
+  {% if blocked %}
+    <div class="w-full lg:max-w-4xl flex flex-col gap-4">
+      {% if blocked == "unverified" %}
+        <c-alert variant="warning" soft>
+          <div class="flex flex-col gap-1">
+            <p class="font-semibold">{% translate "Confirm your email address first" %}</p>
+            <p>
+              {% if mode == "contact" %}
+                {% translate "A reply to your message goes to your email address, so it has to be one you have confirmed." %}
+              {% else %}
+                {% translate "You are told by email when your report is resolved, so your address has to be one you have confirmed." %}
+              {% endif %}
+            </p>
+          </div>
+          <c-button href="{% url 'account_email' %}" text="{% translate 'Confirm email address' %}" size="sm" variant="primary" />
+        </c-alert>
+      {% else %}
+        <c-alert variant="warning" soft>
+          <div class="flex flex-col gap-1">
+            <p class="font-semibold">{% translate "You've reached today's limit" %}</p>
+            <p>{% blocktranslate count n=daily_limit %}You can send {{ n }} message or report a day. Try again tomorrow.{% plural %}You can send {{ n }} messages and reports a day. Try again tomorrow.{% endblocktranslate %}</p>
+          </div>
+        </c-alert>
+      {% endif %}
+      <div>
+        <c-button href="{{ back_url }}" text="{% blocktranslate %}Back to the {{ kind }}{% endblocktranslate %}" icon="arrow-left" size="sm" />
+      </div>
+    </div>
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock page.content %}
+
+{% block before_form %}
+  <c-card.wrapper class="bg-base-100">
+    <div class="card-body gap-3">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs uppercase font-semibold text-base-content/60">{% if mode == "contact" %}{% translate "About" %}{% else %}{% translate "Problem with" %}{% endif %}</span>
+        <a href="{{ back_url }}" class="link link-hover font-semibold break-words">{{ record }}</a>
+        <span class="text-sm text-base-content/70">{{ kind|capfirst }}</span>
+      </div>
+      {% if mode == "contact" %}
+        <div class="flex flex-col gap-2">
+          <span class="text-xs uppercase font-semibold text-base-content/60">{% translate "Goes to" %}</span>
+          <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            {% for person in recipients %}
+              <li class="flex items-center gap-2">
+                <c-avatar :for="person" alt="" size="xs" />
+                <span>{{ person }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          <p class="text-sm text-base-content/70">
+            {% if recipient_rule == "contact" %}
+              {% blocktranslate %}Named as the contact for this {{ kind }}.{% endblocktranslate %}
+            {% elif recipient_rule == "editors" %}
+              {% blocktranslate %}Nobody is named as the contact for this {{ kind }}, so your message goes to the people who maintain it.{% endblocktranslate %}
+            {% elif recipient_rule == "curators" %}
+              {% blocktranslate %}Nobody on this {{ kind }}'s team has an account here, so your message goes to the portal's data curators.{% endblocktranslate %}
+            {% elif recipient_rule == "organization" %}
+              {% translate "The organization's owner and administrators." %}
+            {% endif %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </c-card.wrapper>
+{% endblock before_form %}
+
+{% block actions %}
+  <div class="flex flex-col gap-4">
+    <c-alert variant="info" soft>
+      {% if mode == "contact" %}
+        <span>{% blocktranslate with email=user.email %}Your name and email address (<strong>{{ email }}</strong>) are sent with the message, so a reply comes straight to you. You won't see anyone else's address.{% endblocktranslate %}</span>
+      {% else %}
+        <span>{% blocktranslate %}Your report goes to the people who can correct this {{ kind }}, with your name. It isn't shown publicly. You'll get an email when it is resolved.{% endblocktranslate %}</span>
+      {% endif %}
+    </c-alert>
+    <c-group breakpoint="md" wrap>
+      {% if mode == "contact" %}
+        <c-button text="{% translate 'Send message' %}" icon="email" type="submit" variant="primary" />
+      {% else %}
+        <c-button text="{% translate 'Send report' %}" icon="warning" type="submit" variant="primary" />
+      {% endif %}
+      <c-button text="{% translate 'Cancel' %}" href="{{ back_url }}" />
+    </c-group>
+  </div>
+{% endblock actions %}

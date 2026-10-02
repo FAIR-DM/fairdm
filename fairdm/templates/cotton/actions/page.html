@@ -1,0 +1,20 @@
+{% load i18n %}
+{% comment %}
+  <c-actions.page> — the dropdown of actions any visitor can take on a record's page, such as
+  Contact and Report a problem. It is separate from the Manage menu, which only people with rights
+  over the record see. Draws nothing when there are no actions.
+
+  Attributes:
+    actions  – a list of entries, each with `label`, `icon` and `href`
+    size     – "xs" or "sm" (default "sm")
+{% endcomment %}
+<c-vars actions size="sm" />
+{% if actions %}
+  <c-dropdown halign="end" text="{% translate 'More' %}" icon="menu_horizontal" size="{{ size }}" content_class="w-56">
+    <c-menu>
+      {% for action in actions %}
+        <c-menu.item label="{{ action.label }}" icon="{{ action.icon }}" href="{{ action.href }}" />
+      {% endfor %}
+    </c-menu>
+  </c-dropdown>
+{% endif %}

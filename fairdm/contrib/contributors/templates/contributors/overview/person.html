@@ -77,10 +77,6 @@
     {% translate "Edit profile" as label %}
     {% translate "Change your name, photo, biography, affiliations and links." as reason %}
     <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" />
-  {% else %}
-    {% translate "Contact" as label %}
-    {% translate "Send a message through the portal, without either of you sharing an email address." as reason %}
-    <c-actions.pending label="{{ label }}" icon="email" reason="{{ reason }}" />
   {% endif %}
 {% endblock overview.actions %}
 

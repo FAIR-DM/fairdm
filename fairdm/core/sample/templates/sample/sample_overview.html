@@ -1,5 +1,5 @@
 {% extends "overview/page.html" %}
-{% load i18n humanize fairdm thumbnail %}
+{% load i18n humanize fairdm thumbnail contact %}
 {% comment %}
   The sample's own page, drawn from the base Sample model alone.
 
@@ -41,6 +41,11 @@
           <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
           <c-menu.item label="{% translate 'Edit keywords' %}" icon="keywords" href="{{ urls.keywords }}" />
           <c-menu.item label="{% translate 'Edit key dates' %}" icon="date" href="{{ urls.key_dates }}" />
+          {% reported_problems base_object as problems %}
+          {% if problems %}
+            <c-menu.divider />
+            <c-menu.item label="{% translate 'Reported problems' %}" icon="warning" href="{{ problems.url }}" badge="{% if problems.open %}{{ problems.open }}{% endif %}" />
+          {% endif %}
         </c-menu>
       </c-dropdown>
     </div>
