@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}{{ sender }} wrote to you about {{ record }}{% endblocktranslate %}
+{% blocktranslate %}{{ sender }} sent you a message through the portal.{% endblocktranslate %}
+
+{% translate "About" %}: {{ record }}
+{{ record_url }}
+{% translate "Subject" %}: {{ subject }}
+{% translate "From" %}: {{ sender }}
+{{ sender_url }}
+
+--------------------------------------------------
+{{ message }}
+--------------------------------------------------
+
+{% blocktranslate %}To answer, reply to this email. Your reply goes straight to {{ sender }}, and they will see the address you reply from. The portal has not shown them your address.{% endblocktranslate %}
+{% endautoescape %}

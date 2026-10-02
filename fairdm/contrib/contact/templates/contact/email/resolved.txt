@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}The problem you reported with {{ record }} has been resolved{% endblocktranslate %}
+{% blocktranslate with name=report.resolved_by %}{{ name }} marked your report as resolved.{% endblocktranslate %}
+
+{% translate "Record" %}: {{ record }}
+{{ record_url }}
+
+{% translate "You wrote" %}:
+{{ report.description }}
+{% if report.note %}
+{% translate "Their note" %}:
+{{ report.note }}
+{% endif %}{% endautoescape %}

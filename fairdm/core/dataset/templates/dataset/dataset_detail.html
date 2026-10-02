@@ -1,5 +1,5 @@
 {% extends "overview/page.html" %}
-{% load i18n humanize fairdm %}
+{% load i18n humanize fairdm contact %}
 {% comment %}
   The dataset's overview page.
 
@@ -41,6 +41,11 @@
         {% if can_manage %}
           <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
           <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
+          {% reported_problems base_object as problems %}
+          {% if problems %}
+            <c-menu.divider />
+            <c-menu.item label="{% translate 'Reported problems' %}" icon="warning" href="{{ problems.url }}" badge="{% if problems.open %}{{ problems.open }}{% endif %}" />
+          {% endif %}
         {% endif %}
         {% if directory.delete_url %}
           {% if can_manage %}<c-menu.divider />{% endif %}

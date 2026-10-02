@@ -1,5 +1,5 @@
 {% extends "overview/page.html" %}
-{% load i18n humanize fairdm thumbnail %}
+{% load i18n humanize fairdm thumbnail contact %}
 {% comment %}
   The measurement's own page, drawn from the base Measurement model and what the registry says
   about the measurement's type.
@@ -23,6 +23,18 @@
   What the registry says about the type opens from the type badge in the header. Every other
   block is listed in `overview/page.html`.
 {% endcomment %}
+
+{% block overview.actions %}
+  {{ block.super }}
+  {% reported_problems base_object as problems %}
+  {% if problems %}
+    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu>
+        <c-menu.item label="{% translate 'Reported problems' %}" icon="warning" href="{{ problems.url }}" badge="{% if problems.open %}{{ problems.open }}{% endif %}" />
+      </c-menu>
+    </c-dropdown>
+  {% endif %}
+{% endblock overview.actions %}
 
 {% block overview.badges %}
   {% include "overview/includes/type_badge.html" with label=measurement_type info=type_info id="about-measurement-type" %}

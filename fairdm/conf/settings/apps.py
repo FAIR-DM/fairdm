@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "fairdm.contrib.generic",
     "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
+    "fairdm.contrib.contact",
     "fairdm.contrib.import_export",
     "fairdm.contrib.location",
     "fairdm.utils",

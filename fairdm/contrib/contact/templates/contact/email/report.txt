@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% blocktranslate %}A problem was reported with {{ record }}{% endblocktranslate %}
+{% blocktranslate %}{{ reporter }} reported a problem with a record you can edit.{% endblocktranslate %}
+
+{% translate "Record" %}: {{ record }}
+{{ record_url }}
+
+--------------------------------------------------
+{{ description }}
+--------------------------------------------------
+
+{% translate "When it is dealt with, mark it as resolved here. The person who reported it is then told." %}
+{{ list_url }}
+{% endautoescape %}

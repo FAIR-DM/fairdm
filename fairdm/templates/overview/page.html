@@ -1,5 +1,5 @@
 {% extends "detail_view.html" %}
-{% load i18n static humanize thumbnail %}
+{% load i18n static humanize thumbnail contact %}
 {% comment %}
   The overview page every core record shares: project, dataset, sample and measurement.
 
@@ -52,6 +52,16 @@
 
 {% block page.title %}
   {% block overview.notices %}{% endblock overview.notices %}
+  {% comment %} Shown only to people who may edit the record. Nobody else learns that it has reports. {% endcomment %}
+  {% block overview.reported_problems %}
+    {% reported_problems base_object as problems %}
+    {% if problems.open %}
+      <c-alert variant="warning" icon="warning" soft>
+        <span>{% blocktranslate count n=problems.open %}A reader has reported {{ n }} problem that is still open.{% plural %}Readers have reported {{ n }} problems that are still open.{% endblocktranslate %}</span>
+        <c-button href="{{ problems.url }}" text="{% translate 'Review' %}" size="sm" />
+      </c-alert>
+    {% endif %}
+  {% endblock overview.reported_problems %}
 
   <c-card.wrapper class="bg-base-100">
     <div class="card-body gap-4">
@@ -110,6 +120,14 @@
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
             <c-addons.share-dropdown size="sm" />
           {% endblock overview.actions %}
+          {% comment %}
+            The dropdown of actions open to any visitor. It is drawn last so it stays in the same
+            place on every page, after whatever buttons the record adds.
+          {% endcomment %}
+          {% block overview.page_actions %}
+            {% page_actions base_object as page_actions %}
+            <c-actions.page :actions="page_actions" />
+          {% endblock overview.page_actions %}
         </div>
       </div>
     </div>
