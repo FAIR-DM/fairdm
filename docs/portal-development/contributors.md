@@ -197,6 +197,10 @@ org = Organization.from_ror("https://ror.org/04aj4c181")
 ror_id = org.identifiers.filter(type="ROR").first()
 ```
 
+A stored ROR identifier may be the bare identifier (`04aj4c181`) or the full address
+(`https://ror.org/04aj4c181`), which is how `from_ror` stores it. `Organization.clean()` accepts
+both and refuses a value that is neither.
+
 ### Organization Ownership
 
 `manage_organization` is **derived, not stored** (decisions.md D13). No django-guardian row is
@@ -311,6 +315,8 @@ An organization's page reads who belongs to it and where it sits from four more 
 | `get_current_memberships()` | The affiliations of its members: verified and not ended, with the person loaded. The owner comes first, then the administrators, then the other members, each group by name. |
 | `has_member(user)` | `True` when the user has a current affiliation of type member or above. Pending and ended affiliations do not count, and a visitor is never a member. |
 | `is_managed_by(user)` | `True` when the user has a current affiliation of type administrator or owner. A portal role does not count. |
+| `is_editable_by(user)` | `True` when the user is active and either `is_managed_by(user)` holds or the user holds the Community Manager role. It decides who may open the [editing page](#editing-a-profile). |
+| `get_descendant_ids()` | The primary keys of every organization beneath this one, at any depth. |
 | `get_hierarchy()` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (its direct sub-organizations by name). |
 
 ```python
@@ -642,6 +648,194 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Dataset`
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
+
+## Editing a profile
+
+A person edits their own profile, an organization's owner and administrators edit its profile, and
+a Community Manager edits the profiles nobody else can, on a page of the overview plugin at `contributor/<uuid>/update/`. The page shows one form for the
+kind of contributor it is opened for and saves it, then returns to the profile.
+
+### Who may edit
+
+`Contributor.is_editable_by(user)` is the one place that decides. The page asks it when it opens
+and again when it saves, and the overview page asks it before offering an edit action, so a right
+lost while the page is open refuses the save. It is not a Django permission, because the answer
+depends on the record and not only on what the user holds.
+
+```python
+person.is_editable_by(person)             # True: a person with an active account edits their own profile
+person.is_editable_by(other_person)       # False
+person.is_editable_by(superuser)          # False: a superuser gets nothing extra here
+person.is_editable_by(anonymous_user)     # False
+unclaimed.is_editable_by(manager)         # True: a Community Manager, and nobody can sign in to the profile
+claimed.is_editable_by(manager)           # False: its owner has an active account
+organization.is_editable_by(owner)        # True: the owner and the administrators with a current affiliation
+organization.is_editable_by(member)       # False: an ordinary member
+organization.is_editable_by(manager)      # True: a Community Manager, even for an organization with no owner
+```
+
+A Community Manager is a user for whom `PortalRoles.is_held_by(user, PortalRoles.COMMUNITY_MANAGER)`
+is true. The Portal Administrator, Data Curator and Developer roles, and being a superuser, give no
+right to edit a profile, and the rule never asks Django for a permission.
+
+A person's profile is editable by a Community Manager only while nobody can sign in to it and keep
+it themselves: the account is inactive, or the person is not claimed and has never signed in
+(`last_login` is empty). `account_state` alone cannot say that, because an account made with
+`createsuperuser`, or by signing up on a portal that does not verify email addresses, is active and
+in use without being marked claimed. Such a person edits their own profile and nobody else does. An
+organization is editable by the people who keep its record, the ones `is_managed_by(user)`
+accepts, while their account is active, and by any active Community Manager, whether or not the
+organization has an owner.
+
+The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`. It declares its own
+`check`, `contributor_is_editable`, because an additional view is governed by its own check and
+not by its owner's. A visitor who is not signed in is sent to sign in, and a signed-in user who may
+not edit gets a 403. `Contributor.get_update_url()` returns its address.
+
+### The person form
+
+`PersonProfileForm` in `fairdm.contrib.contributors.forms.profile` edits `image`, `first_name`,
+`last_name`, `name`, `alternative_names`, `profile`, `links` and `lang`, and nothing else. Email, password, identifiers,
+affiliations, portal roles and the account's state are never on it.
+
+- `image` follows the project form: the file must be an image, `validate_image_file_size` refuses
+  one over the limit and names it, and a clear box removes the photo.
+- `name` is required. `first_name` and `last_name` are what citations and exported metadata use.
+- `links` accepts `http` and `https` addresses only.
+- `lang` is a multiple choice over the ISO 639-1 codes, named in the active language. Each code is
+  stored once. `language_choices()`, in the same module, returns the `(code, name)` pairs it offers,
+  sorted by name.
+
+`alternative_names` and `links` are lists typed one entry per line, which is what `LinesField`
+does.
+
+### What both forms share
+
+`PersonProfileForm` and `OrganizationProfileForm` extend `ProfileForm`, in the same module, so a
+portal's own form can extend it too. It draws no `<form>` tag, because the editing page supplies it
+and the buttons.
+
+Each form groups its fields under headings. `sections` is a tuple of `(heading, rows)` pairs, and
+a row is one field name or a tuple of names drawn side by side on a wide screen:
+
+```python
+class PersonProfileForm(ProfileForm):
+    sections = (
+        (None, [("first_name", "last_name"), "name", "alternative_names"]),
+        (_("About you"), ["image", "profile", "lang", "links"]),
+    )
+```
+
+A heading of `None` draws the rows with no heading. Each form's first group has none, because a
+heading at the very top of a form reads as a stray divider.
+
+A field the form does not carry is left out of its section, and a field no section names is drawn
+after the last one. A portal's subclass sets `sections` to place a field it adds.
+
+A stored record can fail the model's validation on a field the form does not carry, such as an
+identifier that was stored malformed. `ProfileForm` reports that failure as an error on the form as
+a whole, in `form.non_field_errors()`, and saves nothing. Without it Django raises a `ValueError`
+for an error on a field the form lacks, and the editing page answers with a server error.
+
+### The organization form
+
+`OrganizationProfileForm`, in the same module, edits `image` (the logo), `name`,
+`alternative_names`, `type`, `parent`, `city`, `country`, `profile` (the description), `website`
+and `links`, and nothing else. The ROR identifier, the members and the owner are never on it.
+
+- `image`, `name` and `alternative_names` behave as on the person form.
+- `type` and `country` are choices, and a value outside their lists is refused.
+- `parent` is a search over every organization, the same picker the affiliation form uses.
+- `website` and `links` are two fields over the one stored list `Organization.links`. The website
+  is stored first and the other links follow it, so an address typed in both places is stored
+  once. When the form opens, `website` shows the first stored link and `links` shows the rest.
+  Clearing the website therefore makes the next link the website the next time the form opens.
+  Every address must be an `http` or `https` address.
+
+### The parent loop rule
+
+An organization cannot be made part of itself or of one of its own sub-organizations at any depth.
+`Organization.clean()` refuses such a parent with an error on the `parent` field, code
+`parent_loop`, so the editing page and the administration interface refuse it alike.
+`Organization.get_descendant_ids()` returns the primary keys it checks against:
+
+```python
+university = Organization.objects.create(name="Example University")
+department = Organization.objects.create(name="Geology", parent=university)
+
+university.get_descendant_ids() == {department.pk}  # True
+university.parent = department
+university.full_clean()  # raises ValidationError on "parent"
+```
+
+The method returns an empty set for an organization that is not saved yet.
+
+### `LinesField`
+
+`LinesField` is a `CharField` on a text area whose cleaned value is a list. It trims each line,
+drops empty lines and keeps a repeated entry once, where it was first typed. A list given as the
+initial value is shown one entry per line.
+
+An optional `entry_validator` is called with each entry. The first entry it rejects is reported
+with the code `invalid_entry`, and the entry is available to the message as `%(entry)s`:
+
+```python
+from django.core.validators import URLValidator
+
+from fairdm.contrib.contributors.forms.profile import LinesField
+
+websites = LinesField(
+    required=False,
+    entry_validator=URLValidator(schemes=["http", "https"]),
+    error_messages={"invalid_entry": "%(entry)s is not a web address."},
+)
+websites.clean("https://example.org\n\nhttps://example.org\nhttps://example.net")
+# ['https://example.org', 'https://example.net']
+```
+
+### Changing the fields: `FAIRDM_PROFILE_FORMS`
+
+A portal changes what the page offers by subclassing the shipped form and naming the subclass in
+`FAIRDM_PROFILE_FORMS`, which maps the kind of contributor to a dotted path. A kind the setting
+leaves out, or a portal that does not set it, keeps the shipped form:
+
+```python
+# settings.py
+FAIRDM_PROFILE_FORMS = {
+    "person": "myportal.forms.PersonProfileForm",
+    "organization": "fairdm.contrib.contributors.forms.profile.OrganizationProfileForm",
+}
+```
+
+This form adds the person's location, which the shipped form leaves out. It is a field of
+`Person`, so the model form saves it with no further code:
+
+```python
+# myportal/forms.py
+from fairdm.contrib.contributors.forms.profile import PersonProfileForm as BasePersonProfileForm
+
+
+class PersonProfileForm(BasePersonProfileForm):
+    class Meta(BasePersonProfileForm.Meta):
+        fields = [*BasePersonProfileForm.Meta.fields, "location"]
+```
+
+The page then shows the extra input after the last section and stores what is chosen. To drop a field, leave it out
+of `fields` in the same way. A form without `lang`, `website` or `parent` builds and saves. Without
+`website`, the `links` field shows every stored link, the first one included. A form that keeps
+`website` has to keep `links` as well, because the website is stored as the first of the links.
+
+`LinesField` accepts at most `max_entries` lines, 50 unless the field says otherwise.
+
+```{note}
+A portal that overrides `contributors/overview/person.html` keeps the disabled edit button, the
+disabled biography prompt and unlinked checklist items until its template adopts the new
+`can_edit` and `update_url` values the overview supplies. A portal that overrides
+`contributors/overview/organization.html` keeps the disabled **Edit details** entry, the disabled
+description prompt and unlinked checklist items in the same way. See
+[the person page](overview-pages.md#the-person-page) and
+[the organization page](overview-pages.md#the-organization-page).
+```
 
 ## Transform API
 

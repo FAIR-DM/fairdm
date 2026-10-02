@@ -61,6 +61,8 @@ with them.
 - View and change person and organisation records, including affiliations, and act on profile
   claims and merges.
 - Deactivate and reactivate accounts.
+- Edit the profile of any organization, and the profile of any person who does not have an active
+  account, from the portal's own editing page. See [Who may edit a profile](#who-may-edit-a-profile).
 
 The role cannot delete a person record, and it holds nothing over projects, datasets, samples or
 measurements.
@@ -69,6 +71,31 @@ measurements.
 
 Names a person as part of the portal's team with no further rights. A person holding only the
 Developer role has exactly the access of any other signed-in contributor.
+
+## Who may edit a profile
+
+Every person's and organization's profile has an editing page in the portal, reached from the
+**Edit profile** or **Edit details** action on the profile itself. The same page, with the same
+fields, is offered to everyone who may use it. Nobody else is offered it, and a request for its
+address by anyone else is refused.
+
+| Profile | Who may edit it |
+|---|---|
+| A person with an active account | That person, and nobody else. |
+| A person whose profile nobody has claimed, whose owner has been invited and has not yet signed in, or whose account has been deactivated | Any Community Manager. |
+| An organization | Its owner and its administrators while their affiliations have not ended, and any Community Manager. |
+
+A person who gets an active account again, by claiming the profile or by being reactivated, edits
+their own profile from that moment, and Community Managers can no longer edit it. A Community
+Manager who had the editing page open at the time cannot save it.
+
+The Portal Administrator, Data Curator and Developer roles give no right to edit a profile, and
+neither does being a superuser or an ordinary member of an organization. A superuser still changes
+any record in the administration interface. An edit by a Community Manager is not marked as theirs
+anywhere a reader can see, and it does not change whether a profile is claimed, whether an account
+is active, or who owns, administers or belongs to an organization. The rights a role holds are
+unchanged by this: the Community Manager's right here follows from the role itself, not from the
+`change_person` and `change_organization` permissions it also holds.
 
 ## Holding more than one role
 

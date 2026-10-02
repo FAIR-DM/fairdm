@@ -12,6 +12,7 @@ Two commands create development accounts, for two different purposes:
 | --- | --- | --- |
 | `manage.py create_dev_accounts` | Five accounts at `fairdm.org`, one per portal role and one holding none | Seeing what each [portal role](portal_roles.md) can do |
 | `manage.py seed_overviews` | Three accounts at `example.com`: a regular user, a staff user and a superuser | Opening the [overview pages](overview-pages.md) as a visitor, as a team member and as an administrator |
+| `manage.py seed_profiles` | Five more accounts at `example.com`: an administrator, an ordinary member and a former administrator of the organization `regular.user` owns, a community manager and a data curator | Opening and saving an [organization's editing page](contributors.md#editing-a-profile) as each kind of person around it |
 
 ```bash
 poetry run python manage.py create_dev_accounts
@@ -67,3 +68,25 @@ and datasets it created earlier, and leaves any project somebody else made under
 
 Like `create_dev_accounts`, it refuses to run outside development, and `fairdm.E501` reports the
 three `example.com` addresses on a portal that is not in development.
+
+## Accounts for editing an organization's profile
+
+`manage.py seed_profiles` loads the person and organization pages in every state they answer for.
+On the organization `regular.user@example.com` owns, it adds five more accounts, each with the
+password `password`:
+
+| Email | Affiliation to that organization |
+| --- | --- |
+| `admin.user@example.com` | A current administrator. It may open and save the editing page. |
+| `member.user@example.com` | A current ordinary member. It is refused the editing page. |
+| `former-admin.user@example.com` | An administrator whose affiliation has ended. It is refused the editing page. |
+| `community-manager.user@example.com` | Holds the Community Manager role. It may open and save the editing page of any organization and of a person who does not have an active account. |
+| `data-curator.user@example.com` | Holds the Data Curator role. It is refused the editing page of every profile it does not own. |
+
+```bash
+poetry run python manage.py seed_profiles
+```
+
+The command creates an account only when its address is missing, so an account that already exists
+keeps its password. Like the other seeds, the command refuses to run outside development, and
+`fairdm.E501` reports these five addresses on a portal that is not in development.

@@ -1,0 +1,195 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T007",
+      "status": "done",
+      "commits": [
+        "a3a16763"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationDescendantIds",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationParentLoop",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k \"TestOrganizationDescendantIds or TestOrganizationParentLoop or TestOrganizationIsEditableBy\" (red at the commit: 9 failed, 12 passed)",
+          "uv run pytest tests/test_contrib/test_contributors -q -n0 (831 passed after T011)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T008",
+      "status": "done",
+      "commits": [
+        "57761fee"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestOrganizationProfileForm"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0 (red at the commit: collection error, ImportError for OrganizationProfileForm)",
+          "uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0 (48 passed after T011)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T009",
+      "status": "done",
+      "commits": [
+        "9efcfdc9"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestOrganizationUpdate"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k TestOrganizationUpdate (red at the commit: collection error, ImportError for OrganizationProfileForm)",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (64 passed after the fix to the saved message)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T010",
+      "status": "done",
+      "commits": [
+        "23d06d7e"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationOverview",
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestOrganizationChecklist"
+        ],
+        "criteria": [
+          "SC-002"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k \"TestOrganizationOverview or TestOrganizationChecklist\" (red at the commit: 14 failed, 43 passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T011",
+      "status": "done",
+      "commits": [
+        "c3610f59",
+        "0bb420d1"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestReturnToTheOverview",
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestProfileFormsSetting"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors -q -n0 (831 passed)",
+          "uv run python manage.py makemigrations --check --dry-run (only a third-party orbit migration is proposed; none for fairdm)",
+          "uv run pre-commit run --all-files (passed)",
+          "uv run pytest -q -n auto --dist loadscope (3727 passed, 8 skipped; none of the skips is new)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "commits": [
+        "c5f3d274",
+        "2caa6682"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesKeepersOfTheOwnedOrganization",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsentReportsTheProfileAccounts"
+        ],
+        "criteria": [
+          "SC-008"
+        ],
+        "commands": [
+          "uv run pytest tests/test_demo tests/test_conf/test_checks.py -q -n0 (122 passed, then 49 passed in tests/test_demo after one test fix)",
+          "forge verify --repo . --base origin/main --steps docs (passed)",
+          "the loop-rule example in contributors.md and data_models/contributors.md run in a scratch test (passed, not committed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T018",
+      "status": "done",
+      "commits": [
+        "c03214c1"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestProfileFormsWhenTheStoredRecordFailsValidation",
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestStoredRecordThatFailsValidation"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 -k \"WhenTheStoredRecord or TestStoredRecordThatFails\" (red before the fix: 12 failed, ValueError no field named identifiers)",
+          "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (127 passed)",
+          "forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build: all passed, exit 0)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Removed MESSAGE_TAGS from fairdm/conf/settings/apps.py, a file outside the story's scope, in its own commit (c3610f59).",
+      "why": "Saving a profile redirects to the overview with a success message. The old Bootstrap-era tag 'success alert-success' reached django-mvp's alert as an icon name, so the overview raised IconNotFoundError for a person and for an organization. US1's tests stopped at the redirect and never opened that page, so scenario 2 (return to the page, told it was saved) could not hold. Two tests that follow the redirect fail without it. Revert that one commit if you would rather fix it elsewhere.",
+      "decision_ref": "decisions.md#d14-the-saved-message-crashed-the-page-a-save-returns-to"
+    },
+    {
+      "what": "Replaced TestOrganizationIsEditableBy::test_nobody_may_edit_it_yet (US1) with the cases in T007, and changed two pre-existing organization checklist tests: test_every_management_action_is_disabled (now test_every_management_action_but_editing_is_disabled) and test_only_the_people_who_keep_the_record_are_offered_writing_its_description (a link, not a disabled button).",
+      "why": "Each pinned a disabled organization stand-in that this story brings to life, which tasks.md allows. Named in progress.md under T007 and T010.",
+      "decision_ref": "decisions.md#d16-editing-an-organization-requires-an-active-account"
+    },
+    {
+      "what": "The three seeded accounts are in a new PROFILE_ACCOUNTS tuple, not in EXAMPLE_ACCOUNTS; demo/seed/common.py gained create_accounts() and profile_accounts().",
+      "why": "EXAMPLE_ACCOUNTS is created by every seed through example_accounts(), and the docs say seed_overviews creates three accounts. EXAMPLE_ACCOUNT_EMAILS includes both tuples, so fairdm.E501 reports the new addresses. The docs check requires create_accounts to be documented, so overview-pages.md names it.",
+      "decision_ref": "progress.md T012"
+    },
+    {
+      "what": "The parent field uses the package's django-autocomplete-light organization picker, which searches every organization including the one being edited.",
+      "why": "The picker AffiliationForm already uses fits a single parent. Narrowing the queryset would turn the loop refusal into a generic 'not a valid choice' instead of the reason on the field.",
+      "decision_ref": "decisions.md#d15-the-parent-field-uses-the-packages-organization-picker"
+    }
+  ],
+  "concerns": [
+    "An organization whose stored ROR identifier is the full address (https://ror.org/...) cannot be saved from the editing page. Organization.clean matches stored ROR values against ^0[a-z0-9]{6}[0-9]{2}$, the bare identifier, but Organization.update_identifier stores synced_data['id'], which ROR gives as the full address. I confirmed full_clean fails on such a record while a bare identifier passes. With T018 the owner sees a form-level error instead of a server error, but still cannot save. The seeded organizations use bare identifiers and are not affected. The model's check is outside this story; accepting the address or normalising the stored value is the model's to settle (decisions D18).",
+    "PersonProfileForm.__init__ (forms/profile.py, US1) reads self.fields['lang'] unconditionally, so a portal form that leaves 'lang' out of Meta.fields, as contributors.md says a portal may do to drop a field, raises KeyError: 'lang' when the form is built. I ran a subclass with fields = ['name', 'profile'] to confirm it. Other dropped fields work: the shipped form drops them from the page. I left it alone, it is US1's code.",
+    "The parent picker offers the organization itself; the refusal is shown after submitting, not prevented in the list (decisions D15).",
+    "The community manager's single edit button and edit rights are US3's and are not built or tested here, as the brief says.",
+    "T007 to T010 are committed red, as tests-first requires, so the tree is red at those commits and at c3610f59 (its test file imports the organization form) and green from 0bb420d1 onward.",
+    "tests/test_demo seed tests take about 80 seconds, as before."
+  ],
+  "blocked": []
+}

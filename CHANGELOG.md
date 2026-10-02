@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `UserProfileForm`, which nothing used. `PersonProfileForm` is the form a person edits their own
+  profile with.
 - The Statistics and Network tabs of a contributor's page. Both were blank.
 - The templates `person/plugins/overview.html` and `organization/plugins/overview.html`. A
   contributor's page is drawn from `contributors/overview/person.html` and
@@ -37,6 +39,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A portal's profile form that leaves the languages field out of `Meta.fields`, as the contributors
+  guide says it may, raised `KeyError` when it was built. An organization form without the website
+  field also hid the first stored link from the links field, so saving it dropped that link. Both
+  forms now work without those fields.
+- An organization created from ROR could not be saved from its editing page or in the
+  administration interface, because `Organization.clean()` accepted only the bare ROR identifier
+  and the identifier is stored as the full address. It now accepts both, and still refuses a
+  malformed one.
+- Saving a profile whose stored record fails validation on a field the form does not carry, such
+  as a malformed identifier, answered with a server error. The form is now invalid, the problem is
+  reported on the form as a whole and nothing is saved.
+- Saving a profile returned to a page that failed with an unknown icon error while its "saved"
+  message was waiting, because `MESSAGE_TAGS` still held the old Bootstrap tag names. The setting
+  is removed, so Django's own message tags reach the alert. A portal that styles messages by the
+  old tag strings needs to set `MESSAGE_TAGS` itself.
+- `Contributor.get_update_url()` raised `NoReverseMatch` because it reversed a name no URL carried.
+  It returns the address of the profile editing page.
 - A person's own page now counts a primary affiliation toward their checklist only when it is
   verified and has not ended, as the header does, and `Person.get_location_display()` follows the
   same rule instead of naming the organization of a pending or ended primary affiliation.
@@ -134,6 +153,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A person can edit their own profile. The edit action in the header of their page, the prompt to
+  write a biography and the photo, biography and links items on their checklist now lead to a page
+  for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the
+  account is active nobody else is offered it, and a request for it by anyone else is refused. A portal changes the fields by
+  naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
+  `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
+  unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- An organization's owner and administrators can edit its profile. **Edit details** in the
+  **Manage** menu, the description prompt and the logo, type, city and country, description and
+  website items on its checklist now lead to a page for changing the logo, name, alternative names,
+  type, the organization it is part of, city, country, description, website and other links. An
+  ordinary member, a stranger and a Data Curator are not offered it, and a request for it by any of
+  them is refused. A portal changes the fields through the `organization` entry of
+  `FAIRDM_PROFILE_FORMS`. A portal that overrides `contributors/overview/organization.html` keeps
+  the disabled **Edit details** entry, the disabled description prompt and the unlinked checklist
+  items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- `Organization.get_descendant_ids()` returns every organization beneath one, at any depth. An
+  organization can no longer be made part of itself or of one of its own sub-organizations, in the
+  editing page or in the administration interface.
+- A Community Manager can edit the profile of any organization and of any person who does not have
+  an active account: one nobody has claimed, one whose owner has not yet signed in, and one whose
+  account has been deactivated. A Community Manager who does not keep an organization is offered a
+  single **Edit details** button and no checklist. A person with an active account stays the only
+  one who can edit their profile, including an account that signed in without being marked claimed.
+  An edit is not marked as the Community Manager's, and it does not claim the profile, activate the
+  account or change an organization's members. The Data Curator and Developer roles give no right
+  to edit a profile, and the permissions of every role are unchanged.
+- `PortalRoles.is_held_by(user, role)` says whether a user is an active member of a role's group.
+- `manage.py seed_profiles` creates `admin.user@example.com`, `member.user@example.com` and
+  `former-admin.user@example.com` around the organization `regular.user@example.com` owns, and
+  `community-manager.user@example.com` and `data-curator.user@example.com`, which hold those roles.
+- `Contributor.is_editable_by(user)` says whether a user may edit a contributor's profile in the
+  portal. `LinesField` is a form field for a list typed one entry per line.
 - A person's page now tells a visitor who the person is, where they work, whether their ORCID iD
   is authenticated, which public projects and datasets they are credited on, the contribution
   roles they hold and who they work with most. The side column lists their identifiers, links and
