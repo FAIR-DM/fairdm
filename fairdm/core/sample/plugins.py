@@ -369,3 +369,14 @@ class KeyDates(KeyDatesPlugin):
     permission = "sample.change_sample"
     model = Sample
     inline_model = SampleDate
+
+
+from fairdm.core.plugins import _visible_through  # noqa: E402
+from fairdm.core.record_lists import SampleMeasurements  # noqa: E402
+
+
+@plugins.register(Sample, label=_("Measurements"), icon="measurement", order=40)
+class Measurements(SampleMeasurements):
+    """List every measurement made on the sample, grouped by measurement type."""
+
+    check = staticmethod(_visible_through(Sample))

@@ -1,0 +1,24 @@
+{% load i18n %}
+{% comment %}
+  One member in an organization's Members tab. `object` is a Person annotated with
+  `membership_type` and `membership_start`. The entry reads like the Members card on the
+  organization's overview, so the full list is the same list, longer.
+{% endcomment %}
+<div class="card card-border bg-base-100 h-full">
+  <div class="card-body flex-row items-center gap-3 p-4 min-w-0">
+    <c-contributor.avatar :contributor="object" size="md" />
+    <div class="flex flex-col gap-1 min-w-0">
+      <c-contributor.name :contributor="object" class="font-medium break-words" />
+      <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70">
+        {% if object.membership_start %}
+          <span>{% blocktranslate with when=object.membership_start.date|date:"Y" %}Since {{ when }}{% endblocktranslate %}</span>
+        {% endif %}
+        {% if object.membership_type == 3 %}
+          <span class="badge badge-soft badge-primary badge-xs">{% translate "Owner" %}</span>
+        {% elif object.membership_type == 2 %}
+          <span class="badge badge-soft badge-neutral badge-xs">{% translate "Administrator" %}</span>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+</div>
