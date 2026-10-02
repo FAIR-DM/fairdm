@@ -30,8 +30,7 @@ The checklist item for the ROR identifier stays as it is. The editing page does 
 ## What you can change
 
 The page starts with the organization's name and type, then groups the other fields under three
-headings: Location, About and Online. The logo
-has a column of its own beside them on a wide screen.
+headings: Location, About and Online.
 
 | Field | What to enter |
 | --- | --- |

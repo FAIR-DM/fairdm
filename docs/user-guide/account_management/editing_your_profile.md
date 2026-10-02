@@ -20,8 +20,7 @@ deactivated: the portal's Community Managers can correct it until the person has
 ## What you can change
 
 The page starts with your name, then groups the other fields under two headings: About you and
-Elsewhere online. The photo
-has a column of its own beside them on a wide screen.
+Elsewhere online.
 
 | Field | What to enter |
 | --- | --- |

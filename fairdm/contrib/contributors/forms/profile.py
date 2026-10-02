@@ -125,19 +125,16 @@ class ProfileForm(ModelForm):
             of field names drawn side by side on a wide screen. A heading of None draws the
             rows with no fieldset and no heading, which is how a form's first group is drawn:
             a heading at the very top of a form reads as a stray divider.
-        aside: One ``(heading, rows)`` pair drawn in a column of its own, to the right of the
-            sections on a wide screen and after them on a narrow one. None for no such column.
     """
 
     sections: tuple = ()
-    aside: tuple | None = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_tag = False
 
     def get_layout(self):
-        """Group the fields under the headings ``sections`` and ``aside`` name.
+        """Group the fields under the headings ``sections`` names.
 
         A field the form does not carry is left out, and a section left with no field is not
         drawn. A field no section names, as a portal's subclass may add, follows the last
@@ -147,20 +144,11 @@ class ProfileForm(ModelForm):
             The crispy layout.
         """
         placed: set[str] = set()
-        aside = self.get_section(*self.aside, placed) if self.aside else None
         main = []
         for heading, rows in self.sections:
             main.extend(self.get_section(heading, rows, placed))
         main.extend(name for name in self.fields if name not in placed)
-        if not aside:
-            return Layout(*main)
-        return Layout(
-            Div(
-                Div(*main, css_class="lg:col-span-2 min-w-0"),
-                Div(*aside, css_class="min-w-0"),
-                css_class="grid grid-cols-1 lg:grid-cols-3 gap-x-8",
-            )
-        )
+        return Layout(*main)
 
     def get_section(self, heading, rows, placed):
         """Build one section from the fields the form carries.
@@ -291,10 +279,9 @@ class PersonProfileForm(ProfileForm):
 
     sections = (
         (None, [("first_name", "last_name"), "name", "alternative_names"]),
-        (_("About you"), ["profile", "lang"]),
+        (_("About you"), ["image", "profile", "lang"]),
         (_("Elsewhere online"), ["links"]),
     )
-    aside = (None, ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -408,12 +395,11 @@ class OrganizationProfileForm(ProfileForm):
         }
 
     sections = (
-        (None, ["name", "alternative_names", ("type", "parent")]),
+        (None, ["image", "name", "alternative_names", ("type", "parent")]),
         (_("Location"), [("city", "country")]),
         (_("About"), ["profile"]),
         (_("Online"), ["website", "links"]),
     )
-    aside = (None, ["image"])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

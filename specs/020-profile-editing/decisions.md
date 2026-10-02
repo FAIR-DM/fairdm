@@ -285,12 +285,11 @@ shell already styles. It has no test, because it is judged by eye.
 
 **ADR:** none. A layout choice.
 
-## D24. The image has a column of its own
+## D24. One column, and no heading on a form's first group
 
-Asked for by the maintainer: the photo or logo sits in a column to the right of the sections on a
-wide screen. On a narrow screen it follows them, because the stylesheet the pages load has no
-utility for reordering. Neither the column nor the form's first group has a heading: the
-maintainer ruled that a form never starts with a titled fieldset, because the heading draws as a
-divider at the very top of the form.
+The maintainer tried the photo and logo in a column of their own and ruled it out: the forms are
+a single column drawn by the crispy layout. He also ruled that a form never starts with a titled
+fieldset, because the heading draws as a divider at the very top of the form. Each form's first
+group is therefore drawn with no heading, and headings start at the second group.
 
 **ADR:** none. A layout choice.
