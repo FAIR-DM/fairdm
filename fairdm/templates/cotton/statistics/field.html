@@ -1,0 +1,73 @@
+{% load i18n l10n humanize %}
+{% comment %}
+  <c-statistics.field> — the summary of one field of one record type: how complete it is, the
+  figures its kind allows, and how its values are distributed.
+
+  Attributes:
+    field  – a summary from `FieldSummary.as_dict()`
+{% endcomment %}
+<c-vars field />
+<div class="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-3 py-4" data-field-kind="{{ field.kind }}">
+  <div class="md:col-span-3 min-w-0">
+    <h4 class="font-medium break-words">{{ field.label }}</h4>
+    <span class="badge badge-ghost badge-sm">{{ field.kind_label }}</span>
+  </div>
+
+  <div class="md:col-span-3 flex flex-col gap-1 text-sm min-w-0">
+    <div class="flex items-baseline justify-between gap-3">
+      <span>{% blocktranslate with recorded=field.recorded|intcomma total=field.total|intcomma %}{{ recorded }} of {{ total }} recorded{% endblocktranslate %}</span>
+      <span class="tabular-nums text-base-content/70">{% blocktranslate with percent=field.missing_percent %}{{ percent }}% missing{% endblocktranslate %}</span>
+    </div>
+    <c-progress value="{{ field.recorded_percent }}" max="100" label="{{ field.label }}" only />
+  </div>
+
+  {% if not field.recorded %}
+    <p class="md:col-span-6 text-sm text-base-content/70">{% translate "No record has a value for this field." %}</p>
+  {% elif field.kind == "number" %}
+    <dl class="md:col-span-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+      <div><dt class="text-base-content/60">{% translate "Smallest" %}</dt><dd class="tabular-nums">{{ field.min|floatformat:"-2g" }}{% if field.unit %} {{ field.unit }}{% endif %}</dd></div>
+      <div><dt class="text-base-content/60">{% translate "Largest" %}</dt><dd class="tabular-nums">{{ field.max|floatformat:"-2g" }}{% if field.unit %} {{ field.unit }}{% endif %}</dd></div>
+      <div><dt class="text-base-content/60">{% translate "Mean" %}</dt><dd class="tabular-nums">{{ field.mean|floatformat:"-2g" }}{% if field.unit %} {{ field.unit }}{% endif %}</dd></div>
+      <div><dt class="text-base-content/60">{% translate "Median" %}</dt><dd class="tabular-nums">{{ field.median|floatformat:"-2g" }}{% if field.unit %} {{ field.unit }}{% endif %}</dd></div>
+    </dl>
+    <div class="md:col-span-3 min-w-0">
+      {% if field.histogram %}
+        <c-statistics.histogram :histogram="field.histogram" label="{{ field.label }}" only />
+      {% else %}
+        <p class="text-sm text-base-content/70">{% translate "Every record has the same value." %}</p>
+      {% endif %}
+    </div>
+  {% elif field.kind == "date" %}
+    <dl class="md:col-span-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+      <div><dt class="text-base-content/60">{% translate "Earliest" %}</dt><dd>{{ field.earliest|date:"SHORT_DATE_FORMAT" }}</dd></div>
+      <div><dt class="text-base-content/60">{% translate "Latest" %}</dt><dd>{{ field.latest|date:"SHORT_DATE_FORMAT" }}</dd></div>
+    </dl>
+    <div class="md:col-span-3 min-w-0">
+      {% if field.histogram %}
+        <c-statistics.histogram :histogram="field.histogram" label="{{ field.label }}" only />
+      {% else %}
+        <p class="text-sm text-base-content/70">{% translate "Every date falls in the same month." %}</p>
+      {% endif %}
+    </div>
+  {% elif field.kind == "category" %}
+    <div class="md:col-span-6 flex flex-col gap-2 text-sm min-w-0">
+      <dl class="flex flex-col gap-2">
+        {% for value in field.values %}
+          <div class="grid grid-cols-12 items-center gap-3">
+            <dt class="col-span-5 truncate" title="{{ value.label }}">{{ value.label }}</dt>
+            <dd class="col-span-7 flex items-center gap-3">
+              <c-progress value="{{ value.percent }}" max="100" label="{{ value.label }}: {{ value.count }}" only />
+              <span class="tabular-nums text-base-content/70 w-12 text-end">{{ value.count|intcomma }}</span>
+            </dd>
+          </div>
+        {% endfor %}
+      </dl>
+      <p class="text-base-content/60">
+        {% blocktranslate count counter=field.distinct %}{{ counter }} distinct value{% plural %}{{ counter }} distinct values{% endblocktranslate %}{% if field.other_values %}.
+          {% blocktranslate count counter=field.other_values with records=field.other_count|intcomma %}{{ counter }} other value covers {{ records }} records.{% plural %}The {{ counter }} others cover {{ records }} records.{% endblocktranslate %}{% endif %}
+      </p>
+    </div>
+  {% else %}
+    <p class="md:col-span-6 text-sm text-base-content/70">{% translate "Free text. Only how often it is filled in is counted." %}</p>
+  {% endif %}
+</div>

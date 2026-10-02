@@ -1,0 +1,96 @@
+{% extends "statistics/page.html" %}
+{% load i18n humanize %}
+{% comment %}
+  An organization's Statistics tab: what its current members are credited on, year by year,
+  beside the organization's own records, and the organizations it shares records with. Context
+  from the contributor `Statistics` plugin.
+{% endcomment %}
+
+{% block statistics.notices %}
+  {% if not has_figures %}
+    <c-alert variant="info" icon="info" soft>
+      <span>{% blocktranslate with name=organization.name %}{{ name }} has no public records of its own and none credited to its members, so there is nothing to show yet.{% endblocktranslate %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock statistics.notices %}
+
+{% block statistics.figures %}
+  {% if has_figures %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      <div class="flex flex-col gap-2 min-w-0">
+        <h2 class="text-sm font-semibold text-base-content/70">{% translate "The organization's own records" %}</h2>
+        <c-stats cols="2" aria-label="{% translate 'The organization\'s own records' %}">
+          <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.own_projects|intcomma }}" variant="primary" icon="project" desc="{% translate 'Owned or credited' %}" />
+          <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.own_datasets|intcomma }}" variant="success" icon="dataset" desc="{% translate 'Credited, or in its projects' %}" />
+        </c-stats>
+      </div>
+      <div class="flex flex-col gap-2 min-w-0">
+        <h2 class="text-sm font-semibold text-base-content/70">{% blocktranslate count counter=counts.members %}Credited to its {{ counter }} current member{% plural %}Credited to its {{ counter }} current members{% endblocktranslate %}</h2>
+        <c-stats cols="2" aria-label="{% translate 'Records credited to current members' %}">
+          <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.member_projects|intcomma }}" variant="primary" icon="project" desc="{% translate 'Each counted once' %}" />
+          <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.member_datasets|intcomma }}" variant="success" icon="dataset" desc="{% translate 'Each counted once' %}" />
+        </c-stats>
+      </div>
+    </div>
+  {% endif %}
+{% endblock statistics.figures %}
+
+{% block statistics.content %}
+  {% if has_figures %}
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+      <c-card title="{% translate 'Members\' output by year' %}" class="bg-base-100 min-w-0">
+        {% if yearly_chart %}
+          <c-statistics.yearly :yearly="yearly_chart"
+                               id="organization-output-by-year"
+                               name="{% translate 'Projects and datasets credited to current members each year' %}"
+                               caption="{% translate 'By the year each project or dataset was added to the portal.' %}" />
+        {% else %}
+          <c-missing><span>{% translate "No current member is credited on a public project or dataset yet." %}</span></c-missing>
+        {% endif %}
+      </c-card>
+      <c-card title="{% translate 'Active members by year' %}" class="bg-base-100 min-w-0">
+        {% if active_chart %}
+          <c-statistics.yearly :yearly="active_chart"
+                               id="organization-active-members"
+                               name="{% translate 'Current members credited on at least one record each year' %}"
+                               caption="{% translate 'Current members credited on at least one project or dataset added that year.' %}" />
+        {% else %}
+          <c-missing><span>{% translate "No current member is credited on a public project or dataset yet." %}</span></c-missing>
+        {% endif %}
+      </c-card>
+    </div>
+
+    <c-card title="{% translate 'Organizations it works with' %}" class="bg-base-100 min-w-0" data-card="statistics-partners">
+      {% if partners %}
+        <p class="text-sm text-base-content/70">{% translate "Organizations credited on the same records, or named as the affiliation on a credit there." %}</p>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Organization" %}</th>
+                <th scope="col" class="text-end">{% translate "Shared records" %}</th>
+                <th scope="col" class="w-1/4"><span class="sr-only">{% translate "Share of the most frequent" %}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for partner in partners %}
+                <tr>
+                  <th scope="row" class="font-normal">
+                    <a href="{{ partner.organization.get_absolute_url }}" class="flex items-center gap-3 link link-hover">
+                      <span class="w-8 shrink-0"><c-avatar :for="partner.organization" alt="" size="w-full" only /></span>
+                      <span>{{ partner.organization }}</span>
+                    </a>
+                  </th>
+                  <td class="text-end tabular-nums">{{ partner.count|intcomma }}</td>
+                  <td><c-progress value="{{ partner.percent }}" max="100" label="{{ partner.organization }}" only /></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <c-missing><span>{% translate "No other organization is credited on the same records yet." %}</span></c-missing>
+      {% endif %}
+    </c-card>
+  {% endif %}
+{% endblock statistics.content %}

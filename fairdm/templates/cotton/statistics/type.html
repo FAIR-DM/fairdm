@@ -1,0 +1,27 @@
+{% load i18n humanize %}
+{% comment %}
+  <c-statistics.type> — one sample or measurement type: how many records of it are counted,
+  then a summary of each of its fields.
+
+  Attributes:
+    type  – {name, slug, count, kind, fields} from `RecordStatistics.get_type_summaries()`
+{% endcomment %}
+<c-vars type />
+<c-card class="bg-base-100 min-w-0" data-card="statistics-type" id="type-{{ type.slug }}" only>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <div class="flex flex-wrap items-baseline gap-x-3">
+      <h3 class="card-title">{{ type.name }}</h3>
+      <span class="text-sm text-base-content/60">{{ type.kind }}</span>
+    </div>
+    <span class="text-sm tabular-nums">{% blocktranslate count counter=type.count with n=type.count|intcomma %}{{ n }} record{% plural %}{{ n }} records{% endblocktranslate %}</span>
+  </div>
+  {% if type.fields %}
+    <div class="divide-y divide-base-300">
+      {% for field in type.fields %}
+        <c-statistics.field :field="field" only />
+      {% endfor %}
+    </div>
+  {% else %}
+    <c-missing only><span>{% translate "No fields of this type are summarised." %}</span></c-missing>
+  {% endif %}
+</c-card>
