@@ -1,0 +1,96 @@
+{% extends "statistics/page.html" %}
+{% load i18n humanize %}
+{% comment %}
+  A project's Statistics tab: how it has grown, what each dataset contributes, and its datasets'
+  samples and measurements summarised together. Context from the project's `Statistics` plugin.
+{% endcomment %}
+
+{% block statistics.notices %}
+  {% if not breakdown %}
+    <c-alert variant="info" icon="info" soft>
+      <span>{% translate "This project has no datasets you can see, so there is nothing to summarise." %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock statistics.notices %}
+
+{% block statistics.figures %}
+  {% if breakdown %}
+    <c-stats cols="2" lg="4" aria-label="{% translate 'What is summarised' %}">
+      <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" variant="primary" icon="dataset" />
+      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+      <c-stats.item title="{% translate 'Contributors' %}" value="{{ counts.contributors|intcomma }}" icon="people" />
+    </c-stats>
+  {% endif %}
+{% endblock statistics.figures %}
+
+{% block statistics.content %}
+  {% if records_chart or team_chart %}
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+      {% if records_chart %}
+        <c-card title="{% translate 'Records over time' %}" class="bg-base-100 min-w-0">
+          <c-chart :chart="records_chart.chart"
+                   id="project-records-growth"
+                   aspect-ratio="16/9"
+                   name="{% translate 'Samples and measurements added over time' %}"
+                   caption="{% translate 'Running total, by month added to the portal.' %}"
+                   description="{{ records_chart.description }}" />
+        </c-card>
+      {% endif %}
+      {% if team_chart %}
+        <c-card title="{% translate 'Datasets and contributors over time' %}" class="bg-base-100 min-w-0">
+          <c-chart :chart="team_chart.chart"
+                   id="project-team-growth"
+                   aspect-ratio="16/9"
+                   name="{% translate 'Datasets and contributors added over time' %}"
+                   caption="{% translate 'Running total. A contributor is counted from the first record they are credited on.' %}"
+                   description="{{ team_chart.description }}" />
+        </c-card>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if breakdown %}
+    <c-card title="{% translate 'By dataset' %}" class="bg-base-100 min-w-0" data-card="statistics-datasets">
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Dataset" %}</th>
+              <th scope="col" class="text-end">{% translate "Samples" %}</th>
+              <th scope="col" class="text-end">{% translate "Measurements" %}</th>
+              <th scope="col" class="w-1/4"><span class="sr-only">{% translate "Share of the largest dataset" %}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in breakdown %}
+              <tr>
+                <th scope="row" class="font-normal"><a href="{{ row.dataset.get_absolute_url }}" class="link link-hover">{{ row.dataset }}</a></th>
+                <td class="text-end tabular-nums">{{ row.samples|intcomma }}</td>
+                <td class="text-end tabular-nums">{{ row.measurements|intcomma }}</td>
+                <td><c-progress value="{{ row.percent }}" max="100" label="{{ row.dataset }}" only /></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </c-card>
+  {% endif %}
+
+  {% if types %}
+    <div class="flex flex-col gap-1">
+      <h2 class="text-lg font-semibold">{% translate "Fields across all datasets" %}</h2>
+      <p class="text-sm text-base-content/70">{% translate "Each record type is summarised once, over every dataset in the project you can see." %}</p>
+    </div>
+    {% if types|length > 1 %}
+      <nav aria-label="{% translate 'Record types' %}" class="flex flex-wrap gap-2">
+        {% for type in types %}
+          <a href="#type-{{ type.slug }}" class="badge badge-outline">{{ type.name }} <span class="tabular-nums text-base-content/60">{{ type.count|intcomma }}</span></a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+    {% for type in types %}
+      <c-statistics.type :type="type" />
+    {% endfor %}
+  {% endif %}
+{% endblock statistics.content %}

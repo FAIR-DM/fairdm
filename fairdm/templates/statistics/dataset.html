@@ -1,0 +1,45 @@
+{% extends "statistics/page.html" %}
+{% load i18n humanize %}
+{% comment %}
+  A dataset's Statistics tab: its samples and measurements summarised field by field, one card
+  per sample type and then per measurement type. Context from the dataset's `Statistics` plugin.
+{% endcomment %}
+
+{% block statistics.notices %}
+  {% if not types %}
+    <c-alert variant="info" icon="info" soft>
+      <span>
+        {% if not holds_records %}
+          {% translate "This dataset holds no samples or measurements yet, so there is nothing to summarise." %}
+        {% elif awaiting_publication %}
+          {% translate "The data in this dataset hasn't been published yet. Its fields are summarised here once it is." %}
+        {% else %}
+          {% translate "There is nothing here you can see to summarise." %}
+        {% endif %}
+      </span>
+    </c-alert>
+  {% endif %}
+{% endblock statistics.notices %}
+
+{% block statistics.figures %}
+  {% if types %}
+    <c-stats cols="2" lg="3" aria-label="{% translate 'What is summarised' %}">
+      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+      <c-stats.item title="{% translate 'Record types' %}" value="{{ types|length }}" icon="statistics" />
+    </c-stats>
+  {% endif %}
+{% endblock statistics.figures %}
+
+{% block statistics.content %}
+  {% if types|length > 1 %}
+    <nav aria-label="{% translate 'Record types' %}" class="flex flex-wrap gap-2">
+      {% for type in types %}
+        <a href="#type-{{ type.slug }}" class="badge badge-outline">{{ type.name }} <span class="tabular-nums text-base-content/60">{{ type.count|intcomma }}</span></a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+  {% for type in types %}
+    <c-statistics.type :type="type" />
+  {% endfor %}
+{% endblock statistics.content %}

@@ -1,0 +1,76 @@
+{% extends "statistics/page.html" %}
+{% load i18n humanize %}
+{% comment %}
+  A person's Statistics tab: what they are credited on, year by year and by contribution role,
+  and everyone they have worked with. Context from the contributor `Statistics` plugin.
+{% endcomment %}
+
+{% block statistics.notices %}
+  {% if not has_credits %}
+    <c-alert variant="info" icon="info" soft>
+      <span>{% blocktranslate with name=person.name %}{{ name }} isn't credited on anything public yet, so there is nothing to show.{% endblocktranslate %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock statistics.notices %}
+
+{% block statistics.figures %}
+  {% if has_credits %}
+    <c-stats cols="2" lg="4" aria-label="{% translate 'Credits by kind of record' %}">
+      <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.projects|intcomma }}" variant="primary" icon="project" />
+      <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" variant="success" icon="dataset" />
+      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    </c-stats>
+  {% endif %}
+{% endblock statistics.figures %}
+
+{% block statistics.content %}
+  {% if has_credits %}
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+      <c-card title="{% translate 'Credited work by year' %}" class="bg-base-100 min-w-0">
+        {% if yearly_chart %}
+          <c-statistics.yearly :yearly="yearly_chart"
+                               id="person-credits-by-year"
+                               name="{% translate 'Projects and datasets credited each year' %}"
+                               caption="{% translate 'By the year each project or dataset was added to the portal.' %}" />
+        {% else %}
+          <c-missing><span>{% translate "No public project or dataset credits yet." %}</span></c-missing>
+        {% endif %}
+      </c-card>
+      <c-card.roles :roles="roles" class="min-w-0" />
+    </div>
+
+    <c-card title="{% translate 'Collaborators' %}" class="bg-base-100 min-w-0" data-card="statistics-collaborators">
+      {% if collaborators %}
+        <p class="text-sm text-base-content/70">{% blocktranslate count counter=collaborators|length %}{{ counter }} contributor is credited on the same records.{% plural %}{{ counter }} contributors are credited on the same records.{% endblocktranslate %}</p>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Contributor" %}</th>
+                <th scope="col">{% translate "Kind" %}</th>
+                <th scope="col" class="text-end">{% translate "Shared records" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contributor in collaborators %}
+                <tr>
+                  <th scope="row" class="font-normal">
+                    <a href="{{ contributor.get_absolute_url }}" class="flex items-center gap-3 link link-hover">
+                      <span class="w-8 shrink-0"><c-avatar :for="contributor" alt="" size="w-full" only /></span>
+                      <span>{{ contributor }}</span>
+                    </a>
+                  </th>
+                  <td class="text-base-content/70">{% if contributor.is_organization %}{% translate "Organization" %}{% else %}{% translate "Person" %}{% endif %}</td>
+                  <td class="text-end tabular-nums">{{ contributor.collaboration_count|intcomma }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <c-missing><span>{% translate "Nobody else is credited on the same records yet." %}</span></c-missing>
+      {% endif %}
+    </c-card>
+  {% endif %}
+{% endblock statistics.content %}
