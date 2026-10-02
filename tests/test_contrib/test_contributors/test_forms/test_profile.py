@@ -575,6 +575,13 @@ class TestFormsWithADroppedField:
         assert person.name == "Dr. Ada Lovelace"
         assert person.lang == ["de"]
 
+    def test_a_form_without_a_field_still_lays_out_every_field_it_carries(self):
+        form = PersonFormWithoutLanguages(instance=PersonFactory())
+
+        laid_out = {pointer.name for pointer in form.helper.layout.get_field_names()}
+
+        assert laid_out == set(form.fields)
+
     def test_an_organization_form_without_a_website_builds_and_saves(
         self, organization_profile_data
     ):

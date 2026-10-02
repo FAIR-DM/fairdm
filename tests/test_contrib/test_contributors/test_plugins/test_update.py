@@ -374,6 +374,19 @@ class TestProfileFormsSetting:
 
         assert type(response.context["form"]) is LocatedPersonForm
 
+    def test_a_field_the_portals_form_adds_is_drawn_on_the_page(
+        self, signed_in, keeper, settings
+    ):
+        settings.FAIRDM_PROFILE_FORMS = {
+            "person": f"{__name__}.LocatedPersonForm",
+        }
+
+        response = signed_in(keeper).get(_update_url(keeper))
+
+        form = _page(response).select_one(f"form[action='{_update_url(keeper)}']")
+        drawn = {control["name"] for control in form.select("[name]")}
+        assert set(LocatedPersonForm.Meta.fields) <= drawn
+
     def test_a_field_the_portals_form_adds_is_saved_with_the_rest(
         self, signed_in, keeper, profile_data, settings
     ):
