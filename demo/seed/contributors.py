@@ -1,0 +1,167 @@
+"""Development data for the Contributors tab on projects, datasets, samples and measurements."""
+
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from demo.factories import RockSampleFactory, XRFMeasurementFactory
+from fairdm.contrib.contributors import access
+from fairdm.contrib.contributors.models import Organization, Person
+from fairdm.core.choices import ProjectStatus
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.project.models import Project
+from fairdm.utils.choices import Visibility
+
+from .common import example_accounts, remove_own_projects
+
+PROJECT = "Contributors tab examples"
+
+#: A dataset credited to this many people, to show search on a long list.
+SOLO = "Dataset with one manager and no project"
+
+CROWD = 36
+
+FIRST_NAMES = [
+    "Aiko",
+    "Bruno",
+    "Carmen",
+    "Dmitri",
+    "Elif",
+    "Farid",
+    "Greta",
+    "Hugo",
+    "Ines",
+]
+LAST_NAMES = ["Albrecht", "Bianchi", "Costa", "Dubois"]
+
+
+class ContributorSeed(BaseCommand):
+    help = "Seed every state of the Contributors tab (development only)."
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        users = example_accounts()
+        remove_own_projects([PROJECT], users)
+        Dataset.all_objects.filter(name=SOLO, created_by=users["super.user"]).delete()
+        regular, staff, creator = (
+            users["regular.user"],
+            users["staff.user"],
+            users["super.user"],
+        )
+
+        anna = self.person("Anna", "Keller")
+        lea = self.person("Lea", "Brandt")
+        yusuf = self.person("Yusuf", "Demir")
+        mei = self.person("Mei", "Tanaka")
+        visitor = self.person("Noor", "Haddad")
+        long_name = self.person(
+            "Maximilian-Alexander", "von Hohenzollern-Sigmaringen-Wolfenbüttel"
+        )
+        no_account = self.person("Ingrid", "Solberg", account=False)
+        institute = self.organization("Karlsruhe Institute of Technology")
+        survey = self.organization("Landesamt für Geologie, Rohstoffe und Bergbau")
+
+        project = Project.objects.create(
+            name=PROJECT,
+            status=ProjectStatus.IN_PROGRESS,
+            visibility=Visibility.PUBLIC,
+            created_by=creator,
+        )
+        self.credit(project, regular, ["Creator", "ProjectLeader"], access.MANAGE)
+        self.credit(project, anna, ["ProjectMember"], access.EDIT)
+        self.credit(project, mei, ["ProjectMember"], access.VIEW)
+        self.credit(project, institute, [])
+
+        team = self.dataset(
+            project, "Private dataset with a full team", Visibility.PRIVATE, creator
+        )
+        self.credit(team, regular, ["Creator", "ContactPerson"], access.MANAGE)
+        self.credit(team, lea, ["Creator", "DataCollector"], access.MANAGE)
+        self.credit(team, staff, ["DataCurator"], access.EDIT)
+        self.credit(team, yusuf, ["DataCollector"], access.VIEW)
+        self.credit(team, mei, ["Researcher"], access.EDIT)
+        self.credit(team, visitor, [], access.VIEW)
+        self.credit(team, no_account, ["Supervisor"], access.EDIT)
+        self.credit(
+            team, long_name, ["RightsHolder", "Editor", "Producer"], access.VIEW
+        )
+        self.credit(team, institute, ["Other"])
+        self.credit(team, survey, [])
+
+        solo = self.dataset(None, SOLO, Visibility.PRIVATE, creator)
+        self.credit(solo, staff, ["Creator"], access.MANAGE)
+        self.credit(solo, yusuf, ["DataCollector"], access.VIEW)
+
+        self.dataset(
+            project, "Dataset nobody is credited on yet", Visibility.PRIVATE, creator
+        )
+
+        crowd = self.dataset(
+            project,
+            "Public dataset with a long author list",
+            Visibility.PUBLIC,
+            creator,
+        )
+        self.credit(crowd, regular, ["Creator"], access.MANAGE)
+        for n in range(CROWD):
+            person = self.person(
+                FIRST_NAMES[n % len(FIRST_NAMES)], LAST_NAMES[n % len(LAST_NAMES)]
+            )
+            self.credit(
+                crowd, person, ["Creator"] if n < 8 else ["DataCollector"], access.VIEW
+            )
+
+        sample = RockSampleFactory(dataset=team, name="Core GPK-3, 2210 m")
+        self.credit(sample, yusuf, ["Collection"], access.VIEW)
+        self.credit(sample, lea, ["Preparation"], None)
+        measurement = XRFMeasurementFactory(
+            sample=sample, dataset=team, name="Fe, fused bead, run 88"
+        )
+        self.credit(measurement, lea, ["MeasurementCollection"], None)
+        self.credit(measurement, institute, ["Support"])
+
+        from fairdm.contrib.plugins import reverse
+
+        for label, record in (
+            ("Project, public", project),
+            ("Dataset, private, every kind of contributor", team),
+            ("Dataset with one manager and no project (sign in as staff.user)", solo),
+            (
+                "Dataset with nobody credited",
+                Dataset.all_objects.get(
+                    name="Dataset nobody is credited on yet", project=project
+                ),
+            ),
+            ("Dataset with a long list", crowd),
+            ("Sample", sample),
+            ("Measurement", measurement),
+        ):
+            self.stdout.write(f"{label}: {reverse(record, 'contribution-list')}")
+
+    def person(self, first, last, account=True):
+        email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"
+        person = Person.objects.filter(name=f"{first} {last}").first()
+        if person is None and account:
+            person = Person.objects.create_user(
+                email=email, first_name=first, last_name=last
+            )
+        elif person is None:
+            person = Person(first_name=first, last_name=last, email=None)
+            person.set_unusable_password()
+        person.name = f"{first} {last}"
+        person.is_claimed = account
+        person.save()
+        return person
+
+    def organization(self, name):
+        organization, _ = Organization.objects.get_or_create(name=name)
+        return organization
+
+    def dataset(self, project, name, visibility, creator):
+        return Dataset.all_objects.create(
+            name=name, project=project, visibility=visibility, created_by=creator
+        )
+
+    def credit(self, record, contributor, roles, level=None):
+        record.add_contributor(contributor, with_roles=roles)
+        if level:
+            access.set_level(contributor, record, level)
