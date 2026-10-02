@@ -1,0 +1,131 @@
+{% load i18n %}
+{% comment %}
+  <c-map.samples> — samples plotted as points, one point per location.
+
+  Nearby points are gathered into one numbered circle until the reader zooms in. Selecting a point
+  opens a list of the samples recorded there, each linked to its page. The map opens with every
+  point in view. Drawn with MapLibre GL on OpenFreeMap tiles, which need no key, as the location
+  card on the overview pages is.
+
+  Attributes:
+    points  – a GeoJSON FeatureCollection of points; each feature's properties carry `count` and
+              `samples`, a list of {name, type, url}
+    label   – the map's accessible name
+    class   – extra classes on the map
+{% endcomment %}
+<c-vars points label class />
+<div class="overview-map bg-base-200 {{ class }}"
+     role="region"
+     aria-label="{{ label }}"
+     data-sample-map
+     data-more-label="{% translate 'samples at this location' %}"></div>
+<p class="text-sm text-base-content/70" data-sample-map-hint>
+  {% translate "Select a point to see the samples recorded there. A numbered circle gathers nearby points: select it to zoom in." %}
+</p>
+<c-alert variant="warning" soft class="text-sm" hidden data-sample-map-failed only>
+  {% translate "The map could not be loaded. The figures above still describe what it would show." %}
+</c-alert>
+{{ points|json_script:"sample-map-points" }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"
+      integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"
+        integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  (function () {
+    var el = document.querySelector("[data-sample-map]");
+    if (!window.maplibregl) {
+      el.hidden = true;
+      document.querySelector("[data-sample-map-hint]").hidden = true;
+      document.querySelector("[data-sample-map-failed]").hidden = false;
+      return;
+    }
+    var points = JSON.parse(document.getElementById("sample-map-points").textContent);
+    var theme = getComputedStyle(el);
+    var fill = theme.getPropertyValue("--color-primary").trim() || "#3b82f6";
+    var ink = theme.getPropertyValue("--color-primary-content").trim() || "#ffffff";
+    var bounds = new maplibregl.LngLatBounds();
+    points.features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
+
+    var map = new maplibregl.Map({
+      container: el,
+      style: "https://tiles.openfreemap.org/styles/liberty",
+      bounds: bounds,
+      fitBoundsOptions: { padding: 48, maxZoom: 8 },
+      attributionControl: { compact: true },
+      cooperativeGestures: true,
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+
+    map.on("load", function () {
+      map.addSource("samples", {
+        type: "geojson",
+        data: points,
+        cluster: true,
+        clusterRadius: 40,
+        clusterProperties: { total: ["+", ["get", "count"]] },
+      });
+      map.addLayer({
+        id: "groups", type: "circle", source: "samples", filter: ["has", "point_count"],
+        paint: { "circle-color": fill, "circle-opacity": 0.85, "circle-radius": ["step", ["get", "total"], 14, 25, 18, 250, 24],
+                 "circle-stroke-width": 2, "circle-stroke-color": ink },
+      });
+      map.addLayer({
+        id: "group-counts", type: "symbol", source: "samples", filter: ["has", "point_count"],
+        layout: { "text-field": ["to-string", ["get", "total"]], "text-size": 12, "text-font": ["Noto Sans Bold"] },
+        paint: { "text-color": ink },
+      });
+      map.addLayer({
+        id: "points", type: "circle", source: "samples", filter: ["!", ["has", "point_count"]],
+        paint: { "circle-color": fill, "circle-radius": 7, "circle-stroke-width": 2, "circle-stroke-color": ink },
+      });
+
+      map.on("click", "groups", function (e) {
+        var group = e.features[0];
+        map.getSource("samples").getClusterExpansionZoom(group.properties.cluster_id).then(function (zoom) {
+          map.easeTo({ center: group.geometry.coordinates, zoom: zoom });
+        });
+      });
+
+      map.on("click", "points", function (e) {
+        var feature = e.features[0];
+        // MapLibre hands nested properties back as a JSON string.
+        var samples = JSON.parse(feature.properties.samples);
+        var box = document.createElement("div");
+        box.className = "flex flex-col gap-2 text-sm text-base-content";
+        if (samples.length > 1) {
+          var heading = document.createElement("p");
+          heading.className = "font-semibold";
+          heading.textContent = samples.length + " " + el.dataset.moreLabel;
+          box.appendChild(heading);
+        }
+        var list = document.createElement("ul");
+        list.className = "flex flex-col gap-2 max-h-48 overflow-y-auto";
+        samples.forEach(function (sample) {
+          var item = document.createElement("li");
+          var link = document.createElement("a");
+          link.href = sample.url;
+          link.className = "link link-primary font-medium";
+          link.textContent = sample.name;
+          var type = document.createElement("div");
+          type.className = "text-xs text-base-content/70";
+          type.textContent = sample.type;
+          item.appendChild(link);
+          item.appendChild(type);
+          list.appendChild(item);
+        });
+        box.appendChild(list);
+        new maplibregl.Popup({ maxWidth: "18rem" })
+          .setLngLat(feature.geometry.coordinates)
+          .setDOMContent(box)
+          .addTo(map);
+      });
+
+      ["groups", "points"].forEach(function (layer) {
+        map.on("mouseenter", layer, function () { map.getCanvas().style.cursor = "pointer"; });
+        map.on("mouseleave", layer, function () { map.getCanvas().style.cursor = ""; });
+      });
+    });
+  })();
+</script>

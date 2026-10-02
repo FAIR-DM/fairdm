@@ -11,7 +11,7 @@
   the dataset's `Overview` plugin in `fairdm/core/dataset/plugins.py`.
 
   Dataset blocks in the wide column: overview.about, overview.data (shown only while the dataset
-  is empty), overview.charts, overview.map. In the facts column: overview.timeline,
+  is empty), overview.charts. In the facts column: overview.timeline,
   overview.publications.
 {% endcomment %}
 
@@ -142,12 +142,6 @@
     {% endif %}
   {% endblock overview.charts %}
 
-  {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                        icon="map"
-                        wide
-                        message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
-  {% endblock overview.map %}
 {% endblock overview.main %}
 
 {% block overview.timeline %}
