@@ -11,7 +11,7 @@
   `Overview` plugin in `fairdm/core/project/plugins.py`.
 
   Project blocks in the wide column: overview.about, overview.datasets, overview.charts,
-  overview.map, overview.activity. The timeline sits in overview.details_extra.
+  overview.activity. The timeline sits in overview.details_extra.
 {% endcomment %}
 
 {% block overview.badges %}
@@ -173,13 +173,6 @@
     {% endif %}
   {% endblock overview.charts %}
 
-  {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                        icon="map"
-                        wide
-                        message="{% translate "A map of every sample with a location, so you can see the project's spatial coverage before opening a dataset." %}" />
-  {% endblock overview.map %}
-
   {% block overview.activity %}
     <c-card.placeholder title="{% translate 'Recent activity' %}"
                         icon="activity"
@@ -187,7 +180,6 @@
                         message="{% translate 'The latest changes to this project and its datasets: new samples, published datasets, people joining.' %}" />
   {% endblock overview.activity %}
 {% endblock overview.main %}
-
 
 {% block overview.details_extra %}
   {% if timeline.start_date %}
