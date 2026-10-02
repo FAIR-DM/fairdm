@@ -430,15 +430,20 @@ exists.
 
 | Item | In place when |
 | --- | --- |
-| A profile photo, recommended | The person has uploaded one. |
+| A profile photo, recommended | The person has uploaded one. The item links to the photo field of the editing page. |
 | An ORCID iD connected by signing in with ORCID | The person has signed in to the portal with an ORCID account. An iD typed into the profile does not count. The item links to the page where accounts are connected. |
-| A short biography | The profile text is not empty. |
+| A short biography | The profile text is not empty. The item links to the biography field of the editing page. |
 | A primary affiliation | The person has a verified primary affiliation that has not ended, the one the header shows. A pending request or an ended affiliation does not count. |
-| Links to your other profiles, recommended | The person has recorded at least one link. |
+| Links to your other profiles, recommended | The person has recorded at least one link. The item links to the links field of the editing page. |
 
-On their own page the person is also offered editing the profile, shown as not available yet, in
-place of the contact action that everyone else is offered. An empty biography and an empty list of
-records speak to them directly. `Person.get_profile_completeness()` returns the flag for each item
+On their own page the person is also offered **Edit profile**, a link to
+[the editing page](contributors.md#editing-a-profile), and the contact action shown as not
+available yet is left out. A Community Manager looking at a profile nobody can sign in to is offered
+the same **Edit profile** button, with the contact action beside it and no checklist. Everyone else
+is offered the contact action and no way to edit. The
+links to the editing page carry the field's id as a fragment, `#id_image`, `#id_profile` and
+`#id_links`. An empty biography and an empty list of records speak to them directly, and the empty
+biography's prompt links to the biography field. `Person.get_profile_completeness()` returns the flag for each item
 and the `checklist` helper turns the items into the summary the card draws.
 
 ### Extending a contributor page
@@ -458,7 +463,7 @@ end of the side column and keeps every card FairDM draws there:
 {% endblock overview.side %}
 ```
 
-The blocks read `record`, `person`, `is_self`, `is_unclaimed`, `is_inactive`, `affiliations`,
+The blocks read `record`, `person`, `is_self`, `can_edit`, `update_url`, `is_unclaimed`, `is_inactive`, `affiliations`,
 `primary_organization`, `location_text`, `languages`, `portal_roles`, `identifier`,
 `identifier_url`, `orcid_verified`, `member_since`, `counts`, `projects`, `datasets`, `roles`,
 `identifiers`, `links`, `people`, `urls`, `api_url` and `json_ld`. The plugin's `records_shown`
@@ -478,7 +483,8 @@ to its ROR record when it has a ROR ID. Beneath the name come the organization i
 linked to its page, its city and country, and its languages. Each is left out when it is not
 recorded. The actions are sharing the page and the organization's address in the API. A signed-in
 person who is not a current member is also offered asking to join, shown as not available yet. The
-people who keep the record are offered a menu of management actions instead, also not available
+people who keep the record are offered a **Manage** menu instead. Its **Edit details** entry links
+to [the editing page](contributors.md#editing-a-profile), and its other entries are not available
 yet.
 
 The figures are the organization's projects, its datasets and its current members. The first two
@@ -530,8 +536,9 @@ equals the number of entries behind its link.
 
 The checklist and the management menu are shown to the organization's owner and administrators,
 meaning the people whose current affiliation to it is of that kind. A portal role such as
-Community Manager does not count, because portal staff manage organizations from the administration
-interface, and neither does staff or superuser status. An ordinary member, a pending request and a
+Community Manager does not count, and neither does staff or superuser status. A Community Manager
+who does not keep the record is offered a single **Edit details** button instead of the menu, and no
+checklist, because the checklist is for the people who keep the record. An ordinary member, a pending request and a
 former administrator whose affiliation has ended see neither. `Organization.is_managed_by(user)`
 answers it. Asking to join is offered to a signed-in user for whom neither `has_member(user)` nor
 `is_managed_by(user)` holds.
@@ -539,8 +546,17 @@ answers it. Asking to join is offered to a signed-in user for whom neither `has_
 The checklist lists a ROR identifier, a logo (recommended), the type of organization, a city and a
 country together, a description and a website (recommended). A ROR identifier is the only
 identifier type that counts toward the first item. The menu holds editing the details, managing the
-members and updating the record from ROR, each shown as not available yet.
-`Organization.get_record_completeness()` returns the flag for each item.
+members and updating the record from ROR. Editing the details is a link to the editing page, and
+the other two are shown as not available yet. `Organization.get_record_completeness()` returns the
+flag for each item.
+
+Every item the editing page can fix links to its field, with the field's id as a fragment: the logo
+to `#id_image`, the type to `#id_type`, the city and country to `#id_city`, the description to
+`#id_profile` and the website to `#id_website`. The ROR item has no link. The description's prompt
+in the About card links to `#id_profile`. The link, the menu entry and the single button a Community Manager sees are offered to the people
+`Organization.is_editable_by(user)` accepts: the people who keep the record and every Community
+Manager. A Community Manager who also keeps the record sees the menu only, so there is one edit
+action either way.
 
 ### Extending an organization page
 
@@ -558,7 +574,7 @@ keeps every card FairDM draws there:
 {% endblock overview.side %}
 ```
 
-The blocks read `record`, `organization`, `can_manage`, `is_member`, `members`, `projects`,
+The blocks read `record`, `organization`, `can_manage`, `can_edit`, `update_url`, `is_member`, `members`, `projects`,
 `datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, `languages`, `identifier`,
 `identifier_url`, `identifiers`, `links`, `urls`, `api_url` and `json_ld`, and `readiness` for the
 people who keep the record. `records_shown` (five) and `member_slots` (ten) on the plugin say how
@@ -798,3 +814,8 @@ creating the missing ones, `remove_own_projects()` deletes the projects an earli
 `grant_team_rights(user, *records)` gives an account view, change and delete rights on the projects
 and datasets it is given. `staff.user` holds those rights on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
+`manage.py seed_profiles` also uses `profile_accounts()`, which returns the five accounts the
+editing pages are tried with the same way. Both read their accounts through
+`create_accounts(accounts)`, which creates the missing ones of any list of
+`(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the
+address before the `@`.

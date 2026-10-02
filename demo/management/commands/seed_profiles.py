@@ -4,7 +4,8 @@ Builds on the records ``seed_overviews`` creates and reaches every state the two
 a complete profile, your own incomplete profile, an unclaimed profile, an inactive account, a
 person credited on nothing, a name in a non-Latin script and a very long one; an organization
 with a logo, ROR ID, map, parent, sub-organizations, members, former members and projects, one
-you own, and one with nothing recorded. It refuses outside development, and running it again
+you own with an administrator, a member and a former administrator, and one with nothing
+recorded; and the accounts holding the Community Manager and Data Curator roles. It refuses outside development, and running it again
 replaces what it created.
 
     DJANGO_ENV=development python manage.py seed_profiles
@@ -23,7 +24,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from PIL import Image, ImageDraw
 
-from demo.seed.common import example_accounts
+from demo.seed.common import example_accounts, profile_accounts
 from demo.seed.projects import SHOWCASE
 from fairdm.contrib.contributors.models import (
     Affiliation,
@@ -38,6 +39,7 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
+from fairdm.portal_roles import PortalRoles
 
 SEED = "profiles"
 
@@ -373,6 +375,36 @@ class Command(BaseCommand):
             me.add_to(self.datasets[1], ["DataCollector"])
         for sample in self.samples(2, offset=40):
             me.add_to(sample, ["Collection"])
+
+        # The people around the institute's record: an administrator, an ordinary member and an
+        # administrator whose affiliation has ended.
+        keepers = profile_accounts()
+        for key, membership, end_date in [
+            ("admin.user", ADMIN, None),
+            ("member.user", MEMBER, None),
+            ("former-admin.user", ADMIN, "2023-08"),
+        ]:
+            person = self.mark(keepers[key])
+            person.is_claimed = True
+            person.save()
+            Affiliation.objects.create(
+                person=person,
+                organization=orgs["agw"],
+                type=membership,
+                start_date="2022-01",
+                end_date=end_date,
+            )
+
+        # The two accounts that hold a portal role: the Community Manager edits profiles nobody
+        # can sign in to, and the Data Curator holds no right over any profile.
+        for key, role in [
+            ("community-manager.user", PortalRoles.COMMUNITY_MANAGER),
+            ("data-curator.user", PortalRoles.DATA_CURATOR),
+        ]:
+            person = self.mark(keepers[key])
+            person.is_claimed = True
+            person.save()
+            person.groups.add(roles_group[role.name])
 
         # Unclaimed, with a very long name.
         ghost = self.new(

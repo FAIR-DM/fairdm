@@ -33,6 +33,7 @@ from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
@@ -224,8 +225,22 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return reverse("contributor:overview", kwargs={"uuid": self.uuid})
 
     def get_update_url(self):
-        """Return the URL of the contributor's edit page."""
-        return reverse("contributor-update", kwargs={"uuid": self.uuid})
+        """Return the URL of the page where the contributor's profile is edited."""
+        return reverse("contributor:overview-update", kwargs={"uuid": self.uuid})
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this contributor's profile in the portal.
+
+        The editing page asks on every request and the overview pages ask before they offer an
+        edit action. A contributor nobody may edit is the default; each subclass names who may.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user may open and save the editing page.
+        """
+        return False
 
     def get_identifier_icon(self):
         """Return the icon for the contributor's default identifier scheme.
@@ -739,6 +754,33 @@ class Person(AbstractUser, Contributor):
         if not self.name:
             self.name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this profile: the person it describes, or a community manager.
+
+        A community manager may edit it only while nobody can sign in to it and keep it
+        themselves: the account is inactive, or the person never claimed it and never signed in.
+        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
+        is active and in use without being marked claimed. A superuser, an administrator and the
+        holder of any other portal role get no right from that alone.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user is this person with an active account, or an active community
+            manager and the person has no active account.
+        """
+        if not (user.is_authenticated and user.is_active):
+            return False
+        if user.pk == self.pk:
+            return True
+        unreachable = not self.is_active or (
+            not self.is_claimed and self.last_login is None
+        )
+        return unreachable and PortalRoles.is_held_by(
+            user, PortalRoles.COMMUNITY_MANAGER
+        )
 
     @property
     def account_state(self) -> AccountState:
@@ -1332,11 +1374,30 @@ class Organization(Contributor):
         return self.name
 
     def clean(self):
-        """Validate the links and the ROR identifier."""
+        """Refuse a parent that would make the organization part of itself, then validate the links and the ROR identifier."""
         from django.core.exceptions import ValidationError
         from django.core.validators import URLValidator
 
         super().clean()
+
+        if (
+            self.pk
+            and self.parent_id
+            and (
+                self.parent_id == self.pk or self.parent_id in self.get_descendant_ids()
+            )
+        ):
+            raise ValidationError(
+                {
+                    "parent": ValidationError(
+                        _(
+                            "An organization cannot be part of itself or of one of "
+                            "its own sub-organizations."
+                        ),
+                        code="parent_loop",
+                    )
+                }
+            )
 
         if self.links:
             url_validator = URLValidator()
@@ -1353,7 +1414,7 @@ class Organization(Contributor):
             ror_pattern = r"^0[a-z0-9]{6}[0-9]{2}$"
             import re
 
-            if not re.match(ror_pattern, ror.value):
+            if not re.match(ror_pattern, ror.value.removeprefix("https://ror.org/")):
                 raise ValidationError(
                     {
                         "identifiers": _(
@@ -1487,6 +1548,50 @@ class Organization(Contributor):
             .filter(person_id=user.pk, type__gte=Affiliation.MembershipType.ADMIN)
             .exists()
         )
+
+    def is_editable_by(self, user) -> bool:
+        """Say whether a user may edit this organization's profile.
+
+        The owner and the administrators with a current affiliation may, and so may a community
+        manager, while their account is active. A superuser, the holder of any other portal
+        role and an ordinary member get no right from that alone.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True when the user is active and keeps this organization's record or is a community
+            manager.
+        """
+        if not getattr(user, "is_active", False):
+            return False
+        return self.is_managed_by(user) or PortalRoles.is_held_by(
+            user, PortalRoles.COMMUNITY_MANAGER
+        )
+
+    def get_descendant_ids(self):
+        """Find every organization beneath this one, at any depth.
+
+        Walks the chain downward a level at a time, so a loop already stored ends when it
+        comes back to an organization it has seen.
+
+        Returns:
+            The primary keys of the sub-organizations, their own sub-organizations and so on.
+            Empty for an organization that is not saved yet.
+        """
+        found = set()
+        level = {self.pk} if self.pk else set()
+        while level:
+            level = (
+                set(
+                    Organization.objects.filter(parent_id__in=level).values_list(
+                        "pk", flat=True
+                    )
+                )
+                - found
+            )
+            found |= level
+        return found
 
     def get_hierarchy(self):
         """Place the organisation among the organisations around it.

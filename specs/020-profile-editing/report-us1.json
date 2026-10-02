@@ -1,0 +1,168 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "commits": [
+        "216c5fc2"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestLinesField",
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestPersonProfileForm"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_forms -q -n0 (red at the commit: collection error, ModuleNotFoundError for forms.profile)",
+          "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (50 passed after T005)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "commits": [
+        "3b8cde65"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy",
+          "tests/test_contrib/test_contributors/test_models.py::TestContributorUpdateUrl"
+        ],
+        "criteria": [
+          "SC-003"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py -q -n0 -k \"TestPersonIsEditableBy or TestOrganizationIsEditableBy or TestContributorUpdateUrl\" (red at the commit: 11 failed; 11 passed after T005)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "commits": [
+        "dd079ac4"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestPersonUpdate",
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestProfileFormsSetting"
+        ],
+        "criteria": [
+          "SC-001",
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (red at the commit: collection error; 24 passed after T006 added one test)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "commits": [
+        "32fc4e69"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview (4 new tests)",
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonChecklist::test_the_person_is_offered_editing_in_place_of_the_contact_action (updated)"
+        ],
+        "criteria": [
+          "SC-001"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n0 -k \"TestPersonOverview or TestPersonChecklist\" (red at the commit: 8 failed, 47 passed; 55 passed after T005)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "commits": [
+        "50034bab",
+        "d9fa3338",
+        "6316f008",
+        "66ca9613"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-001",
+          "SC-003",
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors -q -n0 (734 passed)",
+          "uv run python manage.py makemigrations --check --dry-run (proposes only a third-party orbit migration, none for fairdm)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T006",
+      "status": "done",
+      "commits": [
+        "42ab134f",
+        "803c42db",
+        "96884353",
+        "bb7acf14"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestProfileFormsSetting::test_a_field_the_portals_form_adds_is_saved_with_the_rest"
+        ],
+        "criteria": [
+          "SC-008"
+        ],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs (passed)",
+          "uv run --group docs sphinx-build -b html docs /tmp/us1/docs_build3 (no warning for any page this story wrote or changed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Changed three pre-existing TestPersonChecklist tests that asserted the ORCID link was the checklist's only link. They now assert on the ORCID link itself.",
+      "why": "FR-017 makes the photo, biography and links items link to their fields, so the old assertions could no longer hold. tasks.md allows changing only tests that pinned a disabled stand-in, and these pinned the absence of links, so this is a reading of that allowance.",
+      "decision_ref": "decisions.md#d13-checklist-links-changed-three-existing-overview-tests"
+    },
+    {
+      "what": "Moved the ISO 639-1 code set out of validate_iso_639_1_language_code into a module constant ISO_639_1_CODES.",
+      "why": "The languages field offers the same codes the model validator accepts, and the set lived inside the function.",
+      "decision_ref": "decisions.md#d12-the-iso-639-1-code-list-is-a-module-constant"
+    }
+  ],
+  "concerns": [
+    "specs/020-profile-editing/feature-state.json was already modified and uncommitted when I started (state IMPLEMENT, one added state_history entry, and a reindent). I committed it with my first task-row flip so the worktree could end clean. I changed only my own tasks' status, attempts and evidence after that.",
+    "T001 to T004 are committed red, as tests-first requires, so the tree is red at those four commits and green from the last T005 commit on.",
+    "Person.clean raises errors keyed to email and identifiers. The editing form carries neither, and Django's model form raises ValueError for an error on a field the form lacks. A person whose stored ORCID identifier is malformed (only storable by bypassing ContributorIdentifier.clean) got a 500 when a request posted only a name. Not fixed; it is outside this story.",
+    "validate_image_file_size in fairdm/core/image_utils.py raises ValidationError without a code, so the oversize image case is asserted on the field only.",
+    "The module-level User = get_user_model() in fairdm/contrib/contributors/forms/person.py is now unused. Removing it made the docs check mark ten unrelated pages as stale, because they quote `User` for another meaning, so it stays as it was.",
+    "uv run python manage.py makemigrations --check --dry-run proposes a migration for the third-party orbit package (orbit 0008_alter_orbitentry_type). It is not from this story and no fairdm migration is needed.",
+    "uv run --group docs sphinx-build still stops at the theme's index template, warns on three missing screenshots in create_an_account.md and on account_management/index.md not being in a contents list. None of it is from this story, though I did add the new page to the user guide's contents.",
+    "Organization pages are unchanged: Organization.is_editable_by is the base class's False, and the organization kind of FAIRDM_PROFILE_FORMS is not set, as the brief says."
+  ],
+  "blocked": []
+}

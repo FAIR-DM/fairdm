@@ -3,8 +3,9 @@
 Owns password hashing (Argon2 first), password validators, authentication
 backends (ModelBackend, allauth, guardian, FairDM's own object-level
 backends), django-allauth account and social settings, and the FairDM signup
-gate. A portal supplies ``SOCIALACCOUNT_PROVIDERS`` beyond ORCID, and its own
-account and signup forms via ``ACCOUNT_FORMS``/``SOCIALACCOUNT_FORMS``.
+gate. A portal supplies ``SOCIALACCOUNT_PROVIDERS`` beyond ORCID, its own
+account and signup forms via ``ACCOUNT_FORMS``/``SOCIALACCOUNT_FORMS``, and its own profile
+editing forms via ``FAIRDM_PROFILE_FORMS``.
 """
 
 env = globals()["env"]
@@ -83,4 +84,11 @@ ACCOUNT_FORMS = {
 
 SOCIALACCOUNT_FORMS = {
     "signup": "fairdm.contrib.contributors.forms.account.SocialSignupForm",
+}
+
+# The form each kind of profile is edited with. A portal names its own subclass to change the
+# fields; a kind left out keeps the shipped form.
+FAIRDM_PROFILE_FORMS = {
+    "person": "fairdm.contrib.contributors.forms.profile.PersonProfileForm",
+    "organization": "fairdm.contrib.contributors.forms.profile.OrganizationProfileForm",
 }
