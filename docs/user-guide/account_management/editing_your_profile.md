@@ -19,8 +19,7 @@ deactivated: the portal's Community Managers can correct it until the person has
 
 ## What you can change
 
-The page starts with your name, then groups the other fields under two headings: About you and
-Elsewhere online.
+The page starts with your name, then groups the other fields under the heading About you.
 
 | Field | What to enter |
 | --- | --- |

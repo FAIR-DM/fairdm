@@ -722,8 +722,7 @@ a row is one field name or a tuple of names drawn side by side on a wide screen:
 class PersonProfileForm(ProfileForm):
     sections = (
         (None, [("first_name", "last_name"), "name", "alternative_names"]),
-        (_("About you"), ["image", "profile", "lang"]),
-        (_("Elsewhere online"), ["links"]),
+        (_("About you"), ["image", "profile", "lang", "links"]),
     )
 ```
 

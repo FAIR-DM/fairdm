@@ -279,8 +279,7 @@ class PersonProfileForm(ProfileForm):
 
     sections = (
         (None, [("first_name", "last_name"), "name", "alternative_names"]),
-        (_("About you"), ["image", "profile", "lang"]),
-        (_("Elsewhere online"), ["links"]),
+        (_("About you"), ["image", "profile", "lang", "links"]),
     )
 
     def __init__(self, *args, **kwargs):

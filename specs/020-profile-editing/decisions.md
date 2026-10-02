@@ -290,6 +290,7 @@ shell already styles. It has no test, because it is judged by eye.
 The maintainer tried the photo and logo in a column of their own and ruled it out: the forms are
 a single column drawn by the crispy layout. He also ruled that a form never starts with a titled
 fieldset, because the heading draws as a divider at the very top of the form. Each form's first
-group is therefore drawn with no heading, and headings start at the second group.
+group is therefore drawn with no heading, and headings start at the second group. A person's
+links sit under "About you": a heading over one field was removed at his request.
 
 **ADR:** none. A layout choice.
