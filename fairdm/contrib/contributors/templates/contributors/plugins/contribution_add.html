@@ -1,0 +1,55 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Find a person or an organization already in the portal and add them to the record. Adding goes
+  straight on to the page where their roles and access are set.
+{% endcomment %}
+
+{% block page.content %}
+  <c-card.wrapper class="bg-base-100 max-w-3xl">
+    <div class="card-body gap-4">
+      <form method="get" role="search" class="flex flex-col gap-2">
+        <label for="contributor-search" class="font-semibold">{% translate "Who do you want to add?" %}</label>
+        <p id="contributor-search-hint" class="text-sm text-base-content/70">
+          {% translate "Search for a person or an organization by name. They need a profile in the portal already." %}
+        </p>
+        <div class="join w-full">
+          <input type="search" id="contributor-search" name="q" value="{{ term }}" class="input join-item grow" aria-describedby="contributor-search-hint" autofocus />
+          <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
+        </div>
+      </form>
+
+      {% if term %}
+        {% if results %}
+          <c-list label="{% translate 'Matching people and organizations' %}">
+            {% for result in results %}
+              <c-list.row class="items-center">
+                <c-contributor.item :contributor="result.contributor" size="md" :link="False" class="list-col-grow" />
+                {% if result.listed %}
+                  <span class="text-sm text-base-content/70">{% translate "Already a contributor" %}</span>
+                {% else %}
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="contributor" value="{{ result.contributor.pk }}" />
+                    <button type="submit" class="btn btn-sm">
+                      {% translate "Add" %}<span class="sr-only"> {{ result.contributor }}</span>
+                    </button>
+                  </form>
+                {% endif %}
+              </c-list.row>
+            {% endfor %}
+          </c-list>
+        {% else %}
+          <p>{% blocktranslate %}Nobody in the portal matches “{{ term }}”. Check the spelling, or try part of the name.{% endblocktranslate %}</p>
+        {% endif %}
+      {% endif %}
+
+      <p class="text-sm text-base-content/70">
+        {% blocktranslate %}A person you add can open this {{ kind }} straight away, and nothing more until you say so. They join the end of the list.{% endblocktranslate %}
+      </p>
+      <div>
+        <c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" size="sm" ghost />
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.content %}

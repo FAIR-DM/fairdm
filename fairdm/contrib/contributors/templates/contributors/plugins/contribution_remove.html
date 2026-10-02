@@ -1,0 +1,46 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Confirm removing a contributor, saying what goes with them. When they are the only person who
+  can manage the record the page says so and offers no way to go ahead.
+{% endcomment %}
+
+{% block page.content %}
+  <c-card.wrapper class="bg-base-100 max-w-3xl">
+    <div class="card-body gap-4">
+      <c-contributor.item :contributor="entry.contribution" size="md" :link="False" />
+
+      {% if refused %}
+        <c-alert variant="warning" soft>
+          <div>
+            <p class="font-semibold">{% blocktranslate with name=entry.contributor %}{{ name }} cannot be removed yet.{% endblocktranslate %}</p>
+            <p>{% blocktranslate with name=entry.contributor %}They are the only person who can manage this {{ kind }}. Give someone else “Can manage” first, so it is never left with nobody to look after it.{% endblocktranslate %}</p>
+          </div>
+        </c-alert>
+        <div>
+          <c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" />
+        </div>
+      {% else %}
+        <div class="flex flex-col gap-2">
+          <p class="font-semibold">{% blocktranslate with name=entry.contributor %}Remove {{ name }} from this {{ kind }}?{% endblocktranslate %}</p>
+          <ul class="list-disc ps-5 text-sm flex flex-col gap-1">
+            <li>{% blocktranslate %}They will no longer be credited on this {{ kind }} or named in its citation.{% endblocktranslate %}</li>
+            {% if entry.is_person %}
+              {% if entry.above %}
+                <li>{% blocktranslate with level=entry.above kind=entry.source_kind %}They keep the access they hold from the {{ kind }}, which is changed there.{% endblocktranslate %}</li>
+              {% elif entry.own %}
+                <li>{% blocktranslate %}They lose their access to this {{ kind }}. If it is private they will not be able to open it.{% endblocktranslate %}</li>
+              {% endif %}
+            {% endif %}
+            <li>{% translate "If you add them again later they start with “Can view” and no roles." %}</li>
+          </ul>
+        </div>
+        <form method="post" class="flex flex-wrap gap-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-error">{% translate "Remove" %}</button>
+          <c-button href="{{ list_url }}" text="{% translate 'Cancel' %}" ghost />
+        </form>
+      {% endif %}
+    </div>
+  </c-card.wrapper>
+{% endblock page.content %}

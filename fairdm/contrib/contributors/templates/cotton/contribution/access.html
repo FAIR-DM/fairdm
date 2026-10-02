@@ -1,0 +1,19 @@
+{# @description What one contributor may do on a record, in words: their level, where it comes from when it is held from a record above, and a note when it cannot take effect yet. An organization is shown as credited only. #}
+{# @prop entry:text | description:"One contributor on a record, as the Contributors tab describes them." #}
+{% load i18n %}
+<c-vars entry />
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+  {% if not entry.is_person %}
+    <span class="text-base-content/70">{% translate "Credit only. Organizations hold no access." %}</span>
+  {% elif entry.effective %}
+    <c-badge text="{{ entry.label }}" size="sm" variant="{% if entry.effective == 'manage' %}primary{% else %}neutral{% endif %}" :outline="entry.effective != 'manage'" />
+    {% if entry.from_above %}
+      <span class="text-base-content/70">{% blocktranslate with kind=entry.source_kind %}from the {{ kind }}{% endblocktranslate %}</span>
+    {% endif %}
+    {% if not entry.has_account %}
+      <span class="text-base-content/70">{% translate "Takes effect when they have an account." %}</span>
+    {% endif %}
+  {% else %}
+    <span class="text-base-content/70">{% translate "No access" %}</span>
+  {% endif %}
+</div>
