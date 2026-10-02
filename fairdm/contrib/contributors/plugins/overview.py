@@ -114,12 +114,8 @@ class Overview(OverviewPlugin):
             "json_ld": json_ld(contributor.to_public_schema_org()),
             "api_url": safe_reverse("api:contributor-detail", uuid=contributor.uuid),
             "urls": {
-                "projects": safe_reverse(
-                    "contributor:contributor-projects", uuid=contributor.uuid
-                ),
-                "datasets": safe_reverse(
-                    "contributor:contributor-datasets", uuid=contributor.uuid
-                ),
+                "projects": safe_reverse("contributor:projects", uuid=contributor.uuid),
+                "datasets": safe_reverse("contributor:datasets", uuid=contributor.uuid),
             },
         }
 

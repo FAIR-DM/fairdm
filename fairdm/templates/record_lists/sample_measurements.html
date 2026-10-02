@@ -1,0 +1,52 @@
+{% extends "fairdm/plugin.html" %}
+{% load i18n humanize %}
+{% comment %}
+  The Measurements tab of a sample: every measurement made on it, whichever dataset it belongs
+  to, grouped by measurement type with each group in that type's own table.
+{% endcomment %}
+{% block page.title %}
+  <div class="flex flex-col gap-1 w-full">
+    <h1 class="text-2xl font-bold leading-tight">{{ page.title }}</h1>
+    {% if groups %}
+      <p class="text-base-content/70 max-w-prose">
+        {% blocktranslate count counter=total with shown=total|intcomma name=sample.name %}{{ shown }} measurement made on {{ name }}.{% plural %}{{ shown }} measurements made on {{ name }}.{% endblocktranslate %}
+        {% if elsewhere %}
+          {% blocktranslate count counter=elsewhere %}{{ counter }} of them belongs to another dataset.{% plural %}{{ counter }} of them belong to other datasets.{% endblocktranslate %}
+        {% endif %}
+      </p>
+    {% endif %}
+    {% if groups|length > 1 %}
+      <nav aria-label="{% translate 'Measurement types on this page' %}" class="flex flex-wrap gap-2 pt-2">
+        {% for group in groups %}
+          <a href="#{{ group.anchor }}" class="btn btn-sm btn-ghost border-base-300">
+            {{ group.name }}
+            <span class="badge badge-sm badge-ghost">{{ group.count|intcomma }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+  </div>
+{% endblock page.title %}
+
+{% block page.content %}
+  {% for group in groups %}
+    <section id="{{ group.anchor }}" aria-labelledby="{{ group.anchor }}-heading" class="flex flex-col gap-2 w-full">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 id="{{ group.anchor }}-heading" class="text-lg font-semibold">{{ group.name }}</h2>
+        <span class="badge badge-ghost badge-sm">{{ group.count|intcomma }}</span>
+        {% if group.elsewhere %}
+          <span class="text-sm text-base-content/70">
+            {% blocktranslate count counter=group.elsewhere %}{{ counter }} from another dataset{% plural %}{{ counter }} from other datasets{% endblocktranslate %}
+          </span>
+        {% endif %}
+      </div>
+      <div class="card card-border bg-base-100 overflow-hidden">
+        <c-addons.django-table :table="group.table" label="{{ group.name }}" />
+      </div>
+    </section>
+  {% empty %}
+    {% translate "No measurements to show" as heading %}
+    {% translate "Nothing has been measured on this sample yet, or its measurements are in datasets that are not published." as message %}
+    <c-page.list.empty icon="measurement" heading="{{ heading }}" message="{{ message }}" />
+  {% endfor %}
+{% endblock page.content %}
