@@ -1,5 +1,6 @@
-"""Route smoke tests for the ``markdownx/`` routes in ``fairdm/conf/urls.py`` (#266)."""
+"""Route smoke tests for the account and ``markdownx/`` routes in ``fairdm/conf/urls.py``."""
 
+import pytest
 from django.urls import reverse
 
 
@@ -25,6 +26,24 @@ class TestAccountCenterRoutes:
         response = client.get("/account-center/login/")
 
         assert response.status_code == 200
+
+    @pytest.mark.parametrize(
+        "url_name",
+        [
+            "account_email",
+            "account_change_password",
+            "socialaccount_connections",
+            "mfa_index",
+            "usersessions_list",
+        ],
+    )
+    def test_each_account_management_page_renders_in_the_account_center(
+        self, db, authenticated_client, url_name
+    ):
+        response = authenticated_client.get(reverse(url_name))
+
+        assert response.status_code == 200
+        assert "mvp/account/base.html" in [t.name for t in response.templates]
 
 
 class TestMarkdownxRoutes:
