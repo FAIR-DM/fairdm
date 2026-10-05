@@ -1,9 +1,0 @@
-{% load crispy_forms_tags static %}
-
-<c-dac page_title="{{ meta.title }}">
-  {% if formset %}
-    {% crispy formset helper %}
-  {% else %}
-    {% crispy form %}
-  {% endif %}
-</c-dac>
