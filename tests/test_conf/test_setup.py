@@ -343,7 +343,7 @@ class TestDevelopmentLayerApplies:
         module = settings_module(directory=tmp_path)
 
         assert module.DEBUG is True
-        assert "localhost" in module.ALLOWED_HOSTS
+        assert module.ALLOWED_HOSTS == ["*"]
         assert module.CSRF_COOKIE_SECURE is False
         assert module.SESSION_COOKIE_SECURE is False
 

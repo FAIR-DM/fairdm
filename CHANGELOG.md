@@ -146,6 +146,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that list configured, and django-mvp only warns and discards the setting. A portal including
   `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
   above it, since the landing page and its `account-center` URL name now come from django-mvp.
+- The development settings accept any host name, so a development server answers under the
+  machine's network name as well as `localhost`. Production is unchanged: its allowed hosts
+  still come from `DJANGO_SITE_DOMAIN` and `DJANGO_ALLOWED_HOSTS`, and a wildcard there still
+  fails the configuration checks.
 - **django-mvp moves to 0.26, and django-mvp-accounts replaces django-accounts-center.**
   Forms are now drawn by django-mvp-forms as daisyUI components, and the sign-in, sign-up and
   account management pages come from django-mvp-accounts. FairDM's own settings carry all of

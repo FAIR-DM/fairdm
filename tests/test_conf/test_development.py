@@ -24,15 +24,12 @@ class TestDevelopmentDefaults:
 
         assert module.SECRET_KEY == ""
 
-    def test_development_allowed_hosts_is_localhost(
-        self, isolated_env, settings_module
-    ):
+    def test_development_allows_any_host(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "development"
 
         module = settings_module()
 
-        assert "localhost" in module.ALLOWED_HOSTS
-        assert "*" not in module.ALLOWED_HOSTS
+        assert module.ALLOWED_HOSTS == ["*"]
 
     def test_development_allowed_hosts_not_in_production_baseline(
         self, isolated_env, settings_module
@@ -41,7 +38,6 @@ class TestDevelopmentDefaults:
 
         module = settings_module()
 
-        assert "localhost" not in module.ALLOWED_HOSTS
         assert module.ALLOWED_HOSTS == []
 
     def test_thumbnail_debug_is_a_development_override_not_a_baseline_default(
