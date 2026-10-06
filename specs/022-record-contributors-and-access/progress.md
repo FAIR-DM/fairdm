@@ -295,3 +295,11 @@ Did: CreatorCreditMixin.update now also refuses a changed project or dataset tha
 Verified: the stranding-move test failed first with 200 not 400. The editor-move test already passes with the T033 check; to see it red I ran it against the serializer as it was before T033 (4 failed, 2 passed), then restored the file. Green: uv run pytest tests/test_api/test_viewsets.py -q -n0 gave 58 passed; pre-commit passed.
 Next: T035, the parent choices on create.
 Watch: the measurement's sample field is manager-only but needs no stranding check, as a measurement follows its own dataset.
+
+## 2026-10-06T20:09:11Z · Implementer FIX-1 · T035
+
+Did: CreatorCreditMixin.get_fields in fairdm/api/serializers.py gives a record's project, dataset and sample fields the choices the forms use (Project.objects, Dataset.all_objects, Sample.objects, each .accessible_to(user, ContributionLevel.EDIT)); on update the record's current parent stays a choice so a request repeating it is not refused. It sits on the mixin that the base sample and measurement serializers and the generated project and dataset serializers all inherit. Tests in tests/test_api/test_viewsets.py: TestCreatingARecordThroughTheApi for a sample and a measurement (no credit: 400 on dataset, nothing created, no contribution; edit: 201 and listed at manage; view only: 400; visitor: 401) and TestParentChoicesThroughTheApi (a measurement naming a sample the person cannot edit; a dataset serializer carrying project).
+Pre-existing tests changed: TestCreatedRecordsListTheirCreator::test_a_sample_lists_its_creator_at_the_manage_level and test_a_measurement_lists_its_creator_at_the_manage_level created a record in a public dataset the user held nothing on, which is the behaviour this task refuses. Each now credits the user at the edit level on that dataset first; every assertion is kept.
+Verified: the new creation tests failed first with 201 not 400; uv run pytest tests/test_api -q -n0 gave 210 passed; pre-commit passed.
+Next: T036, the project's dataset list and export tabs.
+Watch: the demo's RockSample config lists fields without dataset, so its own endpoint cannot create a record at all (IntegrityError), as SEC-003 notes. Not changed here.

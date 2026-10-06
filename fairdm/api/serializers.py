@@ -5,6 +5,7 @@ from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Model, Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -12,6 +13,7 @@ from rest_framework.fields import get_error_detail
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
 from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.services.crediting import Crediting
 
 # One class per input, or drf-spectacular warns about components with identical names.
@@ -30,6 +32,37 @@ class CreatorCreditMixin:
     """
 
     manager_only_fields = ("visibility", "owner", "project", "dataset", "sample")
+
+    def get_fields(self):
+        """Offer as a parent only the records the requesting user holds the edit level on.
+
+        The same choices the forms give for a project, dataset or sample field, so a record can
+        only be created or moved into a parent the user may edit. A record being updated also
+        keeps its current parent as a choice, so a request that repeats it is not refused.
+
+        Returns:
+            The serializer's fields.
+        """
+        from fairdm.core.models import Dataset, Project, Sample
+
+        fields = super().get_fields()
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        stored = self.instance if isinstance(self.instance, Model) else None
+        for name, manager in (
+            ("project", Project.objects),
+            ("dataset", Dataset.all_objects),
+            ("sample", Sample.objects),
+        ):
+            field = fields.get(name)
+            if not isinstance(field, serializers.RelatedField) or field.read_only:
+                continue
+            choices = manager.accessible_to(user, ContributionLevel.EDIT)
+            current = getattr(stored, f"{name}_id", None)
+            if current is not None:
+                choices = manager.filter(Q(pk__in=choices.values("pk")) | Q(pk=current))
+            field.queryset = choices
+        return fields
 
     def create(self, validated_data):
         """Create the record, then list the requesting user on it at the manage level.

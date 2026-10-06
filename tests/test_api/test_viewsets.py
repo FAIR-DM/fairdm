@@ -1,5 +1,7 @@
 """Tests for FairDM API viewsets (Feature 011 â€” US1)."""
 
+from types import SimpleNamespace
+
 import pytest
 from django.urls import reverse
 
@@ -410,6 +412,8 @@ class TestCreatedRecordsListTheirCreator:
         from fairdm.contrib.contributors.access import RecordAccess
         from fairdm.contrib.contributors.choices import ContributionLevel
 
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        person_at(dataset, ContributionLevel.EDIT, user)
         serializer_class = build_model_serializer(
             RockSample,
             ["name", "dataset", "rock_type", "collection_date"],
@@ -418,7 +422,7 @@ class TestCreatedRecordsListTheirCreator:
         serializer = serializer_class(
             data={
                 "name": "Made by API",
-                "dataset": DatasetFactory(visibility=Visibility.PUBLIC).pk,
+                "dataset": dataset.pk,
                 "rock_type": "igneous",
                 "collection_date": "2024-01-02",
             },
@@ -446,6 +450,7 @@ class TestCreatedRecordsListTheirCreator:
         from fairdm.contrib.contributors.choices import ContributionLevel
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        person_at(dataset, ContributionLevel.EDIT, user)
         serializer_class = build_model_serializer(
             ExampleMeasurement,
             ["name", "dataset", "sample"],
@@ -697,3 +702,142 @@ class TestMovingARecordThroughTheApi:
         assert response.status_code == 200
         moving.record.refresh_from_db()
         assert moving.record.dataset_id == elsewhere.pk
+
+
+@pytest.fixture(params=["sample", "measurement"])
+def creating(request):
+    """A sample or measurement viewset, with a way to build a payload for a dataset."""
+    from types import SimpleNamespace
+
+    from demo.factories import RockSampleFactory
+    from demo.models import ExampleMeasurement, RockSample
+
+    if request.param == "sample":
+
+        def payload(dataset):
+            return {
+                "name": "Made by API",
+                "dataset": dataset.pk,
+                "rock_type": "igneous",
+                "collection_date": "2024-01-02",
+            }
+
+        return SimpleNamespace(
+            model=RockSample, viewset=default_viewset(RockSample), payload=payload
+        )
+
+    def payload(dataset):
+        return {
+            "name": "Made by API",
+            "dataset": dataset.pk,
+            "sample": RockSampleFactory(dataset=dataset).pk,
+        }
+
+    return SimpleNamespace(
+        model=ExampleMeasurement,
+        viewset=default_viewset(ExampleMeasurement),
+        payload=payload,
+    )
+
+
+@pytest.mark.django_db
+class TestCreatingARecordThroughTheApi:
+    def test_an_account_with_no_credit_cannot_create_in_a_public_dataset(
+        self, creating
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.factories import PersonFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        outsider = PersonFactory(is_active=True, is_claimed=True)
+        payload = creating.payload(dataset)
+        before = creating.model._default_manager.count()
+        credits = Contribution.objects.count()
+
+        response = call(creating.viewset, "post", outsider, payload)
+
+        assert response.status_code == 400
+        assert "dataset" in response.data
+        assert creating.model._default_manager.count() == before
+        assert Contribution.objects.count() == credits
+
+    def test_a_person_at_edit_on_the_dataset_creates_and_is_listed_at_manage(
+        self, creating
+    ):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        editor = person_at(dataset, ContributionLevel.EDIT)
+
+        response = call(creating.viewset, "post", editor, creating.payload(dataset))
+
+        assert response.status_code == 201
+        record = creating.model._default_manager.get(name="Made by API")
+        assert record.dataset_id == dataset.pk
+        assert RecordAccess(record).own_level(editor) == ContributionLevel.MANAGE
+
+    def test_a_person_at_view_on_the_dataset_cannot_create(self, creating):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        reader = person_at(dataset, ContributionLevel.VIEW)
+        payload = creating.payload(dataset)
+        before = creating.model._default_manager.count()
+
+        response = call(creating.viewset, "post", reader, payload)
+
+        assert response.status_code == 400
+        assert "dataset" in response.data
+        assert creating.model._default_manager.count() == before
+
+    def test_a_visitor_is_answered_unauthenticated(self, creating):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        response = call(creating.viewset, "post", None, creating.payload(dataset))
+
+        assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestParentChoicesThroughTheApi:
+    def test_a_measurement_cannot_name_a_sample_the_person_cannot_edit(self):
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        editor = person_at(dataset, ContributionLevel.EDIT)
+        foreign = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+
+        response = call(
+            default_viewset(ExampleMeasurement),
+            "post",
+            editor,
+            {"name": "Made by API", "dataset": dataset.pk, "sample": foreign.pk},
+        )
+
+        assert response.status_code == 400
+        assert "sample" in response.data
+        assert not ExampleMeasurement.objects.exists()
+
+    def test_a_dataset_can_only_be_put_in_a_project_the_person_can_edit(self):
+        from fairdm.api.serializers import build_model_serializer
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        reader_of = ProjectFactory(visibility=Visibility.PUBLIC)
+        editor_of = ProjectFactory(visibility=Visibility.PUBLIC)
+        person = person_at(reader_of, ContributionLevel.VIEW)
+        person_at(editor_of, ContributionLevel.EDIT, person)
+        serializer_class = build_model_serializer(Dataset, ["name", "project"])
+
+        def errors_for(project):
+            serializer = serializer_class(
+                data={"name": "New", "project": project.pk},
+                context={"request": SimpleNamespace(user=person)},
+            )
+            serializer.is_valid()
+            return serializer.errors
+
+        assert "project" in errors_for(reader_of)
+        assert "project" not in errors_for(editor_of)

@@ -566,8 +566,24 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCreatingARecordThroughTheApi",
+              "tests/test_api/test_viewsets.py::TestParentChoicesThroughTheApi"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k CreatingARecord (red: 4 failed, 201 not 400; green: 8 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k ParentChoices (red against the serializer as it was: 2 failed; green with the fix)",
+              "uv run pytest tests/test_api -q -n0 (210 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:32"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T036",
