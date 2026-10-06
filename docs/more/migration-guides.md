@@ -3,6 +3,33 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## 022 - Access to a record is a level on its contribution
+
+A project, dataset, sample or measurement is now opened, changed and managed according to the
+level (view, edit or manage) that a person holds on their contribution to it, or to the record
+above it. Permissions stored in django-guardian for those four kinds of record grant nothing any
+more. See [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
+for what each level allows and for what the upgrade does to the permissions your portal holds.
+
+Bringing the database up to date converts them for you. Check your portal's own code for these:
+
+- **`AUTHENTICATION_BACKENDS`**: remove the two backends that passed a dataset's permissions down
+  to its samples and measurements. They lived in `fairdm.core.sample.permissions` and
+  `fairdm.core.measurement.permissions`, and both modules are gone.
+  `fairdm.contrib.contributors.permissions.RecordLevelBackend` is added to FairDM's own list. If
+  your settings build the list themselves, add it after
+  `fairdm.core.permissions.PolymorphicObjectPermissionBackend`.
+- **Granting access in code**: `assign_perm` and `remove_perm`, whether guardian's or the ones in
+  `fairdm.core.utils`, no longer give a person access to a project, dataset, sample or
+  measurement. List the person at a level instead, with
+  `Crediting(record).add(person)` followed by `Crediting(record).update(contribution, roles=[], level=ContributionLevel.EDIT)`.
+- **Listing records a user may act on**: `get_objects_for_user` on those four models no longer
+  finds anything. Use `Dataset.objects.with_level(user, ContributionLevel.VIEW)`, or
+  `accessible_to(user, level)`, which also includes every record for someone a portal role gives
+  the right to change datasets.
+- **Deleting samples and measurements**: this now needs the manage level. Before, the right to
+  change the dataset was enough for samples.
+
 ## The demo application moved to `demo/`
 
 The reference application shipped with FairDM used to live in `fairdm_demo/` and was imported as
@@ -239,6 +266,6 @@ request, including an anonymous one — no permission was declared, and the fram
 undeclared permission as "open to everyone". They now declare `permission = "sample.change_sample"`.
 
 If your portal built its own view, template, or link assuming these surfaces were reachable
-without authorisation, that assumption no longer holds. Grant `sample.change_sample` (directly, or
-by inheritance from `dataset.change_dataset` on the sample's dataset) to whichever users or groups
-should retain access, using `fairdm.core.utils.assign_perm` as shown above.
+without authorisation, that assumption no longer holds. Give the people who should retain access
+the edit level on the sample or on its dataset, on the Contributors tab. See
+[022 - Access to a record is a level on its contribution](#022-access-to-a-record-is-a-level-on-its-contribution).

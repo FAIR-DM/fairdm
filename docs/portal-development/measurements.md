@@ -323,8 +323,9 @@ class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
 
 - A Select2 autocomplete widget for `dataset`, with an "add another" link to the
   dataset admin
-- The `dataset` queryset scoped to datasets the requesting user holds
-  `change_dataset` on, when the form is built with `request=...`
+- The `dataset` queryset scoped to datasets the requesting user holds the edit level on, when
+  the form is built with `request=...`. For a measurement that already exists the `dataset` field
+  is left out unless the user can manage the measurement
 - A Select2 autocomplete widget for `sample`
 - A crispy-forms `FormHelper` (`form_tag = False`, so the surrounding page
   supplies the `<form>` tag)
@@ -460,22 +461,23 @@ major = XRFMeasurement.objects.major_elements().with_related()
 
 ## Step 6: Permission Configuration
 
-Measurements inherit permissions from their parent dataset. Permission configuration is deferred to Feature 007, but here's the planned structure:
+Who may open, change and manage a measurement is decided by the level a person holds on it:
+view, edit or manage, each including the one before. A person holds a level on a measurement by
+being listed on its Contributors tab, or by holding one on its dataset or that dataset's project.
+A measurement follows its own dataset, not the dataset of the sample it was made on.
+
+`fairdm.contrib.contributors.permissions.RecordLevelBackend` answers every `user.has_perm()` call
+about a measurement, whatever its registered type, so your measurement type needs no permission
+configuration of its own:
 
 ```python
-# Future: Custom permission backend (Feature 007)
-from fairdm.core.measurement.permissions import MeasurementPermissionBackend
-
-# Measurements inherit from dataset:
-# - view_dataset → view_measurement
-# - change_dataset → change_measurement
-# - delete_dataset → delete_measurement
+user.has_perm("measurement.change_measurement", measurement)   # edit level or above
+user.has_perm("myapp.view_xrfmeasurement", measurement)        # read as view_measurement
 ```
 
-**Current behavior:**
-
-- Django model-level permissions work (`user.has_perm('myapp.view_xrfmeasurement')`)
-- Object-level permissions deferred to Feature 007
+A permission your measurement type declares itself is refused until it is added to the table of
+levels. See [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
+for what each level allows.
 
 ## Complete Example: Putting It All Together
 

@@ -51,7 +51,10 @@ class RockSampleForm(SampleFormMixin, forms.ModelForm):
 
 **Dataset filtering by permission**: `SampleFormMixin.__init__` takes a `request` keyword
 argument, not a `user`. When it is given a request carrying an authenticated user, the `dataset`
-field's queryset narrows to the datasets that user holds `dataset.change_dataset` on. Given no
+field's queryset narrows to the datasets that user holds at least the edit level on (a portal role
+that can change every dataset offers all of them). For a sample that already exists the `dataset`
+field is left out of the form unless the user can manage the sample, so an editor cannot move it.
+Given no
 request, or a request with no authenticated user, the queryset is `Dataset.objects.none()` — a
 form that has authorised nobody proposes no dataset, rather than guessing:
 
@@ -446,8 +449,12 @@ from datetime import date
 @pytest.mark.django_db
 def test_rock_sample_form_valid_data(rf, user, dataset):
     """Test form with valid data. `rf` is pytest-django's RequestFactory fixture."""
-    from guardian.shortcuts import assign_perm
-    assign_perm("dataset.change_dataset", user, dataset)
+    from fairdm.contrib.contributors.choices import ContributionLevel
+    from fairdm.factories import ContributionFactory
+
+    ContributionFactory(
+        content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+    )
 
     request = rf.post("/")
     request.user = user

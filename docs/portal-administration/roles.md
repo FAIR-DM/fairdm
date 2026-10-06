@@ -97,6 +97,27 @@ is active, or who owns, administers or belongs to an organization. The rights a 
 unchanged by this: the Community Manager's right here follows from the role itself, not from the
 `change_person` and `change_organization` permissions it also holds.
 
+## Portal roles and the levels on a record
+
+A portal role applies to every record of a kind in the portal. A level (view, edit or manage) is
+held on one project, dataset, sample or measurement, by a person who is listed on it as a
+contributor or on the record above it, and decides what they may do there. The two work together
+and neither takes anything from the other:
+
+- A Data Curator holds the right to view and change every project, dataset, sample and measurement,
+  and so opens, edits and manages the contributors of any record without being listed on it.
+  Doing so does not add them to the record or mark the change as theirs.
+- A person who holds a level on a record and also holds a portal role has everything either gives
+  them.
+- The portal roles do not change what any level allows. Holding the Community Manager, Portal
+  Administrator or Developer role gives no right over a record.
+- Being a member, administrator or owner of an organization that is credited on a record gives no
+  access to it. Neither does being credited from an organization elsewhere.
+
+People who manage a record set levels themselves, on its **Contributors** tab, so a portal
+administrator is never asked to grant access to a record. See
+[Managing Users and Permissions](managing_users_and_permissions.md) for the levels.
+
 ## Holding more than one role
 
 A person can hold more than one of these roles at once, and their rights are everything those

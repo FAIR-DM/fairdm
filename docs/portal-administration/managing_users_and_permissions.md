@@ -7,7 +7,7 @@
 This page covers user and permission management for portal administrators. If you landed here from a search, start with the [Admin Guide overview](index.md) to understand the admin role and core entities.
 ```
 
-As a portal administrator, you control who can access and modify data in your FairDM portal. FairDM uses Django's built-in permissions system combined with [django-guardian](https://django-guardian.readthedocs.io/) for object-level permissions, allowing you to grant fine-grained access control at the project and dataset level.
+As a portal administrator, you control who can access and modify data in your FairDM portal. Two things decide it: the portal roles a person holds, which apply across the whole portal, and the level a person holds on each project, dataset, sample or measurement they are listed on as a contributor. Both are explained below. FairDM still uses [django-guardian](https://django-guardian.readthedocs.io/) for stored permissions on organizations and on any model your own portal defines.
 
 ## User Management Basics
 
@@ -25,105 +25,136 @@ Users can create their own accounts if self-registration is enabled in your port
 
 ### User Roles
 
-FairDM ships four portal roles — Portal Administrator, Data Curator, Community Manager and
-Developer — declared in code and installed into your portal automatically. See
+FairDM ships four portal roles (Portal Administrator, Data Curator, Community Manager and
+Developer), declared in code and installed into your portal automatically. See
 [Portal roles](roles.md) for what each one holds. You assign a role to a person on their own
 record's **Groups** field, through the Django admin interface.
 
-## Object-Level Permissions
+## Access to a record
 
-### Project and Dataset Access
+### Levels
 
-FairDM uses object-level permissions to control access to individual projects and datasets. This allows you to:
+Access to a project, dataset, sample or measurement is a level held by a person listed as a
+contributor on it: view, edit or manage. Each level includes the one before it.
 
-- Grant specific users or groups access to view or edit a particular dataset
-- Restrict sensitive datasets to authorized collaborators only
-- Enable public read access while restricting editing to project members
+| Level | What the person may do |
+|---|---|
+| View | Open the record and every page of it, even while it is private. |
+| Edit | Also change the record and the data in it. |
+| Manage | Also change its contributors and their levels, change its visibility and delete it. |
 
-### Permission Types
+A level on a project applies to every dataset in it and to the samples and measurements in them,
+and a level on a dataset applies to its samples and measurements. Where a person holds a level on
+a record and another from a record above, the higher applies. A record's visibility decides who
+may open it without holding a level: a public record opens to everyone, and a private one only to
+people who hold a level on it, directly or from above, and to holders of a portal role whose
+rights cover it.
 
-For each project or dataset, you can assign:
+People who manage a record set levels themselves, on its **Contributors** tab, and nobody needs to
+ask an administrator. See [Crediting a record](../user-guide/crediting-a-record.md) for how.
+An administrator does not grant access to a record in the administration interface: a permission
+stored for a project, dataset, sample or measurement there, for a person or for a group, grants
+nothing. Membership of an organization, or owning one, gives no access to a record either.
 
-- **View permission**: User can see the object and its metadata
-- **Change permission**: User can edit the object and its metadata
-- **Delete permission**: User can remove the object (use carefully)
-- **Add permission**: User can create new child objects (e.g., samples within a dataset)
+### How levels and portal roles work together
 
-### Samples, Measurements and Other Polymorphic Records
+A portal role applies to every record of a kind, whoever is listed on it. The Data Curator role
+holds the right to view and change every project, dataset, sample and measurement, so a Data
+Curator opens and edits any record and manages its contributors without being listed. Levels apply
+record by record. A person who holds both has everything either gives them. Portal roles never
+change what a level allows, and a level never gives a person any right over other records. See
+[Portal roles](roles.md).
 
-Samples and measurements are polymorphic — a `RockSample` is stored as its own database row but
-the rights that govern it (`sample.view_sample`, `sample.change_sample`, and so on) are declared
-on the shared `Sample` record, not on `RockSample` itself. The admin's own **Object permissions**
-section on a sample or measurement page handles this correctly. Custom code that grants or checks
-these rights does not, if it calls django-guardian directly:
+### Samples, measurements and other polymorphic records
+
+Contributors, and models your own portal defines, can still carry permissions stored through
+django-guardian. If your portal's own code grants or checks one on a polymorphic record such as an
+`Organization`, use the helpers in `fairdm.core.utils` rather than guardian's own functions:
 
 ```python
-# Wrong: files the grant under RockSample's own content type, where
-# sample.change_sample is never looked for
+# Wrong: files the grant under the subclass's own content type, where
+# the permission declared on the base is never looked for
 from guardian.shortcuts import assign_perm
-assign_perm("change_sample", user, rock_sample)
+assign_perm("change_contributor", user, organization)
 
-# Right: normalises rock_sample to the record that actually owns the permission
+# Right: normalises the record to the one that actually owns the permission
 from fairdm.core.utils import assign_perm
-assign_perm("change_sample", user, rock_sample)
+assign_perm("change_contributor", user, organization)
 ```
 
-`fairdm.core.utils` provides `assign_perm`, `remove_perm`, `get_perms` and
-`get_objects_for_user` as drop-in replacements for the same-named guardian functions. Use them
-whenever your portal's own code — a management command, a signal receiver, a data migration —
-grants or checks a permission on a sample, a measurement, or a contributor (`Organization` and
-`Person` are polymorphic too). They are safe to use against a plain, non-polymorphic record as
-well, since they only normalise the object when the permission being checked actually needs it.
+`fairdm.core.utils` provides `assign_perm`, `remove_perm`, `get_perms` and `get_objects_for_user`
+as drop-in replacements for the same-named guardian functions. They are safe to use against a
+plain, non-polymorphic record as well, since they only normalise the object when the permission
+being checked actually needs it. Do not use them to give a person access to a project, dataset,
+sample or measurement: list the person as a contributor at the level they need instead.
 
-## Example: Granting Access to a Dataset
+## Upgrading from stored record permissions
 
-To grant a user access to a specific dataset:
+Earlier versions of FairDM gave access to a record through permissions stored in django-guardian,
+granted when a project or dataset was created or by hand in the administration interface. Bringing
+a portal up to date converts them once, so that nobody who could do something with a record can
+do less afterwards:
 
-1. Navigate to the dataset's detail page in the admin interface
-2. Scroll to the **Object permissions** section
-3. Click **Add user permissions** or **Add group permissions**
-4. Select the user or group
-5. Check the appropriate permissions (e.g., "Can view dataset", "Can change dataset")
-6. Click **Save**
+- Each stored permission, for a person or for a group, on a project, dataset, sample or
+  measurement, of any registered sample or measurement type, is mapped to a level. Permissions to
+  view map to view, to add or change the record or its data, import data or edit its metadata map
+  to edit, and to delete it, change its settings, publish it or change its contributors map to
+  manage. A person gets the highest level their permissions map to on a record.
+- A person who held permissions over a record without being listed on it is now listed on it,
+  with no roles. A group's permissions become a level for each person who is a member of the group
+  at the time of the upgrade.
+- A person already listed on a record who held no permissions over it is at the view level.
+- An organization already recorded with a person's entry on a record is kept as the organization
+  they are credited from, and is listed among the record's organizations. An entry that had none
+  is left with none.
+- The stored permissions that were converted are then deleted. Permissions stored for an
+  organization or for a model your portal defines are left alone.
 
-The user will now have the specified access to that dataset.
+The upgrade runs with the rest of `manage.py migrate`, and runs without trouble on a portal that
+has no stored permissions. It does not reverse: taking a portal back to an earlier version leaves the levels in
+place and does not restore the stored permissions.
 
-## Example: Restricting Dataset Access
+One thing is stricter than before. Someone who held only the right to change a dataset could delete
+its samples. Deleting a sample or a measurement now needs the manage level on it, or on its dataset
+or project. Anyone who relied on that, such as data-entry staff, needs the manage level on the
+dataset.
 
-By default, datasets may be visible to all authenticated users depending on your portal configuration. To restrict a dataset:
+## Example: Letting a colleague into a dataset
 
-1. Go to the dataset in the admin interface
-2. In the **Object permissions** section, review who currently has access
-3. Remove permissions for "All users" or specific users/groups as needed
-4. Add permissions only for authorized users or groups
-5. Click **Save**
+Ask someone who manages the dataset to open its **Contributors** tab and add your colleague. They
+can then open the dataset. To let them change it, the same person edits their entry and chooses
+the **Edit** level. To close the dataset to them again, they remove the entry.
 
-```{seealso}
-For a complete walkthrough of adjusting dataset access, see [Adjusting Dataset Access](adjusting_dataset_access.md).
-```
+## Example: Restricting a dataset
+
+Set the dataset's visibility to private on its update page, which needs the manage level or a
+portal role that holds the right to change datasets. Then only the people listed on it, or on its
+project, and the holders of such a role, can open it. See [Adjusting dataset
+access](adjusting_dataset_access.md).
 
 ## Best Practices
 
-- **Use groups over individual permissions**: Assign users to groups (e.g., "Project A Team") and grant permissions to the group rather than individual users. This makes permission management scalable.
-- **Review permissions regularly**: Periodically audit who has access to sensitive datasets, especially when team members leave or change roles.
-- **Enable public read access thoughtfully**: For FAIR compliance, you may want to make datasets publicly readable once they're published, while keeping editing restricted to the research team.
-- **Document your permission policies**: Maintain clear internal documentation about who should have access to what, especially for multi-project portals.
+- **Give the lowest level that does the job**: View for readers, edit for people who change the data, manage for the few who decide who else is let in.
+- **Give a project's level to the team that runs it**: A level on a project reaches every dataset in it, so one entry covers a whole team's work.
+- **Review who is listed regularly**: Periodically read the Contributors tab of sensitive records, especially when team members leave or change roles.
+- **Enable public read access thoughtfully**: For FAIR compliance, you may want to make datasets public once they are published, while keeping editing restricted to the research team.
+- **Document your access policies**: Maintain clear internal documentation about who should have access to what, especially for multi-project portals.
 
 ## Troubleshooting
 
 **User can't see a dataset they should have access to:**
 
-- Verify the user is assigned the correct permissions in the admin interface
+- Check that the person is listed on the dataset, or on its project, on the Contributors tab, and that they hold a level there
 - Check if the dataset itself has visibility restrictions (e.g., marked as private)
-- Ensure the user is logged in and their account is active
+- Ensure the user is logged in and their account is active. A level set for a person without an active account takes effect when the account is active
 
 **User can edit data they shouldn't have access to:**
 
-- Review object-level permissions for the dataset or project
+- Read the Contributors tab of the dataset and of its project for the level the person holds
 - Check if the user holds the Data Curator role, which reaches every project, dataset, sample
   and measurement in the portal by design (see [Portal roles](roles.md))
-- Remove unnecessary permissions and document the access policy
+- Lower or remove their entry, and document the access policy
 
 ```{note}
-For advanced permission scenarios, consult the [django-guardian documentation](https://django-guardian.readthedocs.io/) and consider reaching out to the FairDM community for guidance.
+For permissions stored on organizations or on models your portal defines, consult the [django-guardian documentation](https://django-guardian.readthedocs.io/).
 ```

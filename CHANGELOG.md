@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
+  `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
+  dataset's stored permissions down to its samples and measurements. A level on a dataset now
+  reaches them, through `RecordLevelBackend`. A portal that names either backend in its own
+  `AUTHENTICATION_BACKENDS` removes it.
+- The receiver that withdrew a person's stored permissions when their credit was deleted. The
+  level is on the credit and goes with it.
+- `give_level` in `demo/seed/common.py`. `grant_team_rights` lists the account at the manage level.
 - `Contribution.set_default_affiliation`. A contribution made without an organization holds none
   and is no longer given the person's primary affiliation. The Contributors tab selects the primary
   affiliation to begin with, and `Contribution.add_to()`, `Contributor.add_to()` and
@@ -109,6 +117,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Permissions stored in django-guardian for a project, dataset, sample or measurement grant
+  nothing.** Bringing a portal up to date converts them once. Each permission of a person, and of
+  each current member of a group, is mapped to a level (view, add or change, and delete or manage
+  map to view, edit and manage) and the person is listed on the record at the highest level their
+  permissions map to, under the record's own type. Contributors with no permissions are given the
+  view level, an organization already stored with a person's entry is kept and listed on the
+  record, and the converted permissions are deleted. Permissions stored for organizations and for
+  models a portal defines are untouched. The conversion does not reverse.
+- **Creating a project or dataset, or a sample or measurement through the API, lists the creator
+  at the manage level** and stores no permission. A superuser who creates one is not listed.
+- **Deleting a sample or a measurement now needs the manage level** on it, on its dataset or on its
+  project. The right to change a dataset used to be enough for a sample.
+- On the update forms of a project, dataset, sample and measurement, visibility and the record it
+  sits under (a project's owner, a dataset's project, a sample's or measurement's dataset) are
+  offered only to someone who can manage the record. For anyone else they are left out of the
+  form, so a request cannot change them.
+- The dataset choices on the sample and measurement forms and the measurement filter, the project
+  choices on the dataset filter, and the count of other datasets in a project on a dataset's page
+  read levels in place of stored permissions.
+
 - Deleting an organization no longer fails while a contribution names it as the organization a
   person is credited from. `Contribution.affiliation` is set to none, and the person stays on the
   record. The migration changes the column's `on_delete` and no data.
@@ -182,6 +210,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breadcrumbs show the full name of each page** instead of a shortened one.
 
 ### Added
+
+- **Access to a project, dataset, sample or measurement is a level on a person's contribution**:
+  view, edit or manage, each including the one before it. `RecordLevelBackend`
+  (`fairdm.contrib.contributors.permissions`) answers every permission question about these
+  records from the levels, reading up through the dataset and the project, so a level on a dataset
+  reaches its samples and measurements and a level on a project reaches its datasets. Every
+  permission the four models declare is mapped to a level, and a permission the table does not
+  know is refused. `with_level(user, level)` on the four querysets lists the records a user holds
+  at least a level on, and `accessible_to(user, level)` adds every record for someone a portal
+  role gives the right to change datasets. `Crediting.update` takes a `level`, refusing one
+  below what the person holds from above with the code `below_inherited`, and
+  `Crediting.make_creator` lists whoever made a record at the manage level.
+- The Contributors tab, and every page of it, opens exactly when the record's overview does, and
+  shows what each person may do to people who can manage the record only.
+- A person credited with `Contribution.add_to()`, `Contributor.add_to()` or `add_contributor()`
+  for the first time starts at the view level.
+- `ManagerOnlyFieldsMixin` in `fairdm.core.forms`, and `CreatorCreditMixin` in
+  `fairdm.api.serializers`.
+- A data migration, `contributors.0024_levels_from_stored_permissions`, which turns the permissions
+  stored for projects, datasets, samples and measurements into levels. See Changed.
 
 - The pages for adding a person and adding an organization to a record offer three ways side by
   side: someone already in the portal, someone looked up in ORCID or ROR, and someone entered by

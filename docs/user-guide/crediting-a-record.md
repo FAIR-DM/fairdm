@@ -13,20 +13,68 @@ its people and organizations in, its citation included.
 
 The search box above the lists narrows both by name. A list with nobody in it says so.
 
-Anyone who may open a record may open its Contributors tab. Only people who manage the record are
-offered anything for changing it. Everyone else sees the two lists and nothing more, and a request
-for one of the changing pages is refused: a visitor is sent to sign in, and a signed-in person who
-does not manage the record is told they may not.
+The Contributors tab opens exactly when the record's overview does. A private record's tab, and
+every page of it, answers anyone who may not open the record as if the record did not exist. Only
+people who manage the record are offered anything for changing it. Everyone else who may open the
+record sees the two lists and nothing more, and a request for one of the changing pages is
+refused: a visitor is sent to sign in, and a signed-in person who does not manage the record is
+told they may not.
+
+## What each level allows
+
+Each person listed on a record holds one level, and each level includes the ones before it.
+
+| Level | What the person may do |
+|---|---|
+| View | Open the record and every tab and page of it, even while it is private. |
+| Edit | Also change the record and the data in it: its details, descriptions, dates, identifiers and keywords, and the samples and measurements in a dataset. |
+| Manage | Also change the record's contributors and their levels, change its visibility and the record it sits under, publish it and delete it. |
+
+A contribution role says how a person took part. It never gives or takes away a level, and
+changing a person's roles leaves their level as it was.
+
+An organization holds no level. Being a member, administrator or owner of an organization that is
+credited on a record gives no access to it, and neither does being credited from one.
+
+### Levels reach the records beneath
+
+A level on a project applies to every dataset in it, and to the samples and measurements in those
+datasets. A level on a dataset applies to its samples and measurements. A level never reaches the
+record above: a person listed only on a dataset can open that dataset and cannot open, edit or
+manage its project, even when the project is private.
+
+A person who is listed on a record and also holds a level from the record above holds the higher
+of the two. The Contributors tab shows a person who manages a record everyone who holds a level on
+it from a record above, with the level and the record it comes from. Those levels are changed on
+the record above, not here, and the tab does not let you lower one of them.
 
 ## Who may change the contributors
 
 A person manages a record when they hold the manage level on it, or on the record above it: a
 project's managers manage its datasets, and a dataset's managers manage its samples and
 measurements. People who can change every record of that kind in the portal, such as a Data
-Curator, manage them too.
+Curator, manage them too, without being listed.
 
 A person who can edit a record, and one who can only view it, cannot add, edit or remove a
-contributor.
+contributor. Only people who manage a record see what level anyone holds on it.
+
+## Letting a colleague into a private record
+
+1. Open the private record's **Contributors** tab. You need to manage it.
+2. Choose **Add person** and add your colleague. They start at the view level, so they can open the
+   record and cannot change it.
+3. To let them change the record, choose **Edit** beside them, choose the **Edit** level and save.
+   Choose **Manage** to let them manage the contributors too.
+4. To close the record to them again, choose **Remove** beside them. Unless they hold a level on
+   the record above, they are treated like any other signed-in person who is not a contributor,
+   and the private record answers them as if it did not exist.
+
+A level can be set for a person who has no active account yet. It is kept and takes effect when
+their account is active, and the tab tells you that it has not taken effect yet.
+
+Whoever creates a project or a dataset in the portal is listed on it at the manage level, with the
+roles Creator, Project member and Contact person. A superuser who creates one is not listed,
+because a superuser cannot be a contributor.
 
 ## Adding a person or an organization
 
@@ -40,9 +88,10 @@ The page offers the three ways side by side as tabs. Moving between them does no
 and what you typed or found in one is still there when you come back. A search stays on the tab you
 searched in, and each tab keeps its own search.
 
-A person who is added can view the record and nothing more. Their contribution roles say how they
-took part and give them no access. Organizations are credited only: they hold no access, and their
-members gain none from the credit. Nobody is invited or emailed when they are added.
+A person who is added holds the view level and nothing more, so on a private record they can open
+it and cannot change it. Their contribution roles say how they took part and give them no access.
+Organizations are credited only: they hold no access, and their members gain none from the credit.
+Nobody is invited or emailed when they are added.
 
 Superusers cannot be credited as contributors. If you choose one, the page tells you so and adds
 nobody.
@@ -121,7 +170,8 @@ Only that changes. Their roles and what they may do on the record stay as they w
 Choose **Edit** beside a contributor. The roles offered are the ones the portal groups for that
 kind of record, so a dataset offers different roles from a sample. Tick the roles that describe
 what the contributor did and save. For a person the same page sets the organization they are
-credited from and what they may do on the record, and all of it is saved together.
+credited from and their level, and all of it is saved together. The level cannot be set below what
+the person holds from a record above. No level is offered for an organization.
 
 A contributor does not need a role. One who has none is listed without one. Changing a
 contributor's roles never changes what they may do on the record.

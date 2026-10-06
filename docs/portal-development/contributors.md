@@ -634,22 +634,20 @@ fill_slots(list(range(12)), 10, reserve=True)
 # {"shown": [0, 1, 2, 3, 4, 5, 6, 7, 8], "more": 3, "total": 12}
 ```
 
-### Deleting a Credit Withdraws Rights - Creating One Grants None
+### A Level Goes With Its Credit
 
-Deleting a person's credit on an object withdraws every object-level right that person
-holds over that object, whether the credit is deleted on the instance or in bulk through
-a queryset (FR-036). **Creating a credit with `Contribution.add_to()` or
-`Contributor.add_to()` grants nothing**: it leaves the credit's `level` empty and confers no
-permission by itself, so there is no corresponding grant to mirror the withdrawal. A
-portal that wants a credited contributor to also gain a right over the object must grant
-it separately, or credit them with `Crediting`, which gives a person the view level (see
-[The Contributors tab](#the-contributors-tab)).
+What a person may do on a record is the level on their credit, so deleting the credit, on the
+instance or in bulk through a queryset, withdraws everything the person held through being listed
+on it. Nothing else is stored, and nothing needs undoing.
 
-Deleting the credited object itself is the one case where nothing is withdrawn: the
-project or dataset row is gone before its credits are removed, so there is no object left
-to hold a right over. Rights recorded against a deleted object are cleared by
-django-guardian's `clean_orphan_obj_perms` management command, which is worth scheduling
-on any portal that deletes records regularly.
+Crediting a person for the first time with `Contribution.add_to()`, `Contributor.add_to()` or
+`add_contributor()` starts them at the view level, as adding them from the Contributors tab does.
+An organization starts with no level. Crediting a person who is already credited adds the roles and
+leaves their level as it is. `Contribution.starting_level(contributor)` returns the level a first
+credit starts at.
+
+A permission stored with django-guardian for a project, dataset, sample or measurement grants
+nothing. See [Levels](#levels).
 
 ### Supported Content Types
 
@@ -705,6 +703,81 @@ samples and measurements. A measurement follows its own dataset, not its sample'
 `REQUIRED_LEVEL` in `fairdm.contrib.contributors.access` maps each permission a core record type
 declares to the level that carries it.
 
+#### Which permission means which level
+
+Every permission a core record type declares is mapped, so none is left that nothing checks.
+
+| Level | Permissions on the record |
+|---|---|
+| View | `view_<model>` |
+| Edit | `change_<model>`, `add_<model>`, `import_data`, `modify_metadata`, `change_<model>_metadata` |
+| Manage | `delete_<model>`, `add_contributor`, `modify_contributor`, `change_<model>_settings`, `can_publish` |
+
+`RecordAccess(record).required_level(perm)` returns the level a permission needs on the record, or
+None for a permission the table does not know, which is refused. A registered type's own default
+permissions, such as `demo.view_rocksample` on a rock sample, are read as the core model's. A
+permission your own record type adds to its `Meta.permissions` must be added to `REQUIRED_LEVEL`
+with the level that carries it, or it is refused.
+
+#### `RecordLevelBackend`
+
+`fairdm.contrib.contributors.permissions.RecordLevelBackend` is in `AUTHENTICATION_BACKENDS` and is
+the one decision behind every `user.has_perm(perm, record)` about a project, dataset, sample or
+measurement, of any registered type. It grants a permission when the user's level on the record,
+or from a record above it, is at least the level the permission needs, and it refuses an inactive
+user and a visitor. For any other object, or a question with no object, it returns False and the
+other backends answer.
+
+```python
+user.has_perm("dataset.change_dataset", dataset)       # edit level or above
+user.has_perm("demo.delete_rocksample", rock_sample)   # manage level or above
+```
+
+`PolymorphicObjectPermissionBackend` returns False for these four kinds of record, so a row that
+django-guardian stores for one grants nothing. It still answers for organizations and for any
+model your portal defines. The two backends that passed a dataset's rows down to its samples and
+measurements are removed, together with their modules `fairdm.core.sample.permissions` and
+`fairdm.core.measurement.permissions`: delete them from your own `AUTHENTICATION_BACKENDS` if it
+names them.
+`PortalRolePermissionBackend` is unchanged, so a portal role's rights still apply to every record
+of a kind without the holder being listed.
+
+#### `with_level`
+
+The querysets of the four core models get `with_level(user, level)` from
+`fairdm.core.managers.RecordLevelMixin`, which `ProjectQuerySet`, `DatasetQuerySet`,
+`SampleQuerySet` and `MeasurementQuerySet` mix in. `with_level` keeps the records the user holds
+at least that level on, on the record itself or from a record above it, in one query.
+`accessible_to(user, level)` is the same and also keeps every record for someone the portal gives
+the matching right for the whole model (`view` for the view level, `change` above it), as a
+superuser or a Data Curator has. Choice lists and filters offer what `accessible_to` returns.
+
+```python
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.dataset.models import Dataset
+
+Dataset.all_objects.with_level(request.user, ContributionLevel.EDIT)    # datasets the user may edit
+Dataset.all_objects.accessible_to(request.user, ContributionLevel.EDIT)
+Sample.objects.visible_to(request.user)    # released samples, and those the user holds a level on
+```
+
+`visible_to` on the sample and measurement querysets is the released records plus
+`with_level(user, VIEW)`, and keeps its rule that a user who holds `view_dataset` or
+`change_dataset` for the whole portal sees everything. A person listed only on one sample sees that
+sample and not the others in its dataset. Use these querysets from your own views and filters in
+place of django-guardian's `get_objects_for_user`, which finds nothing for these four models.
+
+#### Forms for existing records
+
+On the update forms of a project, dataset, sample and measurement, the fields that decide who gets
+in (a project's visibility and owner, a dataset's visibility and project, a sample's or
+measurement's dataset) are offered only to someone who can manage the record, and are left out for
+anyone else, so an editor's request cannot change them. `ManagerOnlyFieldsMixin` in
+`fairdm.core.forms` does it: list the field names in `manager_only_fields` and call
+`withhold_manager_only_fields(request)` once the form's fields exist. `ProjectForm` takes the
+request as a `request` keyword. A form for a record that does not exist yet leaves nothing out.
+`SampleFormMixin` and `MeasurementFormMixin` already do this for `dataset`.
+
 ### Asking what a person may do: `RecordAccess`
 
 A page of your own asks through `RecordAccess(record)`, which takes a project, dataset, sample or
@@ -726,6 +799,9 @@ level, source = access.level_from_above(person)   # and the record it comes from
 access.people_above()              # (person, level, source) for everyone holding one from above
 access.managers()                  # ids of people who can sign in and hold manage here or above
 access.kind                        # "sample", whatever registered type the record is
+access.required_level("sample.change_sample")     # the level a permission needs: EDIT
+RecordAccess.is_core_record(obj)   # a project, dataset, sample or measurement, of any type
+RecordAccess.is_core_model(Sample) # the model itself, not a registered subtype
 ```
 
 `level_of` answers None for a visitor, an inactive user and anyone who holds no level, and reads
@@ -760,6 +836,8 @@ crediting.offered_roles()                        # the concepts the dataset's ro
 crediting.update(contribution, roles=crediting.offered_roles()[:2])
 crediting.update(contribution, roles=[], organization=institute)  # credited from the institute
 crediting.update(contribution, roles=[], organization=None)       # credited from none
+crediting.update(contribution, roles=[], level=ContributionLevel.EDIT)  # and what they may do
+crediting.make_creator(user, roles=["Creator"])  # at the manage level, for whoever just made the record
 crediting.credited_from()                        # organization id to the people credited from it here
 crediting.remove(contribution)                   # and the level goes with it
 ```
@@ -769,11 +847,25 @@ crediting.remove(contribution)                   # and the level goes with it
 | `add` | the contributor is already listed | `duplicate` |
 | `add` | the contributor is a superuser, who cannot be credited | `superuser` |
 | `update` | a role is not in the group the record's type offers | `role_not_offered` |
+| `update` | the level is below what the person holds from a record above | `below_inherited` |
 | `remove` | the contribution is an organization that people on the record are credited from | `credited_from` |
 
-`update` replaces the roles and leaves the level as it is: a contribution role carries no rights.
-`offered_roles()` returns the roles the vocabulary groups for the record's type, in the
+`update` replaces the roles and sets the level when one is given: leave `level` out and it stays as it
+is, because a contribution role carries no rights. A level is ignored for an organization. When
+both a role and the level are refused the error holds both, in its `error_list`, and nothing is
+saved. `offered_roles()` returns the roles the vocabulary groups for the record's type, in the
 vocabulary's order.
+
+`make_creator(user, roles=())` lists the person who made a record at the manage level, with the
+named roles, or raises an existing entry to it. The project and dataset create pages call it, and
+so do the API's serializers for projects, datasets, samples and measurements, through
+`fairdm.api.serializers.CreatorCreditMixin`. For a superuser it does nothing, because a superuser
+cannot be credited, and the create still succeeds. Call it from your own page that makes a record
+in place of granting the creator permissions.
+
+`level_choices(record, floor=None)` in `fairdm.contrib.contributors.plugins.shared` returns the
+three levels as the edit page draws them, each with its label and a hint that names the record's
+kind, and marks as disabled those below `floor`, the level the person holds from above.
 
 The organization argument of `update` has three meanings. Leaving it out, or passing `UNCHANGED`,
 leaves the organization as it is. An organization sets it, and `None` sets it to none. It applies to

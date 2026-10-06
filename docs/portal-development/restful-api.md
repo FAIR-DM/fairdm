@@ -48,7 +48,7 @@ Core model endpoints are also available:
 }
 ```
 
-The `count` field reflects only records visible to the requesting user (public records for anonymous users, additional private records for authenticated users with guardian permissions).
+The `count` field reflects only records visible to the requesting user (public records for anonymous users, additional private records for authenticated users who hold a level on them).
 
 ## Interactive Documentation
 
@@ -109,22 +109,24 @@ FairDM's API enforces the same object-level permission model as the web interfac
 | Authenticated GET on private object without view perm | 404 Not Found |
 | Authenticated PATCH on public object without change perm | 403 Forbidden |
 | Authenticated PATCH on private object without any perm | 404 Not Found |
-| Owner (has guardian perms) on any operation | 200/201/204 OK |
+| Creator, or anyone at the manage level, on any operation | 200/201/204 OK |
 
 Non-disclosure (404 instead of 403) is used for unauthorized access to detail endpoints to avoid leaking whether a private object exists.
 
 ### Permission Assignment on Create
 
-When you create an object via the API, FairDM's `ObjectPermissionsAssignmentMixin` automatically assigns guardian object permissions (`view_*`, `change_*`, `delete_*`) to the requesting user, making the creator the object owner.
+When you create a project, dataset, sample or measurement via the API, the requesting user is
+listed on it at the manage level, which makes them its creator. A superuser who creates one is not
+listed, because a superuser cannot be a contributor. No django-guardian permission is stored.
 
 ```{note}
-This is the API's own permission assignment path, separate from the `fairdm.core.utils` helpers
-described in [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md).
-If you are writing portal code outside the API — a management command, a signal receiver, a data
-migration — that grants or checks a permission on a sample, a measurement, or a
-contributor/organization programmatically, use those helpers rather than calling
-`django-guardian` directly: those records are polymorphic, and a raw guardian call files or looks
-for the grant under the wrong content type.
+For any other model, the serializer still assigns stored guardian permissions (`view_*`,
+`change_*`, `delete_*`) to the requesting user. If you are writing portal code outside the API that
+grants or checks one of those on a contributor or organization programmatically, use the
+`fairdm.core.utils` helpers described in
+[Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
+rather than calling `django-guardian` directly: those records are polymorphic, and a raw guardian
+call files or looks for the grant under the wrong content type.
 ```
 
 ## Customizing Serializer Fields

@@ -282,9 +282,10 @@ citation, the location and the related samples.
   relates to this sample.
 
 **Who can open it.** A sample follows its own dataset. Its page opens for everyone once that
-dataset is public and published. Before then it opens only for a user who holds `view_dataset` or
-`change_dataset` on the dataset, and anyone else gets a "not found" response, so the address never
-confirms the sample exists.
+dataset is public and published. Before then it opens only for a person who holds a level on the
+sample, or on its dataset or that dataset's project, and for a holder of a portal role that can
+view every dataset. Anyone else gets a "not found" response, so the address never confirms the
+sample exists.
 
 The same rule applies to each record the page lists. A measurement or a related sample in another
 dataset is shown only when the viewer may see that dataset. One they may not see is counted and
@@ -335,8 +336,9 @@ People, Identifiers, the citation and the location of the sample.
 
 **Who can open it.** A measurement follows its own dataset, not its sample's. Its page opens for
 everyone once the measurement's dataset is public and published, whatever the state of the sample's
-dataset. Before then it opens only for a user who holds `view_dataset` or `change_dataset` on that
-dataset, and anyone else gets a "not found" response.
+dataset. Before then it opens only for a person who holds a level on the measurement, or on that
+dataset or its project, and for a holder of a portal role that can view every dataset. Anyone else
+gets a "not found" response.
 
 The sample's dataset is checked separately. A sample in a dataset that is not published is
 described as "an unpublished sample" on the page, in the citation and in the card. It is never
@@ -652,9 +654,11 @@ answers "not found" to a visitor.
 
 **The visibility rules are queryset methods.** `published()` keeps the records whose own dataset is
 published. `visible_to(user)` keeps the records a user may see: those in a dataset that is public
-and published, and those in a dataset on which the user holds `view_dataset` or `change_dataset`.
-Both are decided against each record's own dataset, so being on one dataset's team never opens
-another dataset's records. `SampleQuerySet` and `MeasurementQuerySet` get them from
+and published, and those the user holds at least the view level on, on the record itself or from its
+dataset or that dataset's project. Both are decided against each record's own dataset, so being
+listed on one dataset never opens another dataset's records, and being listed on one sample opens
+that sample and not the others beside it. `with_level(user, level)`, on the project, dataset,
+sample and measurement querysets, keeps the records the user holds at least that level on. `SampleQuerySet` and `MeasurementQuerySet` get them from
 `fairdm.core.managers.RecordVisibilityMixin`. A queryset of your own for a record that has a
 `dataset` foreign key can use the mixin too:
 
