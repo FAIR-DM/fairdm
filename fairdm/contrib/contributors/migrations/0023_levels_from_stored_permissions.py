@@ -160,7 +160,7 @@ def convert_stored_permissions(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("contributors", "0023_credited_from_set_null"),
+        ("contributors", "0022_contribution_level"),
         (
             "guardian",
             "0003_remove_groupobjectpermission_guardian_gr_content_ae6aec_idx_and_more",

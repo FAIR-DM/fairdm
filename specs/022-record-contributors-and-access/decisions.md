@@ -214,6 +214,7 @@ only to people who hold a level (FR-048). A second route through stored rows wou
 that the Contributors tab does not show.
 **Revisit if**: a portal needs to grant rights over core records to a whole group. That would be a
 feature of its own, with the group shown on the tab.
+**ADR:** docs/adr/0025-a-level-on-the-contribution-decides-rights-over-a-core-record.md
 
 ## D2. Visibility and the record a record sits under need the manage level on the update forms
 
@@ -227,6 +228,7 @@ manage. The specification does not name the parent field, so this is a reading o
 quotation.
 **Revisit if**: the feature that rebuilds the editing pages (#404) gives moving a record a page of
 its own.
+**ADR:** none — a rule about four forms in this feature; the feature that rebuilds the editing pages will restate it
 
 ## D3. Group-level rows are converted too
 
@@ -235,6 +237,7 @@ gets the level those rows map to.
 **Why**: FR-063 says nobody loses anything at upgrade. Leaving group rows behind would have taken
 access away from their members with only a changelog line to say so.
 **Revisit if**: never. It runs once.
+**ADR:** docs/adr/0025-a-level-on-the-contribution-decides-rights-over-a-core-record.md
 
 ## D4. Deleting a sample now needs the manage level on it or above
 
@@ -244,6 +247,7 @@ its samples. Deleting is now a manage-level action on every core record.
 The people affected are those given a change right and no delete right by hand, in code or a
 shell. The pages that create records grant both together. The changelog says so.
 **Revisit if**: a portal reports data-entry staff who need to delete samples they added.
+**ADR:** docs/adr/0025-a-level-on-the-contribution-decides-rights-over-a-core-record.md
 
 ## D5. Classes for the access questions, the changes and the registries
 
@@ -252,6 +256,7 @@ classes.
 **Why**: the constitution's cohesion article asks that functions sharing a subject and a first
 argument sit on a class. `Crediting` also gives the transaction and the row lock one home.
 **Revisit if**: a third registry is added, which is when a shared shape would have three callers.
+**ADR:** none — how this feature's modules are laid out, following an article the constitution already has
 
 ## D6. The default affiliation is the page's, not the model's
 
@@ -261,6 +266,7 @@ on the page.
 **Why**: a person added with no organization must be shown with none (FR-024). The hook made that
 impossible for anyone who has a primary affiliation.
 **Revisit if**: never.
+**ADR:** none — one hook removed; the rule it served is in the specification
 
 ## D7. A superuser is not credited
 
@@ -271,6 +277,7 @@ it.
 record a superuser creates is the one case where a record starts without a manager from its own
 team, and a superuser can always add one.
 **Revisit if**: the maintainer wants superusers credited like anyone else.
+**ADR:** none — an existing rule left as it was
 
 ## Decisions made while building story 1
 
@@ -284,6 +291,7 @@ the story that moves levels into the service. The edit page already had that ref
 last-manager refusal, and both stay in the page for now.
 **Revisit if**: never. That story moves the page's level handling into `Crediting.update` and the
 seeds follow it.
+**ADR:** none — an interim state that ended in story 4
 
 ## D9. A person added from the tab holds no stored permission row until the backend switches
 
@@ -293,6 +301,7 @@ from the tab holds the view level on the contribution and nothing else.
 code the backend story deletes. Until it lands, a person added from the tab cannot open a private
 record the permission backends still guard.
 **Revisit if**: a release is cut between this story and the backend story.
+**ADR:** none — an interim state that ended in story 4
 
 ## D10. `entry.manages` replaces a comparison with the word "manage"
 
@@ -305,6 +314,7 @@ the badge draws as it did.
 change a template only where a context name has to.
 **Revisit if**: the maintainer wants the non-manage badges outlined, which needs a boolean in the
 context rather than an expression.
+**ADR:** none — a context name on one page
 
 ## D11. The edit page checks the roles by asking the service, inside a transaction
 
@@ -314,6 +324,7 @@ refused, rolls the roles back with `transaction.set_rollback`.
 roles must be decided in one place.
 **Revisit if**: `Crediting.update` takes the level and the organization as well, which makes the
 whole save one call.
+**ADR:** none — how one page calls the service
 
 ## D12. The tab's page tests live in test_shared.py
 
@@ -324,6 +335,7 @@ whole save one call.
 mirrors no source module.
 **Revisit if**: the pages move to a module of their own, which is when a test module of that name
 would mirror it. Later stories add their classes to `test_shared.py`.
+**ADR:** none — where one test module lives
 
 ## Decisions made while building story 2
 
@@ -336,6 +348,7 @@ contribution whose contributor is an organization, in `add` and `update` alike.
 **Why**: `None` has to mean "none", and the edit page must be able to save the roles without
 touching the organization. A keyword default of `None` cannot say both.
 **Revisit if**: `update` takes the level too, which makes the sentinel one of three.
+**ADR:** none — the signature of one method
 
 ## D14. The choice accepts an affiliation only from the person's own, and makes the organization at save time
 
@@ -348,6 +361,7 @@ field (a level, a role) left an organization behind. A request naming an organiz
 holds no affiliation with by id is outside what the page offers.
 **Revisit if**: the registry ways of adding (story 3) need to credit a person from an organization
 by id.
+**ADR:** none — validation on one field group
 
 ## D15. The two components fall back through `get_real_instance`, not through the credit
 
@@ -359,6 +373,7 @@ instead of falling through, so the name is read in the outer `with`, where a mis
 empty value. `get_real_instance` keeps the fallback for a plain contributor row that is really a
 person, which the old expression also handled.
 **Revisit if**: a third component needs the same rule, which is when it belongs in a template tag.
+**ADR:** none — an expression in two components
 
 ## D16. Callers of the deleted hook
 
@@ -373,6 +388,7 @@ affiliation drew it through the hook, and now shows them with none, which is wha
 credit with no organization is.
 **Revisit if**: the maintainer wants the example records to show organizations again, which is a
 change to the seeds.
+**ADR:** none — a list of call sites that were updated
 
 ## Decisions made while building story 3
 
@@ -387,6 +403,7 @@ finds nothing instead of reporting the registry as down.
 a 500. A 404 from the record endpoints is how ORCID and ROR say "no such record", and reading it as
 "unavailable" would tell a manager the registry is down when they mistyped an identifier.
 **Revisit if**: a registry starts answering 404 for an outage.
+**ADR:** none — how one module reads one status code
 
 ## D18. The country is typed as a name or a code, and the approved input stays an input
 
@@ -397,6 +414,7 @@ from the country field's own list, in any case, and refuses what does not resolv
 (it would carry two hundred and fifty options on a narrow card), and the brief allows that only when
 nothing else changes. Resolving through `django_countries` gives the same stored value.
 **Revisit if**: the maintainer wants a select on that card.
+**ADR:** none — one input on one form
 
 ## D19. No email address is collected for a person entered by hand
 
@@ -410,6 +428,7 @@ stranger. The maintainer decided the field goes. How the reset page treats uncla
 separate question with its own issue, and the account adapter is not changed here.
 **Revisit if**: inviting a person by email is built, which would collect the address as part of an
 invitation and not as a field on this form.
+**ADR:** none — the absence of one field; the reason is in the specification's clarifications
 
 ## D20. The registry is asked only when its tab is the one open, and only the first ten matches are kept
 
@@ -421,6 +440,7 @@ and asks for one more to know whether there are more.
 a request for one tab has no business asking another service. ROR returns twenty at a time and ORCID
 as many rows as asked, so ten keeps the list short enough to tell namesakes apart.
 **Revisit if**: managers ask for more matches on one page.
+**ADR:** none — two limits on one page
 
 ## D21. The same-name check offers people and organizations by what a profile holds
 
@@ -431,6 +451,7 @@ regard to case, and no `confirmed` field lets a second one be made. The check ru
 field is valid, so a form with a missing name never produces an offer.
 **Why**: FR-018.
 **Revisit if**: two organizations that really share a name need to be made by hand.
+**ADR:** none — validation on one form
 
 ## D22. The ORCID and ROR patterns became two constants in models.py
 
@@ -441,6 +462,7 @@ with `re.fullmatch` on them, so a trailing newline is not part of an identifier.
 `utils/transforms.py`. The pattern was a literal inside a method, so reusing it meant naming it.
 The two `clean` methods behave as before.
 **Revisit if**: never.
+**ADR:** none — two constants moved
 
 ## D23. A person the portal holds under an ORCID iD is offered their own affiliations
 
@@ -451,6 +473,7 @@ current employer, typed into the other-organization field.
 **Why**: D14 left the registry ways for this story, and a person already in the portal holds
 affiliations that `org:<id>` can name. FR-023 selects the primary affiliation to begin with.
 **Revisit if**: the employer ORCID lists should be offered next to the person's own.
+**ADR:** none — the starting value of one choice
 
 ## D24. The ROR identifier is stored as the bare ID, and either form finds it
 
@@ -460,6 +483,7 @@ affiliations that `org:<id>` can name. FR-023 selects the primary affiliation to
 **Why**: both forms exist in a portal's data, and a second organization for the same ROR ID is the
 failure FR-016 rules out.
 **Revisit if**: the two forms are made one.
+**ADR:** none — how one identifier is stored, matching the existing cleaner
 
 ## Decisions made while building story 4
 
@@ -474,6 +498,7 @@ would take minutes. The test database already has the tables the models give it,
 changes no table, so the historical models read and write the same rows.
 **Revisit if**: a later migration changes the schema the data step reads, which would make the two
 differ.
+**ADR:** none — how one test module is built
 
 ## D26. The data step reads what the permission table can map, and nothing else
 
@@ -486,6 +511,7 @@ check anyway, and the anonymous user is a placeholder. A person with no active a
 level their rows gave, which takes effect when the account is active (FR-042).
 **Revisit if**: a portal stored custom permissions on core records that it needs kept. It would have
 to map them to a level before upgrading.
+**ADR:** none — the detail of a migration that runs once
 
 ## D27. Choice lists add the portal-wide right with `accessible_to`
 
@@ -497,6 +523,7 @@ view level) or `change_<model>` (above it) for the whole portal.
 because they accepted the model-level right. Moving them to `with_level` alone would have taken the
 choices away from both, which D1 and FR-062 do not ask for.
 **Revisit if**: the model-level right and the level are ever to be told apart on a list.
+**ADR:** none — one queryset method beside the one the decision record names
 
 ## D28. A first credit through the three older helpers starts at the view level
 
@@ -508,6 +535,7 @@ gives the same level to every existing credit with none. Leaving these helpers a
 made a record's people hold different access depending on which helper listed them.
 **Revisit if**: a caller wants a credit that holds no access. It sets the level to none afterwards,
 as `seed_contributors` does.
+**ADR:** none — a default on three existing helpers
 
 ## D29. A refused editing page of a private project or dataset still answers 404
 
@@ -518,6 +546,7 @@ person, and 404 only to someone who may not open the record.
 403 on the tab's pages only. The mixin shows a reader nothing they could not already learn from the
 record.
 **Revisit if**: the editing pages are rebuilt (#404).
+**ADR:** none — the status code of two existing pages, unchanged from before
 
 ## D30. A form for an existing record leaves the manager-only fields out, and a new one leaves nothing out
 
@@ -528,6 +557,7 @@ request it removes them. A form with no instance yet is untouched.
 shown disabled. A caller that builds a form without a request is asking for the safe default, the same
 as the dataset choices do.
 **Revisit if**: someone wants the field shown read-only to editors.
+**ADR:** none — the same rule as D2
 
 ## D31. `Crediting.update` reports every refusal in one error
 
@@ -536,6 +566,7 @@ holding both, and the edit page reads each from its `error_list`. When only one 
 is that one, with its `code`.
 **Why**: the page must tell the person every field at fault in one answer and save nothing (D11).
 **Revisit if**: a third refusal is added to `update`.
+**ADR:** none — how one method reports errors
 
 ## D32. The last-manager rule is a question `Crediting` answers before it changes anything
 
@@ -546,6 +577,7 @@ handed, and a person who also holds manage on a record above does not make it tr
 **Why**: the page has to say so on a GET, and asking the service keeps one copy of the rule. The
 stored level is what the other request may have changed while this one waited for the lock.
 **Revisit if**: a page needs to know about a change to several contributions at once.
+**ADR:** none — where one rule is asked, inside the class the decision record names
 
 ## D33. The refusal of a move is a method of `RecordAccess`, called from three `clean` methods
 
@@ -556,6 +588,7 @@ stored one and raises `no_manager` on the parent field. `Dataset.clean`, `Sample
 for the record as it is and, because `above` follows the attributes of the object, for the record as
 it would be. A private record is read through `all_objects`.
 **Revisit if**: a fourth record kind gets a parent.
+**ADR:** none — where one check is written
 
 ## D34. The lock test is the one skip
 
@@ -565,6 +598,7 @@ which it is on the SQLite the test settings use. It asserts on the queries issue
 clause replaced by a comment, saw them pass, and saw them fail with the lock removed and with the
 default manager in place of `all_objects`. That copy was not kept.
 **Revisit if**: the test settings move to PostgreSQL.
+**ADR:** none — one skipped test and why
 
 ## D35. `Crediting.move` renumbers a tied kind, and the page answers a bad direction with 400
 
@@ -577,9 +611,23 @@ and the second, found through `get_contribution()`, with 404.
 only the moved kind leaves the other kind's values alone. The previous page treated any direction
 but `up` as `down`.
 **Revisit if**: a record's two kinds come to share one list.
+**ADR:** none — the behaviour of one method on old data, and one status code
 
 ## D36. The seed creates only the Data Curator development account, and credits the profile seed's people from where they are
 
 **Decision**: `seed_contributors` creates `data.curator@fairdm.org` through `demo.seed.common.data_curator()`, which reads the same `DEV_ACCOUNTS` entry `create_dev_accounts` uses, and does not run `create_dev_accounts`. `seed_profiles` ends with one pass that credits each seeded person from their primary affiliation on every credit that names no organization, through `Crediting.update`. `seed_overviews`' own seeds (projects, samples, measurements) are not changed: their people have no affiliation, so there is nothing to credit from.
 **Why**: running `create_dev_accounts` adds a second person called Regular User beside `regular.user@example.com`, and `ContributorSeed.affiliate` looks people up by name, so it then fails with two matches. One pass at the end of `seed_profiles` reaches the credits `seed_overviews` made before the affiliations existed, which crediting at each `add_to` would not.
 **Revisit if**: the example people of the other seeds are given affiliations.
+**ADR:** none — what a development seed creates
+
+## Decisions made while converging
+
+## D37. The upgrade is two migrations
+
+**Decision**: the three migrations the stories wrote became two: one that adds the level and
+changes what happens to a credit when its organization is deleted, and one that converts stored
+permissions.
+**Why**: the two schema changes have nothing between them. The data step cannot be regenerated by
+`makemigrations`, so it stays a file of its own.
+**Revisit if**: never.
+**ADR:** none — how many files a migration is

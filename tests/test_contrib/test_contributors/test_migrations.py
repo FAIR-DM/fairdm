@@ -25,7 +25,7 @@ VIEW, EDIT, MANAGE = (
     ContributionLevel.EDIT,
     ContributionLevel.MANAGE,
 )
-MIGRATION = "0024_levels_from_stored_permissions"
+MIGRATION = "0023_levels_from_stored_permissions"
 
 
 @pytest.fixture

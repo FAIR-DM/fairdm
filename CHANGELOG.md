@@ -248,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for the first time starts at the view level.
 - `ManagerOnlyFieldsMixin` in `fairdm.core.forms`, and `CreatorCreditMixin` in
   `fairdm.api.serializers`.
-- A data migration, `contributors.0024_levels_from_stored_permissions`, which turns the permissions
+- A data migration, `contributors.0023_levels_from_stored_permissions`, which turns the permissions
   stored for projects, datasets, samples and measurements into levels. See Changed.
 
 - The pages for adding a person and adding an organization to a record offer three ways side by
