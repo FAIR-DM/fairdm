@@ -8,9 +8,26 @@
 {% block page.content %}
   <c-card.wrapper class="bg-base-100 max-w-3xl">
     <div class="card-body gap-4">
-      <c-contributor.item :contributor="entry.contribution" size="md" :link="False" />
+      <c-contributor.item :contributor="entry.contribution" size="md" secondary="{% if not entry.affiliation %}none{% endif %}" :link="False" />
 
-      {% if refused %}
+      {% if entry.attached %}
+        <c-alert variant="warning" soft>
+          <div>
+            <p class="font-semibold">{% blocktranslate with name=entry.contributor %}{{ name }} cannot be removed yet.{% endblocktranslate %}</p>
+            <p>{% blocktranslate %}It is listed on this {{ kind }} as the affiliation of the people below. Change their affiliation here, or remove them, and it can then be removed.{% endblocktranslate %}</p>
+          </div>
+        </c-alert>
+        <c-list label="{% translate 'People credited from this organization here' %}">
+          {% for person in entry.attached %}
+            <c-list.row class="items-center">
+              <c-contributor.item :contributor="person" size="sm" secondary="none" class="list-col-grow" />
+            </c-list.row>
+          {% endfor %}
+        </c-list>
+        <div>
+          <c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" />
+        </div>
+      {% elif refused %}
         <c-alert variant="warning" soft>
           <div>
             <p class="font-semibold">{% blocktranslate with name=entry.contributor %}{{ name }} cannot be removed yet.{% endblocktranslate %}</p>
@@ -24,7 +41,7 @@
         <div class="flex flex-col gap-2">
           <p class="font-semibold">{% blocktranslate with name=entry.contributor %}Remove {{ name }} from this {{ kind }}?{% endblocktranslate %}</p>
           <ul class="list-disc ps-5 text-sm flex flex-col gap-1">
-            <li>{% blocktranslate %}They will no longer be credited on this {{ kind }} or named in its citation.{% endblocktranslate %}</li>
+            <li>{% if entry.is_person %}{% blocktranslate %}They will no longer be credited on this {{ kind }} or named in its citation.{% endblocktranslate %}{% else %}{% blocktranslate %}It will no longer be credited on this {{ kind }}.{% endblocktranslate %}{% endif %}</li>
             {% if entry.is_person %}
               {% if entry.above %}
                 <li>{% blocktranslate with level=entry.above kind=entry.source_kind %}They keep the access they hold from the {{ kind }}, which is changed there.{% endblocktranslate %}</li>
@@ -32,7 +49,10 @@
                 <li>{% blocktranslate %}They lose their access to this {{ kind }}. If it is private they will not be able to open it.{% endblocktranslate %}</li>
               {% endif %}
             {% endif %}
-            <li>{% translate "If you add them again later they start with “Can view” and no roles." %}</li>
+            {% if entry.affiliation %}
+              <li>{% blocktranslate with organization=entry.affiliation %}{{ organization }} stays under Organizations. Remove it separately if it should go too.{% endblocktranslate %}</li>
+            {% endif %}
+            {% if entry.is_person %}<li>{% translate "If you add them again later they start with “Can view” and no roles." %}</li>{% endif %}
           </ul>
         </div>
         <form method="post" class="flex flex-wrap gap-2">

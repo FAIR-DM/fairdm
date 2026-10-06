@@ -1,0 +1,185 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Add an organization to a record in its own right. Three ways in, as tabs that switch in the
+  browser with no reload: one already in the portal, one looked up in ROR, or one entered by hand.
+  A search or a choice redraws only its own tab. Adding goes on to the organization's edit page.
+{% endcomment %}
+
+{% block page.content %}
+  <c-card.wrapper class="bg-base-100 max-w-3xl">
+    <div class="card-body gap-5">
+      <p class="text-sm text-base-content/70">
+        {% blocktranslate %}Use this for an organization credited on this {{ kind }} in its own right, such as a funder or a host institution. A person's affiliation is listed for you when the person is added.{% endblocktranslate %}
+      </p>
+
+      <c-tabs group="add-organization-via" label="{% translate 'How to find it' %}">
+
+        <c-tabs.tab group="add-organization-via" label="{% translate 'Already in the portal' %}" :checked="adding.on_portal" flush>
+          <div id="tab-portal" class="flex flex-col gap-4">
+            <form method="get" role="search" class="flex flex-col gap-2"
+                  hx-get="{{ request.path }}" hx-target="#tab-portal" hx-select="#tab-portal" hx-swap="outerHTML">
+              <input type="hidden" name="via" value="portal" />
+              <label for="portal-search" class="font-semibold">{% translate "Search the organizations in this portal" %}</label>
+              <p id="portal-search-hint" class="text-sm text-base-content/70">{% translate "By name, or part of it." %}</p>
+              <div class="join w-full">
+                <input type="search" id="portal-search" name="q" value="{{ adding.term }}" class="input join-item grow" aria-describedby="portal-search-hint" />
+                <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
+              </div>
+            </form>
+            {% if adding.term %}
+              {% if adding.results %}
+                <c-list label="{% translate 'Matches in this portal' %}">
+                  {% for result in adding.results %}
+                    <c-list.row class="items-center">
+                      <c-contributor.item :contributor="result.contributor" size="md" :link="False" class="list-col-grow" />
+                      {% if result.listed %}
+                        <span class="text-sm text-base-content/70">{% translate "Already listed" %}</span>
+                      {% else %}
+                        <form method="post">
+                          {% csrf_token %}
+                          <input type="hidden" name="via" value="portal" />
+                          <input type="hidden" name="contributor" value="{{ result.contributor.pk }}" />
+                          <button type="submit" class="btn btn-sm">{% translate "Add" %}<span class="sr-only"> {{ result.contributor }}</span></button>
+                        </form>
+                      {% endif %}
+                    </c-list.row>
+                  {% endfor %}
+                </c-list>
+              {% else %}
+                <div class="flex flex-col gap-1">
+                  <p class="font-semibold">{% blocktranslate with term=adding.term %}No organization in this portal matches “{{ term }}”.{% endblocktranslate %}</p>
+                  <p class="text-sm text-base-content/70">{% translate "Check the spelling, or use one of the other two tabs to look it up in ROR or enter it as a new organization." %}</p>
+                </div>
+              {% endif %}
+            {% endif %}
+          </div>
+        </c-tabs.tab>
+
+        <c-tabs.tab group="add-organization-via" label="{% translate 'Find in ROR' %}" :checked="adding.on_registry">
+          <div id="tab-registry" class="flex flex-col gap-4">
+            {% if adding.chosen %}
+              <div class="rounded-box border border-base-300 p-4 flex flex-col gap-1">
+                <span class="font-semibold">{{ adding.chosen.record.name }}</span>
+                <span class="text-sm text-base-content/70">{{ adding.chosen.record.detail }}</span>
+                <span class="text-sm tabular-nums">ROR {{ adding.chosen.record.shown_id }}</span>
+              </div>
+              <p class="text-sm text-base-content/70">{% blocktranslate %}A profile is made for it from its ROR record and it is added to this {{ kind }}.{% endblocktranslate %}</p>
+              <form method="post" class="flex flex-wrap gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="via" value="registry" />
+                <input type="hidden" name="registry_id" value="{{ adding.chosen.record.id }}" />
+                <button type="submit" class="btn btn-primary">{% blocktranslate %}Add to this {{ kind }}{% endblocktranslate %}</button>
+                <a href="?via=registry&rq={{ adding.registry_term|urlencode }}" class="btn btn-ghost"
+                   hx-get="{{ request.path }}?via=registry&rq={{ adding.registry_term|urlencode }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML" hx-indicator="#registry-searching">{% translate "Choose another" %}</a>
+              </form>
+            {% else %}
+              <form method="get" role="search" class="flex flex-col gap-2"
+                    hx-get="{{ request.path }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML" hx-indicator="#registry-searching" hx-disabled-elt="find button">
+                <input type="hidden" name="via" value="registry" />
+                <label for="registry-search" class="font-semibold">{% translate "Search the ROR registry" %}</label>
+                <p id="registry-search-hint" class="text-sm text-base-content/70">{% translate "By name, or by ROR ID such as https://ror.org/04z8jg394." %}</p>
+                <div class="join w-full">
+                  <input type="search" id="registry-search" name="rq" value="{{ adding.registry_term }}" class="input join-item grow" aria-describedby="registry-search-hint" required />
+                  <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
+                </div>
+              </form>
+              {% if adding.registry_term %}
+                {% if adding.registry_results %}
+                  <c-list label="{% translate 'Matches in ROR' %}">
+                    {% for result in adding.registry_results %}
+                      <c-list.row class="items-center">
+                        <div class="list-col-grow flex flex-col min-w-0">
+                          <span class="font-semibold">{{ result.name }}</span>
+                          <span class="text-sm text-base-content/70">{{ result.detail }}</span>
+                          <span class="text-sm tabular-nums break-all">{{ result.shown_id }}</span>
+                        </div>
+                        <a href="?via=registry&rq={{ adding.registry_term|urlencode }}&chosen={{ result.id|urlencode:'' }}" class="btn btn-sm"
+                           hx-get="{{ request.path }}?via=registry&rq={{ adding.registry_term|urlencode }}&chosen={{ result.id|urlencode:'' }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML">
+                          {% translate "Choose" %}<span class="sr-only"> {{ result.name }}</span>
+                        </a>
+                      </c-list.row>
+                    {% endfor %}
+                  </c-list>
+                {% else %}
+                  <div class="flex flex-col gap-1">
+                    <p class="font-semibold">{% blocktranslate with term=adding.registry_term %}ROR has nothing matching “{{ term }}”.{% endblocktranslate %}</p>
+                    <p class="text-sm text-base-content/70">{% translate "Not every organization is in ROR. Check the spelling, or enter it on the New organization tab." %}</p>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+            <p id="registry-searching" class="htmx-indicator flex items-center gap-2 text-sm" role="status">
+              <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>{% translate "Searching ROR…" %}
+            </p>
+          </div>
+        </c-tabs.tab>
+
+        <c-tabs.tab group="add-organization-via" label="{% translate 'New organization' %}" :checked="adding.on_new">
+          <div id="tab-new" class="flex flex-col gap-4">
+            {% if adding.same_name %}
+              <c-alert variant="warning" soft>
+                <div>
+                  <p class="font-semibold">{% translate "An organization with this name is already in the portal." %}</p>
+                  <p>{% translate "Add that one if it is the one you mean." %}</p>
+                </div>
+              </c-alert>
+              <c-list label="{% translate 'Organizations with the same name' %}">
+                {% for match in adding.same_name %}
+                  <c-list.row class="items-center">
+                    <c-contributor.item :contributor="match" size="md" class="list-col-grow" />
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="via" value="portal" />
+                      <input type="hidden" name="contributor" value="{{ match.pk }}" />
+                      <button type="submit" class="btn btn-sm">{% translate "Add" %}<span class="sr-only"> {{ match }}</span></button>
+                    </form>
+                  </c-list.row>
+                {% endfor %}
+              </c-list>
+            {% else %}
+              <form method="post" class="flex flex-col gap-4" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="via" value="new" />
+                {% if adding.errors %}
+                  <c-alert variant="error" soft>
+                    <div>
+                      <p class="font-semibold">{% translate "Nothing was added." %}</p>
+                      <ul>{% for field, error in adding.errors.items %}<li>{{ error }}</li>{% endfor %}</ul>
+                    </div>
+                  </c-alert>
+                {% endif %}
+                <p class="text-sm text-base-content/70">{% translate "For an organization that is not in the portal and not in ROR." %}</p>
+                <div class="flex flex-col gap-1">
+                  <label for="new-name" class="font-semibold">{% translate "Name" %}</label>
+                  {% if adding.errors.name %}<p id="new-name-error" class="text-sm text-error">{{ adding.errors.name }}</p>{% endif %}
+                  <input type="text" id="new-name" name="name" value="{{ adding.values.name }}" class="input w-full {% if adding.errors.name %}input-error{% endif %}" autocomplete="off" {% if adding.errors.name %}aria-invalid="true" aria-describedby="new-name-error"{% endif %} />
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="flex flex-col gap-1">
+                    <label for="new-city" class="font-semibold">{% translate "City (optional)" %}</label>
+                    <input type="text" id="new-city" name="city" value="{{ adding.values.city }}" class="input w-full" autocomplete="off" />
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label for="new-country" class="font-semibold">{% translate "Country (optional)" %}</label>
+                    <input type="text" id="new-country" name="country" value="{{ adding.values.country }}" class="input w-full" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label for="new-website" class="font-semibold">{% translate "Website (optional)" %}</label>
+                  <input type="url" id="new-website" name="website" value="{{ adding.values.website }}" class="input w-full" autocomplete="off" />
+                </div>
+                <div><button type="submit" class="btn btn-primary">{% blocktranslate %}Add to this {{ kind }}{% endblocktranslate %}</button></div>
+              </form>
+            {% endif %}
+          </div>
+        </c-tabs.tab>
+      </c-tabs>
+
+      <div class="flex flex-col gap-3 border-t border-base-300 pt-4">
+        <p class="text-sm text-base-content/70">{% translate "An organization is credited and holds no access. It joins the end of the organizations." %}</p>
+        <div><c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" size="sm" ghost /></div>
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.content %}

@@ -17,9 +17,6 @@
       <button type="submit" class="btn btn-sm join-item">{% translate "Search" %}</button>
     </form>
   {% endif %}
-  {% if can_manage %}
-    <c-button href="{{ list_url }}add/" text="{% translate 'Add a contributor' %}" icon="plus" size="sm" variant="primary" />
-  {% endif %}
 {% endblock page.actions %}
 
 {% block page.content %}
@@ -32,17 +29,20 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
     <div class="lg:col-span-2 flex flex-col gap-4 min-w-0">
-      <h2 class="text-lg font-semibold">
-        {% translate "People" %}
-        <span class="text-base-content/60 font-normal">{{ people.total }}</span>
-      </h2>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-lg font-semibold">
+          {% translate "People" %}
+          <span class="text-base-content/60 font-normal">{{ people.total }}</span>
+        </h2>
+        {% if can_manage %}<c-button href="{{ list_url }}add-person/" text="{% translate 'Add person' %}" icon="plus" size="sm" />{% endif %}
+      </div>
       <c-card.wrapper class="bg-base-100">
         {% if people.rows %}
           <c-list label="{% translate 'People, in the order this record names them' %}">
             {% for entry in people.rows %}
               <c-list.row class="items-center" id="contributor-{{ entry.contribution.pk }}">
                 <span class="w-6 text-end text-sm tabular-nums text-base-content/60" aria-hidden="true">{{ entry.place }}</span>
-                <c-contributor.item :contributor="entry.contribution" size="md" class="list-col-grow" />
+                <c-contributor.item :contributor="entry.contribution" size="md" secondary="{% if not entry.affiliation %}none{% endif %}" class="list-col-grow" />
                 {% if can_manage %}
                   <div class="list-col-wrap flex flex-wrap items-center justify-between gap-2">
                     <c-contribution.access :entry="entry" />
@@ -100,21 +100,32 @@
     </div>
 
     <div class="flex flex-col gap-4 min-w-0">
-      <h2 class="text-lg font-semibold">
-        {% translate "Organizations" %}
-        <span class="text-base-content/60 font-normal">{{ organizations.total }}</span>
-      </h2>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-lg font-semibold">
+          {% translate "Organizations" %}
+          <span class="text-base-content/60 font-normal">{{ organizations.total }}</span>
+        </h2>
+        {% if can_manage %}<c-button href="{{ list_url }}add-organization/" text="{% translate 'Add organization' %}" icon="plus" size="sm" />{% endif %}
+      </div>
       {% for entry in organizations.rows %}
-        <c-card.wrapper class="bg-base-100" id="contributor-{{ entry.contribution.pk }}">
-          <div class="card-body gap-3">
-            <c-contributor.item :contributor="entry.contribution" size="md" />
+        <div id="contributor-{{ entry.contribution.pk }}">
+          <c-contributor.card.organization :contributor="entry.contribution" class="bg-base-100">
+            {% if entry.attached %}
+              <p class="text-sm text-base-content/70 mt-2">
+                {% translate "Affiliation of" %}
+                {% for person in entry.attached %}<a href="{{ person.get_absolute_url }}" class="link link-hover text-base-content">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+              </p>
+            {% endif %}
             {% if can_manage %}
-              <div class="flex justify-end">
-                <c-contribution.controls :entry="entry" list_url="{{ list_url }}" :movable="organizations.movable" />
+              <div class="flex flex-col items-center gap-1 mt-2">
+                <c-contribution.controls :entry="entry" list_url="{{ list_url }}" :movable="organizations.movable" :removable="entry.removable" />
+                {% if entry.attached %}
+                  <p class="text-xs text-base-content/70">{% translate "It stays while people are credited from it here." %}</p>
+                {% endif %}
               </div>
             {% endif %}
-          </div>
-        </c-card.wrapper>
+          </c-contributor.card.organization>
+        </div>
       {% empty %}
         <c-card.wrapper class="bg-base-100">
           <div class="card-body">
@@ -122,6 +133,7 @@
               <p>{% blocktranslate %}No organization on this {{ kind }} matches “{{ term }}”.{% endblocktranslate %}</p>
             {% else %}
               <p class="font-semibold">{% translate "No organizations are credited yet." %}</p>
+              {% if can_manage %}<p class="text-sm text-base-content/70">{% translate "A person's affiliation is listed here when they are added. An organization can also be credited on its own." %}</p>{% endif %}
             {% endif %}
           </div>
         </c-card.wrapper>

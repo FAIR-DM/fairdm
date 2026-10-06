@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.functional import cached_property
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -101,7 +102,115 @@ class ContributionPage(Plugin, FairDMTemplateView):
             "label": access.LEVEL_LABELS.get(effective, ""),
             "from_above": bool(above and above == effective and above != own),
             "has_account": is_person and access.has_account(contributor),
+            "affiliation": contribution.affiliation if is_person else None,
+            "attached": [] if is_person else self.affiliated.get(contributor.pk, []),
+            "removable": is_person or contributor.pk not in self.affiliated,
         }
+
+    @cached_property
+    def affiliated(self):
+        """Map each organization on the record to the people credited here from it."""
+        found = {}
+        credited = self.base_object.contributors.exclude(
+            affiliation=None
+        ).select_related("contributor")
+        for credit in credited.order_by("order", "pk"):
+            if credit.contributor is not None:
+                found.setdefault(credit.affiliation_id, []).append(credit.contributor)
+        return found
+
+    def affiliation_choice(self, person=None, current=None, suggested="", chosen=None):
+        """Shape the choice of which organization a person is credited from on this record.
+
+        Args:
+            person: The person, when they are already in the portal.
+            current: The organization recorded on their credit here, when editing.
+            suggested: An organization name to offer, such as an employer from ORCID.
+            chosen: What a refused form had selected: ``{"value", "name"}``.
+
+        Returns:
+            The person's own affiliations as options, which one is selected, the name typed
+            for any other organization, and every organization name for the suggestions.
+        """
+        options = []
+        if person is not None:
+            held = sorted(
+                person.affiliations.select_related("organization"),
+                key=lambda a: (not a.is_primary, a.end_date is not None),
+            )
+            for affiliation in held:
+                if affiliation.is_primary:
+                    note = _("Their primary affiliation today")
+                elif affiliation.end_date:
+                    note = _("Earlier, until %(when)s") % {"when": affiliation.end_date}
+                else:
+                    note = _("Also current")
+                options.append(
+                    {
+                        "value": f"org:{affiliation.organization_id}",
+                        "organization": affiliation.organization,
+                        "note": note,
+                    }
+                )
+        values = {option["value"] for option in options}
+        other_name = suggested
+        if chosen:
+            selected, other_name = chosen["value"], chosen["name"]
+        elif current is not None:
+            selected = f"org:{current.pk}"
+            if selected not in values:
+                selected, other_name = "other", current.name
+        elif suggested:
+            selected = "other"
+        elif options:
+            selected = options[0]["value"]
+        else:
+            selected = "none"
+        return {
+            "options": options,
+            "selected": selected,
+            "other_name": other_name,
+            "organizations": Organization.objects.order_by("name").values_list(
+                "name", flat=True
+            ),
+        }
+
+    def read_affiliation(self, data):
+        """Return what an affiliation choice was submitted as, and the organization it means.
+
+        An organization typed by name is matched to one in the portal, or made.
+
+        Returns:
+            ``(chosen, organization, error)``.
+        """
+        value = data.get("affiliation", "none")
+        name = data.get("affiliation_name", "").strip()
+        chosen = {"value": value, "name": name}
+        if value.startswith("org:") and value[4:].isdigit():
+            return chosen, Organization.objects.filter(pk=value[4:]).first(), None
+        if value == "other":
+            if not name:
+                return (
+                    chosen,
+                    None,
+                    _("Enter the organization's name, or choose another answer."),
+                )
+            match = Organization.objects.filter(name__iexact=name).first()
+            return chosen, match or Organization.objects.create(name=name), None
+        return chosen, None, None
+
+    def credit_from(self, contribution, organization):
+        """Record the organization a person is credited from, and list it on the record."""
+        contribution.affiliation = organization
+        contribution.save()
+        record = self.base_object
+        if (
+            organization
+            and not record.contributors.filter(contributor=organization).exists()
+        ):
+            Contribution.add_to(organization, record)
+            return True
+        return False
 
     def is_last_manager(self, contributor):
         """Say whether nobody else counts as able to manage the record."""
@@ -124,26 +233,38 @@ class ContributionPage(Plugin, FairDMTemplateView):
 ORCID_RECORDS = [
     {
         "id": "0000-0002-1825-0097",
+        "shown_id": "0000-0002-1825-0097",
+        "name": "Josiah Carberry",
         "given": "Josiah",
         "family": "Carberry",
+        "employer": "Brown University",
         "detail": "Brown University, Providence, United States",
     },
     {
         "id": "0000-0001-5109-3700",
+        "shown_id": "0000-0001-5109-3700",
+        "name": "Sofia Maria Garcia",
         "given": "Sofia Maria",
         "family": "Garcia",
+        "employer": "Universidad de Granada",
         "detail": "Universidad de Granada, Spain",
     },
     {
         "id": "0000-0003-2874-1160",
+        "shown_id": "0000-0003-2874-1160",
+        "name": "Sofia Garcia Hernandez",
         "given": "Sofia",
         "family": "Garcia Hernandez",
+        "employer": "GFZ Helmholtz Centre for Geosciences",
         "detail": "GFZ Helmholtz Centre for Geosciences, Potsdam, Germany",
     },
     {
         "id": "0000-0002-9079-593X",
+        "shown_id": "0000-0002-9079-593X",
+        "name": "Stephen Hawking",
         "given": "Stephen",
         "family": "Hawking",
+        "employer": "",
         "detail": "No current employment listed",
     },
 ]
@@ -152,21 +273,25 @@ ORCID_RECORDS = [
 ROR_RECORDS = [
     {
         "id": "https://ror.org/04z8jg394",
+        "shown_id": "ror.org/04z8jg394",
         "name": "GFZ Helmholtz Centre for Geosciences",
         "detail": "Facility · Potsdam, Germany",
     },
     {
         "id": "https://ror.org/03bnmw459",
+        "shown_id": "ror.org/03bnmw459",
         "name": "University of Potsdam",
         "detail": "Education · Potsdam, Germany",
     },
     {
         "id": "https://ror.org/03e8s1d88",
+        "shown_id": "ror.org/03e8s1d88",
         "name": "Potsdam Institute for Climate Impact Research",
         "detail": "Facility · Potsdam, Germany",
     },
     {
         "id": "https://ror.org/02nv7yv05",
+        "shown_id": "ror.org/02nv7yv05",
         "name": "Forschungszentrum Jülich",
         "detail": "Facility · Jülich, Germany",
     },
@@ -174,99 +299,115 @@ ROR_RECORDS = [
 
 
 class ContributionAdd(ContributionPage):
-    """Add a person or an organization: one already in the portal, one looked up, or a new one.
+    """Add a contributor: one already in the portal, one looked up in a registry, or a new one.
 
-    The address carries the two choices the card's tabs make. ``kind`` is ``person`` or
-    ``organization``. ``via`` is ``portal`` (search the portal), ``registry`` (ORCID for a
-    person, ROR for an organization) or ``new`` (a form).
+    One page holds all three ways in as tabs that switch in the browser. ``via`` in the address
+    or the form says which tab to open: ``portal``, ``registry`` or ``new``. The portal search
+    reads ``q`` and the registry search reads ``rq``, so each tab keeps its own search.
     """
 
-    url_path = "add"
     manager_only = True
-    template_name = "contributors/plugins/contribution_add.html"
-    page_title = gettext_lazy("Add a contributor")
+    is_person = True
     results_shown = 20
     registry_delay = 0.8
-
-    @property
-    def kind(self):
-        """Whether a person or an organization is being added."""
-        kind = self.request.GET.get("kind")
-        return kind if kind in ("person", "organization") else "person"
+    registry_records = ()
 
     @property
     def via(self):
-        """How the contributor is being found."""
-        via = self.request.GET.get("via")
+        """Which tab is open."""
+        via = self.request.POST.get("via") or self.request.GET.get("via")
         return via if via in ("portal", "registry", "new") else "portal"
 
-    def registry_records(self):
-        """Return the registry stand-ins for the kind being added, as the page draws them."""
-        if self.kind == "person":
-            return [
-                {**r, "name": f"{r['given']} {r['family']}", "shown_id": r["id"]}
-                for r in ORCID_RECORDS
-            ]
-        return [
-            {**r, "shown_id": r["id"].removeprefix("https://")} for r in ROR_RECORDS
-        ]
+    def find_registry_record(self, identifier):
+        """Return the registry stand-in with this identifier, or None."""
+        return next((r for r in self.registry_records if r["id"] == identifier), None)
 
     def search_registry(self, term):
-        """Pretend to search ORCID or ROR by name or identifier, taking a moment over it."""
+        """Pretend to search the registry by name or identifier, taking a moment over it."""
         import time
 
         time.sleep(self.registry_delay)
         needle = term.lower()
         return [
             r
-            for r in self.registry_records()
+            for r in self.registry_records
             if needle in r["name"].lower() or needle in r["id"].lower()
         ]
 
     def search_portal(self, term):
         """Return the people or organizations in the portal whose name matches."""
-        model = Person if self.kind == "person" else Organization
+        model = Person if self.is_person else Organization
         matches = model.objects.filter(name__icontains=term).order_by("name")
-        if self.kind == "person":
+        if self.is_person:
             matches = matches.exclude(pk=get_anonymous_user().pk)
         return list(matches[: self.results_shown])
 
     def get_context_data(self, **kwargs):
-        """Add which tabs are open, the search and its matches, and any chosen record."""
+        """Add which tab is open, each tab's search and matches, and any chosen record."""
         context = super().get_context_data(**kwargs)
-        kind, via = self.kind, self.via
-        term = self.request.GET.get("q", "").strip()
+        via = self.via
         listed = set(
             self.base_object.contributors.values_list("contributor_id", flat=True)
         )
+        term = self.request.GET.get("q", "").strip()
+        registry_term = self.request.GET.get("rq", "").strip()
+        refused = kwargs.get("affiliation")
         adding = {
-            "kind": kind,
-            "via": via,
+            "is_person": self.is_person,
+            "on_portal": via == "portal",
+            "on_registry": via == "registry",
+            "on_new": via == "new",
             "term": term,
-            "is_person": kind == "person",
+            "registry_term": registry_term,
             "results": [],
+            "registry_results": [],
+            "picked": None,
             "chosen": None,
             "errors": kwargs.get("errors", {}),
             "values": kwargs.get("values", {}),
             "same_name": kwargs.get("same_name", []),
+            "new_affiliation": self.affiliation_choice(
+                chosen=refused if via == "new" else None
+            )
+            if self.is_person
+            else None,
         }
-        if via == "portal" and term:
+        picked = self.request.GET.get("person") or (
+            self.request.POST.get("contributor") if via == "portal" else None
+        )
+        if self.is_person and picked and picked.isdigit():
+            person = Person.objects.filter(pk=picked).first()
+            if person is not None and person.pk not in listed:
+                adding["picked"] = {
+                    "person": person,
+                    "affiliation": self.affiliation_choice(
+                        person=person, chosen=refused if via == "portal" else None
+                    ),
+                }
+        if term and not adding["picked"]:
             adding["results"] = [
                 {"contributor": c, "listed": c.pk in listed}
                 for c in self.search_portal(term)
             ]
-        elif via == "registry":
-            chosen = self.request.GET.get("chosen")
-            if chosen:
-                adding["chosen"] = next(
-                    (r for r in self.registry_records() if r["id"] == chosen), None
-                )
-            elif term:
-                adding["results"] = self.search_registry(term)
+        chosen = self.request.GET.get("chosen") or self.request.POST.get("registry_id")
+        if chosen:
+            found = self.find_registry_record(chosen)
+            if found is not None:
+                adding["chosen"] = {
+                    "record": found,
+                    "affiliation": self.affiliation_choice(
+                        suggested=found.get("employer", ""),
+                        chosen=refused if via == "registry" else None,
+                    )
+                    if self.is_person
+                    else None,
+                }
+        elif registry_term:
+            adding["registry_results"] = self.search_registry(registry_term)
         context["adding"] = adding
         return context
 
-    def add(self, contributor):
+    def add(self, contributor, organization=None):
         """Add the contributor last, at the view level, and go on to their edit page."""
         record = self.base_object
         if record.contributors.filter(contributor=contributor).exists():
@@ -278,49 +419,64 @@ class ContributionAdd(ContributionPage):
             return redirect(self.request.get_full_path())
         contribution = Contribution.add_to(contributor, record)
         if contributor.is_organization:
-            said = _("%(name)s was added. Say what they did here.")
+            said = _("%(name)s was added. Say what they did here.") % {
+                "name": contributor
+            }
         else:
             if not access.own_level(contributor, record):
                 access.set_level(contributor, record, access.VIEW)
             said = _(
                 "%(name)s was added. Say what they did, and what they may do here."
-            )
-        messages.success(self.request, said % {"name": contributor})
+            ) % {"name": contributor}
+            if self.credit_from(contribution, organization):
+                said += " " + _("%(organization)s was added to the organizations.") % {
+                    "organization": organization
+                }
+        messages.success(self.request, said)
         return redirect(f"{self.list_url}{contribution.pk}/edit/")
 
     def create(self, name, given="", family=""):
-        """Make a new profile with nothing but a name, or reuse one from an earlier try."""
-        if self.kind == "organization":
+        """Make a new profile with nothing but a name."""
+        if not self.is_person:
             return Organization.objects.get_or_create(name=name)[0]
         person = Person(first_name=given, last_name=family, name=name, email=None)
         person.set_unusable_password()
         person.save()
         return person
 
+    def refuse(self, **kwargs):
+        """Draw the page again with what was entered and what is wrong with it."""
+        return self.render_to_response(self.get_context_data(**kwargs), status=422)
+
     def post(self, request, *args, **kwargs):
         """Add someone from the portal, from a registry record, or from the form."""
+        organization = None
+        if self.is_person:
+            chosen, organization, problem = self.read_affiliation(request.POST)
+            if problem:
+                return self.refuse(affiliation=chosen, errors={"affiliation": problem})
+
         if pk := request.POST.get("contributor"):
             contributor = get_object_or_404(Contributor, pk=pk)
-            return self.add(contributor.get_real_instance())
+            return self.add(contributor.get_real_instance(), organization)
 
         if registry_id := request.POST.get("registry_id"):
-            found = next(
-                (r for r in self.registry_records() if r["id"] == registry_id), None
-            )
+            found = self.find_registry_record(registry_id)
             if found is None:
                 raise PermissionDenied
-            model = Person if self.kind == "person" else Organization
+            model = Person if self.is_person else Organization
             existing = model.objects.filter(name=found["name"]).first()
             return self.add(
                 existing
                 or self.create(
                     found["name"], found.get("given", ""), found.get("family", "")
-                )
+                ),
+                organization,
             )
 
         values = {key: request.POST.get(key, "").strip() for key in request.POST}
         errors = {}
-        if self.kind == "person":
+        if self.is_person:
             if not values.get("given"):
                 errors["given"] = _("Enter their given name.")
             if not values.get("family"):
@@ -331,17 +487,35 @@ class ContributionAdd(ContributionPage):
                 errors["name"] = _("Enter the organization's name.")
             name = values.get("name", "")
         if errors:
-            context = self.get_context_data(errors=errors, values=values)
-            return self.render_to_response(context, status=422)
+            return self.refuse(errors=errors, values=values)
 
-        model = Person if self.kind == "person" else Organization
+        model = Person if self.is_person else Organization
         same_name = list(model.objects.filter(name__iexact=name)[:5])
         if same_name and not request.POST.get("confirmed"):
-            context = self.get_context_data(values=values, same_name=same_name)
-            return self.render_to_response(context, status=422)
+            return self.refuse(values=values, same_name=same_name)
         return self.add(
-            self.create(name, values.get("given", ""), values.get("family", ""))
+            self.create(name, values.get("given", ""), values.get("family", "")),
+            organization,
         )
+
+
+class ContributionAddPerson(ContributionAdd):
+    """Add a person: from the portal, from ORCID, or entered by hand, with their affiliation."""
+
+    url_path = "add-person"
+    template_name = "contributors/plugins/contribution_add_person.html"
+    page_title = gettext_lazy("Add a person")
+    registry_records = ORCID_RECORDS
+
+
+class ContributionAddOrganization(ContributionAdd):
+    """Add an organization: from the portal, from ROR, or entered by hand."""
+
+    url_path = "add-organization"
+    template_name = "contributors/plugins/contribution_add_organization.html"
+    page_title = gettext_lazy("Add an organization")
+    is_person = False
+    registry_records = ROR_RECORDS
 
 
 class ContributionEdit(ContributionPage):
@@ -375,6 +549,13 @@ class ContributionEdit(ContributionPage):
             levels=level_choices(self.base_object, floor=entry["above"]),
             chosen_level=kwargs.get("chosen_level", entry["effective"]),
             errors=kwargs.get("errors", {}),
+            affiliation=self.affiliation_choice(
+                person=entry["contributor"],
+                current=entry["affiliation"],
+                chosen=kwargs.get("affiliation"),
+            )
+            if entry["is_person"]
+            else None,
         )
         return context
 
@@ -393,6 +574,11 @@ class ContributionEdit(ContributionPage):
             errors["roles"] = _("Choose from the roles listed for this %(kind)s.") % {
                 "kind": type_name(record)
             }
+        chosen = organization = None
+        if entry["is_person"]:
+            chosen, organization, problem = self.read_affiliation(request.POST)
+            if problem:
+                errors["affiliation"] = problem
         if entry["is_person"]:
             if level not in access.LEVELS:
                 errors["level"] = _("Choose what this person may do.")
@@ -415,14 +601,22 @@ class ContributionEdit(ContributionPage):
 
         if errors:
             context = self.get_context_data(
-                errors=errors, chosen_roles=chosen_roles, chosen_level=level
+                errors=errors,
+                chosen_roles=chosen_roles,
+                chosen_level=level,
+                affiliation=chosen,
             )
             return self.render_to_response(context, status=422)
 
         contribution.roles.set([offered[pk] for pk in chosen_roles])
+        said = _("%(name)s was saved.") % {"name": contributor}
         if entry["is_person"]:
             access.set_level(contributor, record, level)
-        messages.success(request, _("%(name)s was saved.") % {"name": contributor})
+            if self.credit_from(contribution, organization):
+                said += " " + _("%(organization)s was added to the organizations.") % {
+                    "organization": organization
+                }
+        messages.success(request, said)
         return redirect(self.list_url)
 
 
@@ -445,12 +639,20 @@ class ContributionRemove(ContributionPage):
         )
         return context
 
+    def must_stay(self, entry):
+        """Say whether removing the contributor has to be refused."""
+        if entry["attached"]:
+            return True
+        return entry["own"] == access.MANAGE and self.is_last_manager(
+            entry["contributor"]
+        )
+
     def post(self, request, *args, **kwargs):
         """Remove the contributor unless they are the last who can manage the record."""
         record = self.base_object
         entry = self.describe(self.get_contribution())
         contributor = entry["contributor"]
-        if entry["own"] == access.MANAGE and self.is_last_manager(contributor):
+        if self.must_stay(entry):
             return self.render_to_response(self.get_context_data(), status=422)
         if entry["is_person"]:
             access.set_level(contributor, record, None)
@@ -512,7 +714,8 @@ class ContributionList(ContributionPage):
     template_name = "contributors/plugins/contribution_list.html"
     page_title = gettext_lazy("Contributors")
     extra_views = [
-        ContributionAdd,
+        ContributionAddPerson,
+        ContributionAddOrganization,
         ContributionEdit,
         ContributionRemove,
         ContributionMove,

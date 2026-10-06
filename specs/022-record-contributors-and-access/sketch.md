@@ -30,11 +30,12 @@ at `example.com`, password `password`.
 
 | Screen | What it shows |
 |---|---|
-| Contributors tab, reader | People in a wide column, numbered in their order, with roles. Organizations as cards in a narrow column beside them, in their own order. Below the large breakpoint the organizations drop beneath the people. Search by name covers both. No controls |
-| Contributors tab, manager | The same two columns. Under each person, what they may do, with Move up, Move down, Edit and Remove. Each organization card carries the same controls. An "Add a contributor" button in the page title. Under the people, a card naming those who hold access from the record above |
-| Add a contributor | One card with two rows of tabs. The first row chooses a person or an organization. The second chooses how to find them: already in the portal, by ORCID (a person) or in ROR (an organization), or entered by hand. Adding by any route goes straight to the edit page |
-| Edit a contributor | Roles as checkboxes, then the three levels as radio buttons with a line under each saying what it allows. Saved together. An organization gets the roles and a sentence saying it holds no access |
-| Remove a contributor | What goes with them, then Remove and Cancel. When they are the only manager the page says why and offers only the way back |
+| Contributors tab, reader | People in a wide column, numbered in their order, each with the organization they are credited from on this record and their roles. Organizations in a narrow column beside them, each as the portal's standard organization card with its logo large, and a line naming the people it is the affiliation of. Below the large breakpoint the organizations drop beneath the people. Search by name covers both. No controls |
+| Contributors tab, manager | The same two columns. "Add person" sits at the right of the People heading and "Add organization" at the right of the Organizations heading. Under each person, what they may do, with Move up, Move down, Edit and Remove. Each organization card carries Move, Edit and Remove, except that an organization people are credited from has no Remove and says why. Under the people, a card naming those who hold access from the record above |
+| Add a person | Its own page. Three tabs that switch in the browser: already in the portal, find by ORCID, new person. Every route ends on the choice of which organization the person is credited from for this record, then goes to their edit page |
+| Add an organization | Its own page. Three tabs that switch in the browser: already in the portal, find in ROR, new organization. Adding goes to its edit page |
+| Edit a contributor | Roles as checkboxes. For a person, then the organization they are credited from here, then the three levels as radio buttons. Saved together. An organization gets the roles and a sentence saying it holds no access |
+| Remove a contributor | What goes with them, then Remove and Cancel. Refused, with the reason, for the only manager and for an organization that people on the record are credited from, naming those people |
 
 ## What the screens need from the code
 
@@ -60,6 +61,16 @@ at `example.com`, password `password`.
     kept, and recognising one that is already in the portal by that identifier.
 13. Making a person or an organization from a few typed fields, after checking for profiles with the
     same name.
+14. The organization a person is credited from, held on their credit for one record and not read
+    from their profile. The shared contributor components fall back to the person's primary
+    affiliation today when a credit has none, which would rewrite old records. The tab switches
+    that off, and the components need to stop doing it for credits.
+15. A person's affiliations, current and past, with which is primary and when each ended.
+16. For each organization on a record, the people credited from it there.
+17. Listing an organization on a record when a person is credited from it, and refusing to remove
+    it while anyone still is.
+18. The standard organization card with room at its foot for a line and controls. The prototype
+    added a slot to it.
 
 ## What the sketch faked
 
@@ -92,9 +103,12 @@ at `example.com`, password `password`.
   by kind.
 - The list is not paged. The long example has 37 contributors.
 - The order shown on the tab is not yet what the overview and the citation read.
-- The affiliation recorded with a contribution, which the old edit form offered, has no place on
-  the new edit page. The specification leaves it "editable where it is today", and this prototype
-  removes that place.
+- An organization typed as a person's affiliation is matched to one in the portal by exact name, and
+  made as a new organization with only a name when there is no match. Nothing looks it up in ROR.
+- A person found in ORCID is offered the employer from the fixed record as their affiliation. No
+  employment history is read.
+- An organization listed because a person is credited from it stays listed after that person is
+  removed or credited from somewhere else. It then counts as standing alone and can be removed.
 - Removing someone while they have the page open, and losing the manage level mid-edit, are not
   handled beyond the refusal on the next request.
 
@@ -107,20 +121,38 @@ Asked for in review, and done:
   screen. Each list has its own order. The alternative named in review was a filter in the page's
   actions that switches between people and organizations. It was not built and can be asked for if
   the two columns do not sit right.
-- Adding has two pathways, a person and an organization, kept in one card with tabs. Each has three
-  ways in: search the portal, search ORCID or ROR, or enter by hand.
-- The empty state has no button of its own. "Add a contributor" in the page title is the one way in.
+- Adding a person and adding an organization are two pages, each with its own address. The single
+  card with a person and organization tab row, built for the first review, is gone.
+- The link to each page sits in the row of its column's heading, at the right. The page title has
+  no add action any more, since one action there could not mean both.
+- The empty state has no button of its own. It keeps both headings and their links.
+- Organizations are shown with the portal's standard organization card, logo large, and not with a
+  row designed for this tab.
+- On an add page the three ways in are stock DaisyUI tabs that switch in the browser without a
+  reload. A search or a choice redraws only the tab it is in.
+- Adding a person always includes their affiliation for this record. It defaults to their primary
+  affiliation today, offers their other affiliations past and present, any other organization, and
+  none. The same choice is on the person's edit page.
+- The affiliation is kept with the record. A later change of job does not change it.
+- An organization can be removed only when nobody on the record is credited from it. Otherwise the
+  card says so in place of Remove, and the remove page names the people.
 
 Not yet reviewed. These are the choices that have no right answer, as built:
 
-- The add card's tabs are two rows. The top row is underlined tabs for "A person" and "An
-  organization". Under it a smaller boxed row holds the three ways in, so the two choices look
-  different and both stay in view. Every tab is a link, so a search or a chosen record keeps its
-  place in the address.
-- A match from ORCID or ROR is chosen first and confirmed on a second step that shows the name, one
-  line of detail and the identifier. A match in the portal is added in one step.
-- When someone typed in by hand has the same name as a profile in the portal, the form comes back
-  with those profiles offered first and a button to make the new profile anyway.
+- The tabs on the add pages are the underlined style. Each tab keeps its own search, so switching
+  away and back loses nothing.
+- A person is chosen first, from the portal or from ORCID, and the affiliation is asked on the step
+  that follows, in the same tab. An organization from the portal is added in one step. One from ROR
+  is confirmed first.
+- Another organization is typed into a field that suggests the portal's organizations as you type.
+- Each organization card says "Affiliation of" and the people, for every reader and not only for
+  managers.
+- An organization added through a person's affiliation is not taken off the record when that person
+  goes. It can then be removed by hand.
+- The standard card's counts of members and credits are kept on the tab.
+- When a person typed in by hand has the same name as a profile in the portal, the form comes back
+  with those profiles offered first and a button to make the new profile anyway. For an
+  organization the existing one is offered and no second one is made.
 - An organization entered by hand is asked for name, city, country and website. A person is asked
   for given name, family name and an optional email address.
 - A manager sees one line under the organizations saying they hold no access. It is no longer
@@ -160,9 +192,32 @@ Not yet reviewed. These are the choices that have no right answer, as built:
 
 ## Where review has moved past the specification
 
-The specification's assumptions say a person to be added must already have a profile in the
-portal, and put creating a person or an organization from the tab outside its scope. The add card
-now offers both, and looks people up by ORCID and organizations in ROR. The specification needs
-that assumption replaced and requirements added for the three ways in before it is approved. It
-also speaks of one order of contributors, where the tab now keeps one for people and one for
-organizations.
+`spec.md` has not been changed. Review of the prototype has decided these things differently, and
+the specification needs them before it is approved.
+
+From the first review:
+
+1. The assumption that a person to be added must already have a profile in the portal, and that
+   creating a person or an organization from the tab is out of scope, is reversed. Both can be
+   found in the portal, looked up (ORCID for a person, ROR for an organization) or entered by hand.
+2. There is not one order of contributors. People have an order and organizations have another.
+
+From the second review:
+
+3. Adding a person and adding an organization are separate pages with their own addresses.
+4. A person's credit on a record carries the organization they are credited from. It is chosen
+   when they are added and can be changed when they are edited. It defaults to their primary
+   affiliation, may be any of their affiliations past or present, any other organization, or none.
+   The assumption that affiliation "stays editable where it is today" goes.
+5. That organization is held with the record. It is not read from the person's profile, so a later
+   change of affiliation never changes an existing record.
+6. An organization a person is credited from is listed among the record's organizations.
+7. An organization cannot be removed from a record while anyone on it is credited from that
+   organization. The refusal names those people. This is a second refusal beside the last-manager
+   rule.
+8. An organization's entry on the tab shows which people it is the affiliation of.
+9. The Key Entities and the story about crediting a team need the affiliation added, and the
+   citation's use of affiliation, if any, needs a sentence.
+
+Still to be decided, and recorded here so it is not lost: whether an organization that was listed
+only through a person leaves the record when that person does. The prototype leaves it.

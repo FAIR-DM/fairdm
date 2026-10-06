@@ -5,7 +5,7 @@ from django.db import transaction
 
 from demo.factories import RockSampleFactory, XRFMeasurementFactory
 from fairdm.contrib.contributors import access
-from fairdm.contrib.contributors.models import Organization, Person
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
@@ -39,6 +39,10 @@ class ContributorSeed(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if options.get("keep_records"):
+            self.affiliate()
+            self.stdout.write("Added affiliations to the records already seeded.")
+            return
         users = example_accounts()
         remove_own_projects([PROJECT], users)
         Dataset.all_objects.filter(name=SOLO, created_by=users["super.user"]).delete()
@@ -119,6 +123,8 @@ class ContributorSeed(BaseCommand):
         self.credit(measurement, lea, ["MeasurementCollection"], None)
         self.credit(measurement, institute, ["Support"])
 
+        self.affiliate()
+
         from fairdm.contrib.plugins import reverse
 
         for label, record in (
@@ -136,6 +142,68 @@ class ContributorSeed(BaseCommand):
             ("Measurement", measurement),
         ):
             self.stdout.write(f"{label}: {reverse(record, 'contribution-list')}")
+
+    def affiliate(self):
+        """Give the example people affiliations, and credit some of them from one.
+
+        Safe to run again, and changes no address: it only adds to the records already seeded.
+
+        - Lea Brandt moved from Karlsruhe to Tübingen, which is her primary affiliation today. The
+          private dataset dates from Karlsruhe and credits her from there.
+        - Regular User is credited from Karlsruhe too, so that organization is on the dataset
+          through two people and cannot be removed.
+        - Yusuf Demir is credited from Tübingen, which is listed through him alone.
+        - Mei Tanaka has an affiliation and is credited from none. Noor Haddad has none at all.
+        - Anna Keller, who is not on the dataset, has a current and an earlier affiliation to
+          choose between when she is added.
+        - Landesamt für Geologie is credited in its own right and can be removed.
+        """
+        team = Dataset.all_objects.get(name="Private dataset with a full team")
+        karlsruhe = self.organization("Karlsruhe Institute of Technology")
+        tuebingen = self.organization("Universität Tübingen")
+        potsdam = self.organization("GFZ Helmholtz Centre for Geosciences")
+        people = {
+            name: Person.objects.get(name=name)
+            for name in (
+                "Lea Brandt",
+                "Regular User",
+                "Yusuf Demir",
+                "Mei Tanaka",
+                "Anna Keller",
+            )
+        }
+        held = [
+            ("Lea Brandt", tuebingen, True, "2023", None),
+            ("Lea Brandt", karlsruhe, False, "2017", "2023"),
+            ("Regular User", karlsruhe, True, "2015", None),
+            ("Yusuf Demir", tuebingen, True, "2020", None),
+            ("Mei Tanaka", karlsruhe, True, "2021", None),
+            ("Anna Keller", potsdam, True, "2024", None),
+            ("Anna Keller", karlsruhe, False, "2018", "2024"),
+            ("Anna Keller", tuebingen, False, "2012", "2018"),
+        ]
+        for name, organization, primary, start, end in held:
+            Affiliation.objects.update_or_create(
+                person=people[name],
+                organization=organization,
+                defaults={
+                    "is_primary": primary,
+                    "type": Affiliation.MembershipType.MEMBER,
+                    "start_date": start,
+                    "end_date": end,
+                },
+            )
+        credited_from = {
+            "Lea Brandt": karlsruhe,
+            "Regular User": karlsruhe,
+            "Yusuf Demir": tuebingen,
+        }
+        for name, organization in credited_from.items():
+            team.contributors.filter(contributor=people[name]).update(
+                affiliation=organization
+            )
+            if not team.contributors.filter(contributor=organization).exists():
+                team.add_contributor(organization, with_roles=[])
 
     def person(self, first, last, account=True):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"

@@ -6,6 +6,9 @@ measurement, and signs them in through ``regular.user``, ``staff.user`` and ``su
 replaces only the records it created.
 
     DJANGO_ENV=development python manage.py seed_contributors
+
+Pass ``--keep-records`` to add what a newer version of the seed needs to the records an earlier run
+made, without replacing them, so their addresses stay the same.
 """
 
 from django.apps import apps
@@ -17,6 +20,13 @@ from demo.seed.contributors import ContributorSeed
 
 class Command(BaseCommand):
     help = "Seed every state of the Contributors tab (development only)."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--keep-records",
+            action="store_true",
+            help="Add what is missing to the records already seeded, keeping their addresses.",
+        )
 
     def handle(self, *args, **options):
         from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS

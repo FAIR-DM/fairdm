@@ -1,15 +1,15 @@
 {% extends "page_view.html" %}
 {% load i18n %}
 {% comment %}
-  One contributor on one record: what they did (contribution roles) and, for a person, what they
-  may do (their level). Both are saved together. Roles are credit and change nothing about access.
+  One contributor on one record: what they did (contribution roles) and, for a person, the
+  organization they are credited from here and what they may do (their level). All saved together. Roles are credit and change nothing about access.
 {% endcomment %}
 
 {% block page.content %}
   <c-card.wrapper class="bg-base-100 max-w-3xl">
     <form method="post" class="card-body gap-6" novalidate>
       {% csrf_token %}
-      <c-contributor.item :contributor="entry.contributor" size="md" />
+      <c-contributor.item :contributor="entry.contributor" size="md" secondary="none" />
 
       {% if errors %}
         <c-alert variant="error" soft>
@@ -17,6 +17,7 @@
             <p class="font-semibold">{% translate "Nothing was saved." %}</p>
             <ul>
               {% if errors.roles %}<li><a href="#roles" class="link">{{ errors.roles }}</a></li>{% endif %}
+              {% if errors.affiliation %}<li><a href="#affiliation" class="link">{{ errors.affiliation }}</a></li>{% endif %}
               {% if errors.level %}<li><a href="#level" class="link">{{ errors.level }}</a></li>{% endif %}
             </ul>
           </div>
@@ -40,6 +41,7 @@
       </fieldset>
 
       {% if entry.is_person %}
+        <c-contribution.affiliation :choice="affiliation" kind="{{ kind }}" error="{{ errors.affiliation }}" />
         <fieldset id="level" class="flex flex-col gap-2" {% if errors.level %}aria-describedby="level-hint level-error"{% else %}aria-describedby="level-hint"{% endif %}>
           <legend class="font-semibold">{% blocktranslate %}What they may do on this {{ kind }}{% endblocktranslate %}</legend>
           <p id="level-hint" class="text-sm text-base-content/70">

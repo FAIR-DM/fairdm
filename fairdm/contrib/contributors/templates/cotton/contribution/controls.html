@@ -2,8 +2,9 @@
 {# @prop entry:text | description:"One contributor on a record, as the Contributors tab describes them." #}
 {# @prop list_url:text | description:"The address of the record's Contributors tab." #}
 {# @prop movable:boolean | description:"Whether the move buttons are offered." #}
+{# @prop removable:boolean | default:True | description:"Whether the remove link is offered." #}
 {% load i18n %}
-<c-vars entry list_url movable />
+<c-vars entry list_url movable :removable="True" />
 <div class="flex items-center gap-1">
   {% if movable %}
     <form method="post" action="{{ list_url }}{{ entry.contribution.pk }}/move/" class="flex gap-1">
@@ -21,7 +22,9 @@
   <a href="{{ list_url }}{{ entry.contribution.pk }}/edit/" class="btn btn-sm">
     {% translate "Edit" %}<span class="sr-only"> {{ entry.contributor }}</span>
   </a>
-  <a href="{{ list_url }}{{ entry.contribution.pk }}/remove/" class="btn btn-sm btn-ghost">
-    {% translate "Remove" %}<span class="sr-only"> {{ entry.contributor }}</span>
-  </a>
+  {% if removable %}
+    <a href="{{ list_url }}{{ entry.contribution.pk }}/remove/" class="btn btn-sm btn-ghost">
+      {% translate "Remove" %}<span class="sr-only"> {{ entry.contributor }}</span>
+    </a>
+  {% endif %}
 </div>
