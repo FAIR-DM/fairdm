@@ -230,7 +230,11 @@ class TestUpdatePageAttributesPersist:
         from fairdm.factories import ProjectFactory
 
         changed_project = ProjectFactory()
-        changed_project.add_contributor(user)
+        ContributionFactory(
+            content_object=changed_project,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
 
         changes = {
             "name": "Changed Name",
@@ -297,7 +301,6 @@ class TestUpdatePageProjectField:
     def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
         self, client
     ):
-        from fairdm.contrib.contributors.models import Contribution
         from fairdm.factories import ProjectFactory
 
         dataset = DatasetFactory()
@@ -309,7 +312,11 @@ class TestUpdatePageProjectField:
 
         own_project = ProjectFactory(name="Researcher's Own Project")
         other_project = ProjectFactory(name="Someone Else's Project")
-        Contribution.add_to(user, own_project, roles=["Contributor"])
+        ContributionFactory(
+            content_object=own_project,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
 
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)

@@ -379,7 +379,9 @@ class TestDatasetCreateView:
         client.force_login(user)
         project = ProjectFactory()
         # The form only offers projects the user contributes to.
-        project.add_contributor(user)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         license_obj = License.objects.first()
 
         url = reverse("dataset-create")
@@ -411,7 +413,9 @@ class TestDatasetCreateView:
         user = UserFactory()
         client.force_login(user)
         project = ProjectFactory()
-        project.add_contributor(user)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         license_obj = License.objects.first()
 
         url = reverse("dataset-create")
@@ -562,13 +566,16 @@ class TestDatasetCreatePageProjectFieldNarrowing:
     def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
         self, client
     ):
-        from fairdm.contrib.contributors.models import Contribution
 
         user = UserFactory()
         client.force_login(user)
         own_project = ProjectFactory(name="Researcher's Own Project")
         other_project = ProjectFactory(name="Someone Else's Project")
-        Contribution.add_to(user, own_project, roles=["Contributor"])
+        ContributionFactory(
+            content_object=own_project,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
 
         url = reverse("dataset-create")
         response = client.get(url)
@@ -795,7 +802,7 @@ class TestDatasetUpdateView:
         ContributionFactory(content_object=dataset, contributor=user, level=level)
         for project in (own_project, other_project):
             ContributionFactory(
-                content_object=project, contributor=user, level=ContributionLevel.VIEW
+                content_object=project, contributor=user, level=ContributionLevel.EDIT
             )
         return dataset, own_project, other_project
 

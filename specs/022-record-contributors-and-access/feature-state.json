@@ -607,8 +607,22 @@
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/test_forms.py::TestProjectChoicesNeedTheEditLevel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset/test_forms.py -q -n0 -k ProjectChoicesNeed (red: 3 failed; green: 3 passed)",
+              "uv run pytest tests/test_core/test_dataset tests/test_core/test_project -q -n0 (842 passed; one earlier run of the same scope showed 1 failure in test_the_contributors_figure_counts_everyone_credited that passed alone and on every re-run)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/core/dataset/forms.py:137"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T040",

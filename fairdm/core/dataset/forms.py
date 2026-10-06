@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.core.models import Project
@@ -132,7 +133,9 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                project_field.queryset = self.request.user.projects.all()
+                project_field.queryset = Project.objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
+                )
             else:
                 project_field.queryset = Project.objects.none()
 

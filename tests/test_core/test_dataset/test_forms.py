@@ -6,9 +6,16 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from licensing.models import License
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -22,7 +29,11 @@ class TestFormQuerysetFiltering:
         user_project = ProjectFactory(name="User Project")
         other_project = ProjectFactory(name="Other Project")
 
-        Contribution.add_to(user, user_project, roles=["Contributor"])
+        ContributionFactory(
+            content_object=user_project,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
         Contribution.add_to(other_user, other_project, roles=["Contributor"])
 
         request = factory.get("/")
@@ -62,6 +73,64 @@ class TestCreateFormProjectFieldForAnonymousRequest:
         form = DatasetCreateForm(request=request)
 
         assert form.fields["project"].queryset.count() == 0
+
+
+@pytest.mark.django_db
+class TestProjectChoicesNeedTheEditLevel:
+    @staticmethod
+    def request_for(user):
+        request = RequestFactory().get("/")
+        request.user = user
+        return request
+
+    @staticmethod
+    def project_at(user, level):
+        project = ProjectFactory()
+        ContributionFactory(content_object=project, contributor=user, level=level)
+        return project
+
+    def test_the_create_form_offers_a_project_at_edit_and_not_one_at_view(self):
+        user = PersonFactory(is_active=True, is_claimed=True)
+        editable = self.project_at(user, ContributionLevel.EDIT)
+        viewable = self.project_at(user, ContributionLevel.VIEW)
+
+        form = DatasetCreateForm(request=self.request_for(user))
+
+        choices = form.fields["project"].queryset
+        assert editable in choices
+        assert viewable not in choices
+
+    def test_a_post_naming_a_project_held_at_view_is_refused(self):
+        user = PersonFactory(is_active=True, is_claimed=True)
+        viewable = self.project_at(user, ContributionLevel.VIEW)
+
+        form = DatasetCreateForm(
+            request=self.request_for(user),
+            data={
+                "name": "New",
+                "project": viewable.pk,
+                "license": License.objects.first().pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert not form.is_valid()
+        assert form.has_error("project", code="invalid_choice")
+
+    def test_the_update_form_offers_the_same_projects_to_a_manager(self):
+        user = PersonFactory(is_active=True, is_claimed=True)
+        editable = self.project_at(user, ContributionLevel.EDIT)
+        viewable = self.project_at(user, ContributionLevel.VIEW)
+        dataset = DatasetFactory(project=editable)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
+
+        form = DatasetForm(request=self.request_for(user), instance=dataset)
+
+        choices = form.fields["project"].queryset
+        assert editable in choices
+        assert viewable not in choices
 
 
 @pytest.mark.django_db

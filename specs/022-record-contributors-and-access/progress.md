@@ -311,3 +311,11 @@ Sweep for the same gap: I requested every URL name under the project, dataset, s
 Verified: the 4 visitor and no-credit tests failed first with 200 not 404; uv run pytest tests/test_core/test_project/ -q -n0 gave 386 passed; pre-commit passed.
 Next: T037, the project choices on the dataset forms.
 Watch: none.
+
+## 2026-10-06T20:18:58Z · Implementer FIX-1 · T037
+
+Did: the project field of DatasetForm (so the create form and the update form) now offers Project.objects.accessible_to(user, ContributionLevel.EDIT) instead of every project the user is credited on, as the sample and measurement forms do for datasets. Tests in tests/test_core/test_dataset/test_forms.py::TestProjectChoicesNeedTheEditLevel: the create form offers a project held at edit and not one held at view; a post naming a view-only project is refused with invalid_choice on project; the update form, for a manager, offers the same set.
+Pre-existing tests changed (each created its project credit with the view level and so relied on the behaviour this task replaces; each now credits the person at the edit level, every assertion kept): tests/test_core/test_dataset/test_forms.py::TestFormQuerysetFiltering::test_form_filters_projects_by_user_permissions; test_plugins.py::TestUpdatePageAttributesPersist::test_changing_name_project_license_visibility_and_reference_each_persists and ::TestUpdatePageProjectField::test_the_project_field_is_narrowed_to_the_researchers_own_projects; test_views.py::TestDatasetCreateView::test_valid_post_redirects_to_detail and ::test_assigns_contributor_roles, ::TestDatasetCreatePageProjectFieldNarrowing::test_the_project_field_is_narrowed_to_the_researchers_own_projects, and the _setup helper of TestDatasetUpdateView (project credits VIEW to EDIT). Two now-unused local imports of Contribution were removed with them.
+Verified: the three new tests failed first (view-level project offered, post accepted); uv run pytest tests/test_core/test_dataset tests/test_core/test_project -q -n0 gave 842 passed. One earlier run of that same scope showed 1 failure in test_the_contributors_figure_counts_everyone_credited; it passed alone and on two re-runs, and I did not find the cause.
+Next: T038, the edit page's level.
+Watch: the flaky test above, in tests/test_core/test_project/test_plugins.py, which this story did not touch.
