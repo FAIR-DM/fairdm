@@ -1,7 +1,6 @@
 """What the development-data seeds share: the example accounts and the clean-up of earlier runs."""
 
 from allauth.account.models import EmailAddress
-from guardian.shortcuts import assign_perm
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Person
@@ -84,34 +83,22 @@ def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
     projects.delete()
 
 
-def give_level(
-    user: Person,
-    record: Project | Dataset,
-    level: ContributionLevel = ContributionLevel.MANAGE,
-) -> None:
-    """List ``user`` on ``record`` if they are not yet, and set their level on it.
-
-    Args:
-        user: The person to give the level.
-        record: The project or dataset.
-        level: The level to hold. Defaults to manage.
-    """
-    contribution = record.contributors.filter(contributor=user).first()
-    if contribution is None:
-        contribution = Crediting(record).add(user)
-    contribution.level = level
-    contribution.save(update_fields=["level"])
-
-
 def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
-    """Give ``user`` the rights the team of each project or dataset holds.
+    """List ``user`` on each project or dataset at the manage level, as its team is.
+
+    A person already listed keeps their roles.
 
     Args:
         user: The account that joins the team.
-        *records: The projects and datasets to grant the rights on.
+        *records: The projects and datasets to join.
     """
     for record in records:
-        model = record._meta.model_name
-        for right in ("view", "change", "delete"):
-            assign_perm(f"{model}.{right}_{model}", user, record)
-        give_level(user, record)
+        crediting = Crediting(record)
+        contribution = record.contributors.filter(
+            contributor=user
+        ).first() or crediting.add(user)
+        crediting.update(
+            contribution,
+            roles=list(contribution.roles.all()),
+            level=ContributionLevel.MANAGE,
+        )

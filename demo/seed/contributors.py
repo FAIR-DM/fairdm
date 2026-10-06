@@ -251,7 +251,8 @@ class ContributorSeed(BaseCommand):
             roles=Concept.objects.filter(
                 vocabulary__name="fairdm-roles", name__in=roles
             ),
+            level=level,
         )
-        if not contributor.is_organization:
-            contribution.level = level
+        if level is None and not contributor.is_organization:
+            contribution.level = None
             contribution.save(update_fields=["level"])

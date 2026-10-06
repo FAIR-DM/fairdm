@@ -157,6 +157,112 @@ class TestUpdate:
 
 
 @pytest.mark.django_db
+class TestUpdateLevel:
+    @pytest.mark.parametrize("kind", RECORDS)
+    @pytest.mark.parametrize(
+        "level",
+        [ContributionLevel.VIEW, ContributionLevel.EDIT, ContributionLevel.MANAGE],
+    )
+    def test_the_level_is_saved(self, record_chain, somebody, grant, kind, level):
+        record = getattr(record_chain, kind)
+        contribution = grant(record, somebody, ContributionLevel.VIEW)
+
+        Crediting(record).update(contribution, roles=[], level=level)
+
+        assert RecordAccess(record).own_level(somebody) == level
+
+    def test_no_level_given_leaves_it_alone(self, record_chain, somebody, grant):
+        contribution = grant(record_chain.dataset, somebody, ContributionLevel.EDIT)
+
+        Crediting(record_chain.dataset).update(contribution, roles=[])
+
+        contribution.refresh_from_db()
+        assert contribution.level == ContributionLevel.EDIT
+
+    def test_a_level_below_what_is_held_from_above_is_refused(
+        self, record_chain, somebody, grant
+    ):
+        grant(record_chain.project, somebody, ContributionLevel.EDIT)
+        contribution = grant(record_chain.dataset, somebody, ContributionLevel.EDIT)
+
+        with pytest.raises(ValidationError) as refused:
+            Crediting(record_chain.dataset).update(
+                contribution, roles=[], level=ContributionLevel.VIEW
+            )
+
+        assert refused.value.code == "below_inherited"
+        contribution.refresh_from_db()
+        assert contribution.level == ContributionLevel.EDIT
+
+    def test_the_level_held_from_above_is_allowed(self, record_chain, somebody, grant):
+        grant(record_chain.project, somebody, ContributionLevel.EDIT)
+        contribution = grant(record_chain.dataset, somebody, ContributionLevel.MANAGE)
+
+        Crediting(record_chain.dataset).update(
+            contribution, roles=[], level=ContributionLevel.EDIT
+        )
+
+        contribution.refresh_from_db()
+        assert contribution.level == ContributionLevel.EDIT
+
+    def test_a_level_held_on_a_record_below_does_not_hold_this_one_up(
+        self, record_chain, somebody, grant
+    ):
+        grant(record_chain.dataset, somebody, ContributionLevel.MANAGE)
+        contribution = grant(record_chain.project, somebody, ContributionLevel.MANAGE)
+
+        Crediting(record_chain.project).update(
+            contribution, roles=[], level=ContributionLevel.VIEW
+        )
+
+        contribution.refresh_from_db()
+        assert contribution.level == ContributionLevel.VIEW
+
+    def test_a_refused_level_saves_no_roles_either(self, record_chain, somebody, grant):
+        grant(record_chain.project, somebody, ContributionLevel.MANAGE)
+        contribution = grant(record_chain.dataset, somebody, ContributionLevel.MANAGE)
+
+        with pytest.raises(ValidationError):
+            Crediting(record_chain.dataset).update(
+                contribution,
+                roles=[role("Creator")],
+                level=ContributionLevel.VIEW,
+            )
+
+        assert not contribution.roles.exists()
+
+    def test_a_refused_level_and_a_refused_role_are_both_reported(
+        self, record_chain, somebody, grant
+    ):
+        grant(record_chain.project, somebody, ContributionLevel.MANAGE)
+        contribution = grant(record_chain.dataset, somebody, ContributionLevel.MANAGE)
+        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
+            name__in=record_chain.dataset.CONTRIBUTOR_ROLES.values
+        )[0]
+
+        with pytest.raises(ValidationError) as refused:
+            Crediting(record_chain.dataset).update(
+                contribution, roles=[elsewhere], level=ContributionLevel.VIEW
+            )
+
+        assert {error.code for error in refused.value.error_list} == {
+            "role_not_offered",
+            "below_inherited",
+        }
+
+    def test_an_organization_is_given_no_level(self, record_chain):
+        organization = OrganizationFactory()
+        contribution = Crediting(record_chain.dataset).add(organization)
+
+        Crediting(record_chain.dataset).update(
+            contribution, roles=[], level=ContributionLevel.MANAGE
+        )
+
+        contribution.refresh_from_db()
+        assert contribution.level is None
+
+
+@pytest.mark.django_db
 class TestRemove:
     def test_the_contribution_is_gone(self, record_chain, somebody, grant):
         contribution = grant(record_chain.dataset, somebody, ContributionLevel.EDIT)

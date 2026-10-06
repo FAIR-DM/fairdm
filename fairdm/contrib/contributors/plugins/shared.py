@@ -762,16 +762,10 @@ class ContributionEdit(ContributionPage):
                 errors["affiliation"] = choice.problem
             if level is None:
                 errors["level"] = _("Choose what this person may do.")
-            elif entry["above"] and level < entry["above"]:
-                errors["level"] = _(
-                    "They hold “%(level)s” from the %(kind)s above, and it cannot be lowered here."
-                ) % {
-                    "level": entry["above"].label,
-                    "kind": entry["source_kind"],
-                }
             elif (
                 entry["own"] == ContributionLevel.MANAGE
                 and level != ContributionLevel.MANAGE
+                and not (entry["above"] and level < entry["above"])
                 and self.is_last_manager(contributor)
             ):
                 errors["level"] = _(
@@ -791,15 +785,15 @@ class ContributionEdit(ContributionPage):
                 crediting.update(
                     contribution,
                     roles=Concept.objects.filter(pk__in=chosen_roles),
+                    level=level,
                     organization=organization,
                 )
             except ValidationError as refused:
-                errors["roles"] = refused.message
+                for refusal in refused.error_list:
+                    field = "level" if refusal.code == "below_inherited" else "roles"
+                    errors[field] = refusal.message % (refusal.params or {})
             if errors:
                 transaction.set_rollback(True)
-            elif entry["is_person"]:
-                contribution.level = level
-                contribution.save(update_fields=["level"])
         if errors:
             context = self.get_context_data(
                 errors=errors,

@@ -794,8 +794,8 @@ it again replaces only the projects it created. See
 The command runs three seeds in `demo/seed/`: `ProjectSeed`, `SampleSeed` and `MeasurementSeed`.
 They share three helpers in `demo/seed/common.py`: `example_accounts()` returns the accounts,
 creating the missing ones, `remove_own_projects()` deletes the projects an earlier run created, and
-`grant_team_rights(user, *records)` gives an account view, change and delete rights on the projects
-and datasets it is given. `staff.user` holds those rights on every seeded project and dataset, so
+`grant_team_rights(user, *records)` lists an account at the manage level on the projects and
+datasets it is given. `staff.user` holds that level on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
 `manage.py seed_profiles` also uses `profile_accounts()`, which returns the five accounts the
 editing pages are tried with the same way. Both read their accounts through

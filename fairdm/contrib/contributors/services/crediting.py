@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 from research_vocabs.models import Concept
 
+from ..access import RecordAccess
 from ..choices import ContributionLevel
 from ..models import Contribution, Person
 
@@ -89,36 +90,67 @@ class Crediting:
         if not self.record.contributors.filter(contributor=organization).exists():
             self.add(organization)
 
-    def update(self, contribution, *, roles, organization=UNCHANGED):
-        """Replace the roles a contributor holds on the record, and for a person the organization.
-
-        Their level is left as it is.
+    def update(self, contribution, *, roles, level=None, organization=UNCHANGED):
+        """Replace the roles a contributor holds on the record, and for a person the level and organization.
 
         Args:
             contribution: The contribution to change.
             roles: Concepts of the roles vocabulary, none or more.
+            level: The level to give a person, a ``ContributionLevel``. None leaves it as it
+                is. Ignored for an organization.
             organization: The organization a person is credited from, listed on the record too
                 if it is not already. None credits them from none, and ``UNCHANGED`` leaves
                 it as it is. Ignored for an organization.
 
         Raises:
             ValidationError: With code ``role_not_offered`` when a role is not in the group the
-                record's type offers.
+                record's type offers, and ``below_inherited`` when the level is below what the
+                person holds from a record above. When both apply the error holds both, in its
+                ``error_list``. Nothing is saved.
         """
+        is_person = not contribution.contributor.get_real_instance().is_organization
+        refusals = []
         offered = {concept.pk for concept in self.offered_roles()}
         if any(role.pk not in offered for role in roles):
-            raise ValidationError(
-                _("Choose from the roles offered for this kind of record."),
-                code="role_not_offered",
+            refusals.append(
+                ValidationError(
+                    _("Choose from the roles offered for this kind of record."),
+                    code="role_not_offered",
+                )
             )
+        if level is not None and is_person:
+            held, source = RecordAccess(self.record).level_from_above(
+                contribution.contributor.get_real_instance()
+            )
+            if held is not None and level < held:
+                refusals.append(
+                    ValidationError(
+                        _(
+                            "They hold \u201c%(level)s\u201d from the %(kind)s above, and it cannot be lowered here."
+                        ),
+                        code="below_inherited",
+                        params={
+                            "level": held.label,
+                            "kind": RecordAccess(source).kind,
+                            "source": source,
+                        },
+                    )
+                )
+        if refusals:
+            raise refusals[0] if len(refusals) == 1 else ValidationError(refusals)
         with transaction.atomic():
             contribution.roles.set(roles)
-            is_person = not contribution.contributor.get_real_instance().is_organization
+            changed = []
+            if level is not None and is_person:
+                contribution.level = level
+                changed.append("level")
             if organization is not UNCHANGED and is_person:
                 if organization is not None:
                     self.list_organization(organization)
                 contribution.affiliation = organization
-                contribution.save(update_fields=["affiliation"])
+                changed.append("affiliation")
+            if changed:
+                contribution.save(update_fields=changed)
 
     def remove(self, contribution):
         """Remove a contributor from the record, and with them the level they held on it.
