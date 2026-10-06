@@ -3,7 +3,7 @@
   "feature": "022-record-contributors-and-access",
   "branch": "022-record-contributors-and-access",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -29,6 +29,11 @@
       "state": "CONVERGE",
       "at": "2026-10-06T16:02:58Z",
       "note": "seven stories accepted; full verification green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-06T19:51:29Z",
+      "note": "converged and green; cost limit lifted by Sam; code review on the heavy tier with the security lens"
     }
   ],
   "gates": {
@@ -823,7 +828,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
@@ -831,12 +836,20 @@
       "max": 1
     },
     "tokens": {
-      "used": 98.41,
-      "max": 120
+      "used": 106.99,
+      "max": 2000
     }
   },
   "pr": {
     "number": 414,
     "draft": true
-  }
+  },
+  "escalations": [
+    {
+      "at": "2026-10-06T19:51:22Z",
+      "reason": "Cost budget: the build stopped before the code review at $106.99 of dispatched work against the $120 hard limit; the review on the heavy tier was expected to cross it.",
+      "resolved": true,
+      "resolution": "Lifted for this feature by Sam on 2026-10-07, in his words: \"Please ignore the spending limit and continue\". budgets.tokens.max is set to 2000, the largest dollar figure the ledger accepts, to stand for no limit; it is not a target. The running total is still reported."
+    }
+  ]
 }
