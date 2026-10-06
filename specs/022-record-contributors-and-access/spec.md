@@ -376,7 +376,9 @@ second manager and try again.
    second cannot then be removed or lowered.
 7. **Given** a portal brought up to date from a version before this feature, **When** any person
    who could open, change or delete a record before the upgrade tries the same thing after it,
-   **Then** they still can, and they are listed as a contributor on that record.
+   **Then** they still can, and they are listed as a contributor on that record. The one exception
+   is deleting a sample, which needs the manage level: a person who held only the right to change
+   a dataset can no longer delete its samples.
 
 ---
 
@@ -737,7 +739,8 @@ Manager, Developer and Portal Administrator accounts.
 - **SC-009**: No record lists a person credited from an organization that is not among that
   record's organizations.
 - **SC-010**: After a portal is brought up to date, no person has lost the ability to open, change
-  or delete any record they could before.
+  or delete any record they could before, with one exception: deleting a sample needs the manage
+  level, so a person who held only the right to change a dataset can no longer delete its samples.
 - **SC-011**: The order set on the Contributors tab is the order people and organizations appear in
   on the record's overview and in its citation, on all four record types.
 - **SC-012**: The permissions held by each portal role are the same after this feature as before
