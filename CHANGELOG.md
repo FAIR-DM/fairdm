@@ -51,6 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Signing in works in development without Redis.** With `DJANGO_ENV=development` and no
+  `REDIS_URL`, every sign-in returned "429 Too Many Requests", because the rate limiter could not
+  reach its cache. The development settings now hold every cache in memory when `REDIS_URL` is
+  unset. They also run Celery tasks in-process in that case, which the settings had always
+  claimed to do and never did. Other environments are unchanged.
 - A portal's profile form that leaves the languages field out of `Meta.fields`, as the contributors
   guide says it may, raised `KeyError` when it was built. An organization form without the website
   field also hid the first stored link from the links field, so saving it dropped that link. Both
