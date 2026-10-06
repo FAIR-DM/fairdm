@@ -68,20 +68,29 @@ def merge_persons(person_keep: Person, person_discard: Person) -> Person:
 
 
 def _reassign_contributions(keep: Person, discard: Person) -> None:
-    """Move Contributions from discard to keep, skipping existing duplicates."""
+    """Move Contributions from discard to keep, keeping the higher level where both are listed.
+
+    A record both people are listed on keeps the kept person's entry, with its organization as
+    it is, at the higher of the two levels. The discarded person's entry there is dropped.
+    """
     from fairdm.contrib.contributors.models import Contribution
 
     for contrib in Contribution.objects.filter(contributor=discard):
-        already_exists = Contribution.objects.filter(
+        kept = Contribution.objects.filter(
             contributor=keep,
             content_type=contrib.content_type,
             object_id=contrib.object_id,
-        ).exists()
-        if not already_exists:
+        ).first()
+        if kept is None:
             contrib.contributor = keep
             contrib.save(update_fields=["contributor"])
-        else:
-            contrib.delete()
+            continue
+        if contrib.level is not None and (
+            kept.level is None or contrib.level > kept.level
+        ):
+            kept.level = contrib.level
+            kept.save(update_fields=["level"])
+        contrib.delete()
 
 
 def _reassign_identifiers(keep: Person, discard: Person) -> None:
@@ -148,11 +157,19 @@ def _reassign_allauth_records(keep: Person, discard: Person) -> None:
 
 
 def _transfer_permissions(keep: Person, discard: Person) -> None:
-    """Copy all guardian object-level permissions from discard to keep."""
+    """Copy guardian object-level permissions from discard to keep, except on core records.
+
+    A stored row grants nothing on a project, dataset, sample or measurement: what a person may
+    do there is the level of their contribution, which ``_reassign_contributions`` carries over.
+    """
     try:
         from guardian.models import UserObjectPermission
 
+        from fairdm.contrib.contributors.access import RecordAccess
+
         for perm in UserObjectPermission.objects.filter(user=discard):
+            if RecordAccess.is_core_record(perm.content_object):
+                continue
             UserObjectPermission.objects.assign_perm(
                 perm.permission.codename,
                 keep,
