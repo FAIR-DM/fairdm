@@ -1,0 +1,15 @@
+{# @description A dropdown of the page actions plugins offer on a record's overview. Draws nothing when there are none. #}
+{# @prop actions:list | description:"The actions to list, each a dict with label, icon and url." #}
+{% load i18n %}
+<c-vars actions />
+{% if actions %}
+  <div data-page-actions>
+    <c-dropdown halign="end" text="{% translate 'Actions' %}" icon="menu_horizontal" size="sm" content_class="w-56">
+      <c-menu>
+        {% for action in actions %}
+          <c-menu.item label="{{ action.label }}" icon="{{ action.icon }}" href="{{ action.url }}" />
+        {% endfor %}
+      </c-menu>
+    </c-dropdown>
+  </div>
+{% endif %}

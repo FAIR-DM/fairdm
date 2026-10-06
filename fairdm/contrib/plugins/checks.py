@@ -14,6 +14,7 @@ from django.urls import path
 
 if TYPE_CHECKING:
     from .base import Plugin
+    from .registration import Mount
 
 
 class PluginRegistrationError(ImproperlyConfigured):
@@ -55,6 +56,36 @@ def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None
                 model,
                 f"expected a Django model, got {type(model).__name__}",
             )
+
+
+def validate_options(
+    plugin_class: type[Plugin], model: Any, options: dict[str, Any]
+) -> None:
+    """Require the place a registration names to exist, and a column only on a card.
+
+    A refused option raises ``PluginRegistrationError``.
+
+    Args:
+        plugin_class: The plugin being registered.
+        model: The record type it is registered against.
+        options: The keyword arguments given to ``register``.
+    """
+    from .places import Place
+
+    place = options.get("place")
+    if place is not None and place not in Place.values:
+        _fail(
+            plugin_class,
+            model,
+            f"place {place!r} does not exist; use one of {', '.join(Place.values)}",
+        )
+    if options.get("column") is not None:
+        _fail(
+            plugin_class,
+            model,
+            "a column can only be given for an overview card, and this registration is "
+            f"{'a ' + str(place) if place else 'a navigation entry'}",
+        )
 
 
 def validate_check(plugin_class: type[Plugin], model: Any) -> None:
@@ -218,3 +249,46 @@ def validate_registration(
         validate_segment(plugin_class, model, segment)
     validate_extra_views(plugin_class, model)
     validate_against_existing(plugin_class, model, existing)
+
+
+def validate_mounts(model: Any, mounts: list[Mount]) -> None:
+    """Require the names, segments and generated URL names of what a record type serves to be unique.
+
+    Applies the rules of :func:`validate_against_existing` to the whole set.
+
+    A clash raises ``PluginRegistrationError``.
+
+    Args:
+        model: The record type.
+        mounts: What it serves, in registration order.
+    """
+    served: list[tuple[type[Plugin], dict]] = []
+    for mount in mounts:
+        validate_against_existing(mount.plugin_class, model, served)
+        served.append((mount.plugin_class, {}))
+
+
+def validate_places_offered(model: Any, mounts: list[Mount]) -> None:
+    """Require the record type's overview to draw every place a plugin asks for beyond the navigation.
+
+    A record type draws page actions when one of its plugins is built on ``OverviewPlaces``.
+
+    A refused place raises ``PluginRegistrationError``.
+
+    Args:
+        model: The record type.
+        mounts: What it serves.
+    """
+    from .places import OverviewPlaces, Place
+
+    if any(issubclass(mount.plugin_class, OverviewPlaces) for mount in mounts):
+        return
+    for mount in mounts:
+        if mount.place is not Place.NAVIGATION:
+            _fail(
+                mount.plugin_class,
+                model,
+                f"is registered as a {mount.place.value}, but no plugin registered for "
+                f"{model.__name__} is built on OverviewPlaces, so no page of this record type "
+                f"would draw it",
+            )

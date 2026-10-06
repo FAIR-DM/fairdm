@@ -26,3 +26,10 @@ Did: added the PluginSandbox fixture (plugin_sandbox) to tests/conftest.py, test
 Verified: uv run pytest tests/test_conftest.py -q -n0: 2 passed. uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0: 13 failed, 3 passed; the failures are the dropdown listing nothing where an action is expected. pre-commit passes.
 Next: T004 implementation.
 Watch: the sandbox imports the six URL modules, the core include module and the root URL configuration again, so a portal with record types mounted elsewhere is not covered.
+
+## 2026-10-06T21:43:27Z · Implementer US1 · T004
+
+Did: added fairdm/contrib/plugins/places.py (Place, OverviewPlaces with page_actions), Mount, resolve, get_page_actions and validate_all on the registry, validate_options, validate_mounts and validate_places_offered in checks.py, name and url_path on Plugin.get_urls, validate_all from FairDMConfig.ready, OverviewPlaces on OverviewPlugin, the c-plugins.actions component and the overview.page_actions block; export Place. Corrected my T001 tests so registries that hold an action also hold an overview, and added two tests of get_urls.
+Verified: uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope: 1195 passed. Probe: making the dropdown list every action regardless of access fails four page tests. pre-commit passes.
+Next: T005 documentation, then the full verify.
+Watch: the full suite has not run yet.

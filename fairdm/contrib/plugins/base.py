@@ -96,7 +96,9 @@ class Plugin(PermissionRequiredMixin, View):
         return list(cls.extra_views or [])
 
     @classmethod
-    def get_urls(cls, menu_class=None, model=None) -> list[URLPattern]:
+    def get_urls(
+        cls, menu_class=None, model=None, name=None, url_path=""
+    ) -> list[URLPattern]:
         """Build one flat URL pattern for the plugin and one for each view it owns.
 
         Patterns are named ``<plugin>`` and ``<plugin>-<child>``, with no nested namespace.
@@ -105,12 +107,15 @@ class Plugin(PermissionRequiredMixin, View):
             menu_class: The menu bound to each mount.
             model: The model bound to each mount, so one plugin registered against two
                 records serves each independently.
+            name: The name to serve under, the plugin's own when not given.
+            url_path: The segment to serve at, the plugin's own when empty. None mounts the
+                plugin without a base path.
 
         Returns:
             The URL patterns.
         """
-        base_name = cls.get_name()
-        base_path = cls.get_url_path()
+        base_name = name or cls.get_name()
+        base_path = url_path if url_path is None or url_path else cls.get_url_path()
         prefix = f"{base_path}/" if base_path is not None else ""
 
         def mount(view_class, owner=None):

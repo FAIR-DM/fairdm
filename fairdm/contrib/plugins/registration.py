@@ -2,23 +2,75 @@
 
 from __future__ import annotations
 
-import itertools
-from typing import TYPE_CHECKING, ClassVar
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db.models import Model
 from django.urls import URLPattern
 from flex_menu import Menu, MenuItem, root
 
 from .access import menu_check
+from .places import Place
 
 if TYPE_CHECKING:
     from .base import Plugin
 
 
+@dataclass(frozen=True)
+class Mount:
+    """One plugin as a record type serves it, worked out from the registrations.
+
+    Attributes:
+        plugin_class: The class that is served.
+        name: The name it is served under, which URL names and lookups use.
+        url_path: The segment it is served at, or None for the record's own address.
+        place: Where it appears on the record's page.
+        label: The text of its entry.
+        icon: The icon of its entry.
+        order: Its position among the entries of its place.
+        listed: False when the registration declined its entry.
+    """
+
+    plugin_class: type[Plugin]
+    name: str
+    url_path: str | None
+    place: Place
+    label: str
+    icon: str
+    order: int
+    listed: bool
+
+    @classmethod
+    def from_registration(
+        cls, plugin_class: type[Plugin], options: dict[str, Any]
+    ) -> Mount:
+        """Build the mount a registration declares.
+
+        Args:
+            plugin_class: The registered plugin.
+            options: The keyword arguments given to ``register``.
+
+        Returns:
+            The mount, with the defaults a navigation entry has.
+        """
+        name = plugin_class.get_name()
+        return cls(
+            plugin_class=plugin_class,
+            name=name,
+            url_path=plugin_class.get_url_path(),
+            place=Place(options.get("place") or Place.NAVIGATION),
+            label=options.get("label") or name.replace("-", " ").title(),
+            icon=options.get("icon", "circle"),
+            order=options.get("order", 0),
+            listed=options.get("menu") is not False,
+        )
+
+
 class PluginRegistry:
     """Track which plugins are registered for each model and how records are addressed.
 
-    The registry builds each model's URL patterns and navigation menu.
+    The registry keeps every registration as it was made and works out from them what a record
+    type serves. It builds each model's URL patterns and navigation menu from that.
 
     Attributes:
         DEFAULT_ROUTE: The route fragment for a record when its model declares none.
@@ -47,8 +99,10 @@ class PluginRegistry:
 
         Args:
             *models: The base model classes to register the plugin against.
-            **kwargs: Registration options such as ``label``, ``icon``, ``order`` and
-                ``menu``, kept with the plugin for building its navigation entry.
+            **kwargs: Registration options such as ``label``, ``icon``, ``order``, ``menu``
+                and ``place``, kept with the plugin for building its entry. ``place`` is a
+                :class:`~fairdm.contrib.plugins.places.Place` or its value, and defaults to the
+                navigation.
 
         Returns:
             A decorator that adds the plugin class to the registry and returns it.
@@ -62,10 +116,11 @@ class PluginRegistry:
         """
 
         def decorator(plugin_class: type[Plugin]) -> type[Plugin]:
-            from .checks import validate_models, validate_registration
+            from .checks import validate_models, validate_options, validate_registration
 
             validate_models(plugin_class, models)
             for model in models:
+                validate_options(plugin_class, model, kwargs)
                 existing = self._registry.setdefault(model, [])
                 validate_registration(plugin_class, model, existing)
                 existing.append((plugin_class, kwargs))
@@ -161,8 +216,60 @@ class PluginRegistry:
             root.append(menu)
         return menu
 
+    def resolve(self, model: type[Model]) -> list[Mount]:
+        """Work out what a record type serves from its registrations.
+
+        Nothing is stored: every call reads the registrations again, so the registry's list is
+        never edited to produce the answer.
+
+        Args:
+            model: The record type.
+
+        Returns:
+            One mount per registration, in the order they were registered.
+
+        Raises:
+            PluginRegistrationError: The mounts clash with each other, or one asks for a place
+                the record type's overview does not draw.
+        """
+        from .checks import validate_mounts, validate_places_offered
+
+        mounts = [
+            Mount.from_registration(plugin_class, options)
+            for plugin_class, options in self.get_plugins_for_model(model)
+        ]
+        validate_mounts(model, mounts)
+        validate_places_offered(model, mounts)
+        return mounts
+
+    def validate_all(self) -> None:
+        """Resolve every record type that has a registration, refusing what cannot work.
+
+        Raises:
+            PluginRegistrationError: A record type's registrations cannot be served.
+        """
+        for model in list(self._registry):
+            self.resolve(model)
+
+    def get_page_actions(self, model: type[Model]) -> list[Mount]:
+        """Return the page actions a record type offers, before any visitor is considered.
+
+        Args:
+            model: The record type.
+
+        Returns:
+            The listed action mounts, by position and then name, so the order is the same
+            whichever order the plugins were registered in.
+        """
+        actions = [
+            mount
+            for mount in self.resolve(model)
+            if mount.place is Place.ACTION and mount.listed
+        ]
+        return sorted(actions, key=lambda mount: (mount.order, mount.name))
+
     def get_urls_for_model(self, model: type[Model]) -> list[URLPattern]:
-        """Collect the URL patterns of every plugin registered for a model and build its menu.
+        """Collect the URL patterns of every plugin a model serves and build its menu.
 
         Args:
             model: The model class.
@@ -175,43 +282,43 @@ class PluginRegistry:
         plugin_menu.children = type(plugin_menu.children)()
         url_patterns: list[URLPattern] = []
 
-        for plugin_class, kwargs in itertools.chain(self.get_plugins_for_model(model)):
+        for mount in self.resolve(model):
             url_patterns.extend(
-                plugin_class.get_urls(menu_class=plugin_menu, model=model)
+                mount.plugin_class.get_urls(
+                    menu_class=plugin_menu,
+                    model=model,
+                    name=mount.name,
+                    url_path=mount.url_path,
+                )
             )
-            if kwargs.get("menu") is not False:
-                plugin_menu.append(self.configure_tab(plugin_class, model, **kwargs))
+            if mount.place is Place.NAVIGATION and mount.listed:
+                plugin_menu.append(self.configure_tab(mount, model))
         self.sort_menu(plugin_menu)
         return url_patterns
 
-    def configure_tab(
-        self, plugin_class: type[Plugin], model: type[Model], **kwargs
-    ) -> MenuItem:
-        """Build the navigation entry for a registration.
+    def configure_tab(self, mount: Mount, model: type[Model]) -> MenuItem:
+        """Build the navigation entry for a mount.
 
         Args:
-            plugin_class: The registered plugin.
-            model: The model it is registered against.
-            **kwargs: The registration options: ``label``, ``icon`` and ``order``.
+            mount: The mount the entry is for.
+            model: The model it is served for.
 
         Returns:
             The menu item, visible only when the plugin's page opens.
         """
-        label = kwargs.get("label") or plugin_class.get_name().replace("-", " ").title()
-        name = plugin_class.get_name()
-        view_name = f"{model._meta.model_name.lower()}:{name}"
+        view_name = f"{model._meta.model_name.lower()}:{mount.name}"
         item = MenuItem(
-            label,
+            mount.label,
             view_name=view_name,
             # Never the author's predicate: flex_menu calls check(request, **kwargs) and catches nothing.
-            check=menu_check(plugin_class),
+            check=menu_check(mount.plugin_class),
             extra_context={
-                "label": label,
-                "icon": kwargs.get("icon", "circle"),
+                "label": mount.label,
+                "icon": mount.icon,
             },
         )
         # flex_menu has no ordering of its own, so `sort_menu` applies this once all entries exist.
-        item.plugin_order = kwargs.get("order", 0)
+        item.plugin_order = mount.order
         return item
 
     def sort_menu(self, menu: Menu) -> None:

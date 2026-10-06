@@ -57,6 +57,10 @@ class FairDMConfig(AppConfig):
         autodiscover_modules("config")
         autodiscover_modules("plugins")
 
+        from fairdm.contrib.plugins import registry
+
+        registry.validate_all()
+
         from django_filters import compat
 
         # Stops django-filter rendering through crispy forms.

@@ -37,10 +37,27 @@ class SomeOverview(OverviewPlaces, Plugin, TemplateView):
     template_name = "base.html"
 
 
+def offering_registry():
+    """A registry whose Sample overview draws page actions, as the shipped one does."""
+    registry = PluginRegistry()
+    registry.register(Sample)(SomeOverview)
+    return registry
+
+
+def mount_of(registry, plugin_class):
+    """The mount Sample serves for one plugin class."""
+    return next(m for m in registry.resolve(Sample) if m.plugin_class is plugin_class)
+
+
 @pytest.fixture
 def fresh():
     """An empty registry the test fills."""
     return PluginRegistry()
+
+
+@pytest.fixture
+def offering():
+    return offering_registry()
 
 
 class TestPlaceOption:
@@ -52,20 +69,20 @@ class TestPlaceOption:
         assert mount.place is Place.NAVIGATION
 
     @pytest.mark.parametrize("place", ["action", Place.ACTION])
-    def test_the_action_place_is_accepted_as_a_string_or_a_member(self, fresh, place):
-        fresh.register(Sample, place=place)(FollowAction)
+    def test_the_action_place_is_accepted_as_a_string_or_a_member(
+        self, offering, place
+    ):
+        offering.register(Sample, place=place)(FollowAction)
 
-        (mount,) = fresh.resolve(Sample)
+        assert mount_of(offering, FollowAction).place is Place.ACTION
 
-        assert mount.place is Place.ACTION
-
-    def test_an_action_has_the_defaults_a_navigation_entry_has(self, fresh):
-        other = PluginRegistry()
-        fresh.register(Sample)(FollowAction)
+    def test_an_action_has_the_defaults_a_navigation_entry_has(self, offering):
+        other = offering_registry()
+        offering.register(Sample)(FollowAction)
         other.register(Sample, place="action")(FollowAction)
 
-        (page,) = fresh.resolve(Sample)
-        (action,) = other.resolve(Sample)
+        page = mount_of(offering, FollowAction)
+        action = mount_of(other, FollowAction)
 
         assert (action.label, action.icon, action.order) == (
             page.label,
@@ -92,15 +109,15 @@ class TestPlaceOption:
 
 
 class TestResolve:
-    def test_each_registration_is_one_mount_carrying_its_declaration(self, fresh):
-        fresh.register(Sample, label="Alpha", icon="star", order=30)(AlphaPage)
-        fresh.register(Sample, place="action", label="Follow", icon="bell", order=5)(
+    def test_each_registration_is_one_mount_carrying_its_declaration(self, offering):
+        offering.register(Sample, label="Alpha", icon="star", order=30)(AlphaPage)
+        offering.register(Sample, place="action", label="Follow", icon="bell", order=5)(
             FollowAction
         )
 
-        by_name = {mount.name: mount for mount in fresh.resolve(Sample)}
+        by_name = {mount.name: mount for mount in offering.resolve(Sample)}
 
-        assert set(by_name) == {"alpha-page", "follow-action"}
+        assert set(by_name) == {"some-overview", "alpha-page", "follow-action"}
         alpha = by_name["alpha-page"]
         assert alpha.plugin_class is AlphaPage
         assert alpha.url_path == "alpha-page"
@@ -132,19 +149,20 @@ class TestResolve:
         assert by_name["alpha-page"].listed is False
         assert by_name["beta-page"].listed is True
 
-    def test_resolving_twice_gives_the_same_list(self, fresh):
-        fresh.register(Sample)(AlphaPage)
-        fresh.register(Sample, place="action")(FollowAction)
+    def test_resolving_twice_gives_the_same_list(self, offering):
+        offering.register(Sample)(AlphaPage)
+        offering.register(Sample, place="action")(FollowAction)
 
-        assert fresh.resolve(Sample) == fresh.resolve(Sample)
+        assert offering.resolve(Sample) == offering.resolve(Sample)
 
-    def test_resolving_leaves_the_declarations_as_made(self, fresh):
-        fresh.register(Sample, place="action", order=3)(FollowAction)
+    def test_resolving_leaves_the_declarations_as_made(self, offering):
+        offering.register(Sample, place="action", order=3)(FollowAction)
 
-        fresh.resolve(Sample)
+        offering.resolve(Sample)
 
-        assert fresh.get_plugins_for_model(Sample) == [
-            (FollowAction, {"place": "action", "order": 3})
+        assert offering.get_plugins_for_model(Sample) == [
+            (SomeOverview, {}),
+            (FollowAction, {"place": "action", "order": 3}),
         ]
 
     def test_a_record_type_with_no_registrations_serves_nothing(self, fresh):
@@ -183,33 +201,33 @@ class TestResolve:
 
 
 class TestPageActions:
-    def test_only_action_mounts_are_returned(self, fresh):
-        fresh.register(Sample)(AlphaPage)
-        fresh.register(Sample, place="action")(FollowAction)
+    def test_only_action_mounts_are_returned(self, offering):
+        offering.register(Sample)(AlphaPage)
+        offering.register(Sample, place="action")(FollowAction)
 
-        assert [m.plugin_class for m in fresh.get_page_actions(Sample)] == [
+        assert [m.plugin_class for m in offering.get_page_actions(Sample)] == [
             FollowAction
         ]
 
-    def test_an_action_that_declined_its_entry_is_not_offered(self, fresh):
-        fresh.register(Sample, place="action", menu=False)(FollowAction)
-        fresh.register(Sample, place="action")(ReportAction)
+    def test_an_action_that_declined_its_entry_is_not_offered(self, offering):
+        offering.register(Sample, place="action", menu=False)(FollowAction)
+        offering.register(Sample, place="action")(ReportAction)
 
-        assert [m.plugin_class for m in fresh.get_page_actions(Sample)] == [
+        assert [m.plugin_class for m in offering.get_page_actions(Sample)] == [
             ReportAction
         ]
 
-    def test_actions_are_in_order_and_then_name(self, fresh):
-        fresh.register(Sample, place="action", order=20)(FollowAction)
-        fresh.register(Sample, place="action", order=10)(ReportAction)
-        fresh.register(Sample, place="action", order=10)(AlphaPage)
+    def test_actions_are_in_order_and_then_name(self, offering):
+        offering.register(Sample, place="action", order=20)(FollowAction)
+        offering.register(Sample, place="action", order=10)(ReportAction)
+        offering.register(Sample, place="action", order=10)(AlphaPage)
 
-        names = [m.name for m in fresh.get_page_actions(Sample)]
+        names = [m.name for m in offering.get_page_actions(Sample)]
 
         assert names == ["alpha-page", "report-action", "follow-action"]
 
     def test_the_list_is_the_same_whichever_order_they_were_registered_in(self):
-        forward, backward = PluginRegistry(), PluginRegistry()
+        forward, backward = offering_registry(), offering_registry()
         classes = [FollowAction, ReportAction, AlphaPage, BetaPage]
         for cls in classes:
             forward.register(Sample, place="action")(cls)
@@ -244,3 +262,16 @@ class TestRecordTypeOffersPlaces:
         fresh.register(Point)(AlphaPage)
 
         fresh.validate_all()
+
+
+class TestServedUnderAMount:
+    def test_the_patterns_use_the_name_and_segment_of_the_mount(self):
+        patterns = AlphaPage.get_urls(model=Sample, name="alias", url_path="there")
+
+        assert [p.name for p in patterns] == ["alias"]
+        assert [str(p.pattern) for p in patterns] == ["there/"]
+
+    def test_a_mount_without_a_segment_is_served_at_the_record_s_own_address(self):
+        patterns = AlphaPage.get_urls(model=Sample, url_path=None)
+
+        assert [str(p.pattern) for p in patterns] == [""]

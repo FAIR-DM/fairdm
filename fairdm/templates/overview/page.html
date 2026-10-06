@@ -20,6 +20,9 @@
                             dataset's creators), avatar and name, no caption
     overview.keywords       header: keywords
     overview.actions        header: buttons (Cite and Share by default)
+    overview.page_actions   header: the dropdown of page actions plugins register, drawn after
+                            the buttons and outside overview.actions so a record that replaces
+                            those buttons keeps it; nothing is drawn when there are none
     overview.figures        the figures strip
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
@@ -110,6 +113,9 @@
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
             <c-addons.share-dropdown size="sm" />
           {% endblock overview.actions %}
+          {% block overview.page_actions %}
+            <c-plugins.actions :actions="page_actions" />
+          {% endblock overview.page_actions %}
         </div>
       </div>
     </div>

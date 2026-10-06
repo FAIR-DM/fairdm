@@ -237,3 +237,33 @@ and can be removed even when it replaces an overview. The tests of removal and r
 the module that mirrors `registration.py`. `mount_name` was dropped because nothing read it.
 **Why**: each was verified against the code the plan names.
 **Revisit if**: never. This is a record of one review.
+
+## D9. Story 1 builds only the places and options its tests need
+
+**Decision**: `Place` has `NAVIGATION` and `ACTION`. The card place and the `Column` values arrive
+with the card story. Until then a `column` given in any registration is refused, whatever its place.
+`Mount` carries no column field yet. `resolve()` runs steps 1, 6 and 7 as small functions in
+`checks.py`, so the later steps slot in between them.
+**Why**: the brief limits this story to what its tests need, and a place that nothing can draw
+would be accepted at registration and then mounted as a page.
+**Revisit if**: the card story finds a reason to keep a column on a mount from the start.
+
+## D10. `resolve()` is asked on every overview request and on every build of the patterns
+
+**Decision**: `get_page_actions` calls `resolve()` each time. The overview mixin asks for the
+actions on each request, and `get_urls_for_model` asks when a record type's patterns are built.
+Nothing is cached.
+**Why**: the plan says tests register plugins after startup, so a cache would hide them. The work
+is a walk over a short list.
+**Revisit if**: a profile shows the walk matters. The cache then belongs on the registry and is
+cleared by `register`.
+
+## D11. The page tests rebuild URL modules rather than patch resolvers
+
+**Decision**: the `plugin_sandbox` fixture imports the six record-type URL modules, their core
+include module and the root URL configuration again, then clears the URL caches. It does not edit
+cached resolvers.
+**Why**: `include()` builds a resolver whose list of patterns is cached after first use, and
+clearing Django's own caches does not reach it. Importing the modules again builds fresh resolvers
+from the registry and needs no knowledge of resolver internals.
+**Revisit if**: a record type is mounted by a module the fixture does not list.

@@ -18,14 +18,16 @@ from pyecharts.charts import Bar, Line
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
+from fairdm.contrib.plugins.places import OverviewPlaces
 from fairdm.core.overview import format_authors, sentence_case
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 
-class OverviewPlugin(Plugin, FairDMTemplateView):
+class OverviewPlugin(OverviewPlaces, Plugin, FairDMTemplateView):
     """Reusable overview plugin for displaying object details.
 
-    This base class provides a standard overview/detail view for any model.
+    This base class provides a standard overview/detail view for any model. It carries
+    ``OverviewPlaces``, so the page actions registered for the record type are in its context.
     Portal developers can inherit from this and customize:
     - menu: Configure tab label, icon, and order
     - template_name: Override the template (or use hierarchical resolution)

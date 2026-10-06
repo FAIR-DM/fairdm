@@ -6,6 +6,7 @@
 - ``can_open`` / ``has_perm`` — the access decision and its memoised permission check
 - ``is_instance_of`` — narrows a plugin to one subtype of a polymorphic record
 - ``reverse`` — resolves a plugin address for a record
+- ``Place`` — where a registration puts its plugin: the navigation or the page actions
 
 Attributes are resolved on first access because Django imports this package during
 ``apps.populate()``, before ``Plugin``'s auth imports are safe.
@@ -16,10 +17,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover - import-time surface for type checkers only
     from .access import can_open, has_perm, is_instance_of
     from .base import Plugin
+    from .places import Place
     from .registration import registry
     from .utils import reverse, slugify
 
 __all__ = [
+    "Place",
     "Plugin",
     "can_open",
     "has_perm",
@@ -32,6 +35,7 @@ __all__ = [
 
 _LAZY = {
     "Plugin": (".base", "Plugin"),
+    "Place": (".places", "Place"),
     "can_open": (".access", "can_open"),
     "has_perm": (".access", "has_perm"),
     "is_instance_of": (".access", "is_instance_of"),
