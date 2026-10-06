@@ -450,3 +450,227 @@ class TestAPersonHoldingTwoRolesHoldsBothSets:
         assert person.has_perm("dataset.change_dataset", dataset)
         assert person.has_perm("contributors.change_person", other_person)
         assert person.has_perm("contributors.change_organization", organization)
+
+
+VIEW, EDIT, MANAGE = 1, 2, 3
+LEVELS = [VIEW, EDIT, MANAGE]
+KINDS = ["project", "dataset", "sample", "measurement"]
+
+#: What each level allows, from the permission table of the specification.
+NEEDED = {
+    "view_{}": VIEW,
+    "add_{}": EDIT,
+    "change_{}": EDIT,
+    "change_{}_metadata": EDIT,
+    "import_data": EDIT,
+    "modify_metadata": EDIT,
+    "delete_{}": MANAGE,
+    "change_{}_settings": MANAGE,
+    "add_contributor": MANAGE,
+    "modify_contributor": MANAGE,
+    "can_publish": MANAGE,
+}
+MODELS = {
+    "project": "project.Project",
+    "dataset": "dataset.Dataset",
+    "sample": "sample.Sample",
+    "measurement": "measurement.Measurement",
+}
+
+
+def permission_table(kind):
+    """List ``(permission, level needed)`` for each permission the model declares."""
+    from django.apps import apps
+
+    meta = apps.get_model(MODELS[kind])._meta
+    declared = [f"{action}_{kind}" for action in meta.default_permissions]
+    declared += [codename for codename, _name in meta.permissions]
+    needed = {template.format(kind): level for template, level in NEEDED.items()}
+    return [(f"{kind}.{codename}", needed[codename]) for codename in declared]
+
+
+def cases():
+    return [
+        (kind, level, perm, needed)
+        for kind in KINDS
+        for level in LEVELS
+        for perm, needed in permission_table(kind)
+    ]
+
+
+@pytest.fixture
+def holder(db):
+    """A person who can sign in and is listed nowhere."""
+    return PersonFactory(is_active=True, is_claimed=True, password="x")
+
+
+def asked(user):
+    """Return the user as the database holds them, so no cached answer is reused."""
+    return Person.objects.get(pk=user.pk)
+
+
+@pytest.mark.django_db
+class TestRecordLevelBackend:
+    @pytest.mark.parametrize(("kind", "level", "perm", "needed"), cases())
+    def test_a_permission_is_granted_at_its_level_and_above_and_refused_below(
+        self, record_chain, grant, holder, kind, level, perm, needed
+    ):
+        record = getattr(record_chain, kind)
+        grant(record, holder, level)
+
+        assert asked(holder).has_perm(perm, record) is (level >= needed)
+
+    def test_a_registered_sample_type_answers_as_the_core_model(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.sample, holder, EDIT)
+        person = asked(holder)
+
+        assert person.has_perm("demo.view_rocksample", record_chain.sample)
+        assert person.has_perm("demo.change_rocksample", record_chain.sample)
+        assert not person.has_perm("demo.delete_rocksample", record_chain.sample)
+
+    def test_a_registered_measurement_type_answers_as_the_core_model(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.measurement, holder, VIEW)
+        person = asked(holder)
+
+        assert person.has_perm("demo.view_examplemeasurement", record_chain.measurement)
+        assert not person.has_perm(
+            "demo.change_examplemeasurement", record_chain.measurement
+        )
+
+    def test_a_subtype_permission_naming_another_model_is_refused(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.sample, holder, MANAGE)
+
+        assert not asked(holder).has_perm(
+            "demo.view_examplemeasurement", record_chain.sample
+        )
+
+    def test_a_level_on_a_dataset_reaches_its_samples_and_measurements(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.other_dataset, holder, EDIT)
+        person = asked(holder)
+
+        assert person.has_perm(
+            "measurement.change_measurement", record_chain.measurement
+        )
+        assert not person.has_perm("sample.view_sample", record_chain.sample)
+        assert not person.has_perm("dataset.view_dataset", record_chain.dataset)
+
+    def test_a_level_on_a_dataset_does_not_reach_the_project(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.dataset, holder, MANAGE)
+
+        assert not asked(holder).has_perm("project.view_project", record_chain.project)
+
+    def test_a_level_on_a_project_reaches_its_datasets_and_theirs(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.project, holder, EDIT)
+        person = asked(holder)
+
+        assert person.has_perm("dataset.change_dataset", record_chain.dataset)
+        assert person.has_perm("sample.change_sample", record_chain.sample)
+        assert person.has_perm(
+            "measurement.change_measurement", record_chain.measurement
+        )
+        assert not person.has_perm(
+            "measurement.delete_measurement", record_chain.measurement
+        )
+
+    def test_the_higher_of_two_levels_applies(self, record_chain, grant, holder):
+        grant(record_chain.project, holder, MANAGE)
+        grant(record_chain.dataset, holder, VIEW)
+
+        assert asked(holder).has_perm("dataset.delete_dataset", record_chain.dataset)
+
+    def test_a_person_listed_on_a_dataset_opens_it_and_not_a_private_project(
+        self, record_chain, grant, holder
+    ):
+        from fairdm.utils.choices import Visibility
+
+        record_chain.project.visibility = Visibility.PRIVATE
+        record_chain.project.save()
+        grant(record_chain.dataset, holder, VIEW)
+        person = asked(holder)
+
+        assert person.has_perm("dataset.view_dataset", record_chain.dataset)
+        assert not person.has_perm("project.view_project", record_chain.project)
+
+    def test_a_stored_guardian_row_still_works_on_an_organization(
+        self, organization, holder
+    ):
+        from guardian.shortcuts import assign_perm as guardian_assign_perm
+
+        guardian_assign_perm("contributors.change_organization", holder, organization)
+
+        assert asked(holder).has_perm("contributors.change_organization", organization)
+
+    def test_an_organizations_members_and_owner_gain_nothing(
+        self, record_chain, holder
+    ):
+        from fairdm.factories import OrganizationFactory
+
+        organization = OrganizationFactory()
+        Affiliation.objects.create(
+            person=holder,
+            organization=organization,
+            type=Affiliation.MembershipType.OWNER,
+            is_primary=True,
+        )
+        from fairdm.contrib.contributors.services.crediting import Crediting
+
+        Crediting(record_chain.dataset).add(organization)
+
+        assert not asked(holder).has_perm("dataset.view_dataset", record_chain.dataset)
+
+    def test_a_person_listed_with_no_level_is_granted_nothing(
+        self, record_chain, grant, holder
+    ):
+        grant(record_chain.dataset, holder, None)
+
+        assert not asked(holder).has_perm("dataset.view_dataset", record_chain.dataset)
+
+    def test_an_inactive_user_is_refused(self, record_chain, grant, holder):
+        grant(record_chain.dataset, holder, MANAGE)
+        holder.is_active = False
+        holder.save()
+
+        assert not asked(holder).has_perm("dataset.view_dataset", record_chain.dataset)
+
+    def test_a_visitor_is_refused(self, record_chain):
+        from django.contrib.auth.models import AnonymousUser
+
+        assert not AnonymousUser().has_perm(
+            "dataset.view_dataset", record_chain.dataset
+        )
+
+    def test_a_question_with_no_record_is_left_to_the_other_backends(
+        self, record_chain, grant, holder
+    ):
+        from fairdm.contrib.contributors.permissions import RecordLevelBackend
+
+        grant(record_chain.dataset, holder, MANAGE)
+
+        assert RecordLevelBackend().has_perm(holder, "dataset.view_dataset") is False
+        assert not asked(holder).has_perm("dataset.view_dataset")
+
+    def test_a_question_about_a_person_is_left_to_the_other_backends(self, holder):
+        from fairdm.contrib.contributors.permissions import RecordLevelBackend
+
+        assert (
+            RecordLevelBackend().has_perm(holder, "contributors.view_person", holder)
+            is False
+        )
+
+    def test_a_portal_role_is_unchanged(self, record_chain):
+        curator = _holder_of("Data Curator", email="curator-us4@example.com")
+
+        assert curator.has_perm("dataset.change_dataset", record_chain.dataset)
+        assert curator.has_perm("dataset.view_dataset", record_chain.dataset)

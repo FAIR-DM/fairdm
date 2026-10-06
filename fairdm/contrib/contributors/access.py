@@ -1,5 +1,8 @@
 """What a person may do on one project, dataset, sample or measurement, read from contribution levels."""
 
+import re
+
+from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.functional import cached_property
@@ -8,6 +11,7 @@ from .choices import ContributionLevel
 from .models import Contribution, Person
 
 _CORE_MODELS = ("project", "dataset", "sample", "measurement")
+_CORE_LABELS = tuple((name, name) for name in _CORE_MODELS)
 
 #: The level a person needs for each permission a core record type declares.
 REQUIRED_LEVEL = {
@@ -43,6 +47,19 @@ class RecordAccess:
 
     def __init__(self, record):
         self.record = record
+
+    @staticmethod
+    def is_core_record(obj):
+        """Say whether an object is a project, dataset, sample or measurement of any type.
+
+        Args:
+            obj: Any object, or None.
+
+        Returns:
+            True for an instance of one of the four core models or a registered subtype.
+        """
+        models = tuple(apps.get_model(*label) for label in _CORE_LABELS)
+        return isinstance(obj, models)
 
     @property
     def model(self):
@@ -82,6 +99,34 @@ class RecordAccess:
         if hasattr(record, "get_real_instance"):
             record = record.get_real_instance()
         return ContentType.objects.get_for_model(record).pk, str(record.pk)
+
+    def required_level(self, perm):
+        """Return the level a permission needs on the record.
+
+        A registered subtype's own default permissions, such as ``demo.view_rocksample``, are
+        read as the core model's.
+
+        Args:
+            perm: The permission, with or without its app label.
+
+        Returns:
+            The level, or None for a permission the table does not know, which is refused.
+        """
+        app_label, _dot, codename = perm.rpartition(".")
+        core = self.model._meta.model_name
+        others = [name for name in _CORE_MODELS if name != core]
+        for cls in type(self.record).__mro__:
+            meta = getattr(cls, "_meta", None)
+            if meta is None or meta.abstract or not issubclass(cls, self.model):
+                continue
+            if app_label and meta.app_label != app_label:
+                continue
+            named = re.sub(rf"(?<=_){meta.model_name}(?=_|$)", core, codename)
+            if any(re.search(rf"_{name}(?=_|$)", named) for name in others):
+                continue
+            if named in REQUIRED_LEVEL:
+                return REQUIRED_LEVEL[named]
+        return None
 
     def on_chain(self, *, include_record):
         """Narrow contributions to those on the record and the records above, or only above.

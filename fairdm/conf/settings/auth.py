@@ -39,6 +39,7 @@ AUTHENTICATION_BACKENDS = [
     # object-level check. Registered directly so it does not depend on the backends below.
     "fairdm.core.permissions.PolymorphicObjectPermissionBackend",
     "fairdm.contrib.contributors.permissions.OrganizationPermissionBackend",
+    "fairdm.contrib.contributors.permissions.RecordLevelBackend",
     "fairdm.core.sample.permissions.SamplePermissionBackend",
     "fairdm.core.measurement.permissions.MeasurementPermissionBackend",
     # Registered last so an explicit stored grant is consulted first.
