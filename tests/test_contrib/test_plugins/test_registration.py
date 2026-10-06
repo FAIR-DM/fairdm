@@ -221,7 +221,7 @@ class TestRecordPagesServe:
         assert response.status_code == 200
 
     def test_project_plugin_page(self, client):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         response = client.get(
             reverse("project:dataset-list", kwargs={"uuid": project.uuid})
         )

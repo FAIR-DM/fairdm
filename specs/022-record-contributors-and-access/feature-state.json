@@ -621,12 +621,14 @@
           "attempts": 1,
           "evidence": {
             "tests": [
-              "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs"
+              "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs",
+              "tests/test_contrib/test_plugins/test_registration.py::TestRecordPagesServe::test_project_plugin_page"
             ],
             "commands": [
               "uv run pytest tests/test_core/test_project/test_plugins.py -q -n0 -k TestAPrivateProjectsOtherTabs (red: 4 failed, 200 not 404; green: 6 passed)",
               "uv run pytest tests/test_core/test_project/ -q -n0 (386 passed)",
-              "uv run pre-commit run --all-files (passed)"
+              "uv run pre-commit run --all-files (passed)",
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 (passed after the project was made public)"
             ],
             "code": [
               "fairdm/core/project/plugins.py:704",

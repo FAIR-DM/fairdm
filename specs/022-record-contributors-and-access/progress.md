@@ -341,3 +341,10 @@ Did: docs/more/migration-guides.md names Dataset.all_objects.with_level and says
 Verified: uv run pre-commit run --all-files passed. No test covers prose; I did not build the docs here, the full gate's docs step does that next.
 Next: the full gate, once, then the completion report.
 Watch: nothing outstanding.
+
+## 2026-10-06T20:34:05Z · Implementer FIX-1 · T036
+
+Did: the full gate's test step failed on a pre-existing test the T036 entry above did not list: tests/test_contrib/test_plugins/test_registration.py::TestRecordPagesServe::test_project_plugin_page requested a private project's dataset-list tab as a visitor and asserted 200, which is the behaviour T036 replaces. It now makes the project public (ProjectFactory(visibility=Visibility.PUBLIC)); the assertion is unchanged.
+Verified: uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 passed; a whole-tree run without -x (uv run pytest tests -q -n auto --dist loadscope) before this change showed that one failure and 5067 passed, 14 skipped.
+Next: run the gate again and write the report.
+Watch: none.
