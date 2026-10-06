@@ -210,12 +210,14 @@ class ContributorSeed(BaseCommand):
             "Regular User": karlsruhe,
             "Yusuf Demir": tuebingen,
         }
+        crediting = Crediting(team)
         for name, organization in credited_from.items():
-            team.contributors.filter(contributor=people[name]).update(
-                affiliation=organization
+            contribution = team.contributors.get(contributor=people[name])
+            crediting.update(
+                contribution,
+                roles=list(contribution.roles.all()),
+                organization=organization,
             )
-            if not team.contributors.filter(contributor=organization).exists():
-                team.add_contributor(organization, with_roles=[])
 
     def person(self, first, last, account=True):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"
