@@ -197,3 +197,24 @@ Did: TestMoveKeepsManager in the dataset, sample and measurement model test modu
 Verified: `uv run pytest tests/test_core -q -n auto --dist loadscope`: 1534 passed, 7 skipped. pre-commit passed.
 Next: T022a merge.
 Watch: the compare reads the record through all_objects so a private record is found.
+
+## 2026-10-06T15:19:43Z · Implementer US5 · T022a
+
+Did: TestMergeLevels and TestMergePermissions in test_services/test_merge.py, four red before the code. `_reassign_contributions` now keeps the kept person's entry on a shared record, raises its level to the higher of the two, leaves its organization alone (including none) and drops the discarded entry; a contribution only the discarded person held moves with its level. `_transfer_permissions` skips rows on core records and still copies the rest.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_services/test_merge.py -q -n0`: 21 passed; test_admin.py (which merges through the admin): 64 passed. pre-commit passed.
+Next: T023 page tests and the page change.
+Watch: no organization merge path was built, as the plan says.
+
+## 2026-10-06T15:19:43Z · Implementer US5 · T023
+
+Did: TestLastManagerPages in test_plugins/test_shared.py, run for each of the four record kinds and for a manager, a superuser and a Data Curator (72 cases): lowering the only manager is refused on the level field with nothing stored, one of two managers may be lowered, keeping the manage level saves roles, the remove page for the only manager shows `refused` and has no form that posts, submitting it gives 422 and changes nothing, and with a second manager the page goes ahead. These passed on arrival because the prototype's own check in the pages already did the same; the pages now take the refusal from Crediting (T024), and I probed the tests by making `would_leave_no_manager` return False: the three refusal tests then fail (36 cases).
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n auto --dist loadscope`: 928 passed. pre-commit passed.
+Next: T024 summary, T025a.
+Watch: none.
+
+## 2026-10-06T15:19:43Z · Implementer US5 · T024
+
+Did: Crediting.update and Crediting.remove own the last-manager rule (code `last_manager`), inside the row lock; `RecordAccess.refuse_move_without_manager` and the three models' clean hooks own the move rule; the merge service keeps the higher level. In plugins/shared.py `is_last_manager` and `must_stay` are deleted. The edit page maps `last_manager` to `errors.level`; the remove page's `refused` comes from `Crediting.would_leave_no_manager`, and its POST draws the page again with 422 when the service raises. Templates untouched.
+Verified: the narrow runs of T020 to T023 above; the whole suite waits for the report.
+Next: T025a.
+Watch: the lock tests skip on SQLite.
