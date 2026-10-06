@@ -340,7 +340,134 @@ page of a dataset is served without the button to the project's Contributors pag
 has removed that page from projects.
 
 The overview of a record type cannot be removed. The portal does not start when a removal names
-it, and a record without an overview has no page of its own.
+it, and a record without an overview has no page of its own. It can be
+[replaced](#replacing-the-overview) instead.
+
+## Replacing a plugin
+
+A portal or an addon can serve its own plugin in place of one that is already registered, on one
+record type, by registering it with `replaces`. Name the plugin it takes over from by its class or
+by the name it is served under. FairDM ships a basic version of a page, and an addon swaps it whole
+without touching a template or a URL configuration.
+
+```python
+# myportal/plugins.py
+from django.utils.translation import gettext_lazy as _
+
+from fairdm import plugins
+from fairdm.core.sample.models import Sample
+from fairdm.core.sample.plugins import Descriptions
+
+
+@plugins.register(Sample, replaces=Descriptions)  # or replaces="basic-information"
+class GuidedDescriptions(Descriptions):
+    name = "guided-descriptions"
+    title = _("Guided descriptions")
+```
+
+A sample's descriptions are now edited with `GuidedDescriptions`. It answers at
+`/samples/<uuid>/basic-information/`, and `reverse(sample, "basic-information")` returns that
+address, so every link and bookmark that reached the shipped page reaches the replacement. The
+shipped class is not served on samples. On every other record type that registers it, nothing
+changes.
+
+### What the replacement takes over, and what it does not
+
+The replacement is served under the name and at the address of the plugin it replaces, and it
+appears in the same place on the page: a replacement for a page is a navigation entry, a
+replacement for a page action is a page action, and a replacement for a card is a card. A
+replacement that names a different place is refused. Leaving `place` out takes the place of the
+plugin it replaces. A replacement card still says `place="card"`, because a `Card` is refused as
+anything else.
+
+The entry carries over from the plugin that was replaced:
+
+| Carries over | Unless the replacement states its own |
+| --- | --- |
+| `label`, `icon` and `order` of the entry | `label=`, `icon=` or `order=` in the registration |
+| `column` of a card | `column=` in the registration |
+| A declined entry (`menu=False`) | `menu=` in the registration |
+
+A replacement that gives no `label` does not get one made from its own class name. It keeps the
+label of the plugin it replaced. Each of these is decided on its own: a replacement that states
+only an icon keeps the label and the position.
+
+Nothing else carries over:
+
+- The access decision is the replacement's own. Its `check` and `permission` decide who is offered
+  it and who opens it, and nothing of the replaced plugin's is asked. A visitor the replaced plugin
+  admitted can be refused, and one it refused can be admitted.
+- The `url_path` and `name` of the replacement are not used for serving. They are the segment and
+  name of the plugin it replaces. The replacement's own name only identifies it, so a second
+  replacement or a removal can refer to it.
+- The views the replaced plugin owned through `extra_views` are not served. If the replacement
+  declares a view at the same segment, that view is served. A replacement built on the plugin it
+  replaces inherits the views, and so serves them.
+- A view the replacement owns is served beneath the same address and named `<name>-<view>`, where
+  `<name>` is the name of the plugin that was replaced.
+
+`registry.get_plugins_for_model(Sample)` still returns both registrations as they were made.
+`registry.resolve(Sample)` has one mount for the page, whose `plugin_class` is the replacement and whose `name`
+and `url_path` are the replaced plugin's.
+
+### The order does not matter
+
+A replacement may be registered before or after the plugin it replaces, and the portal starts the
+same way in both cases. A replacement built on the plugin it replaces keeps that plugin's `url_path`,
+and is not refused for sharing it. Addons load in an order a portal developer does not control,
+which is why this holds.
+
+A replacement built on a plugin that sets `name` must set its own, as `GuidedDescriptions` does.
+The shipped `Descriptions` page of a sample sets `name = "basic-information"`, and a subclass
+inherits it, which the registry refuses as a second plugin with the same name.
+
+### Replacing the overview
+
+The overview of a record type can be replaced like any other plugin. Build the replacement on the
+shipped overview and it keeps what draws the page actions and the cards, so registered actions and
+cards still appear:
+
+```python
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.dataset.plugins import Overview
+
+
+@plugins.register(Dataset, replaces=Overview)
+class RicherOverview(Overview):
+    template_name = "myportal/dataset_overview.html"
+```
+
+A replacement overview that is not built on the shipped one draws neither. When a page action or a
+card is registered for that record type, the portal does not start, and the message names the
+plugin and the record type.
+
+### Replacing a replacement, and removing one
+
+A replacement can itself be replaced, by naming the first replacement. The result is served at the
+address of the first plugin of the chain, by the last replacement:
+
+```python
+@plugins.register(Sample, replaces="guided-descriptions")
+class FullDescriptions(GuidedDescriptions):
+    name = "full-descriptions"
+```
+
+Each link keeps what the one before it had unless it states its own. Removing the last
+replacement of a chain with `plugins.remove(Sample, FullDescriptions)` serves the one before it again.
+Removing a plugin that another replacement names is refused, because the replacement would have
+nothing to replace.
+
+### When two addons replace one plugin
+
+Two replacements for one plugin on one record type are a conflict, and the portal does not start.
+The message names both. The portal settles it by removing the one it does not want, in its own
+`plugins.py`:
+
+```python
+plugins.remove(Sample, "descriptions-from-the-second-addon")
+```
+
+The other is then the replacement. The result is the same whichever addon loads first.
 
 ## Who can see it, and who can open it
 
@@ -492,8 +619,9 @@ The registry keeps every registration as it was made. `registry.get_plugins_for_
 returns the `(plugin class, options)` pairs in the order they arrived.
 
 `registry.resolve(Dataset)` works out from them what the record type actually serves. It returns
-one `Mount` per registration that has not been removed. A `Mount` is read-only and carries the `plugin_class`, the `name` it
-is served under, its `url_path` (`None` for the record's own address), its `place`, and the
+one `Mount` per plugin served: each registration that has not been removed, with a replacement
+standing in the mount of the plugin it replaces. A `Mount` is read-only and carries the
+`plugin_class`, the `name` it is served under, its `url_path` (`None` for the record's own address), its `place`, and the
 `label`, `icon` and `order` of its entry. `listed` is false when the registration declined its
 entry. `column` is the column of a card and `None` for anything else. The URL patterns, the navigation and the page actions are all built from this list, and so
 are the checks that refuse a registration that cannot work. `registry.get_page_actions(Dataset)`
@@ -525,6 +653,19 @@ registrations are checked together, and the same applies to what that finds. Ref
   removal and the record type, so a misspelt name stops the portal instead of removing nothing
 - a removal of the record type's overview, which is the plugin built on `OverviewPlaces` or served
   at the record's own address
+- a `replaces` that is neither a plugin class nor the name of one
+- a replacement that names a plugin not registered against that record type. The message names the
+  replacement and the record type
+- a replacement for a plugin that is removed from that record type. The message names the
+  replacement and the removal
+- two replacements for one plugin, unless one of them is removed. The message names both
+- replacements that name each other, or one that names itself
+- a replacement in a different place from the plugin it replaces, such as a card replacing a page.
+  The message names both
+- a replacement whose further views would generate an address name another plugin of the record
+  type already generates
+- a replacement for the overview that is not built on `OverviewPlaces`, on a record type that has a
+  page action or a card
 
 The same plugin name on two different records is fine. Names are unique per record, not globally.
 
