@@ -158,8 +158,7 @@ prototype: search the portal, look up in ORCID or ROR, or enter by hand.
 - A person entered by hand whose name is already in the portal can still be made, because two
   people do share names. An organization with the same name is not made twice, because two
   organizations with one name are almost always one organization entered twice.
-- A person made here has no account. An email address may be recorded for later claiming and is
-  never shown. Nothing is sent to anyone.
+- A person made here has no account and no email address. Nothing is sent to anyone.
 - A registry being unreachable must not stop a team crediting someone, so the other two ways keep
   working.
 
@@ -399,22 +398,18 @@ from the country field's own list, in any case, and refuses what does not resolv
 nothing else changes. Resolving through `django_countries` gives the same stored value.
 **Revisit if**: the maintainer wants a select on that card.
 
-## D19. A person entered by hand with an email address is in the invited state, and the portal's own reset page can mail it
+## D19. No email address is collected for a person entered by hand
 
-**Decision**: the person is active, not claimed, has the address in `email` and an unusable
-password, so `account_state` is `INVITED`, `can_sign_in()` is false, they appear in
-`Person.objects.invited()` and they have no social account. The address is shown nowhere. The page
-sends nothing. An address the portal holds, compared without case, is refused on the `email` field
-with the code `email_in_use`, before any same-name offer is built, and the message and the page name
-nobody.
-**Why**: that is what the model calls an invited profile, and the claiming process this feature
-leaves alone starts from it. I checked what allauth does with one in a throwaway test: signing in
-with a password fails, and posting the address to the portal's password reset page sends a reset
-mail to it, because allauth finds users by `Person.email` whatever their password. Stopping that
-would be a change to the sign-in settings or the account adapter, which this story does not touch.
-**Revisit if**: the maintainer wants such a profile unable to receive the reset mail until it is
-claimed. That needs a rule in `AccountAdapter`, and the person's invitation would have to go through
-the claiming service.
+**Decision**: the by-hand form asks for a given name and a family name and nothing else. A person
+made this way has no email address, an unusable password and no account.
+**Why**: the first build stored an optional address that was never shown. A profile with an address
+and no account is what the portal calls invited, and the portal's password-reset page mails a reset
+link to any address it holds. The owner of the address could then set a password and take the
+profile over without the claiming process, and a mistyped address would hand the profile to a
+stranger. The maintainer decided the field goes. How the reset page treats unclaimed profiles is a
+separate question with its own issue, and the account adapter is not changed here.
+**Revisit if**: inviting a person by email is built, which would collect the address as part of an
+invitation and not as a field on this form.
 
 ## D20. The registry is asked only when its tab is the one open, and only the first ten matches are kept
 

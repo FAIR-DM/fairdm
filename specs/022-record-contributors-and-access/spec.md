@@ -98,9 +98,10 @@ one. Editing a contributor sets both their contribution roles and what they may 
   anyone credited from it, so it can be removed by hand.
 - Q: A person looked up in ORCID, or an organization looked up in ROR, is already in the portal.
   What happens? → A: The existing profile is used. No second one is made.
-- Q: What is kept about a person or organization entered by hand? → A: A person's name, and an
-  email address if one is given, which is never shown publicly. An organization's name, and its
-  city, country and website if given. The person has a profile and no account.
+- Q: What is kept about a person or organization entered by hand? → A: A person's name and nothing
+  else. No email address is asked for: an address stored on a profile nobody has claimed could be
+  used to take the profile over through the portal's password reset. An organization's name, and
+  its city, country and website if given. The person has a profile and no account.
 - Q: When the last-manager rule is applied, who counts? → A: A person with an active account who
   can manage the record, whether they are listed on it or hold that level from a record above.
   People who can act only through a portal role do not count, so a record never depends on portal
@@ -534,9 +535,9 @@ Manager, Developer and Portal Administrator accounts.
 - **FR-016**: Adding a match from ORCID MUST make a person with that name and ORCID iD and no
   account. Adding a match from ROR MUST make an organization with that name and ROR ID. Where the
   portal already holds a profile with the same identifier, that profile MUST be used.
-- **FR-017**: A person entered by hand MUST have a given name and a family name, and MAY have an
-  email address, which MUST NOT be shown publicly. They MUST be made with no account. An
-  organization entered by hand MUST have a name, and MAY have a city, a country and a website.
+- **FR-017**: A person entered by hand MUST have a given name and a family name, and MUST be made
+  with no account and no email address. The page MUST NOT ask for one. An organization entered by
+  hand MUST have a name, and MAY have a city, a country and a website.
 - **FR-018**: When a person entered by hand has the same name as a profile in the portal, the
   matching profiles MUST be offered before anything is made, and making the new profile MUST remain
   possible. When an organization entered by hand has the same name as one in the portal, the

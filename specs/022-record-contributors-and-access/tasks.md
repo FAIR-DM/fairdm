@@ -216,6 +216,13 @@ the creator's level land here with the backend, so no commit leaves a creator lo
   way to go ahead, for a manager and for a superuser alike.
 - [ ] T024 [US5] Implement to make T020 to T023 pass (plan D3 `last_manager` and the row lock, D8,
   D9): `Crediting`; the models' `clean`; the merge service.
+- [ ] T025a [US5] Take the email address off the by-hand way of adding a person (decisions D19,
+  FR-017). Tests first: `TestAddByHand` in `test_plugins/test_shared.py` loses the cases that
+  store, validate or refuse an address and gains one: the form has no email field, and a posted
+  `email` value is ignored, so the person made has none. Then `NewPersonForm` loses the field and
+  its check, the add-person page loses the input with its label and hint, and the user guide, the
+  administrator page on looking up contributors, the developer page and the changelog stop
+  describing it. Earlier stories wrote those tests and that input; changing them is this task.
 - [ ] T025 [US5] Documentation: the last-manager rule, and that a record cannot be moved somewhere
   that would leave it without a manager, in the user guide page.
 
