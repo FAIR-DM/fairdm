@@ -121,10 +121,9 @@
             </li>
           {% endfor %}
           {% if members.more %}
-            {% comment %}Stands in for a link to the full member list, which has no page yet.{% endcomment %}
-            <li class="flex items-center gap-3 min-w-0 text-base-content/70" title="{% translate 'The full member list is not available yet.' %}">
+            <li class="flex items-center gap-3 min-w-0">
               <c-avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
-              <span>{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</span>
+              <a href="{% url 'contributor:members' uuid=object.uuid %}" class="link link-hover">{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</a>
             </li>
           {% endif %}
         </ul>

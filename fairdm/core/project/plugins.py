@@ -1,4 +1,4 @@
-"""Registered pages for a project: overview, update, descriptions, delete, datasets and export."""
+"""Registered pages for a project: overview, update, descriptions and delete."""
 
 from collections import Counter
 
@@ -32,9 +32,8 @@ from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.related_records import ProjectDateInline, ProjectIdentifierInline
 from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
+from fairdm.views import FairDMDeleteView, FairDMUpdateView
 
-from ..dataset.views import DatasetListView
 from .forms import ProjectForm
 from .models import Project, ProjectDate, ProjectDescription, PublicDatasetsProtect
 from .transforms import to_json_ld
@@ -694,26 +693,3 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             }
         )
         return rows
-
-
-@plugins.register(Project, order=100)
-class DatasetList(Plugin, DatasetListView):
-    """List the datasets that belong to the project."""
-
-    page_title = _("Datasets")
-
-    def get_queryset(self, *args, **kwargs):
-        """Limit to the project's datasets."""
-        return self.base_object.datasets.all()
-
-    def get_lookup_kwargs(self) -> dict:
-        """Return no lookup kwargs, as the queryset is already scoped to the project."""
-        return {}
-
-
-@plugins.register(Project, label=_("Export"), order=200)
-class ProjectExportView(Plugin, FairDMTemplateView):
-    """Page for exporting the project's data."""
-
-    page_title = _("Export Project Data")
-    page_icon = "export"

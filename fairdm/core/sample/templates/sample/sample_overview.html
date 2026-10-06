@@ -112,8 +112,10 @@
         {% if measurements.more %}
           <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
             {% blocktranslate count counter=measurements.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a table." as reason %}
-            <c-actions.pending label="{{ label }}" icon="data" reason="{{ reason }}" size="xs" />
+            <a href="{% url 'sample:measurements' uuid=object.uuid %}" class="btn btn-xs btn-outline">
+              <c-icon name="data" aria-hidden="true" only />
+              {% translate "All measurements" %}
+            </a>
           </div>
         {% endif %}
       {% else %}

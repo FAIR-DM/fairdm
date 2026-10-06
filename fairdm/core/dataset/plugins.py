@@ -924,3 +924,27 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "ready": done_required == len(required),
             "missing_required": len(required) - done_required,
         }
+
+
+# The two list tabs come after the overview: samples, then measurements (specification 023).
+from fairdm.core.record_lists import DatasetRecords  # noqa: E402
+
+
+@plugins.register(Dataset, label=_("Samples"), icon="sample", order=30)
+class Samples(DatasetRecords):
+    """List the samples that belong to the dataset, in the table of each sample type."""
+
+    base_model = Sample
+    kind_label = _("Samples")
+    page_title = _("Samples")
+    check = staticmethod(dataset_is_visible)
+
+
+@plugins.register(Dataset, label=_("Measurements"), icon="measurement", order=40)
+class Measurements(DatasetRecords):
+    """List the measurements that belong to the dataset, in the table of each measurement type."""
+
+    base_model = Measurement
+    kind_label = _("Measurements")
+    page_title = _("Measurements")
+    check = staticmethod(dataset_is_visible)

@@ -1,0 +1,72 @@
+{% extends "table_view.html" %}
+{% load i18n humanize %}
+{% comment %}
+  The Samples and Measurements tabs of a dataset: one registered type's table at a time.
+
+  The types are links, each with an address of its own, so they are a navigation and not an ARIA
+  tablist. A dataset that holds one type names it and offers no choice.
+{% endcomment %}
+{% block page.title %}
+  <div class="flex flex-col gap-3 w-full py-2">
+    <div class="page-title flex flex-col md:flex-row md:items-center md:justify-between gap-2 w-full">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold leading-tight">{{ page.title }}</h1>
+        {% if record_state == "listed" and type_entries|length == 1 %}
+          <p class="text-base-content/70">
+            {% blocktranslate count counter=current_type.count with name=current_type.name shown=current_type.count|intcomma %}{{ shown }} record, all {{ name }}{% plural %}{{ shown }} records, all {{ name }}{% endblocktranslate %}
+          </p>
+        {% endif %}
+      </div>
+      {% if record_state == "listed" %}
+        <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 md:justify-end md:items-center">
+          <c-page.list.actions />
+        </div>
+      {% endif %}
+    </div>
+    {% if type_entries|length > 1 %}
+      <nav aria-label="{% if kind == 'sample' %}{% translate 'Sample types in this dataset' %}{% else %}{% translate 'Measurement types in this dataset' %}{% endif %}"
+           class="tabs tabs-box w-fit max-w-full overflow-x-auto flex-nowrap">
+        {% for entry in type_entries %}
+          <a href="{{ entry.url }}"
+             class="tab gap-2 whitespace-nowrap {% if entry.is_current %}tab-active{% endif %}"
+             {% if entry.is_current %}aria-current="page"{% endif %}>
+            {{ entry.name }}
+            <span class="badge badge-sm {% if entry.is_current %}badge-neutral{% else %}badge-ghost{% endif %}">{{ entry.count|intcomma }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+  </div>
+{% endblock page.title %}
+
+{% block page.content %}
+  {% if record_state == "unpublished" %}
+    <div class="flex-1 flex items-center justify-center px-4">
+      {% if kind == "sample" %}
+        {% translate "These samples are not published yet" as heading %}
+        {% translate "The dataset's team is still working on it. Its samples will be listed here once the dataset is published." as message %}
+      {% else %}
+        {% translate "These measurements are not published yet" as heading %}
+        {% translate "The dataset's team is still working on it. Its measurements will be listed here once the dataset is published." as message %}
+      {% endif %}
+      <c-page.list.empty icon="lock" heading="{{ heading }}" message="{{ message }}" />
+    </div>
+  {% elif record_state == "empty" %}
+    <div class="flex-1 flex items-center justify-center px-4">
+      {% if kind == "sample" %}
+        {% translate "This dataset has no samples" as heading %}
+        {% translate "Samples added to the dataset will be listed here, in one table for each sample type." as message %}
+      {% else %}
+        {% translate "This dataset has no measurements" as heading %}
+        {% translate "Measurements added to the dataset will be listed here, in one table for each measurement type." as message %}
+      {% endif %}
+      <c-page.list.empty icon="{{ kind }}" heading="{{ heading }}" message="{{ message }}" />
+    </div>
+  {% else %}
+    <c-addons.django-table :table="table" label="{{ current_type.name }}" class="flex-1 min-h-0" />
+  {% endif %}
+{% endblock page.content %}
+
+{% block page.footer %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.footer %}
