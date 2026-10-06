@@ -16,6 +16,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.test import Client
 from research_vocabs.models import Concept
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import AccountState, ContributionLevel
 from fairdm.contrib.contributors.models import (
@@ -24,14 +25,17 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import (
-    AffiliationFactory,
     ContributionFactory,
     ContributorIdentifierFactory,
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
+    ProjectFactory,
 )
+from fairdm.utils.choices import Visibility
 
 ORCID_SEARCH = "https://pub.orcid.org/v3.0/expanded-search/"
 ROR_SEARCH = "https://api.ror.org/v2/organizations"
@@ -264,6 +268,401 @@ class TestChangingPagesRefuseAnyoneButAManager:
             assert "login" in response["Location"], (method, url)
 
         assert stored(record) == before
+
+
+VIEW, EDIT, MANAGE = (
+    ContributionLevel.VIEW,
+    ContributionLevel.EDIT,
+    ContributionLevel.MANAGE,
+)
+
+
+@pytest.fixture
+def private_chain(db):
+    """A private project, a private dataset in it, and a sample and measurement in that."""
+    project = ProjectFactory(visibility=Visibility.PRIVATE)
+    dataset = DatasetFactory(
+        project=project, visibility=Visibility.PRIVATE, published=False
+    )
+    sample = RockSampleFactory(dataset=dataset)
+    measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
+    return SimpleNamespace(
+        project=project, dataset=dataset, sample=sample, measurement=measurement
+    )
+
+
+@pytest.fixture(params=["project", "dataset", "sample", "measurement"])
+def private_record(request, private_chain):
+    """Each kind of private record in turn."""
+    return getattr(private_chain, request.param)
+
+
+def person_at(record, level, **fields):
+    """A person who can sign in, listed on the record at the level."""
+    person = PersonFactory(is_active=True, is_claimed=True, password="x", **fields)
+    ContributionFactory(content_object=record, contributor=person, level=level)
+    return person
+
+
+def changing_page(record):
+    """The address of a page that changes the record, or None when it has none."""
+    kind = RecordAccess(record).kind
+    if kind in ("project", "dataset"):
+        return reverse(record, "overview-update")
+    if kind == "sample":
+        return reverse(record, "edit")
+    return None
+
+
+def refusal(record):
+    """The status a signed-in person who may open the record gets from one of its editing pages.
+
+    A private project's or dataset's pages answer a refusal as a record that does not exist,
+    which is the rule those pages already had.
+    """
+    private = getattr(record, "visibility", None) == Visibility.PRIVATE
+    return 404 if private else 403
+
+
+def deletion_page(record):
+    """The address of the page that deletes the record, or None when it has none."""
+    if RecordAccess(record).kind in ("project", "dataset"):
+        return reverse(record, "overview-delete")
+    return None
+
+
+def tab_pages(record, contribution):
+    """Every page of the record's Contributors tab that is opened, for one contribution."""
+    return [
+        tab(record),
+        page_of(record, "add-person"),
+        page_of(record, "add-organization"),
+        page_of(record, "edit", pk=contribution.pk),
+        page_of(record, "remove", pk=contribution.pk),
+    ]
+
+
+def submissions(record, contribution):
+    """Every address the tab accepts a submission at, for one contribution on it."""
+    return [
+        *tab_pages(record, contribution)[1:],
+        page_of(record, "move", pk=contribution.pk),
+    ]
+
+
+@pytest.mark.django_db
+class TestLevels:
+    """User story 4: the level a person holds decides who opens, edits and manages."""
+
+    def test_a_person_added_from_the_tab_opens_a_private_record_and_cannot_change_it(
+        self, private_record, newcomer
+    ):
+        manager = person_at(private_record, MANAGE)
+        assert (
+            browser_as(newcomer).get(private_record.get_absolute_url()).status_code
+            == 404
+        )
+
+        add_from_portal(private_record, manager, newcomer)
+
+        assert (
+            browser_as(newcomer).get(private_record.get_absolute_url()).status_code
+            == 200
+        )
+        if changing_page(private_record):
+            assert browser_as(newcomer).get(
+                changing_page(private_record)
+            ).status_code == refusal(private_record)
+        assert not newcomer.has_perm(
+            f"{RecordAccess(private_record).kind}.change_{RecordAccess(private_record).kind}",
+            private_record,
+        )
+
+    def test_the_edit_page_sets_the_level_with_the_roles(
+        self, private_record, newcomer
+    ):
+        manager = person_at(private_record, MANAGE)
+        add_from_portal(private_record, manager, newcomer)
+        contribution = private_record.contributors.get(contributor=newcomer)
+        names = list(private_record.CONTRIBUTOR_ROLES.values)[:1]
+
+        response = browser_as(manager).post(
+            page_of(private_record, "edit", pk=contribution.pk),
+            {"roles": role_pks(*names), "level": EDIT},
+        )
+
+        contribution.refresh_from_db()
+        assert response["Location"] == tab(private_record)
+        assert contribution.level == EDIT
+        assert {r.name for r in contribution.roles.all()} == set(names)
+
+    def test_changing_roles_does_not_change_the_level(self, private_record):
+        manager = person_at(private_record, MANAGE)
+        editor = person_at(private_record, EDIT)
+        contribution = private_record.contributors.get(contributor=editor)
+
+        browser_as(manager).post(
+            page_of(private_record, "edit", pk=contribution.pk),
+            {
+                "roles": role_pks(private_record.CONTRIBUTOR_ROLES.values[0]),
+                "level": EDIT,
+            },
+        )
+
+        contribution.refresh_from_db()
+        assert contribution.level == EDIT
+
+    def test_an_editor_may_change_the_record_and_is_refused_the_rest(
+        self, private_record
+    ):
+        editor = person_at(private_record, EDIT)
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+
+        if changing_page(private_record):
+            assert (
+                browser_as(editor).get(changing_page(private_record)).status_code == 200
+            )
+        if deletion_page(private_record):
+            assert browser_as(editor).get(
+                deletion_page(private_record)
+            ).status_code == refusal(private_record)
+        for url in tab_pages(private_record, colleague)[1:]:
+            assert browser_as(editor).get(url).status_code == 403, url
+        assert browser_as(editor).get(tab(private_record)).status_code == 200
+
+    def test_a_manager_may_change_manage_and_delete(self, private_record):
+        manager = person_at(private_record, MANAGE)
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+
+        if changing_page(private_record):
+            assert (
+                browser_as(manager).get(changing_page(private_record)).status_code
+                == 200
+            )
+        if deletion_page(private_record):
+            assert (
+                browser_as(manager).get(deletion_page(private_record)).status_code
+                == 200
+            )
+        for url in tab_pages(private_record, colleague):
+            assert browser_as(manager).get(url).status_code == 200, url
+
+    def test_a_person_who_is_lowered_is_refused_what_only_the_higher_level_allowed(
+        self, private_record
+    ):
+        manager = person_at(private_record, MANAGE)
+        editor = person_at(private_record, EDIT)
+        contribution = private_record.contributors.get(contributor=editor)
+        if changing_page(private_record):
+            assert (
+                browser_as(editor).get(changing_page(private_record)).status_code == 200
+            )
+
+        browser_as(manager).post(
+            page_of(private_record, "edit", pk=contribution.pk), {"level": VIEW}
+        )
+
+        assert (
+            browser_as(editor).get(private_record.get_absolute_url()).status_code == 200
+        )
+        if changing_page(private_record):
+            assert browser_as(editor).get(
+                changing_page(private_record)
+            ).status_code == refusal(private_record)
+
+    def test_a_person_who_is_removed_is_refused_a_private_record(self, private_record):
+        manager = person_at(private_record, MANAGE)
+        reader = person_at(private_record, VIEW)
+        contribution = private_record.contributors.get(contributor=reader)
+
+        browser_as(manager).post(page_of(private_record, "remove", pk=contribution.pk))
+
+        assert (
+            browser_as(reader).get(private_record.get_absolute_url()).status_code == 404
+        )
+
+    def test_a_person_removed_from_a_dataset_keeps_what_they_hold_from_the_project(
+        self, private_chain
+    ):
+        manager = person_at(private_chain.dataset, MANAGE)
+        reader = person_at(private_chain.project, VIEW)
+        contribution = ContributionFactory(
+            content_object=private_chain.dataset,
+            contributor=reader,
+            level=VIEW,
+        )
+
+        browser_as(manager).post(
+            page_of(private_chain.dataset, "remove", pk=contribution.pk)
+        )
+
+        assert not private_chain.dataset.contributors.filter(
+            contributor=reader
+        ).exists()
+        assert (
+            browser_as(reader).get(private_chain.dataset.get_absolute_url()).status_code
+            == 200
+        )
+
+    def test_no_level_is_offered_for_an_organization_and_none_is_stored(
+        self, private_record
+    ):
+        manager = person_at(private_record, MANAGE)
+        partner = ContributionFactory(
+            content_object=private_record, contributor=OrganizationFactory(), level=None
+        )
+
+        page = browser_as(manager).get(page_of(private_record, "edit", pk=partner.pk))
+        browser_as(manager).post(
+            page_of(private_record, "edit", pk=partner.pk), {"level": MANAGE}
+        )
+
+        partner.refresh_from_db()
+        assert page.context["entry"]["is_person"] is False
+        assert partner.level is None
+
+    def test_a_level_below_what_is_held_from_above_is_refused_on_the_field(
+        self, private_chain
+    ):
+        manager = person_at(private_chain.dataset, MANAGE)
+        holder = person_at(private_chain.project, EDIT)
+        contribution = ContributionFactory(
+            content_object=private_chain.dataset, contributor=holder, level=EDIT
+        )
+        before = stored(private_chain.dataset)
+
+        response = browser_as(manager).post(
+            page_of(private_chain.dataset, "edit", pk=contribution.pk),
+            {"level": VIEW},
+        )
+
+        assert response.status_code == 422
+        assert "level" in response.context["errors"]
+        assert stored(private_chain.dataset) == before
+
+    def test_the_tab_shows_a_manager_who_holds_access_from_above_and_where_from(
+        self, private_chain
+    ):
+        manager = person_at(private_chain.dataset, MANAGE)
+        holder = person_at(private_chain.project, EDIT)
+
+        response = browser_as(manager).get(tab(private_chain.dataset))
+
+        found = {
+            (h["person"].pk, h["label"], h["source"])
+            for h in response.context["access_from_above"]
+        }
+        assert found == {(holder.pk, EDIT.label, private_chain.project)}
+
+    def test_the_tab_shows_a_reader_nobodys_level(self, private_chain):
+        reader = person_at(private_chain.dataset, VIEW)
+        person_at(private_chain.dataset, MANAGE)
+        person_at(private_chain.project, EDIT)
+
+        response = browser_as(reader).get(tab(private_chain.dataset))
+
+        assert response.status_code == 200
+        assert response.context["can_manage"] is False
+        assert response.context["access_from_above"] == []
+        for row in response.context["people"]["rows"]:
+            assert row["effective"] is None and row["own"] is None
+        content = response.content.decode()
+        assert not any(str(level.label) in content for level in ContributionLevel)
+
+    def test_a_manager_sees_levels_on_the_same_tab(self, private_chain):
+        manager = person_at(private_chain.dataset, MANAGE)
+
+        response = browser_as(manager).get(tab(private_chain.dataset))
+
+        assert any(
+            str(level.label) in response.content.decode() for level in ContributionLevel
+        )
+
+    def test_a_person_without_an_account_keeps_the_level_and_the_tab_marks_it(
+        self, private_record
+    ):
+        manager = person_at(private_record, MANAGE)
+        ghost = PersonFactory(is_active=False, password="x")
+        added = Crediting(private_record).add(ghost)
+
+        browser_as(manager).post(
+            page_of(private_record, "edit", pk=added.pk), {"level": EDIT}
+        )
+        response = browser_as(manager).get(tab(private_record))
+
+        added.refresh_from_db()
+        assert added.level == EDIT
+        assert row_of(response, ghost)["has_account"] is False
+        assert RecordAccess(private_record).level_of(ghost) is None
+
+
+@pytest.mark.django_db
+class TestPrivateRecordTab:
+    """A private record's tab answers as its overview does."""
+
+    def test_a_stranger_and_a_visitor_get_404_on_every_page(
+        self, private_record, newcomer
+    ):
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+
+        for viewer in (newcomer, None):
+            for url in tab_pages(private_record, colleague):
+                assert browser_as(viewer).get(url).status_code == 404, (viewer, url)
+            for url in submissions(private_record, colleague):
+                assert browser_as(viewer).post(url, {}).status_code == 404, (
+                    viewer,
+                    url,
+                )
+
+    def test_the_overview_gives_the_same_answer(self, private_record, newcomer):
+        assert (
+            browser_as(newcomer).get(private_record.get_absolute_url()).status_code
+            == 404
+        )
+
+    def test_a_reader_opens_the_tab_and_is_refused_its_changing_pages(
+        self, private_record
+    ):
+        reader = person_at(private_record, VIEW)
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+
+        assert browser_as(reader).get(tab(private_record)).status_code == 200
+        for url in tab_pages(private_record, colleague)[1:]:
+            assert browser_as(reader).get(url).status_code == 403, url
+        for url in submissions(private_record, colleague):
+            assert browser_as(reader).post(url, {}).status_code == 403, url
+
+    def test_a_visitor_is_sent_to_sign_in_on_a_public_records_changing_pages(
+        self, public_chain
+    ):
+        colleague = ContributionFactory(content_object=public_chain.dataset, level=VIEW)
+
+        for url in tab_pages(public_chain.dataset, colleague)[1:]:
+            response = browser_as(None).get(url)
+            assert response.status_code == 302 and "login" in response["Location"]
+
+    def test_a_public_records_tab_opens_to_everyone(self, record, newcomer):
+        assert browser_as(None).get(tab(record)).status_code == 200
+        assert browser_as(newcomer).get(tab(record)).status_code == 200
+
+    def test_a_person_listed_on_a_dataset_in_a_private_project_opens_the_datasets_tab(
+        self, private_chain
+    ):
+        member = person_at(private_chain.dataset, VIEW)
+
+        assert browser_as(member).get(tab(private_chain.dataset)).status_code == 200
+        assert browser_as(member).get(tab(private_chain.project)).status_code == 404
+
+    def test_a_person_listed_only_on_a_sample_opens_the_sample_and_not_the_dataset(
+        self, private_chain
+    ):
+        member = person_at(private_chain.sample, VIEW)
+
+        assert browser_as(member).get(tab(private_chain.sample)).status_code == 200
+        assert browser_as(member).get(tab(private_chain.dataset)).status_code == 404
+
+    def test_a_curator_opens_every_tab(self, private_record, curator):
+        assert browser_as(curator).get(tab(private_record)).status_code == 200
 
 
 @pytest.mark.django_db

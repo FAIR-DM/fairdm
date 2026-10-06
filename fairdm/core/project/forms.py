@@ -8,6 +8,7 @@ from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
+from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.forms import ModelForm
 from fairdm.utils.choices import Visibility
@@ -15,11 +16,15 @@ from fairdm.utils.choices import Visibility
 from .models import Project
 
 
-class ProjectForm(ModelForm):
+class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
     """Form for editing a project, and the base of ``ProjectCreateForm``.
+
+    For a project that already exists, visibility and owner are offered only to someone who can
+    manage it.
 
     Args:
         *args: Positional arguments passed to ``ModelForm``.
+        request: The current request, which decides whether visibility and owner are offered.
         **kwargs: Keyword arguments passed to ``ModelForm``.
 
     Attributes:
@@ -72,19 +77,22 @@ class ProjectForm(ModelForm):
         model = Project
         fields = ["image", "name", "status", "visibility", "owner"]
 
-    def __init__(self, *args, **kwargs):
+    manager_only_fields = ("visibility", "owner")
+
+    def __init__(self, *args, request=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.withhold_manager_only_fields(request)
         if "owner" in self.fields:
             self.fields["owner"].queryset = Organization.objects.all()
 
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            "image",
-            "name",
-            "status",
-            InlineRadios("visibility"),
-            "owner",
+            *(
+                InlineRadios(name) if name == "visibility" else name
+                for name in ("image", "name", "status", "visibility", "owner")
+                if name in self.fields
+            )
         )
 
 

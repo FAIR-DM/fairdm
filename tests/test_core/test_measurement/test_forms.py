@@ -5,7 +5,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
-from demo.factories import RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement, XRFMeasurement
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
@@ -204,6 +204,57 @@ class TestMeasurementFormDatasetChoices:
         offered = set(form.fields["dataset"].queryset)
         assert offered == {dataset1}
         assert dataset2 not in offered
+
+
+@pytest.mark.django_db
+class TestMeasurementFormOnAnExistingMeasurement:
+    """The dataset a measurement sits in is offered only to someone who can manage it."""
+
+    def _measurement(self):
+        dataset = DatasetFactory()
+        return ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+
+    def _form(self, measurement, user):
+        class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = ExampleMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        return MeasurementForm(instance=measurement, request=_request_for(user))
+
+    def test_an_editor_is_not_offered_the_dataset(self):
+        measurement = self._measurement()
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=measurement,
+            contributor=editor,
+            level=ContributionLevel.EDIT,
+        )
+
+        assert "dataset" not in self._form(measurement, editor).fields
+
+    def test_a_manager_is_offered_the_dataset(self):
+        measurement = self._measurement()
+        manager = UserFactory()
+        ContributionFactory(
+            content_object=measurement,
+            contributor=manager,
+            level=ContributionLevel.MANAGE,
+        )
+
+        assert "dataset" in self._form(measurement, manager).fields
+
+    def test_a_form_for_a_new_measurement_leaves_nothing_out(self):
+        class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = ExampleMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = MeasurementForm(request=_request_for(UserFactory()))
+
+        assert "dataset" in form.fields
 
 
 @pytest.mark.django_db

@@ -1,8 +1,8 @@
-"""The Contributors tab of a project, dataset, sample or measurement.
+"""The Contributors tab of a project, dataset, sample or measurement, and the pages it leads to.
 
-Prototype for ``specs/022-record-contributors-and-access``: the screens are the deliverable and
-the code behind them is to be rebuilt. ``specs/022-record-contributors-and-access/sketch.md``
-lists what is faked.
+Every page opens only when the record's overview would, and a page that changes anything asks
+whether the viewer can manage the record on every request. The changes themselves are made by
+``Crediting``.
 """
 
 from django import forms
@@ -11,6 +11,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.utils.text import capfirst
@@ -22,6 +23,7 @@ from research_vocabs.models import Concept
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin, reverse
+from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
@@ -342,8 +344,27 @@ class ContributionPage(Plugin, FairDMTemplateView):
         """What people may do on this record."""
         return RecordAccess(self.base_object)
 
+    @property
+    def overview(self):
+        """The overview plugin of the record's kind, whose check decides who may open the record."""
+        from fairdm.core.dataset.plugins import Overview as DatasetOverview
+        from fairdm.core.measurement.plugins import Overview as MeasurementOverview
+        from fairdm.core.project.plugins import Overview as ProjectOverview
+        from fairdm.core.sample.plugins import Overview as SampleOverview
+
+        return {
+            Project: ProjectOverview,
+            Dataset: DatasetOverview,
+            Sample: SampleOverview,
+            Measurement: MeasurementOverview,
+        }[self.access.model]
+
     def dispatch(self, request, *args, **kwargs):
-        """Refuse a page for changing contributors to anyone who may not manage the record."""
+        """Answer as the overview does when the record is closed to the viewer, then refuse a page for changing contributors to anyone who may not manage the record."""
+        if not can_open(self.overview, request, self.base_object):
+            raise Http404(
+                _("No %(kind)s matches the given query.") % {"kind": self.access.kind}
+            )
         if self.manager_only and not self.access.can_manage(request.user):
             if not request.user.is_authenticated:
                 return redirect_to_login(request.get_full_path())
@@ -367,7 +388,7 @@ class ContributionPage(Plugin, FairDMTemplateView):
         contributor = contribution.contributor.get_real_instance()
         is_person = not contributor.is_organization
         own = above = source = effective = None
-        if is_person:
+        if is_person and self.can_see_levels:
             own = self.access.own_level(contributor)
             above, source = self.access.level_from_above(contributor)
             effective = max((level for level in (own, above) if level), default=None)
@@ -388,6 +409,11 @@ class ContributionPage(Plugin, FairDMTemplateView):
             "attached": [] if is_person else self.credited_from.get(contributor.pk, []),
             "removable": is_person or contributor.pk not in self.credited_from,
         }
+
+    @cached_property
+    def can_see_levels(self):
+        """Whether the viewer may be told what people may do: only someone who can manage."""
+        return self.access.can_manage(self.request.user)
 
     @cached_property
     def credited_from(self):

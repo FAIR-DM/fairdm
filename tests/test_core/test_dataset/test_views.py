@@ -768,6 +768,100 @@ class TestDatasetUpdateView:
         response = client.get(url)
         assert response.status_code == 200
 
+    def _post_changes(self, client, user, dataset, project):
+        license_obj = dataset.license or License.objects.first()
+        client.force_login(user)
+        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        return client.post(
+            url,
+            data={
+                "name": "Renamed",
+                "project": project.pk,
+                "license": license_obj.pk,
+                "visibility": Visibility.PUBLIC,
+                **_identifier_management_data(),
+                **_date_management_data(),
+            },
+        )
+
+    def _setup(self, user, level):
+        from fairdm.factories import ProjectFactory
+
+        own_project = ProjectFactory()
+        other_project = ProjectFactory()
+        dataset = DatasetFactory(
+            name="Original", project=own_project, visibility=Visibility.PRIVATE
+        )
+        ContributionFactory(content_object=dataset, contributor=user, level=level)
+        for project in (own_project, other_project):
+            ContributionFactory(
+                content_object=project, contributor=user, level=ContributionLevel.VIEW
+            )
+        return dataset, own_project, other_project
+
+    def test_an_editor_changes_the_dataset_but_not_its_visibility_or_project(
+        self, client
+    ):
+        user = UserFactory()
+        dataset, own_project, other_project = self._setup(user, ContributionLevel.EDIT)
+
+        response = self._post_changes(client, user, dataset, other_project)
+
+        assert response.status_code == 302
+        dataset.refresh_from_db()
+        assert dataset.name == "Renamed"
+        assert dataset.visibility == Visibility.PRIVATE
+        assert dataset.project_id == own_project.pk
+
+    def test_the_form_an_editor_is_given_leaves_out_visibility_and_project(
+        self, client
+    ):
+        user = UserFactory()
+        dataset, _own, _other = self._setup(user, ContributionLevel.EDIT)
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert {"name", "license"} <= set(response.context["form"].fields)
+        assert not {"visibility", "project"} & set(response.context["form"].fields)
+
+    def test_a_manager_changes_visibility_and_project(self, client):
+        user = UserFactory()
+        dataset, _own, other_project = self._setup(user, ContributionLevel.MANAGE)
+
+        response = self._post_changes(client, user, dataset, other_project)
+
+        assert response.status_code == 302
+        dataset.refresh_from_db()
+        assert dataset.visibility == Visibility.PUBLIC
+        assert dataset.project_id == other_project.pk
+
+    def test_a_data_curator_changes_visibility_and_project(self, client):
+        from django.contrib.auth.models import Group
+
+        from fairdm.factories import ProjectFactory
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        curator = UserFactory()
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        other_project = ProjectFactory()
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        ContributionFactory(
+            content_object=other_project,
+            contributor=curator,
+            level=ContributionLevel.VIEW,
+        )
+
+        response = self._post_changes(client, curator, dataset, other_project)
+
+        assert response.status_code == 302
+        dataset.refresh_from_db()
+        assert dataset.visibility == Visibility.PUBLIC
+        assert dataset.project_id == other_project.pk
+
     def test_valid_post_redirects_to_detail(self, client):
         from licensing.models import License
 

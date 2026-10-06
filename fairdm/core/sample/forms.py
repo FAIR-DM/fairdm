@@ -11,6 +11,7 @@ from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Sample
@@ -18,11 +19,12 @@ from .models import Sample
 logger = logging.getLogger(__name__)
 
 
-class SampleFormMixin:
+class SampleFormMixin(ManagerOnlyFieldsMixin):
     """Mixin giving sample model forms Select2 widgets for dataset and location.
 
     Use it with the ``ModelForm`` of a concrete sample type. The dataset choices are the datasets
-    the requesting user may change. A form given no authenticated user offers no dataset at all,
+    the requesting user may edit. For a sample that already exists the dataset is offered only to
+    someone who can manage the sample. A form given no authenticated user offers no dataset at all,
     which is the safe default, and logs a warning because a create form that can never validate
     explains nothing on its own. The status defaults to ``unknown``, matching the model default,
     so a form never asserts where a specimen is when nobody chose.
@@ -44,9 +46,12 @@ class SampleFormMixin:
         ```
     """
 
+    manager_only_fields = ("dataset",)
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+        self.withhold_manager_only_fields(self.request)
 
         if "dataset" in self.fields:
             select2_widget = ModelSelect2Widget(

@@ -185,7 +185,7 @@ class TestUpdatePageFieldSet:
         dataset = DatasetFactory()
         user = UserFactory()
         ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
@@ -246,7 +246,7 @@ class TestUpdatePageAttributesPersist:
                 project=original_project,
             )
             ContributionFactory(
-                content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+                content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
             )
             client.force_login(user)
             url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
@@ -301,7 +301,7 @@ class TestUpdatePageProjectField:
         dataset = DatasetFactory()
         user = UserFactory()
         ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
 

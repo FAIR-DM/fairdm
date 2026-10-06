@@ -505,7 +505,7 @@ class TestProjectUpdateView:
                 owner=org,
             )
             ContributionFactory(
-                content_object=project, contributor=user, level=ContributionLevel.EDIT
+                content_object=project, contributor=user, level=ContributionLevel.MANAGE
             )
             client.force_login(user)
             url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
@@ -524,6 +524,95 @@ class TestProjectUpdateView:
                 assert project.owner_id == other_org.pk
             else:
                 assert getattr(project, field) == new_value
+
+    def _post_changes(self, client, user, project, owner):
+        client.force_login(user)
+        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        return client.post(
+            url,
+            data={
+                "name": "Renamed",
+                "status": project.status,
+                "visibility": Visibility.PUBLIC,
+                "owner": owner.pk,
+                **_identifier_management_data(),
+                **_date_management_data(),
+            },
+        )
+
+    def test_an_editor_changes_the_project_but_not_its_visibility_or_owner(
+        self, client
+    ):
+        org = Organization.objects.create(name="Original Org")
+        other_org = Organization.objects.create(name="Other Org")
+        project = ProjectFactory(
+            name="Original", visibility=Visibility.PRIVATE, owner=org
+        )
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=editor, level=ContributionLevel.EDIT
+        )
+
+        response = self._post_changes(client, editor, project, other_org)
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert project.name == "Renamed"
+        assert project.visibility == Visibility.PRIVATE
+        assert project.owner_id == org.pk
+
+    def test_the_form_an_editor_is_given_leaves_out_visibility_and_owner(self, client):
+        project = ProjectFactory()
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=editor, level=ContributionLevel.EDIT
+        )
+        client.force_login(editor)
+
+        response = client.get(
+            reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        )
+
+        assert {"name", "status"} <= set(response.context["form"].fields)
+        assert not {"visibility", "owner"} & set(response.context["form"].fields)
+
+    def test_a_manager_changes_visibility_and_owner(self, client):
+        org = Organization.objects.create(name="Original Org")
+        other_org = Organization.objects.create(name="Other Org")
+        project = ProjectFactory(visibility=Visibility.PRIVATE, owner=org)
+        manager = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=manager, level=ContributionLevel.MANAGE
+        )
+
+        response = self._post_changes(client, manager, project, other_org)
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert project.visibility == Visibility.PUBLIC
+        assert project.owner_id == other_org.pk
+
+    def test_a_data_curator_changes_visibility_and_owner_without_being_listed(
+        self, client
+    ):
+        from django.contrib.auth.models import Group
+
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        org = Organization.objects.create(name="Original Org")
+        other_org = Organization.objects.create(name="Other Org")
+        project = ProjectFactory(visibility=Visibility.PRIVATE, owner=org)
+        curator = UserFactory()
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        response = self._post_changes(client, curator, project, other_org)
+
+        assert response.status_code == 302
+        project.refresh_from_db()
+        assert project.visibility == Visibility.PUBLIC
+        assert project.owner_id == other_org.pk
+        assert not project.contributors.filter(contributor=curator).exists()
 
     def test_uploading_an_image_persists_it_and_clearing_it_removes_it(self, client):
         import io

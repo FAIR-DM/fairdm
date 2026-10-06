@@ -9,16 +9,18 @@ from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Measurement
 
 
-class MeasurementFormMixin:
+class MeasurementFormMixin(ManagerOnlyFieldsMixin):
     """Mixin giving measurement model forms Select2 widgets for dataset and sample.
 
     Use it with the ``ModelForm`` of a concrete measurement type. The dataset choices are limited
-    to the datasets the requesting user may change. See docs/portal-development/measurements.md.
+    to the datasets the requesting user may edit. For a measurement that already exists the
+    dataset is offered only to someone who can manage the measurement. See docs/portal-development/measurements.md.
 
     Args:
         *args: Positional arguments passed to ``ModelForm``.
@@ -37,9 +39,12 @@ class MeasurementFormMixin:
         ```
     """
 
+    manager_only_fields = ("dataset",)
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+        self.withhold_manager_only_fields(self.request)
 
         if "dataset" in self.fields:
             select2_widget = ModelSelect2Widget(

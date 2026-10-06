@@ -135,6 +135,12 @@ class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
         """Offer the delete link only to a user who holds the permission ``Delete`` requires."""
         return has_perm(self.request, Delete.permission, self.base_object)
 
+    def get_form_kwargs(self):
+        """Pass the request so visibility and owner are offered only to someone who can manage."""
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+        return kwargs
+
     def get_success_url(self):
         """Return to the project's own page."""
         return self.base_object.get_absolute_url()

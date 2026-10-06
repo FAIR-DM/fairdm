@@ -5,6 +5,36 @@ from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 
 
+class ManagerOnlyFieldsMixin:
+    """Leave the fields that decide who gets into a record out of its form, for anyone who cannot manage it.
+
+    Visibility and the record a record sits under (a project's owner, a dataset's project, a
+    sample's or measurement's dataset) change who holds rights over it, so only someone who can
+    manage it is offered them. A form for a new record leaves nothing out.
+
+    Attributes:
+        manager_only_fields: The names of the fields to leave out.
+    """
+
+    manager_only_fields: tuple[str, ...] = ()
+
+    def withhold_manager_only_fields(self, request):
+        """Remove the manager-only fields unless the request's user can manage the record.
+
+        Args:
+            request: The current request, or None, which counts as someone who cannot manage it.
+        """
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        user = getattr(request, "user", None)
+        if self.instance.pk is None or (
+            user is not None and RecordAccess(self.instance).can_manage(user)
+        ):
+            return
+        for name in self.manager_only_fields:
+            self.fields.pop(name, None)
+
+
 class BaseForm(ModelForm):
     """Model form that accepts the request and drops declared fields missing from ``Meta.fields``.
 

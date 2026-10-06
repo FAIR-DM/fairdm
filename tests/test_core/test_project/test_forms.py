@@ -1,8 +1,12 @@
 """Tests for the project forms in ``fairdm.core.project.forms``."""
 
+from types import SimpleNamespace
+
 import pytest
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.choices import ProjectStatus
+from fairdm.factories import ContributionFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -136,7 +140,13 @@ class TestProjectUpdateForm:
             "owner": owner.pk,
         }
 
-        form = ProjectForm(data=form_data, instance=project)
+        manager = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=manager, level=ContributionLevel.MANAGE
+        )
+        form = ProjectForm(
+            data=form_data, instance=project, request=SimpleNamespace(user=manager)
+        )
 
         assert form.is_valid(), f"Form errors: {form.errors}"
 
