@@ -75,3 +75,10 @@ Did: Added TestRemove (parametrized over navigation, action and card) and TestRe
 Verified: `uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k TestRemove` -> 26 failed, all with AttributeError on registry.remove (the right reason, the method does not exist yet). pre-commit run --all-files passed.
 Next: T011, the page tests through the client.
 Watch: the registry fixtures (isolate_registry, PluginSandbox) save and restore removals once the registry has somewhere to keep them, so that edit lands with T012.
+
+## 2026-10-06T22:16:24Z · Implementer US3 · T011
+
+Did: Added tests/test_templates/test_overview_removed_plugins.py. For every plugin FairDM registers on a record type with an overview (read from the registry when the tests are collected, minus the overview itself), it removes the plugin through the sandbox, opens the overview as a visitor and as a manager, and asserts a 200, no link to the former address and no anchor with an empty or None address. It also asserts the former address answers 404 like an unknown one, that the name does not reverse, that reverse(default="") and both plugin_url tags give an empty string, that a dataset's and a sample's Contributors pages are served without a link to the record above (each first shown to carry that link before the removal), and that a removed plugin's credits are still stored.
+Verified: with a temporary is_overview stub that I removed again, `uv run pytest tests/test_templates/test_overview_removed_plugins.py -q -n0` -> 31 failed, 7 errors, every one on `fairdm.plugins` having no `remove` (the right reason). pre-commit run --all-files passed.
+Next: T012, the implementation.
+Watch: Point has a registration but no overview page to open, so it is not in the parametrized list.
