@@ -232,3 +232,31 @@ Did: the user guide page gains "Every record keeps a manager": the last-manager 
 Verified: `uv run pre-commit run --all-files` passed. The full gate is run once with the report.
 Next: full gate, completion report.
 Watch: none.
+
+## 2026-10-06T15:37:31Z · Implementer US6 · T026
+
+Did: TestMove in test_services/test_crediting.py (18 cases: each kind moves among its own and leaves the other kind and other records alone, the ends and the only one of a kind do not move, two moves go two places, tied order values move deterministically by pk, an unknown direction is refused with code `direction`, a new person and a new organization are last of their kind, removing or editing one leaves the rest in place) and `move` added to TestRecordLock's parametrisation; TestContributionKinds in test_managers.py (people and organizations narrow by kind, each ordered by order then pk, one query each). Red first: 13 of the 18 TestMove cases failed on the missing `move` and the four manager cases on the missing `people`/`organizations`; the five that passed on arrival (add places last within kind, remove and edit leave order alone) describe behaviour Crediting.add, update and remove already have, which is the confirmation the brief asks for.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0`: 105 passed, 6 skipped (TestRecordLock, SQLite cannot lock rows, the skip tasks.md names). `uv run pytest tests/test_contrib/test_contributors/test_managers.py -q -n0`: 44 passed.
+Next: T027.
+Watch: the `move` lock case is skipped here with the others, so on SQLite the lock-before-read order of `move` is by construction (it reads inside `locked()`), not observed.
+
+## 2026-10-06T15:37:31Z · Implementer US6 · T027
+
+Did: TestMovePage in test_plugins/test_shared.py (a manager moves a person earlier and later and an organization, and is redirected to the tab at the contributor's anchor; the tab then lists the new order; the first moving earlier changes nothing and still redirects; a reader gets 403 and a visitor is sent to sign in with the order unchanged; a direction that is neither answers 400; a contribution of another record answers 404), each across the four record kinds. In tests/test_core: TestRecordOverviewPluginOrder (get_contributions, get_credits and the People card give people first then organizations, each in its reordered order), TestRecordOverviewPluginAffiliation (a person credited with no organization gets none though they have a primary affiliation; one credited from an organization shows it), and a citation test in each of the dataset and project TestOverviewCitation (creators named in the reordered order, people before an organization credited first). Red first: the order and citation tests fail against the old get_contributions and the affiliation test fails against the fallback, probed by checking fairdm/core/plugins.py out of HEAD and running them (6 failed), then restoring it.
+Verified: see T028. No pre-existing overview test asserted the fallback to the primary affiliation: none failed once it was removed (`uv run pytest tests/test_core tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n auto --dist loadscope`: 1662 passed, 7 skipped, 2 failed, the two failures being my own new citation tests, which looked a person up by a name the factory does not set and were corrected), so no existing test was changed.
+Next: T028.
+Watch: none.
+
+## 2026-10-06T15:37:31Z · Implementer US6 · T028
+
+Did: ContributionQuerySet.people() and .organizations() filter on the contributor's polymorphic_ctype and order by (order, pk). Crediting.move(contribution, direction) runs inside locked(), reads the same-kind contributions by those helpers, swaps `order` with the neighbour, renumbers the peers from the first one's value when two share an order so the result is deterministic, and refuses an unknown direction (`direction`) or a contribution not on the record (`not_listed`). ContributionMove.post is now get_contribution(), Crediting.move, redirect to the tab at the contributor's anchor, 400 on a refused direction; its reordering is gone. The tab's list reads the two helpers. RecordOverviewPlugin.get_contributions() returns people then organizations; get_credits() reads the credit's own affiliation with no fallback. No template touched.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope`: 704 passed. `uv run pytest tests/test_core tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n auto --dist loadscope`: 1662 passed, 7 skipped, 2 failed (my own two citation tests, then corrected); `uv run pytest tests/test_core/test_project/test_plugins.py::TestOverviewCitation tests/test_core/test_dataset/test_plugins.py::TestOverviewCitation -q -n0`: 12 passed. `uv run pre-commit run --all-files` passes.
+Next: T029, then the full gate.
+Watch: a commit of mine, 3c5725f0, was amended to 6baf80ed to rename a local variable that ruff flagged.
+
+## 2026-10-06T15:37:31Z · Implementer US6 · T029
+
+Did: the user guide gains "Putting contributors in order" (per-list order, the controls, people before organizations in the overview and citation, new ones last, search hides the controls, a person credited with none shows none). The developer page documents Crediting.move with its two refusal codes, the order rules, people() and organizations(), the ContributionMove page and its 400, and `move` under the row lock; overview-pages.md describes the new get_contributions() and get_credits(); the changelog has an entry.
+Verified: `forge verify --repo . --base origin/main --steps docs` reports only `ContributorSeed`. Public text has no em dashes.
+Next: full gate, completion report.
+Watch: none.

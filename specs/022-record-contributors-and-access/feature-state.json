@@ -659,23 +659,89 @@
       "tasks": [
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMove",
+              "tests/test_contrib/test_contributors/test_managers.py::TestContributionKinds"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0",
+              "uv run pytest tests/test_contrib/test_contributors/test_managers.py -q -n0"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py:776",
+              "tests/test_contrib/test_contributors/test_managers.py:552"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestMovePage",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginOrder",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginAffiliation",
+              "tests/test_core/test_project/test_plugins.py::TestOverviewCitation",
+              "tests/test_core/test_dataset/test_plugins.py::TestOverviewCitation"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "uv run pytest tests/test_core -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py:816",
+              "tests/test_core/test_plugins.py:138",
+              "tests/test_core/test_plugins.py:181"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMove",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestMovePage",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginOrder"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "uv run pytest tests/test_core tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:263",
+              "fairdm/contrib/contributors/managers.py:271",
+              "fairdm/contrib/contributors/managers.py:286",
+              "fairdm/contrib/contributors/plugins/shared.py:856",
+              "fairdm/core/plugins.py:88",
+              "fairdm/core/plugins.py:136"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:194",
+              "docs/portal-development/contributors.md:886"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

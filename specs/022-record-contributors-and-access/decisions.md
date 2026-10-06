@@ -565,3 +565,15 @@ which it is on the SQLite the test settings use. It asserts on the queries issue
 clause replaced by a comment, saw them pass, and saw them fail with the lock removed and with the
 default manager in place of `all_objects`. That copy was not kept.
 **Revisit if**: the test settings move to PostgreSQL.
+
+## D35. `Crediting.move` renumbers a tied kind, and the page answers a bad direction with 400
+
+**Decision**: `move` swaps `order` with the neighbour of the same kind, read as `people()` or
+`organizations()`. When two of that kind share an order value, it first spreads them from the
+first one's value in (order, pk) sequence, then swaps. An unknown direction raises `direction` and
+a contribution not on the record raises `not_listed`; `ContributionMove` answers the first with 400
+and the second, found through `get_contribution()`, with 404.
+**Why**: swapping two equal values changes nothing, so old data with ties would not move. Spreading
+only the moved kind leaves the other kind's values alone. The previous page treated any direction
+but `up` as `down`.
+**Revisit if**: a record's two kinds come to share one list.
