@@ -234,9 +234,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The pages for adding a person and adding an organization to a record offer three ways side by
   side: someone already in the portal, someone looked up in ORCID or ROR, and someone entered by
   hand. A registry match makes a profile with the name and the identifier, or uses the profile the
-  portal already holds under that identifier. A person entered by hand needs both names and may
-  have an email address that is kept and never shown, and a name the portal already has is offered
-  before anything is made. A registry that cannot be reached leaves the other two ways working.
+  portal already holds under that identifier. A person entered by hand needs both names, and no
+  email address is asked for or kept. A name the portal already has is offered before anything is
+  made. A registry that cannot be reached leaves the other two ways working.
   `Orcid` and `Ror` in `fairdm.contrib.contributors.services.registries` search, fetch and make
   the profiles, and raise `RegistryUnavailable`. The portal's server needs to reach
   `pub.orcid.org` and `api.ror.org`. See [Crediting a record](docs/user-guide/crediting-a-record.md)

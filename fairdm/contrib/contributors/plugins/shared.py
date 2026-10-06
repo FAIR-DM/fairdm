@@ -203,9 +203,8 @@ class AffiliationChoice(forms.Form):
 
 
 class NewPersonForm(forms.Form):
-    """A person typed in by hand: two names, and an email address that is kept and never shown.
+    """A person typed in by hand: two names, and no email address.
 
-    The email address is refused when the portal already holds it, without saying whose it is.
     A person whose name a profile already has is offered those profiles first: ``same_name``
     holds them, and the form is not valid until ``confirmed`` is sent.
     """
@@ -218,21 +217,11 @@ class NewPersonForm(forms.Form):
         max_length=Person._meta.get_field("last_name").max_length,
         error_messages={"required": gettext_lazy("Enter their family name.")},
     )
-    email = forms.EmailField(required=False)
     confirmed = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.same_name = []
-
-    def clean_email(self):
-        """Refuse an address the portal holds, in any case, and say nothing of who holds it."""
-        email = self.cleaned_data["email"]
-        if email and Person.objects.filter(email__iexact=email).exists():
-            raise ValidationError(
-                _("This email address cannot be used."), code="email_in_use"
-            )
-        return email
 
     def clean(self):
         """Offer the profiles that share the name, unless the field errors come first."""
@@ -263,7 +252,6 @@ class NewPersonForm(forms.Form):
             first_name=self.cleaned_data["given"],
             last_name=self.cleaned_data["family"],
             name=self.name(),
-            email=self.cleaned_data["email"] or None,
         )
         person.set_unusable_password()
         person.save()

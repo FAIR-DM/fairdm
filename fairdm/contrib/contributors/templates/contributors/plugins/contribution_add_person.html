@@ -179,11 +179,6 @@
                   <input type="text" id="new-family" name="family" value="{{ adding.values.family }}" class="input w-full {% if adding.errors.family %}input-error{% endif %}" autocomplete="off" {% if adding.errors.family %}aria-invalid="true" aria-describedby="new-family-error"{% endif %} />
                 </div>
               </div>
-              <div class="flex flex-col gap-1">
-                <label for="new-email" class="font-semibold">{% translate "Email address (optional)" %}</label>
-                <p id="new-email-hint" class="text-sm text-base-content/70">{% translate "Never shown on the portal. It is how they would be invited to claim the profile." %}</p>
-                <input type="email" id="new-email" name="email" value="{{ adding.values.email }}" class="input w-full" autocomplete="off" aria-describedby="new-email-hint" />
-              </div>
               <c-contribution.affiliation :choice="adding.new_affiliation" kind="{{ kind }}" prefix="new-affiliation" error="{% if adding.on_new %}{{ adding.errors.affiliation }}{% endif %}" />
               <div>
                 <button type="submit" class="btn btn-primary">

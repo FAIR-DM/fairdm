@@ -129,10 +129,9 @@ portal and entering someone by hand still work.
 
 ### Someone entered by hand
 
-For a person with no profile and no ORCID iD, enter a given name and a family name. You may also
-enter an email address. The address is kept for later and is never shown anywhere on the portal,
-and nobody is emailed. It does not give the person an account. An address the portal already holds
-is refused, and the page does not say whose it is.
+For a person with no profile and no ORCID iD, enter a given name and a family name. The page does
+not ask for an email address, and the person made has none and no account. They can claim the
+profile later by signing in with ORCID.
 
 For an organization, enter its name, and optionally a city, a country and a website. Give the
 country by name or by its two-letter code. A country the portal does not recognise is refused.

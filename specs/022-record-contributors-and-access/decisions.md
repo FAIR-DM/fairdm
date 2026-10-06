@@ -428,8 +428,8 @@ as many rows as asked, so ten keeps the list short enough to tell namesakes apar
 or when the given and family names both do, since `Person.name` can differ from the two names.
 Superusers and the placeholder user are never offered. An organization matches on its name without
 regard to case, and no `confirmed` field lets a second one be made. The check runs only when every
-field is valid, so a refused email never produces an offer.
-**Why**: FR-018, and the email rule in D19.
+field is valid, so a form with a missing name never produces an offer.
+**Why**: FR-018.
 **Revisit if**: two organizations that really share a name need to be made by hand.
 
 ## D22. The ORCID and ROR patterns became two constants in models.py

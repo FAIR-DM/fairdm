@@ -967,10 +967,10 @@ Choosing a record only fetches it. Adding posts the identifier, and the page fet
 again before it makes a profile: nothing else the form carries is read.
 
 `NewPersonForm` and `NewOrganizationForm` in `fairdm.contrib.contributors.plugins.shared` are the
-forms behind the by-hand tab. A person needs `given` and `family`, and may have an `email`, which is
-refused with the code `email_in_use` when the portal holds it, in any case, without saying who holds
-it. The form is not valid while `same_name` lists profiles with the person's name, until the page
-sends `confirmed`. An organization needs a `name`, and may have a `city`, a `country`, as a name or
+forms behind the by-hand tab. A person needs `given` and `family` and has no other field: a posted
+`email` is ignored, and the person is saved with none, an unusable password and no account. The
+form is not valid while `same_name` lists profiles with the person's name, until the page sends
+`confirmed`. An organization needs a `name`, and may have a `city`, a `country`, as a name or
 a code from the country field's list (the code `invalid_country`), and a `website`, which is kept in
 the organization's `links`. It is never valid while `same_name` holds an organization of that name.
 `save()` makes the contributor and does nothing else, so the page can make it, make the organization

@@ -26,6 +26,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.contrib.contributors.plugins.shared import NewPersonForm
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import (
@@ -1933,12 +1934,7 @@ class TestAddByHand:
         ):
             response = browser_as(manager).post(
                 address,
-                {
-                    "via": "new",
-                    "given": given,
-                    "family": family,
-                    "email": "x@example.com",
-                },
+                {"via": "new", "given": given, "family": family},
             )
 
             adding = response.context["adding"]
@@ -1947,7 +1943,7 @@ class TestAddByHand:
             for field in missing:
                 assert adding["form"].has_error(field, code="required")
                 assert field in adding["errors"]
-            assert adding["values"]["email"] == "x@example.com"
+            assert adding["values"]["given"] == given.strip()
 
         assert made() == before
         assert stored(record) == listed
@@ -1971,30 +1967,13 @@ class TestAddByHand:
         assert not person.can_sign_in()
         assert added.level == ContributionLevel.VIEW
 
-    def test_an_email_address_is_stored_and_does_not_make_an_account(
+    def test_no_email_address_is_asked_for_and_one_posted_is_ignored(
         self, record, manager, mailoutbox
     ):
-        browser_as(manager).post(
-            page_of(record, "add-person"),
-            {
-                "via": "new",
-                "given": "Ada",
-                "family": "Lovelace",
-                "email": " ada@example.org ",
-            },
-        )
+        response = browser_as(manager).get(page_of(record, "add-person"))
+        assert "email" not in NewPersonForm().fields
+        assert not soup_of(response).select("[name=email]")
 
-        person = Person.objects.get(first_name="Ada", last_name="Lovelace")
-        assert person.email == "ada@example.org"
-        assert not person.has_usable_password()
-        assert person.account_state == AccountState.INVITED
-        assert not person.can_sign_in()
-        assert not person.socialaccount_set.exists()
-        assert mailoutbox == []
-
-    def test_the_email_address_is_not_shown_on_the_tab_or_the_edit_page(
-        self, record, manager
-    ):
         browser_as(manager).post(
             page_of(record, "add-person"),
             {
@@ -2004,81 +1983,12 @@ class TestAddByHand:
                 "email": "ada@example.org",
             },
         )
-        added = record.contributors.get(contributor__name="Ada Lovelace")
 
-        for address in (tab(record), page_of(record, "edit", pk=added.pk)):
-            response = browser_as(manager).get(address)
-            assert "ada@example.org" not in response.content.decode()
-
-    def test_an_email_address_must_be_one(self, record, manager):
-        before = made()
-
-        response = browser_as(manager).post(
-            page_of(record, "add-person"),
-            {
-                "via": "new",
-                "given": "Ada",
-                "family": "Lovelace",
-                "email": "not-an-address",
-            },
-        )
-
-        assert response.status_code == 422
-        assert response.context["adding"]["form"].has_error("email", code="invalid")
-        assert made() == before
-
-    @pytest.mark.parametrize("typed", ["held@example.com", "HELD@Example.COM"])
-    def test_an_address_the_portal_holds_is_refused_without_naming_its_owner(
-        self, record, manager, typed
-    ):
-        holder = PersonFactory(
-            first_name="Zacharias", last_name="Holder", email="held@example.com"
-        )
-        before, listed = made(), stored(record)
-
-        response = browser_as(manager).post(
-            page_of(record, "add-person"),
-            {"via": "new", "given": "Alice", "family": "Typed", "email": typed},
-        )
-
-        adding = response.context["adding"]
-        content = response.content.decode()
-        assert response.status_code == 422
-        assert adding["form"].has_error("email", code="email_in_use")
-        assert "email" in adding["errors"]
-        assert adding["same_name"] == []
-        assert adding["picked"] is None
-        assert "Zacharias" not in content
-        assert str(holder.uuid) not in content
-        assert holder.get_absolute_url() not in content
-        assert made() == before
-        assert stored(record) == listed
-
-    def test_an_address_the_portal_holds_is_refused_even_for_the_same_name(
-        self, record, manager
-    ):
-        holder = PersonFactory(
-            first_name="Zacharias", last_name="Holder", email="held@example.com"
-        )
-        before = made()
-
-        response = browser_as(manager).post(
-            page_of(record, "add-person"),
-            {
-                "via": "new",
-                "given": "Zacharias",
-                "family": "Holder",
-                "email": "held@example.com",
-                "confirmed": "1",
-            },
-        )
-
-        adding = response.context["adding"]
-        assert response.status_code == 422
-        assert adding["form"].has_error("email", code="email_in_use")
-        assert adding["same_name"] == []
-        assert holder.get_absolute_url() not in response.content.decode()
-        assert made() == before
+        person = Person.objects.get(first_name="Ada", last_name="Lovelace")
+        assert person.email is None
+        assert not Person.objects.filter(email__iexact="ada@example.org").exists()
+        assert person.account_state == AccountState.GHOST
+        assert mailoutbox == []
 
     def test_the_same_name_offers_the_profiles_already_in_the_portal_and_makes_nothing(
         self, record, manager
@@ -2166,7 +2076,6 @@ class TestAddByHand:
                 "via": "new",
                 "given": "Ada",
                 "family": "Lovelace",
-                "email": "ada@example.org",
                 "affiliation": "other",
                 "affiliation_name": " ",
             },
@@ -2177,7 +2086,6 @@ class TestAddByHand:
         assert "affiliation" in adding["errors"]
         assert adding["on_new"] is True
         assert adding["values"]["given"] == "Ada"
-        assert adding["values"]["email"] == "ada@example.org"
         assert made() == before
         assert stored(record) == listed
 

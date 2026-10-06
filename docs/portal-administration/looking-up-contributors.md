@@ -51,8 +51,6 @@ registry. That sync fills in the rest of the profile and needs the task workers 
 [ORCID/ROR sync troubleshooting](managing_contributors.md). Without workers the profile keeps the
 name and the identifier.
 
-A person entered by hand with an email address is made in the invited state: active, not claimed,
-with an email address and no usable password. The address is not shown on the portal and nothing is
-sent to it by the page that adds the person. Such a person cannot sign in with a password. The
-portal's password reset page treats the address like that of any other profile, so it mails the
-address when someone asks for a reset with it.
+A person entered by hand is made the same way: active, with no email address, an unusable password
+and no account. The page does not ask for an address, so such a person cannot be reached by email
+until they claim the profile.
