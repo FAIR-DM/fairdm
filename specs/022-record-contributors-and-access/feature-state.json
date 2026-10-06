@@ -185,28 +185,91 @@
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestCreditedFrom"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:42",
+              "fairdm/contrib/contributors/services/crediting.py:146"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAffiliationChoice",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestOrganizationRemoval"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:58"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_contributor_components.py::TestCreditedFromNone"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/templates/cotton/contributor/item.html:9"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_templates"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope",
+              "uv run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/migrations/0023_credited_from_set_null.py:1",
+              "fairdm/contrib/contributors/models.py:1815"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 forgekit docs_check audit(repo, base=origin/main)"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:49"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

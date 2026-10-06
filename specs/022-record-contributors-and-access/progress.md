@@ -49,3 +49,47 @@ Did: renamed tests/test_contrib/test_contributors/test_plugins/test_contribution
 Verified: `forge verify --repo . --base origin/main --steps conformance` is rerun after the rename (result in the report).
 Next: the completion report.
 Watch: tasks T007, T012, T017, T023, T027 and T030 in tasks.md name test_plugins/test_contribution_tab.py. Their stories add their classes to test_shared.py, which the conformance rule requires.
+
+## 2026-10-06T13:05:27Z · Implementer US2 · T006
+
+Did: added TestCreditedFrom to tests/test_contrib/test_contributors/test_services/test_crediting.py: adding with an organization (on each record type), the organization listed once, an organization already listed, added with none whatever the primary affiliation is, a refused add listing nothing, deleting the organization from the portal, update setting an organization, none, and leaving it alone, a refused update changing nothing, the organization staying when its last person leaves or is credited elsewhere and then being removable, the credited_from refusal with the people, and credited_from() on its own.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py::TestCreditedFrom -q -n0 -p no:randomly` failed 19 of 19 before the code: 18 with TypeError (add and update took no organization) and the primary-affiliation case with the old hook's value; after Crediting took the organization the deletion test failed with ProtectedError until the migration.
+Next: T007, the page tests.
+Watch: none.
+
+## 2026-10-06T13:05:27Z · Implementer US2 · T007
+
+Did: added TestAffiliationChoice and TestOrganizationRemoval to tests/test_contrib/test_contributors/test_plugins/test_shared.py, with the fixtures institutes and affiliate in the page conftest. They open the add page and the edit page through the test client, find the radio buttons by field name and the checked one by attribute, and read the tab's entries from the context.
+Verified: before the code, 16 of 108 new cases failed: an organization the person holds no affiliation with was accepted, deleting an organization raised ProtectedError, the edit page selected the primary affiliation for a person credited from none, and an organization made for a refused save was kept. The other cases pass on the prototype's code, which this story keeps, so I probed three of them: the tab falling back to the profile's primary organization, removable fixed to true, and the remove page's refusal swallowed each made at least one test fail, and the file was restored after each.
+Next: T008.
+Watch: the removal page for an organization people are credited from is also linked from the tab as "See who", so the remove address is on the page either way and the tests read entry.removable from the context.
+
+## 2026-10-06T13:05:27Z · Implementer US2 · T008
+
+Did: added TestCreditedFromNone to tests/test_templates/test_contributor_components.py, parametrized over c-contributor.item and c-contributor.card.person: a credit with no organization shows none, a credit shows the one it names, a person shows their primary organization, and a person handed over as a plain contributor row does too.
+Verified: `uv run pytest tests/test_templates/test_contributor_components.py::TestCreditedFromNone -q -n0 -p no:randomly`: before the template change the two "shows none" cases failed and the other four passed.
+Next: T009.
+Watch: the tests are in tests/test_templates/, not the test_components.py module the brief names. tests/test_templates/ is the repository's declared non-mirror path for component tests (pyproject [tool.forge.conformance]); a module of that name under test_contributors mirrors no source module, and the conformance step would refuse it.
+
+## 2026-10-06T13:05:44Z · Implementer US2 · T008
+
+Did: checked the note above. A throwaway tests/test_contrib/test_contributors/test_components.py, removed again, was refused by `forge verify --repo . --base origin/main --steps conformance` with "mirrors no source module (expected fairdm/contrib/contributors/components.py ...)". The T008 tests stay in tests/test_templates/test_contributor_components.py.
+Verified: the conformance output above, read directly.
+Next: T009.
+Watch: none.
+
+## 2026-10-06T13:05:44Z · Implementer US2 · T009
+
+Did: Crediting.add(contributor, *, organization=None) and update(contribution, *, roles, organization=UNCHANGED) list the organization on the record once through list_organization, and remove refuses an organization people are credited from with code credited_from and the people in params; credited_from() maps organization id to people. Contribution.affiliation is SET_NULL (migration 0023_credited_from_set_null, applied to the dev database with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate`) and Contribution.set_default_affiliation is deleted. plugins/shared.py: AffiliationChoice (the form behind c-contribution.affiliation, fields affiliation and affiliation_name) replaces affiliation_choice, read_affiliation and credit_from; the edit page, the add page's portal, registry and by-hand ways, and the remove page call it and Crediting. c-contributor.item and c-contributor.card.person show no organization for a credit that names none. demo/seed/contributors.py affiliate() credits through Crediting.
+Pre-existing test updated: tests/test_contrib/test_contributors/test_models.py, test_contribution_default_affiliation, which asserted the deleted hook, is now test_a_credit_is_not_given_the_primary_affiliation and asserts the credit holds none.
+Template changes: item.html and card/person.html change the fallback expression only (decisions D15). No template under contributors/plugins/ or cotton/contribution/ changed, and no context or field name changed: the pages still pass affiliation (the choice), errors.affiliation, entry.attached and entry.removable.
+Verified: `uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope` 1333 passed; `uv run python manage.py makemigrations --check --dry-run` reports only orbit; `uv run pre-commit run --all-files` passes. Ran the seed command in a throwaway test against the test database (deleted afterwards), twice, the second time with --keep-records: Lea Brandt and Regular User are credited from Karlsruhe, Yusuf Demir from Tübingen, each organization is listed once. The development database was not reseeded.
+Next: T010.
+Watch: fairdm/core/plugins.py get_credits still falls back to the person's primary affiliation for the overview's People card when a credit names none. The brief names only the two components, so it is left; it shows an organization on the overview for a person the tab shows with none (concern in the report). The seeds other than seed_contributors, and generate_fake_data, now credit people from none (decisions D16).
+
+## 2026-10-06T13:05:44Z · Implementer US2 · T010
+
+Did: docs/user-guide/crediting-a-record.md says how the organization is chosen, why it does not follow the profile, how it is changed, and when an organization can be removed. docs/portal-development/contributors.md replaces the section on the crediting organisation default and the sentence quoting the deleted hook, and documents Crediting's organization argument, UNCHANGED, list_organization, credited_from, the credited_from refusal and AffiliationChoice. CONTEXT.md's Contribution entry says a contribution carries the organization a person is credited from. Changelog: Added, Changed and Removed entries.
+Verified: `forgekit.docs_check.audit(Path("."), base="origin/main")` lists the same four names as before this story (ContributionMove, ContributorSeed, give_level, level_choices) and none of mine. The code blocks that call Crediting and AffiliationChoice are the calls the tests make.
+Next: the full gate, then the report.
+Watch: none.

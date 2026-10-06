@@ -325,3 +325,52 @@ whole save one call.
 mirrors no source module.
 **Revisit if**: the pages move to a module of their own, which is when a test module of that name
 would mirror it. Later stories add their classes to `test_shared.py`.
+
+## Decisions made while building story 2
+
+## D13. `Crediting.update` tells three answers apart with a module constant
+
+**Decision**: `update(contribution, *, roles, organization=UNCHANGED)`. `UNCHANGED` is a public
+constant in `services/crediting.py`. Leaving the argument out leaves the organization as it is, an
+organization sets it, and `None` sets it to none. An organization argument is ignored for a
+contribution whose contributor is an organization, in `add` and `update` alike.
+**Why**: `None` has to mean "none", and the edit page must be able to save the roles without
+touching the organization. A keyword default of `None` cannot say both.
+**Revisit if**: `update` takes the level too, which makes the sentinel one of three.
+
+## D14. The choice accepts an affiliation only from the person's own, and makes the organization at save time
+
+**Decision**: `AffiliationChoice` accepts `org:<id>` only for an affiliation the person holds. Any
+other organization is chosen with `other` and a name, matched case-insensitively against the portal
+and made when it is not there. `organization()` does the matching and the making, and the pages
+call it inside the transaction that saves the credit.
+**Why**: the prototype made the organization while reading the form, so a save refused for another
+field (a level, a role) left an organization behind. A request naming an organization the person
+holds no affiliation with by id is outside what the page offers.
+**Revisit if**: the registry ways of adding (story 3) need to credit a person from an organization
+by id.
+
+## D15. The two components fall back through `get_real_instance`, not through the credit
+
+**Decision**: `c-contributor.item` and `c-contributor.card.person` read the fallback organization
+from `contributor.get_real_instance.primary_organization`, a name a contribution does not have, in
+place of `c.primary_organization`, which resolved the contribution to its person first.
+**Why**: only that expression had to change. A filter argument that does not resolve raises
+instead of falling through, so the name is read in the outer `with`, where a missing name is an
+empty value. `get_real_instance` keeps the fallback for a plain contributor row that is really a
+person, which the old expression also handled.
+**Revisit if**: a third component needs the same rule, which is when it belongs in a template tag.
+
+## D16. Callers of the deleted hook
+
+**Decision**: `Contribution.add_to`, `Contributor.add_to`, `add_contributor` and the other seeds
+(`seed_profiles`, `generate_fake_data`, the project, sample and measurement seeds) are left as they
+are and now credit a person from none unless an organization is passed. `demo/seed/contributors.py`
+credits through `Crediting`. The one pre-existing test that asserted the hook
+(`test_models.py::...::test_contribution_default_affiliation`) is updated to assert the new
+behaviour.
+**Why**: nothing but that test read the default. A seeded record whose people had a primary
+affiliation drew it through the hook, and now shows them with none, which is what FR-024 says a
+credit with no organization is.
+**Revisit if**: the maintainer wants the example records to show organizations again, which is a
+change to the seeds.
