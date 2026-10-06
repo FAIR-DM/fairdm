@@ -108,6 +108,76 @@ class TestDevelopmentCookieNames:
         ), f"browsers discard this header: {cookie.OutputString()}"
 
 
+LOCMEM = "django.core.cache.backends.locmem.LocMemCache"
+REDIS = "django_redis.cache.RedisCache"
+
+
+class TestDevelopmentWithoutRedis:
+    def test_every_cache_alias_is_in_memory_when_redis_url_is_unset(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        baseline_aliases = set(settings_module().CACHES)
+
+        os.environ["DJANGO_ENV"] = "development"
+        caches = settings_module().CACHES
+
+        assert set(caches) == baseline_aliases
+        assert {config["BACKEND"] for config in caches.values()} == {LOCMEM}
+
+    def test_in_memory_aliases_do_not_share_a_store(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        caches = settings_module().CACHES
+
+        locations = [config["LOCATION"] for config in caches.values()]
+        assert len(set(locations)) == len(locations)
+
+    def test_an_empty_redis_url_counts_as_unset(self, isolated_env, settings_module):
+        os.environ["DJANGO_ENV"] = "development"
+        os.environ["REDIS_URL"] = ""
+
+        module = settings_module()
+
+        assert module.CACHES["default"]["BACKEND"] == LOCMEM
+        assert module.CELERY_TASK_ALWAYS_EAGER is True
+
+    def test_first_sign_in_attempt_is_not_rate_limited(
+        self, isolated_env, settings_module
+    ):
+        from allauth.core import ratelimit
+        from django.test import RequestFactory, override_settings
+
+        os.environ["DJANGO_ENV"] = "development"
+        module = settings_module()
+        request = RequestFactory().post("/account-center/login/")
+
+        with override_settings(CACHES=module.CACHES):
+            assert ratelimit.consume(request, action="login", key="someone@example.com")
+
+    def test_tasks_run_in_process_when_redis_url_is_unset(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        assert settings_module().CELERY_TASK_ALWAYS_EAGER is True
+
+    def test_a_configured_redis_url_is_used_as_given(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+        os.environ["REDIS_URL"] = "redis://cachehost:6380/2"
+
+        module = settings_module()
+
+        assert {config["BACKEND"] for config in module.CACHES.values()} == {REDIS}
+        assert module.CACHES["default"]["LOCATION"] == "redis://cachehost:6380/2"
+        assert module.CELERY_BROKER_URL == "redis://cachehost:6380/2"
+        assert module.CELERY_TASK_ALWAYS_EAGER is False
+
+
 class TestSetupToolsCommands:
     def test_no_environment_declares_a_scaffold_placeholder(
         self, isolated_env, settings_module
