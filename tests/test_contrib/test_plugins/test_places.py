@@ -4,6 +4,7 @@ import pytest
 from django.views.generic import TemplateView
 
 from fairdm.contrib.plugins import Plugin
+from fairdm.contrib.plugins.cards import Card
 from fairdm.contrib.plugins.checks import PluginRegistrationError
 from fairdm.contrib.plugins.places import OverviewPlaces, Place
 from fairdm.contrib.plugins.registration import PluginRegistry
@@ -35,6 +36,10 @@ class SharedSegment(Plugin, TemplateView):
 
 class SomeOverview(OverviewPlaces, Plugin, TemplateView):
     template_name = "base.html"
+
+
+class ActivityCard(Card):
+    template_name = "plugin_cards/card.html"
 
 
 def offering_registry():
@@ -255,6 +260,26 @@ class TestRecordTypeOffersPlaces:
     ):
         fresh.register(Sample)(SomeOverview)
         fresh.register(Sample, place="action")(FollowAction)
+
+        fresh.validate_all()
+
+    def test_a_card_against_a_record_type_with_no_overview_places_is_refused(
+        self, fresh
+    ):
+        fresh.register(Point)(AlphaPage)
+        fresh.register(Point, place="card")(ActivityCard)
+
+        with pytest.raises(PluginRegistrationError) as excinfo:
+            fresh.validate_all()
+
+        assert "ActivityCard" in str(excinfo.value)
+        assert "Point" in str(excinfo.value)
+
+    def test_the_same_card_against_a_record_type_that_draws_them_is_accepted(
+        self, fresh
+    ):
+        fresh.register(Sample)(SomeOverview)
+        fresh.register(Sample, place="card")(ActivityCard)
 
         fresh.validate_all()
 
