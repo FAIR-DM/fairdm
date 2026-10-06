@@ -124,3 +124,10 @@ Did: Added Replacing a plugin to docs/portal-development/create_a_plugin.md (the
 Verified: ran the page's examples against the branch in a throwaway test (replace Descriptions, a chain of two, replace the dataset overview, remove the last link) and it passed; I deleted the test. pre-commit run --all-files clean.
 Next: the full verify and the completion report.
 Watch: no changelog entry, none exists for the earlier stories either.
+
+## 2026-10-06T23:22:31Z · Converge · converge
+
+Did: brought the branch up to date with origin/main; wrote ADRs 0026 and 0027 and gave every decision its verdict; renamed the three names this feature added with a leading underscore; read the requirements against the tests.
+Verified: lint, types, the whole suite, build, structure and documentation checks pass on the whole feature; no test that existed on main was changed.
+Next: code review.
+Watch: three older tests that create many people fail now and then (#440). A sample's Keywords page does not open (#441). Neither is caused by this feature.
