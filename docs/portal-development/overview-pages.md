@@ -719,10 +719,10 @@ plugins subclass it. A portal building its own page for a record can subclass it
 
 | Method | What it returns |
 | --- | --- |
-| `get_contributions()` | The record's credits with each contributor as its own type, person or organisation. Ask a credit `is_person()` to tell them apart. |
+| `get_contributions()` | The record's credits with each contributor as its own type, person or organisation, people first and then organizations, each in the order set on the Contributors tab. Ask a credit `is_person()` to tell them apart. |
 | `get_role_names(contribution)` | The names of the roles held on one credit. |
 | `get_contributors_with_role(entries, role)` | The contributors in `get_credits()` entries who hold a role. |
-| `get_credits()` | Everyone credited on the record, each contributor as its own type (person or organisation), with role labels and affiliation. |
+| `get_credits()` | Everyone credited on the record in the order of `get_contributions()`, each contributor as its own type (person or organisation), with role labels and the organization the credit names, which is `None` for a person credited with none. |
 | `get_people(entries=None)` | What the People card shows: `shown` (up to `people_shown`, eighteen by default), `more` and `total`. |
 | `get_identifiers()` | The record's identifiers with a doi.org link on a DOI or an IGSN. `resolvable_identifier_types` lists the types that link. |
 | `get_citation(authors=, year=, title=, link=)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` |

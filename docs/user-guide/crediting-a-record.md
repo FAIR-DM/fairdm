@@ -8,8 +8,9 @@ the record change who is credited.
 
 People are listed in the main column, each with the contribution roles they hold on the record.
 Organizations are listed beside them, each by its logo and its name, and each leads to the
-organization's own page. The two lists keep their own order, which is the order the record names
-its people and organizations in, its citation included.
+organization's own page. The two lists keep their own order. Wherever the record names people and
+organizations together, its overview and its citation included, the people come first, in the
+order of the people's list, and the organizations follow in the order of theirs.
 
 The search box above the lists narrows both by name. A list with nobody in it says so.
 
@@ -189,6 +190,24 @@ move is accepted when someone who can sign in would still manage the record afte
 When two profiles are merged and both are listed on a record, one entry remains, at the higher of
 the two levels. A person who was listed on a record the other was not keeps that entry and its
 level.
+
+## Putting contributors in order
+
+Each list has its own order, and the people who manage the record set it. Beside each person and
+each organization are controls to move them earlier or later in their own list. A person moves only
+among the people and an organization only among the organizations, so moving one never changes the
+other list. The first in a list cannot move earlier and the last cannot move later.
+
+A person or an organization you add is placed last in its own list. Removing a contributor, or
+changing their roles, level or organization, leaves everyone else where they were. While you are
+searching the tab the controls are not offered, because the lists shown are not the whole lists.
+
+The order is the order the record names its contributors in. People who hold the Creator role are
+named in the citation in the people's order, and an organization that holds it follows them. Who
+is named in a citation is decided by the roles, as before: ordering changes only the order.
+
+A person who is credited with no organization is shown with none on the record's overview, whatever
+their profile says.
 
 ## Setting a contributor's roles
 

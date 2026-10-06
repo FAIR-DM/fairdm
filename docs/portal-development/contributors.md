@@ -672,7 +672,9 @@ and the record's roles, levels and addresses are read from the core model the su
 The tab's additional views share the base class `ContributionPage`, which works out the record, its
 kind and whether the viewer may manage it. `ContributionAddPerson` and `ContributionAddOrganization`
 add from the portal and share `ContributionAdd`. `ContributionEdit` sets a contributor's roles and
-`ContributionRemove` removes one. A page that changes anything is refused to a signed-in person who
+`ContributionRemove` removes one. `ContributionMove` takes a POST with `direction` set to `up` or
+`down` and hands it to `Crediting.move`, then returns to the tab at the moved contributor, and a
+`direction` that is neither answers 400. A page that changes anything is refused to a signed-in person who
 cannot manage the record and sends a visitor to sign in. Addresses resolve with the plugin
 `reverse`, the same way for every record type:
 
@@ -839,6 +841,7 @@ crediting.update(contribution, roles=[], organization=None)       # credited fro
 crediting.update(contribution, roles=[], level=ContributionLevel.EDIT)  # and what they may do
 crediting.make_creator(user, roles=["Creator"])  # at the manage level, for whoever just made the record
 crediting.credited_from()                        # organization id to the people credited from it here
+crediting.move(contribution, "up")               # one place earlier among its own kind
 crediting.remove(contribution)                   # and the level goes with it
 ```
 
@@ -851,6 +854,8 @@ crediting.remove(contribution)                   # and the level goes with it
 | `update` | the change would leave the record with nobody who counts as able to manage it | `last_manager` |
 | `remove` | the contribution is an organization that people on the record are credited from | `credited_from` |
 | `remove` | the contribution is the only thing that makes the record manageable | `last_manager` |
+| `move` | the direction is neither `"up"` nor `"down"` | `direction` |
+| `move` | the contribution is not listed on this record | `not_listed` |
 
 `update` replaces the roles and sets the level when one is given: leave `level` out and it stays as it
 is, because a contribution role carries no rights. A level is ignored for an organization. When
@@ -878,6 +883,35 @@ and can then be removed.
 The `credited_from` refusal carries the people in `params["people"]`, so a page can name them.
 `credited_from()` returns the same people for every organization on the record at once.
 
+#### Order
+
+A record names its people in one order and its organizations in another, and `Crediting.move` is the
+only thing that changes either. `crediting.move(contribution, "up")` moves a contribution one place
+earlier among the contributions of its own kind, and `"down"` one place later. It swaps `order` with
+the neighbour of the same kind on the same record, so the other kind is left alone, and the first
+moving earlier and the last moving later change nothing and raise nothing. Contributions that share
+an order value, as old data may have, are told apart by their primary key, so a move is the same
+every time. Do not use `contribution.up()` or `contribution.down()` from `OrderedModel`: a
+contribution has no `order_with_respect_to`, so they swap with a row on another record.
+
+`add` places a contributor last overall, which is last among its own kind. Removing or updating a
+contributor leaves the others' order as it is.
+
+To read either list, narrow the contributions with `people()` and `organizations()` on the
+`Contribution` manager and querysets. Each filters on the contributor's polymorphic type, without
+loading any contributor, and orders by `order` then `pk`:
+
+```python
+from fairdm.contrib.contributors.models import Contribution
+
+Contribution.objects.for_entity(dataset).people()
+dataset.contributors.organizations()
+```
+
+`RecordOverviewPlugin.get_contributions()` is those two lists one after the other, people first, so
+everything an overview or a citation names follows the order the team set. `get_credits()` follows
+it and gives a person credited with no organization an `affiliation` of `None`.
+
 #### The last manager
 
 A record that has someone who counts as able to manage it, as `RecordAccess(record).managers()`
@@ -894,7 +928,7 @@ contribution, and a level asks about lowering it to that level. The edit page at
 
 #### One change at a time
 
-`add`, `update`, `remove` and `make_creator` each run in a transaction that first locks the record's
+`add`, `update`, `remove`, `move` and `make_creator` each run in a transaction that first locks the record's
 row with `select_for_update`, through the model's `all_objects` manager where it has one so that a
 private record is found, before anything about its contributors is read. Two changes to one record
 wait for each other and each sees what the other left, so two managers cannot remove each other at
