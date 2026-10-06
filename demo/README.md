@@ -24,11 +24,10 @@ from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.plugins import BaseOverviewPlugin, BaseEditPlugin
 
-
 @plugins.register(Sample)
 class SampleOverview(BaseOverviewPlugin):
     """Basic overview inheriting standard behavior."""
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["measurements"] = self.object.measurements.all()
@@ -122,7 +121,6 @@ See [`demo/options.py`](options.py):
 
 ```python
 from fairdm.core.registry import registry
-
 
 @registry.register(DemoSample)
 class DemoSampleOptions:
@@ -223,11 +221,10 @@ The demo demonstrates creating base plugins that portal developers can inherit:
 class GeologyAnalysisPlugin(Plugin, TemplateView):
     menu = {"label": "Geology", "order": 30}
     template_name = "geology/analysis.html"
-
+    
     def analyze_geology(self, sample):
         """Override in subclasses."""
         return {}
-
 
 # Portal-specific customization (inherits from base)
 @plugins.register(Sample)
@@ -298,7 +295,7 @@ From demo:
 ```python
 @plugins.register(Sample)
 class LocationDetailsPlugin(Plugin, TemplateView):
-    check = lambda r, o: o and hasattr(o, "location") and o.location
+    check = lambda r,o: o and hasattr(o, "location") and o.location
     menu = {"label": "Location", "order": 50}
 ```
 
@@ -306,10 +303,10 @@ To your portal:
 ```python
 @plugins.register(MySample)
 class MyLocationPlugin(Plugin, TemplateView):
-    check = lambda r, o: o and o.has_geolocation()
+    check = lambda r,o: o and o.has_geolocation()
     menu = {"label": "Geolocation", "order": 50}
     template_name = "myplugins/location.html"
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["map_data"] = self.object.get_map_coordinates()
@@ -335,7 +332,7 @@ person = Person.objects.create_user(
     email="researcher@example.com",
     first_name="Jane",
     last_name="Researcher",
-    password="secure_password",
+    password="secure_password"
 )
 assert person.is_claimed  # True: has email, password, and is_active
 ```
@@ -377,10 +374,7 @@ Export contributors to standard metadata formats:
 
 ```python
 from fairdm.contrib.contributors.utils.transforms import (
-    DataCiteTransform,
-    SchemaOrgTransform,
-    CSLJSONTransform,
-    ORCIDTransform,
+    DataCiteTransform, SchemaOrgTransform, CSLJSONTransform, ORCIDTransform
 )
 
 # Export Person to DataCite JSON
@@ -430,9 +424,9 @@ visible = person.get_visible_fields(viewer=None)
 
 # Privacy settings (JSONField)
 person.privacy_settings = {
-    "email": "private",  # Hide from everyone except self
+    "email": "private",      # Hide from everyone except self
     "affiliation": "public",  # Show to everyone
-    "orcid": "authenticated",  # Show only to logged-in users
+    "orcid": "authenticated"  # Show only to logged-in users
 }
 person.save()
 
