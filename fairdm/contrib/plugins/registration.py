@@ -102,6 +102,8 @@ class PluginRegistry:
         self._addressing: dict[type[Model], tuple[str, dict[str, str]]] = {}
         # Each entry pairs a plugin class with the keyword arguments given to `register`.
         self._registry: dict[type[Model], list[type[Plugin]]] = {}
+        # Names, kept as declared: `resolve` is what judges them, so an order of arrival is allowed.
+        self._removals: dict[type[Model], list[str]] = {}
 
     def register(self, *models: type[Model], **kwargs):
         """Return a decorator that registers a plugin with one or more models.
@@ -138,6 +140,25 @@ class PluginRegistry:
             return plugin_class
 
         return decorator
+
+    def remove(self, model: type[Model], plugin: type[Plugin] | str) -> None:
+        """Take a registered plugin away from one record type.
+
+        Nothing is checked here, because the plugin may be registered after the removal is
+        declared. :meth:`resolve` refuses a removal that names nothing registered, and one that
+        names the record type's overview.
+
+        Args:
+            model: The record type the plugin is removed from.
+            plugin: The plugin class, or the name it is served under.
+
+        Example:
+            Take the map away from samples::
+
+                plugins.remove(Sample, "map")
+        """
+        name = plugin if isinstance(plugin, str) else plugin.get_name()
+        self._removals.setdefault(model, []).append(name)
 
     def declare_addressing(
         self,
@@ -236,29 +257,34 @@ class PluginRegistry:
             model: The record type.
 
         Returns:
-            One mount per registration, in the order they were registered.
+            One mount per registration that was not removed, in the order they were registered.
 
         Raises:
-            PluginRegistrationError: The mounts clash with each other, or one asks for a place
-                the record type's overview does not draw.
+            PluginRegistrationError: A removal names nothing registered or the overview, the
+                mounts clash with each other, or one asks for a place the record type's overview
+                does not draw.
         """
-        from .checks import validate_mounts, validate_places_offered
+        from .checks import validate_mounts, validate_places_offered, validate_removals
 
         mounts = [
             Mount.from_registration(plugin_class, options)
             for plugin_class, options in self.get_plugins_for_model(model)
         ]
+        removed = self._removals.get(model, [])
+        validate_removals(model, mounts, removed)
+        mounts = [mount for mount in mounts if mount.name not in removed]
         validate_mounts(model, mounts)
         validate_places_offered(model, mounts)
         return mounts
 
     def validate_all(self) -> None:
-        """Resolve every record type that has a registration, refusing what cannot work.
+        """Resolve every record type that has a registration or a removal, refusing what cannot work.
 
         Raises:
-            PluginRegistrationError: A record type's registrations cannot be served.
+            PluginRegistrationError: A record type's registrations cannot be served, or a removal
+                has nothing to remove.
         """
-        for model in list(self._registry):
+        for model in dict.fromkeys([*self._registry, *self._removals]):
             self.resolve(model)
 
     def get_page_actions(self, model: type[Model]) -> list[Mount]:

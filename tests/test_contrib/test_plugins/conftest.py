@@ -101,9 +101,14 @@ def isolate_registry():
     saved = {
         model: list(entries) for model, entries in plugins.registry._registry.items()
     }
+    saved_removals = {
+        model: list(names) for model, names in plugins.registry._removals.items()
+    }
     yield
     plugins.registry._registry.clear()
     plugins.registry._registry.update(saved)
+    plugins.registry._removals.clear()
+    plugins.registry._removals.update(saved_removals)
 
 
 @pytest.fixture

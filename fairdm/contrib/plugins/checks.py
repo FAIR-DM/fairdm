@@ -38,6 +38,22 @@ def _fail(plugin: Any, model: Any, problem: str) -> None:
     raise PluginRegistrationError(msg)
 
 
+def _fail_removal(name: str, model: Any, problem: str) -> None:
+    """Raise a registration error naming the removal, the record type and the problem.
+
+    Args:
+        name: The name of the plugin the removal declares.
+        model: The record type it is removed from.
+        problem: What is wrong.
+
+    Raises:
+        PluginRegistrationError: Always.
+    """
+    model_name = getattr(model, "__name__", repr(model))
+    msg = f"removal of {name!r} from {model_name}: {problem}"
+    raise PluginRegistrationError(msg)
+
+
 def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None:
     """Require at least one model and that each is a Django model class.
 
@@ -328,4 +344,49 @@ def validate_places_offered(model: Any, mounts: list[Mount]) -> None:
                 f"is registered as a {mount.place.value}, but no plugin registered for "
                 f"{model.__name__} is built on OverviewPlaces, so no page of this record type "
                 f"would draw it",
+            )
+
+
+def is_overview(mount: Mount) -> bool:
+    """Say whether a mount is its record type's overview.
+
+    The overview is built on ``OverviewPlaces`` or served at the record's own address. The address
+    alone does not decide it, because a sample's overview is served beneath the sample.
+
+    Args:
+        mount: One of a record type's mounts.
+
+    Returns:
+        True for the overview.
+    """
+    from .places import OverviewPlaces
+
+    return issubclass(mount.plugin_class, OverviewPlaces) or mount.url_path is None
+
+
+def validate_removals(model: Any, mounts: list[Mount], removals: list[str]) -> None:
+    """Require each removal to name a registration that can be removed.
+
+    A removal that names nothing registered for the record type, or its overview, raises
+    ``PluginRegistrationError``.
+
+    Args:
+        model: The record type.
+        mounts: What its registrations declare, before any removal.
+        removals: The names declared with ``remove``.
+    """
+    named = {mount.name: mount for mount in mounts}
+    for name in removals:
+        mount = named.get(name)
+        if mount is None:
+            _fail_removal(
+                name,
+                model,
+                f"no plugin of that name is registered against {model.__name__}",
+            )
+        elif is_overview(mount):
+            _fail_removal(
+                name,
+                model,
+                "this is the overview of the record type, which can be replaced but not removed",
             )

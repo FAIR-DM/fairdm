@@ -2,6 +2,7 @@
 
 - ``Plugin`` — base class for a view attached to a core record
 - ``register`` — the registration decorator, used as ``@plugins.register(Model, ...)``
+- ``remove`` — takes a registered plugin away from one record type, as ``plugins.remove(Model, plugin)``
 - ``registry`` — the registry itself
 - ``can_open`` / ``has_perm`` — the access decision and its memoised permission check
 - ``is_instance_of`` — narrows a plugin to one subtype of a polymorphic record
@@ -35,6 +36,7 @@ __all__ = [
     "is_instance_of",
     "register",
     "registry",
+    "remove",
     "reverse",
     "slugify",
 ]
@@ -68,8 +70,8 @@ def __getattr__(name: str):
     # The registry lives in `registration.py` because a submodule named `registry` would shadow the instance.
     from importlib import import_module
 
-    if name == "register":
-        return import_module(".registration", __name__).registry.register
+    if name in ("register", "remove"):
+        return getattr(import_module(".registration", __name__).registry, name)
     if name in _LAZY:
         module, attr = _LAZY[name]
         return getattr(import_module(module, __name__), attr)

@@ -83,12 +83,12 @@ def project_with_datasets():
 
 
 class PluginSandbox:
-    """Declare plugins inside a test and see them served, then put everything back.
+    """Declare plugins and removals inside a test and see them served, then put everything back.
 
     A record type's URL patterns are built once, when its URL module is imported, so a plugin
     registered inside a test has no address until those patterns are built again. The sandbox
-    saves the registry, rebuilds the patterns of every record type after each ``declare()``
-    block, and on close restores the registry and rebuilds the patterns once more, so the
+    saves the registry and its removals, rebuilds the patterns of every record type after each
+    ``declare()`` block, and on close restores both and rebuilds the patterns once more, so the
     plugin is gone from the registry and its address no longer resolves.
 
     Attributes:
@@ -113,13 +113,17 @@ class PluginSandbox:
         self.saved = {
             model: list(entries) for model, entries in self.registry._registry.items()
         }
+        self.saved_removals = {
+            model: list(names) for model, names in self.registry._removals.items()
+        }
 
     @contextlib.contextmanager
     def declare(self):
-        """Declare plugins in the block, then make them reachable.
+        """Declare plugins and removals in the block, then make them reachable.
 
         Yields:
-            Nothing. Register with ``plugins.register`` inside the block.
+            Nothing. Register with ``plugins.register`` and remove with ``plugins.remove``
+            inside the block.
         """
         yield
         self.rebuild()
@@ -134,6 +138,8 @@ class PluginSandbox:
         """Restore the registry and the URL configuration as they were."""
         self.registry._registry.clear()
         self.registry._registry.update(self.saved)
+        self.registry._removals.clear()
+        self.registry._removals.update(self.saved_removals)
         self.rebuild()
 
 
