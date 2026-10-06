@@ -1,0 +1,122 @@
+{
+  "story": "US4",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 438,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T014",
+    "T015",
+    "T016",
+    "T017"
+  ],
+  "context": {
+    "why": "Stories 1 to 3 are accepted: a registration names a place (navigation, action, card); PluginRegistry.resolve(model) turns the declarations into the mounts a record type serves; URL patterns, the navigation, page actions and cards are built from the mounts; plugins.remove(Model, plugin) drops a registration from one record type; and validate_all() refuses what cannot work when the portal starts (fairdm/contrib/plugins/registration.py, checks.py, places.py, cards.py). This last story lets a plugin be registered as the replacement for another on one record type: @plugins.register(Model, replaces=Target). The replacement is served at the target's address and under the target's name, in the same place on the page, and the target is no longer served there. This is what lets FairDM ship a basic version of something and an addon swap it whole.",
+    "spec_sections": [
+      "User Story 4 (all 13 acceptance scenarios)",
+      "FR-033 to FR-042",
+      "FR-043",
+      "Edge Cases (a replacement is itself replaced; a plugin both removed and replaced; a replacement names a different place)",
+      "Clarifications (the answers about replacement and load order)",
+      "Key Entities (Replacement)",
+      "SC-005, SC-007, SC-008, SC-009"
+    ],
+    "plan_sections": [
+      "D1",
+      "D3 (all seven steps; 3, 4 and 5 are yours, and you revisit 2 and 6)",
+      "D4",
+      "D8"
+    ],
+    "prior_decisions": [
+      "`replaces` is a registration option taking a plugin class or a name. It refers to the target by the name the target has in its own right (get_name()), exactly as a removal does. A replacement has its own name too, used only to identify it: so a second replacement can name the first (a replacement that is itself replaced, FR-042) and a removal can name one of two competing replacements (FR-040).",
+      "resolve() order: (1) candidates from registrations; (2) removals drop candidates; (3) each remaining candidate with `replaces` must name a remaining candidate; (4) no two remaining candidates name one target, and no cycle; (5) each chain collapses to one mount; (6) the clash check on the final mounts; (7) places offered.",
+      "Step 5: the mount's class is the LAST replacement's. Its name and url_path are the FIRST plugin's (the bottom of the chain). label, icon, order, column and a declined entry (menu=False, the mount's `listed`) are taken link by link: what a replacement's registration states, otherwise what the thing it replaced had. 'States' means the keyword was given in the registration, so read the options dict, not the mount's defaults: a replacement that gives no label must not get a label derived from its own class name. A replacement that states no place takes its target's; one that states a different place is refused, naming both (FR-035).",
+      "The access decision is the replacement's own with no extra work: the mount's plugin_class is the replacement, and can_open reads its check and permission (FR-037). Nothing of the target's is consulted. Test both directions: a visitor the target admitted and the replacement excludes is refused; one the target excluded and the replacement admits is served.",
+      "The replaced class contributes no patterns, so its further views are not served unless the replacement declares views at those segments (FR-038). The replacement's own further views are named <target name>-<view> beneath the target's address. Plugin.get_urls and Card.get_urls already take name and url_path.",
+      "Refusals, each a PluginRegistrationError raised from resolve(), so validate_all() stops the portal: a target that is not registered against the record type, naming the replacement and the record type; a target that is removed from it, naming the replacement and the removal (FR-041, and the edge case 'both removed and replaced'); two replacements for one target, naming both (FR-040); a different place, naming both (FR-035); a cycle; a replacement whose further views would clash with another mount's URL names (step 6). Story 3 gave removals their own wording rather than _fail's '<plugin> registered against <Model>' sentence: follow that for messages that name two plugins.",
+      "Two replacements for one target with one of the two REMOVED starts, and the other stands (FR-040). This falls out of step 2 running before step 4. Test it for a page and for a record type's overview.",
+      "The overview rule from story 3 (is_overview in checks.py: built on OverviewPlaces or url_path None) refuses its removal. A replacement overview built on the shipped one inherits both properties, so today its removal would be refused, which contradicts FR-040 and FR-042. Change the rule in validate_removals so the refusal applies only to a candidate that states no `replaces`. Removing a replacement overview leaves the original served.",
+      "Order independence at registration (FR-039): validate_against_existing in checks.py compares segments and generated URL names between the arriving registration and each existing one. A like-for-like replacement keeps its target's segment (class Better(Shipped) inherits url_path), so it would be refused, whichever arrives first. Leave any registration that states `replaces` out of the segment and URL-name comparison on BOTH sides: when it is the one arriving and when it is one already there. Its own name must still be unique. Test order independence with a replacement that has the same segment as its target, registered first and registered second.",
+      "A replacement that subclasses a plugin which sets `name` explicitly (fairdm/core/sample/plugins.py has `name = 'basic-information'`) inherits that name and is refused as a duplicate. That stays: the documentation says a replacement built on a plugin that sets `name` must set its own.",
+      "A replacement for a record's overview built on the shipped overview keeps OverviewPlaces in its ancestry, so page actions and cards still draw (scenario 13). Card.admits and validate_places_offered look for a mount built on OverviewPlaces: with the overview replaced by a class NOT built on it, an action or card on that record type is refused at startup. That is the intended reading of FR-005.",
+      "get_plugins_for_model still returns every registration as declared.",
+      "Tests of the registry's replacement behaviour go in tests/test_contrib/test_plugins/test_registration.py as new classes (TestReplace, TestReplaceRefusals). Story 3 found that registry tests which build navigation must use detached menus so they do not rewrite the shared ones: read how its TestRemove does it and do the same. Page tests go in tests/test_templates/test_overview_replaced_plugins.py and use the plugin_sandbox fixture from tests/conftest.py."
+    ],
+    "acceptance": [
+      {
+        "task": "T014",
+        "given_when_then": "Given a registry filled by the test, when a plugin is registered as the replacement for another, then the outcomes in tasks.md T014 hold: the mount carries the replacement's class under the target's name and segment; label, icon, order, column and a declined entry carry over unless stated; the result is the same whichever is registered first, for a replacement with its target's own segment; a chain is served at the first plugin's address; and each refusal names what the specification says."
+      },
+      {
+        "task": "T015",
+        "given_when_then": "Given User Story 4's scenarios, when the pages are opened through the test client, then the target's address serves the replacement and its name reverses there; the navigation has one entry in the target's position; the access decision is the replacement's own in both directions; a replaced action and a replaced card each appear once as the replacement; and a replacement overview built on the shipped one still shows a registered action and card."
+      },
+      {
+        "task": "T016",
+        "given_when_then": "Given the failing tests from T014 and T015, when the implementation lands, then all pass and every test that existed at the base passes unchanged."
+      },
+      {
+        "task": "T017",
+        "given_when_then": "Given create_a_plugin.md, when read against the branch, then it says how to replace a plugin with an example that runs, what carries over and what does not, how to replace the overview, how a portal settles two addons replacing one plugin, that a replacement built on a plugin which sets `name` must set its own, and what the replacement refusals are."
+      }
+    ],
+    "verified_base": {
+      "commit": "7b97535ec9bb8631b34915799971e0a9e6852129",
+      "verified_at": "2026-10-06T22:36:40Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "All six steps passed on this commit, run independently. Anything red on arrival: report it, do not work around it. The documentation check matches names: pyproject.toml leaves fairdm/contrib/plugins/utils.py out of it because the plugin `reverse` shares its name with Django's (decisions.md D19). Do not add to that list; if the check reports a page you believe is a false match, report it."
+    },
+    "glossary_terms": [
+      "Plugin",
+      "Page action",
+      "Overview card",
+      "Manage menu"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards on branch 021-plugin-actions-and-cards; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. There are no model changes in this feature, so no migrations.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_plugins/ with its conftest.py (registry tests and the isolate_registry fixture), tests/test_templates/test_overview_page.py and tests/test_core/test_project/test_plugins.py (pages through the test client). Line length 88. Docstrings follow docs/contributing/standards/code-documentation.md. Public markdown (docs, CONTEXT.md) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. No leading-underscore names for new functions or methods, and no compatibility aliases. Reusable template pieces are Cotton components, never {% include %} partials. Prefer django-mvp and DaisyUI components and utilities over custom CSS; add no CSS file. A Django {% comment %} tag with text after it is single-line only: use {% comment %}...{% endcomment %} blocks for multi-line notes."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks in specs/021-plugin-actions-and-cards/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is context.verified_base.commit, or differs from it only under specs/021-plugin-actions-and-cards/.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards/specs/021-plugin-actions-and-cards/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, id, data attribute or context value.",
+    "Ship no page action and no card of your own in fairdm/ or demo/. Plugins that exist only to test live in the tests.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/. No test reaches the network. No new dependency.",
+    "Never modify or delete a test you did not author in this story. Every test that exists at your base must keep passing unchanged. You may extend the two registry fixtures (isolate_registry in tests/test_contrib/test_plugins/conftest.py and PluginSandbox in tests/conftest.py) so they save and restore removals; that is extending a fixture, not changing a test.",
+    "The Manage menus, header buttons and existing cards keep what they hold and how they look. The only change allowed to them is to leave out an entry whose address is empty or None."
+  ]
+}
