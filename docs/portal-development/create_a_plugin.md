@@ -322,8 +322,10 @@ from fairdm.core.sample.plugins import Keywords
 plugins.remove(Sample, Keywords)  # or plugins.remove(Sample, "keywords")
 ```
 
-Nothing is checked when `remove` is called, because the plugin may be registered after the
-removal is declared. The result is the same whichever comes first.
+Whether the plugin is registered is not checked when `remove` is called, because it may be
+registered after the removal is declared. The result is the same whichever comes first. What is
+checked at once is the arguments: a record type that is not a model class, and a plugin that is
+neither a plugin class nor a non-empty name, raise `PluginRegistrationError`.
 
 A removed plugin is gone from that record type and from no other:
 
@@ -656,6 +658,8 @@ registrations are checked together, and the same applies to what that finds. Ref
   location. The portal does not start, and the message names the plugin and the record type
 - an `extra_views` entry that is not a plugin, that collides with a sibling or the parent, or that
   declares `extra_views` of its own
+- a removal given a record type that is not a model class, or a plugin that is neither a plugin
+  class nor a non-empty name. It is refused when `remove` is called
 - a removal that names a plugin not registered against that record type. The message names the
   removal and the record type, so a misspelt name stops the portal instead of removing nothing
 - a removal of the record type's overview, which is the plugin built on `OverviewPlaces` or served

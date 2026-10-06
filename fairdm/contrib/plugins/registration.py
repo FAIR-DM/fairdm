@@ -191,20 +191,43 @@ class PluginRegistry:
     def remove(self, model: type[Model], plugin: type[Plugin] | str) -> None:
         """Take a registered plugin away from one record type.
 
-        Nothing is checked here, because the plugin may be registered after the removal is
-        declared. :meth:`resolve` refuses a removal that names nothing registered, and one that
-        names the record type's overview.
+        Whether the plugin is registered is not checked here, because it may be registered after
+        the removal is declared. :meth:`resolve` refuses a removal that names nothing registered,
+        and one that names the record type's overview.
 
         Args:
             model: The record type the plugin is removed from.
             plugin: The plugin class, or the name it is served under.
+
+        Raises:
+            PluginRegistrationError: ``model`` is not a Django model class, or ``plugin`` is
+                neither a plugin class nor a non-empty name.
 
         Example:
             Take the map away from samples::
 
                 plugins.remove(Sample, "map")
         """
-        name = plugin if isinstance(plugin, str) else plugin.get_name()
+        from .base import Plugin as PluginBase
+        from .checks import fail_removal
+
+        named = isinstance(plugin, str) and plugin
+        is_plugin = isinstance(plugin, type) and issubclass(plugin, PluginBase)
+        label = plugin if isinstance(plugin, str) else repr(plugin)
+        if not (named or is_plugin):
+            fail_removal(
+                label,
+                model,
+                "expected a plugin class or the name of one, "
+                f"got {type(plugin).__name__}",
+            )
+        if not (isinstance(model, type) and issubclass(model, Model)):
+            fail_removal(
+                label,
+                model,
+                f"expected a Django model, got {type(model).__name__}",
+            )
+        name = plugin if named else plugin.get_name()
         self.removals.setdefault(model, []).append(name)
 
     def declare_addressing(

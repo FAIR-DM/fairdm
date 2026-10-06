@@ -477,6 +477,30 @@ class TestRemoveRefusals:
         offering.remove(Sample, "nothing-called-this")
         offering.remove(Project, ActivityPage)
 
+    @pytest.mark.parametrize("plugin", [123, "", None, object, ["map"]])
+    def test_a_plugin_that_is_neither_a_class_nor_a_name_is_refused_when_called(
+        self, offering, plugin
+    ):
+        with pytest.raises(PluginRegistrationError, match="Sample"):
+            offering.remove(Sample, plugin)
+
+        assert offering.removals == {}
+
+    @pytest.mark.parametrize("model", ["Sample", None, 7, SomeOverview])
+    def test_a_record_type_that_is_not_a_model_is_refused_when_called(
+        self, offering, model
+    ):
+        with pytest.raises(PluginRegistrationError, match="removal of 'map'"):
+            offering.remove(model, "map")
+
+        assert offering.removals == {}
+
+    def test_the_refusal_names_what_was_given(self, offering):
+        with pytest.raises(PluginRegistrationError) as excinfo:
+            offering.remove("Sample", "map")
+
+        assert "'Sample'" in str(excinfo.value)
+
     def test_a_removal_of_something_not_registered_is_refused_naming_both(
         self, offering
     ):

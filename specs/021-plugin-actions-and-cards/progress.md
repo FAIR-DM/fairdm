@@ -138,3 +138,10 @@ Did: Page actions whose address needs more than the record are left out and logg
 Verified: new tests failed first (NoReverseMatch on the overview, DID NOT RAISE for order), then `uv run pytest tests/test_conftest.py tests/test_contrib/test_plugins tests/test_templates/test_overview_page_actions.py -q -n0` gave 358 passed; `uv run pre-commit run --all-files` passed.
 Next: T019 cards.
 Watch: none.
+
+## 2026-10-06T23:38:42Z · Implementer FIX-1 · T019
+
+Did: T019a (a card with url_path None is refused at registration) and T019c (a card's further view answers 404 when the record's overview does not open for the viewer, 403 when the overview opens and the card's own rule refuses; Card.overview_opens split out of Card.admits) are done with docs and ADR 0027 updated. T019b (refuse a record type with two plugins built on OverviewPlaces) is NOT committed: it makes the existing test tests/test_contrib/test_plugins/test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context fail, because that test registers a second OverviewPlugin on Sample, and a test on origin/main may not be changed in this round.
+Verified: new tests failed first, then `uv run pytest tests/test_contrib/test_plugins tests/test_templates/test_overview_cards.py -q -n0` gave 374 passed with T019b taken out; with it in, that one existing test fails with the refusal naming Overview and ContextOverview. `uv run pre-commit run --all-files` passed.
+Next: T020, then the full verify and the report.
+Watch: T019b needs a ruling on that test (register the second plugin on a record type of its own, or on a plugin that is not an overview).

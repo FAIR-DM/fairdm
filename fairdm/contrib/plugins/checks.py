@@ -483,6 +483,7 @@ def validate_removals(
         candidates: What its registrations declare, before any removal.
         removals: The names declared with ``remove``.
     """
+    model_name = getattr(model, "__name__", repr(model))
     named = {candidate.mount.name: candidate for candidate in candidates}
     for name in removals:
         candidate = named.get(name)
@@ -490,7 +491,7 @@ def validate_removals(
             fail_removal(
                 name,
                 model,
-                f"no plugin of that name is registered against {model.__name__}",
+                f"no plugin of that name is registered against {model_name}",
             )
         elif candidate.replaces is None and is_overview(candidate.mount):
             fail_removal(
@@ -514,6 +515,7 @@ def validate_replacements(
         candidates: What remains of its registrations after the removals.
         removals: The names declared with ``remove``.
     """
+    model_name = getattr(model, "__name__", repr(model))
     named = {candidate.mount.name: candidate for candidate in candidates}
     replacers: dict[str, Candidate] = {}
     for candidate in candidates:
@@ -526,14 +528,14 @@ def validate_replacements(
                 plugin,
                 model,
                 f"replaces {target!r}, which the removal of {target!r} takes away from "
-                f"{model.__name__}; leave out the removal or the replacement",
+                f"{model_name}; leave out the removal or the replacement",
             )
         if target not in named:
             _fail(
                 plugin,
                 model,
                 f"replaces {target!r}, but no plugin of that name is registered against "
-                f"{model.__name__}",
+                f"{model_name}",
             )
         if target in replacers:
             fail_between(
