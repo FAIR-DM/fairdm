@@ -45,6 +45,12 @@ from .validators import validate_iso_639_1_language_codes
 
 logger = logging.getLogger(__name__)
 
+ORCID_PATTERN = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
+"""The form of an ORCID iD, without its address."""
+
+ROR_PATTERN = r"^0[a-z0-9]{6}[0-9]{2}$"
+"""The form of a ROR ID, without its address."""
+
 
 def contributor_permissions_default() -> dict:
     """Return the empty default permissions dict, which migration 0001 references.
@@ -843,18 +849,17 @@ class Person(AbstractUser, Contributor):
                         {"links": _("Invalid URL: %(url)s") % {"url": url}}
                     ) from None
 
-        if self.pk and (orcid := self.identifiers.filter(type="ORCID").first()):
-            orcid_pattern = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
-            if not re.match(orcid_pattern, orcid.value):
-                raise ValidationError(
-                    {
-                        "identifiers": _(
-                            "Invalid ORCID format: %(value)s. Expected format: "
-                            "0000-0000-0000-0000"
-                        )
-                        % {"value": orcid.value}
-                    }
-                )
+        orcid = self.identifiers.filter(type="ORCID").first() if self.pk else None
+        if orcid and not re.match(ORCID_PATTERN, orcid.value):
+            raise ValidationError(
+                {
+                    "identifiers": _(
+                        "Invalid ORCID format: %(value)s. Expected format: "
+                        "0000-0000-0000-0000"
+                    )
+                    % {"value": orcid.value}
+                }
+            )
 
     def orcid(self):
         """Return the person's ORCID identifier.
@@ -1417,10 +1422,9 @@ class Organization(Contributor):
 
         # Identifiers exist only after the first save.
         if self.pk and (ror := self.identifiers.filter(type="ROR").first()):
-            ror_pattern = r"^0[a-z0-9]{6}[0-9]{2}$"
             import re
 
-            if not re.match(ror_pattern, ror.value.removeprefix("https://ror.org/")):
+            if not re.match(ROR_PATTERN, ror.value.removeprefix("https://ror.org/")):
                 raise ValidationError(
                     {
                         "identifiers": _(
