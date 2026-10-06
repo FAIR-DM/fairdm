@@ -30,12 +30,23 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-06T21:31:29Z"
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-06T21:31:29Z",
+      "self_resolved": [
+        "12 findings: 2 high, 6 medium, 4 low; verdict request changes; every one applied as plan, task and research edits (decisions D8)",
+        "high DR-001 applied: the sample overview is not at the sample's own address, so the overview is identified by the places mixin as well as by address (plan D3 steps 2 and 7, T010)",
+        "high DR-002 applied: the Contributors page's links to the record above are covered by the removal work (plan D7, T011, T012)",
+        "medium applied: entries with an empty address are left out (DR-003), a fixture rebuilds URL patterns for page tests (DR-004), the owner is read from the view instance (DR-005), a card's further views also need the overview to open (DR-006, decisions D7), a replacement overview can be removed (DR-007), replacements are skipped on both sides of the segment comparison (DR-008)",
+        "low applied: a declined entry carries over (DR-009), mount_name dropped (DR-010), documentation note on explicit names (DR-011), tests moved to test_registration.py (DR-012)"
+      ]
     }
   },
   "stories": [
