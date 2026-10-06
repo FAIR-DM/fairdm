@@ -1,0 +1,124 @@
+{
+  "story": "US3",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 437,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T010",
+    "T011",
+    "T012",
+    "T013"
+  ],
+  "context": {
+    "why": "Stories 1 and 2 are accepted: a registration names a place (navigation, action, card), PluginRegistry.resolve(model) works out the mounts a record type serves, and URL patterns, the navigation, the page actions and the cards are all built from the mounts (fairdm/contrib/plugins/registration.py, checks.py, places.py, cards.py). This story lets a portal or an addon take a registered plugin away from one record type: plugins.remove(Model, plugin). A removed plugin contributes no mount, so it has no address, entry, action or card there, and its name does not resolve. The result must be the same whether the removal is declared before or after the plugin is registered. The part most likely to be missed is the pages FairDM ships that link to a plugin by name: each must be served without the link, and without an error, when the plugin is gone.",
+    "spec_sections": [
+      "User Story 3 (all 10 acceptance scenarios)",
+      "FR-025 to FR-032",
+      "FR-043",
+      "Edge Cases (a plugin both removed and replaced is US4's; a removed address answers as if it never existed)",
+      "Clarifications (the answer about load order)",
+      "Key Entities (Removal)",
+      "SC-006, SC-007, SC-008, SC-009",
+      "Out of scope (no redirect from a removed address)"
+    ],
+    "plan_sections": [
+      "D1 (removals)",
+      "D3 (step 2; steps 3 to 5 are US4's)",
+      "D7"
+    ],
+    "prior_decisions": [
+      "decisions.md D1: removals are kept as declared, per record type, beside the registrations. get_plugins_for_model keeps returning every registration, removed ones included: nothing declared is deleted. resolve() drops the named candidates.",
+      "registry.remove(model, plugin) accepts a plugin class or a name. It is exported as plugins.remove beside plugins.register (fairdm/contrib/plugins/__init__.py, which resolves names lazily: follow how `register` is exported). It records the declaration and validates nothing about the target when called, because the target may not be registered yet (FR-028). Whether it works is judged by resolve().",
+      "resolve() step 2: each removal must name a registration on that record type, or PluginRegistrationError naming the removal and the record type (FR-029). A removal of the record type's overview is refused with a message saying the overview can be replaced but not removed (FR-030). The overview is the registration that either is built on OverviewPlaces or has a url_path of None. Do not use the address alone: a sample's overview is served at overview/ beneath the sample, not at the sample's own address (fairdm/core/sample/plugins.py), and removing it would break Sample.get_absolute_url. Test both a project and a sample. (US4 will add: 'and states no `replaces`'. Write the rule so that clause can be added.)",
+      "The refusal messages are built by _fail in checks.py, which writes '<plugin> registered against <Model>: <problem>'. For a removal that sentence reads wrongly. Give removals their own wording that names the removal, the record type and the problem, still a PluginRegistrationError.",
+      "validate_all() resolves every record type that has a declaration: a record type with a removal and no registration must be resolved too, so the removal is refused.",
+      "A removed card's further views are not served either: no mount means no patterns. Card.admits finds the overview through resolve(), which is unaffected.",
+      "plan D7, shipped links. plugins.reverse (utils.py) gains default=: when given, NoReverseMatch returns it; when not given it raises as today. {% plugin_url %} in fairdm/contrib/plugins/templatetags/plugin_tags.py returns '' when the name does not resolve; the older plugin_url tag in fairdm/templatetags/fairdm.py does the same.",
+      "Shipped links to fix, found by the design review (verify each against the code, and search for more: plugin_reverse, plugins.reverse, {% plugin_url %}, safe_reverse, and plain reverse or {% url %} with a record namespace): (1) RecordOverviewPlugin.get_context_data in fairdm/core/plugins.py asks for 'contribution-list' for the People card. (2) fairdm/contrib/contributors/plugins/shared.py links to the Contributors page of the record ABOVE this one in two places (search for reverse(source, 'contribution-list') and reverse(parents[0], 'contribution-list')): with the plugin removed from Project, every dataset's Contributors page raises today. Both ask with default='' and contribution_list.html leaves out the button and the link when the address is empty. (3) Entries fed by safe_reverse, which returns None: the Manage menu in sample_overview.html (edit, basic-information, keywords, key-dates), project_detail.html (dataset-list, contribution-list links), dataset_detail.html, measurement's overview template, and person.html and organization.html (contributor-projects, contributor-datasets). Each entry is drawn only when it has an address. overview-update and overview-delete are further views of the overview, which cannot be removed, so they need nothing. (4) Templates that use {% plugin_url %}. A template nothing includes or extends any more is left alone: confirm before editing one, and list in your report any you found unused.",
+      "A stats tile or card whose link is gone still shows its figure; only the link is dropped. If a component takes an href and draws an anchor regardless, pass nothing rather than an empty string where the component already copes with that; do not edit django-mvp's components.",
+      "T011's list of removable plugins is read from the registry inside the test (every registration on every record type that is not the overview), so a plugin added later is covered. For each: remove it through the sandbox, open that record type's overview as a visitor and as someone who can manage the record, assert 200, no link to the former address, and no anchor whose href is empty or 'None'. Plus the cross-record cases: contribution-list removed from Project, then a dataset's Contributors page as a manager and as a visitor; removed from Dataset, then a sample's Contributors page.",
+      "Page tests use the plugin_sandbox fixture from tests/conftest.py (decisions.md D11). Give it a way to declare a removal, and make it restore removals on close.",
+      "Tests of the registry's removal behaviour go in tests/test_contrib/test_plugins/test_registration.py as new classes (TestRemove, TestRemoveRefusals): the test module mirrors registration.py.",
+      "docs/portal-development/create_a_plugin.md has one sentence under 'A feature that is more than one page' saying an additional view inherits its plugin's `check`. That is not how pages behave: a further view of a page is decided by its own check and permission, as the worked example further down that page and the comment in fairdm/core/project/plugins.py say. Correct that sentence in T013 so the page agrees with itself and with the card section story 2 wrote."
+    ],
+    "acceptance": [
+      {
+        "task": "T010",
+        "given_when_then": "Given a registry filled by the test, when a plugin in each of the three places is removed from one record type, then it has no mount, pattern, entry, action or card there, still has them on another record type, the result does not depend on whether remove or register came first, get_plugins_for_model still returns the registration, and validate_all refuses a removal of something not registered and a removal of the overview of a project and of a sample, the latter saying it can be replaced."
+      },
+      {
+        "task": "T011",
+        "given_when_then": "Given each removable plugin FairDM registers, when it is removed from a record type and that record type's overview is opened as a visitor and as a manager, then the page answers 200 with no link to the former address and no anchor with an empty or None address; the former address answers 404 like an unknown one; the name does not reverse; and a dataset's and a sample's Contributors pages are served when the plugin is removed from the record type above."
+      },
+      {
+        "task": "T012",
+        "given_when_then": "Given the failing tests from T010 and T011, when the implementation lands, then all pass and every test that existed at the base passes unchanged."
+      },
+      {
+        "task": "T013",
+        "given_when_then": "Given create_a_plugin.md, when read against the branch, then it says how to remove a plugin with an example that runs, what happens to its address and name, that the overview cannot be removed, what the removal refusals are, that a link to another plugin should allow for its removal with reverse(..., default=''), and the sentence about additional views inheriting a check is corrected."
+      }
+    ],
+    "verified_base": {
+      "commit": "93b3c1bde6b240d19e9058aa4ba21c3dbe2cf953",
+      "verified_at": "2026-10-06T22:09:19Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "All six steps passed, run independently on story 2's last commit. The commits since change only files under specs/021-plugin-actions-and-cards/. Anything red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Plugin",
+      "Page action",
+      "Overview card",
+      "Manage menu"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards on branch 021-plugin-actions-and-cards; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. There are no model changes in this feature, so no migrations.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_plugins/ with its conftest.py (registry tests and the isolate_registry fixture), tests/test_templates/test_overview_page.py and tests/test_core/test_project/test_plugins.py (pages through the test client). Line length 88. Docstrings follow docs/contributing/standards/code-documentation.md. Public markdown (docs, CONTEXT.md) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. No leading-underscore names for new functions or methods, and no compatibility aliases. Reusable template pieces are Cotton components, never {% include %} partials. Prefer django-mvp and DaisyUI components and utilities over custom CSS; add no CSS file. A Django {% comment %} tag with text after it is single-line only: use {% comment %}...{% endcomment %} blocks for multi-line notes."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks in specs/021-plugin-actions-and-cards/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/021-plugin-actions-and-cards/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards/specs/021-plugin-actions-and-cards/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, id, data attribute or context value.",
+    "Ship no page action and no card of your own in fairdm/ or demo/. Plugins that exist only to test live in the tests.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/. No test reaches the network. No new dependency.",
+    "Never modify or delete a test you did not author in this story. Every test that exists at your base must keep passing unchanged. You may extend the two registry fixtures (isolate_registry in tests/test_contrib/test_plugins/conftest.py and PluginSandbox in tests/conftest.py) so they save and restore removals; that is extending a fixture, not changing a test.",
+    "The Manage menus, header buttons and existing cards keep what they hold and how they look. The only change allowed to them is to leave out an entry whose address is empty or None.",
+    "Do not build replacement (US4). The `replaces` option is not accepted yet.",
+    "Removing a plugin must not delete or alter anything stored. Add no model, signal or data change."
+  ]
+}
