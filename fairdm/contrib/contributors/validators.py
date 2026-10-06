@@ -3,17 +3,9 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-
-def validate_iso_639_1_language_code(value):
-    """Validate a two-letter lowercase ISO 639-1 language code such as ``en``.
-
-    Args:
-        value: The code to check.
-
-    Raises:
-        ValidationError: The value is not an ISO 639-1 code.
-    """
-    valid_codes = {
+# ISO 639-1 two-letter codes, shared by the validators and by the languages choice on the forms.
+ISO_639_1_CODES = frozenset(
+    {
         "aa",
         "ab",
         "ae",
@@ -199,8 +191,20 @@ def validate_iso_639_1_language_code(value):
         "zh",
         "zu",
     }
+)
 
-    if value not in valid_codes:
+
+def validate_iso_639_1_language_code(value):
+    """Validate a two-letter lowercase ISO 639-1 language code such as ``en``.
+
+    Args:
+        value: The code to check.
+
+    Raises:
+        ValidationError: The value is not an ISO 639-1 code.
+    """
+
+    if value not in ISO_639_1_CODES:
         msg = _(
             "'%(value)s' is not a valid ISO 639-1 language code. Please use a two-letter code (e.g., 'en', 'es', 'fr')."
         )

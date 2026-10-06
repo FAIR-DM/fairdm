@@ -72,6 +72,16 @@ collaborator on a profile page. A collaborator may be a person or an organizatio
 
 Implemented by `Contributor.get_collaborators()` in `fairdm/contrib/contributors/models.py`.
 
+### Profile maintainer
+
+Whoever may edit a profile in the portal. For a person with an active account it is that person and
+nobody else. For a person nobody can sign in to (a profile nobody has claimed, whose owner has not
+yet signed in, or whose account has been deactivated) it is any person holding the Community Manager
+role. For an organization it is its owner and administrators with a current affiliation, and any
+Community Manager. A superuser and the other portal roles are not profile maintainers.
+
+Implemented by `Contributor.is_editable_by()` in `fairdm/contrib/contributors/models.py`.
+
 ### Member
 
 A person with a verified affiliation to an organization that has not ended. A pending request and a

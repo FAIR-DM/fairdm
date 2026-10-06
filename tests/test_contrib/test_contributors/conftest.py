@@ -1,9 +1,13 @@
 """Fixtures for contributor system tests."""
 
+from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.utils import get_anonymous_user
+from PIL import Image
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import (
@@ -20,6 +24,7 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
@@ -61,6 +66,14 @@ def unclaimed_person(db):
         first_name="Jane",
         last_name="Doe",
     )
+
+
+@pytest.fixture
+def community_manager(db):
+    """A person with an active account who holds the Community Manager role."""
+    manager = PersonFactory(is_active=True, is_claimed=True, password="x")
+    manager.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+    return manager
 
 
 @pytest.fixture
@@ -330,3 +343,45 @@ def credited_world(db):
         private_mate=private_mate,
         private_dataset_mate=private_dataset_mate,
     )
+
+
+@pytest.fixture
+def image_upload():
+    """Build a small valid image upload."""
+
+    def build(name="photo.png"):
+        buffer = BytesIO()
+        Image.new("RGB", (20, 20), "blue").save(buffer, format="PNG")
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+    return build
+
+
+@pytest.fixture
+def profile_data():
+    """Every field of a person's profile form, filled in with valid values."""
+    return {
+        "first_name": "Ada",
+        "last_name": "Lovelace",
+        "name": "Dr. Ada Lovelace",
+        "alternative_names": "A. Lovelace\nAugusta Ada King",
+        "profile": "Mathematician and writer.",
+        "links": "https://example.org/ada\nhttp://example.org/notes",
+        "lang": ["en", "fr"],
+    }
+
+
+@pytest.fixture
+def organization_profile_data():
+    """Every field of an organization's profile form, filled in with valid values."""
+    return {
+        "name": "Potsdam Research Institute",
+        "alternative_names": "PRI\nInstitut Potsdam",
+        "type": "education",
+        "parent": "",
+        "city": "Potsdam",
+        "country": "DE",
+        "profile": "Studies the Earth system.",
+        "website": "https://example.org",
+        "links": "https://example.net/wiki\nhttps://example.org/news",
+    }

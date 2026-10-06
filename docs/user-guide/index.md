@@ -40,6 +40,8 @@ This guide helps you:
 :caption: Account Management
 
 account_management/create_an_account
+account_management/editing_your_profile
+account_management/editing_an_organizations_profile
 
 ```
 

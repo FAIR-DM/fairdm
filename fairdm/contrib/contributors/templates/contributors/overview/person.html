@@ -73,11 +73,10 @@
   {% if api_url %}
     <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
   {% endif %}
-  {% if is_self %}
-    {% translate "Edit profile" as label %}
-    {% translate "Change your name, photo, biography, affiliations and links." as reason %}
-    <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" />
-  {% else %}
+  {% if can_edit %}
+    <c-button href="{{ update_url }}" text="{% translate 'Edit profile' %}" icon="edit" size="sm" />
+  {% endif %}
+  {% if not is_self %}
     {% translate "Contact" as label %}
     {% translate "Send a message through the portal, without either of you sharing an email address." as reason %}
     <c-actions.pending label="{{ label }}" icon="email" reason="{{ reason }}" />
@@ -104,9 +103,7 @@
       {% elif is_self %}
         <c-missing>
           <span>{% translate "You haven't written a biography yet. A few lines on your research help visitors recognise your work and see why your data matters." %}</span>
-          {% translate "Write your biography" as label %}
-          {% translate "Write a few lines about your research." as reason %}
-          <c-actions.pending label="{{ label }}" icon="edit" reason="{{ reason }}" variant="primary" />
+          <c-button href="{{ update_url }}#id_profile" text="{% translate 'Write your biography' %}" icon="edit" size="sm" variant="primary" />
         </c-missing>
       {% else %}
         <c-missing><span>{% translate "No biography has been added yet." %}</span></c-missing>

@@ -15,6 +15,7 @@ from fairdm.core.plugins import OverviewPlugin
 
 from ..models import Contributor
 from ..profiles import active_then_recent, checklist, fill_slots, ranked_shares
+from .update import Update
 
 
 @plugins.register(Contributor, label=_("Overview"), icon="overview", order=0)
@@ -32,6 +33,7 @@ class Overview(OverviewPlugin):
     """
 
     url_path = None
+    extra_views = [Update]
     collaborators_shown = 18
     records_shown = 5
     member_slots = 10
@@ -133,6 +135,7 @@ class Overview(OverviewPlugin):
         context = self.get_shared_context()
         context["roles"] = ranked_shares(person.get_role_counts(contributions))
         is_self = user.is_authenticated and user.pk == person.pk
+        update_url = person.get_update_url()
         affiliations = person.get_affiliation_history()
         primary = next(
             (a.organization for a in affiliations["current"] if a.is_primary), None
@@ -147,6 +150,8 @@ class Overview(OverviewPlugin):
                 "overview_icon": "member",
                 "person": person,
                 "is_self": is_self,
+                "can_edit": person.is_editable_by(user),
+                "update_url": update_url,
                 "is_unclaimed": state in ("ghost", "invited"),
                 "is_inactive": state == "inactive",
                 "affiliations": affiliations,
@@ -171,6 +176,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A profile photo"),
                         "done": complete["image"],
+                        "url": f"{update_url}#id_image",
                         "required": False,
                     },
                     {
@@ -181,6 +187,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A short biography"),
                         "done": complete["profile"],
+                        "url": f"{update_url}#id_profile",
                     },
                     {
                         "label": gettext("A primary affiliation"),
@@ -189,6 +196,7 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("Links to your other profiles"),
                         "done": complete["links"],
+                        "url": f"{update_url}#id_links",
                         "required": False,
                     },
                 ],
@@ -210,6 +218,7 @@ class Overview(OverviewPlugin):
         context = self.get_shared_context()
         members = organization.get_current_memberships()
         can_manage = organization.is_managed_by(user)
+        update_url = organization.get_update_url()
 
         projects = [
             {"record": p, "owned": p.owner_id == organization.pk}
@@ -224,6 +233,8 @@ class Overview(OverviewPlugin):
                 "overview_icon": "organization",
                 "organization": organization,
                 "can_manage": can_manage,
+                "can_edit": organization.is_editable_by(user),
+                "update_url": update_url,
                 "is_member": organization.has_member(user),
                 "members": fill_slots(members, self.member_slots, reserve=True),
                 "projects": self.get_record_card(projects, lambda p: p.is_active),
@@ -246,20 +257,28 @@ class Overview(OverviewPlugin):
                     {
                         "label": gettext("A logo"),
                         "done": complete["image"],
+                        "url": f"{update_url}#id_image",
                         "required": False,
                     },
                     {
                         "label": gettext("The type of organization"),
                         "done": complete["type"],
+                        "url": f"{update_url}#id_type",
                     },
                     {
                         "label": gettext("City and country"),
                         "done": complete["location"],
+                        "url": f"{update_url}#id_city",
                     },
-                    {"label": gettext("A description"), "done": complete["profile"]},
+                    {
+                        "label": gettext("A description"),
+                        "done": complete["profile"],
+                        "url": f"{update_url}#id_profile",
+                    },
                     {
                         "label": gettext("A website"),
                         "done": complete["links"],
+                        "url": f"{update_url}#id_website",
                         "required": False,
                     },
                 ],

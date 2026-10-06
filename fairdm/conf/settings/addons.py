@@ -71,9 +71,6 @@ EASY_ICONS = {
         },
         "packs": [
             "mvp.utils.BS5_ICONS",
-            # The allauth management pages draw their icons from this pack and raise
-            # `IconNotFoundError` without it.
-            "dac.icons.DAC_ICONS",
         ],
         "icons": {
             "add": "bi bi-plus-circle",

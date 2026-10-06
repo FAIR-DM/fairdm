@@ -9,8 +9,6 @@ template context processors after ``setup()`` returns.
 
 import socket
 
-from django.contrib.messages import constants as messages
-
 from fairdm.conf.environment import env
 
 BASE_DIR = globals()["BASE_DIR"]
@@ -49,12 +47,13 @@ INSTALLED_APPS = [
     "fairdm.utils",
     "fairdm.contrib.identity",
     "fairdm.contrib.theme",
+    # Ahead of allauth and mvp: it replaces templates both of them ship, and Django takes
+    # the first one it finds.
+    "mvp_accounts",
     "mvp",
     "mvp_charts",
     "polymorphic",
     "parler",
-    "dac",
-    "dac.allauth",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -77,7 +76,7 @@ INSTALLED_APPS = [
     "storages",
     "django_filters",
     "crispy_forms",
-    "crispy_tailwind",
+    "mvp_forms",
     "widget_tweaks",
     "django_select2",
     "django_social_share",
@@ -186,25 +185,14 @@ PARLER_LANGUAGES = {
 FIXTURE_DIRS = (str(BASE_DIR / "fixtures"),)
 LOCALE_PATHS = [str(BASE_DIR / "project" / "locale")]
 
-MESSAGE_TAGS = {
-    messages.DEBUG: "debug alert-secondary",
-    messages.INFO: "info alert-info",
-    messages.SUCCESS: "success alert-success",
-    messages.WARNING: "warning alert-warning",
-    messages.ERROR: "error alert-danger",
-}
-
 # The gateway address of each local network, for the debug toolbar.
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
+CRISPY_TEMPLATE_PACK = "daisyui"
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
-ACCOUNT_MANAGEMENT_GET_AVATAR_URL = (
-    "fairdm.contrib.contributors.utils.get_contributor_avatar"
-)
 
 DJANGO_SETUP_TOOLS = {
     "": {
