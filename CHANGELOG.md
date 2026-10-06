@@ -173,6 +173,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Projects, datasets, samples and measurements have a **Contributors** tab, including every sample
+  and measurement type a portal registers. It lists a record's people and organizations separately,
+  and people who manage the record add a person or an organization already in the portal, set a
+  contributor's contribution roles and remove a contributor. A signed-in person who cannot manage
+  the record is refused and a visitor is sent to sign in. The overview of every record leads its
+  People card to the tab through `people_url`.
+- `Contribution.level` stores what a person may do on a record: `ContributionLevel.VIEW`, `EDIT` or
+  `MANAGE`. `RecordAccess(record)` in `fairdm.contrib.contributors.access` reads it for the record
+  and the records above it, and `Crediting(record)` in
+  `fairdm.contrib.contributors.services.crediting` is the one place a record's contributors change.
+  The migration adds an empty column; existing contributions hold no level until a person is given
+  one. `Person.can_sign_in()` is the rule that decides whether an account is in use, which
+  `Person.is_editable_by()` now asks. See
+  [The Contributors tab](docs/portal-development/contributors.md#the-contributors-tab) and
+  [Crediting a record](docs/user-guide/crediting-a-record.md).
 - A person can edit their own profile. The edit action in the header of their page, the prompt to
   write a biography and the photo, biography and links items on their checklist now lead to a page
   for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the

@@ -630,10 +630,12 @@ fill_slots(list(range(12)), 10, reserve=True)
 
 Deleting a person's credit on an object withdraws every object-level right that person
 holds over that object, whether the credit is deleted on the instance or in bulk through
-a queryset (FR-036). **Creating a credit grants nothing** - crediting someone confers no
+a queryset (FR-036). **Creating a credit with `Contribution.add_to()` or
+`Contributor.add_to()` grants nothing**: it leaves the credit's `level` empty and confers no
 permission by itself, so there is no corresponding grant to mirror the withdrawal. A
 portal that wants a credited contributor to also gain a right over the object must grant
-it separately.
+it separately, or credit them with `Crediting`, which gives a person the view level (see
+[The Contributors tab](#the-contributors-tab)).
 
 Deleting the credited object itself is the one case where nothing is withdrawn: the
 project or dataset row is gone before its credits are removed, so there is no object left
@@ -648,6 +650,117 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Dataset`
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
+
+## The Contributors tab
+
+Projects, datasets, samples and measurements each have a **Contributors** tab beside their
+overview. The tab lists a record's people and organizations and is where the people who manage the
+record add, edit and remove its contributors. It is one plugin, `ContributionList` in
+`fairdm.contrib.contributors.plugins.shared`, registered on `Project`, `Dataset`, `Sample` and
+`Measurement`.
+
+**A sample or measurement type your portal registers gets the tab with no configuration.** The
+plugin is registered on the base `Sample` and `Measurement` classes, so every subtype inherits it,
+and the record's roles, levels and addresses are read from the core model the subtype extends.
+
+The tab's additional views share the base class `ContributionPage`, which works out the record, its
+kind and whether the viewer may manage it. `ContributionAddPerson` and `ContributionAddOrganization`
+add from the portal and share `ContributionAdd`. `ContributionEdit` sets a contributor's roles and
+`ContributionRemove` removes one. A page that changes anything is refused to a signed-in person who
+cannot manage the record and sends a visitor to sign in. Addresses resolve with the plugin
+`reverse`, the same way for every record type:
+
+```python
+from fairdm.contrib.plugins import reverse
+
+reverse(dataset, "contribution-list")
+reverse(dataset, "contribution-list-contribution-add-person")
+reverse(dataset, "contribution-list-contribution-edit", pk=contribution.pk)
+reverse(sample, "contribution-list-contribution-remove", pk=contribution.pk)
+```
+
+### Levels
+
+What a person may do on a record is one of three levels, stored on their contribution as
+`Contribution.level`. Each includes the ones before it, and they are integers so that "at least"
+is a comparison.
+
+| `ContributionLevel` | Value | Lets its holder |
+|---|---|---|
+| `VIEW` | 1 | open the record |
+| `EDIT` | 2 | also change the record and the data in it |
+| `MANAGE` | 3 | also change its contributors and their levels, change its visibility and delete it |
+
+The field is empty for an organization, which holds no level, and for a person who is credited
+without one. A level on a project applies to its datasets, and a level on a dataset applies to its
+samples and measurements. A measurement follows its own dataset, not its sample's.
+`REQUIRED_LEVEL` in `fairdm.contrib.contributors.access` maps each permission a core record type
+declares to the level that carries it.
+
+### Asking what a person may do: `RecordAccess`
+
+A page of your own asks through `RecordAccess(record)`, which takes a project, dataset, sample or
+measurement of any registered type:
+
+```python
+from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.choices import ContributionLevel
+
+access = RecordAccess(sample)
+
+access.above                       # [dataset, project]: the records it takes levels from
+access.level_of(request.user)      # the highest level held on the sample or above, or None
+access.level_of(request.user) == ContributionLevel.MANAGE
+access.can_manage(request.user)    # manage level, or change_sample for the whole portal
+
+access.own_level(person)           # the level from being listed on this record only
+level, source = access.level_from_above(person)   # and the record it comes from
+access.people_above()              # (person, level, source) for everyone holding one from above
+access.managers()                  # ids of people who can sign in and hold manage here or above
+access.kind                        # "sample", whatever registered type the record is
+```
+
+`level_of` answers None for a visitor, an inactive user and anyone who holds no level, and reads
+the record and the records above it in one query. To ask whether a person may view, edit or manage a
+record, compare it with the level:
+
+```python
+level = RecordAccess(dataset).level_of(request.user)
+may_edit = level is not None and level >= ContributionLevel.EDIT
+```
+
+`can_manage` is true for the manage level on the record or above it, and for anyone holding
+`change_<model>` for the whole portal, which a superuser and a Data Curator do. People who can
+manage only through a portal role are not counted by `managers()`, so a record's managers are
+always people listed on it or above it who can sign in. `Person.can_sign_in()` is that test.
+
+### Changing contributors: `Crediting`
+
+`Crediting(record)` in `fairdm.contrib.contributors.services.crediting` is the one place a record's
+contributors change. Each refusal is a `ValidationError` with a code, so a page can attach it to a
+field and a test can assert on it:
+
+```python
+from fairdm.contrib.contributors.services.crediting import Crediting
+
+crediting = Crediting(dataset)
+
+contribution = crediting.add(person)             # last of its kind, at the view level
+crediting.add(organization)                      # no level
+crediting.offered_roles()                        # the concepts the dataset's roles group offers
+crediting.update(contribution, roles=crediting.offered_roles()[:2])
+crediting.remove(contribution)                   # and the level goes with it
+```
+
+| Method | Raises | Code |
+|---|---|---|
+| `add` | the contributor is already listed | `duplicate` |
+| `add` | the contributor is a superuser, who cannot be credited | `superuser` |
+| `update` | a role is not in the group the record's type offers | `role_not_offered` |
+
+`update` replaces the roles and leaves the level as it is: a contribution role carries no rights.
+`offered_roles()` returns the roles the vocabulary groups for the record's type, in the
+vocabulary's order.
 
 ## Editing a profile
 
@@ -680,7 +793,8 @@ right to edit a profile, and the rule never asks Django for a permission.
 
 A person's profile is editable by a Community Manager only while nobody can sign in to it and keep
 it themselves: the account is inactive, or the person is not claimed and has never signed in
-(`last_login` is empty). `account_state` alone cannot say that, because an account made with
+(`last_login` is empty). `Person.can_sign_in()` is that rule: the account is active, and the person
+has claimed it or has signed in. `account_state` alone cannot say it, because an account made with
 `createsuperuser`, or by signing up on a portal that does not verify email addresses, is active and
 in use without being marked claimed. Such a person edits their own profile and nobody else does. An
 organization is editable by the people who keep its record, the ones `is_managed_by(user)`
