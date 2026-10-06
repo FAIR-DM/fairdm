@@ -43,6 +43,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
 | `overview.keywords` | Header: keywords. |
 | `overview.actions` | Header: buttons. Cite and Share by default. |
+| `overview.page_actions` | Header: the dropdown of page actions that plugins register, after the buttons. It sits outside `overview.actions`, so a page that replaces those buttons keeps it, and it draws nothing when there are no actions to offer. See [Create a plugin](create_a_plugin.md). |
 | `overview.figures` | The figures strip. |
 | `overview.main` | The wide column. Each record fills it with its own blocks. |
 | `overview.side` | The side column, which holds the blocks below. |

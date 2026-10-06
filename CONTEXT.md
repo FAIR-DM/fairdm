@@ -156,6 +156,22 @@ public API is what `fairdm/contrib/plugins/__init__.py` exports: `Plugin`, `regi
 
 Plugin groups and tabs were removed from this system. Do not reintroduce either term.
 
+A registration also names the place its plugin appears: an entry in the record's local navigation,
+which is the default, or an entry among the page actions.
+
+### Page action
+
+A plugin offered in a dropdown among the header buttons of a record's overview, in place of an entry
+in the local navigation. It is served at its own address, and the dropdown lists exactly the actions
+the visitor may open for that record. Choosing one takes the visitor to that address. The dropdown is
+not drawn when there is nothing to list.
+
+### Manage menu
+
+The menu on a record's overview that holds what people with rights over the record can do to it,
+such as editing its details or deleting it. It is separate from the page actions, and a plugin does
+not register an entry in it.
+
 ### Polymorphic models
 
 `Sample` and `Measurement` use django-polymorphic. Subtypes share one table and are distinguished

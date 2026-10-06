@@ -100,6 +100,90 @@ class PrintView(Plugin, FairDMTemplateView):
     ...
 ```
 
+## Where a plugin appears
+
+A registration names one place for its plugin with `place`. The default is the record's local
+navigation, so every registration that names none behaves as it always has.
+
+| Place | What it gives the plugin |
+| --- | --- |
+| `Place.NAVIGATION` (`"navigation"`) | An entry in the record's local navigation. This is the default. |
+| `Place.ACTION` (`"action"`) | An entry in the dropdown of page actions on the record's overview. |
+
+The place is a `Place` member or its value, so these two registrations are the same:
+
+```python
+from fairdm.contrib.plugins import Place
+
+plugins.register(Dataset, place=Place.ACTION)
+plugins.register(Dataset, place="action")
+```
+
+Whichever place a plugin names, it is a plugin like any other. It has its own address, it is
+served by its own view, and `check` and `permission` decide both whether it is offered and whether
+it opens.
+
+## A page action
+
+A page action is something a visitor does with a record, such as following a dataset or reporting
+a problem with it. It is offered in a dropdown among the buttons in the header of the record's
+overview, and choosing it takes the visitor to the plugin's page for that record.
+
+```python
+from django.utils.translation import gettext_lazy as _
+
+from fairdm import plugins
+from fairdm.contrib.plugins import Place, Plugin
+from fairdm.core.dataset.models import Dataset
+from fairdm.views import FairDMTemplateView
+
+
+@plugins.register(Dataset, place=Place.ACTION, label=_("Follow"), icon="bell", order=10)
+class Follow(Plugin, FairDMTemplateView):
+    template_name = "myapp/plugins/follow.html"
+    check = staticmethod(lambda request, obj: request.user.is_authenticated)
+```
+
+That serves `/datasets/<uuid>/follow/` and adds Follow to the dropdown on every dataset's
+overview, for signed-in visitors. The dropdown has no entry for it in the local navigation.
+
+The label, icon and position come from the registration, with the same defaults a navigation
+entry has. Actions are listed by `order`, lowest first, and by name when two share an order, so the
+list is the same on every start of the portal.
+
+What decides who is offered an action is what decides who may open it:
+
+- A visitor is offered an action when `check` and `permission` let them open it for this record,
+  signed in or not. A plugin with neither is offered to everyone.
+- A visitor who types the address of an action they are not offered is refused, as for any plugin.
+- A `check` that raises hides the action and logs the failure. The page is still served.
+- `menu=False` serves the plugin at its address and does not offer it.
+
+When no action is offered to a visitor, the overview draws no dropdown.
+
+The overview of a project, dataset, sample, measurement, person and organization draws page
+actions. A person's and an organization's overviews are one registration against `Contributor`, so
+an action for people only narrows itself:
+
+```python
+from fairdm.contrib.contributors.models import Contributor, Person
+from fairdm.contrib.plugins import is_instance_of
+
+
+@plugins.register(Contributor, place=Place.ACTION, label=_("Message"), icon="email")
+class Message(Plugin, FairDMTemplateView):
+    template_name = "myapp/plugins/message.html"
+    check = staticmethod(is_instance_of(Person))
+```
+
+The page actions are separate from the Manage menu. The Manage menu holds what people with rights
+over the record can do to it, and a plugin cannot register an entry there.
+
+A record type draws page actions when one of its registered plugins is built on `OverviewPlaces`,
+which `OverviewPlugin` carries, so a subclass of any shipped overview has it. An overview that
+replaces the header buttons keeps the dropdown, which sits in its own block,
+`overview.page_actions`. See [Overview pages](overview-pages.md).
+
 ## Who can see it, and who can open it
 
 Two things decide, and they answer different questions.
@@ -243,16 +327,34 @@ def get_context_data(self, **kwargs):
     return context
 ```
 
+## What a record type serves
+
+The registry keeps every registration as it was made. `registry.get_plugins_for_model(Dataset)`
+returns the `(plugin class, options)` pairs in the order they arrived.
+
+`registry.resolve(Dataset)` works out from them what the record type actually serves. It returns
+one `Mount` per registration. A `Mount` is read-only and carries the `plugin_class`, the `name` it
+is served under, its `url_path` (`None` for the record's own address), its `place`, and the
+`label`, `icon` and `order` of its entry. `listed` is false when the registration declined its
+entry. The URL patterns, the navigation and the page actions are all built from this list, and so
+are the checks that refuse a registration that cannot work. `registry.get_page_actions(Dataset)`
+returns the listed actions among them, by `order` and then name.
+
 ## When a registration is wrong
 
 A registration that cannot work is refused when it is made, and the portal does not start. The
-message names the plugin, the record and the problem. Refused cases:
+message names the plugin, the record and the problem. When the portal starts, every record type's
+registrations are checked together, and the same applies to what that finds. Refused cases:
 
 - no model given, or something that is not a model
 - two plugins claiming the same name or the same segment on one record
 - two plugins whose generated address names would collide
 - a segment that cannot appear in a route
 - a `check` that is neither callable nor a bool
+- a `place` that does not exist
+- a `column`, which no place accepts
+- a page action registered for a record type whose overview draws none, such as a location. The
+  portal does not start, and the message names the plugin and the record type
 - an `extra_views` entry that is not a plugin, that collides with a sibling or the parent, or that
   declares `extra_views` of its own
 

@@ -33,3 +33,10 @@ Did: added fairdm/contrib/plugins/places.py (Place, OverviewPlaces with page_act
 Verified: uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope: 1195 passed. Probe: making the dropdown list every action regardless of access fails four page tests. pre-commit passes.
 Next: T005 documentation, then the full verify.
 Watch: the full suite has not run yet.
+
+## 2026-10-06T21:44:24Z · Implementer US1 · T005
+
+Did: documented the places in docs/portal-development/create_a_plugin.md (Where a plugin appears, A page action, the new refusals), the overview.page_actions block in overview-pages.md, and page action and Manage menu in CONTEXT.md.
+Verified: ran the two documented examples (a dataset action for signed-in visitors and a contributors action narrowed to people) in a throwaway test through the test client; both were offered and opened. The throwaway test was not kept.
+Next: full verify, then the report.
+Watch: docs build is part of the full verify.
