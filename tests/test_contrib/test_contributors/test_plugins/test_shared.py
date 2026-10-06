@@ -26,6 +26,7 @@ from fairdm.contrib.contributors.models import (
 )
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import (
+    AffiliationFactory,
     ContributionFactory,
     ContributorIdentifierFactory,
     OrganizationFactory,
@@ -157,10 +158,8 @@ class TestContributorsTab:
     def test_nobody_else_is_offered_a_control(
         self, request, record, colleague, partner, viewer
     ):
-        user = (
-            None
-            if viewer == "visitor"
-            else request.getfixturevalue("newcomer" if viewer == "stranger" else viewer)
+        user = None if viewer == "visitor" else request.getfixturevalue(
+            "newcomer" if viewer == "stranger" else viewer
         )
 
         response = browser_as(user).get(tab(record))
@@ -302,10 +301,7 @@ class TestAddFromPortal:
             page_of(record, "add-person"), {"q": colleague.contributor.name}
         )
 
-        results = {
-            r["contributor"].pk: r["listed"]
-            for r in response.context["adding"]["results"]
-        }
+        results = {r["contributor"].pk: r["listed"] for r in response.context["adding"]["results"]}
         assert results[colleague.contributor_id] is True
 
     def test_someone_already_listed_cannot_be_added_again(
@@ -376,9 +372,7 @@ class TestEditRoles:
         assert stored(record) == before
 
     def test_no_role_is_allowed(self, record, manager, colleague):
-        colleague.roles.add(
-            *Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0])
-        )
+        colleague.roles.add(*Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0]))
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -398,7 +392,9 @@ class TestRemoveContributor:
         assert Contribution.objects.filter(pk=colleague.pk).exists()
 
     def test_confirming_removes_the_contributor(self, record, manager, colleague):
-        response = browser_as(manager).post(page_of(record, "remove", pk=colleague.pk))
+        response = browser_as(manager).post(
+            page_of(record, "remove", pk=colleague.pk)
+        )
 
         assert response["Location"] == tab(record)
         assert not Contribution.objects.filter(pk=colleague.pk).exists()
