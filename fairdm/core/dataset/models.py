@@ -358,6 +358,13 @@ class Dataset(BaseModel):
         """
         return self.visibility == Visibility.PUBLIC and self.published
 
+    def clean(self):
+        """Refuse a change of project that would leave the dataset with nobody to manage it."""
+        super().clean()
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        RecordAccess(self).refuse_move_without_manager("project")
+
     def get_absolute_url(self):
         """Return the URL of the dataset's registered overview page."""
         return reverse("dataset:overview", kwargs={"uuid": self.uuid})

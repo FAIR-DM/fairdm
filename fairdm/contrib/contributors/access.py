@@ -4,8 +4,10 @@ import re
 
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.functional import cached_property
+from django.utils.translation import gettext as _
 
 from .choices import ContributionLevel
 from .models import Contribution, Person
@@ -254,6 +256,42 @@ class RecordAccess:
             for person in Person.objects.filter(pk__in=list(ids))
             if person.can_sign_in()
         }
+
+    def refuse_move_without_manager(self, parent_field):
+        """Refuse a change of parent that leaves a record nobody can manage.
+
+        Compares the record's parent with the one stored. A new record, a record whose parent
+        did not change and a record that had no manager before are never refused.
+
+        Args:
+            parent_field: The name of the field that holds the parent: ``project`` for a
+                dataset, ``dataset`` for a sample or measurement.
+
+        Raises:
+            ValidationError: Attached to ``parent_field`` with code ``no_manager``.
+        """
+        if self.record.pk is None:
+            return
+        model = type(self.record)
+        manager = getattr(model, "all_objects", model._default_manager)
+        stored = manager.filter(pk=self.record.pk).first()
+        field = f"{parent_field}_id"
+        if stored is None or getattr(stored, field) == getattr(self.record, field):
+            return
+        if RecordAccess(stored).managers() and not self.managers():
+            raise ValidationError(
+                {
+                    parent_field: ValidationError(
+                        _(
+                            "Nobody who can sign in would be able to manage this %(kind)s "
+                            "there. Choose another, or give someone the \u201cCan manage\u201d "
+                            "level on it first."
+                        )
+                        % {"kind": self.kind},
+                        code="no_manager",
+                    )
+                }
+            )
 
     def can_manage(self, user):
         """Say whether a user may change the record's contributors.
