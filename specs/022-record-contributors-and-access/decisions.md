@@ -577,3 +577,9 @@ and the second, found through `get_contribution()`, with 404.
 only the moved kind leaves the other kind's values alone. The previous page treated any direction
 but `up` as `down`.
 **Revisit if**: a record's two kinds come to share one list.
+
+## D36. The seed creates only the Data Curator development account, and credits the profile seed's people from where they are
+
+**Decision**: `seed_contributors` creates `data.curator@fairdm.org` through `demo.seed.common.data_curator()`, which reads the same `DEV_ACCOUNTS` entry `create_dev_accounts` uses, and does not run `create_dev_accounts`. `seed_profiles` ends with one pass that credits each seeded person from their primary affiliation on every credit that names no organization, through `Crediting.update`. `seed_overviews`' own seeds (projects, samples, measurements) are not changed: their people have no affiliation, so there is nothing to credit from.
+**Why**: running `create_dev_accounts` adds a second person called Regular User beside `regular.user@example.com`, and `ContributorSeed.affiliate` looks people up by name, so it then fails with two matches. One pass at the end of `seed_profiles` reaches the credits `seed_overviews` made before the affiliations existed, which crediting at each `add_to` would not.
+**Revisit if**: the example people of the other seeds are given affiliations.

@@ -34,6 +34,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.location.models import Point
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
@@ -129,6 +130,7 @@ class Command(BaseCommand):
             self.clear()
             orgs = self.organizations()
             people = self.people(orgs)
+            self.credit_from_primary_affiliations()
         for label, obj in [*orgs.items(), *people.items()]:
             self.stdout.write(f"  {label:<12} /contributor/{obj.uuid}/")
         self.stdout.write(self.style.SUCCESS("Seeded the profile page states."))
@@ -138,6 +140,23 @@ class Command(BaseCommand):
     def person(self, first, last):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"
         return Person.objects.get(email=email)
+
+    def credit_from_primary_affiliations(self):
+        """Credit each seeded person from their primary affiliation on every record they are on.
+
+        Nothing fills a credit's organization from a profile, so an example that shows a person
+        with an organization has to say which. A credit that already names one is left alone.
+        """
+        for person in Person.objects.filter(config__seed=SEED):
+            organization = person.primary_organization
+            if organization is None:
+                continue
+            for contribution in person.contributions.filter(affiliation=None):
+                Crediting(contribution.content_object).update(
+                    contribution,
+                    roles=list(contribution.roles.all()),
+                    organization=organization,
+                )
 
     def mark(self, contributor):
         contributor.config = {**(contributor.config or {}), "seed": SEED}

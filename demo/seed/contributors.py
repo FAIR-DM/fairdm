@@ -8,17 +8,22 @@ from demo.factories import RockSampleFactory, XRFMeasurementFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.contrib.contributors.services.crediting import Crediting
+from fairdm.contrib.plugins import reverse
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.utils.choices import Visibility
 
-from .common import example_accounts, remove_own_projects
+from .common import data_curator, example_accounts, remove_own_projects
 
 PROJECT = "Contributors tab examples"
 
 #: A dataset credited to this many people, to show search on a long list.
 SOLO = "Dataset with one manager and no project"
+
+#: A private dataset in no project that the Data Curator account is not listed on, and whose only
+#: manager cannot sign in, so that portal staff are the way into it.
+STEP_IN = "Private dataset with no manager who can sign in"
 
 CROWD = 36
 
@@ -41,13 +46,20 @@ class ContributorSeed(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        users = example_accounts()
         if options.get("keep_records"):
             self.affiliate()
             self.stdout.write("Added affiliations to the records already seeded.")
+            stepped_in = self.step_in(users["super.user"])
+            self.stdout.write(
+                f"Dataset to step in on (sign in as data.curator@fairdm.org): "
+                f"{reverse(stepped_in, 'contribution-list')}"
+            )
             return
-        users = example_accounts()
         remove_own_projects([PROJECT], users)
-        Dataset.all_objects.filter(name=SOLO, created_by=users["super.user"]).delete()
+        Dataset.all_objects.filter(
+            name__in=[SOLO, STEP_IN], created_by=users["super.user"]
+        ).delete()
         regular, staff, creator = (
             users["regular.user"],
             users["staff.user"],
@@ -136,8 +148,7 @@ class ContributorSeed(BaseCommand):
         self.credit(measurement, institute, ["Support"])
 
         self.affiliate()
-
-        from fairdm.contrib.plugins import reverse
+        stepped_in = self.step_in(creator)
 
         for label, record in (
             ("Project, public", project),
@@ -150,6 +161,7 @@ class ContributorSeed(BaseCommand):
                 ),
             ),
             ("Dataset with a long list", crowd),
+            ("Dataset to step in on (sign in as data.curator@fairdm.org)", stepped_in),
             ("Sample", sample),
             ("Measurement", measurement),
         ):
@@ -218,6 +230,40 @@ class ContributorSeed(BaseCommand):
                 roles=list(contribution.roles.all()),
                 organization=organization,
             )
+
+    def step_in(self, creator):
+        """Give the Data Curator account a private dataset it is not listed on.
+
+        The dataset's only manager has no account, so nobody on it counts as able to manage it and
+        the curator is the way in. Yusuf Demir, credited from Tübingen, can be raised to manage it,
+        and then cannot be lowered or removed, and Tübingen cannot be removed. Safe to run again,
+        and changes no address.
+
+        Args:
+            creator: The account recorded as the dataset's creator.
+
+        Returns:
+            The dataset.
+        """
+        data_curator()
+        record = Dataset.all_objects.filter(name=STEP_IN, created_by=creator).first()
+        if record is None:
+            record = self.dataset(None, STEP_IN, Visibility.PRIVATE, creator)
+        yusuf = self.person("Yusuf", "Demir")
+        tuebingen = self.organization("Universität Tübingen")
+        listed = set(record.contributors.values_list("contributor_id", flat=True))
+        ingrid = self.person("Ingrid", "Solberg", account=False)
+        if ingrid.pk not in listed:
+            self.credit(record, ingrid, ["Supervisor"], ContributionLevel.MANAGE)
+        if yusuf.pk not in listed:
+            self.credit(record, yusuf, ["DataCollector"], ContributionLevel.VIEW)
+            contribution = record.contributors.get(contributor=yusuf)
+            Crediting(record).update(
+                contribution,
+                roles=list(contribution.roles.all()),
+                organization=tuebingen,
+            )
+        return record
 
     def person(self, first, last, account=True):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"

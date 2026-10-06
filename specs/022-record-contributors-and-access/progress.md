@@ -260,3 +260,17 @@ Did: the user guide gains "Putting contributors in order" (per-list order, the c
 Verified: `forge verify --repo . --base origin/main --steps docs` reports only `ContributorSeed`. Public text has no em dashes.
 Next: full gate, completion report.
 Watch: none.
+
+## 2026-10-06T15:46:32Z · Implementer US7 · T030
+
+Did: tests/test_contrib/test_contributors/test_plugins/test_shared.py TestPortalRoles (scenarios 1 to 6, signed in as the development accounts from create_dev_accounts, on all four record kinds) and tests/test_portal_roles.py TestPermissionsAreThoseOnMain (each role against the list on origin/main).
+Verified: uv run pytest ...::TestPortalRoles -q -n0, 44 passed; tests/test_portal_roles.py 42 passed; pre-commit all files passed. The curator tests passed on first run because specification 017 and RecordAccess.can_manage already admit the role; probed by making can_manage return False after the portal-wide check, 32 of 44 failed, then restored.
+Next: T031 seed.
+Watch: nothing in the code was missing, so T031 has no implementation beyond the seed.
+
+## 2026-10-06T15:54:11Z · Implementer US7 · T031
+
+Did: seed_contributors adds the private dataset "Private dataset with no manager who can sign in" (no project, its only manager has no account, Yusuf Demir credited from Tuebingen to raise) and the Data Curator development account, in the full run and in the --keep-records path. seed_profiles credits each seeded person from their primary affiliation. test_seed_contributors.py is new; TestSeedProfilesCreditsFromTheOrganization is new in test_seed_profiles.py.
+Verified: uv run pytest tests/test_demo -q -n0, 67 passed. Without the seed_profiles change two of the three new tests failed. pre-commit all files passed. Ran `seed_contributors --keep-records` twice against the development database: the record is /datasets/diGyqHEmJ4cMtKoqCwtzW5e/contributors/ both times, and a shell check showed the dataset private, no manager who counts, the curator able to manage it and not listed.
+Next: T032 documentation.
+Watch: no template changed; nothing in the product code was missing, so T031 has no implementation outside the demo. Decision D36 records why only one dev account is created.
