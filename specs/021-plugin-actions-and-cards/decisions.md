@@ -158,3 +158,65 @@ in the request asks for it.
 ## Sketch
 
 Recorded as not needed, for the reason in item 7 above.
+
+# Decisions made while planning
+
+## D1. What a record type serves is worked out from the declarations, never edited into them
+
+**Decision**: the registry keeps registrations and removals as they were made. One method,
+`PluginRegistry.resolve(model)`, works out what is served, and the URL patterns, the navigation,
+the page actions and the cards are all built from its result.
+**Why**: a removal or a replacement must give the same result whether it is declared before or
+after the plugin it names (FR-028, FR-039). Editing the list when a removal arrives cannot do that.
+**Revisit if**: resolving on each overview request shows up in a profile. The cache then belongs on
+the registry and is cleared by `register` and `remove`.
+
+## D2. Removals and replacements are judged at the end of plugin discovery, and again when URLs are built
+
+**Decision**: `FairDMConfig.ready()` validates every record type straight after it imports the
+`plugins` modules. Building a record type's URLs validates it again.
+**Why**: system checks do not run when a WSGI server starts, and the URL configuration is not
+imported until the first request. The end of discovery is the earliest point at which every
+documented declaration is known, and it runs on every way of starting.
+**Revisit if**: addons start declaring plugins somewhere other than a `plugins` module.
+
+## D3. A record type offers page actions and cards when its overview is built on `OverviewPlaces`
+
+**Decision**: the registry refuses an action or a card on a record type whose own-address plugin
+does not carry the mixin that draws them. There is no separate list of record types.
+**Why**: the class that draws the places is the fact. A list beside it would be a second thing to
+keep in step, and a replacement overview built on the shipped one keeps the places with no
+further declaration.
+**Revisit if**: R18 opens the places to record types the framework has not seen.
+
+## D4. A card is drawn by a method, not dispatched as a view
+
+**Decision**: `Card` gives a card a template, a context and `render_card(request, record)`. A card
+is refused at registration unless it can be drawn this way.
+**Why**: dispatching a view to draw a fragment would run its permission handling, which answers
+with a redirect or an error page of its own.
+**Revisit if**: cards need to be loaded after the page, each at its own address.
+
+## D5. Actions and cards with equal positions are ordered by name
+
+**Decision**: the sort key is the position, then the plugin's name. The navigation keeps
+registration order for equal positions.
+**Why**: names are unique per record type, so the order is the same on every start (FR-011,
+FR-020). The navigation is left alone because existing plugins must be listed exactly as they
+were (SC-009).
+**Revisit if**: the navigation's order for equal positions is reported as unstable.
+
+## D6. The position keyword stays `order`
+
+**Decision**: a registration states its position with the existing `order` keyword in all three
+places. The specification's "position" is that keyword.
+**Why**: a second keyword for the same thing would leave two ways to say it.
+**Revisit if**: never, short of renaming it everywhere.
+
+## D7. A card's further views need the card's whole access decision
+
+**Decision**: a further view owned by a card is refused unless the card itself would be drawn for
+this viewer, permission included. Further views of pages keep reading only the owner's predicate.
+**Why**: FR-018 says a card's views are refused to anyone the card is hidden from. Changing the
+rule for pages would alter how existing plugins are refused (SC-009).
+**Revisit if**: the two rules are unified in a later feature that may change existing behaviour.
