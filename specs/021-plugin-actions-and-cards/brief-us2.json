@@ -1,0 +1,119 @@
+{
+  "story": "US2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 436,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T006",
+    "T007",
+    "T008",
+    "T009"
+  ],
+  "context": {
+    "why": "Story 1 is accepted: Place (NAVIGATION, ACTION) and the OverviewPlaces mixin in fairdm/contrib/plugins/places.py, Mount, resolve(), get_page_actions() and validate_all() on PluginRegistry (registration.py), the option and mount checks in checks.py, the c-plugins.actions component and the overview.page_actions block in fairdm/templates/overview/page.html, and the plugin_sandbox fixture in tests/conftest.py that lets a page test register plugins and get real addresses for them. This story adds the third place: a card drawn inside the overview of a project, dataset, sample, measurement, person and organization, in the wide column or the side column, after the cards the page already has. A card has no page, no navigation entry and no page action. Nothing of a card may reach a viewer its access decision excludes, its assets included, and a card that raises must not take the page down.",
+    "spec_sections": [
+      "User Story 2 (all 12 acceptance scenarios)",
+      "FR-015 to FR-024",
+      "FR-004, FR-005",
+      "Edge Cases (a predicate raises; a card's name clashes; a card on a private record; a card with nothing to show; a portal overrides an overview template; the same plugin wanted as a page and as a card; a column for something that is not a card)",
+      "Clarifications (the two answers about cards)",
+      "Key Entities (Overview card)",
+      "SC-002, SC-003, SC-004, SC-009"
+    ],
+    "plan_sections": [
+      "D2",
+      "D3 (the Mount fields and step 7)",
+      "D4 (get_cards, and a card contributing only its further views' patterns)",
+      "D6"
+    ],
+    "prior_decisions": [
+      "decisions.md D4: a card is drawn by a method, not dispatched. `Card` in fairdm/contrib/plugins/cards.py is Plugin with template_name, get_context_data and optional Media, and render_card(request, record) returning the HTML. A registration with place='card' is refused when made unless the class can be drawn that way. Plugin.get_context_data adds breadcrumbs and the navigation menu, which a card does not need: Card supplies its own context (the record as `record` and `base_object`, the request) rather than inheriting a page's.",
+      "decisions.md D9 (story 1): Place has no CARD member and there is no Column yet, any `column` is refused, and Mount has no column field. This story adds Place.CARD, Column (SIDE, WIDE), the column field on Mount, and replaces the blanket refusal with the real rules in plan D2: an unknown column is refused; a column on something that is not a card is refused; place='card' with menu=False is refused; a card with no column gets the side column.",
+      "decisions.md D7, and it is the security-critical part of this story: a further view owned by a card is refused unless (1) the record type's overview opens for this viewer, (2) the card's own predicate AND permission pass, and (3) the view's own decision passes. `as_view` sets plugin_class on the view INSTANCE; the class attribute is None. So the owner must be read from self.plugin_class inside Plugin.has_permission, never from self.__class__.plugin_class. can_open(self.__class__, ...) does not see the owner at dispatch: that is how further views of pages work today, and it must stay exactly so for pages (SC-009). Apply the extra requirements only when the owner's mount is a card. For (1), find the record type's overview mount as the mount whose class is built on OverviewPlaces and ask can_open for it with the record. Test: a card with no predicate on a PRIVATE project, its further view requested by a stranger, is refused; requested by someone who can open the project, served.",
+      "A card contributes no URL pattern at its own name. Its further views are mounted beneath <name>/<segment>/ and named <name>-<view>, as a page's are.",
+      "OverviewPlaces draws cards in order, each: can_open for the card (False or raising skips it; raising is logged), then render_card inside try/except (a raise skips the card and is logged with logger.exception naming the card and the record), and only then adds the card's Media. The overview's own plugin_media in the context is None when the overview declares no Media, so the merge starts from an empty django.forms.Media. base.html already writes plugin_media.css and plugin_media.js.",
+      "overview/page.html: loop over overview_cards.wide after the overview.main block and over overview_cards.side after the overview.side block, each inside its column div and inside a new block (overview.contributed_main, overview.contributed_side). With no cards the loops write nothing at all: no wrapper element (FR-021). Add both blocks to the block list in the template's opening comment.",
+      "decisions.md D5: cards are sorted by (order, name). get_cards(model) mirrors get_page_actions(model).",
+      "decisions.md D3: a card against a record type none of whose plugins is built on OverviewPlaces (Point) is refused by validate_all. validate_places_offered in checks.py already does this for actions: extend it.",
+      "A card with nothing to show is still drawn (FR-024): the framework never inspects a card's output for emptiness.",
+      "Page tests use the plugin_sandbox fixture from tests/conftest.py (decisions.md D11). To check that a contributed card follows the page's own cards, compare positions in the response against something the page already emits, such as the id or data attribute of an existing card; if none exists, a card of your own registered earlier in order is not enough, so add a data- hook to the contributed-card loop's output rather than to the page's existing cards."
+    ],
+    "acceptance": [
+      {
+        "task": "T006",
+        "given_when_then": "Given a registry filled by the test, when cards are registered, then the outcomes in tasks.md T006 hold: refusals at registration, the side column by default, card order independent of registration order, no pattern at the card's own name, no navigation entry or page action, render_card draws with the record and request, and a card against Point is refused by validate_all."
+      },
+      {
+        "task": "T007",
+        "given_when_then": "Given User Story 2's scenarios, when each record type's overview is opened through the test client, then a card's content is in the page only for a viewer it admits, in its column after the page's own cards and in order; a failing card is left out with the page still served and the failure logged; a hidden card's further views are refused, including on a private record for a card with no predicate; and its assets are present only when it is drawn."
+      },
+      {
+        "task": "T008",
+        "given_when_then": "Given the failing tests from T006 and T007, when the implementation lands, then all pass and every test that existed at the base passes, changed only as the brief allows."
+      },
+      {
+        "task": "T009",
+        "given_when_then": "Given create_a_plugin.md, overview-pages.md and CONTEXT.md, when read against the branch, then they say how to register a card with an example that runs, covering the column, a further view and assets, what the card refusals are, that a card's further views are refused unless the overview opens and the card's own rule passes, and what an overview card is."
+      }
+    ],
+    "verified_base": {
+      "commit": "840df92d0cfd6d4be2c8d4c0b6425ec8da0b926b",
+      "verified_at": "2026-10-06T21:52:27Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "All six steps passed, run independently on story 1's last commit. The commits since change only files under specs/021-plugin-actions-and-cards/. Anything red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Plugin",
+      "Overview page (if present)",
+      "Contributor, Person, Organization"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards on branch 021-plugin-actions-and-cards; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. There are no model changes in this feature, so no migrations.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_plugins/ with its conftest.py (registry tests and the isolate_registry fixture), tests/test_templates/test_overview_page.py and tests/test_core/test_project/test_plugins.py (pages through the test client). Line length 88. Docstrings follow docs/contributing/standards/code-documentation.md. Public markdown (docs, CONTEXT.md) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. No leading-underscore names for new functions or methods, and no compatibility aliases. Reusable template pieces are Cotton components, never {% include %} partials. Prefer django-mvp and DaisyUI components and utilities over custom CSS; add no CSS file. A Django {% comment %} tag with text after it is single-line only: use {% comment %}...{% endcomment %} blocks for multi-line notes."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks in specs/021-plugin-actions-and-cards/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/021-plugin-actions-and-cards/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards/specs/021-plugin-actions-and-cards/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, id, data attribute or context value.",
+    "Do not touch the Manage menus or the header buttons the overview templates already have, and do not move any existing card (FR-013, FR-014, out of scope).",
+    "Ship no page action and no card of your own in fairdm/ or demo/. Plugins that exist only to test live in the tests.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/. No test reaches the network. No new dependency.",
+    "Never modify or delete a test you did not author in this story. Every test that exists at your base must keep passing unchanged, with one exception: the story 1 tests in tests/test_contrib/test_plugins/test_places.py that assert a `column` or the card place is refused describe a state this story ends; update exactly those, and name each in progress.md.",
+    "Do not build removal (US3) or replacement (US4)."
+  ]
+}
