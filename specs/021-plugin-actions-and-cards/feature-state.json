@@ -3,7 +3,7 @@
   "feature": "021-plugin-actions-and-cards",
   "branch": "021-plugin-actions-and-cards",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-10-06T23:23:20Z",
       "note": "convergence exit green"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-06T23:50:49Z",
+      "note": "review exit green; walkthrough laid out"
     }
   ],
   "gates": {
@@ -72,6 +77,11 @@
         "declined with evidence: COR-003, the skip it names predates the feature (git log -S on checks.py)",
         "accepted with its record: SEC-002 second overview not refused (decisions D25); SEC-004 icon names not validated, same as the navigation; COR-007 functions not moved onto a class"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-06T23:50:50Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -541,13 +551,13 @@
       "max": 1
     },
     "tokens": {
-      "used": 26.57,
+      "used": 52.81,
       "max": 120
     }
   },
   "pr": {
     "number": 411,
-    "draft": true
+    "draft": false
   },
   "escalations": []
 }
