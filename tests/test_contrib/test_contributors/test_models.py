@@ -3025,3 +3025,37 @@ class TestPersonCanSignIn:
         person = PersonFactory(is_active=False, is_claimed=True, password="x")
 
         assert person.can_sign_in() is False
+
+
+@pytest.mark.django_db
+class TestACreditMadeThroughTheHelpersStartsAtTheViewLevel:
+    @pytest.fixture(
+        params=["contribution_add_to", "contributor_add_to", "add_contributor"]
+    )
+    def credit(self, request, project_for_contributions):
+        project = project_for_contributions
+
+        def make(contributor):
+            if request.param == "contribution_add_to":
+                return Contribution.add_to(contributor, project)
+            if request.param == "contributor_add_to":
+                return contributor.add_to(project)
+            return project.add_contributor(contributor)
+
+        return make
+
+    def test_a_person_starts_at_the_view_level(self, credit):
+        person = PersonFactory(is_active=True)
+
+        assert credit(person).level == ContributionLevel.VIEW
+
+    def test_an_organization_holds_no_level(self, credit):
+        assert credit(OrganizationFactory()).level is None
+
+    def test_crediting_again_leaves_the_level_alone(self, credit):
+        person = PersonFactory(is_active=True)
+        contribution = credit(person)
+        contribution.level = ContributionLevel.MANAGE
+        contribution.save(update_fields=["level"])
+
+        assert credit(person).level == ContributionLevel.MANAGE

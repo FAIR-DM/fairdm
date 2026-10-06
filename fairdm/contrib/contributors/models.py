@@ -667,6 +667,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     def add_to(self, obj, roles=None):
         """Credit the contributor on an object, adding roles to any already recorded.
 
+        A person credited for the first time starts at the view level.
+
         Args:
             obj: A project, dataset, sample or measurement.
             roles: Names of roles in the roles vocabulary.
@@ -680,6 +682,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             contributor=self,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id,
+            defaults={"level": Contribution.starting_level(self)},
         )
         if roles:
             from research_vocabs.models import Concept
@@ -1881,9 +1884,26 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
             raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
 
+    @staticmethod
+    def starting_level(contributor):
+        """Return the level a contributor holds when first credited on a record.
+
+        Args:
+            contributor: The person or organization being credited.
+
+        Returns:
+            The view level for a person, as for one added from the Contributors tab, and None
+            for an organization, which holds no level.
+        """
+        if contributor.get_real_instance().is_organization:
+            return None
+        return ContributionLevel.VIEW
+
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
         """Credit a contributor on an object, adding roles to any already recorded.
+
+        A person credited for the first time starts at the view level.
 
         Args:
             contributor: The person or organisation to credit.
@@ -1898,7 +1918,10 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             contributor=contributor,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk,
-            defaults={"affiliation": affiliation} if affiliation else {},
+            defaults={
+                "level": cls.starting_level(contributor),
+                **({"affiliation": affiliation} if affiliation else {}),
+            },
         )
         if roles:
             from research_vocabs.models import Concept
