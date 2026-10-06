@@ -239,6 +239,36 @@ class TestAPrivateProjectsPageThroughARealRequest:
 
 
 @pytest.mark.django_db
+class TestAPrivateProjectsOtherTabs:
+    @pytest.fixture(params=["project:dataset-list", "project:project-export-view"])
+    def address(self, request, private_project):
+        return reverse(request.param, kwargs={"uuid": private_project.uuid})
+
+    def test_an_anonymous_visitor_is_answered_as_for_a_missing_project(
+        self, client, address
+    ):
+        assert client.get(address).status_code == 404
+
+    def test_a_signed_in_person_with_no_credit_is_answered_as_for_a_missing_project(
+        self, client, address, user_with_no_permission
+    ):
+        client.force_login(user_with_no_permission)
+
+        assert client.get(address).status_code == 404
+
+    def test_a_person_at_view_reaches_the_tab(self, client, address, private_project):
+        viewer = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=private_project,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        client.force_login(viewer)
+
+        assert client.get(address).status_code == 200
+
+
+@pytest.mark.django_db
 class TestUpdatePageOverHTTP:
     def test_the_update_page_is_keyed_by_the_projects_identifier_not_its_own_address(
         self, public_project

@@ -587,8 +587,23 @@
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_project/test_plugins.py -q -n0 -k TestAPrivateProjectsOtherTabs (red: 4 failed, 200 not 404; green: 6 passed)",
+              "uv run pytest tests/test_core/test_project/ -q -n0 (386 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/core/project/plugins.py:704",
+              "fairdm/core/project/plugins.py:720"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T037",

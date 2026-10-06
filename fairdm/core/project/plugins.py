@@ -701,10 +701,11 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
 
 
 @plugins.register(Project, order=100)
-class DatasetList(Plugin, DatasetListView):
+class DatasetList(PrivateRecordNotFoundMixin, Plugin, DatasetListView):
     """List the datasets that belong to the project."""
 
     page_title = _("Datasets")
+    check = staticmethod(project_is_visible)
 
     def get_queryset(self, *args, **kwargs):
         """Limit to the project's datasets."""
@@ -716,8 +717,9 @@ class DatasetList(Plugin, DatasetListView):
 
 
 @plugins.register(Project, label=_("Export"), order=200)
-class ProjectExportView(Plugin, FairDMTemplateView):
+class ProjectExportView(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
     """Page for exporting the project's data."""
 
     page_title = _("Export Project Data")
+    check = staticmethod(project_is_visible)
     page_icon = "export"

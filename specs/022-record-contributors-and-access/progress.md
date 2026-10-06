@@ -303,3 +303,11 @@ Pre-existing tests changed: TestCreatedRecordsListTheirCreator::test_a_sample_li
 Verified: the new creation tests failed first with 201 not 400; uv run pytest tests/test_api -q -n0 gave 210 passed; pre-commit passed.
 Next: T036, the project's dataset list and export tabs.
 Watch: the demo's RockSample config lists fields without dataset, so its own endpoint cannot create a record at all (IntegrityError), as SEC-003 notes. Not changed here.
+
+## 2026-10-06T20:11:04Z · Implementer FIX-1 · T036
+
+Did: DatasetList and ProjectExportView on Project now carry PrivateRecordNotFoundMixin first and check = staticmethod(project_is_visible), as Overview does. Tests in tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs, for both tabs: visitor 404, signed-in person with no credit 404, person at view 200.
+Sweep for the same gap: I requested every URL name under the project, dataset, sample and measurement namespaces as a visitor and as a signed-in person with no credit, on a private chain (a throwaway module, deleted, not committed). Only these two tabs answered 200. The four sample editing pages (edit, basic-information, keywords, key-dates) answer 302 and 403: that is SEC-005, LOW, left as the brief says. Everything else answered 404 for both. The sweep covered fairdm/ only: plugins that demo/plugins.py registers on Project and Sample are not in the routed urlconf the tests load, and were not checked.
+Verified: the 4 visitor and no-credit tests failed first with 200 not 404; uv run pytest tests/test_core/test_project/ -q -n0 gave 386 passed; pre-commit passed.
+Next: T037, the project choices on the dataset forms.
+Watch: none.
