@@ -1,0 +1,145 @@
+{
+  "story": "US4",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T014",
+      "status": "done",
+      "commits": [
+        "c9d7faec",
+        "0a213120"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplace",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceKeepsOnlyWhatIsStated",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceTheNavigation",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceFurtherViews",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceAReplacement",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceTheOverview",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceRefusals",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplacesNamesAPlugin",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceACard",
+          "tests/test_contrib/test_plugins/test_registration.py::TestReplaceAnAction"
+        ],
+        "criteria": [
+          "SC-005",
+          "SC-007",
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k Replace (before the implementation: 58 failed, 26 passed, 48 deselected; each failure was the replacement ignored or refused at registration)",
+          "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 (after the implementation: 138 passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "commits": [
+        "83dd0988"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_overview_replaced_plugins.py"
+        ],
+        "criteria": [
+          "SC-005",
+          "SC-007",
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_templates/test_overview_replaced_plugins.py -q -n0 (before the implementation: failures, each the replacement not served, its registration refused or the replaced overview not removable)",
+          "uv run pytest tests/test_templates/test_overview_replaced_plugins.py -q -n0 (after: 25 passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T016",
+      "status": "done",
+      "commits": [
+        "d721cd78",
+        "9f6b6b21"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-005",
+          "SC-007",
+          "SC-008",
+          "SC-009",
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project/test_plugins.py -q -n auto --dist loadscope (710 passed)",
+          "probe: taking the replaces skip out of validate_against_existing made 9 of the T014 and T015 tests fail; putting the overview refusal back for replacements made 3 fail; both restored",
+          "uv run pytest -q -n auto --dist loadscope (5413 passed, 14 skipped)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (final run: exit 0, conformance, docs, lint, typecheck, test and build passed; see concerns for the first run)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "commits": [
+        "dbaeb095",
+        "afa3c478"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "a throwaway test (deleted) that ran the page's examples against the branch: replace the sample Descriptions page, a replacement of that replacement, replace the dataset overview, remove the last link; it passed",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0, docs passed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "docs/portal-development/overview-pages.md carries one changed sentence saying the overview can be replaced, beside create_a_plugin.md which T017 names.",
+      "why": "The page said the overview is never removed, and a reader would not learn it can be replaced.",
+      "decision_ref": "decisions.md#d24-the-documentations-example-replaces-descriptions-not-keywords"
+    },
+    {
+      "what": "checks.py also refuses a replaces option that is neither a plugin class nor a name, and refuses a replacement that cannot appear in the place it inherits.",
+      "why": "Without them a replaces of 42 fails with an AttributeError when the portal starts, and a plain page replacing a card fails when the overview draws it.",
+      "decision_ref": "decisions.md#d21-a-replacement-that-states-no-place-is-checked-in-the-place-it-inherits"
+    },
+    {
+      "what": "url_names_for in checks.py is replaced by a Claim class, and registration.py gains Candidate.",
+      "why": "The clash check on the final mounts has to use the name and segment a mount is served at, and the replacement steps have to read what a registration stated.",
+      "decision_ref": "decisions.md#d22-url_names_for-is-replaced-by-claim"
+    },
+    {
+      "what": "Removing a plugin that another replacement names is refused, in the middle of a chain too.",
+      "why": "FR-041 applied to the replacement's target; the last link would otherwise replace nothing.",
+      "decision_ref": "decisions.md#d23-a-plugin-another-replacement-names-cannot-be-removed"
+    }
+  ],
+  "concerns": [
+    "fairdm/core/sample/plugins.py: the shipped sample Keywords page does not open. A request raises ImproperlyConfigured (no queryset, 'Keywords is missing a QuerySet') for a superuser, with or without a replacement. Descriptions on the same file sets model = Sample for the same reason (#280). Not touched; the documentation example uses Descriptions.",
+    "First forge verify run of this story: docs failed on the new public name Candidate, which I fixed by documenting it on the page on what a record type serves, and uv:test stopped on tests/test_core/test_project/test_plugins.py::TestOverviewFiguresAndChartsCountWhatTheViewerMaySee::test_the_contributors_figure_counts_everyone_credited (21 where 22 was expected). That test passed alone, in the whole suite run once without -x (5413 passed) and in the second verify run; nothing in the story touches it, so it looks like a data-dependent flake, but I did not find the cause.",
+    "CHANGELOG.md has no entry for this feature; none was written for stories 1 to 3 either.",
+    "No existing test was edited, and tamper-check against the base reports clean (0 flags)."
+  ],
+  "blocked": []
+}

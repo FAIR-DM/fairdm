@@ -366,23 +366,87 @@
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplace",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceKeepsOnlyWhatIsStated",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceTheNavigation",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceFurtherViews",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceAReplacement",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceTheOverview",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceRefusals",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplacesNamesAPlugin",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceACard",
+              "tests/test_contrib/test_plugins/test_registration.py::TestReplaceAnAction"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k Replace (before the implementation: 58 failed, 26 passed, 48 deselected; each failure was the replacement ignored or refused at registration)",
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 (after the implementation: 138 passed)"
+            ],
+            "code": [
+              "tests/test_contrib/test_plugins/test_registration.py:624"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_replaced_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates/test_overview_replaced_plugins.py -q -n0 (before the implementation: failures, each the replacement not served, its registration refused or the replaced overview not removable)",
+              "uv run pytest tests/test_templates/test_overview_replaced_plugins.py -q -n0 (after: 25 passed)"
+            ],
+            "code": [
+              "tests/test_templates/test_overview_replaced_plugins.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py",
+              "tests/test_templates/test_overview_replaced_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project/test_plugins.py -q -n auto --dist loadscope (710 passed)",
+              "probe: taking the replaces skip out of validate_against_existing made 9 of the T014 and T015 tests fail; putting the overview refusal back for replacements made 3 fail; both restored",
+              "uv run pytest -q -n auto --dist loadscope (5413 passed, 14 skipped)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (final run: exit 0, conformance, docs, lint, typecheck, test and build passed; see concerns for the first run)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/registration.py:336",
+              "fairdm/contrib/plugins/checks.py:489"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "a throwaway test (deleted) that ran the page's examples against the branch: replace the sample Descriptions page, a replacement of that replacement, replace the dataset overview, remove the last link; it passed",
+              "uv run pre-commit run --all-files (passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0, docs passed)"
+            ],
+            "code": [
+              "docs/portal-development/create_a_plugin.md:346"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }
