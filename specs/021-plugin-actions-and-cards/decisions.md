@@ -170,6 +170,7 @@ the page actions and the cards are all built from its result.
 after the plugin it names (FR-028, FR-039). Editing the list when a removal arrives cannot do that.
 **Revisit if**: resolving on each overview request shows up in a profile. The cache then belongs on
 the registry and is cleared by `register` and `remove`.
+**ADR:** docs/adr/0026-what-a-record-type-serves-is-worked-out-from-every-plugin-declaration.md
 
 ## D2. Removals and replacements are judged at the end of plugin discovery, and again when URLs are built
 
@@ -179,6 +180,7 @@ the registry and is cleared by `register` and `remove`.
 imported until the first request. The end of discovery is the earliest point at which every
 documented declaration is known, and it runs on every way of starting.
 **Revisit if**: addons start declaring plugins somewhere other than a `plugins` module.
+**ADR:** docs/adr/0026-what-a-record-type-serves-is-worked-out-from-every-plugin-declaration.md
 
 ## D3. A record type offers page actions and cards when its overview is built on `OverviewPlaces`
 
@@ -189,6 +191,7 @@ what marks the plugin that cannot be removed. There is no separate list of recor
 keep in step, and a replacement overview built on the shipped one keeps the places with no
 further declaration.
 **Revisit if**: R18 opens the places to record types the framework has not seen.
+**ADR:** docs/adr/0026-what-a-record-type-serves-is-worked-out-from-every-plugin-declaration.md
 
 ## D4. A card is drawn by a method, not dispatched as a view
 
@@ -197,6 +200,7 @@ is refused at registration unless it can be drawn this way.
 **Why**: dispatching a view to draw a fragment would run its permission handling, which answers
 with a redirect or an error page of its own.
 **Revisit if**: cards need to be loaded after the page, each at its own address.
+**ADR:** docs/adr/0027-a-cards-own-views-open-only-where-the-card-would-be-drawn.md
 
 ## D5. Actions and cards with equal positions are ordered by name
 
@@ -206,6 +210,7 @@ registration order for equal positions.
 FR-020). The navigation is left alone because existing plugins must be listed exactly as they
 were (SC-009).
 **Revisit if**: the navigation's order for equal positions is reported as unstable.
+**ADR:** none — an ordering rule inside two listing methods
 
 ## D6. The position keyword stays `order`
 
@@ -213,6 +218,7 @@ were (SC-009).
 places. The specification's "position" is that keyword.
 **Why**: a second keyword for the same thing would leave two ways to say it.
 **Revisit if**: never, short of renaming it everywhere.
+**ADR:** none — keeps an existing keyword
 
 ## D7. A card's further views need the card's whole access decision
 
@@ -224,6 +230,7 @@ never drawn on an overview that was refused. An author who writes a card sees th
 gate, so a card with no predicate on a private record must not serve its views to a stranger.
 Changing the rule for pages would alter how existing plugins are refused (SC-009).
 **Revisit if**: the two rules are unified in a later feature that may change existing behaviour.
+**ADR:** docs/adr/0027-a-cards-own-views-open-only-where-the-card-would-be-drawn.md
 
 ## D8. Findings from the design review, and what was done with each
 
@@ -237,6 +244,7 @@ and can be removed even when it replaces an overview. The tests of removal and r
 the module that mirrors `registration.py`. `mount_name` was dropped because nothing read it.
 **Why**: each was verified against the code the plan names.
 **Revisit if**: never. This is a record of one review.
+**ADR:** none — a record of one review
 
 ## D9. Story 1 builds only the places and options its tests need
 
@@ -247,6 +255,7 @@ with the card story. Until then a `column` given in any registration is refused,
 **Why**: the brief limits this story to what its tests need, and a place that nothing can draw
 would be accepted at registration and then mounted as a page.
 **Revisit if**: the card story finds a reason to keep a column on a mount from the start.
+**ADR:** none — the order work was done in, with nothing left of it
 
 ## D10. `resolve()` is asked on every overview request and on every build of the patterns
 
@@ -257,6 +266,7 @@ Nothing is cached.
 is a walk over a short list.
 **Revisit if**: a profile shows the walk matters. The cache then belongs on the registry and is
 cleared by `register`.
+**ADR:** none — a performance note, carried in ADR 0026 under what would reopen it
 
 ## D11. The page tests rebuild URL modules rather than patch resolvers
 
@@ -267,6 +277,7 @@ cached resolvers.
 clearing Django's own caches does not reach it. Importing the modules again builds fresh resolvers
 from the registry and needs no knowledge of resolver internals.
 **Revisit if**: a record type is mounted by a module the fixture does not list.
+**ADR:** none — test tooling only
 
 ## D12. A card can only be registered as a card
 
@@ -277,6 +288,7 @@ has a `template_name` or draws itself with its own `render_card`.
 that does not exist, and reversing it would fail while the overview was being drawn.
 **Revisit if**: a plugin should be usable as both a page and a card, which the specification
 settles as two plugins.
+**ADR:** none — a registration check, described in the guide
 
 ## D13. A card's further views find the overview as the first mount built on `OverviewPlaces`
 
@@ -288,6 +300,7 @@ overview keeps the mixin in its ancestry. Reading the owner from the instance is
 views be decided by the card, while a further view of a page is still decided by its own rule.
 **Revisit if**: a record type registers two overviews, such as one per subtype. The mount whose
 predicate admits this record would then have to be chosen.
+**ADR:** none — a detail of how ADR 0027 finds the overview
 
 ## D14. Each drawn card sits in a wrapper that does not take part in the layout
 
@@ -297,6 +310,7 @@ predicate admits this record would then have to be chosen.
 visible to a test and to a script through the hook. The wrapper uses `display: contents`, so the
 column's spacing treats the card's own element as the item.
 **Revisit if**: a card needs a styling hook on the element that holds it.
+**ADR:** none — one wrapper element in one template
 
 ## D15. A removal is judged by its own function and has its own wording
 
@@ -309,6 +323,7 @@ record type, or the record type's overview. `checks.is_overview(mount)` holds th
 removal. The overview rule is a function of a mount so that the clause about `replaces` can be
 added where the rule lives, and so the page tests can use the rule rather than copy it.
 **Revisit if**: a record type may have two overviews, for instance one per subtype.
+**ADR:** none — wording of error messages
 
 ## D16. A Manage menu with no entry left is not drawn
 
@@ -319,6 +334,7 @@ the entries that can disappear are guarded.
 **Why**: a trigger that opens an empty menu is a link to nothing, which is what removal must not
 leave behind. Entries and anchors that are drawn are untouched.
 **Revisit if**: a Manage menu is meant to stay as a visible landmark with nothing in it.
+**ADR:** none — one menu in one template
 
 ## D17. The removable plugins are read from the registry when the tests are collected
 
@@ -330,6 +346,7 @@ failure from hiding the next. Nothing else adds to the registry before collectio
 FairDM registers later is still covered without editing the file. The location record type has
 no overview page to open, so it is not in the list.
 **Revisit if**: a test fixture or an addon registers plugins before collection.
+**ADR:** none — how one test module gets its cases
 
 ## D18. The fixtures learn removals with the implementation, and two more pages are touched
 
@@ -341,6 +358,7 @@ they describe, besides the page the task names.
 exists, and the tree has to be green between commits. Both pages describe addresses and links that
 a removal now takes away.
 **Revisit if**: the fixtures should hold removals in a place that exists before the registry does.
+**ADR:** none — fixtures and two documentation notes
 
 ## D19. `fairdm/contrib/plugins/utils.py` is left out of the documentation check
 
@@ -349,6 +367,7 @@ a removal now takes away.
 Django's own `reverse` were reported as out of date, and none of them documents the plugin one.
 Editing them to quiet the check would change pages that are correct.
 **Revisit if**: the check learns to tell two functions with one name apart.
+**ADR:** none — a setting of the documentation check, explained where it is set
 
 ## D20. A registration is weighed with the options it was made with
 
@@ -359,6 +378,7 @@ replacement checks, the link-by-link carry-over) read the options, never the mou
 order and listed flag filled in with defaults. A replacement that states nothing must not get
 those in place of what it replaced had, and only the options say what was stated.
 **Revisit if**: `Mount` grows a field that records which of its values were stated.
+**ADR:** none — an internal class of the registry
 
 ## D21. A replacement that states no place is checked in the place it inherits
 
@@ -370,6 +390,7 @@ a `Card` replacing a page is refused as having no page. A `Card` that replaces a
 page class that names no place could replace a card and fail when the overview draws it.
 **Revisit if**: registration learns about the target, which it cannot while the target may arrive
 later.
+**ADR:** none — a registration check, described in the guide
 
 ## D22. `url_names_for` is replaced by `Claim`
 
@@ -380,6 +401,7 @@ through a `Claim`, built from a plugin class at registration and from a mount at
 at, which for a replacement are its target's, not the class's own. The old function read both
 from the class.
 **Revisit if**: a third place needs to build a claim.
+**ADR:** none — an internal rename
 
 ## D23. A plugin another replacement names cannot be removed
 
@@ -389,6 +411,7 @@ replacement and the removal. This holds in the middle of a chain too.
 would otherwise leave the last link replacing nothing. Removing the last link serves the one
 before it again.
 **Revisit if**: a portal needs to drop a plugin and everything that replaced it with one call.
+**ADR:** none — one refusal among the ones the guide lists
 
 ## D24. The documentation's example replaces `Descriptions`, not `Keywords`
 
@@ -397,3 +420,4 @@ before it again.
 (no queryset) with or without a replacement, so an example built on it would not run. It is
 reported in the completion report rather than fixed, because it is outside this story.
 **Revisit if**: the `Keywords` page is repaired.
+**ADR:** none — which example the guide uses

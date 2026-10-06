@@ -32,4 +32,6 @@ do not restate earlier ones, only build past them.
 0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates
 0024-the-right-to-edit-a-profile-is-asked-of-the-record
 0025-a-level-on-the-contribution-decides-rights-over-a-core-record
+0026-what-a-record-type-serves-is-worked-out-from-every-plugin-declaration
+0027-a-cards-own-views-open-only-where-the-card-would-be-drawn
 ```
