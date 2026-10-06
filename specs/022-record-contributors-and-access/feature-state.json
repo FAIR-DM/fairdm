@@ -82,28 +82,97 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_access.py",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_access.py tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:33",
+              "fairdm/contrib/contributors/models.py:780"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:12"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:702",
+              "fairdm/contrib/contributors/plugins/shared.py:305",
+              "fairdm/contrib/contributors/plugins/shared.py:520",
+              "fairdm/contrib/contributors/plugins/shared.py:617"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_contrib/test_plugins/test_registration.py::TestExtraViews::test_the_shipped_contribution_views_address_their_target",
+              "tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages::test_the_dataset_menu_carries_one_entry"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_contrib/test_plugins tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages -q -n auto --dist loadscope",
+              "uv run python manage.py makemigrations contributors demo --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/choices.py:43",
+              "fairdm/contrib/contributors/models.py:1826",
+              "fairdm/contrib/contributors/migrations/0022_contribution_level.py:1",
+              "fairdm/core/plugins.py:82"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 forgekit docs_check audit(repo, base=origin/main)"
+            ],
+            "code": [
+              "docs/portal-development/contributors.md:652"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
