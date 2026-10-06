@@ -1,5 +1,5 @@
 {
-  "story": "REVIEWFIX",
+  "story": "FIX-1",
   "repo": "FAIR-DM/fairdm",
   "issue": 423,
   "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
@@ -83,7 +83,7 @@
     "Read the CONTEXT.md entries named in context.glossary_terms.",
     "git log --oneline -5. Confirm HEAD is context.verified_base.commit or differs from it only under specs/.",
     "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
-    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-reviewfix.json and commit it with your last commit. Your final message is a short summary and that path."
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-fix-1.json and commit it with your last commit. Your final message is a short summary and that path."
   ],
   "prohibitions": [
     "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
