@@ -23,7 +23,10 @@ django-flex-menus for the navigation as today. No new dependency
 **Testing**: pytest and pytest-django, per `docs/contributing/standards/testing.md`. Tests mirror
 the source tree. Page behaviour is asserted through the test client against the real overview
 pages, with plugins registered by the test and the registry restored afterwards by the existing
-fixtures in `tests/test_contrib/test_plugins/conftest.py`
+fixtures in `tests/test_contrib/test_plugins/conftest.py`. A record type's URL patterns are built
+once, when its URL module is imported, so the page tests use one new fixture in `tests/conftest.py`
+that saves the registry, lets the test declare, rebuilds the record types' URL patterns and clears
+the URL caches, and puts both back afterwards
 **Target**: the `fairdm` package. The demo application gains nothing, because the feature ships no
 action or card (SC-004)
 **Constraints**: every plugin registered before this feature is served, listed and refused exactly
@@ -101,30 +104,35 @@ Returns a list of `Mount`, a frozen dataclass:
 Steps, each a pure function of the declarations:
 
 1. Every registration becomes a candidate, identified by its plugin's own name.
-2. Each removal must name a candidate, or the portal is refused (FR-029). A removal of the candidate
-   whose `url_path` is `None` is refused with a message saying it can be replaced (FR-030). Named
-   candidates are dropped.
+2. Each removal must name a candidate, or the portal is refused (FR-029). A removal of the record
+   type's overview is refused with a message saying it can be replaced (FR-030). The overview is
+   the candidate that states no `replaces` and either is built on `OverviewPlaces` or has a
+   `url_path` of `None`. A sample's overview is served at `overview/` and not at the sample's own
+   address, which is why the address alone does not identify it. A replacement of the overview can
+   be removed like any other replacement (FR-040, FR-042). Named candidates are dropped.
 3. Each remaining candidate with `replaces` must name a remaining candidate. If its target was
    removed, the refusal names both the replacement and the removal (FR-041). If it never existed,
    the refusal names the replacement and the record type.
 4. Two remaining candidates naming one target are refused, both named (FR-040). A cycle is refused.
 5. Each chain is collapsed to one mount. The class is the last replacement's. `name` and `url_path`
-   are the first plugin's. `label`, `icon`, `order` and `column` are taken link by link: what a
-   replacement states, otherwise what it replaced had (FR-036). A replacement whose `place` differs
+   are the first plugin's. `label`, `icon`, `order`, `column` and a declined entry (`menu=False`)
+   are taken link by link: what a replacement states, otherwise what it replaced had (FR-036). A replacement whose `place` differs
    from its target's is refused, both named (FR-035). A replacement that states no `place` takes
    its target's.
-6. Among the mounts, generated URL names and segments must not clash. This repeats the existing
-   check on the final set, because a replacement's further views are now named under the target's
-   name.
-7. If any mount is an action or a card, the mount at the record's own address must be built on
+6. Among the mounts, generated URL names and segments must not clash. This applies exactly the
+   rules of `validate_against_existing` to the final set, including that a segment of `None` is
+   never compared, because a replacement's further views are now named under the target's name.
+7. If any mount is an action or a card, some mount of the record type must be built on
    `OverviewPlaces`, or the portal is refused, naming the plugin and the record type (FR-005).
 
 Every refusal is a `PluginRegistrationError` built by the existing `_fail`, which names the plugin,
 the record type and the problem (FR-043).
 
-The registration-time checks in `checks.py` stay. `validate_against_existing` skips a registration
-that has `replaces` when comparing segments and URL names, since it will not be served under its
-own. Its own name must still be unique.
+The registration-time checks in `checks.py` stay. When `validate_against_existing` compares
+segments and URL names it skips any registration that states `replaces`, whether it is the one
+arriving or one already there, since a replacement is not served under its own. This is what lets a
+replacement that keeps its target's segment be registered before or after the target (FR-039). Its
+own name must still be unique.
 
 ### D4. Consumers of `resolve()`
 
@@ -137,9 +145,6 @@ own. Its own name must still be unique.
 - `get_cards(model)` returns the card mounts sorted by `(order, name)`.
 - `validate_all()` calls `resolve()` for every record type that has a declaration.
   `FairDMConfig.ready()` calls it after `autodiscover_modules("plugins")`.
-
-`as_view` already binds `registered_model` and `plugin_class` per mount. It also binds `mount_name`,
-the name the plugin is served under, for the one place a plugin needs to know its own address.
 
 ### D5. Page actions on the overview
 
@@ -175,7 +180,8 @@ For each card mount, in order:
    Raising is logged.
 2. `render_card` inside a `try`. A card that raises is skipped and logged with
    `logger.exception`, naming the card and the record (FR-022).
-3. The card's `Media` is added to `plugin_media` only when it was drawn (FR-023).
+3. The card's `Media` is added to `plugin_media` only when it was drawn (FR-023). The overview's own
+   `plugin_media` is `None` when it declares no `Media`, so the merge starts from an empty one.
 
 `overview/page.html` loops over `overview_cards.wide` after the `overview.main` block and over
 `overview_cards.side` after the `overview.side` block, each inside its column and inside a new
@@ -183,9 +189,15 @@ block (`overview.contributed_main`, `overview.contributed_side`). With no cards 
 nothing (FR-021).
 
 A card's further views are mounted beneath `<name>/<segment>/` with `plugin_class` set to the card.
-When the owner is a card, `Plugin.has_permission` first requires `can_open` for the card itself and
-then for the view, so the card's permission applies as well as its predicate (FR-018). Further
-views of pages keep today's behaviour (SC-009).
+`as_view` puts `plugin_class` on the view instance, not on the class, so the owner is read from
+`self.plugin_class`. When that owner is a card, `Plugin.has_permission` requires three things in
+turn: `can_open` for the record type's overview, `can_open` for the card, and then the view's own
+decision. The first is what "a card is never drawn on a page that was refused" means for a view
+the card owns: a card with no predicate on a private project does not serve its further view to a
+stranger. The second applies the card's permission as well as its predicate (FR-018).
+
+A further view of a page is governed today by its own predicate and permission only, because
+`has_permission` passes the class and the owner is not on the class. That stays as it is (SC-009).
 
 A card has no page: nothing is mounted at `<name>/` itself.
 
@@ -202,7 +214,17 @@ Shipped links (FR-032):
 - `{% plugin_url %}` returns an empty string when the name does not resolve.
 - `RecordOverviewPlugin.get_context_data` asks for `contribution-list` with `default=""`. The
   People card already leaves its link out when `all_url` is empty.
+- The Contributors page links to the Contributors page of the record above it (a dataset's
+  project, a sample's dataset) in two places in `contributors/plugins/shared.py`. Both ask with
+  `default=""`, and `contribution_list.html` leaves the button and the link out when the address is
+  empty. Removing the plugin from projects must not break a dataset's page.
+- An address from `safe_reverse` is `None` when the plugin is gone. Every template that writes an
+  entry from one draws the entry only when it has an address: the Manage menus, the project
+  overview's links to its datasets and contributors, and the person and organization overviews'
+  links to their projects and datasets.
 - Each template that uses `{% plugin_url %}` writes its link only when the address is not empty.
+  The older `plugin_url` tag in `fairdm/templatetags/fairdm.py` gives an empty string the same way.
+  Templates that nothing includes any more are left alone.
 
 ### D8. Replacement
 

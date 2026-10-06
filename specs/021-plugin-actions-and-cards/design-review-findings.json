@@ -1,0 +1,137 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Plan review, no diff. Read in full: spec.md, plan.md, tasks.md, research.md, decisions.md, the protocol and the three craft skills. Read in the repository: fairdm/contrib/plugins/{registration,base,access,checks,utils,__init__,mixins}.py and templatetags/plugin_tags.py, fairdm/apps.py, fairdm/core/plugins.py, fairdm/core/overview.py (safe_reverse), the six overview plugins and their templates, fairdm/templates/overview/page.html and base.html (plugin_media), fairdm/contrib/contributors/plugins/shared.py (ContributionList and its links), fairdm/contrib/location/plugins.py, each record type's urls.py, tests/test_contrib/test_plugins/conftest.py and tests/test_templates/conftest.py, testing.md section 4, the CONTEXT.md Plugin entry. Read-only probe of the live registry and URL names under tests.settings. Both sides checked: can_open on the class and on the instance; every reverse variant (plugins.reverse, plugin_url, safe_reverse, plain reverse) and what each template does with an empty result; removal of a target and of a replacement; replacement registered before and after its target; startup validation for a declaration made in a plugins module, in a later ready(), and after the URL configuration is built. Not read: the django-mvp components, the demo application, the existing plugin test modules beyond their registry and URL usage.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "DR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The sample overview is not served at the record's own address, so the two rules the plan keys on `url_path is None` both go wrong for samples: FR-005 refuses every action and card on a sample, and FR-030 does not protect the sample overview from removal.",
+      "evidence": "research.md 'The overview pages' says all six overviews are registered with `url_path = None`. fairdm/core/sample/plugins.py:25-50 declares none (compare fairdm/core/measurement/plugins.py:39-41, which sets it and comments on why). Live registry: Sample Overview name='overview' path='overview'; reverse('sample:overview') gives /samples/<uuid>/overview/. plan.md D3 step 7 requires 'the mount at the record's own address' to be built on OverviewPlaces or the portal is refused: Sample has no such mount, so T001's 'the same registration against Sample is accepted', US1 scenario 10 and US2 scenario 11 cannot pass as designed. plan.md D3 step 2 refuses removal only of 'the candidate whose url_path is None': removing the sample overview is accepted, after which Sample.get_absolute_url (fairdm/core/sample/models.py:162) raises NoReverseMatch wherever a sample is linked.",
+      "suggested_fix": "plan.md D3 steps 2 and 7 and research.md 'Which record types offer the two places': identify a record type's overview as the mount built on OverviewPlaces, not the mount whose url_path is None. Step 7: refuse an action or card when no mount of the record type is built on OverviewPlaces. Step 2: refuse removal of that mount (keep the url_path-None rule beside it). T010: add the sample overview to the FR-030 refusal case. Correct the research.md sentence. Do not move the sample's address to fix this: that changes a permanent address and breaks SC-009; if it should move, that is a separate decision for the maintainer.",
+      "reproduction": "Register an action against Sample and call validate_all() under the plan's step 7; or declare remove(Sample, 'overview') under step 2."
+    },
+    {
+      "id": "DR-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] FR-032 is not met for the Contributors page: it links to the Contributors page of a different record type by name, with no fallback, and neither the plan's list of shipped links nor T011 covers it. Removing the plugin from one record type makes a shipped page of another record type fail.",
+      "evidence": "fairdm/contrib/contributors/plugins/shared.py:998 (`source_url: reverse(source, 'contribution-list')`) and :1011 (`parent_url=reverse(parents[0], 'contribution-list')`), where `source` and `parents[0]` are the records above this one (a dataset's project, a sample's dataset). ContributionList is registered against Project, Dataset, Sample and Measurement (shared.py:900-909) and FR-027 lets it be removed from one only. With it removed from Project, every dataset's Contributors page raises NoReverseMatch at line 1011 for every viewer. research.md 'Links from shipped pages to plugins' lists neither line. T011 opens only 'that record type's overview', so no planned test fails. contribution_list.html:77 and :89 write both addresses unconditionally.",
+      "suggested_fix": "plan.md D7 and tasks.md T012: add shared.py:998 and :1011 to the shipped links, each asking with `default=\"\"`, and have contribution_list.html leave out the 'Manage there' button and the 'from the …' link when the address is empty. T011: after removing a plugin from one record type, also open the pages of the record types beneath it that FairDM ships (at minimum: remove `contribution-list` from Project and open a dataset's Contributors page as a manager and as a visitor).",
+      "reproduction": "remove(Project, 'contribution-list'); GET /datasets/<uuid>/contributors/ for a dataset that has a project."
+    },
+    {
+      "id": "DR-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] FR-032 says the page is served 'without that link'. The links the plan treats as already safe are not left out: they stay on the page with an address that goes nowhere. T011's assertion cannot fail for them.",
+      "evidence": "research.md marks the `safe_reverse` rows 'no' and D7 does nothing for them. `safe_reverse` returns None (fairdm/core/overview.py:17-30) and the templates write the entry unconditionally: sample_overview.html:40-43 (Manage menu: `edit`, `basic-information`, `keywords`, `key-dates`, all four removable plugins registered at fairdm/core/sample/plugins.py:324-369), project_detail.html:39, :69, :72, :129 (`dataset-list`, `contribution-list`), person.html:88-89 and organization.html:78-79 (`contributor-projects`, `contributor-datasets`). With `keywords` removed from Sample the Manage menu still shows 'Edit keywords' with href=\"None\". T011 asserts the overview 'carries no link to the former address', which is true of a page that still draws the dead entry, so the test passes with the defect present.",
+      "suggested_fix": "tasks.md T012: add these templates to 'each template that links to a plugin by name' and draw each entry only when its address is not empty. T011: for each removed plugin, assert that the overview has no anchor with an empty or 'None' href and that the entry that led to the plugin is gone, found by a hook or by the set of hrefs, not by label."
+    },
+    {
+      "id": "DR-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[architecture] The page tests have no seam to stand on. A plugin registered inside a test has no address, because each record type's URL patterns are built once when its urls module is imported, and the fixture that restores the registry does not apply where the page tests are placed.",
+      "evidence": "URL patterns are built at import: fairdm/core/sample/urls.py:11, project/urls.py:16, dataset/urls.py:16, measurement/urls.py:12, contributors/urls.py:29. No test in the repository rebuilds the URL configuration (no `clear_url_caches`, `set_urlconf` or urls-module reload under tests/). plan.md 'Testing' says the registry is restored by the existing fixtures in tests/test_contrib/test_plugins/conftest.py, but `isolate_registry` there is directory-scoped, and T003, T007, T011 and T015 are in tests/test_templates/, whose conftest.py has neither. Consequences as planned: in T003 the action has no pattern, so building its address in OverviewPlaces raises NoReverseMatch and 'its address is refused' cannot be told from 'its address does not exist'; and the test's registration stays in the global registry, where resolve() per request then lists it on every later overview. Only T011 mentions rebuilding the URL configuration, and no task builds the means. Article I and IV, and US1 scenarios 3 and 4, need this seam.",
+      "suggested_fix": "tasks.md T003: add one fixture to tests/test_templates/conftest.py (or tests/conftest.py) that saves the registry, lets the test register, rebuilds the record types' URL patterns and clears the URL caches, and restores registry and URL configuration afterwards. T007, T011 and T015 use it, and T010's extension for removals is made in that one fixture. Correct the 'Testing' line in plan.md."
+    },
+    {
+      "id": "DR-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] research.md states that a further view's predicate is read from the owning plugin. At dispatch it is not, and the plan's rule for a card's further views (FR-018) only works if the owner is read from the view instance.",
+      "evidence": "fairdm/contrib/plugins/access.py:122 reads `getattr(view_class, 'plugin_class', None)`. base.py:117-121 passes `plugin_class=owner` to `as_view`, which sets it on the instance, and base.py:202 calls `can_open(self.__class__, …)`, where the class attribute is None (base.py:48). The repository says so itself at fairdm/core/project/plugins.py:51-53: 'the owner is read from plugin_class, which exists only on the view instance, while has_permission passes the class', which is why Update, Delete and Descriptions each state their own rule. So today a further view is governed by its own check and permission only. plan.md D6 ('When the owner is a card, Plugin.has_permission first requires can_open for the card itself') and decisions.md D7 ('Further views of pages keep reading only the owner's predicate') are written on the wrong premise. An Implementer who tests `self.__class__.plugin_class` leaves every card's further view open; T007's two refusal cases would catch that, which is why this is not higher.",
+      "suggested_fix": "research.md 'The access decision' and plan.md D6: state that the owner is `self.plugin_class` on the view instance, and that further views of pages are governed today by their own check and permission and stay so (SC-009). Carry it into the US-2 brief as a watch item. No new task."
+    },
+    {
+      "id": "DR-006",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] A card's further views are open on a private record to anyone holding the address, unless the card's author restates the record's visibility rule. The spec says a card is never drawn on a page that was refused and that its further views are refused to a viewer the card is hidden from (FR-018).",
+      "evidence": "plan.md D6 guards a card's further view with the card's own `can_open` and the view's. A card's default `check` is True (base.py:53). The record is fetched through `all_objects`, past the privacy manager (base.py:185-188: 'A plugin on restricted records must declare check or permission'). The overview's own rule (for example `project_is_visible`, project/plugins.py:255) is not consulted for the card's views. So a card on Project with a further view and no check serves that view for a private project to an anonymous visitor, although the card itself is never drawn for them. For pages this is the existing contract; for a card the author sees the overview as the gate, and the spec's edge case 'A card is drawn on a private record' reads the same way.",
+      "suggested_fix": "plan.md D6, one edit: for a further view owned by a card, `has_permission` also requires `can_open` for the record type's overview mount, since 'the card is drawn' means the overview opened and the card's decision passed. T007: add the case of a card with no check on a private project, further view requested by a stranger. If the maintainer reads FR-018 as the card's own decision only, record that in decisions.md and say in T009's documentation that a card with further views on a restricted record must state the record's visibility rule itself."
+    },
+    {
+      "id": "DR-007",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Step 2 of resolve() refuses the removal of any candidate whose `url_path` is None. A replacement overview built on the shipped one inherits `url_path = None`, so removing it is refused, which contradicts FR-040 ('Removing one of them MUST settle the conflict') and FR-042 for the overview.",
+      "evidence": "plan.md D3 step 1 makes every registration a candidate, replacements included; step 2 refuses 'a removal of the candidate whose url_path is None' before replacements are looked at. US4 scenario 13 and D8 expect a replacement overview to subclass the shipped one (project/plugins.py:253 `url_path = None`, inherited). Two addons each replacing the dataset overview, and the portal removing one (US4 scenario 10), ends in the FR-030 refusal instead of a start.",
+      "suggested_fix": "plan.md D3 step 2: apply the FR-030 refusal only to a candidate that states no `replaces`. T014: run the 'two replacements, one removed' case against an overview as well."
+    },
+    {
+      "id": "DR-008",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] A replacement is not order-independent at registration time (FR-039). The planned exemption covers the replacement arriving second; when it arrives first, the target is refused on the shared segment.",
+      "evidence": "plan.md D3 last paragraph and tasks.md T016: 'a registration with replaces is not compared by segment or URL name when made'. checks.py:180-198 compares the incoming class against every existing entry, so a target registered after its replacement meets `other.get_url_path() == segment` (checks.py:185) when the two share a segment, which is the usual case for a like-for-like swap (a replacement that keeps `url_path = 'contributors'`). T014's 'whichever of the two is registered first' passes if its two test classes happen to have different segments.",
+      "suggested_fix": "plan.md D3 and T016: skip an entry that states `replaces` on both sides of the comparison, the incoming registration and the existing ones. T014: the order-independence case uses a replacement with the target's own segment."
+    },
+    {
+      "id": "DR-009",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] A replacement does not inherit a declined navigation entry. Replacing one of the sample's editing pages, which are registered with `menu=False`, would put it in the navigation.",
+      "evidence": "plan.md D3 step 5 carries over `label`, `icon`, `order` and `column`; `listed` is not in the list. fairdm/core/sample/plugins.py:324, :339, :352, :365 register four pages with `menu=False`. FR-035 and US4 scenario 3 require the replacement to appear where its target did.",
+      "suggested_fix": "plan.md D3 step 5: `listed` is carried over the same way. T014: one case."
+    },
+    {
+      "id": "DR-010",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] `mount_name` is bound by `as_view` and nothing in the plan reads it.",
+      "evidence": "plan.md D4 ('for the one place a plugin needs to know its own address') and tasks.md T004 bind it. No task, test or design section names the reader, and the shipped plugins that reverse their own address do so under the name a replacement keeps (shared.py:365).",
+      "suggested_fix": "Drop `mount_name` from D4 and T004, or name its reader and the test that covers it."
+    },
+    {
+      "id": "DR-011",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] A replacement that subclasses a plugin with an explicit `name` is refused as a duplicate name, with a message that does not mention replacement.",
+      "evidence": "plan.md D3: a replacement's 'own name must still be unique'. `get_name` returns the inherited `name` (base.py:69-70). fairdm/core/sample/plugins.py:344 sets `name = 'basic-information'`, so `class Better(Descriptions)` registered with `replaces=Descriptions` meets checks.py:183-184.",
+      "suggested_fix": "T017: the documentation says a replacement built on a plugin that sets `name` must set its own. No code change."
+    },
+    {
+      "id": "DR-012",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] `test_removal.py` and `test_replacement.py` mirror no source module. The code they exercise is in `registration.py`.",
+      "evidence": "docs/contributing/standards/testing.md section 4: every test module mirrors the module it exercises, and a module that defines several units stays one test module split by classes. tasks.md T010 and T014 create two modules for behaviour of `PluginRegistry`.",
+      "suggested_fix": "T010 and T014: put `TestRemove`, `TestRemoveRefusals`, `TestReplace` and `TestReplaceRefusals` in tests/test_contrib/test_plugins/test_registration.py, where T002 already adds its class."
+    }
+  ],
+  "notes": [
+    "Checked and sound: validating at the end of FairDMConfig.ready() sees every plugins module, because autodiscover_modules walks all installed applications whatever their position; a declaration in a later ready() is caught when the URL configuration is imported, which under WSGI is the first request and not the start.",
+    "Checked and sound: a hidden card adds nothing to the response as designed, assets included, since its HTML and Media are added only after can_open passes and the draw succeeds. Plugin.get_context_data sets plugin_media to None when the overview has no Media, so the merge must start from an empty Media.",
+    "Checked and sound: person and organization overviews are one Contributor registration at the record's own address, built on OverviewPlugin; Contributor.type_of keeps plugins.reverse in the contributor namespace for both.",
+    "Checked and sound for SC-009: get_plugins_for_model and the private list keep their shape, no test calls configure_tab, sort_menu or Plugin.get_urls directly, and the navigation keeps registration order for equal positions. Step 6 of resolve() must apply exactly the rules of validate_against_existing, including that a None segment is never compared, or it will refuse sets that register today.",
+    "research.md: 'Each is registered with url_path = None' is wrong for Sample (DR-001).",
+    "research.md lists `{% plugin_url %}` in project/plugins/overview.html and the contribution card as live links. The names they ask for ('datasets', 'contributor-update', 'contributor-remove') are not registered today and nothing includes either template, so they look unused. Confirm before editing them in T012.",
+    "fairdm/templatetags/fairdm.py:213 carries a deprecated second `plugin_url` tag that also raises on an unknown name. T012 names only the one in plugin_tags.py.",
+    "A registration made after the URL configuration is built is listed by get_page_actions with no address. Outside tests nothing does this; DR-004's fixture is what makes it safe in tests.",
+    "`_fail` writes '<plugin> registered against <Model>: …'. For a removal that names something not registered, and for a removal given as a string, that sentence reads oddly. Wording only.",
+    "plan.md D2 allows `menu=False` with `place=\"action\"` and refuses it with `place=\"card\"`; the spec's edge cases name only the first. Consistent, noted for the documentation task.",
+    "The findings schema has one top-level `lens`, so each finding's lens is given at the start of its claim."
+  ]
+}

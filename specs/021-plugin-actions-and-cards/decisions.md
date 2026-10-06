@@ -182,8 +182,9 @@ documented declaration is known, and it runs on every way of starting.
 
 ## D3. A record type offers page actions and cards when its overview is built on `OverviewPlaces`
 
-**Decision**: the registry refuses an action or a card on a record type whose own-address plugin
-does not carry the mixin that draws them. There is no separate list of record types.
+**Decision**: the registry refuses an action or a card on a record type none of whose plugins
+carries the mixin that draws them. The same mixin, or being served at the record's own address, is
+what marks the plugin that cannot be removed. There is no separate list of record types.
 **Why**: the class that draws the places is the fact. A list beside it would be a second thing to
 keep in step, and a replacement overview built on the shipped one keeps the places with no
 further declaration.
@@ -215,8 +216,24 @@ places. The specification's "position" is that keyword.
 
 ## D7. A card's further views need the card's whole access decision
 
-**Decision**: a further view owned by a card is refused unless the card itself would be drawn for
-this viewer, permission included. Further views of pages keep reading only the owner's predicate.
-**Why**: FR-018 says a card's views are refused to anyone the card is hidden from. Changing the
-rule for pages would alter how existing plugins are refused (SC-009).
+**Decision**: a further view owned by a card is refused unless the card would be drawn for this
+viewer: the record's overview opens for them, and the card's own predicate and permission pass.
+Further views of pages stay governed by their own predicate and permission, as they are today.
+**Why**: FR-018 says a card's views are refused to anyone the card is hidden from, and a card is
+never drawn on an overview that was refused. An author who writes a card sees the overview as the
+gate, so a card with no predicate on a private record must not serve its views to a stranger.
+Changing the rule for pages would alter how existing plugins are refused (SC-009).
 **Revisit if**: the two rules are unified in a later feature that may change existing behaviour.
+
+## D8. Findings from the design review, and what was done with each
+
+**Decision**: twelve findings, two high. All applied as edits to the plan, the tasks and the
+research. The sample overview is not at the sample's own address, so the overview is identified by
+the mixin as well as by address. The Contributors page links to the record above it and is covered
+by the removal work, with the Manage menus and the other entries whose address can come back
+empty. A fixture that rebuilds the URL patterns gives the page tests somewhere to stand. A
+replacement is left out of the segment comparison on both sides, carries over a declined entry,
+and can be removed even when it replaces an overview. The tests of removal and replacement go in
+the module that mirrors `registration.py`. `mount_name` was dropped because nothing read it.
+**Why**: each was verified against the code the plan names.
+**Revisit if**: never. This is a record of one review.

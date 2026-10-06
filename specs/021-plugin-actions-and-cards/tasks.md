@@ -48,13 +48,16 @@ what a record type serves, and the validation at startup.
   inside the Manage menu (8); an action registered against contributors and narrowed to people
   with `is_instance_of` is absent from an organization's overview and refused at its address (9);
   an action registered with `menu=False` is served at its address and not offered. The dropdown is
-  found by a `data-` hook on the component, never by its label.
+  found by a `data-` hook on the component, never by its label. First, one fixture in
+  `tests/conftest.py`: it saves the registry, lets the test declare plugins, rebuilds every record
+  type's URL patterns and clears the URL caches, and restores the registry and the URL
+  configuration afterwards. Every page test in this feature uses it.
 - [ ] T004 [US1] Implement to make T001 to T003 pass (plan D1 registrations, D2, D3 steps 1, 6 and
   7, D4, D5):
   - `fairdm/contrib/plugins/places.py`: `Place`, `Column`, `OverviewPlaces` with `page_actions`
   - `registration.py`: `Mount`, `resolve`, `get_page_actions`, `validate_all`; `get_urls_for_model`
     and the navigation built from mounts
-  - `base.py`: `Plugin.get_urls` takes `name` and `url_path`; `as_view` binds `mount_name`
+  - `base.py`: `Plugin.get_urls` takes `name` and `url_path`
   - `checks.py`: the registration-time checks for `place` and `column`
   - `fairdm/apps.py`: `validate_all()` after the `plugins` modules are imported
   - `fairdm/core/plugins.py`: `OverviewPlugin` carries `OverviewPlaces`
@@ -83,7 +86,9 @@ what a record type serves, and the validation at startup.
   that record (scenarios 1 and 11). On one record type: a card whose predicate excludes the viewer,
   and one whose permission they lack, leave nothing in the response (3, FR-017); a further view
   owned by a hidden card is refused, both when the predicate hides the card and when only its
-  permission does (4, FR-018), and is served to a viewer the card admits; a side card follows the
+  permission does (4, FR-018), and is served to a viewer the card admits; a further view of a card
+  that states no predicate, on a private project, is refused to a stranger and served to someone
+  who can open the project; a side card follows the
   page's own side cards and a wide card follows the wide column's own content, checked by position
   in the response against a hook the page already has (5, FR-020); two cards in one column come out
   in `order` (7); a card that raises is left out, the page answers 200, the other card is still
@@ -106,7 +111,7 @@ what a record type serves, and the validation at startup.
 
 ## Phase 3: US-3, a portal or an addon takes a registered plugin away (P2)
 
-- [ ] T010 [US3] `tests/test_contrib/test_plugins/test_removal.py`, new. `TestRemove`: a removed
+- [ ] T010 [US3] `tests/test_contrib/test_plugins/test_registration.py`, added to. `TestRemove`: a removed
   plugin has no mount, so no URL pattern for itself or its further views, no navigation entry, no
   action and no card, for a plugin in each of the three places (scenarios 1 and 5, FR-025, FR-026);
   the removal is accepted by class and by name; removed from one record type, it is still mounted
@@ -114,25 +119,33 @@ what a record type serves, and the validation at startup.
   `register` (6, FR-028); `get_plugins_for_model` still returns the registration, so nothing is
   deleted from what was declared. `TestRemoveRefusals`: a removal naming a plugin not registered
   against that record type is refused by `validate_all`, naming the removal and the record type
-  (7, FR-029); a removal of the plugin served at the record's own address is refused and the
-  message says it can be replaced (9, FR-030). The fixtures in `conftest.py` save and restore
-  removals.
+  (7, FR-029); a removal of a record type's overview is refused and the message says it can be
+  replaced, for a project, whose overview is at the record's own address, and for a sample, whose
+  overview is at `overview/` (9, FR-030). The registry fixtures, the one in
+  `tests/test_contrib/test_plugins/conftest.py` and the one in `tests/conftest.py`, save and
+  restore removals.
 - [ ] T011 [US3] `tests/test_templates/test_overview_removed_plugins.py`, new, through the test
-  client with the URL configuration rebuilt after the removal. A removed plugin's former address
+  client. A removed plugin's former address
   answers 404, as does an address that never existed (2); its name does not reverse (3);
   `plugins.reverse(..., default="")` and `{% plugin_url %}` give an empty string for it. For every
   plugin FairDM registers that can be removed, on every record type it is registered against: with
-  it removed, that record type's overview answers 200 and carries no link to the former address
-  (8, FR-032, SC-006). The list of plugins is read from the registry, so a plugin added later is
-  covered without editing the test. A removed plugin's stored rows are still there (10, FR-031).
+  it removed, that record type's overview answers 200 for a visitor and for someone who can manage
+  the record, carries no link to the former address, and has no anchor whose address is empty or
+  `None` (8, FR-032, SC-006). The list of plugins is read from the registry, so a plugin added
+  later is covered without editing the test. With `contribution-list` removed from projects, a
+  dataset's Contributors page answers 200 for a manager and for a visitor and links to no project
+  Contributors page; the same for a sample's page with it removed from datasets. A removed plugin's stored rows are still there (10, FR-031).
 - [ ] T012 [US3] Implement to make T010 and T011 pass (plan D1 removals, D3 step 2, D7):
   - `registration.py`: `remove`, and the removal step of `resolve`
   - `__init__.py`: export `remove`
   - `utils.py`: `reverse` takes `default`
   - `templatetags/plugin_tags.py`: `plugin_url` gives an empty string for a name that does not
     resolve
-  - `fairdm/core/plugins.py` and each template that links to a plugin by name: the link is left
-    out when the address is empty
+  - `templatetags/plugin_tags.py` and the older tag in `fairdm/templatetags/fairdm.py` alike
+  - `fairdm/core/plugins.py`, `contributors/plugins/shared.py` (both links to the record above)
+    and every shipped template that draws an entry leading to a plugin, whether its address comes
+    from `plugins.reverse`, `safe_reverse` or `{% plugin_url %}`: the entry is left out when there
+    is no address. Plan D7 lists them. A template nothing includes is left alone
 - [ ] T013 [US3] Documentation: "Removing a plugin" in `create_a_plugin.md` with a working example,
   saying what happens to the address and that the overview cannot be removed; the removal refusals
   under "When a registration is wrong"; a note in the section on linking that a link to another
@@ -140,16 +153,18 @@ what a record type serves, and the validation at startup.
 
 ## Phase 4: US-4, an addon swaps a shipped plugin for its own (P2)
 
-- [ ] T014 [US4] `tests/test_contrib/test_plugins/test_replacement.py`, new. `TestReplace`: the
+- [ ] T014 [US4] `tests/test_contrib/test_plugins/test_registration.py`, added to. `TestReplace`: the
   mount carries the replacement's class under the target's name and segment (scenarios 1 and 2,
   FR-034); stating nothing, it keeps the target's label, icon and order, and a card its column (3,
   FR-036); stating one of them, it uses that and keeps the rest (4); the replaced class contributes
   no patterns, and the replacement's further views are named under the target's name (6, FR-038);
   replaced on one record type, the original is mounted on another (7); the result is the same
-  whichever of the two is registered first (8, FR-039); a replacement of a replacement is served at
+  whichever of the two is registered first, for a replacement that keeps its target's own segment
+  (8, FR-039); a replacement of a page registered with `menu=False` is not listed either; a replacement of a replacement is served at
   the first plugin's address (FR-042); the target given by class and by name. `TestReplaceRefusals`,
   each by `validate_all` and each naming what the specification says: two replacements for one
-  plugin (9); those two with one removed starts, and the other stands (10, FR-040); a target not
+  plugin (9); those two with one removed starts, and the other stands, for a page and for a record type's
+  overview (10, FR-040); a target not
   registered against the record type, and a target that is removed (11, FR-041, naming the
   replacement and the removal); a replacement in a different place from its target (12, FR-035); a
   cycle; a replacement whose further views would clash with another mount's URL names.
@@ -162,8 +177,10 @@ what a record type serves, and the validation at startup.
   overview still shows a registered page action and a registered card (13).
 - [ ] T016 [US4] Implement to make T014 and T015 pass (plan D3 steps 3 to 6, D8):
   - `registration.py`: the replacement steps of `resolve`
-  - `checks.py`: a registration with `replaces` is not compared by segment or URL name when made
+  - `checks.py`: a registration with `replaces` is left out of the segment and URL-name
+    comparison made at registration, on both sides of it
 - [ ] T017 [US4] Documentation: "Replacing a plugin" in `create_a_plugin.md` with a working
   example, covering what carries over, what does not, replacing the overview, and how a portal
-  settles two addons replacing the same plugin; the replacement refusals under "When a registration
+  settles two addons replacing the same plugin, and that a replacement built on a plugin which sets
+  `name` must set its own; the replacement refusals under "When a registration
   is wrong".

@@ -29,9 +29,11 @@ which is what a replacement needs.
 
 `access.can_open(view_class, request, obj)` is the one decision. The navigation calls it through
 `menu_check`, which hides the entry and logs when the predicate raises. A page calls it from
-`has_permission`. For a further view the predicate is read from the owning plugin, and the
-permission from the further view itself. A card's further views need the card's whole decision in
-front of them (FR-018), including its permission, and that is not what happens today.
+`has_permission`. `can_open` reads the owning plugin from `plugin_class` on what it is given. `as_view` sets that
+on the view instance and `has_permission` passes the class, so at dispatch a further view is
+governed by its own predicate and permission only. The project and dataset plugins say so in a
+comment and state each further view's rule on the view. A card's further views need the card's
+whole decision in front of them (FR-018), and that has to be read from `self.plugin_class`.
 
 ### When plugins are loaded
 
@@ -49,8 +51,9 @@ frozen at startup. The effective set has to be worked out again whenever it is r
 
 All six overviews descend from `OverviewPlugin` in `fairdm/core/plugins.py`: project and dataset
 through `RecordOverviewPlugin`, sample and measurement through `TypedOverviewPlugin`, and
-contributors (people and organizations) directly. Each is registered with `url_path = None`, which
-serves it at the record's own address. All six templates extend `fairdm/templates/overview/page.html`.
+contributors (people and organizations) directly. Five are registered with `url_path = None`,
+which serves them at the record's own address. The sample overview is served at `overview/`
+beneath the sample. All six templates extend `fairdm/templates/overview/page.html`.
 
 That template has a header block, `overview.actions`, which each record's template overrides, and
 two columns. The person template overrides `overview.actions` without calling the parent block. A
@@ -78,10 +81,13 @@ plain `reverse` with a record namespace:
 | `{% plugin_url %}` in `project/plugins/overview.html` and the contribution card | `datasets` and others | yes |
 | project and dataset overview `urls` | `dataset-list`, `overview-update`, `overview-delete` | no, already `safe_reverse` |
 | `get_absolute_url` on every record | `overview` | cannot be removed (FR-030) |
+| the Contributors page (`contributors/plugins/shared.py`) | `contribution-list` of the record above | yes, and on a different record type from the one the plugin was removed from |
+| Manage menus and overview links fed by `safe_reverse` | the editing pages, `dataset-list`, the contributor lists | no error, but the entry is drawn with no address |
 | the navigation menu | every navigation entry | built from the effective set, so a removed entry is not there |
 
-The work for FR-032 is the first two rows, plus a test that removes each removable plugin FairDM
-ships from each record type and opens that record type's overview.
+The work for FR-032 is every row but the last two unremovable ones: no error, and no entry left
+behind that leads nowhere. The test removes each removable plugin FairDM ships from each record
+type, then opens that record type's overview and the shipped pages of the record types beneath it.
 
 ## Decisions for the plan
 
@@ -127,8 +133,8 @@ address a replacement is served under are those of the plugin at the bottom of t
 
 ### Which record types offer the two places
 
-A record type offers page actions and cards when the plugin served at its own address draws them.
-That is true when the class is built on a small mixin, `OverviewPlaces`, which supplies the actions
+A record type offers page actions and cards when its overview draws them. That is true when one
+of its plugins is built on a small mixin, `OverviewPlaces`, which supplies the actions
 and the drawn cards to the template. `OverviewPlugin` carries it, so the six pages have it and a
 location does not. A replacement overview built on the shipped one keeps it (US4 scenario 13).
 
