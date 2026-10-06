@@ -80,6 +80,11 @@
         "low applied: identifier format checked before any request (SEC-002), an email already held refused without naming its profile (SEC-003), can-sign-in method moved to story 1 (ARCH-003)",
         "low carried: deleting a sample now needs manage (SPEC-007, decisions D4); a superuser is not credited (ARCH-004, decisions D7)"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-06T20:44:24Z",
+      "self_resolved": []
     }
   },
   "stories": [
