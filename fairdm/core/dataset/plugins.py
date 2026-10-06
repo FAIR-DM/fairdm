@@ -74,10 +74,8 @@ def visible_to_holder_of(permission):
     """Build a page check that also admits a holder of one record-level permission.
 
     Like :func:`dataset_is_visible`, except a private dataset also stays visible to a user
-    holding ``permission`` on it. ``Update`` needs this because its own permission is
-    ``change_dataset``, and creating a dataset grants the right to view it together with the
-    right to edit it, so a record-level grant of the page's own permission is already evidence
-    of legitimate access.
+    holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
+    page's own permission on the dataset can also view it, and this check says so directly.
 
     Args:
         permission: The permission to accept at record level.

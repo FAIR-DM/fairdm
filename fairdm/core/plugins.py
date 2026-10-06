@@ -495,7 +495,8 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
     parent type's page until it provides its own.
 
     **The record follows its dataset.** It opens for everyone once its own dataset is public and
-    published, and otherwise only for that dataset's team (``visible_to``). Anyone else gets a
+    published, and otherwise only for people who hold a level on the record, or on its dataset or that dataset's
+    project (``visible_to``). Anyone else gets a
     404, so the address never confirms the record exists. ``PrivateRecordNotFoundMixin`` can't be
     reused here: it reads ``obj.visibility``, which samples and measurements don't have.
     """

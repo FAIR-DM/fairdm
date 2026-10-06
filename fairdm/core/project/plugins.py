@@ -70,10 +70,8 @@ def visible_to_holder_of(permission):
     """Build a page check that also admits a holder of one record-level permission.
 
     Like :func:`project_is_visible`, except a private project also stays visible to a user
-    holding ``permission`` on it. ``Update`` and ``Delete`` need this because their own
-    permissions are ``change_project`` and ``delete_project``, and creating a project grants the
-    right to view it together with the right to edit it, so a record-level grant of the page's own
-    permission is already evidence of legitimate access.
+    holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
+    page's own permission on the project can also view it, and this check says so directly.
 
     A user holding ``permission`` only at the model level still finds no grant here and is
     refused, because ``has_perm`` with an object consults only the object-level backend.
