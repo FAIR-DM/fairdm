@@ -421,3 +421,15 @@ before it again.
 reported in the completion report rather than fixed, because it is outside this story.
 **Revisit if**: the `Keywords` page is repaired.
 **ADR:** none — which example the guide uses
+
+## D25. Refusing a second overview is held back until one existing test is settled
+
+**Decision**: the fix that refuses a record type with two plugins built on `OverviewPlaces`
+(T019b) is not in the branch. The D13 line saying a second is refused is not written either.
+**Why**: with the refusal in, `tests/test_contrib/test_plugins/test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context`
+fails. It registers a `ContextOverview(OverviewPlugin)` on `Sample` beside the shipped `Overview`
+and reads the page context, which resolves the record type. That test is on `origin/main`, and
+this round may not change tests that are. The rest of the suite passed with the refusal in.
+**Revisit if**: that test is moved onto a record type of its own or onto a plugin that is not an
+overview, which unblocks T019b.
+**ADR:** none — a held fix

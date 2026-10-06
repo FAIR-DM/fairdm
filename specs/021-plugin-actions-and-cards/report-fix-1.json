@@ -1,0 +1,95 @@
+{
+  "story": "FIX-1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T018",
+      "status": "done",
+      "commits": [
+        "65dc2d03"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_overview_page_actions.py::TestAnActionWhoseAddressNeedsMoreThanTheRecord",
+          "tests/test_contrib/test_plugins/test_places.py::TestOrderOption"
+        ],
+        "criteria": [],
+        "exit_code": 0,
+        "commands": [
+          "uv run pytest tests/test_conftest.py tests/test_contrib/test_plugins tests/test_templates/test_overview_page_actions.py -q -n0 (358 passed)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run exit 0)"
+        ]
+      }
+    },
+    {
+      "id": "T019",
+      "status": "blocked",
+      "commits": [
+        "fd796a0e"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_cards.py::TestCardRegistration::test_a_card_with_no_segment_of_its_own_is_refused_when_registered",
+          "tests/test_templates/test_overview_cards.py::TestFurtherViewsOfACard (stranger now asserts 404; new test for a visitor not signed in)"
+        ],
+        "criteria": [],
+        "exit_code": 0,
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins tests/test_templates/test_overview_cards.py -q -n0 (374 passed, with T019b not in the branch)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run exit 0)"
+        ]
+      }
+    },
+    {
+      "id": "T020",
+      "status": "done",
+      "commits": [
+        "a409a83f"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_registration.py::TestRemoveRefusals"
+        ],
+        "criteria": [],
+        "exit_code": 0,
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins tests/test_apps.py -q -n0 (368 passed)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run exit 0)"
+        ]
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T019b (refuse a record type with two plugins built on OverviewPlaces) is implemented and tested but not committed, so D13 and the 'When a registration is wrong' list were not changed for it.",
+      "why": "With the refusal in, one existing test on origin/main fails: tests/test_contrib/test_plugins/test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context registers a second OverviewPlugin (ContextOverview) on Sample and the page context resolves the record type. This round may not change tests that exist on origin/main. The rest of the suite passed with the refusal in.",
+      "decision_ref": "decisions.md#d25-refusing-a-second-overview-is-held-back-until-one-existing-test-is-settled"
+    }
+  ],
+  "concerns": [
+    "T019b is held. Its code is the replacement of the any(...) line in checks.validate_places_offered by a list of the mounts built on OverviewPlaces, with fail_between(drawing, model, ...) when there are two or more (a replacement of the overview collapses into the one mount, so it is not a second). Its code and its four tests (two overviews refused naming both and Sample; one accepted; a replacement of the overview accepted; one overview on each of two record types accepted) are written out in specs/021-plugin-actions-and-cards/held-t019b.md. Unblocking it needs a ruling on the one existing test: register ContextOverview on a record type of its own or make it not an overview.",
+    "The first full verify run failed on tests/test_contrib/test_collections/test_apps.py::TestNavigationDoesNotDependOnThisApp::test_the_core_headings_are_present (AppMenu names came back in German, 'Dokumentation', so a language setting leaked from another test on the same worker). It passes alone (12 passed in that file) and the second full verify run passed every step. It is not one of the three tests of issue #440 and I did not touch it.",
+    "Card.admits is kept and now calls the new Card.overview_opens, which has_permission uses to tell the two refusals apart (404 when the overview does not open, 403 or redirect when the overview opens and the card's own rule refuses). A record type with no overview built on OverviewPlaces also answers 404 for a card's further view."
+  ],
+  "blocked": [
+    {
+      "task": "T019",
+      "reason": "T019b would make the existing test tests/test_contrib/test_plugins/test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context fail, and a test on origin/main may not be changed in this round. T019a and T019c are done and committed.",
+      "attempts_used": 1
+    }
+  ]
+}

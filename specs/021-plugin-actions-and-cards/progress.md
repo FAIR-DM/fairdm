@@ -145,3 +145,10 @@ Did: T019a (a card with url_path None is refused at registration) and T019c (a c
 Verified: new tests failed first, then `uv run pytest tests/test_contrib/test_plugins tests/test_templates/test_overview_cards.py -q -n0` gave 374 passed with T019b taken out; with it in, that one existing test fails with the refusal naming Overview and ContextOverview. `uv run pre-commit run --all-files` passed.
 Next: T020, then the full verify and the report.
 Watch: T019b needs a ruling on that test (register the second plugin on a record type of its own, or on a plugin that is not an overview).
+
+## 2026-10-06T23:39:58Z · Implementer FIX-1 · T020
+
+Did: plugins.remove refuses, when called, a plugin that is neither a Plugin subclass nor a non-empty string and a model that is not a Django model class, through fail_removal. The removal and replacement messages in checks.py read the record type's name with getattr as fail_removal does. create_a_plugin.md says so.
+Verified: new tests failed first; `uv run pytest tests/test_contrib/test_plugins tests/test_apps.py -q -n0` gave 368 passed; `uv run pre-commit run --all-files` passed.
+Next: full verify and the report.
+Watch: T019b is held back, see the T019 entry.

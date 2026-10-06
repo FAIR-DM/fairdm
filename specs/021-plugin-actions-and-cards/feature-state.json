@@ -182,8 +182,25 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_page_actions.py::TestAnActionWhoseAddressNeedsMoreThanTheRecord",
+              "tests/test_contrib/test_plugins/test_places.py::TestOrderOption"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates/test_overview_page_actions.py::TestAnActionWhoseAddressNeedsMoreThanTheRecord tests/test_contrib/test_plugins/test_places.py::TestOrderOption -q -n0 (before: 9 failed, 1 passed)",
+              "uv run pytest tests/test_conftest.py tests/test_contrib/test_plugins tests/test_templates/test_overview_page_actions.py -q -n0 (after: 358 passed)",
+              "uv run pre-commit run --all-files (passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run exit 0)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/places.py:94",
+              "fairdm/contrib/plugins/checks.py:125"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -282,8 +299,26 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "blocked",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_cards.py::TestCardRegistration",
+              "tests/test_templates/test_overview_cards.py::TestFurtherViewsOfACard"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_cards.py tests/test_contrib/test_plugins/test_places.py tests/test_templates/test_overview_cards.py -q -n0 (before: 4 failed, 94 passed)",
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates/test_overview_cards.py -q -n0 (after, T019b out: 374 passed)",
+              "uv run pytest tests/test_contrib/test_plugins -q -n0 (T019b in: 1 failed, test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context, a test on origin/main)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/cards.py:58",
+              "fairdm/contrib/plugins/base.py:228",
+              "fairdm/contrib/plugins/checks.py:176"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -377,8 +412,23 @@
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py::TestRemoveRefusals"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py::TestRemoveRefusals -q -n0 (before: 10 failed, 7 passed)",
+              "uv run pytest tests/test_contrib/test_plugins tests/test_apps.py -q -n0 (after: 368 passed)",
+              "uv run pre-commit run --all-files (passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run exit 0)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/registration.py:191"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
