@@ -117,6 +117,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A record names its people before its organizations.** Its overview and its citation take the
+  people in the order set on the Contributors tab, then the organizations in theirs, so reordering
+  a list reorders the citation. Which contributors are named, and how, is as before.
+  `RecordOverviewPlugin.get_credits()` no longer falls back to a person's primary affiliation: a
+  person credited with no organization is shown with none.
+- **`Crediting.move(contribution, direction)` reorders a record's contributors**, `"up"` or
+  `"down"` among its own kind, under the same row lock as the other changes. The Contributors tab's
+  move page calls it. `Contribution.objects.people()` and `.organizations()` narrow contributions by
+  kind, each in order.
 - **Permissions stored in django-guardian for a project, dataset, sample or measurement grant
   nothing.** Bringing a portal up to date converts them once. Each permission of a person, and of
   each current member of a group, is mapped to a level (view, add or change, and delete or manage
