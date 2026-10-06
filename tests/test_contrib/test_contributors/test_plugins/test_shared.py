@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from django.contrib.auth.models import Group
 from django.contrib.messages import ERROR, get_messages
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.management import call_command
 from django.test import Client
 from research_vocabs.models import Concept
 
@@ -37,6 +38,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNTS
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
@@ -2365,3 +2367,218 @@ class TestAddByHand:
         )
 
         assert response.status_code == 302
+
+
+@pytest.fixture
+def development_accounts(db):
+    """The development accounts the package ships, by the role each holds ("none" for one)."""
+    call_command("create_dev_accounts", verbosity=0)
+    return {
+        account["role"] or "none": Person.objects.get(email=account["email"])
+        for account in DEV_ACCOUNTS
+    }
+
+
+@pytest.fixture
+def staff(development_accounts):
+    """The development accounts that hold a portal role and are not the Data Curator."""
+    return [
+        development_accounts[name]
+        for name in (
+            PortalRoles.COMMUNITY_MANAGER.name,
+            PortalRoles.DEVELOPER.name,
+            PortalRoles.PORTAL_ADMINISTRATOR.name,
+        )
+    ]
+
+
+def credited_names(contribution):
+    """The people a contribution's own fields name, apart from the contributor it credits."""
+    return {
+        getattr(contribution, field.attname)
+        for field in Contribution._meta.concrete_fields
+        if field.is_relation
+        and issubclass(field.related_model, Person | Organization)
+        and field.name != "contributor"
+        and getattr(contribution, field.attname) is not None
+    }
+
+
+@pytest.mark.django_db
+class TestPortalRoles:
+    """Scenarios 1 to 6 of stepping in on a record, signed in as the development accounts."""
+
+    @pytest.fixture
+    def curator(self, development_accounts):
+        return development_accounts[PortalRoles.DATA_CURATOR.name]
+
+    @pytest.fixture
+    def team(self, private_record):
+        """The private record with a manager and a colleague on it."""
+        manager = person_at(private_record, MANAGE)
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+        return SimpleNamespace(manager=manager, colleague=colleague)
+
+    def test_a_data_curator_views_and_changes_a_private_record_they_are_not_on(
+        self, private_record, team, curator
+    ):
+        assert browser_as(curator).get(private_record.get_absolute_url()).status_code == 200
+        if changing_page(private_record):
+            assert (
+                browser_as(curator).get(changing_page(private_record)).status_code == 200
+            )
+        assert browser_as(curator).get(tab(private_record)).status_code == 200
+        for url in tab_pages(private_record, team.colleague)[1:]:
+            assert browser_as(curator).get(url).status_code == 200, url
+
+    def test_a_data_curator_manages_the_contributors_of_a_public_record(
+        self, record, curator
+    ):
+        colleague = ContributionFactory(content_object=record, level=VIEW)
+
+        response = browser_as(curator).post(
+            page_of(record, "edit", pk=colleague.pk), {"level": MANAGE}
+        )
+
+        colleague.refresh_from_db()
+        assert response["Location"] == tab(record)
+        assert colleague.level == MANAGE
+
+    def test_a_data_curator_raises_a_contributor_and_is_not_listed_afterwards(
+        self, private_record, team, curator
+    ):
+        response = browser_as(curator).post(
+            page_of(private_record, "edit", pk=team.colleague.pk), {"level": MANAGE}
+        )
+
+        team.colleague.refresh_from_db()
+        assert response["Location"] == tab(private_record)
+        assert team.colleague.level == MANAGE
+        assert not private_record.contributors.filter(contributor=curator).exists()
+        assert curator.pk not in credited_names(team.colleague)
+
+    def test_a_data_curator_adds_a_person_and_is_not_listed_afterwards(
+        self, private_record, team, curator, newcomer
+    ):
+        response = add_from_portal(private_record, curator, newcomer, level=VIEW)
+
+        assert response.status_code == 302
+        assert private_record.contributors.filter(contributor=newcomer).exists()
+        assert not private_record.contributors.filter(contributor=curator).exists()
+        assert all(
+            curator.pk not in credited_names(c) for c in private_record.contributors.all()
+        )
+
+    def test_a_data_curator_raises_a_contributor_on_a_record_nobody_counts_on(
+        self, private_record, curator
+    ):
+        unreachable = PersonFactory(is_active=True, is_claimed=False, email=None)
+        ContributionFactory(
+            content_object=private_record, contributor=unreachable, level=MANAGE
+        )
+        colleague = ContributionFactory(content_object=private_record, level=VIEW)
+
+        response = browser_as(curator).post(
+            page_of(private_record, "edit", pk=colleague.pk), {"level": MANAGE}
+        )
+
+        colleague.refresh_from_db()
+        assert response["Location"] == tab(private_record)
+        assert colleague.level == MANAGE
+
+    def test_a_data_curator_is_refused_lowering_the_last_manager(
+        self, private_record, team, curator
+    ):
+        contribution = private_record.contributors.get(contributor=team.manager)
+        before = stored(private_record)
+
+        response = browser_as(curator).post(
+            page_of(private_record, "edit", pk=contribution.pk), {"level": EDIT}
+        )
+
+        assert response.status_code == 422
+        assert "level" in response.context["errors"]
+        assert stored(private_record) == before
+
+    def test_a_data_curator_is_refused_removing_the_last_manager(
+        self, private_record, team, curator
+    ):
+        contribution = private_record.contributors.get(contributor=team.manager)
+        before = stored(private_record)
+
+        page = browser_as(curator).get(
+            page_of(private_record, "remove", pk=contribution.pk)
+        )
+        response = browser_as(curator).post(
+            page_of(private_record, "remove", pk=contribution.pk)
+        )
+
+        assert page.context["refused"] is True
+        assert response.status_code == 422
+        assert stored(private_record) == before
+
+    def test_a_data_curator_is_refused_removing_an_organization_people_are_credited_from(
+        self, private_record, team, curator, institutes
+    ):
+        team.colleague.affiliation = institutes.today
+        team.colleague.save()
+        organization = ContributionFactory(
+            content_object=private_record, contributor=institutes.today, level=None
+        )
+        before = stored(private_record)
+
+        response = browser_as(curator).post(
+            page_of(private_record, "remove", pk=organization.pk)
+        )
+
+        assert response.status_code == 422
+        assert [p.pk for p in response.context["entry"]["attached"]] == [
+            team.colleague.contributor_id
+        ]
+        assert stored(private_record) == before
+
+    def test_nobody_without_the_data_curator_role_may_step_in(
+        self, private_record, team, staff, development_accounts
+    ):
+        before = stored(private_record)
+        accounts = [*staff, development_accounts["none"]]
+
+        for account in accounts:
+            for url in tab_pages(private_record, team.colleague):
+                assert browser_as(account).get(url).status_code == 404, (account, url)
+            for url in submissions(private_record, team.colleague):
+                response = browser_as(account).post(url, {"level": MANAGE})
+                assert response.status_code == 404, (account, url)
+
+        assert stored(private_record) == before
+
+    def test_nobody_without_the_data_curator_role_may_change_a_public_records_contributors(
+        self, record, staff, development_accounts
+    ):
+        colleague = ContributionFactory(content_object=record, level=VIEW)
+        before = stored(record)
+
+        for account in [*staff, development_accounts["none"]]:
+            for url in tab_pages(record, colleague)[1:]:
+                assert browser_as(account).get(url).status_code == 403, (account, url)
+            for url in submissions(record, colleague):
+                response = browser_as(account).post(url, {"level": MANAGE})
+                assert response.status_code == 403, (account, url)
+
+        assert stored(record) == before
+
+    def test_a_person_removed_from_the_data_curator_role_is_refused_next(
+        self, private_record, team, curator
+    ):
+        client = browser_as(curator)
+        assert client.get(tab(private_record)).status_code == 200
+
+        curator.groups.remove(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert client.get(tab(private_record)).status_code == 404
+        response = client.post(
+            page_of(private_record, "edit", pk=team.colleague.pk), {"level": MANAGE}
+        )
+        team.colleague.refresh_from_db()
+        assert response.status_code == 404
+        assert team.colleague.level == VIEW
