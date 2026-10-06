@@ -174,51 +174,10 @@ Approved as built, without a comment of their own. These are the choices that ha
 - Remove is reached from the row and from the foot of the edit page.
 - The reader's view shows no levels at all, not even the reader's own.
 
-## Where the points still to be confirmed would move a screen
+## The specification after review
 
-- **Three levels.** The edit page's radio group is the three levels. A list of separate permissions
-  would replace it with a set of checkboxes and the row's single badge with several.
-- **Rights flow downward.** Without it the "Access from the project" card goes, the "from the
-  dataset" notes go, and no level on the edit page is ever disabled. Every sample and measurement
-  would need its own people listed.
-- **Everything on the tab needs manage.** If the edit level could change credit, an editor would
-  see Add, Edit and the move buttons, and the edit page would show them the roles and hide the
-  levels.
-- **Access-only contributors are listed.** Noor Haddad on the private example dataset is one: she
-  appears in the reader's list with no role. Hiding such people would need a second list that only
-  managers see.
-- **Upgrade keeps access by listing people.** No screen changes. It decides who is in the list on
-  the day a portal upgrades.
-
-## Where review has moved past the specification
-
-`spec.md` has not been changed. Review of the prototype has decided these things differently, and
-the specification needs them before it is approved.
-
-From the first review:
-
-1. The assumption that a person to be added must already have a profile in the portal, and that
-   creating a person or an organization from the tab is out of scope, is reversed. Both can be
-   found in the portal, looked up (ORCID for a person, ROR for an organization) or entered by hand.
-2. There is not one order of contributors. People have an order and organizations have another.
-
-From the second review:
-
-3. Adding a person and adding an organization are separate pages with their own addresses.
-4. A person's credit on a record carries the organization they are credited from. It is chosen
-   when they are added and can be changed when they are edited. It defaults to their primary
-   affiliation, may be any of their affiliations past or present, any other organization, or none.
-   The assumption that affiliation "stays editable where it is today" goes.
-5. That organization is held with the record. It is not read from the person's profile, so a later
-   change of affiliation never changes an existing record.
-6. An organization a person is credited from is listed among the record's organizations.
-7. An organization cannot be removed from a record while anyone on it is credited from that
-   organization. The refusal names those people. This is a second refusal beside the last-manager
-   rule.
-8. An organization's entry on the tab shows its logo and its name only. Which people it is the
-   affiliation of is shown where its removal is refused.
-9. The Key Entities and the story about crediting a team need the affiliation added, and the
-   citation's use of affiliation, if any, needs a sentence.
-
-An organization listed through a person stays on the record when that person leaves. That was
-approved as built.
+Review of the prototype decided several things differently from the first specification: people
+and organizations can be created from the tab, they keep separate lists and orders and have
+separate pages for adding, a person's credit carries the organization they are credited from on
+that record, that organization is listed with the record, and it cannot be removed while anyone is
+credited from it. `spec.md` and `decisions.md` now describe all of this.
