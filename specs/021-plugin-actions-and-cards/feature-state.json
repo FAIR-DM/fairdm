@@ -64,28 +64,111 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_places.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_places.py -q -n0 (before the implementation: fails at collection, no module fairdm.contrib.plugins.places)",
+              "uv run pytest tests/test_contrib/test_plugins/test_places.py tests/test_templates/test_overview_page_actions.py tests/test_conftest.py tests/test_apps.py::TestPluginRegistryValidatedAtStartup tests/test_contrib/test_plugins/test_registration.py -q -n0 (after: 68 passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "tests/test_contrib/test_plugins/test_places.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py::TestNavigationUnchanged",
+              "tests/test_apps.py::TestPluginRegistryValidatedAtStartup"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py::TestNavigationUnchanged tests/test_apps.py::TestPluginRegistryValidatedAtStartup -q -n0 (before: 2 failed, 3 passed)",
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (after: 1195 passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "tests/test_apps.py:327",
+              "tests/test_contrib/test_plugins/test_registration.py:269"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_page_actions.py",
+              "tests/test_conftest.py",
+              "tests/conftest.py::plugin_sandbox"
+            ],
+            "commands": [
+              "uv run pytest tests/test_conftest.py -q -n0 (2 passed)",
+              "uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0 (before: 13 failed, 3 passed)",
+              "uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0 with the access filter in OverviewPlaces.get_page_actions replaced by `if True` (probe: 4 failed), then restored",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "tests/conftest.py:85",
+              "tests/test_templates/test_overview_page_actions.py:1",
+              "tests/test_conftest.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_places.py::TestServedUnderAMount"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (1195 passed)",
+              "uv run pre-commit run --all-files (passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build: all passed)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/places.py:17",
+              "fairdm/contrib/plugins/registration.py:219",
+              "fairdm/contrib/plugins/checks.py:61",
+              "fairdm/contrib/plugins/base.py:99",
+              "fairdm/apps.py:62",
+              "fairdm/core/plugins.py:26",
+              "fairdm/templates/overview/page.html:116",
+              "fairdm/templates/cotton/plugins/actions.html:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "throwaway test through the test client running the two documented examples against this branch (1 passed, not kept)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (docs step passed after documenting Mount)"
+            ],
+            "code": [
+              "docs/portal-development/create_a_plugin.md:1",
+              "docs/portal-development/overview-pages.md:45",
+              "CONTEXT.md:162"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

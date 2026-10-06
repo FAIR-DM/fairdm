@@ -1,0 +1,143 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_places.py"
+        ],
+        "criteria": [
+          "SC-008"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins/test_places.py -q -n0 (before the implementation: fails at collection, no module fairdm.contrib.plugins.places)",
+          "uv run pytest tests/test_contrib/test_plugins/test_places.py tests/test_templates/test_overview_page_actions.py tests/test_conftest.py tests/test_apps.py::TestPluginRegistryValidatedAtStartup tests/test_contrib/test_plugins/test_registration.py -q -n0 (after: 68 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "b79fa478"
+      ]
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_registration.py::TestNavigationUnchanged",
+          "tests/test_apps.py::TestPluginRegistryValidatedAtStartup"
+        ],
+        "criteria": [
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins/test_registration.py::TestNavigationUnchanged tests/test_apps.py::TestPluginRegistryValidatedAtStartup -q -n0 (before: 2 failed, 3 passed)",
+          "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (after: 1195 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "b2b88456"
+      ]
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_overview_page_actions.py",
+          "tests/test_conftest.py",
+          "tests/conftest.py::plugin_sandbox"
+        ],
+        "criteria": [
+          "SC-001",
+          "SC-003",
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest tests/test_conftest.py -q -n0 (2 passed)",
+          "uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0 (before: 13 failed, 3 passed)",
+          "uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0 with the access filter in OverviewPlaces.get_page_actions replaced by `if True` (probe: 4 failed), then restored",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "258c4f24"
+      ]
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_places.py::TestServedUnderAMount"
+        ],
+        "criteria": [
+          "SC-001",
+          "SC-003",
+          "SC-004",
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (1195 passed)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build: all passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "2768bc17"
+      ]
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "throwaway test through the test client running the two documented examples against this branch (1 passed, not kept)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (docs step passed after documenting Mount)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "129c4023"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Place has no card member and there is no Column enum yet; any column given in a registration is refused, and Mount has no column field.",
+      "why": "Cards and columns belong to the next story, and a place nothing can draw would be accepted at registration and mounted as a page.",
+      "decision_ref": "decisions.md#d9-story-1-builds-only-the-places-and-options-its-tests-need"
+    }
+  ],
+  "concerns": [
+    "tests/test_contrib/test_plugins/test_registration.py::TestNavigationUnchanged::test_the_action_is_served_under_its_own_name passed before the implementation, because an unrecognised place is ignored today. It stays as a guard that an action keeps its own address when patterns are built from mounts.",
+    "resolve() runs on every overview request through OverviewPlaces and again on every build of a record type's patterns, uncached (decisions.md D10).",
+    "PluginSandbox reloads the six record-type URL modules, fairdm.core.urls and the root URL configuration. A portal that mounts a record type from a module outside that list is not covered (decisions.md D11).",
+    "The overview templates of a portal that replaces overview/page.html and drops the overview.page_actions block draw no dropdown; the actions stay reachable at their addresses, as the spec's edge case says.",
+    "Two tests I wrote in T001 were corrected in T004 so that registries holding an action also hold an overview; resolve() refuses an action against a record type with none, as the plan says. No test written before this story was touched."
+  ],
+  "blocked": []
+}
