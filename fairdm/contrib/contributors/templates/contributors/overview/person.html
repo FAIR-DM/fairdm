@@ -85,8 +85,8 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Profile at a glance' %}">
-    <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.project|intcomma }}" href="{{ urls.projects }}" variant="info" icon="project" />
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.dataset|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Projects' %}" value="{{ counts.project|intcomma }}" variant="info" icon="project" :href="urls.projects" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.dataset|intcomma }}" variant="success" icon="dataset" :href="urls.datasets" />
     {% if member_since %}
       <c-stats.item title="{% translate 'Member since' %}" value="{{ member_since|date:'Y' }}" desc="{{ member_since|date:'F' }}" icon="calendar" />
     {% else %}
@@ -115,10 +115,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       {% translate "Projects" as title %}
       {% if is_self %}{% translate "You aren't credited on any public project yet. Credits are added by the people who manage each project." as empty %}{% else %}{% translate "Not credited on any public project yet." as empty %}{% endif %}
-      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" all_url="{{ urls.projects }}" empty="{{ empty }}" />
+      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" :all_url="urls.projects" empty="{{ empty }}" />
       {% translate "Datasets" as title %}
       {% if is_self %}{% translate "You aren't credited on any public dataset yet. Credits are added by the people who manage each dataset." as empty %}{% else %}{% translate "Not credited on any public dataset yet." as empty %}{% endif %}
-      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" all_url="{{ urls.datasets }}" empty="{{ empty }}" />
+      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" :all_url="urls.datasets" empty="{{ empty }}" />
     </div>
   {% endblock overview.records %}
 

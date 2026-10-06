@@ -42,7 +42,7 @@
     </ul>
     {% if records.more %}
       <div>
-        <a href="{{ all_url }}" class="link link-primary text-sm">{% blocktranslate with counter=records.more %}and {{ counter }} more{% endblocktranslate %}</a>
+        {% if all_url %}<a href="{{ all_url }}" class="link link-primary text-sm">{% else %}<span class="text-sm">{% endif %}{% blocktranslate with counter=records.more %}and {{ counter }} more{% endblocktranslate %}{% if all_url %}</a>{% else %}</span>{% endif %}
       </div>
     {% endif %}
   {% else %}

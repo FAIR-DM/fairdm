@@ -75,8 +75,8 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Organization at a glance' %}">
-    <c-stats.item title="{% translate 'Projects' %}" value="{{ org_counts.projects|intcomma }}" href="{{ urls.projects }}" variant="info" icon="project" />
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ org_counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Projects' %}" value="{{ org_counts.projects|intcomma }}" variant="info" icon="project" :href="urls.projects" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ org_counts.datasets|intcomma }}" variant="success" icon="dataset" :href="urls.datasets" />
     <c-stats.item title="{% translate 'Members' %}" value="{{ org_counts.members|intcomma }}" icon="member" />
   </c-stats>
 {% endblock overview.figures %}
@@ -138,10 +138,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       {% translate "Projects" as title %}
       {% translate "This organization doesn't own and isn't credited on any public project yet." as empty %}
-      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" all_url="{{ urls.projects }}" empty="{{ empty }}" />
+      <c-card.records title="{{ title }}" :records="projects" kind="project" variant="info" :all_url="urls.projects" empty="{{ empty }}" />
       {% translate "Datasets" as title %}
       {% translate "No public dataset is credited to this organization or belongs to a project it owns yet." as empty %}
-      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" all_url="{{ urls.datasets }}" empty="{{ empty }}" />
+      <c-card.records title="{{ title }}" :records="datasets" kind="dataset" variant="success" :all_url="urls.datasets" empty="{{ empty }}" />
     </div>
   {% endblock overview.records %}
 

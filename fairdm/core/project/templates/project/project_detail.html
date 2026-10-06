@@ -36,7 +36,7 @@
         {% if can_manage %}
           <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
           <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
-          <c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />
+          {% if urls.contributors %}<c-menu.item label="{% translate 'Manage contributors' %}" icon="people" href="{{ urls.contributors }}" />{% endif %}
         {% endif %}
         {% if directory.delete_url %}
           {% if can_manage %}<c-menu.divider />{% endif %}
@@ -66,10 +66,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" variant="success" icon="dataset" :href="urls.datasets" />
     <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
     <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" icon="people" />
+    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" icon="people" :href="urls.contributors" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -126,9 +126,9 @@
         </c-list>
         {% if datasets_preview.more %}
           <div>
-            <a href="{{ urls.datasets }}" class="link link-primary text-sm">
+            {% if urls.datasets %}<a href="{{ urls.datasets }}" class="link link-primary text-sm">{% else %}<span class="text-sm">{% endif %}
               {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
-            </a>
+            {% if urls.datasets %}</a>{% else %}</span>{% endif %}
           </div>
         {% endif %}
       {% else %}
