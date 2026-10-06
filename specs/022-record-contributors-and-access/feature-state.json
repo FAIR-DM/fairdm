@@ -749,7 +749,7 @@
       "id": "US7",
       "priority": "P3",
       "issue": 426,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -826,7 +826,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 93.68,
+      "used": 98.41,
       "max": 120
     }
   },
