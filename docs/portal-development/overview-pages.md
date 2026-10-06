@@ -658,7 +658,8 @@ and published, and those the user holds at least the view level on, on the recor
 dataset or that dataset's project. Both are decided against each record's own dataset, so being
 listed on one dataset never opens another dataset's records, and being listed on one sample opens
 that sample and not the others beside it. `with_level(user, level)`, on the project, dataset,
-sample and measurement querysets, keeps the records the user holds at least that level on. `SampleQuerySet` and `MeasurementQuerySet` get them from
+sample and measurement querysets, keeps the records the user holds at least that level on.
+`SampleQuerySet` and `MeasurementQuerySet` get all three from
 `fairdm.core.managers.RecordVisibilityMixin`. A queryset of your own for a record that has a
 `dataset` foreign key can use the mixin too:
 
@@ -802,7 +803,10 @@ creating the missing ones, `remove_own_projects()` deletes the projects an earli
 datasets it is given. `staff.user` holds that level on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
 `manage.py seed_profiles` also uses `profile_accounts()`, which returns the five accounts the
-editing pages are tried with the same way. Both read their accounts through
+editing pages are tried with the same way, and credits each person it affiliates from their
+primary affiliation, so the record shows that organization beside their name.
+`data_curator()` returns the development account that holds the Data Curator role, creating it if
+it is missing; `manage.py seed_contributors` uses it. They read their accounts through
 `create_accounts(accounts)`, which creates the missing ones of any list of
 `(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the
 address before the `@`.

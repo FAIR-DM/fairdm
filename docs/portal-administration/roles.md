@@ -118,6 +118,32 @@ People who manage a record set levels themselves, on its **Contributors** tab, s
 administrator is never asked to grant access to a record. See
 [Managing Users and Permissions](managing_users_and_permissions.md) for the levels.
 
+### Stepping in on a record
+
+A research team can be left with nobody who can manage its record, for example when its only
+manager leaves the institution. A Data Curator can open that record, whether it is private or
+public, go to its **Contributors** tab and raise one of the remaining contributors to manage.
+The curator is not added to the record by doing so, and nothing stored with the contributors names
+them as having made the change.
+
+A Data Curator is bound by the same refusals as a person who manages the record:
+
+- The last person who counts as able to manage a record cannot be removed or lowered. A person
+  counts when they have an active account that can sign in and hold the manage level on the record
+  or on a record above it. A person who can act only through a portal role does not count, so a
+  record never depends on portal staff to stay manageable. A record that has nobody who counts can
+  be given a manager by raising one of its contributors.
+- An organization that people on the record are credited from cannot be removed.
+
+The other roles give no way in. A person who holds only the Community Manager, Developer or Portal
+Administrator role, and is not listed on a private record, is refused it as any other signed-in
+person is: the record answers as if it did not exist. On a public record they can read the
+**Contributors** tab and are refused its changing pages.
+
+Rights follow the role. A person removed from the Data Curator role is refused on their next
+request. To see the whole flow on development data, run `manage.py seed_contributors` and sign in as
+`data.curator@fairdm.org`, as described in [Development accounts](../portal-development/development_accounts.md#accounts-for-the-contributors-tab).
+
 ## Holding more than one role
 
 A person can hold more than one of these roles at once, and their rights are everything those

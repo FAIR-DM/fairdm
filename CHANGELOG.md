@@ -284,6 +284,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Person.is_editable_by()` now asks. See
   [The Contributors tab](docs/portal-development/contributors.md#the-contributors-tab) and
   [Crediting a record](docs/user-guide/crediting-a-record.md).
+- **A Data Curator can step in on any record.** Holding the Data Curator role, a person opens any
+  project, dataset, sample or measurement and manages its contributors without being listed on it,
+  and is refused what anyone is refused: removing or lowering the last person who counts as able to
+  manage it, and removing an organization people are credited from. The other roles gain nothing
+  here, and no role holds a permission it did not hold before. See
+  [Portal roles](docs/portal-administration/roles.md#stepping-in-on-a-record).
+- `manage.py seed_contributors` loads every state of the Contributors tab, including a private
+  dataset the seeded Data Curator account (`data.curator@fairdm.org`) is not listed on and whose
+  only manager cannot sign in. `--keep-records` adds what a newer version needs to an earlier run's
+  records without changing their addresses. `manage.py seed_profiles` credits each person it
+  affiliates from their primary affiliation. See
+  [Development accounts](docs/portal-development/development_accounts.md#accounts-for-the-contributors-tab).
 - A person can edit their own profile. The edit action in the header of their page, the prompt to
   write a biography and the photo, biography and links items on their checklist now lead to a page
   for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the

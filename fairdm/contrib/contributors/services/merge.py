@@ -19,8 +19,10 @@ def merge_persons(person_keep: Person, person_discard: Person) -> Person:
     """Merge ``person_discard`` into ``person_keep`` in one atomic transaction.
 
     The kept person receives the discarded person's unique contributions, identifiers,
-    affiliations, email addresses and object permissions, is marked claimed and active,
-    and the discarded person is deleted. Any error rolls the whole merge back.
+    affiliations, email addresses and stored permissions on other objects, is marked claimed
+    and active, and the discarded person is deleted. Stored permissions on projects, datasets,
+    samples and measurements are not copied, because levels move with the contributions. Any
+    error rolls the whole merge back.
 
     Args:
         person_keep: The person that survives.

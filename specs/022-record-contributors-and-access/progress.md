@@ -274,3 +274,10 @@ Did: seed_contributors adds the private dataset "Private dataset with no manager
 Verified: uv run pytest tests/test_demo -q -n0, 67 passed. Without the seed_profiles change two of the three new tests failed. pre-commit all files passed. Ran `seed_contributors --keep-records` twice against the development database: the record is /datasets/diGyqHEmJ4cMtKoqCwtzW5e/contributors/ both times, and a shell check showed the dataset private, no manager who counts, the curator able to manage it and not listed.
 Next: T032 documentation.
 Watch: no template changed; nothing in the product code was missing, so T031 has no implementation outside the demo. Decision D36 records why only one dev account is created.
+
+## 2026-10-06T15:57:07Z · Implementer US7 · T032
+
+Did: documented stepping in on a record (roles.md), ContributorSeed and seed_contributors with --keep-records and data_curator() (development_accounts.md, overview-pages.md), changelog entry. Read every page the branch changed against the code: ran the Crediting, RecordAccess, registry, level and query examples of contributors.md and the migration guide in a scratch test (all ran; the scratch file was deleted). Corrected managing_contributors.md and managing-unclaimed-profiles.md, which still said a merge copies guardian permissions, overview-pages.md where a sentence had lost its subject, and the merge_persons docstring. shared.py already had no prototype wording.
+Verified: grep for em dashes in added lines, for removed backends, set_default_affiliation and give_level in docs: none left outside the changelog entries that name the removal; every backticked name in the added lines exists in code except the removed ones. pre-commit all files passed.
+Next: the full gate, then the report.
+Watch: the sample-mixins test example is a pattern for a portal's own form and does not run against the demo form as written (the demo form also needs status); the part this feature changed, the dataset field needing the edit level, behaved as documented.

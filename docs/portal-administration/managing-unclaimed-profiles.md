@@ -131,18 +131,18 @@ for example, an imported unclaimed profile and a freshly registered account.
 
 This is also a superuser-only action, for the same reason as generating a claim link: merging
 destroys the discarded record's identity and moves its affiliations (including any owner one),
-object-level permissions, confirmed emails and social account onto the survivor, which is not an
+object-level permissions on other objects, confirmed emails and social account onto the survivor, which is not an
 ordinary staff operation. A staff account that is not a superuser does not see **"Merge selected
 Person into another…"** in the Action dropdown, and the confirmation page refuses the request
 directly if reached by URL.
 
 **What the merge transfers:**
 
-- All dataset, sample, and measurement contributions
+- All dataset, sample, and measurement contributions. Where both people are listed on a record, one entry remains, at the higher of the two levels
 - External identifiers (ORCID, ROR, etc.)
 - Institutional affiliations
 - allauth email addresses and social accounts (ORCID, etc.)
-- Guardian object-level permissions
+- Guardian object-level permissions on objects other than projects, datasets, samples and measurements, where a person's access is the level of their contribution
 - Profile fields (blank fields on the kept record are filled from the discarded record)
 
 **What happens to the discarded record:**
