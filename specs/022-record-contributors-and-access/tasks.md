@@ -228,7 +228,9 @@ the creator's level land here with the backend, so no commit leaves a creator lo
 - [ ] T027 [US6] `test_plugins/test_shared.py`: `TestMovePage`, a POST moves and
   redirects to the tab, and someone who cannot manage is refused (6). `tests/test_core/`:
   `get_contributions()` returns people in order, then organizations in order, and the dataset and
-  project citations name creators in that order (3, FR-058, SC-011).
+  project citations name creators in that order (3, FR-058, SC-011). `get_credits()` gives a person credited
+  with no organization none, whatever their profile says (FR-024); an existing overview test that
+  asserts the fallback to the primary affiliation is updated here and named in `progress.md`.
 - [ ] T028 [US6] Implement to make T026 and T027 pass (plan D3 `move`, D6).
 - [ ] T029 [US6] Documentation: ordering, and that people come before organizations where both are
   named, in the user guide page.
@@ -245,7 +247,9 @@ the creator's level land here with the backend, so no commit leaves a creator lo
   `tests/test_portal_roles.py`: the permissions each shipped role holds are the same as on `main`
   (FR-062, SC-012).
 - [ ] T031 [US7] Implement whatever T030 shows is missing. Extend `seed_contributors` so the Data
-  Curator development account has a private record to step in on.
+  Curator development account has a private record to step in on. Where another seed's example
+  people should be shown with an organization, the seed credits them from it through `Crediting`,
+  now that nothing fills it in for them.
 - [ ] T032 [US7] Documentation: stepping in on a record, in `docs/portal-administration/roles.md`.
   Read every page this feature added or changed once more against the finished branch, and run
   each example (SC-014).
