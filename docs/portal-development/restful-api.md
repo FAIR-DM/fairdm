@@ -113,6 +113,20 @@ FairDM's API enforces the same object-level permission model as the web interfac
 
 Non-disclosure (404 instead of 403) is used for unauthorized access to detail endpoints to avoid leaking whether a private object exists.
 
+Three rules about what a request may change apply to projects, datasets, samples and measurements,
+and they are the ones the update forms apply:
+
+- **Visibility and the record a record sits under need the manage level.** A `PUT` or `PATCH` that
+  sets `visibility`, or a `project`, `dataset` or `sample` field, to a value different from the
+  stored one answers 403 and stores nothing unless the requester can manage the record. Sending the
+  value already stored is not a change.
+- **A move that would leave the record with nobody to manage it answers 400.** The error is on the
+  parent field and carries the code `no_manager`.
+- **A record is created only inside a parent the requester holds the edit level on.** The
+  `project`, `dataset` and `sample` fields of a serializer accept only the records the requester can
+  edit, so a `POST` naming any other answers 400 as it does for any value that is not a choice,
+  creates nothing and lists nobody.
+
 ### Permission Assignment on Create
 
 When you create a project, dataset, sample or measurement via the API, the requesting user is

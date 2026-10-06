@@ -111,8 +111,10 @@ do less afterwards:
   organization or for a model your portal defines are left alone.
 
 The upgrade runs with the rest of `manage.py migrate`, and runs without trouble on a portal that
-has no stored permissions. It does not reverse: taking a portal back to an earlier version leaves the levels in
-place and does not restore the stored permissions.
+has no stored permissions. Reversing it restores nothing: migrating `contributors` back to
+`0022` leaves the levels it set and does not bring back the permissions it deleted. Migrating back
+to `0021` also removes the `level` column, and every level with it. Back up the database before the
+upgrade if you may need to return to an earlier version.
 
 One thing is stricter than before. Someone who held only the right to change a dataset could delete
 its samples. Deleting a sample or a measurement now needs the manage level on it, or on its dataset

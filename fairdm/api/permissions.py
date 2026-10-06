@@ -52,8 +52,9 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # Raised, not returned False, so DRF answers 401 whatever the authenticator.
         if not request.user or not request.user.is_authenticated:
             raise NotAuthenticated()
-        # Model-level permissions are skipped on purpose: access is decided per
-        # object by guardian, in has_object_permission.
+        # Model-level permissions are skipped on purpose: access is decided per object,
+        # in has_object_permission, by the contribution level for a project, dataset,
+        # sample or measurement and by guardian for any other model.
         return True
 
     def has_object_permission(self, request: Request, view: APIView, obj) -> bool:

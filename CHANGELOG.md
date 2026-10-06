@@ -141,7 +141,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On the update forms of a project, dataset, sample and measurement, visibility and the record it
   sits under (a project's owner, a dataset's project, a sample's or measurement's dataset) are
   offered only to someone who can manage the record. For anyone else they are left out of the
-  form, so a request cannot change them.
+  form, so a request cannot change them. The API applies the same rule to a `PUT` or `PATCH`,
+  answering 403, refuses a move that would leave the record with nobody to manage it with a 400,
+  and accepts as a `project`, `dataset` or `sample` only a record the requester holds the edit
+  level on, so a record is created only inside a parent they can edit. The project choices on the
+  dataset create and update forms are limited the same way.
 - The dataset choices on the sample and measurement forms and the measurement filter, the project
   choices on the dataset filter, and the count of other datasets in a project on a dataset's page
   read levels in place of stored permissions.

@@ -24,9 +24,10 @@ Bringing the database up to date converts them for you. Check your portal's own 
   measurement. List the person at a level instead, with
   `Crediting(record).add(person)` followed by `Crediting(record).update(contribution, roles=[], level=ContributionLevel.EDIT)`.
 - **Listing records a user may act on**: `get_objects_for_user` on those four models no longer
-  finds anything. Use `Dataset.objects.with_level(user, ContributionLevel.VIEW)`, or
+  finds anything. Use `Dataset.all_objects.with_level(user, ContributionLevel.VIEW)`, or
   `accessible_to(user, level)`, which also includes every record for someone a portal role gives
-  the right to change datasets.
+  the right to change datasets. Call either on `Dataset.all_objects`: `Dataset.objects` leaves
+  private datasets out.
 - **Deleting samples and measurements**: this now needs the manage level. Before, the right to
   change the dataset was enough for samples.
 

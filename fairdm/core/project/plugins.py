@@ -73,8 +73,10 @@ def visible_to_holder_of(permission):
     holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
     page's own permission on the project can also view it, and this check says so directly.
 
-    A user holding ``permission`` only at the model level still finds no grant here and is
-    refused, because ``has_perm`` with an object consults only the object-level backend.
+    A user holding ``permission`` only at the model level, granted to them directly or through
+    a group the portal made up, still finds no grant here and is refused. With an object,
+    ``has_perm`` answers from the contribution level, and from membership of one of the four
+    shipped portal roles, which confers the object-level answer.
 
     Args:
         permission: The permission to accept at record level.

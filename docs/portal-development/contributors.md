@@ -1017,8 +1017,8 @@ parameters and never into the address, and no identifier reaches an address unle
 `ORCID_PATTERN` or `ROR_PATTERN` from `fairdm.contrib.contributors.models`. A test replaces
 `requests.get`, as the tests of the add pages do.
 
-`ask(address, parse, params=None, headers=None, missing_ok=False)` is the one function that makes
-a request. Both classes call it, and the failure handling above lives in it. A caller that wants a
+`ask(address, parse, *, params=None, headers=None, missing_ok=False)` is the one function that
+makes a request. Everything after `parse` is passed by keyword. Both classes call it, and the failure handling above lives in it. A caller that wants a
 third registry passes the address and a function that reads the decoded answer.
 
 Saving the identifier queues the sync that `ContributorIdentifier` queues for every identifier, so

@@ -198,7 +198,7 @@
               "uv run pre-commit run --all-files (passed)"
             ],
             "code": [
-              "fairdm/contrib/contributors/plugins/shared.py:776"
+              "fairdm/contrib/contributors/plugins/shared.py:788"
             ],
             "verified_by_ci": false
           }
@@ -570,7 +570,7 @@
               "uv run pre-commit run --all-files (passed)"
             ],
             "code": [
-              "fairdm/api/serializers.py:44"
+              "fairdm/api/serializers.py:80"
             ],
             "verified_by_ci": false
           }
@@ -589,7 +589,7 @@
               "uv run pre-commit run --all-files (passed)"
             ],
             "code": [
-              "fairdm/api/serializers.py:65"
+              "fairdm/api/serializers.py:80"
             ],
             "verified_by_ci": false
           }
@@ -610,7 +610,7 @@
               "uv run pre-commit run --all-files (passed)"
             ],
             "code": [
-              "fairdm/api/serializers.py:32"
+              "fairdm/api/serializers.py:36"
             ],
             "verified_by_ci": false
           }
@@ -649,15 +649,31 @@
               "uv run pre-commit run --all-files (passed)"
             ],
             "code": [
-              "fairdm/core/dataset/forms.py:137"
+              "fairdm/core/dataset/forms.py:136"
             ],
             "verified_by_ci": false
           }
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "docs/more/migration-guides.md:27",
+              "docs/portal-development/restful-api.md:116",
+              "docs/portal-development/contributors.md:1020",
+              "docs/portal-administration/managing_users_and_permissions.md:114",
+              "fairdm/api/permissions.py:55",
+              "fairdm/core/project/plugins.py:76",
+              "CHANGELOG.md:144"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
