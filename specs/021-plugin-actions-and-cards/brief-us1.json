@@ -1,0 +1,127 @@
+{
+  "story": "US1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 435,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T001",
+    "T002",
+    "T003",
+    "T004",
+    "T005"
+  ],
+  "context": {
+    "why": "A plugin today is a page beside a record's overview with an entry in the local navigation. This story lets a registration name the place its plugin appears, and delivers the second place: a dropdown of page actions on the overview of a project, dataset, sample, measurement, person and organization. It also lays the groundwork the next three stories stand on: the registry keeps declarations as made and one method, PluginRegistry.resolve(model), works out what a record type serves; URL patterns, the navigation and the page actions are all built from that; and the registry is validated when the portal starts. Nothing a portal has today may change: with no action registered, the overview pages and every existing plugin behave exactly as before.",
+    "spec_sections": [
+      "User Story 1 (all 10 acceptance scenarios)",
+      "FR-001 to FR-014",
+      "FR-043",
+      "Edge Cases (every action hidden; a predicate raises; a place that does not exist or a column on something that is not a card; a registration declines its entry and asks to be a page action; an action against a record type whose page offers no such place; an action and a page claim the same name or segment)",
+      "Clarifications",
+      "Key Entities (Place, Page action, Manage menu)",
+      "SC-001, SC-003, SC-004, SC-008, SC-009"
+    ],
+    "plan_sections": [
+      "Technical context",
+      "D1 (registrations only; removals are US3)",
+      "D2",
+      "D3 (steps 1, 6 and 7 now; write resolve() so steps 2 to 5 can be added)",
+      "D4 (all but get_cards)",
+      "D5"
+    ],
+    "prior_decisions": [
+      "decisions.md D1: the registry's list of registrations is never edited to produce what is served. get_plugins_for_model keeps returning the (plugin class, options) entries exactly as before; tests read it and the private _registry dict.",
+      "decisions.md D2: FairDMConfig.ready() calls registry.validate_all() straight after autodiscover_modules('plugins'). get_urls_for_model resolves again.",
+      "decisions.md D3: a record type offers page actions (and later cards) when one of its plugins is built on OverviewPlaces. OverviewPlugin in fairdm/core/plugins.py carries the mixin, so all six overviews have it. PointOverview (fairdm/contrib/location/plugins.py) does not: an action against Point is refused by validate_all, naming the plugin and the record type. Do not key this on url_path being None: the sample overview is served at overview/ beneath the sample, not at the sample's own address.",
+      "decisions.md D5: actions are sorted by (order, name). The navigation keeps its present sort, registration order for equal positions, untouched.",
+      "decisions.md D6: position is the existing `order` keyword. Add no `position` keyword.",
+      "Step 6 of resolve() applies exactly the rules of validate_against_existing in checks.py to the final set, including that a segment of None is never compared. It must not refuse any set of plugins that registers today.",
+      "The dropdown sits in overview/page.html in the header's button row, after the overview.actions block and outside it, in its own block overview.page_actions. The person template overrides overview.actions without calling the parent, which is why it cannot go inside. It is a Cotton component at fairdm/templates/cotton/plugins/actions.html built from c-dropdown, c-menu and c-menu.item, the way the Manage menu in fairdm/core/dataset/templates/dataset/dataset_detail.html is. It draws nothing when it has no actions. Give its root a data- attribute for tests to find.",
+      "A predicate that raises while the dropdown is built hides that action and is logged with logger.exception, the way menu_check in access.py does. The page is still served.",
+      "A record type's URL patterns are built once, when its urls module is imported (fairdm/core/*/urls.py, fairdm/contrib/contributors/urls.py, fairdm/contrib/location/urls.py). A plugin registered inside a test therefore has no address until the patterns are rebuilt. T003 starts by writing one fixture in tests/conftest.py that saves the registry (registrations now; later stories add removals), lets the test declare plugins, rebuilds every record type's URL patterns and clears the URL caches, and restores the registry and the URL configuration afterwards. The later stories' page tests all use it, so make it general and document it in its docstring. Prove in a test that after a test using it, the plugin is gone from the registry and its address no longer resolves.",
+      "Person and organization overviews are one registration against Contributor. An action for people only registers against Contributor with check = staticmethod(is_instance_of(Person)).",
+      "mount_name is not part of the design: do not bind it in as_view."
+    ],
+    "acceptance": [
+      {
+        "task": "T001",
+        "given_when_then": "Given a registry filled by the test, when registrations name a place, then the outcomes in tasks.md T001 hold: defaults, refusals at registration, one mount per registration, action order independent of registration order, and an action against Point refused by validate_all while one against Sample is accepted."
+      },
+      {
+        "task": "T002",
+        "given_when_then": "Given an action registered beside pages, when the navigation and URL patterns are built, then the navigation lists only the pages and the action has a pattern under its own name; and FairDMConfig.ready() raises on a declaration that cannot work."
+      },
+      {
+        "task": "T003",
+        "given_when_then": "Given User Story 1's scenarios, when each record type's overview is opened through the test client as each kind of visitor, then the dropdown offers exactly the actions that visitor may open, each leading to the plugin's address for that record, is absent when there is nothing to offer, and stays apart from the Manage menu."
+      },
+      {
+        "task": "T004",
+        "given_when_then": "Given the failing tests from T001 to T003, when the implementation lands, then all pass and every pre-existing plugin test passes unchanged."
+      },
+      {
+        "task": "T005",
+        "given_when_then": "Given docs/portal-development/create_a_plugin.md, overview-pages.md and CONTEXT.md, when read against the branch, then they say where a plugin can appear, how to register a page action with an example that runs, what the new refusals are, and what a page action and the Manage menu are."
+      }
+    ],
+    "verified_base": {
+      "commit": "07b15e13e4a0776a198d852ec0ad86cb415a83b4",
+      "verified_at": "2026-10-06T21:34:01Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "All six steps passed on this commit. Anything red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Plugin",
+      "Overview page (if present)",
+      "Contributor, Person, Organization"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards on branch 021-plugin-actions-and-cards; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. There are no model changes in this feature, so no migrations.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_plugins/ with its conftest.py (registry tests and the isolate_registry fixture), tests/test_templates/test_overview_page.py and tests/test_core/test_project/test_plugins.py (pages through the test client). Line length 88. Docstrings follow docs/contributing/standards/code-documentation.md. Public markdown (docs, CONTEXT.md) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. No leading-underscore names for new functions or methods, and no compatibility aliases. Reusable template pieces are Cotton components, never {% include %} partials. Prefer django-mvp and DaisyUI components and utilities over custom CSS; add no CSS file. A Django {% comment %} tag with text after it is single-line only: use {% comment %}...{% endcomment %} blocks for multi-line notes."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks in specs/021-plugin-actions-and-cards/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/021-plugin-actions-and-cards/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards/specs/021-plugin-actions-and-cards/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "Never modify or delete a test you did not author in this story. Every existing test under tests/test_contrib/test_plugins/ and each record type's test_plugins.py must keep passing unchanged: needing to change one means existing plugins no longer behave as they did (SC-009). If you believe one must change, mark the task blocked and say why.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, id, data attribute or context value.",
+    "Do not touch the Manage menus or the header buttons the overview templates already have, and do not move any existing card (FR-013, FR-014, out of scope).",
+    "Ship no page action and no card of your own in fairdm/ or demo/. Plugins that exist only to test live in the tests.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/. No test reaches the network. No new dependency.",
+    "Do not build the later stories' parts: cards (US2), removal (US3) and replacement (US4). Shape resolve() so they slot in as steps, and build only what this story's tests need."
+  ]
+}
