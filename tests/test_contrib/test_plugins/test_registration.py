@@ -12,7 +12,8 @@ from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.contrib.plugins.cards import Card
 from fairdm.contrib.plugins.checks import PluginRegistrationError
-from fairdm.contrib.plugins.places import Column, OverviewPlaces, Place
+from fairdm.contrib.plugins.places import OverviewPlaces
+from fairdm.contrib.plugins.places import Column, Place
 from fairdm.contrib.plugins.registration import PluginRegistry
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
