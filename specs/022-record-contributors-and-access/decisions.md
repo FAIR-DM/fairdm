@@ -631,3 +631,26 @@ permissions.
 `makemigrations`, so it stays a file of its own.
 **Revisit if**: never.
 **ADR:** none — how many files a migration is
+
+## Decisions made in the review fixes
+
+## D38. The API's manager-only fields and parent choices live on `CreatorCreditMixin`
+
+**Decision**: `CreatorCreditMixin` in `fairdm/api/serializers.py` holds `manager_only_fields`, refuses a changed one in `update` unless `RecordAccess(instance).can_manage`, and narrows the `project`, `dataset` and `sample` fields to the records the requester holds the edit level on in `get_fields`. The names are `visibility`, `owner`, `project`, `dataset` and `sample`.
+**Why**: it is the one class the generated project and dataset serializers and the base sample and measurement serializers all share, so one check covers all four record types and every serializer a portal builds on them. `ManagerOnlyFieldsMixin` holds no shared list: each form declares its own tuple, and the four tuples together are these names. A record being updated keeps its current parent among the choices, so a `PUT` that repeats it is not refused.
+**Revisit if**: the forms and the serializers should read one list, which needs a place both import.
+**ADR:** none — where a check sits
+
+## D39. The Contributors tab prefetches what its templates read for each row
+
+**Decision**: besides the real contributors and the levels, `ContributionList.get_context_data` prefetches each contribution's `content_object` and each contributor's `identifiers`.
+**Why**: the cotton components call `as_contributor`, whose `hasattr(value, "content_object")` reads the generic foreign key, and `default_identifier`, which reads the identifiers. Each was one query per person, so the count still grew after the levels and profiles were read once. The templates are unchanged.
+**Revisit if**: a component reads another relation per row; the count test would show it.
+**ADR:** none — query counts of one page
+
+## D40. A role-only save of the edit page passes no level when the posted one is the inherited one
+
+**Decision**: `ContributionEdit.post` sends `level=None` to `Crediting.update` when the posted level equals the level held from the record above and is higher than the person's own stored level.
+**Why**: the page preselects the inherited level and disables every lower one, so the stored level cannot be posted back, and storing the preselected one turned an inherited level into the person's own. A level above the inherited one is still stored.
+**Revisit if**: the form can post the stored level.
+**ADR:** none — what one page posts
