@@ -618,15 +618,18 @@ def get_context_data(self, **kwargs):
 The registry keeps every registration as it was made. `registry.get_plugins_for_model(Dataset)`
 returns the `(plugin class, options)` pairs in the order they arrived.
 
-`registry.resolve(Dataset)` works out from them what the record type actually serves. It returns
-one `Mount` per plugin served: each registration that has not been removed, with a replacement
-standing in the mount of the plugin it replaces. A `Mount` is read-only and carries the
-`plugin_class`, the `name` it is served under, its `url_path` (`None` for the record's own address), its `place`, and the
-`label`, `icon` and `order` of its entry. `listed` is false when the registration declined its
-entry. `column` is the column of a card and `None` for anything else. The URL patterns, the navigation and the page actions are all built from this list, and so
-are the checks that refuse a registration that cannot work. `registry.get_page_actions(Dataset)`
-returns the listed actions among them, by `order` and then name, and `registry.get_cards(Dataset)`
-returns the cards the same way.
+`registry.resolve(Dataset)` works out from them what the record type actually serves. It weighs each
+registration as a `Candidate`, which holds the `Mount` the registration declares and the options it
+was made with. It returns one `Mount` per plugin served: each registration that has not been
+removed, with a replacement standing in the mount of the plugin it replaces.
+
+A `Mount` is read-only and carries the `plugin_class`, the `name` it is served under, its
+`url_path` (`None` for the record's own address), its `place`, and the `label`, `icon` and `order`
+of its entry. `listed` is false when the registration declined its entry. `column` is the column of
+a card and `None` for anything else. The URL patterns, the navigation and the page actions are all
+built from this list, and so are the checks that refuse a registration that cannot work.
+`registry.get_page_actions(Dataset)` returns the listed actions among them, by `order` and then
+name, and `registry.get_cards(Dataset)` returns the cards the same way.
 
 ## When a registration is wrong
 
