@@ -883,8 +883,12 @@ class TestReplaceFurtherViews:
         registry.register(Sample)(ShippedMap)
         registry.register(Sample, replaces=ShippedMap)(BetterMap)
 
+        class Twin(Plugin, TemplateView):
+            name = "better-map"
+            template_name = "base.html"
+
         with pytest.raises(PluginRegistrationError, match="better-map"):
-            registry.register(Sample)(BetterMap)
+            registry.register(Sample, replaces=ShippedMap)(Twin)
 
 
 class TestReplaceAReplacement:
@@ -1093,7 +1097,12 @@ class TestReplaceRefusals:
         ("target", "options", "replacement", "own"),
         [
             (ActivityPage, {}, RicherActivityCard, {"place": "card"}),
-            (ActivityCard, {"place": "card"}, RicherActivityPage, {}),
+            (
+                ActivityCard,
+                {"place": "card"},
+                RicherActivityPage,
+                {"place": "navigation"},
+            ),
             (WatchAction, {"place": "action"}, RicherActivityPage, {"place": "navigation"}),
             (ActivityPage, {}, RicherWatchAction, {"place": "action"}),
         ],
@@ -1113,6 +1122,16 @@ class TestReplaceRefusals:
         assert replacement.__name__ in message
         assert target.get_name() in message
         assert "Sample" in message
+
+    def test_a_plugin_that_says_nothing_of_its_place_cannot_take_a_card_s_when_it_is_no_card(
+        self,
+    ):
+        registry = offering_registry()
+        registry.register(Sample, place="card")(ActivityCard)
+        registry.register(Sample, replaces=ActivityCard)(RicherActivityPage)
+
+        with pytest.raises(PluginRegistrationError, match="card"):
+            registry.validate_all()
 
     def test_a_card_that_says_nothing_of_its_place_does_not_take_a_page_s(self):
         registry = offering_registry()
@@ -1212,3 +1231,20 @@ class TestReplaceAnAction:
         assert [m.plugin_class for m in registry.get_page_actions(Sample)] == [
             replacement
         ]
+
+
+class TestReplacesNamesAPlugin:
+    @pytest.mark.parametrize("target", [42, ["shipped-map"], Sample, ""])
+    def test_a_target_that_is_neither_a_plugin_nor_a_name_is_refused_when_registered(
+        self, target
+    ):
+        registry = offering_registry()
+
+        with pytest.raises(PluginRegistrationError, match="replaces"):
+            registry.register(Sample, replaces=target)(RicherMap)
+
+    def test_a_plugin_class_and_a_name_are_both_accepted(self):
+        registry = offering_registry()
+
+        registry.register(Sample, replaces=ShippedMap)(RicherMap)
+        registry.register(Sample, replaces="shipped-map")(RivalMap)

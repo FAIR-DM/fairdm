@@ -6,6 +6,7 @@ from management commands and would never fire on a production boot.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from django.core.exceptions import ImproperlyConfigured
@@ -14,7 +15,7 @@ from django.urls import path
 
 if TYPE_CHECKING:
     from .base import Plugin
-    from .registration import Mount
+    from .registration import Candidate, Mount
 
 
 class PluginRegistrationError(ImproperlyConfigured):
@@ -54,6 +55,25 @@ def _fail_removal(name: str, model: Any, problem: str) -> None:
     raise PluginRegistrationError(msg)
 
 
+def _fail_between(plugins: list[Any], model: Any, problem: str) -> None:
+    """Raise a registration error naming several plugins, the record type and the problem.
+
+    Args:
+        plugins: The plugin classes the problem is between.
+        model: The record type they are registered against.
+        problem: What is wrong.
+
+    Raises:
+        PluginRegistrationError: Always.
+    """
+    names = " and ".join(
+        getattr(plugin, "__name__", repr(plugin)) for plugin in plugins
+    )
+    model_name = getattr(model, "__name__", repr(model))
+    msg = f"{names} registered against {model_name}: {problem}"
+    raise PluginRegistrationError(msg)
+
+
 def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None:
     """Require at least one model and that each is a Django model class.
 
@@ -77,7 +97,7 @@ def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None
 def validate_options(
     plugin_class: type[Plugin], model: Any, options: dict[str, Any]
 ) -> None:
-    """Require the place and column a registration names to exist and to go together.
+    """Require the place, column and replacement target a registration names to be usable.
 
     A column is only for a card, and a card can only be a card: it has no entry to decline and
     no page to be registered as. A refused option raises ``PluginRegistrationError``.
@@ -87,9 +107,20 @@ def validate_options(
         model: The record type it is registered against.
         options: The keyword arguments given to ``register``.
     """
+    from .base import Plugin as PluginBase
     from .cards import Card
     from .places import Column, Place
 
+    replaces = options.get("replaces")
+    if replaces is not None and not (
+        (isinstance(replaces, str) and replaces)
+        or (isinstance(replaces, type) and issubclass(replaces, PluginBase))
+    ):
+        _fail(
+            plugin_class,
+            model,
+            f"replaces {replaces!r}, which is neither a plugin class nor the name of one",
+        )
     place = options.get("place")
     column = options.get("column")
     if place is not None and place not in Place.values:
@@ -228,25 +259,93 @@ def validate_extra_views(plugin_class: type[Plugin], model: Any) -> None:
         seen[segment] = extra.__name__
 
 
-def url_names_for(plugin_class: type[Plugin]) -> list[str]:
-    """List every URL name the plugin will generate.
+@dataclass(frozen=True)
+class Claim:
+    """What one plugin takes of a record type's addresses: its name, its segment and its URL names.
 
-    Args:
-        plugin_class: The plugin.
-
-    Returns:
-        The plugin's own name followed by one name per additional view.
+    Attributes:
+        plugin_class: The plugin making the claim.
+        name: The name it is served under.
+        url_path: The segment it is served at, None when it has none to claim.
     """
-    base = plugin_class.get_name()
-    return [base, *(f"{base}-{e.get_name()}" for e in plugin_class.get_extra_views())]
+
+    plugin_class: type[Plugin]
+    name: str
+    url_path: str | None
+
+    @classmethod
+    def of_plugin(cls, plugin_class: type[Plugin]) -> Claim:
+        """Build the claim a plugin makes under its own name and segment.
+
+        Args:
+            plugin_class: The plugin.
+
+        Returns:
+            The claim.
+        """
+        return cls(plugin_class, plugin_class.get_name(), plugin_class.get_url_path())
+
+    @classmethod
+    def of_mount(cls, mount: Mount) -> Claim:
+        """Build the claim a mount makes, under the name and segment it is served at.
+
+        Args:
+            mount: What the record type serves.
+
+        Returns:
+            The claim.
+        """
+        return cls(mount.plugin_class, mount.name, mount.url_path)
+
+    @property
+    def url_names(self) -> list[str]:
+        """Every URL name the claim generates: its own, then one per view the plugin owns."""
+        extras = self.plugin_class.get_extra_views()
+        return [self.name, *(f"{self.name}-{extra.get_name()}" for extra in extras)]
+
+    def problem_with(self, other: Claim, *, addresses: bool = True) -> str | None:
+        """Say how this claim clashes with another, if it does.
+
+        Names alone are not enough: plugin ``a`` with child ``b`` and plugin ``a-b`` reverse to the
+        same name.
+
+        Args:
+            other: A claim already made on the record type.
+            addresses: False to compare names only, for a claim that is not served under its own
+                segment or URL names.
+
+        Returns:
+            The problem, or None when the two can be served together.
+        """
+        if other.name == self.name:
+            return f"another plugin already uses the name {self.name!r}"
+        if not addresses:
+            return None
+        if self.url_path is not None and other.url_path == self.url_path:
+            return (
+                f"{other.plugin_class.__name__} already serves the segment "
+                f"{self.url_path!r}"
+            )
+        clashes = set(self.url_names) & set(other.url_names)
+        if clashes:
+            return (
+                f"would generate the address name {sorted(clashes)[0]!r}, which "
+                f"{other.plugin_class.__name__} already generates"
+            )
+        return None
 
 
 def validate_against_existing(
     plugin_class: type[Plugin],
     model: Any,
     existing: list[tuple[type[Plugin], dict]],
+    options: dict[str, Any],
 ) -> None:
     """Require names, segments and generated URL names to be unique for one record type.
+
+    A registration that states ``replaces`` is served under its target's segment and names, so
+    it is left out of the segment and URL name comparison, whether it is the one arriving or
+    one already there. Its own name must still be unique.
 
     A clash raises ``PluginRegistrationError``.
 
@@ -254,37 +353,23 @@ def validate_against_existing(
         plugin_class: The plugin being registered.
         model: The record type it is registered against.
         existing: The ``(plugin class, options)`` entries already registered for it.
+        options: The keyword arguments the plugin is being registered with.
     """
-    # Names alone are not enough: plugin `a` with child `b` and plugin `a-b` reverse to the same name.
-    name = plugin_class.get_name()
-    segment = plugin_class.get_url_path()
-    new_url_names = set(url_names_for(plugin_class))
-
-    for other, _ in existing:
+    claim = Claim.of_plugin(plugin_class)
+    for other, other_options in existing:
         if other is plugin_class:
             continue
-        if other.get_name() == name:
-            _fail(plugin_class, model, f"another plugin already uses the name {name!r}")
-        if segment is not None and other.get_url_path() == segment:
-            _fail(
-                plugin_class,
-                model,
-                f"{other.__name__} already serves the segment {segment!r}",
-            )
-        clashes = new_url_names & set(url_names_for(other))
-        if clashes:
-            _fail(
-                plugin_class,
-                model,
-                f"would generate the address name {sorted(clashes)[0]!r}, which "
-                f"{other.__name__} already generates",
-            )
+        compare = not (options.get("replaces") or other_options.get("replaces"))
+        problem = claim.problem_with(Claim.of_plugin(other), addresses=compare)
+        if problem:
+            _fail(plugin_class, model, problem)
 
 
 def validate_registration(
     plugin_class: type[Plugin],
     model: Any,
     existing: list[tuple[type[Plugin], dict]],
+    options: dict[str, Any],
 ) -> None:
     """Run every check possible when a plugin is registered against one record type.
 
@@ -294,19 +379,21 @@ def validate_registration(
         plugin_class: The plugin being registered.
         model: The record type it is registered against.
         existing: The ``(plugin class, options)`` entries already registered for it.
+        options: The keyword arguments the plugin is being registered with.
     """
     validate_check(plugin_class, model)
     segment = plugin_class.get_url_path()
     if segment is not None:
         validate_segment(plugin_class, model, segment)
     validate_extra_views(plugin_class, model)
-    validate_against_existing(plugin_class, model, existing)
+    validate_against_existing(plugin_class, model, existing, options)
 
 
 def validate_mounts(model: Any, mounts: list[Mount]) -> None:
     """Require the names, segments and generated URL names of what a record type serves to be unique.
 
-    Applies the rules of :func:`validate_against_existing` to the whole set.
+    Applies the rules of :func:`validate_against_existing` to the whole set, under the names and
+    segments the mounts are served at.
 
     A clash raises ``PluginRegistrationError``.
 
@@ -314,10 +401,14 @@ def validate_mounts(model: Any, mounts: list[Mount]) -> None:
         model: The record type.
         mounts: What it serves, in registration order.
     """
-    served: list[tuple[type[Plugin], dict]] = []
+    claims: list[Claim] = []
     for mount in mounts:
-        validate_against_existing(mount.plugin_class, model, served)
-        served.append((mount.plugin_class, {}))
+        claim = Claim.of_mount(mount)
+        for other in claims:
+            problem = claim.problem_with(other)
+            if problem:
+                _fail(mount.plugin_class, model, problem)
+        claims.append(claim)
 
 
 def validate_places_offered(model: Any, mounts: list[Mount]) -> None:
@@ -364,29 +455,123 @@ def is_overview(mount: Mount) -> bool:
     return issubclass(mount.plugin_class, OverviewPlaces) or mount.url_path is None
 
 
-def validate_removals(model: Any, mounts: list[Mount], removals: list[str]) -> None:
+def validate_removals(
+    model: Any, candidates: list[Candidate], removals: list[str]
+) -> None:
     """Require each removal to name a registration that can be removed.
 
     A removal that names nothing registered for the record type, or its overview, raises
-    ``PluginRegistrationError``.
+    ``PluginRegistrationError``. A replacement of the overview is not the overview, so it can be
+    removed and the plugin it replaced is served again.
 
     Args:
         model: The record type.
-        mounts: What its registrations declare, before any removal.
+        candidates: What its registrations declare, before any removal.
         removals: The names declared with ``remove``.
     """
-    named = {mount.name: mount for mount in mounts}
+    named = {candidate.mount.name: candidate for candidate in candidates}
     for name in removals:
-        mount = named.get(name)
-        if mount is None:
+        candidate = named.get(name)
+        if candidate is None:
             _fail_removal(
                 name,
                 model,
                 f"no plugin of that name is registered against {model.__name__}",
             )
-        elif is_overview(mount):
+        elif candidate.replaces is None and is_overview(candidate.mount):
             _fail_removal(
                 name,
                 model,
                 "this is the overview of the record type, which can be replaced but not removed",
             )
+
+
+def validate_replacements(
+    model: Any, candidates: list[Candidate], removals: list[str]
+) -> None:
+    """Require each replacement to name a plugin that is served, once, with no circle.
+
+    A replacement whose target is not registered against the record type or is removed from it,
+    two replacements for one target and a circle of replacements raise
+    ``PluginRegistrationError``.
+
+    Args:
+        model: The record type.
+        candidates: What remains of its registrations after the removals.
+        removals: The names declared with ``remove``.
+    """
+    named = {candidate.mount.name: candidate for candidate in candidates}
+    replacers: dict[str, Candidate] = {}
+    for candidate in candidates:
+        target = candidate.replaces
+        if target is None:
+            continue
+        plugin = candidate.mount.plugin_class
+        if target in removals:
+            _fail(
+                plugin,
+                model,
+                f"replaces {target!r}, which the removal of {target!r} takes away from "
+                f"{model.__name__}; leave out the removal or the replacement",
+            )
+        if target not in named:
+            _fail(
+                plugin,
+                model,
+                f"replaces {target!r}, but no plugin of that name is registered against "
+                f"{model.__name__}",
+            )
+        if target in replacers:
+            _fail_between(
+                [replacers[target].mount.plugin_class, plugin],
+                model,
+                f"both replace {target!r}; remove one of them",
+            )
+        replacers[target] = candidate
+    for candidate in candidates:
+        path = [candidate.mount.name]
+        target = candidate.replaces
+        while target is not None:
+            if target in path:
+                circle = [
+                    named[name].mount.plugin_class
+                    for name in path[path.index(target) :]
+                ]
+                _fail_between(
+                    circle,
+                    model,
+                    "replace one another in a circle, so none of them is served"
+                    if len(circle) > 1
+                    else f"replaces itself, {target!r}",
+                )
+            path.append(target)
+            target = named[target].replaces
+
+
+def validate_place_kept(
+    model: Any, replacement: Candidate, replaced: Candidate, place: Any
+) -> None:
+    """Require a replacement to appear in the place of the plugin it replaces.
+
+    A replacement that states a different place raises ``PluginRegistrationError``. One that
+    states none takes its target's, and must be able to appear there.
+
+    Args:
+        model: The record type.
+        replacement: The replacement.
+        replaced: What it replaces, or the replacement before it in a chain.
+        place: The place the plugin it replaces appears in.
+    """
+    from .places import Place
+
+    stated = replacement.options.get("place")
+    plugin = replacement.mount.plugin_class
+    if stated is not None and Place(stated) is not place:
+        _fail_between(
+            [plugin, replaced.mount.plugin_class],
+            model,
+            f"{plugin.__name__} is registered as a {Place(stated).value}, but it replaces "
+            f"{replaced.mount.name!r}, which is a {place.value}; a replacement appears in the "
+            f"place of the plugin it replaces",
+        )
+    validate_options(plugin, model, {**replacement.options, "place": place.value})

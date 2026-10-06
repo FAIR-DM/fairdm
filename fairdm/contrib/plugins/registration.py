@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from django.db.models import Model
@@ -74,6 +74,51 @@ class Mount:
             column=column,
         )
 
+    def replaced_by(self, plugin_class: type[Plugin], options: dict[str, Any]) -> Mount:
+        """Build the mount once a replacement has taken over from the plugin this mount serves.
+
+        The replacement is served under this mount's name and segment and in its place. Its entry
+        keeps this mount's label, icon, position, column and declined entry, except for whatever
+        the replacement's registration states.
+
+        Args:
+            plugin_class: The replacement.
+            options: The keyword arguments the replacement was registered with.
+
+        Returns:
+            The mount that serves the replacement.
+        """
+        return replace(
+            self,
+            plugin_class=plugin_class,
+            label=options.get("label") or self.label,
+            icon=options.get("icon", self.icon),
+            order=options.get("order", self.order),
+            listed=options["menu"] is not False if "menu" in options else self.listed,
+            column=Column(options["column"]) if options.get("column") else self.column,
+        )
+
+
+@dataclass(frozen=True)
+class Candidate:
+    """A registration that may become a mount, kept with the options it was made with.
+
+    Attributes:
+        mount: The mount the registration declares, under the plugin's own name and segment.
+        options: The keyword arguments given to ``register``, which say what was stated.
+    """
+
+    mount: Mount
+    options: dict[str, Any]
+
+    @property
+    def replaces(self) -> str | None:
+        """The name of the plugin this registration replaces, or None when it replaces none."""
+        target = self.options.get("replaces")
+        if target is None or isinstance(target, str):
+            return target
+        return target.get_name()
+
 
 class PluginRegistry:
     """Track which plugins are registered for each model and how records are addressed.
@@ -111,10 +156,12 @@ class PluginRegistry:
         Args:
             *models: The base model classes to register the plugin against.
             **kwargs: Registration options such as ``label``, ``icon``, ``order``, ``menu``
-                ``place`` and ``column``, kept with the plugin for building its entry. ``place`` is
-                a :class:`~fairdm.contrib.plugins.places.Place` or its value, and defaults to the
-                navigation. ``column`` is a :class:`~fairdm.contrib.plugins.places.Column` or its
-                value, and only a card takes one.
+                ``place``, ``column`` and ``replaces``, kept with the plugin for building its
+                entry. ``place`` is a :class:`~fairdm.contrib.plugins.places.Place` or its value,
+                and defaults to the navigation. ``column`` is a
+                :class:`~fairdm.contrib.plugins.places.Column` or its value, and only a card
+                takes one. ``replaces`` is the plugin class, or the name, of the plugin this one
+                is served in place of on this record type.
 
         Returns:
             A decorator that adds the plugin class to the registry and returns it.
@@ -134,7 +181,7 @@ class PluginRegistry:
             for model in models:
                 validate_options(plugin_class, model, kwargs)
                 existing = self._registry.setdefault(model, [])
-                validate_registration(plugin_class, model, existing)
+                validate_registration(plugin_class, model, existing, kwargs)
                 existing.append((plugin_class, kwargs))
 
             return plugin_class
@@ -251,30 +298,70 @@ class PluginRegistry:
         """Work out what a record type serves from its registrations.
 
         Nothing is stored: every call reads the registrations again, so the registry's list is
-        never edited to produce the answer.
+        never edited to produce the answer. A removal takes a registration away. A replacement
+        is served in place of the plugin it replaces, at its address and under its name.
 
         Args:
             model: The record type.
 
         Returns:
-            One mount per registration that was not removed, in the order they were registered.
+            One mount per plugin served, in the order of the registrations they started from.
 
         Raises:
-            PluginRegistrationError: A removal names nothing registered or the overview, the
-                mounts clash with each other, or one asks for a place the record type's overview
-                does not draw.
+            PluginRegistrationError: A removal names nothing registered or the overview, a
+                replacement names nothing served, two replace one plugin, replacements form a
+                circle or leave their target's place, the mounts clash with each other, or one
+                asks for a place the record type's overview does not draw.
         """
-        from .checks import validate_mounts, validate_places_offered, validate_removals
+        from .checks import (
+            validate_mounts,
+            validate_places_offered,
+            validate_removals,
+            validate_replacements,
+        )
 
-        mounts = [
-            Mount.from_registration(plugin_class, options)
+        candidates = [
+            Candidate(Mount.from_registration(plugin_class, options), options)
             for plugin_class, options in self.get_plugins_for_model(model)
         ]
         removed = self._removals.get(model, [])
-        validate_removals(model, mounts, removed)
-        mounts = [mount for mount in mounts if mount.name not in removed]
+        validate_removals(model, candidates, removed)
+        candidates = [c for c in candidates if c.mount.name not in removed]
+        validate_replacements(model, candidates, removed)
+        mounts = self.collapse(model, candidates)
         validate_mounts(model, mounts)
         validate_places_offered(model, mounts)
+        return mounts
+
+    def collapse(self, model: type[Model], candidates: list[Candidate]) -> list[Mount]:
+        """Turn each chain of replacements into the one mount that serves it.
+
+        Args:
+            model: The record type.
+            candidates: What remains of its registrations, with every replacement naming a
+                candidate and no two naming the same.
+
+        Returns:
+            One mount per plugin that replaces nothing, in registration order, served by the
+            last replacement in its chain.
+
+        Raises:
+            PluginRegistrationError: A replacement is in a different place from what it replaces.
+        """
+        from .checks import validate_place_kept
+
+        replacers = {c.replaces: c for c in candidates if c.replaces is not None}
+        mounts = []
+        for original in (c for c in candidates if c.replaces is None):
+            mount, replaced = original.mount, original
+            while replaced.mount.name in replacers:
+                replacement = replacers[replaced.mount.name]
+                validate_place_kept(model, replacement, replaced, mount.place)
+                mount = mount.replaced_by(
+                    replacement.mount.plugin_class, replacement.options
+                )
+                replaced = replacement
+            mounts.append(mount)
         return mounts
 
     def validate_all(self) -> None:

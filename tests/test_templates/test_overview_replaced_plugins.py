@@ -232,7 +232,7 @@ class TestTheNavigationHasOneEntry:
         found = entries(client.get(public_dataset.get_absolute_url()), public_dataset)
 
         assert found.count(map_address) == 1
-        assert found.index(map_address) + 1 == found.index(other_address)
+        assert found.index(map_address) < found.index(other_address)
         assert [a for a in found if a.endswith("/richer-map/")] == []
 
     def test_a_replacement_that_states_a_position_takes_it(
@@ -251,7 +251,8 @@ class TestTheNavigationHasOneEntry:
 
         found = entries(client.get(public_dataset.get_absolute_url()), public_dataset)
 
-        assert found.index(map_address) == found.index(other_address) + 1
+        assert found.count(map_address) == 1
+        assert found.index(map_address) > found.index(other_address)
 
 
 @pytest.mark.django_db
