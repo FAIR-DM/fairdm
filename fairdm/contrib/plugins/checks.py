@@ -61,30 +61,66 @@ def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None
 def validate_options(
     plugin_class: type[Plugin], model: Any, options: dict[str, Any]
 ) -> None:
-    """Require the place a registration names to exist, and a column only on a card.
+    """Require the place and column a registration names to exist and to go together.
 
-    A refused option raises ``PluginRegistrationError``.
+    A column is only for a card, and a card can only be a card: it has no entry to decline and
+    no page to be registered as. A refused option raises ``PluginRegistrationError``.
 
     Args:
         plugin_class: The plugin being registered.
         model: The record type it is registered against.
         options: The keyword arguments given to ``register``.
     """
-    from .places import Place
+    from .cards import Card
+    from .places import Column, Place
 
     place = options.get("place")
+    column = options.get("column")
     if place is not None and place not in Place.values:
         _fail(
             plugin_class,
             model,
             f"place {place!r} does not exist; use one of {', '.join(Place.values)}",
         )
-    if options.get("column") is not None:
+    if place != Place.CARD:
+        if column is not None:
+            _fail(
+                plugin_class,
+                model,
+                "a column can only be given for an overview card, and this registration is "
+                f"{'a ' + str(place) if place else 'a navigation entry'}",
+            )
+        if issubclass(plugin_class, Card):
+            _fail(
+                plugin_class,
+                model,
+                "is a card, which has no page of its own; register it with place='card'",
+            )
+        return
+    if column is not None and column not in Column.values:
         _fail(
             plugin_class,
             model,
-            "a column can only be given for an overview card, and this registration is "
-            f"{'a ' + str(place) if place else 'a navigation entry'}",
+            f"column {column!r} does not exist; use one of {', '.join(Column.values)}",
+        )
+    if options.get("menu") is False:
+        _fail(
+            plugin_class,
+            model,
+            "a card has no navigation entry, so menu=False means nothing for it",
+        )
+    if not issubclass(plugin_class, Card):
+        _fail(
+            plugin_class,
+            model,
+            "cannot be drawn as a card because it is not built on Card",
+        )
+    if not plugin_class.template_name and plugin_class.render_card is Card.render_card:
+        _fail(
+            plugin_class,
+            model,
+            "cannot be drawn as a card because it has no template_name and does not "
+            "draw itself with render_card",
         )
 
 
@@ -271,7 +307,8 @@ def validate_mounts(model: Any, mounts: list[Mount]) -> None:
 def validate_places_offered(model: Any, mounts: list[Mount]) -> None:
     """Require the record type's overview to draw every place a plugin asks for beyond the navigation.
 
-    A record type draws page actions when one of its plugins is built on ``OverviewPlaces``.
+    A record type draws page actions and cards when one of its plugins is built on
+    ``OverviewPlaces``.
 
     A refused place raises ``PluginRegistrationError``.
 

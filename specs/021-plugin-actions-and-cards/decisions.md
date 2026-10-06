@@ -267,3 +267,33 @@ cached resolvers.
 clearing Django's own caches does not reach it. Importing the modules again builds fresh resolvers
 from the registry and needs no knowledge of resolver internals.
 **Revisit if**: a record type is mounted by a module the fixture does not list.
+
+## D12. A card can only be registered as a card
+
+**Decision**: a `Card` subclass registered with no place, or as a page action, is refused when
+registered. A registration with `place="card"` is refused unless the class is built on `Card` and
+has a `template_name` or draws itself with its own `render_card`.
+**Why**: a card has no page, so a navigation entry or an action for one would name an address
+that does not exist, and reversing it would fail while the overview was being drawn.
+**Revisit if**: a plugin should be usable as both a page and a card, which the specification
+settles as two plugins.
+
+## D13. A card's further views find the overview as the first mount built on `OverviewPlaces`
+
+**Decision**: `Card.admits` resolves the record type, takes the first mount whose class is built on
+`OverviewPlaces`, asks `can_open` for it with the record, and then asks `can_open` for the card.
+`Plugin.has_permission` calls it only when the owner read from `self.plugin_class` is a card.
+**Why**: the shipped record types register exactly one such mount each, and a replacement
+overview keeps the mixin in its ancestry. Reading the owner from the instance is what lets a card's
+views be decided by the card, while a further view of a page is still decided by its own rule.
+**Revisit if**: a record type registers two overviews, such as one per subtype. The mount whose
+predicate admits this record would then have to be chosen.
+
+## D14. Each drawn card sits in a wrapper that does not take part in the layout
+
+**Decision**: the loops in `overview/page.html` write each card inside
+`<div class="contents" data-contributed-card="wide|side">`.
+**Why**: the framework never inspects a card's output, so a card that draws nothing is still
+visible to a test and to a script through the hook. The wrapper uses `display: contents`, so the
+column's spacing treats the card's own element as the item.
+**Revisit if**: a card needs a styling hook on the element that holds it.

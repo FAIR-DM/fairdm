@@ -40,3 +40,24 @@ Did: documented the places in docs/portal-development/create_a_plugin.md (Where 
 Verified: ran the two documented examples (a dataset action for signed-in visitors and a contributors action narrowed to people) in a throwaway test through the test client; both were offered and opened. The throwaway test was not kept.
 Next: full verify, then the report.
 Watch: docs build is part of the full verify.
+
+## 2026-10-06T21:57:19Z · Implementer US2 · T006
+
+Did: wrote tests/test_contrib/test_plugins/test_cards.py (TestCardRegistration, TestCardMounts, TestRenderCard) and added the Point and accepted-card cases to TestRecordTypeOffersPlaces in test_places.py. Test cards draw a template added under tests/registry_models/templates/plugin_cards/.
+Verified: collection fails with ModuleNotFoundError for fairdm.contrib.plugins.cards, which is the expected red; nothing implemented yet.
+Next: T007 page tests, then the implementation.
+Watch: a card registered as a page or an action is refused at registration (added beyond the task list because a navigation entry for a card has no address to reverse).
+
+## 2026-10-06T21:57:19Z · Implementer US2 · T007
+
+Did: wrote tests/test_templates/test_overview_cards.py through the plugin_sandbox fixture: each record type, who sees a card, further views of a card (predicate, permission, private project), where a card is drawn, failures, nothing to show, assets, and no cards.
+Verified: collection fails on the missing Card module, the expected red.
+Next: T008 implementation.
+Watch: position is checked by siblings inside the column and the data-contributed-card hook the template loop will emit, since the wide column has no hook of its own.
+
+## 2026-10-06T22:02:39Z · Implementer US2 · T008
+
+Did: added fairdm/contrib/plugins/cards.py (Card with render_card, get_media, admits and a get_urls that drops the card's own pattern), Place.CARD and Column and the card drawing in OverviewPlaces (access check, try around the drawing with the failure logged, media merged only for cards that were drawn), Mount.column, get_cards, the card rules in validate_options, the owning card's decision in Plugin.has_permission, the overview.contributed_main and overview.contributed_side blocks, and Card and Column in the exports. No story 1 test needed to change: the one that asserts a column on a non-card is refused still holds.
+Verified: uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope: 1253 passed. uv run pytest tests/test_contrib/test_contributors tests/test_core/test_sample tests/test_core/test_measurement: 2683 passed, 13 skipped. pre-commit run --all-files passes. Probes, each failing the named tests and then reverted: dropping Card.admits from has_permission (3 failures), dropping the overview check in admits (1), dropping the card's own decision (2), dropping the access check when drawing (6), never merging media (1), putting the side block before the column (1), removing the try around drawing (2), drawing wide cards in the side column (2).
+Next: T009 documentation, then the full verify.
+Watch: decisions D12 to D14.

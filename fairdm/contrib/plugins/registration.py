@@ -10,7 +10,7 @@ from django.urls import URLPattern
 from flex_menu import Menu, MenuItem, root
 
 from .access import menu_check
-from .places import Place
+from .places import Column, Place
 
 if TYPE_CHECKING:
     from .base import Plugin
@@ -29,6 +29,7 @@ class Mount:
         icon: The icon of its entry.
         order: Its position among the entries of its place.
         listed: False when the registration declined its entry.
+        column: The overview column a card is drawn in, None for anything that is not a card.
     """
 
     plugin_class: type[Plugin]
@@ -39,6 +40,7 @@ class Mount:
     icon: str
     order: int
     listed: bool
+    column: Column | None = None
 
     @classmethod
     def from_registration(
@@ -54,15 +56,22 @@ class Mount:
             The mount, with the defaults a navigation entry has.
         """
         name = plugin_class.get_name()
+        place = Place(options.get("place") or Place.NAVIGATION)
+        column = (
+            Column(options.get("column") or Column.SIDE)
+            if place is Place.CARD
+            else None
+        )
         return cls(
             plugin_class=plugin_class,
             name=name,
             url_path=plugin_class.get_url_path(),
-            place=Place(options.get("place") or Place.NAVIGATION),
+            place=place,
             label=options.get("label") or name.replace("-", " ").title(),
             icon=options.get("icon", "circle"),
             order=options.get("order", 0),
             listed=options.get("menu") is not False,
+            column=column,
         )
 
 
@@ -100,9 +109,10 @@ class PluginRegistry:
         Args:
             *models: The base model classes to register the plugin against.
             **kwargs: Registration options such as ``label``, ``icon``, ``order``, ``menu``
-                and ``place``, kept with the plugin for building its entry. ``place`` is a
-                :class:`~fairdm.contrib.plugins.places.Place` or its value, and defaults to the
-                navigation.
+                ``place`` and ``column``, kept with the plugin for building its entry. ``place`` is
+                a :class:`~fairdm.contrib.plugins.places.Place` or its value, and defaults to the
+                navigation. ``column`` is a :class:`~fairdm.contrib.plugins.places.Column` or its
+                value, and only a card takes one.
 
         Returns:
             A decorator that adds the plugin class to the registry and returns it.
@@ -267,6 +277,19 @@ class PluginRegistry:
             if mount.place is Place.ACTION and mount.listed
         ]
         return sorted(actions, key=lambda mount: (mount.order, mount.name))
+
+    def get_cards(self, model: type[Model]) -> list[Mount]:
+        """Return the cards a record type offers, before any visitor is considered.
+
+        Args:
+            model: The record type.
+
+        Returns:
+            The card mounts, by position and then name, so the order is the same whichever
+            order the plugins were registered in.
+        """
+        cards = [mount for mount in self.resolve(model) if mount.place is Place.CARD]
+        return sorted(cards, key=lambda mount: (mount.order, mount.name))
 
     def get_urls_for_model(self, model: type[Model]) -> list[URLPattern]:
         """Collect the URL patterns of every plugin a model serves and build its menu.

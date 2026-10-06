@@ -203,7 +203,21 @@ class Plugin(PermissionRequiredMixin, View):
         return super().get_queryset()  # type: ignore[misc]
 
     def has_permission(self) -> bool:
-        """Decide with :func:`~fairdm.contrib.plugins.access.can_open`, as the navigation entry does."""
+        """Decide with :func:`~fairdm.contrib.plugins.access.can_open`, as the navigation entry does.
+
+        A further view of an overview card is also refused unless the card would be drawn for
+        this viewer. Further views of pages are decided by their own rule only.
+        """
+        from .cards import Card
+
+        # `as_view` sets the owner on the instance; the class attribute is always None.
+        owner = self.plugin_class
+        if (
+            owner is not None
+            and issubclass(owner, Card)
+            and not owner.admits(self.request, self.base_object, self.registered_model)
+        ):
+            return False
         return can_open(self.__class__, self.request, self.base_object)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

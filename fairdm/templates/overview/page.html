@@ -25,6 +25,9 @@
                             those buttons keeps it; nothing is drawn when there are none
     overview.figures        the figures strip
     overview.main           the wide column; each record fills it with its own blocks
+    overview.contributed_main
+                            the overview cards plugins register for the wide column, drawn
+                            after overview.main; nothing is written when there are none
     overview.side           the facts column, which holds, in this order:
       overview.readiness      what the team still has to add (team only)
       overview.details        what it belongs to, licence, status, dates, how machines reach it
@@ -35,6 +38,9 @@
       overview.funding        funding awards, on records that carry them
       overview.cite           how to cite it
       overview.record_facts   cards particular to the record (a dataset's publications)
+    overview.contributed_side
+                            the overview cards plugins register for the side column, drawn after
+                            everything above; nothing is written when there are none
     overview.chart_library  the ECharts script; replace it to serve ECharts yourself
 
   The facts-column blocks draw the shared `c-card.*` components from the context every overview
@@ -128,6 +134,9 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
     <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
       {% block overview.main %}{% endblock overview.main %}
+      {% block overview.contributed_main %}
+        {% for card in overview_cards.wide %}<div class="contents" data-contributed-card="wide">{{ card }}</div>{% endfor %}
+      {% endblock overview.contributed_main %}
     </div>
 
     <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
@@ -177,6 +186,9 @@
         {% block overview.record_facts %}{% endblock overview.record_facts %}
 
       {% endblock overview.side %}
+      {% block overview.contributed_side %}
+        {% for card in overview_cards.side %}<div class="contents" data-contributed-card="side">{{ card }}</div>{% endfor %}
+      {% endblock overview.contributed_side %}
     </div>
   </div>
 {% endblock page.content %}
