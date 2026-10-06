@@ -1,0 +1,102 @@
+{
+  "lens": "security",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "Feature branch 022-record-contributors-and-access vs origin/main (git diff origin/main...HEAD, head d2c2cb00), security lens. Read in full: access.py, permissions.py (contributors and core), services/crediting.py, services/registries.py, plugins/shared.py and its templates, core/managers.py, core/forms.py, the four record types' forms/plugins/views, fairdm/api (permissions, filters, serializers, viewsets), conf/settings/auth.py, fairdm/permissions.py, migrations 0022 and 0023, services/merge.py. Each verified finding was reproduced with a throwaway pytest module kept outside the repository (run against the test settings, then deleted); nothing in the worktree was edited.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "An edit-level contributor can make a private project or dataset public through the API. The manage-only rule for visibility (FR-037, story 4 scenario 3, decision D2) was applied to the update forms only; the API update path still needs nothing more than change_<model>, which the new table puts at the edit level.",
+      "evidence": "fairdm/api/viewsets.py:88 (ProjectViewSet serializer fields include \"visibility\") and :126 (DatasetViewSet, same); fairdm/api/viewsets.py:53-57 BaseViewSet.perform_update saves whatever validated; fairdm/api/permissions.py:38-39 maps PUT/PATCH to change_<model>; fairdm/contrib/contributors/access.py:21-25 puts change_<model> at ContributionLevel.EDIT. Nothing on this path asks RecordAccess.can_manage. Observed: a person holding only the edit level on a private dataset sent PATCH /api/v1/datasets/<uuid>/ {\"visibility\": 1} and got 200 with the stored visibility now PUBLIC; identical result for PATCH /api/v1/projects/<uuid>/. The same person is refused the field on the web form (ManagerOnlyFieldsMixin, fairdm/core/forms.py:21-35). docs/portal-development/restful-api.md:102 states the API enforces the same object-level model as the web interface, which this contradicts. No test would go red: tests/test_api/test_viewsets.py covers only creator credit.",
+      "reproduction": "Create a private dataset; give person E a contribution at level EDIT (2) on it and nothing else. As E: PATCH /api/v1/datasets/<uuid>/ with JSON {\"visibility\": 1}. Expected 403; actual 200 and Dataset.visibility == Visibility.PUBLIC. Repeat with a private project at /api/v1/projects/<uuid>/.",
+      "suggested_fix": "In BaseViewSet.perform_update (fairdm/api/viewsets.py:53), before serializer.save(): if any of the manager-only field names (visibility, owner, project, dataset) is in serializer.validated_data with a value different from the instance's, and not RecordAccess(serializer.instance).can_manage(request.user), raise PermissionDenied. One check there also closes SEC-002."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "An edit-level person can raise themself to manage on a sample or measurement, and lock its team out, by moving it to a dataset they manage through the API. The parent field is manage-only on the forms (D2) but writable at the edit level on the API, and the API never runs the model's clean(), so the no-manager refusal of FR-056 is skipped too.",
+      "evidence": "fairdm/api/serializers.py:56 and :86 (BaseSampleSerializer / BaseMeasurementSerializer expose a writable \"dataset\"); fairdm/utils/inspection.py:147-169 get_default_fields() includes \"dataset\" (and \"sample\"), so a type registered with no field list exposes it (fairdm/api/viewsets.py:196-200); fairdm/api/viewsets.py:53-57 saves it with only change_<model> checked (EDIT). DRF ModelSerializer.save does not call full_clean, so Sample.clean / Measurement.clean -> RecordAccess.refuse_move_without_manager (fairdm/core/sample/models.py:146-151, fairdm/contrib/contributors/access.py:260) never runs. Observed with a RockSample serializer built from the default field list: E held EDIT on private dataset H (owner O at MANAGE), and MANAGE on E's own public dataset M. Before: RecordAccess(sample).level_of(E) == EDIT and E.has_perm('demo.delete_rocksample', sample) is False. PATCH {\"dataset\": M.pk} -> 200; afterwards level_of(E) == MANAGE, can_manage(E) is True, level_of(O) is None, and DELETE by E -> 204. Reach: any registered sample or measurement type whose serializer carries dataset (the default field list, or a custom serializer inheriting the base Meta.fields). The demo's RockSample config lists fields without dataset, so the demo endpoint itself ignores the field.",
+      "reproduction": "Register or build a sample serializer with the default fields. Dataset H private: O at MANAGE, E at EDIT. Dataset M public: E at MANAGE (E created it). As E: PATCH /api/v1/samples/<slug>/<uuid>/ {\"dataset\": <M.pk>} -> 200. Then DELETE the same address as E -> 204; O now gets 404 on the sample.",
+      "suggested_fix": "The perform_update check proposed in SEC-001 (dataset is one of the manager-only names) refuses this. For FR-056 on the same path, call RecordAccess(instance).refuse_move_without_manager(\"dataset\") after assigning the new parent and before save, turning its ValidationError into a 400."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "Any signed-in account can create a sample or measurement inside any non-private dataset it holds nothing on, through the API, and is then listed on it at the manage level. add_<model> is declared at the edit level in REQUIRED_LEVEL but nothing checks it against the dataset the record is created in, which FR-043 forbids.",
+      "evidence": "fairdm/api/permissions.py:48-57 has_permission returns True for every authenticated POST (\"access is decided per object\"), and no object exists on create, so has_object_permission is never asked; fairdm/api/viewsets.py:47-51 perform_create only requires authentication; fairdm/api/serializers.py:19-30 CreatorCreditMixin then gives the requester MANAGE; fairdm/contrib/contributors/access.py:21-25 lists add_sample/add_measurement at EDIT with no caller. The dataset field's queryset is Dataset's default manager, so every dataset that is not private is accepted (a private pk answers 400 does_not_exist). Observed: a fresh account with no contribution anywhere POSTed {name, dataset: <pk of another team's public dataset>, rock_type, collection_date} to a RockSample viewset whose serializer carries dataset -> 201, sample stored in that dataset, requester at level 3 on it. The creation itself predates this branch (the creator used to receive three guardian rows); the branch replaces the grant and claims FR-043 without adding the check. With the demo's own field list (no dataset) the same POST raises IntegrityError (500), so every type on which API creation works at all has this hole.",
+      "reproduction": "Sign up a new account S. Pick the pk of any public dataset D that S is not credited on. As S: POST /api/v1/samples/<slug>/ {\"name\": \"x\", \"dataset\": <D.pk>, ...required type fields}. Expected 403; actual 201 with the record in D and S listed on it at MANAGE.",
+      "suggested_fix": "Give the dataset field of BaseSampleSerializer and BaseMeasurementSerializer the same choices the forms use: in get_fields(), set fields[\"dataset\"].queryset = Dataset.all_objects.accessible_to(self.context[\"request\"].user, ContributionLevel.EDIT) (as fairdm/core/sample/forms.py:75 does). A dataset the requester cannot edit then fails validation with 400."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Two tabs of a private project answer 200 to anyone, signed in or not, and show the project's name, where the overview and the new Contributors tab answer 404. FR-049 and story 4 scenario 11 require the same answer as for a record that does not exist on every tab.",
+      "evidence": "fairdm/core/project/plugins.py:703-715 (DatasetList) and :718-723 (ProjectExportView) are registered on Project with neither check nor permission, so Plugin.has_permission -> can_open passes for everyone (fairdm/contrib/plugins/base.py:200-202; get_base_object reads the project past visibility). Observed for a private project named SECRET-PROJECT-NAME, anonymous client: GET /projects/<uuid>/ -> 404; GET /projects/<uuid>/contributors/ -> 404; GET /projects/<uuid>/dataset-list/ -> 200 and GET /projects/<uuid>/project-export-view/ -> 200, both with the project name in the breadcrumb and title and the project's tab strip; the dataset list also listed the project's public dataset, tying it to the private project. Same for a signed-in person with no credit. Not introduced by this diff, but the diff registers its own tab beside these and the spec's FR-049 covers them; no test asserts it for these two tabs.",
+      "reproduction": "Create a private project. Signed out, GET /projects/<uuid>/dataset-list/ and /projects/<uuid>/project-export-view/. Expected 404; actual 200 with the project's name on the page.",
+      "suggested_fix": "On both classes add PrivateRecordNotFoundMixin first in the bases and check = staticmethod(project_is_visible), as Overview does at fairdm/core/project/plugins.py:226 and :250."
+    },
+    {
+      "id": "SEC-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The four editing pages of a sample confirm that a private sample exists: they answer a sign-in redirect to a visitor and 403 to a signed-in person with no credit, where the overview and Contributors tab answer 404. FR-049 names editing pages.",
+      "evidence": "fairdm/core/sample/plugins.py:324-371 (Edit, Descriptions, Keywords, KeyDates) declare permission = \"sample.change_sample\" and no check, and do not use the 404 handling TypedOverviewPlugin has (fairdm/core/plugins.py:516-522). Observed for a sample in a private dataset: /samples/<uuid>/ -> 404 and /samples/<uuid>/contributors/ -> 404 for both viewers; /samples/<uuid>/edit/, /basic-information/, /keywords/, /key-dates/ -> 302 anonymous, 403 signed in. No content is disclosed, only existence to someone who already holds the address. Predates this diff; D29 records the 404 rule for project and dataset editing pages only.",
+      "reproduction": "Create a sample in a private dataset. Signed in as a person with no credit: GET /samples/<uuid>/edit/ -> 403, while GET /samples/<random uuid>/edit/ -> 404.",
+      "suggested_fix": "Give the four plugins a handle_no_permission that raises Http404 when Sample.objects.visible_to(request.user) does not contain the record (the rule fairdm/core/plugins.py:474-477 already builds)."
+    },
+    {
+      "id": "SEC-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A person who holds only the view level on a project (or is merely credited on it) can create datasets inside it, and a dataset manager can move a dataset into such a project. add_dataset sits at the edit level in the table but the project choice is 'every project the user is credited on'.",
+      "evidence": "fairdm/core/dataset/forms.py:135 project_field.queryset = self.request.user.projects.all(); Contributor.projects (fairdm/contrib/contributors/models.py:350-353) is every project with a contribution of theirs at any level. fairdm/core/dataset/views.py:16 DatasetCreateView is LoginRequiredMixin only. Observed: V at level VIEW on a private project POSTed the create form with project=<that project> -> 302, dataset stored in the project. V gains nothing over the project's other records; the consequence is unauthorised additions to a project and that an access-only colleague (decision 'Access-only contributors are listed, with no role') can write into it.",
+      "reproduction": "Private project P with V at VIEW. As V: POST /datasets/create/ (name, project=P.pk, license, visibility). Expected the project to be refused; actual 302 and Dataset.project_id == P.pk.",
+      "suggested_fix": "Replace the queryset at fairdm/core/dataset/forms.py:135 with Project.objects.accessible_to(self.request.user, ContributionLevel.EDIT)."
+    },
+    {
+      "id": "SEC-007",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The add-person page accepts by POST what its search leaves out: django-guardian's placeholder AnonymousUser can be listed on a record at the view level, and an organization can be added through the person page.",
+      "evidence": "fairdm/contrib/contributors/plugins/shared.py:468 excludes get_anonymous_user() from the search only; add_from_portal at :630-644 takes any Contributor pk. Observed as a manager: POST add-person/ {via: portal, contributor: <anonymous user pk>, affiliation: none} -> 302 and a contribution with level 1; POST with an organization's pk -> 302 and a contribution with level None. No access results (RecordAccess.level_of refuses an unauthenticated user, and the placeholder cannot sign in); the record's people list and citation then name 'AnonymousUser'.",
+      "reproduction": "As a record's manager: POST /datasets/<uuid>/contributors/add-person/ with via=portal, contributor=<pk of guardian's anonymous user>, affiliation=none.",
+      "suggested_fix": "In Crediting.add (fairdm/contrib/contributors/services/crediting.py:136), refuse the anonymous placeholder alongside the superuser refusal; in add_from_portal, answer 404 when the contributor's kind does not match self.is_person."
+    },
+    {
+      "id": "SEC-008",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "The ORCID and ROR lookups are an unthrottled way for any signed-in account to make the server issue outbound requests, each holding a worker for up to the 5 second timeout per socket operation. Any account can reach them by creating a project, which makes it a manager.",
+      "evidence": "fairdm/contrib/contributors/plugins/shared.py:506-527 (search_registry runs on every GET with via=registry and rq or chosen) and :646-654; fairdm/contrib/contributors/services/registries.py:23 and :55-57 (requests.get, timeout=5, no cache, no rate limit, redirects followed). The SSRF side is sound: both hosts are constants, the identifier is checked with re.fullmatch before it reaches the path (registries.py:92-93, :297-298, :191-193, :378-380), search terms travel only as query parameters, and a chosen record is fetched again by identifier on POST. Not demonstrated under load; confirming it needs a slow registry and concurrent requests.",
+      "suggested_fix": "Cache search and fetch answers briefly by (registry, term) with Django's cache in ask() callers, which bounds repeat requests without a new mechanism."
+    }
+  ],
+  "notes": [
+    "docs/portal-development/restful-api.md:102 says the API enforces the same object-level model as the web interface; with SEC-001 to SEC-003 open that sentence is not true for visibility, the parent field and creation.",
+    "fairdm/api/permissions.py:55-56 still says access is decided per object 'by guardian'; for core records it is the contribution level.",
+    "fairdm/core/project/plugins.py:76-77 (visible_to_holder_of docstring) says a model-level holder 'finds no grant here'; a shipped portal role now does, through PortalRolePermissionBackend."
+  ]
+}

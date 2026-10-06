@@ -1,0 +1,112 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "Feature branch 022-record-contributors-and-access vs origin/main (git diff origin/main...HEAD, head d2c2cb00), source, migrations, templates, tests and the docs/ pages it touches.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "CORR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "A contributor at the edit level can make a private project or dataset public through the API, which FR-037 and US4 scenario 3 reserve for the manage level. D2 closed this on the update forms (ManagerOnlyFieldsMixin) and left the API open.",
+      "evidence": "fairdm/api/serializers.py:16-30 (CreatorCreditMixin overrides create only) and :230 (project/dataset serializers are CreatorCreditMixin + ModelSerializer with `visibility` writable); fairdm/api/permissions.py:36-41 maps PUT/PATCH to change_<model>, which fairdm/contrib/contributors/access.py:21-25 gives to EDIT. Nothing on the write path asks RecordAccess.can_manage. Observed: PATCH {\"visibility\": 1} as an EDIT-level contributor answered 200 and the stored visibility became PUBLIC, for api:dataset-detail and api:project-detail alike. DELETE by the same user answered 403, so only visibility leaks. No test covers an edit-level write to visibility (tests/test_api/ has none).",
+      "reproduction": "Private DatasetFactory; ContributionFactory(content_object=dataset, contributor=editor, level=ContributionLevel.EDIT) plus a second person at MANAGE; APIClient().force_authenticate(editor); api.patch(reverse('api:dataset-detail', kwargs={'uuid': dataset.uuid}), {'visibility': 1}, format='json') -> 200, dataset.visibility == Visibility.PUBLIC. Same for api:project-detail with EDIT on the project.",
+      "suggested_fix": "In CreatorCreditMixin add `update(self, instance, validated_data)` that raises rest_framework.exceptions.PermissionDenied when `validated_data.get('visibility', instance.visibility) != instance.visibility` and not `RecordAccess(instance).can_manage(self.context['request'].user)`, then calls super().update. Add the API test for an edit-level PATCH of visibility on a project and a dataset."
+    },
+    {
+      "id": "CORR-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Saving the edit page for a person who holds a higher level from the record above silently raises their own stored level to the inherited one, even when only roles or the organization were changed. FR-040 and US1 scenario 5 say changing roles or organization leaves the level as it was. The raised level then outlives the inherited one: lower or remove the person on the project and they keep the level on the dataset that nobody chose to give them.",
+      "evidence": "fairdm/contrib/contributors/plugins/shared.py:749-750 draws the levels with floor=entry['above'] and preselects chosen_level=entry['effective']; contribution_edit.html:60 disables every radio below the floor, so the stored own level cannot be submitted; shared.py:762-763 and 785-790 pass the posted level to Crediting.update, and fairdm/contrib/contributors/services/crediting.py:222-224 writes it. Posting the stored level instead is refused (crediting.py:202-215, below_inherited). Observed: person at EDIT on the project and VIEW on the dataset; GET edit page gives chosen_level 2 and levels [(1, disabled), (2), (3)]; POST {level: 2, affiliation: none} -> 302 and the dataset contribution's level is 2; POST {level: 1} -> 422 'They hold \"Can edit\" from the project above'. docs/user-guide/crediting-a-record.md:35 and :221 state the opposite.",
+      "reproduction": "ContributionFactory(project, p, EDIT); own = ContributionFactory(dataset, p, VIEW); as a manager POST <dataset>/contributors/<own.pk>/edit/ with level=2&affiliation=none (what the form preselects); own.refresh_from_db(); own.level == 2. Then lower p to VIEW on the project: RecordAccess(dataset).level_of(p) is still EDIT.",
+      "suggested_fix": "In ContributionEdit.post (shared.py:762-763), when the posted level equals entry['above'] and is higher than entry['own'], pass level=None to Crediting.update so the stored level is left as it is. Add a page test: a role-only save for a person who inherits a higher level leaves Contribution.level unchanged."
+    },
+    {
+      "id": "CORR-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The Contributors tab issues about eight queries per person for a viewer who can manage the record, so the page grows with the list. The specification's edge case asks that a record with hundreds of people stays usable; 200 people is about 1,600 queries per page view.",
+      "evidence": "fairdm/contrib/contributors/plugins/shared.py:916-924 calls describe() per contribution; describe() (shared.py:374-399) calls contribution.contributor.get_real_instance() (one query, select_related stops at the polymorphic base), access.own_level and access.level_from_above (shared.py:380-381; each runs RecordAccess.levels_held, fairdm/contrib/contributors/access.py:161-177, one query each plus the chain keys), and contributor.can_sign_in(). Measured with CaptureQueriesContext on a rock sample's tab as its manager: 68 queries with 5 other people, 228 with 25 (8.0 per person).",
+      "reproduction": "RockSampleFactory in a public dataset; one MANAGE contribution plus N VIEW contributions of PersonFactory people; client.get(reverse(sample, 'contribution-list')) as the manager inside CaptureQueriesContext, for N=5 and N=25.",
+      "suggested_fix": "In ContributionList.get_context_data fetch the real contributors once with Contributor.objects.in_bulk (as RecordOverviewPlugin.get_contributions does, fairdm/core/plugins.py) and read every listed person's levels in one query from RecordAccess.on_chain(include_record=True), then have describe() read both from those two maps instead of asking per person."
+    },
+    {
+      "id": "CORR-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The migration guide tells a portal developer to replace get_objects_for_user with `Dataset.objects.with_level(user, ContributionLevel.VIEW)`. `Dataset.objects` excludes private datasets, so the documented replacement silently returns none of the private datasets the user holds a level on, which are the ones the old call existed to find.",
+      "evidence": "docs/more/migration-guides.md:26-28. fairdm/core/dataset/models.py:217-220 (DatasetManager.get_queryset excludes Visibility.PRIVATE) and :245-246 (objects vs all_objects). Observed: for a private dataset with the user at MANAGE, `Dataset.objects.with_level(user, VIEW)` does not contain it and `Dataset.all_objects.with_level(user, VIEW)` does. docs/portal-development/contributors.md uses all_objects in its own examples, so the two pages disagree.",
+      "reproduction": "private = DatasetFactory(visibility=Visibility.PRIVATE); ContributionFactory(content_object=private, contributor=user, level=MANAGE); private in Dataset.objects.with_level(user, ContributionLevel.VIEW) is False.",
+      "suggested_fix": "Change the guide's example to `Dataset.all_objects.with_level(user, ContributionLevel.VIEW)` and say in the same bullet that `Dataset.objects` leaves private datasets out."
+    },
+    {
+      "id": "CORR-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "A person at the view level on a project (or listed on it with no level) is offered that project on the dataset create page and can create a dataset inside it, which makes them its manager. REQUIRED_LEVEL maps add_dataset to EDIT but nothing checks it on this path, so what a view-only person is refused on the project (changing it) they can still do by adding to it. FR-043 and FR-051 ask that every declared right is governed by a level and decided the same way everywhere.",
+      "evidence": "fairdm/core/dataset/forms.py:135 sets the project choices to `self.request.user.projects.all()`, and fairdm/contrib/contributors/models.py:350-353 defines `projects` as every project the person is credited on, whatever the level. fairdm/core/dataset/views.py:34-44 then lists the creator at MANAGE. Observed: a person at VIEW on a project has has_perm('project.change_project', project) False, and the project is in DatasetCreateForm(request).fields['project'].queryset. The line predates the branch; the level that should gate it is new.",
+      "reproduction": "project = ProjectFactory(); ContributionFactory(content_object=project, contributor=viewer, level=ContributionLevel.VIEW); request.user = viewer; project in DatasetCreateForm(request).fields['project'].queryset is True.",
+      "suggested_fix": "At forms.py:135 use `Project.objects.accessible_to(self.request.user, ContributionLevel.EDIT)`, the same call the sample and measurement forms use for their dataset choices."
+    },
+    {
+      "id": "CORR-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A credit written for a sample or measurement held as its base-class instance is stored under the base content type, while every level query looks under the record's real type. The credit then grants nothing and does not appear on the tab.",
+      "evidence": "fairdm/contrib/contributors/services/crediting.py:153 uses ContentType.objects.get_for_model(self.record); fairdm/contrib/contributors/models.py:683 and :1919 and fairdm/core/abstract.py:118 do the same. fairdm/contrib/contributors/access.py:113-115 (RecordAccess.key) and fairdm/core/managers.py with_level read the real instance's type (polymorphic_ctype_id). Observed with base = Sample.objects.non_polymorphic().get(pk=rock.pk): Crediting(base).add(p), base.add_contributor(p) and Contribution.add_to(p, base) each store content type 'sample | sample', and RecordAccess(rock).level_of(p) is None. Migration 0023 keys existing credits by kind, so a credit already stored under the base type is given a level that is never read. No page reaches this today (plugins and serializers hold real instances); fairdm.core.utils.get_non_polymorphic_instance hands such instances to portal code.",
+      "reproduction": "rock = RockSampleFactory(); base = Sample.objects.non_polymorphic().get(pk=rock.pk); Crediting(base).add(person); RecordAccess(rock).level_of(person) is None.",
+      "suggested_fix": "In Crediting.__init__ store `record.get_real_instance()` when the record has that method, so add, the duplicate check and the lock all use the real type."
+    },
+    {
+      "id": "CORR-007",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "RecordAccess.can_manage and RecordLevelMixin.accessible_to accept any model-level change_<model> permission, including one granted straight to a person or through a group the portal made itself. The specification names two groups who may change contributors (people at manage, and the Data Curator role), and PortalRolePermissionBackend deliberately refuses to turn a non-role model-level grant into an object-level answer. Such a person passes can_manage without being able to edit the record itself.",
+      "evidence": "fairdm/contrib/contributors/access.py:310-311 `user.has_perm(f'{app}.change_{model}')` with no object, answered by ModelBackend for any direct or group grant; fairdm/core/managers.py accessible_to does the same. fairdm/permissions.py module docstring: 'only a permission held through membership of one of the four shipped portal roles confers the object-level answer'. On a private record the page 404s first (shared.py:352), so the reach is public records and the manager-only form fields. Not run; read from the code.",
+      "reproduction": "Give a person `dataset.change_dataset` directly (user_permissions) and no role; RecordAccess(public_dataset).can_manage(person) is True while person.has_perm('dataset.change_dataset', public_dataset) is False.",
+      "suggested_fix": "Either ask the role (`PortalRoles.is_held_by(user, PortalRoles.DATA_CURATOR)` or superuser) in can_manage, or record in decisions.md that a direct model-level grant is meant to manage contributors."
+    },
+    {
+      "id": "CORR-008",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "`Contribution.add_to(contributor, obj, affiliation=org)` stores the organization a person is credited from without listing it on the record, so a record can name a person credited from an organization that is not among its organizations (SC-009, FR-025). Only Crediting lists it.",
+      "evidence": "fairdm/contrib/contributors/models.py:1917-1925: get_or_create with defaults {'level': ..., 'affiliation': affiliation} and no call to list the organization; compare fairdm/contrib/contributors/services/crediting.py:149-150. The helper is public and documented in docs/portal-development/contributors.md.",
+      "reproduction": "Contribution.add_to(person, dataset, affiliation=org); dataset.contributors.filter(contributor=org).exists() is False while the person's entry shows org.",
+      "suggested_fix": "In Contribution.add_to, when a credit is created for a person with an affiliation, call `Crediting(obj).list_organization(affiliation)`; or state in the helper's docstring and the docs page that it does not list the organization."
+    },
+    {
+      "id": "CORR-009",
+      "severity": "low",
+      "confidence": "speculative",
+      "claim": "The refusal of a move that leaves no manager (FR-056) lives only in Model.clean and takes no lock, so it does not hold for a save that skips full_clean, and it can pass against contributors that a concurrent removal is about to change.",
+      "evidence": "fairdm/contrib/contributors/access.py:260-294 is called from Dataset.clean, Sample.clean and Measurement.clean only (fairdm/core/dataset/models.py:361-366, sample/models.py:146-151, measurement/models.py:105-112); Crediting.locked() (services/crediting.py:32-51) is not involved. The API does not expose `project` or `dataset` as writable today (rock sample fields: url, name, rock_type, ...), so no shipped surface reaches it.",
+      "reproduction": "sample.dataset = other_dataset_with_no_managers; sample.save() succeeds with no refusal.",
+      "suggested_fix": "None needed before merge. If moving gets a page or API field of its own (#404), make the check inside Crediting.locked()."
+    }
+  ],
+  "notes": [
+    "spec.md SC-010 and US5 scenario 7 still say nobody loses the ability to delete a record at upgrade; D4 decides the opposite for someone who held only change_dataset and deleted its samples. The spec text was not amended to carry the exception.",
+    "docs/portal-development/contributors.md:1020 gives `ask(address, parse, params=None, headers=None, missing_ok=False)`; the function is keyword-only after `parse` (services/registries.py:37).",
+    "docs/portal-administration/managing_users_and_permissions.md says the upgrade 'does not reverse ... leaves the levels in place'; reversing 0022 as well drops the level column.",
+    "The edge case 'two organizations may be merged' has no code to exercise: the package has merge_persons only.",
+    "Coverage read: FR-063/064/065 by tests/test_contrib/test_contributors/test_migrations.py (TestConvertStoredPermissions, TestConvertAffiliations), which run convert_stored_permissions on the historical apps and read Contribution rows, including group rows, subtypes, a second run and an empty table. FR-053/054 by test_services/test_crediting.py::TestLastManager (reads Contribution rows and the error code). FR-055 only by TestRecordLock, which reads the SQL issued and is skipped on SQLite (known limit). FR-062/SC-012 by tests/test_portal_roles.py::TestPermissionsAreThoseOnMain, which compares the declarations with a hard-coded copy of main's. FR-056 by the model tests in tests/test_core/test_{dataset,sample,measurement}/test_models.py (full_clean only).",
+    "The three TestUpdateLevel/TestRemove tests changed in 07e91a3f add a second manager and keep every assertion.",
+    "`makemigrations --check --dry-run` reports nothing for fairdm apps (only the third-party orbit app drifts). No `{#` comment spans lines in the new templates, and no untranslated text was found in them.",
+    "Migration 0023 was read for user rows, group rows, subtypes, a second run, an empty database and records with no contributors; no loss was found beyond what D4 and D26 record."
+  ]
+}

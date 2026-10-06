@@ -260,3 +260,28 @@ the creator's level land here with the backend, so no commit leaves a creator lo
 - [ ] T032 [US7] Documentation: stepping in on a record, in `docs/portal-administration/roles.md`.
   Read every page this feature added or changed once more against the finished branch, and run
   each example (SC-014).
+
+## Phase 8: fixes from the code review
+
+Each task closes a finding in `review-findings-security.json` or
+`review-findings-correctness.json`. The finding's own reproduction is the failing test to write
+first.
+
+- [ ] T033 [US4] SEC-001, CORR-001: through the API, changing `visibility` on a project or dataset
+  needs the manage level. An edit-level PATCH of visibility answers 403 and stores nothing.
+- [ ] T034 [US4] SEC-002: through the API, changing a record's parent (`project`, `dataset`,
+  `sample`) needs the manage level, and a move that would leave the record without a manager is
+  refused with 400, as `refuse_move_without_manager` does on the forms.
+- [ ] T035 [US4] SEC-003: through the API, a record is created only inside a parent the requester
+  holds the edit level on. The parent field offers what the forms offer; anything else answers 400.
+- [ ] T036 [US4] SEC-004: the project's dataset list tab and export tab answer a private project
+  as the overview does: 404 to a visitor and to a signed-in person with no credit.
+- [ ] T037 [US4] CORR-005, SEC-006: the dataset create page, and the project field of the dataset
+  update form, offer only projects the person holds the edit level on.
+- [ ] T038 [US1] CORR-002: saving the edit page for a person whose level comes from the record
+  above leaves their own stored level as it was, unless a level above the inherited one is chosen.
+- [ ] T039 [US1] CORR-003: the Contributors tab reads every listed person's profile and levels in
+  a fixed number of queries, whatever the length of the list.
+- [ ] T040 [US4] CORR-004 and the reviewers' notes on what the documentation asserts: the migration
+  guide names `all_objects`, the API page states what the API enforces, the `ask` signature and
+  the upgrade's reversal are described as the code has them, and two stale comments are corrected.
