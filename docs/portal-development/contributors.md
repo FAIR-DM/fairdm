@@ -848,12 +848,13 @@ crediting.remove(contribution)                   # and the level goes with it
 | `add` | the contributor is a superuser, who cannot be credited | `superuser` |
 | `update` | a role is not in the group the record's type offers | `role_not_offered` |
 | `update` | the level is below what the person holds from a record above | `below_inherited` |
+| `update` | the change would leave the record with nobody who counts as able to manage it | `last_manager` |
 | `remove` | the contribution is an organization that people on the record are credited from | `credited_from` |
+| `remove` | the contribution is the only thing that makes the record manageable | `last_manager` |
 
 `update` replaces the roles and sets the level when one is given: leave `level` out and it stays as it
 is, because a contribution role carries no rights. A level is ignored for an organization. When
-both a role and the level are refused the error holds both, in its `error_list`, and nothing is
-saved. `offered_roles()` returns the roles the vocabulary groups for the record's type, in the
+several refusals apply the error holds them all, in its `error_list`, and nothing is saved. `offered_roles()` returns the roles the vocabulary groups for the record's type, in the
 vocabulary's order.
 
 `make_creator(user, roles=())` lists the person who made a record at the manage level, with the
@@ -876,6 +877,40 @@ and can then be removed.
 
 The `credited_from` refusal carries the people in `params["people"]`, so a page can name them.
 `credited_from()` returns the same people for every organization on the record at once.
+
+#### The last manager
+
+A record that has someone who counts as able to manage it, as `RecordAccess(record).managers()`
+reckons, keeps one. `update` and `remove` refuse, with code `last_manager`, a change that would take
+the record from at least one such person to none, whoever asks. A record that has none already may
+lose or raise anyone. The person's own level and the level they hold from a record above are both
+read, so lowering a manager who also manages through the dataset is allowed. The refusal's
+`params` hold `name` and `kind`.
+
+`would_leave_no_manager(contribution, level=None)` answers the same question without changing
+anything, for a page that has to say so before the person asks: `level=None` asks about removing the
+contribution, and a level asks about lowering it to that level. The edit page attaches
+`last_manager` to its level field, and the remove page draws its refusal from that answer.
+
+#### One change at a time
+
+`add`, `update`, `remove` and `make_creator` each run in a transaction that first locks the record's
+row with `select_for_update`, through the model's `all_objects` manager where it has one so that a
+private record is found, before anything about its contributors is read. Two changes to one record
+wait for each other and each sees what the other left, so two managers cannot remove each other at
+the same moment. `locked()` is the context manager that does it, and a method you add to `Crediting`
+that changes contributors uses it too. A database that cannot lock rows, such as SQLite, runs the
+change in the transaction alone.
+
+### Moving a record
+
+`Dataset.clean`, `Sample.clean` and `Measurement.clean` refuse a change of parent, a dataset's
+project or a sample's or measurement's dataset, that would leave the record with nobody who counts
+as able to manage it when it had someone before the change. The error is attached to the parent field
+with code `no_manager`. A new record, a record whose parent did not change and a record that had
+nobody already are never refused. The check is
+`RecordAccess(record).refuse_move_without_manager("project")` or `("dataset")`, which compares the
+record with the one stored.
 
 ### Choosing the organization on a page
 

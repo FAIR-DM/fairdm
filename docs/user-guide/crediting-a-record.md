@@ -164,6 +164,32 @@ says. Choosing an organization for a record adds nothing to the person's own aff
 To change it later, choose **Edit** beside the person and pick a different organization or none.
 Only that changes. Their roles and what they may do on the record stay as they were.
 
+## Every record keeps a manager
+
+A record always has someone who can manage it. The portal refuses to remove the last person who
+can, and to lower their level below manage, so that a record is never left with nobody to look
+after it. The refusal applies to everyone, a superuser and a Data Curator included. Nothing is
+changed when it happens: the edit page shows the refusal beside the level, and the page for
+removing a person says so and offers no way to go ahead. Give someone else the manage level first,
+and the change can then be made.
+
+Only people who can manage the record count. A person counts when they can sign in and hold the
+manage level on the record or on the record above it. So a sample's only listed manager can be
+removed when someone manages its dataset, and a person who has no account yet does not count, even
+at the manage level. Holding a role in the portal, such as Data Curator, does not count either.
+Raising someone on a record that has no manager at all is always allowed. The rule only refuses a
+change that takes a record from having a manager to having none.
+
+The same holds when a record is moved. A dataset cannot be moved to another project, and a sample
+or a measurement cannot be moved to another dataset, if nobody would then be able to manage it
+there. The form shows the refusal beside the project or dataset field. A record that is moved keeps
+the people listed on it, and a person who manages the new project or dataset manages it too, so a
+move is accepted when someone who can sign in would still manage the record afterwards.
+
+When two profiles are merged and both are listed on a record, one entry remains, at the higher of
+the two levels. A person who was listed on a record the other was not keeps that entry and its
+level.
+
 ## Setting a contributor's roles
 
 Choose **Edit** beside a contributor. The roles offered are the ones the portal groups for that

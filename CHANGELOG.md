@@ -224,6 +224,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Crediting.make_creator` lists whoever made a record at the manage level.
 - The Contributors tab, and every page of it, opens exactly when the record's overview does, and
   shows what each person may do to people who can manage the record only.
+- **A record always keeps someone who can manage it.** `Crediting.update` and `Crediting.remove`
+  refuse, with the code `last_manager`, a change that would leave a project, dataset, sample or
+  measurement with nobody who can sign in and holds the manage level on it or on the record above,
+  whoever asks. The edit page shows the refusal beside the level, and the page for removing a
+  contributor offers no way to go ahead. `Crediting.would_leave_no_manager` answers the question
+  without changing anything. A dataset, sample or measurement cannot be moved to a project or
+  dataset that would leave it without a manager: `clean` refuses it with the code `no_manager`.
+  Every change to a record's contributors first locks the record's row, so two changes to one
+  record cannot overlap. Merging two profiles that are listed on the same record keeps the higher
+  level, and no stored permission row is copied for these four kinds of record. See
+  [Crediting a record](docs/user-guide/crediting-a-record.md).
 - A person credited with `Contribution.add_to()`, `Contributor.add_to()` or `add_contributor()`
   for the first time starts at the view level.
 - `ManagerOnlyFieldsMixin` in `fairdm.core.forms`, and `CreatorCreditMixin` in
