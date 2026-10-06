@@ -374,3 +374,94 @@ affiliation drew it through the hook, and now shows them with none, which is wha
 credit with no organization is.
 **Revisit if**: the maintainer wants the example records to show organizations again, which is a
 change to the seeds.
+
+## Decisions made while building story 3
+
+## D17. A registry that has no such record is an answer, not a failure
+
+**Decision**: `fetch` returns `None` for an identifier that is malformed (no request is made), for a
+404, for an ORCID record with no public name and for a ROR record that is not active. Anything else
+that is not a 200, a network error, a timeout and an answer that is not in the documented form each
+raise `RegistryUnavailable`. A search by identifier is one `fetch`, so an identifier nobody holds
+finds nothing instead of reporting the registry as down.
+**Why**: the brief says every non-200 raises, and tasks.md lists a timeout, a connection error and
+a 500. A 404 from the record endpoints is how ORCID and ROR say "no such record", and reading it as
+"unavailable" would tell a manager the registry is down when they mistyped an identifier.
+**Revisit if**: a registry starts answering 404 for an outage.
+
+## D18. The country is typed as a name or a code, and the approved input stays an input
+
+**Decision**: the country field of an organization entered by hand takes a name or a two-letter code
+from the country field's own list, in any case, and refuses what does not resolve with the code
+`invalid_country`. The template still draws the text input it was approved with.
+**Why**: a select would change what the approved page draws beyond the input becoming a select
+(it would carry two hundred and fifty options on a narrow card), and the brief allows that only when
+nothing else changes. Resolving through `django_countries` gives the same stored value.
+**Revisit if**: the maintainer wants a select on that card.
+
+## D19. A person entered by hand with an email address is in the invited state, and the portal's own reset page can mail it
+
+**Decision**: the person is active, not claimed, has the address in `email` and an unusable
+password, so `account_state` is `INVITED`, `can_sign_in()` is false, they appear in
+`Person.objects.invited()` and they have no social account. The address is shown nowhere. The page
+sends nothing. An address the portal holds, compared without case, is refused on the `email` field
+with the code `email_in_use`, before any same-name offer is built, and the message and the page name
+nobody.
+**Why**: that is what the model calls an invited profile, and the claiming process this feature
+leaves alone starts from it. I checked what allauth does with one in a throwaway test: signing in
+with a password fails, and posting the address to the portal's password reset page sends a reset
+mail to it, because allauth finds users by `Person.email` whatever their password. Stopping that
+would be a change to the sign-in settings or the account adapter, which this story does not touch.
+**Revisit if**: the maintainer wants such a profile unable to receive the reset mail until it is
+claimed. That needs a rule in `AccountAdapter`, and the person's invitation would have to go through
+the claiming service.
+
+## D20. The registry is asked only when its tab is the one open, and only the first ten matches are kept
+
+**Decision**: `ContributionAdd` searches or fetches only when `via` is `registry`, so a portal
+search or a request with a stray `rq` never makes an outbound request. `RESULTS_SHOWN` is ten for
+both registries, and ORCID is asked for ten rows. The portal search keeps the prototype's twenty,
+and asks for one more to know whether there are more.
+**Why**: a manager switching tabs does not reload the page, so each search is its own request, and
+a request for one tab has no business asking another service. ROR returns twenty at a time and ORCID
+as many rows as asked, so ten keeps the list short enough to tell namesakes apart.
+**Revisit if**: managers ask for more matches on one page.
+
+## D21. The same-name check offers people and organizations by what a profile holds
+
+**Decision**: a person's name matches a profile when the full name matches without regard to case,
+or when the given and family names both do, since `Person.name` can differ from the two names.
+Superusers and the placeholder user are never offered. An organization matches on its name without
+regard to case, and no `confirmed` field lets a second one be made. The check runs only when every
+field is valid, so a refused email never produces an offer.
+**Why**: FR-018, and the email rule in D19.
+**Revisit if**: two organizations that really share a name need to be made by hand.
+
+## D22. The ORCID and ROR patterns became two constants in models.py
+
+**Decision**: `ORCID_PATTERN` and `ROR_PATTERN` in `fairdm.contrib.contributors.models` replace the
+two literals inside `Person.clean` and `Organization.clean`, and `services/registries.py` matches
+with `re.fullmatch` on them, so a trailing newline is not part of an identifier.
+**Why**: the brief asks the registries to reuse the pattern near `Person` and the ROR cleaner in
+`utils/transforms.py`. The pattern was a literal inside a method, so reusing it meant naming it.
+The two `clean` methods behave as before.
+**Revisit if**: never.
+
+## D23. A person the portal holds under an ORCID iD is offered their own affiliations
+
+**Decision**: on the chosen step the choice is built for `Orcid.known(record)`, and
+`AffiliationChoice.choice()` now selects the person's primary affiliation before it falls back to
+the employer ORCID lists. A person ORCID names who is not in the portal is offered the first
+current employer, typed into the other-organization field.
+**Why**: D14 left the registry ways for this story, and a person already in the portal holds
+affiliations that `org:<id>` can name. FR-023 selects the primary affiliation to begin with.
+**Revisit if**: the employer ORCID lists should be offered next to the person's own.
+
+## D24. The ROR identifier is stored as the bare ID, and either form finds it
+
+**Decision**: `Ror.profile` saves the ID without `https://ror.org/`, the form the resolver table and
+`RORTransform` use. `Ror.known` looks for the bare ID and for the address, since
+`Organization.from_ror` has stored the address.
+**Why**: both forms exist in a portal's data, and a second organization for the same ROR ID is the
+failure FR-016 rules out.
+**Revisit if**: the two forms are made one.
