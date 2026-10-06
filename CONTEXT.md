@@ -152,7 +152,8 @@ owns the model class, its fields and its validation.
 
 A unit of behaviour attached to a model's detail view, registered against one or more models. The
 public API is what `fairdm/contrib/plugins/__init__.py` exports: `Plugin`, `Card`, `Place`,
-`Column`, `register`, `registry`, `is_instance_of`, `reverse` and `slugify`.
+`Column`, `register`, `remove`, `registry`, `can_open`, `has_perm`, `is_instance_of`, `reverse` and
+`slugify`.
 
 Plugin groups and tabs were removed from this system. Do not reintroduce either term.
 

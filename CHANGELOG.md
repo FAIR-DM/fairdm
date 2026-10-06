@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `fairdm.contrib.plugins.checks.url_names_for`. The address names a registration generates are
+  read from `Claim.url_names`, under the name the plugin is served at.
 - `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
   `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
   dataset's stored permissions down to its samples and measurements. A level on a dataset now
@@ -122,6 +124,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`{% plugin_url %}` writes an empty string for a name that does not resolve**, in both tag
+  libraries, where it raised `NoReverseMatch`. A template that links to a plugin another portal
+  removed from the record type leaves the link out when the address comes back empty.
+- **The registry calls `Plugin.get_urls` with `name` and `url_path`**, the name and segment the
+  plugin is served at. A plugin that overrides `get_urls` must accept both.
+- **`PluginRegistry.configure_tab` takes `(mount, model)`**, the mount a record type serves and
+  the record type, where it took a plugin class, the record type and keyword options.
+- **Every record type's registrations are checked when the portal starts.** A registration that
+  cannot work, such as a removal that names nothing, a replacement with no target, or a card on a
+  record type whose overview draws none, stops every management command, not only the server.
 - **A record names its people before its organizations.** Its overview and its citation take the
   people in the order set on the Contributors tab, then the organizations in theirs, so reordering
   a list reorders the citation. Which contributors are named, and how, is as before.
@@ -229,6 +241,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A plugin can appear as a page action or as a card in a record's overview**, not only in the
+  navigation. `plugins.register` takes three new options. `place` is `Place.NAVIGATION` (the
+  default), `Place.ACTION` or `Place.CARD`, `column` is `Column.SIDE` (the default) or
+  `Column.WIDE` and only a card takes one, and `replaces` serves the plugin in place of another
+  plugin, given as a class or by name, at its address, under its name and in its place. A card is
+  a `Card`, which draws a template for the record being viewed and may own further views.
+  `OverviewPlaces` is the mixin an overview plugin is built on so its record type draws actions and
+  cards. See [Create a plugin](docs/portal-development/create_a_plugin.md).
+- **`plugins.remove(Model, plugin)` takes a registered plugin away from one record type.** The
+  plugin is given as a class or by the name it is served under. A removal that names nothing
+  registered, or the record type's overview, is refused when the portal starts.
+- **`fairdm.contrib.plugins.reverse` takes `default=`**, returned when the name does not resolve
+  instead of raising `NoReverseMatch`.
+- **The overview template has three blocks for what plugins contribute**: `overview.page_actions`,
+  `overview.contributed_main` and `overview.contributed_side`. A portal that overrides the
+  overview template overrides them to change where actions and cards are drawn.
 - **Access to a project, dataset, sample or measurement is a level on a person's contribution**:
   view, edit or manage, each including the one before it. `RecordLevelBackend`
   (`fairdm.contrib.contributors.permissions`) answers every permission question about these

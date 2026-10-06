@@ -240,6 +240,28 @@ class TestAPredicateThatRaises:
 
 
 @pytest.mark.django_db
+class TestAnActionWhoseAddressNeedsMoreThanTheRecord:
+    def test_the_action_is_left_out_the_page_is_served_and_the_plugin_is_named_in_the_log(
+        self, client, plugin_sandbox, public_dataset, caplog
+    ):
+        with plugin_sandbox.declare():
+            plugins.register(Dataset, place="action")(
+                make_action("FlagAction", url_path="<int:pk>/flag")
+            )
+            plugins.register(Dataset, place="action")(make_action("FineAction"))
+
+        with caplog.at_level(logging.WARNING):
+            response = client.get(public_dataset.get_absolute_url())
+
+        assert response.status_code == 200
+        assert offered(response) == [plugin_reverse(public_dataset, "fine-action")]
+        assert any(
+            record.levelno == logging.WARNING and "FlagAction" in record.getMessage()
+            for record in caplog.records
+        )
+
+
+@pytest.mark.django_db
 class TestOrder:
     def test_actions_are_listed_by_position_and_then_name(
         self, client, plugin_sandbox, public_dataset

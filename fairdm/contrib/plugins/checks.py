@@ -97,7 +97,7 @@ def validate_models(plugin_class: type[Plugin], models: tuple[Any, ...]) -> None
 def validate_options(
     plugin_class: type[Plugin], model: Any, options: dict[str, Any]
 ) -> None:
-    """Require the place, column and replacement target a registration names to be usable.
+    """Require the place, column, order and replacement target a registration names to be usable.
 
     A column is only for a card, and a card can only be a card: it has no entry to decline and
     no page to be registered as. A refused option raises ``PluginRegistrationError``.
@@ -120,6 +120,13 @@ def validate_options(
             plugin_class,
             model,
             f"replaces {replaces!r}, which is neither a plugin class nor the name of one",
+        )
+    order = options.get("order")
+    if order is not None and (isinstance(order, bool) or not isinstance(order, int)):
+        _fail(
+            plugin_class,
+            model,
+            f"order {order!r} is not a whole number, so entries could not be sorted by it",
         )
     place = options.get("place")
     column = options.get("column")

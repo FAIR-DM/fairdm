@@ -108,8 +108,10 @@ def can_open(
 ) -> bool:
     """Decide whether the user may open this view for this record.
 
-    The predicate is read from the owning plugin, so an additional view cannot be opened
-    while its restricted parent is refused.
+    The predicate is read from the class's ``plugin_class`` when that names an owner, and from
+    the class itself otherwise. Dispatch passes the view's own class, whose ``plugin_class``
+    is None, so a further view of a page is decided by its own ``check`` and ``permission``,
+    not its parent's. A further view of a card must also pass ``Card.admits``.
 
     Args:
         view_class: The plugin or additional view class.

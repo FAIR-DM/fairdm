@@ -28,7 +28,9 @@ class Plugin(PermissionRequiredMixin, View):
         registered_model: The model this mount serves. Bound per mount by ``as_view``, so
             a plugin registered against two models serves each independently.
         plugin_class: The plugin that owns this view. None for a plugin itself. For an
-            additional view, the declaring plugin, whose predicate governs the whole group.
+            additional view, the declaring plugin. At dispatch an additional view is decided by
+            its own ``check`` and ``permission``, and a further view of a card must also pass
+            ``Card.admits``.
         name: Unique identifier per model. Defaults to the slugified class name.
         url_path: URL path segment. ``""`` uses the name, ``None`` mounts without a base
             path, and any other string is used as given.

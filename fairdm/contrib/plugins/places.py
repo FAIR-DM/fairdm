@@ -70,7 +70,8 @@ class OverviewPlaces:
         """List the page actions of this record the current visitor may open.
 
         An action whose access decision raises is left out and the failure is logged, so one
-        broken predicate never fails the page.
+        broken predicate never fails the page. So is an action whose address needs more than
+        the record to build.
 
         Returns:
             One dict per action, in order, with its ``label``, ``icon`` and ``url``.
@@ -88,14 +89,17 @@ class OverviewPlaces:
                     mount.plugin_class.__name__,
                 )
                 continue
-            if allowed:
-                actions.append(
-                    {
-                        "label": mount.label,
-                        "icon": mount.icon,
-                        "url": reverse(record, mount.name),
-                    }
+            if not allowed:
+                continue
+            url = reverse(record, mount.name, default="")
+            if not url:
+                logger.warning(
+                    "Page action %s has an address that needs more than the record; "
+                    "leaving it out",
+                    mount.plugin_class.__name__,
                 )
+                continue
+            actions.append({"label": mount.label, "icon": mount.icon, "url": url})
         return actions
 
     def get_overview_cards(self) -> tuple[dict[str, list[str]], Media | None]:

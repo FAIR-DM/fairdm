@@ -113,6 +113,27 @@ class TestPlaceOption:
         assert fresh.get_plugins_for_model(Sample) == []
 
 
+class TestOrderOption:
+    @pytest.mark.parametrize("place", [None, "action"])
+    @pytest.mark.parametrize("order", ["5", 1.5, True, [1]])
+    def test_an_order_that_is_not_a_whole_number_is_refused_when_registered(
+        self, fresh, place, order
+    ):
+        options = {"order": order}
+        if place:
+            options["place"] = place
+
+        with pytest.raises(PluginRegistrationError, match="FollowAction"):
+            fresh.register(Sample, **options)(FollowAction)
+
+        assert fresh.get_plugins_for_model(Sample) == []
+
+    def test_an_order_that_is_a_whole_number_is_accepted(self, offering):
+        offering.register(Sample, place="action", order=-3)(FollowAction)
+
+        assert mount_of(offering, FollowAction).order == -3
+
+
 class TestResolve:
     def test_each_registration_is_one_mount_carrying_its_declaration(self, offering):
         offering.register(Sample, label="Alpha", icon="star", order=30)(AlphaPage)
