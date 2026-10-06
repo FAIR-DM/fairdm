@@ -96,3 +96,31 @@ Did: Added "Removing a plugin" to docs/portal-development/create_a_plugin.md (re
 Verified: ran the page's example against the branch (import Keywords, plugins.remove by class and by name, validate_all, resolve no longer lists keywords, get_plugins_for_model still does). pre-commit run --all-files clean. The docs build runs in the full verify below.
 Next: full verify and the completion report.
 Watch: the page says nothing about replacing the overview, because replacement is not built yet.
+
+## 2026-10-06T22:47:08Z · Implementer US4 · T014
+
+Did: Added TestReplace, TestReplaceKeepsOnlyWhatIsStated, TestReplaceTheNavigation, TestReplaceFurtherViews, TestReplaceAReplacement, TestReplaceTheOverview, TestReplaceRefusals, TestReplacesNamesAPlugin and two small place classes to tests/test_contrib/test_plugins/test_registration.py. They cover the mount carrying the replacement's class under the target's name and segment (by class and by name, for a page, an action and a card), carry-over of label, icon, order, column and a declined entry unless stated, the replaced class contributing no patterns, the replacement's views named under the target's, a replacement with the target's own segment accepted in either order, chains, the overview and its removal, and every refusal.
+Verified: uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k Replace -> 58 failed, 26 passed before any implementation, each failing on the replacement being ignored or refused at registration (the right reason). The passing ones are checks of behaviour that already held, such as a Card registered with no place being refused.
+Next: T015, the page tests through the client.
+Watch: the registry tests build navigation in detached menus, as TestRemove does.
+
+## 2026-10-06T22:47:08Z · Implementer US4 · T015
+
+Did: Added tests/test_templates/test_overview_replaced_plugins.py. Through the client it checks that the target's address serves the replacement and its name reverses there while the replacement's own name does not, that the replaced class's views are not served unless the replacement declares them, that the original is still served on another record type, that the navigation has one entry in the target's position (or the position the replacement states), both directions of the access decision for check and permission, a replaced page action and a replaced card each drawn once as the replacement, and a replacement for each record type's overview still showing a registered action and card.
+Verified: uv run pytest tests/test_templates/test_overview_replaced_plugins.py -q -n0 before the implementation: failures only, each the replacement not being served, its registration being refused, or the replaced overview not being removable.
+Next: T016, the implementation.
+Watch: the shipped Keywords page of a sample does not open at all (ImproperlyConfigured, no queryset), so the examples use Descriptions.
+
+## 2026-10-06T22:47:08Z · Implementer US4 · T016
+
+Did: registration.py gets Candidate (a registration with the options it was made with), Mount.replaced_by and PluginRegistry.collapse, and resolve() now runs removals, replacement checks, collapse, the clash check on the final mounts and the places check in that order. checks.py gets Claim (name, segment and URL names of one plugin or one mount), validate_replacements, validate_place_kept and a check that replaces is a plugin class or a name; validate_against_existing leaves a registration that states replaces out of the segment and URL-name comparison on both sides; the overview refusal in validate_removals applies only to a registration that states no replaces.
+Verified: uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project/test_plugins.py -q -n auto --dist loadscope -> 710 passed. Probes: with the replaces skip taken out of validate_against_existing 9 tests fail; with the overview rule put back 3 fail. pre-commit run --all-files clean.
+Next: T017, the documentation.
+Watch: url_names_for is gone, replaced by Claim.url_names, so a mount's URL names use its served name.
+
+## 2026-10-06T22:47:09Z · Implementer US4 · T017
+
+Did: Added Replacing a plugin to docs/portal-development/create_a_plugin.md (the example, what carries over and what does not, the order not mattering, a replacement built on a plugin that sets name, the overview, chains and removing a link, two addons replacing one plugin) and the replacement refusals under When a registration is wrong; resolve() described as one mount per plugin served; the overview note in Removing a plugin and in overview-pages.md now say it can be replaced.
+Verified: ran the page's examples against the branch in a throwaway test (replace Descriptions, a chain of two, replace the dataset overview, remove the last link) and it passed; I deleted the test. pre-commit run --all-files clean.
+Next: the full verify and the completion report.
+Watch: no changelog entry, none exists for the earlier stories either.

@@ -349,3 +349,51 @@ a removal now takes away.
 Django's own `reverse` were reported as out of date, and none of them documents the plugin one.
 Editing them to quiet the check would change pages that are correct.
 **Revisit if**: the check learns to tell two functions with one name apart.
+
+## D20. A registration is weighed with the options it was made with
+
+**Decision**: `resolve()` builds a `Candidate` for each registration, holding its `Mount` and its
+options dict. The steps that need to know what a registration stated (the overview refusal, the
+replacement checks, the link-by-link carry-over) read the options, never the mount's defaults.
+**Why**: a mount built from a registration holds a label derived from the class name and an icon,
+order and listed flag filled in with defaults. A replacement that states nothing must not get
+those in place of what it replaced had, and only the options say what was stated.
+**Revisit if**: `Mount` grows a field that records which of its values were stated.
+
+## D21. A replacement that states no place is checked in the place it inherits
+
+**Decision**: after a replacement takes its target's place, `validate_options` runs again with
+that place. A plugin that is not a `Card` replacing a card is refused as not built on `Card`, and
+a `Card` replacing a page is refused as having no page. A `Card` that replaces a card still says
+`place="card"`, because registration refuses a `Card` registered as anything else.
+**Why**: registration only sees the place the registration states. Without the second check a
+page class that names no place could replace a card and fail when the overview draws it.
+**Revisit if**: registration learns about the target, which it cannot while the target may arrive
+later.
+
+## D22. `url_names_for` is replaced by `Claim`
+
+**Decision**: `checks.py` compares what each plugin claims (name, segment, generated URL names)
+through a `Claim`, built from a plugin class at registration and from a mount at the clash check.
+`url_names_for` is gone.
+**Why**: the clash check on the final mounts has to use the name and segment a mount is served
+at, which for a replacement are its target's, not the class's own. The old function read both
+from the class.
+**Revisit if**: a third place needs to build a claim.
+
+## D23. A plugin another replacement names cannot be removed
+
+**Decision**: removing a plugin that a remaining replacement names is refused, naming the
+replacement and the removal. This holds in the middle of a chain too.
+**Why**: it is FR-041 applied to the replacement's target, and removing the middle link of a chain
+would otherwise leave the last link replacing nothing. Removing the last link serves the one
+before it again.
+**Revisit if**: a portal needs to drop a plugin and everything that replaced it with one call.
+
+## D24. The documentation's example replaces `Descriptions`, not `Keywords`
+
+**Decision**: the example on the page replaces the sample's `Descriptions` page.
+**Why**: the shipped sample `Keywords` page does not open: it raises `ImproperlyConfigured`
+(no queryset) with or without a replacement, so an example built on it would not run. It is
+reported in the completion report rather than fixed, because it is outside this story.
+**Revisit if**: the `Keywords` page is repaired.
