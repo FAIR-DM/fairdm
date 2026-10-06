@@ -89,3 +89,10 @@ Did: registry.remove and its export as plugins.remove (registration.py, __init__
 Verified: `uv run pytest tests/test_contrib/test_plugins/test_registration.py tests/test_templates/test_overview_removed_plugins.py -q -n0` green (T010 and T011 now pass); `uv run pytest tests/test_templates tests/test_contrib/test_plugins tests/test_contrib/test_contributors tests/test_core -q -n auto --dist loadscope` -> 4111 passed, 13 skipped. pre-commit run --all-files clean.
 Next: T013, the documentation.
 Watch: project/plugins/overview.html and the dataset, sample and measurement ones beside it extend a template that does not exist, and cotton/contributor/card/contribution.html is referenced by nothing; none edited, all listed in the report.
+
+## 2026-10-06T22:22:08Z · Implementer US3 · T013
+
+Did: Added "Removing a plugin" to docs/portal-development/create_a_plugin.md (remove by class or name, what happens to the address, name, entry, stored data and get_plugins_for_model, and that the overview cannot be removed); two removal refusals under "When a registration is wrong"; a note under "The address" that a link to another plugin asks with reverse(..., default="") and {% plugin_url %}; resolve() described as one mount per registration not removed; replaced the sentence saying an additional view inherits its plugin's check with the rule the page's own example shows. Added a short section to overview-pages.md on pages served without a removed plugin's link.
+Verified: ran the page's example against the branch (import Keywords, plugins.remove by class and by name, validate_all, resolve no longer lists keywords, get_plugins_for_model still does). pre-commit run --all-files clean. The docs build runs in the full verify below.
+Next: full verify and the completion report.
+Watch: the page says nothing about replacing the overview, because replacement is not built yet.

@@ -61,6 +61,20 @@ class EditNote(Plugin, FairDMUpdateView):
     url_path = "<int:pk>/edit"
 ```
 
+A link to a plugin that is not yours may point at nothing, because a portal can remove a plugin
+from a record type (see [Removing a plugin](#removing-a-plugin)). Ask for the address with a
+default, and draw the link only when you got one:
+
+```python
+from fairdm.contrib.plugins import reverse
+
+url = reverse(self.base_object, "contribution-list", default="")
+```
+
+Without `default`, `reverse` raises `NoReverseMatch` for a name that does not resolve, as Django
+does. In a template, `{% plugin_url "contribution-list" %}` from `plugin_tags` writes an empty
+string in the same case, so test it before writing the anchor.
+
 ## Reaching the record
 
 `base_object` is the core record the plugin hangs from, available on the view and in the template
@@ -291,6 +305,43 @@ wide column and `overview.contributed_side` after the side column. A portal that
 template and drops them shows no cards, and everything else keeps working. See
 [Overview pages](overview-pages.md).
 
+## Removing a plugin
+
+A portal or an addon can take a registered plugin away from one record type with `plugins.remove`.
+Name the plugin by its class or by the name it is served under, and declare the removal beside the
+registrations, in a `plugins.py` module of an installed app:
+
+```python
+# myportal/plugins.py
+from fairdm import plugins
+from fairdm.core.sample.models import Sample
+from fairdm.core.sample.plugins import Keywords
+
+plugins.remove(Sample, Keywords)  # or plugins.remove(Sample, "keywords")
+```
+
+Nothing is checked when `remove` is called, because the plugin may be registered after the
+removal is declared. The result is the same whichever comes first.
+
+A removed plugin is gone from that record type and from no other:
+
+- It has no navigation entry, no page action and no card.
+- Its address, and the address of each of its further views, answers as one that never existed.
+  There is no redirect.
+- Its name does not resolve, so `reverse(sample, "keywords")` raises `NoReverseMatch`.
+- Nothing stored changes. Removing the plugin that manages credits leaves every credit as it was.
+- `registry.get_plugins_for_model(Sample)` still returns the registration, because it returns what
+  was declared. `registry.resolve(Sample)` is what the record type serves, and the plugin is not
+  in it.
+
+Pages FairDM ships that link to a plugin are served without the link when the plugin is removed.
+The Manage menu of a sample leaves out the entries for pages that are gone, and the Contributors
+page of a dataset is served without the button to the project's Contributors page when a portal
+has removed that page from projects.
+
+The overview of a record type cannot be removed. The portal does not start when a removal names
+it, and a record without an overview has no page of its own.
+
 ## Who can see it, and who can open it
 
 Two things decide, and they answer different questions.
@@ -409,8 +460,9 @@ That serves `/samples/<uuid>/notes/`, `/samples/<uuid>/notes/add/` and
 `/samples/<uuid>/notes/<pk>/edit/`, under the names `sample:notes`, `sample:notes-note-create` and
 `sample:notes-note-edit`.
 
-An additional view inherits its plugin's `check`, so restricting the plugin restricts everything it
-owns.
+An additional view is decided by its own `check` and `permission`, not by its plugin's. Restricting
+the plugin restricts the plugin's own page, so give each additional view the rule it needs, as
+`NoteCreate` and `NoteEdit` do with `permission` above.
 
 ## Templates, assets and context
 
@@ -440,7 +492,7 @@ The registry keeps every registration as it was made. `registry.get_plugins_for_
 returns the `(plugin class, options)` pairs in the order they arrived.
 
 `registry.resolve(Dataset)` works out from them what the record type actually serves. It returns
-one `Mount` per registration. A `Mount` is read-only and carries the `plugin_class`, the `name` it
+one `Mount` per registration that has not been removed. A `Mount` is read-only and carries the `plugin_class`, the `name` it
 is served under, its `url_path` (`None` for the record's own address), its `place`, and the
 `label`, `icon` and `order` of its entry. `listed` is false when the registration declined its
 entry. `column` is the column of a card and `None` for anything else. The URL patterns, the navigation and the page actions are all built from this list, and so
@@ -469,6 +521,10 @@ registrations are checked together, and the same applies to what that finds. Ref
   location. The portal does not start, and the message names the plugin and the record type
 - an `extra_views` entry that is not a plugin, that collides with a sibling or the parent, or that
   declares `extra_views` of its own
+- a removal that names a plugin not registered against that record type. The message names the
+  removal and the record type, so a misspelt name stops the portal instead of removing nothing
+- a removal of the record type's overview, which is the plugin built on `OverviewPlaces` or served
+  at the record's own address
 
 The same plugin name on two different records is fine. Names are unique per record, not globally.
 

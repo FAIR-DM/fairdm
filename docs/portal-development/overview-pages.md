@@ -29,6 +29,15 @@ record. And anything FairDM cannot do yet (a map of a project's samples, recent
 activity, publishing a dataset, exporting a citation, metadata downloads) is announced the same
 way: a card or a button that says "Coming soon", and a button is disabled and says why.
 
+## When a portal removes a plugin
+
+A page links to other plugins: a project to its datasets and contributors, a sample's Manage menu
+to the pages that edit it, a person to their projects and datasets. A portal can remove such a
+plugin from a record type, and the page is then served without the entry or link that led to it.
+A figure keeps its number and loses only its link, and a Manage menu with no entry left is not
+drawn. The overview itself is never removed. See [Removing a
+plugin](create_a_plugin.md#removing-a-plugin).
+
 ## The blocks
 
 `overview/page.html` defines every block, in page order. Each record's own template extends it and
