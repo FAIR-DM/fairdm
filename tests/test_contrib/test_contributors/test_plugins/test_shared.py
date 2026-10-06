@@ -220,6 +220,39 @@ class TestContributorsTab:
 
 
 @pytest.mark.django_db
+class TestContributorsTabQueries:
+    @staticmethod
+    def queries_with(record, manager, people):
+        """Count the queries the tab takes for its manager once the record lists this many people."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        roles = Concept.objects.filter(name__in=record.CONTRIBUTOR_ROLES.values)
+        for _number in range(people - record.contributors.people().count()):
+            credit = ContributionFactory(
+                content_object=record,
+                contributor=PersonFactory(is_active=True, is_claimed=True),
+                level=ContributionLevel.VIEW,
+                affiliation=OrganizationFactory(),
+            )
+            credit.roles.set(roles)
+        browser = browser_as(manager)
+        # The first request fills caches that later ones read, such as content types.
+        browser.get(tab(record))
+        with CaptureQueriesContext(connection) as captured:
+            response = browser.get(tab(record))
+        assert response.status_code == 200
+        assert len(response.context["people"]["rows"]) == people
+        return len(captured)
+
+    def test_the_count_does_not_grow_with_the_number_of_people(self, record, manager):
+        few = self.queries_with(record, manager, 5)
+        many = self.queries_with(record, manager, 25)
+
+        assert many == few
+
+
+@pytest.mark.django_db
 class TestOverviewLinksToTheTab:
     def test_the_people_card_leads_to_the_tab(self, record):
         response = browser_as(None).get(record.get_absolute_url())

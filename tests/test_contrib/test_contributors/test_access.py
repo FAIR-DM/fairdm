@@ -205,6 +205,39 @@ class TestLevelParts:
 
 
 @pytest.mark.django_db
+class TestLevelsForPeople:
+    def test_each_person_gets_what_asking_for_them_alone_gives(
+        self, record_chain, signed_in, grant
+    ):
+        other = PersonFactory(is_active=True, is_claimed=True, password="x")
+        grant(record_chain.project, signed_in, EDIT)
+        grant(record_chain.dataset, signed_in, VIEW)
+        grant(record_chain.dataset, other, MANAGE)
+        access = RecordAccess(record_chain.dataset)
+
+        found = access.levels_for([signed_in.pk, other.pk, 0])
+
+        assert found[signed_in.pk] == access.levels_held(signed_in.pk)
+        assert found[other.pk] == access.levels_held(other.pk)
+        assert found[0] == []
+        assert access.own_level(signed_in, found[signed_in.pk]) == VIEW
+        assert access.level_from_above(signed_in, found[signed_in.pk]) == (
+            EDIT,
+            record_chain.project,
+        )
+
+    def test_the_number_of_people_does_not_change_the_number_of_queries(
+        self, record_chain, grant, django_assert_num_queries
+    ):
+        people = [PersonFactory() for _number in range(4)]
+        for person in people:
+            grant(record_chain.dataset, person, VIEW)
+
+        with django_assert_num_queries(1):
+            RecordAccess(record_chain.dataset).levels_for([p.pk for p in people])
+
+
+@pytest.mark.django_db
 class TestPeopleAbove:
     def test_everyone_holding_a_level_from_above_is_named_with_its_source(
         self, record_chain, grant

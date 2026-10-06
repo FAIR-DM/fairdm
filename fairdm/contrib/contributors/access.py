@@ -176,6 +176,25 @@ class RecordAccess:
             for content_type_id, object_id, level in rows
         ]
 
+    def levels_for(self, person_ids):
+        """Return each level the given people hold on the record or above it, in one query.
+
+        Args:
+            person_ids: The ids of the people.
+
+        Returns:
+            A dict of person id to the ``(record, level)`` pairs :meth:`levels_held` gives.
+        """
+        held, keys = self.on_chain(include_record=True)
+        found = {person_id: [] for person_id in person_ids}
+        for contributor_id, content_type_id, object_id, level in held.filter(
+            contributor_id__in=found
+        ).values_list("contributor_id", "content_type_id", "object_id", "level"):
+            found[contributor_id].append(
+                (keys[(content_type_id, object_id)], ContributionLevel(level))
+            )
+        return found
+
     def level_of(self, user):
         """Return the highest level a user holds on the record or any record above it.
 
@@ -189,31 +208,33 @@ class RecordAccess:
             return None
         return max((level for _, level in self.levels_held(user.pk)), default=None)
 
-    def own_level(self, person):
+    def own_level(self, person, held=None):
         """Return the level a person holds from being listed on the record itself.
 
         Args:
             person: The person.
+            held: What :meth:`levels_for` returned for the person, when it was asked already.
 
         Returns:
             The level, or None.
         """
-        for record, level in self.levels_held(person.pk):
+        for record, level in self.levels_held(person.pk) if held is None else held:
             if record is self.record:
                 return level
         return None
 
-    def level_from_above(self, person):
+    def level_from_above(self, person, held=None):
         """Return the highest level a person holds from a record above, and that record.
 
         Args:
             person: The person.
+            held: What :meth:`levels_for` returned for the person, when it was asked already.
 
         Returns:
             ``(level, record)``, or ``(None, None)``.
         """
         best, source = None, None
-        for record, level in self.levels_held(person.pk):
+        for record, level in self.levels_held(person.pk) if held is None else held:
             if record is not self.record and (best is None or level > best):
                 best, source = level, record
         return best, source

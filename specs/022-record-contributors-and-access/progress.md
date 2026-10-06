@@ -326,3 +326,11 @@ Did: ContributionEdit.post in fairdm/contrib/contributors/plugins/shared.py pass
 Verified: the role-only save failed first with stored level 2 where 1 was expected; the other two passed before the fix, as they should. uv run pytest on the whole test_shared.py gave 751 passed; pre-commit passed.
 Next: T039, the Contributors tab query count.
 Watch: none.
+
+## 2026-10-06T20:29:33Z · Implementer FIX-1 · T039
+
+Did: the Contributors tab now reads its data once for the whole list. ContributionList.get_context_data fetches the people's and organizations' contributions with select_related of contributor and affiliation and prefetch of roles and content_object; reads every real contributor (identifiers prefetched) in one query; and reads every listed person's levels in one query with the new RecordAccess.levels_for. describe() takes the levels as an optional argument, and RecordAccess.own_level and level_from_above take the same optional argument and otherwise ask as before, so the edit and remove pages, which describe one contribution, are unchanged. Templates untouched.
+Tests: tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestContributorsTabQueries (the manager's tab issues the same number of queries with 5 people as with 25, each with roles and an affiliation, for all four record types, after a warm-up request that fills the content type cache) and test_access.py::TestLevelsForPeople.
+Verified: against the code as it was, the count test failed with 236 queries at 25 people against 56 at 5 (four record types); with the change it passes. Besides the per-person level and real-instance queries the finding names, I found two more that grew with the list: the generic foreign key read per contribution (by the as_contributor filter's hasattr check) and each person's identifiers (by default_identifier); both are now prefetched. uv run pytest tests/test_contrib/test_contributors -q -n0 gave 2107 passed, 6 skipped (the skips are the database-capability ones that were already there); pre-commit passed.
+Next: T040, the documentation and two comments.
+Watch: without the warm-up request the first count is higher than the second, because of one-off cache fills, so the test warms up first.

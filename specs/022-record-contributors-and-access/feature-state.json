@@ -205,8 +205,24 @@
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestContributorsTabQueries",
+              "tests/test_contrib/test_contributors/test_access.py::TestLevelsForPeople"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k TestContributorsTabQueries (red against the pre-fix code: 4 failed, 236 queries with 25 people against 56 with 5; green: 4 passed)",
+              "uv run pytest tests/test_contrib/test_contributors -q -n0 (2107 passed, 6 skipped)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:179",
+              "fairdm/contrib/contributors/plugins/shared.py:927"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

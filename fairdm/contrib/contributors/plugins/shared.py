@@ -371,14 +371,24 @@ class ContributionPage(Plugin, FairDMTemplateView):
             pk=self.kwargs["pk"],
         )
 
-    def describe(self, contribution):
-        """Work out everything the pages say about one contributor on this record."""
+    def describe(self, contribution, held=None):
+        """Work out everything the pages say about one contributor on this record.
+
+        Args:
+            contribution: The contribution, with its real contributor already read when many
+                are described together.
+            held: What ``RecordAccess.levels_for`` gave for the contributor, when the levels
+                of everyone listed were read in one query.
+
+        Returns:
+            What the pages say about the contributor.
+        """
         contributor = contribution.contributor.get_real_instance()
         is_person = not contributor.is_organization
         own = above = source = effective = None
         if is_person and self.can_see_levels:
-            own = self.access.own_level(contributor)
-            above, source = self.access.level_from_above(contributor)
+            own = self.access.own_level(contributor, held)
+            above, source = self.access.level_from_above(contributor, held)
             effective = max((level for level in (own, above) if level), default=None)
         return {
             "contribution": contribution,
@@ -923,14 +933,42 @@ class ContributionList(ContributionPage):
             True: record.contributors.people(),
             False: record.contributors.organizations(),
         }
+        contributions = {
+            is_person: list(
+                queryset.select_related("contributor", "affiliation").prefetch_related(
+                    "roles", "content_object"
+                )
+            )
+            for is_person, queryset in listed.items()
+        }
+        # `select_related` stops at the polymorphic base, which cannot tell a person from an
+        # organization, so every real instance is read in one query.
+        real = {
+            contributor.pk: contributor
+            for contributor in Contributor.objects.filter(
+                pk__in=[
+                    credit.contributor_id
+                    for group in contributions.values()
+                    for credit in group
+                ]
+            ).prefetch_related("identifiers")
+        }
+        held = (
+            self.access.levels_for(
+                [credit.contributor_id for credit in contributions[True]]
+            )
+            if self.can_see_levels
+            else {}
+        )
+        for group in contributions.values():
+            for credit in group:
+                credit.contributor = real[credit.contributor_id]
         entries = {
             is_person: [
-                self.describe(contribution)
-                for contribution in contributions.select_related(
-                    "contributor"
-                ).prefetch_related("roles")
+                self.describe(credit, held.get(credit.contributor_id))
+                for credit in group
             ]
-            for is_person, contributions in listed.items()
+            for is_person, group in contributions.items()
         }
         groups = {}
         for is_person, group in entries.items():
