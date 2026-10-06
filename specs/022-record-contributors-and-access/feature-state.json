@@ -3,7 +3,7 @@
   "feature": "022-record-contributors-and-access",
   "branch": "022-record-contributors-and-access",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-10-06T19:51:29Z",
       "note": "converged and green; cost limit lifted by Sam; code review on the heavy tier with the security lens"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-06T20:49:33Z",
+      "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
     }
   ],
   "gates": {
@@ -1002,13 +1007,13 @@
       "max": 1
     },
     "tokens": {
-      "used": 106.99,
+      "used": 141.28,
       "max": 2000
     }
   },
   "pr": {
     "number": 414,
-    "draft": true
+    "draft": false
   },
   "escalations": [
     {
