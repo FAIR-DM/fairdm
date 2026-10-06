@@ -186,8 +186,22 @@
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestEditKeepsALevelHeldFromAbove"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k EditKeepsALevel (red: 1 failed, stored level 2 not 1; green: 3 passed)",
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 (751 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:776"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T039",

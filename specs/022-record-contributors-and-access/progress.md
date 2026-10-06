@@ -319,3 +319,10 @@ Pre-existing tests changed (each created its project credit with the view level 
 Verified: the three new tests failed first (view-level project offered, post accepted); uv run pytest tests/test_core/test_dataset tests/test_core/test_project -q -n0 gave 842 passed. One earlier run of that same scope showed 1 failure in test_the_contributors_figure_counts_everyone_credited; it passed alone and on two re-runs, and I did not find the cause.
 Next: T038, the edit page's level.
 Watch: the flaky test above, in tests/test_core/test_project/test_plugins.py, which this story did not touch.
+
+## 2026-10-06T20:22:03Z · Implementer FIX-1 · T038
+
+Did: ContributionEdit.post in fairdm/contrib/contributors/plugins/shared.py passes level=None to Crediting.update when the posted level equals the level held from the record above and is higher than the person's own stored level, so a save that only changed roles leaves the stored level as it was. The template is untouched. Tests in tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestEditKeepsALevelHeldFromAbove, through the client on a public dataset: the page preselects the inherited level (EDIT); posting that level with a role change stores the roles and leaves the dataset contribution at VIEW; posting MANAGE stores MANAGE.
+Verified: the role-only save failed first with stored level 2 where 1 was expected; the other two passed before the fix, as they should. uv run pytest on the whole test_shared.py gave 751 passed; pre-commit passed.
+Next: T039, the Contributors tab query count.
+Watch: none.

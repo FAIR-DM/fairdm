@@ -773,6 +773,16 @@ class ContributionEdit(ContributionPage):
             if level is None:
                 errors["level"] = _("Choose what this person may do.")
 
+        # The form preselects the level held from above, and cannot post the stored one below
+        # it. Saving that choice unchanged must not turn what is inherited into the person's own.
+        stored_level = level
+        if (
+            level is not None
+            and level == entry["above"]
+            and level > (entry["own"] or 0)
+        ):
+            stored_level = None
+
         crediting = Crediting(self.base_object)
         listed = set(
             self.base_object.contributors.values_list("contributor_id", flat=True)
@@ -785,7 +795,7 @@ class ContributionEdit(ContributionPage):
                 crediting.update(
                     contribution,
                     roles=Concept.objects.filter(pk__in=chosen_roles),
-                    level=level,
+                    level=stored_level,
                     organization=organization,
                 )
             except ValidationError as refused:

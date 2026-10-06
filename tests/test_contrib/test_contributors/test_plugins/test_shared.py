@@ -788,6 +788,59 @@ class TestEditRoles:
 
 
 @pytest.mark.django_db
+class TestEditKeepsALevelHeldFromAbove:
+    @pytest.fixture
+    def inheriting(self, public_chain):
+        """A person at edit on the project and at view on the dataset, and a dataset manager."""
+        dataset = public_chain.dataset
+        person = person_at(public_chain.project, ContributionLevel.EDIT)
+        own = ContributionFactory(
+            content_object=dataset, contributor=person, level=ContributionLevel.VIEW
+        )
+        return SimpleNamespace(
+            dataset=dataset,
+            own=own,
+            manager=person_at(dataset, ContributionLevel.MANAGE),
+        )
+
+    def test_the_page_preselects_the_level_held_from_above(self, inheriting):
+        response = browser_as(inheriting.manager).get(
+            page_of(inheriting.dataset, "edit", pk=inheriting.own.pk)
+        )
+
+        assert response.context["chosen_level"] == ContributionLevel.EDIT
+
+    def test_saving_roles_with_the_preselected_level_leaves_the_stored_level(
+        self, inheriting
+    ):
+        names = list(inheriting.dataset.CONTRIBUTOR_ROLES.values)[:2]
+
+        response = browser_as(inheriting.manager).post(
+            page_of(inheriting.dataset, "edit", pk=inheriting.own.pk),
+            {
+                "roles": role_pks(*names),
+                "level": ContributionLevel.EDIT,
+                "affiliation": "none",
+            },
+        )
+
+        inheriting.own.refresh_from_db()
+        assert response["Location"] == tab(inheriting.dataset)
+        assert {r.name for r in inheriting.own.roles.all()} == set(names)
+        assert inheriting.own.level == ContributionLevel.VIEW
+
+    def test_a_level_above_the_inherited_one_is_stored(self, inheriting):
+        response = browser_as(inheriting.manager).post(
+            page_of(inheriting.dataset, "edit", pk=inheriting.own.pk),
+            {"level": ContributionLevel.MANAGE, "affiliation": "none"},
+        )
+
+        inheriting.own.refresh_from_db()
+        assert response["Location"] == tab(inheriting.dataset)
+        assert inheriting.own.level == ContributionLevel.MANAGE
+
+
+@pytest.mark.django_db
 class TestRemoveContributor:
     def test_the_page_asks_before_anything_is_removed(self, record, manager, colleague):
         response = browser_as(manager).get(page_of(record, "remove", pk=colleague.pk))
