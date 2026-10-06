@@ -322,3 +322,40 @@ class TestPortalRolesReconciliation:
 
         curator_group.refresh_from_db()
         assert curator_group.permissions.filter(codename="view_dataset").exists()
+
+
+class TestPluginRegistryValidatedAtStartup:
+    @pytest.fixture(autouse=True)
+    def restore_registry(self):
+        from fairdm import plugins
+
+        saved = {
+            model: list(entries)
+            for model, entries in plugins.registry._registry.items()
+        }
+        yield
+        plugins.registry._registry.clear()
+        plugins.registry._registry.update(saved)
+
+    def test_ready_refuses_a_declaration_that_cannot_work(self):
+        from django.views.generic import TemplateView
+
+        import fairdm
+        from fairdm import plugins
+        from fairdm.apps import FairDMConfig
+        from fairdm.contrib.location.models import Point
+        from fairdm.contrib.plugins import Plugin
+        from fairdm.contrib.plugins.checks import PluginRegistrationError
+
+        @plugins.register(Point, place="action")
+        class LocationAction(Plugin, TemplateView):
+            template_name = "base.html"
+
+        with pytest.raises(PluginRegistrationError, match="LocationAction"):
+            FairDMConfig("fairdm", fairdm).ready()
+
+    def test_ready_accepts_the_plugins_the_framework_ships(self):
+        import fairdm
+        from fairdm.apps import FairDMConfig
+
+        FairDMConfig("fairdm", fairdm).ready()

@@ -263,3 +263,44 @@ class TestARecordWithoutAUuid:
         assert str(point.y) in url
 
         assert plugins.registry.lookup_for(Point) == {"lon": "x", "lat": "y"}
+
+
+@pytest.mark.django_db
+class TestNavigationUnchanged:
+    def test_the_navigation_lists_the_pages_and_not_an_action_beside_them(self):
+        @plugins.register(Sample, label="Listed Page")
+        class ListedPage(Plugin, TemplateView):
+            template_name = "base.html"
+
+        @plugins.register(Sample, label="Follow Action", place="action")
+        class FollowAction(Plugin, TemplateView):
+            template_name = "base.html"
+
+        plugins.registry.get_urls_for_model(Sample)
+
+        menu = plugins.registry.get_plugin_menu_for_model(Sample)
+        labels = [item.extra_context["label"] for item in menu.children]
+        assert "Listed Page" in labels
+        assert "Follow Action" not in labels
+
+    def test_the_action_is_served_under_its_own_name(self):
+        @plugins.register(Sample, place="action")
+        class WatchAction(Plugin, TemplateView):
+            url_path = "watch"
+            template_name = "base.html"
+
+        patterns = plugins.registry.get_urls_for_model(Sample)
+
+        (pattern,) = [p for p in patterns if p.name == "watch-action"]
+        assert str(pattern.pattern) == "watch/"
+        assert pattern.callback.view_initkwargs["registered_model"] is Sample
+
+    def test_a_registration_with_no_place_is_listed_as_before(self):
+        @plugins.register(Sample, label="Plain Page")
+        class PlainPage(Plugin, TemplateView):
+            template_name = "base.html"
+
+        plugins.registry.get_urls_for_model(Sample)
+
+        menu = plugins.registry.get_plugin_menu_for_model(Sample)
+        assert "Plain Page" in [item.extra_context["label"] for item in menu.children]
