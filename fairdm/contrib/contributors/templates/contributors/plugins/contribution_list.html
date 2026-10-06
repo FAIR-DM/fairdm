@@ -1,8 +1,9 @@
 {% extends "page_view.html" %}
 {% load i18n %}
 {% comment %}
-  A record's Contributors tab. People are listed in the wide column and organizations as cards in
-  a narrow column beside it, each in their own order. Below `lg` the organizations drop beneath
+  A record's Contributors tab. People are listed in the wide column and organizations as small
+  cards, logo and name only, in a narrow column beside it, two across where there is room. Each
+  has its own order. Below `lg` the organizations drop beneath
   the people. Someone who may manage the record also sees what each person may do, the controls
   for changing either list, and the people who hold access from the record above.
 {% endcomment %}
@@ -107,26 +108,15 @@
         </h2>
         {% if can_manage %}<c-button href="{{ list_url }}add-organization/" text="{% translate 'Add organization' %}" icon="plus" size="sm" />{% endif %}
       </div>
-      {% for entry in organizations.rows %}
-        <div id="contributor-{{ entry.contribution.pk }}">
-          <c-contributor.card.organization :contributor="entry.contribution" class="bg-base-100">
-            {% if entry.attached %}
-              <p class="text-sm text-base-content/70 mt-2">
-                {% translate "Affiliation of" %}
-                {% for person in entry.attached %}<a href="{{ person.get_absolute_url }}" class="link link-hover text-base-content">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
-              </p>
-            {% endif %}
-            {% if can_manage %}
-              <div class="flex flex-col items-center gap-1 mt-2">
-                <c-contribution.controls :entry="entry" list_url="{{ list_url }}" :movable="organizations.movable" :removable="entry.removable" />
-                {% if entry.attached %}
-                  <p class="text-xs text-base-content/70">{% translate "It stays while people are credited from it here." %}</p>
-                {% endif %}
-              </div>
-            {% endif %}
-          </c-contributor.card.organization>
-        </div>
-      {% empty %}
+      {% if organizations.rows %}
+        <ul class="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-label="{% translate 'Organizations, in the order this record names them' %}">
+          {% for entry in organizations.rows %}
+            <li id="contributor-{{ entry.contribution.pk }}">
+              <c-contribution.organization :entry="entry" list_url="{{ list_url }}" :can_manage="can_manage" :movable="organizations.movable" />
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
         <c-card.wrapper class="bg-base-100">
           <div class="card-body">
             {% if term %}
@@ -137,7 +127,7 @@
             {% endif %}
           </div>
         </c-card.wrapper>
-      {% endfor %}
+      {% endif %}
       {% if can_manage and organizations.rows and not term %}
         <p class="text-sm text-base-content/70">{% translate "Organizations are credited and hold no access. Their members gain none from it." %}</p>
       {% endif %}

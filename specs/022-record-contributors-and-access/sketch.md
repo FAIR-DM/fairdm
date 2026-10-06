@@ -30,8 +30,8 @@ at `example.com`, password `password`.
 
 | Screen | What it shows |
 |---|---|
-| Contributors tab, reader | People in a wide column, numbered in their order, each with the organization they are credited from on this record and their roles. Organizations in a narrow column beside them, each as the portal's standard organization card with its logo large, and a line naming the people it is the affiliation of. Below the large breakpoint the organizations drop beneath the people. Search by name covers both. No controls |
-| Contributors tab, manager | The same two columns. "Add person" sits at the right of the People heading and "Add organization" at the right of the Organizations heading. Under each person, what they may do, with Move up, Move down, Edit and Remove. Each organization card carries Move, Edit and Remove, except that an organization people are credited from has no Remove and says why. Under the people, a card naming those who hold access from the record above |
+| Contributors tab, reader | People in a wide column, numbered in their order, each with the organization they are credited from on this record and their roles. Organizations in a narrow column beside them, each a small card with its logo and its name and nothing else, two across on a wide screen and one across on a narrow one. Below the large breakpoint the organizations drop beneath the people. Search by name covers both. No controls |
+| Contributors tab, manager | The same two columns. "Add person" sits at the right of the People heading and "Add organization" at the right of the Organizations heading. Under each person, what they may do, with Move up, Move down, Edit and Remove. Each organization card has a small menu to move it, edit its roles and remove it, except that an organization people are credited from has no Remove and the menu says why. Under the people, a card naming those who hold access from the record above |
 | Add a person | Its own page. Three tabs that switch in the browser: already in the portal, find by ORCID, new person. Every route ends on the choice of which organization the person is credited from for this record, then goes to their edit page |
 | Add an organization | Its own page. Three tabs that switch in the browser: already in the portal, find in ROR, new organization. Adding goes to its edit page |
 | Edit a contributor | Roles as checkboxes. For a person, then the organization they are credited from here, then the three levels as radio buttons. Saved together. An organization gets the roles and a sentence saying it holds no access |
@@ -69,8 +69,8 @@ at `example.com`, password `password`.
 16. For each organization on a record, the people credited from it there.
 17. Listing an organization on a record when a person is credited from it, and refusing to remove
     it while anyone still is.
-18. The standard organization card with room at its foot for a line and controls. The prototype
-    added a slot to it.
+18. A small organization card of logo and name for this tab, with a menu for whoever may manage
+    the record.
 
 ## What the sketch faked
 
@@ -126,8 +126,11 @@ Asked for in review, and done:
 - The link to each page sits in the row of its column's heading, at the right. The page title has
   no add action any more, since one action there could not mean both.
 - The empty state has no button of its own. It keeps both headings and their links.
-- Organizations are shown with the portal's standard organization card, logo large, and not with a
-  row designed for this tab.
+- Organization cards show the logo and the name and nothing else: no role, no counts of members or
+  credits, and no line naming the people it is the affiliation of. They sit two across on a wide
+  screen and one across on a narrow one. An organization's roles are still set on its edit page.
+- An organization that was listed through a person's affiliation stays on the record when that
+  person leaves or is credited from somewhere else. It can then be removed by hand.
 - On an add page the three ways in are stock DaisyUI tabs that switch in the browser without a
   reload. A search or a choice redraws only the tab it is in.
 - Adding a person always includes their affiliation for this record. It defaults to their primary
@@ -137,7 +140,7 @@ Asked for in review, and done:
 - An organization can be removed only when nobody on the record is credited from it. Otherwise the
   card says so in place of Remove, and the remove page names the people.
 
-Not yet reviewed. These are the choices that have no right answer, as built:
+Approved as built, without a comment of their own. These are the choices that had no right answer:
 
 - The tabs on the add pages are the underlined style. Each tab keeps its own search, so switching
   away and back loses nothing.
@@ -145,11 +148,8 @@ Not yet reviewed. These are the choices that have no right answer, as built:
   that follows, in the same tab. An organization from the portal is added in one step. One from ROR
   is confirmed first.
 - Another organization is typed into a field that suggests the portal's organizations as you type.
-- Each organization card says "Affiliation of" and the people, for every reader and not only for
-  managers.
-- An organization added through a person's affiliation is not taken off the record when that person
-  goes. It can then be removed by hand.
-- The standard card's counts of members and credits are kept on the tab.
+- A manager reaches an organization's move, edit and remove actions through a small menu in the
+  corner of its card, so the card itself stays logo and name.
 - When a person typed in by hand has the same name as a profile in the portal, the form comes back
   with those profiles offered first and a button to make the new profile anyway. For an
   organization the existing one is offered and no second one is made.
@@ -215,9 +215,10 @@ From the second review:
 7. An organization cannot be removed from a record while anyone on it is credited from that
    organization. The refusal names those people. This is a second refusal beside the last-manager
    rule.
-8. An organization's entry on the tab shows which people it is the affiliation of.
+8. An organization's entry on the tab shows its logo and its name only. Which people it is the
+   affiliation of is shown where its removal is refused.
 9. The Key Entities and the story about crediting a team need the affiliation added, and the
    citation's use of affiliation, if any, needs a sentence.
 
-Still to be decided, and recorded here so it is not lost: whether an organization that was listed
-only through a person leaves the record when that person does. The prototype leaves it.
+An organization listed through a person stays on the record when that person leaves. That was
+approved as built.

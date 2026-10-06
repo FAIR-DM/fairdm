@@ -1,7 +1,6 @@
 {# @description An organization's card for the organization listing: logo, name with ROR ID, type and place, the roles on a credit when given one, and its member and credit counts. #}
 {# @prop contributor:text | description:"An Organization, or a Contribution crediting one." #}
 {# @prop class:text | description:"Extra CSS classes on the card." #}
-{# @slot Affiliation of two people here — Content at the foot of the card, such as why the organization is listed or controls for it. #}
 {% load i18n contributor_tags %}
 <c-vars contributor class />
 {% with c=contributor|as_contributor %}
@@ -31,7 +30,6 @@
             {% endfor %}
             {% if not members and not counts %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
           </div>
-          {{ slot }}
         </div>
       </c-card.wrapper>
     {% endwith %}
