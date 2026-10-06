@@ -218,3 +218,17 @@ Did: Crediting.update and Crediting.remove own the last-manager rule (code `last
 Verified: the narrow runs of T020 to T023 above; the whole suite waits for the report.
 Next: T025a.
 Watch: the lock tests skip on SQLite.
+
+## 2026-10-06T15:22:04Z · Implementer US5 · T025a
+
+Did: in TestAddByHand removed the five story 3 tests that stored, validated or refused an address (test_an_email_address_is_stored_and_does_not_make_an_account, test_the_email_address_is_not_shown_on_the_tab_or_the_edit_page, test_an_email_address_must_be_one and the two email_in_use tests) and took the `email` key out of the two other posts and their `values["email"]` assertions; added test_no_email_address_is_asked_for_and_one_posted_is_ignored, red on four kinds of record before the code. NewPersonForm lost the email field and clean_email, and the person is made with no email. The add-person template lost the email input with its label and hint: the one change to an approved template this story authorises, and the page draws the rest as before. Docs updated: user guide (by hand), administrator page (what is made), developer page (NewPersonForm), changelog entry; decisions.md D21's closing sentence no longer cites D19 and its Decision no longer mentions a refused email. The account adapter and every sign-in setting are untouched.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope`: 668 passed. pre-commit passed.
+Next: T025, the user guide page for the last-manager rule and moves.
+Watch: none.
+
+## 2026-10-06T15:22:42Z · Implementer US5 · T025
+
+Did: the user guide page gains "Every record keeps a manager": the last-manager rule for everyone including a superuser and a Data Curator, who counts, that a record cannot be moved to a project or dataset that would leave it without a manager, and what a merge keeps. The developer page for contributors documents `last_manager`, `would_leave_no_manager`, the row lock and `no_manager` on the models; the claiming API page says what the merge keeps and that stored rows on core records are not copied; the changelog has an entry. Public text has no em dashes.
+Verified: `uv run pre-commit run --all-files` passed. The full gate is run once with the report.
+Next: full gate, completion report.
+Watch: none.
