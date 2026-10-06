@@ -410,3 +410,9 @@ theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
 # Suites that test templates and static assets have no Python module to mirror.
 [tool.forge.conformance]
 non-mirror-paths = ["tests/test_templates/"]
+
+[tool.forge.docs]
+# `reverse` in this module shares its name with Django's, which several pages quote. A change to
+# it would otherwise mark every one of those pages as out of date. The plugin `reverse` is
+# documented in docs/portal-development/create_a_plugin.md.
+exempt-paths = ["fairdm/contrib/plugins/utils.py"]

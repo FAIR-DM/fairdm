@@ -341,3 +341,11 @@ they describe, besides the page the task names.
 exists, and the tree has to be green between commits. Both pages describe addresses and links that
 a removal now takes away.
 **Revisit if**: the fixtures should hold removals in a place that exists before the registry does.
+
+## D19. `fairdm/contrib/plugins/utils.py` is left out of the documentation check
+
+**Decision**: `pyproject.toml` lists the module under `[tool.forge.docs] exempt-paths`.
+**Why**: the plugin `reverse` gained `default`, and the check matches names. Four pages that quote
+Django's own `reverse` were reported as out of date, and none of them documents the plugin one.
+Editing them to quiet the check would change pages that are correct.
+**Revisit if**: the check learns to tell two functions with one name apart.
