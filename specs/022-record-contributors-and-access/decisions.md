@@ -654,3 +654,10 @@ permissions.
 **Why**: the page preselects the inherited level and disables every lower one, so the stored level cannot be posted back, and storing the preselected one turned an inherited level into the person's own. A level above the inherited one is still stored.
 **Revisit if**: the form can post the stored level.
 **ADR:** none — what one page posts
+
+## D41. Tests that existed before the review fixes and were changed by them
+
+**Decision**: five test modules that predate the fixes were edited in them, and each edit changes how the test is set up, never what it asserts. In `tests/test_api/test_viewsets.py` the two tests that a created sample or measurement lists its creator now credit the user at the edit level on the dataset first. In `tests/test_contrib/test_plugins/test_registration.py` the project plugin page test uses a public project. In `tests/test_core/test_dataset/test_forms.py`, `test_plugins.py` and `test_views.py` the user is credited on the project at the edit level where a credit with no level, or the view level, was enough before.
+**Why**: each test reached a state the fixes now refuse: creating a record inside a dataset held at no level, opening a private project's tab as a visitor, and choosing a project held below the edit level. The orchestrator read every changed line against the commit before the fixes and found no assertion removed or weakened.
+**Revisit if**: never; this records a check that was made.
+**ADR:** none — a record of test changes in one fix cycle
