@@ -995,7 +995,7 @@ class ContributionList(ContributionPage):
                     "label": level.label,
                     "source": source,
                     "source_kind": RecordAccess(source).kind,
-                    "source_url": reverse(source, "contribution-list"),
+                    "source_url": reverse(source, "contribution-list", default=""),
                 }
                 for person, level, source in self.access.people_above()
                 if person.pk not in credited
@@ -1008,7 +1008,9 @@ class ContributionList(ContributionPage):
             term=term,
             access_from_above=access_from_above,
             parent=parents[0] if parents else None,
-            parent_url=reverse(parents[0], "contribution-list") if parents else "",
+            parent_url=(
+                reverse(parents[0], "contribution-list", default="") if parents else ""
+            ),
             parent_kind=capfirst(RecordAccess(parents[0]).kind) if parents else "",
         )
         return context

@@ -84,7 +84,9 @@ class RecordOverviewPlugin(OverviewPlugin):
     def get_context_data(self, **kwargs):
         """Lead the People card to the record's Contributors tab."""
         context = super().get_context_data(**kwargs)
-        context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
+        context["people_url"] = plugin_reverse(
+            self.base_object, "contribution-list", default=""
+        )
         return context
 
     def get_contributions(self) -> list[Contribution]:

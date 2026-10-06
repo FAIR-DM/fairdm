@@ -74,7 +74,7 @@
       {% if can_manage and parent and not term %}
         <c-card title="{% blocktranslate with kind=parent_kind|lower %}Access from the {{ kind }}{% endblocktranslate %}" class="bg-base-100">
           <c-slot name="actions">
-            <c-button href="{{ parent_url }}" text="{% translate 'Manage there' %}" size="sm" />
+            {% if parent_url %}<c-button href="{{ parent_url }}" text="{% translate 'Manage there' %}" size="sm" />{% endif %}
           </c-slot>
           {% if access_from_above %}
             <p class="text-sm text-base-content/70">
@@ -86,7 +86,11 @@
                   <c-contributor.item :contributor="holder.person" size="sm" class="list-col-grow" />
                   <div class="flex flex-wrap items-center justify-end gap-2 text-sm">
                     <c-badge text="{{ holder.label }}" size="sm" variant="neutral" outline />
-                    <a href="{{ holder.source_url }}" class="link link-hover text-base-content/70">{% blocktranslate with kind=holder.source_kind %}from the {{ kind }}{% endblocktranslate %}</a>
+                    {% if holder.source_url %}
+                      <a href="{{ holder.source_url }}" class="link link-hover text-base-content/70">{% blocktranslate with kind=holder.source_kind %}from the {{ kind }}{% endblocktranslate %}</a>
+                    {% else %}
+                      <span class="text-base-content/70">{% blocktranslate with kind=holder.source_kind %}from the {{ kind }}{% endblocktranslate %}</span>
+                    {% endif %}
                   </div>
                 </c-list.row>
               {% endfor %}
