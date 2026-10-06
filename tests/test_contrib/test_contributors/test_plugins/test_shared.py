@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from bs4 import BeautifulSoup
+from django.contrib.auth.models import Group
 from django.contrib.messages import ERROR, get_messages
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.test import Client
@@ -35,6 +36,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 ORCID_SEARCH = "https://pub.orcid.org/v3.0/expanded-search/"
@@ -801,6 +803,114 @@ class TestRemoveContributor:
         after = browser_as(None).get(tab(record))
         listed = [e["contributor"].pk for e in after.context["people"]["rows"]]
         assert colleague.contributor_id not in listed
+
+
+@pytest.fixture
+def data_curator(db):
+    """A person who can manage any record through the Data Curator role, credited on none."""
+    person = PersonFactory(is_active=True, is_claimed=True, password="x")
+    person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+    return person
+
+
+@pytest.fixture(params=["manager", "curator", "data_curator"])
+def asker(request):
+    """Each person who may open the editing pages of a record in turn."""
+    return request.getfixturevalue(request.param)
+
+
+@pytest.mark.django_db
+class TestLastManagerPages:
+    def test_lowering_the_only_manager_is_refused_on_the_level_field(
+        self, record, manager, asker
+    ):
+        contribution = record.contributors.get(contributor=manager)
+        before = stored(record)
+
+        response = browser_as(asker).post(
+            page_of(record, "edit", pk=contribution.pk),
+            {
+                "roles": role_pks(record.CONTRIBUTOR_ROLES.values[0]),
+                "level": ContributionLevel.EDIT,
+            },
+        )
+
+        assert response.status_code == 422
+        assert "level" in response.context["errors"]
+        assert stored(record) == before
+
+    def test_keeping_the_only_manager_at_the_manage_level_saves_their_roles(
+        self, record, manager, asker
+    ):
+        contribution = record.contributors.get(contributor=manager)
+        names = [record.CONTRIBUTOR_ROLES.values[0]]
+
+        response = browser_as(asker).post(
+            page_of(record, "edit", pk=contribution.pk),
+            {"roles": role_pks(*names), "level": ContributionLevel.MANAGE},
+        )
+
+        assert response["Location"] == tab(record)
+        assert {r.name for r in contribution.roles.all()} == set(names)
+
+    def test_lowering_one_of_two_managers_is_saved(self, record, manager, asker):
+        other = PersonFactory(is_active=True, is_claimed=True, password="x")
+        ContributionFactory(
+            content_object=record, contributor=other, level=ContributionLevel.MANAGE
+        )
+        contribution = record.contributors.get(contributor=manager)
+
+        response = browser_as(asker).post(
+            page_of(record, "edit", pk=contribution.pk),
+            {"level": ContributionLevel.EDIT},
+        )
+
+        contribution.refresh_from_db()
+        assert response["Location"] == tab(record)
+        assert contribution.level == ContributionLevel.EDIT
+
+    def test_the_remove_page_refuses_the_only_manager_and_offers_no_way_to_go_ahead(
+        self, record, manager, asker
+    ):
+        contribution = record.contributors.get(contributor=manager)
+
+        response = browser_as(asker).get(page_of(record, "remove", pk=contribution.pk))
+
+        assert response.status_code == 200
+        assert response.context["refused"] is True
+        assert not soup_of(response).select("main form[method=post]")
+
+    def test_submitting_the_remove_page_for_the_only_manager_changes_nothing(
+        self, record, manager, asker
+    ):
+        contribution = record.contributors.get(contributor=manager)
+        before = stored(record)
+
+        response = browser_as(asker).post(
+            page_of(record, "remove", pk=contribution.pk)
+        )
+
+        assert response.status_code == 422
+        assert response.context["refused"] is True
+        assert stored(record) == before
+
+    def test_the_remove_page_goes_ahead_when_another_person_can_manage(
+        self, record, manager, asker
+    ):
+        other = PersonFactory(is_active=True, is_claimed=True, password="x")
+        ContributionFactory(
+            content_object=record, contributor=other, level=ContributionLevel.MANAGE
+        )
+        contribution = record.contributors.get(contributor=manager)
+        client = browser_as(asker)
+
+        page = client.get(page_of(record, "remove", pk=contribution.pk))
+        response = client.post(page_of(record, "remove", pk=contribution.pk))
+
+        assert page.context["refused"] is False
+        assert soup_of(page).select("main form[method=post]")
+        assert response["Location"] == tab(record)
+        assert not Contribution.objects.filter(pk=contribution.pk).exists()
 
 
 @pytest.mark.django_db

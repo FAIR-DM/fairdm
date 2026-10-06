@@ -420,10 +420,6 @@ class ContributionPage(Plugin, FairDMTemplateView):
         """Map each organization on the record to the people credited here from it."""
         return Crediting(self.base_object).credited_from()
 
-    def is_last_manager(self, contributor):
-        """Say whether nobody else counts as able to manage the record."""
-        return self.access.managers() == {contributor.pk}
-
     def get_context_data(self, **kwargs):
         """Add the record's kind, the tab's address and whether the viewer may manage."""
         context = super().get_context_data(**kwargs)
@@ -788,16 +784,6 @@ class ContributionEdit(ContributionPage):
                 errors["affiliation"] = choice.problem
             if level is None:
                 errors["level"] = _("Choose what this person may do.")
-            elif (
-                entry["own"] == ContributionLevel.MANAGE
-                and level != ContributionLevel.MANAGE
-                and not (entry["above"] and level < entry["above"])
-                and self.is_last_manager(contributor)
-            ):
-                errors["level"] = _(
-                    "%(name)s is the only person who can manage this %(kind)s. "
-                    "Give someone else “Can manage” first."
-                ) % {"name": contributor, "kind": self.access.kind}
 
         crediting = Crediting(self.base_object)
         listed = set(
@@ -816,7 +802,11 @@ class ContributionEdit(ContributionPage):
                 )
             except ValidationError as refused:
                 for refusal in refused.error_list:
-                    field = "level" if refusal.code == "below_inherited" else "roles"
+                    field = (
+                        "level"
+                        if refusal.code in ("below_inherited", "last_manager")
+                        else "roles"
+                    )
                     errors[field] = refusal.message % (refusal.params or {})
             if errors:
                 transaction.set_rollback(True)
@@ -852,24 +842,17 @@ class ContributionRemove(ContributionPage):
         entry = self.describe(self.get_contribution())
         context.update(
             entry=entry,
-            refused=entry["own"] == ContributionLevel.MANAGE
-            and self.is_last_manager(entry["contributor"]),
+            refused=Crediting(self.base_object).would_leave_no_manager(
+                entry["contribution"]
+            ),
         )
         return context
 
-    def must_stay(self, entry):
-        """Say whether removing the contributor would leave nobody to manage the record."""
-        return entry["own"] == ContributionLevel.MANAGE and self.is_last_manager(
-            entry["contributor"]
-        )
-
     def post(self, request, *args, **kwargs):
-        """Remove the contributor unless the service refuses or they are the last manager."""
+        """Remove the contributor unless the service refuses, and draw the page again if it does."""
         record = self.base_object
         entry = self.describe(self.get_contribution())
         contributor = entry["contributor"]
-        if self.must_stay(entry):
-            return self.render_to_response(self.get_context_data(), status=422)
         try:
             Crediting(record).remove(entry["contribution"])
         except ValidationError:
