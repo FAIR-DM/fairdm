@@ -9,7 +9,7 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.project.models import Project
-from fairdm.factories import OrganizationFactory, PersonFactory
+from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
 
 RECORDS = ["project", "dataset", "sample", "measurement"]
 
@@ -180,3 +180,202 @@ class TestRemove:
 
         level = RecordAccess(record_chain.dataset).level_of(somebody)
         assert level == ContributionLevel.EDIT
+
+
+@pytest.mark.django_db
+class TestCreditedFrom:
+    @pytest.mark.parametrize("kind", RECORDS)
+    def test_a_person_is_added_credited_from_the_organization(
+        self, record_chain, somebody, kind
+    ):
+        record = getattr(record_chain, kind)
+        organization = OrganizationFactory()
+
+        contribution = Crediting(record).add(somebody, organization=organization)
+
+        assert contribution.affiliation == organization
+
+    def test_the_organization_is_listed_on_the_record_once(self, record_chain, somebody):
+        organization = OrganizationFactory()
+
+        Crediting(record_chain.dataset).add(somebody, organization=organization)
+        Crediting(record_chain.dataset).add(
+            PersonFactory(is_active=True), organization=organization
+        )
+
+        listed = record_chain.dataset.contributors.filter(contributor=organization)
+        assert listed.count() == 1
+        assert listed.get().level is None
+
+    def test_an_organization_already_listed_is_not_listed_again(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        Crediting(record_chain.dataset).add(organization)
+
+        Crediting(record_chain.dataset).add(somebody, organization=organization)
+
+        listed = record_chain.dataset.contributors.filter(contributor=organization)
+        assert listed.count() == 1
+
+    def test_a_person_added_with_no_organization_is_credited_from_none(
+        self, record_chain, somebody
+    ):
+        AffiliationFactory(person=somebody, is_primary=True)
+
+        contribution = Crediting(record_chain.dataset).add(somebody)
+
+        assert contribution.affiliation is None
+        assert [c.contributor_id for c in record_chain.dataset.contributors.all()] == [
+            somebody.pk
+        ]
+
+    def test_a_refused_add_lists_no_organization(self, record_chain, somebody, grant):
+        grant(record_chain.dataset, somebody, ContributionLevel.EDIT)
+        organization = OrganizationFactory()
+
+        with pytest.raises(ValidationError):
+            Crediting(record_chain.dataset).add(somebody, organization=organization)
+
+        assert not record_chain.dataset.contributors.filter(
+            contributor=organization
+        ).exists()
+
+    def test_deleting_the_organization_leaves_the_person_credited_from_none(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        contribution = Crediting(record_chain.dataset).add(
+            somebody, organization=organization
+        )
+
+        organization.delete()
+
+        contribution.refresh_from_db()
+        assert contribution.affiliation is None
+        assert record_chain.dataset.contributors.filter(contributor=somebody).exists()
+
+    def test_update_changes_the_organization_and_lists_it(self, record_chain, somebody):
+        first, second = OrganizationFactory(), OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=first)
+
+        crediting.update(contribution, roles=[], organization=second)
+
+        contribution.refresh_from_db()
+        assert contribution.affiliation == second
+        assert record_chain.dataset.contributors.filter(contributor=second).count() == 1
+
+    def test_update_can_set_the_organization_to_none(self, record_chain, somebody):
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=OrganizationFactory())
+
+        crediting.update(contribution, roles=[], organization=None)
+
+        contribution.refresh_from_db()
+        assert contribution.affiliation is None
+
+    def test_update_without_an_organization_leaves_it_alone(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=organization)
+
+        crediting.update(contribution, roles=[role("Creator")])
+
+        contribution.refresh_from_db()
+        assert contribution.affiliation == organization
+
+    def test_a_refused_update_changes_no_organization(self, record_chain, somebody):
+        first = OrganizationFactory()
+        crediting = Crediting(record_chain.project)
+        contribution = crediting.add(somebody, organization=first)
+        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
+            name__in=Project.CONTRIBUTOR_ROLES.values
+        )[0]
+        other = OrganizationFactory()
+
+        with pytest.raises(ValidationError):
+            crediting.update(contribution, roles=[elsewhere], organization=other)
+
+        contribution.refresh_from_db()
+        assert contribution.affiliation == first
+        assert not record_chain.project.contributors.filter(contributor=other).exists()
+
+    def test_the_organization_stays_when_its_last_person_leaves(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=organization)
+
+        crediting.remove(contribution)
+
+        assert record_chain.dataset.contributors.filter(
+            contributor=organization
+        ).exists()
+
+    def test_the_organization_stays_when_its_last_person_is_credited_from_elsewhere(
+        self, record_chain, somebody
+    ):
+        first = OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=first)
+
+        crediting.update(contribution, roles=[], organization=OrganizationFactory())
+
+        assert record_chain.dataset.contributors.filter(contributor=first).exists()
+
+    def test_an_organization_nobody_is_credited_from_can_be_removed(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        contribution = crediting.add(somebody, organization=organization)
+        crediting.remove(contribution)
+        listed = record_chain.dataset.contributors.get(contributor=organization)
+
+        crediting.remove(listed)
+
+        assert not Contribution.objects.filter(pk=listed.pk).exists()
+
+    def test_an_organization_people_are_credited_from_cannot_be_removed(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        other = PersonFactory(is_active=True)
+        crediting = Crediting(record_chain.dataset)
+        crediting.add(somebody, organization=organization)
+        crediting.add(other, organization=organization)
+        listed = record_chain.dataset.contributors.get(contributor=organization)
+
+        with pytest.raises(ValidationError) as refused:
+            crediting.remove(listed)
+
+        assert refused.value.code == "credited_from"
+        assert {person.pk for person in refused.value.params["people"]} == {
+            somebody.pk,
+            other.pk,
+        }
+        assert Contribution.objects.filter(pk=listed.pk).exists()
+
+    def test_credited_from_maps_each_organization_to_its_people(
+        self, record_chain, somebody
+    ):
+        organization = OrganizationFactory()
+        crediting = Crediting(record_chain.dataset)
+        crediting.add(somebody, organization=organization)
+        crediting.add(PersonFactory(is_active=True))
+
+        found = crediting.credited_from()
+
+        assert {pk: [p.pk for p in people] for pk, people in found.items()} == {
+            organization.pk: [somebody.pk]
+        }
+
+    def test_credited_from_looks_only_at_this_record(self, record_chain, somebody):
+        organization = OrganizationFactory()
+        Crediting(record_chain.project).add(somebody, organization=organization)
+
+        assert Crediting(record_chain.dataset).credited_from() == {}
