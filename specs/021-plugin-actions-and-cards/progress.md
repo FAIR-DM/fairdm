@@ -68,3 +68,10 @@ Did: documented the card in docs/portal-development/create_a_plugin.md (the plac
 Verified: ran the documented example (a dataset card in the wide column for signed-in visitors with a further view and assets) in a throwaway test through the test client: hidden and refused to a visitor who is not signed in, drawn with a working link to its further view for one who is, assets present, no address at the card's own name. The throwaway test and its templates were not kept.
 Next: full verify, then the report.
 Watch: the docs build is part of the full verify.
+
+## 2026-10-06T22:14:33Z · Implementer US3 · T010
+
+Did: Added TestRemove (parametrized over navigation, action and card) and TestRemoveRefusals to tests/test_contrib/test_plugins/test_registration.py. They cover no mount/pattern/entry/action/card after removal, removal by class and by name, still mounted on another record type, same result whichever of remove/register came first, get_plugins_for_model unchanged, and the refusals for an unregistered target and for the overview of a project and a sample.
+Verified: `uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k TestRemove` -> 26 failed, all with AttributeError on registry.remove (the right reason, the method does not exist yet). pre-commit run --all-files passed.
+Next: T011, the page tests through the client.
+Watch: the registry fixtures (isolate_registry, PluginSandbox) save and restore removals once the registry has somewhere to keep them, so that edit lands with T012.

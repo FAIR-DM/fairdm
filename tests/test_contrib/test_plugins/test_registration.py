@@ -9,7 +9,12 @@ from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
+from fairdm.contrib.plugins.cards import Card
+from fairdm.contrib.plugins.checks import PluginRegistrationError
+from fairdm.contrib.plugins.places import OverviewPlaces
+from fairdm.contrib.plugins.registration import PluginRegistry
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
@@ -304,3 +309,214 @@ class TestNavigationUnchanged:
 
         menu = plugins.registry.get_plugin_menu_for_model(Sample)
         assert "Plain Page" in [item.extra_context["label"] for item in menu.children]
+
+
+class SomeOverview(OverviewPlaces, Plugin, TemplateView):
+    template_name = "base.html"
+
+
+class OwnAddressOverview(OverviewPlaces, Plugin, TemplateView):
+    url_path = None
+    template_name = "base.html"
+
+
+class SampleStyleOverview(OverviewPlaces, Plugin, TemplateView):
+    url_path = "overview"
+    template_name = "base.html"
+
+
+class UnbuiltOverview(Plugin, TemplateView):
+    url_path = None
+    template_name = "base.html"
+
+
+class Detail(Plugin, TemplateView):
+    template_name = "base.html"
+
+
+class ActivityPage(Plugin, TemplateView):
+    template_name = "base.html"
+    extra_views = [Detail]
+
+
+class WatchAction(Plugin, TemplateView):
+    template_name = "base.html"
+    extra_views = [Detail]
+
+
+class ActivityCard(Card):
+    template_name = "plugin_cards/card.html"
+    extra_views = [Detail]
+
+
+PLACES = {
+    "navigation": (ActivityPage, {"label": "Activity"}),
+    "action": (WatchAction, {"place": "action"}),
+    "card": (ActivityCard, {"place": "card"}),
+}
+
+
+def offering_registry():
+    """A registry whose Sample overview draws the places, as the shipped one does."""
+    registry = PluginRegistry()
+    registry.register(Sample)(SomeOverview)
+    return registry
+
+
+def served_names(registry, model):
+    """The URL names a record type's patterns carry."""
+    return [p.name for p in registry.get_urls_for_model(model)]
+
+
+def entry_labels(registry, model):
+    """The labels of a record type's navigation entries, after its patterns are built."""
+    registry.get_urls_for_model(model)
+    menu = registry.get_plugin_menu_for_model(model)
+    return [item.extra_context["label"] for item in menu.children]
+
+
+@pytest.fixture
+def offering():
+    return offering_registry()
+
+
+@pytest.mark.parametrize("place", PLACES)
+class TestRemove:
+    def test_a_removed_plugin_has_no_mount_pattern_entry_action_or_card(
+        self, offering, place
+    ):
+        plugin_class, options = PLACES[place]
+        offering.register(Sample, **options)(plugin_class)
+
+        offering.remove(Sample, plugin_class)
+
+        name = plugin_class.get_name()
+        assert name not in [m.name for m in offering.resolve(Sample)]
+        assert not [n for n in served_names(offering, Sample) if n.startswith(name)]
+        assert "Activity" not in entry_labels(offering, Sample)
+        assert plugin_class not in [
+            m.plugin_class for m in offering.get_page_actions(Sample)
+        ]
+        assert plugin_class not in [m.plugin_class for m in offering.get_cards(Sample)]
+
+    def test_a_removal_may_name_the_plugin_by_its_name(self, offering, place):
+        plugin_class, options = PLACES[place]
+        offering.register(Sample, **options)(plugin_class)
+
+        offering.remove(Sample, plugin_class.get_name())
+
+        assert plugin_class.get_name() not in [m.name for m in offering.resolve(Sample)]
+
+    def test_removed_from_one_record_type_it_is_still_mounted_on_another(
+        self, offering, place
+    ):
+        plugin_class, options = PLACES[place]
+        offering.register(Dataset)(SomeOverview)
+        offering.register(Sample, **options)(plugin_class)
+        offering.register(Dataset, **options)(plugin_class)
+
+        offering.remove(Sample, plugin_class)
+
+        assert plugin_class.get_name() not in [m.name for m in offering.resolve(Sample)]
+        assert plugin_class.get_name() in [m.name for m in offering.resolve(Dataset)]
+        assert plugin_class.get_name() in served_names(offering, Dataset)
+
+    def test_the_result_is_the_same_whether_remove_or_register_came_first(
+        self, place
+    ):
+        plugin_class, options = PLACES[place]
+        before, after = offering_registry(), offering_registry()
+
+        before.remove(Sample, plugin_class)
+        before.register(Sample, **options)(plugin_class)
+        after.register(Sample, **options)(plugin_class)
+        after.remove(Sample, plugin_class)
+
+        assert before.resolve(Sample) == after.resolve(Sample)
+        assert served_names(before, Sample) == served_names(after, Sample)
+        assert entry_labels(before, Sample) == entry_labels(after, Sample)
+
+    def test_the_registration_is_still_declared(self, offering, place):
+        plugin_class, options = PLACES[place]
+        offering.register(Sample, **options)(plugin_class)
+
+        offering.remove(Sample, plugin_class)
+
+        assert (plugin_class, options) in offering.get_plugins_for_model(Sample)
+
+    def test_removing_does_not_stop_the_portal_starting(self, offering, place):
+        plugin_class, options = PLACES[place]
+        offering.register(Sample, **options)(plugin_class)
+        offering.remove(Sample, plugin_class)
+
+        offering.validate_all()
+
+
+class TestRemoveRefusals:
+    def test_remove_itself_checks_nothing(self, offering):
+        offering.remove(Sample, "nothing-called-this")
+        offering.remove(Project, ActivityPage)
+
+    def test_a_removal_of_something_not_registered_is_refused_naming_both(
+        self, offering
+    ):
+        offering.register(Dataset)(SomeOverview)
+        offering.register(Dataset)(ActivityPage)
+        offering.remove(Sample, ActivityPage)
+
+        with pytest.raises(PluginRegistrationError) as excinfo:
+            offering.validate_all()
+
+        assert "activity-page" in str(excinfo.value)
+        assert "Sample" in str(excinfo.value)
+
+    def test_a_removal_on_a_record_type_with_no_registration_is_refused(self):
+        registry = PluginRegistry()
+        registry.remove(Sample, "activity-page")
+
+        with pytest.raises(PluginRegistrationError, match="Sample"):
+            registry.validate_all()
+
+    def test_a_removal_declared_before_the_plugin_is_refused_when_it_never_arrives(
+        self, offering
+    ):
+        offering.remove(Sample, "late-arrival")
+
+        with pytest.raises(PluginRegistrationError, match="late-arrival"):
+            offering.resolve(Sample)
+
+    @pytest.mark.parametrize(
+        ("record_type", "overview"),
+        [(Project, OwnAddressOverview), (Sample, SampleStyleOverview)],
+        ids=["project", "sample"],
+    )
+    def test_the_overview_cannot_be_removed_and_the_refusal_says_it_can_be_replaced(
+        self, record_type, overview
+    ):
+        registry = PluginRegistry()
+        registry.register(record_type)(overview)
+        registry.remove(record_type, overview)
+
+        with pytest.raises(PluginRegistrationError) as excinfo:
+            registry.validate_all()
+
+        message = str(excinfo.value)
+        assert record_type.__name__ in message
+        assert overview.get_name() in message
+        assert "replace" in message
+
+    def test_a_page_served_at_the_record_s_own_address_counts_as_its_overview(self):
+        registry = PluginRegistry()
+        registry.register(Project)(UnbuiltOverview)
+        registry.remove(Project, UnbuiltOverview)
+
+        with pytest.raises(PluginRegistrationError, match="replace"):
+            registry.validate_all()
+
+    def test_a_removal_refusal_is_not_worded_as_a_registration(self, offering):
+        offering.remove(Sample, "activity-page")
+
+        with pytest.raises(PluginRegistrationError) as excinfo:
+            offering.validate_all()
+
+        assert "registered against" not in str(excinfo.value)
