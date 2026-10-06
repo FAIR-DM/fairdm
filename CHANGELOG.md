@@ -146,6 +146,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that list configured, and django-mvp only warns and discards the setting. A portal including
   `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
   above it, since the landing page and its `account-center` URL name now come from django-mvp.
+- The development settings accept any host name, so a development server answers under the
+  machine's network name as well as `localhost`. Production is unchanged: its allowed hosts
+  still come from `DJANGO_SITE_DOMAIN` and `DJANGO_ALLOWED_HOSTS`, and a wildcard there still
+  fails the configuration checks.
+- **django-mvp moves to 0.26, and django-mvp-accounts replaces django-accounts-center.**
+  Forms are now drawn by django-mvp-forms as daisyUI components, and the sign-in, sign-up and
+  account management pages come from django-mvp-accounts. FairDM's own settings carry all of
+  it, so a portal that changes none of the following has nothing to do:
+  - A portal that lists `crispy_tailwind`, `dac` or `dac.allauth` in its own `INSTALLED_APPS`
+    removes them. `mvp_forms` and `mvp_accounts` are already installed by FairDM.
+  - A portal that sets `CRISPY_TEMPLATE_PACK` or `CRISPY_ALLOWED_TEMPLATE_PACKS` to `tailwind`
+    sets `daisyui`, or drops the setting.
+  - A portal template that loads `tailwind_filters`, or overrides a template under `tailwind/`,
+    drops the load and moves the override to the matching template under `daisyui/`.
+  - A portal that includes `dac.urls` includes `allauth.urls` instead. The addresses under
+    `account-center/` are unchanged.
+  - A portal that lists `dac.icons.DAC_ICONS` in `EASY_ICONS` removes it, and one that overrides
+    a `cotton/dac/` component removes the override, since nothing draws it any more.
+  - The `ACCOUNT_MANAGEMENT_GET_AVATAR_URL` setting is gone. Nothing read it.
+  - A portal that builds its own stylesheet runs `python manage.py mvp_tailwind` again.
 - **django-mvp moves to 0.24, and FairDM now requires django-mvp-charts and pyecharts.** The
   overview pages draw their charts with them, so a portal installing FairDM gets both, and adds
   `mvp_charts` to `INSTALLED_APPS` if it does not build its apps from FairDM's own list.

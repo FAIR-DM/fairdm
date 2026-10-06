@@ -688,19 +688,6 @@ wheels = [
 ]
 
 [[package]]
-name = "crispy-tailwind"
-version = "1.0.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-crispy-forms" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ae/ac/a307ae5ce869d7151b90d4b8b042a48eb454a936dacc695f6418486e5bd8/crispy-tailwind-1.0.3.tar.gz", hash = "sha256:2bc9f616d406e4b003f25d46fcb0079f1c2522719d97adb107667271d849459a", size = 19172, upload-time = "2024-02-13T09:52:37.895Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/ca/11f65e24f3c182dfaf90fd3710d2dcca0fbc3026923e47b43f52a4a2349b/crispy_tailwind-1.0.3-py3-none-any.whl", hash = "sha256:31427f66b1c4fd0d6fb040f4197cfb97d104cdbe7641ea2dea940c0057c4db4b", size = 25700, upload-time = "2024-02-13T09:52:35.928Z" },
-]
-
-[[package]]
 name = "cron-descriptor"
 version = "1.4.5"
 source = { registry = "https://pypi.org/simple" }
@@ -849,19 +836,6 @@ wheels = [
 [package.optional-dependencies]
 argon2 = [
     { name = "argon2-cffi" },
-]
-
-[[package]]
-name = "django-accounts-center"
-version = "0.8.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-mvp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/8c/afefbdedc64f700d77f464363fd07e64667f6cbcde4544ddf144ff7630cc/django_accounts_center-0.8.0.tar.gz", hash = "sha256:db7178708a7d611401f0131997a5b13275170261618c7a20b797233c184c650f", size = 25181, upload-time = "2026-09-16T12:45:41.436Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/d6/0395519d8f9e41d43f3deb8c6f09992de1c08ea5f6b12d4ec367c2bc7f86/django_accounts_center-0.8.0-py3-none-any.whl", hash = "sha256:e1678fae6fa07f45ad797b2fb11531e2118c56bd22d8c11e4e849fb7020de126", size = 33014, upload-time = "2026-09-16T12:45:40.065Z" },
 ]
 
 [[package]]
@@ -1484,20 +1458,33 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.25.1"
+version = "0.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "crispy-tailwind" },
     { name = "django" },
     { name = "django-cotton" },
     { name = "django-crispy-forms" },
     { name = "django-easy-icons" },
     { name = "django-flex-menus" },
+    { name = "django-mvp-forms" },
     { name = "mergedeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/e9/a48b73cd2b36833f6eb5af0c4c12afab59c42b3f791ed28f88b55e7edab4/django_mvp-0.25.1.tar.gz", hash = "sha256:38873d643593af1bfdd50b993e7003cf7942ef5161bec16575ffd331c81ba88b", size = 284427, upload-time = "2026-09-29T20:27:11.028Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/52/258e8b0227705b0ee190f4b9c837fd13ada15e94f824a935028c70c2531c/django_mvp-0.26.0.tar.gz", hash = "sha256:ee7b795c5151d2ee05b99cfe8d156049bf673486ec2c5ea6341215686f27d3d7", size = 283524, upload-time = "2026-10-04T11:02:40.466Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/32/3c/a24d5635ac959716a3d9f68ca8d48f70a77ca6e4e581af1ef9f87aa09edf/django_mvp-0.25.1-py3-none-any.whl", hash = "sha256:ff22f75f4466f2a478747ba70294be0d3edc6226c8f60e2838b7fdc4577409c9", size = 340677, upload-time = "2026-09-29T20:27:09.448Z" },
+    { url = "https://files.pythonhosted.org/packages/42/af/b9eec5354126358c38a9c0edf8332a98e48e083af55804efddaf2750bf0a/django_mvp-0.26.0-py3-none-any.whl", hash = "sha256:cb15c21a8172e2b14c4019b7d965c86394d09a6826e15c969d95e4fa3a9a15ee", size = 337430, upload-time = "2026-10-04T11:02:38.864Z" },
+]
+
+[[package]]
+name = "django-mvp-accounts"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-mvp" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/cd/9a727e3809bacf161f94bf0e898e82b122a8368ce8fa1869f78f17a2979e/django_mvp_accounts-0.1.0.tar.gz", hash = "sha256:3b81b424d0a0ca09c09cdfb8da80416437d4700338cd37e844657ad52a75a7a5", size = 17122, upload-time = "2026-09-29T14:33:57.83Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/5d/a4e268346465b77f632dae9214e974911965af34993cd16b144e7cd70e36/django_mvp_accounts-0.1.0-py3-none-any.whl", hash = "sha256:a790ed07a49b5ad1683853ae9c94a426ca44e0094a6b3914233e7a823602ede4", size = 26479, upload-time = "2026-09-29T14:33:56.403Z" },
 ]
 
 [[package]]
@@ -1512,6 +1499,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3e/15/d9806572de278c719d1312f188f585da5076c189e839f8e4fa648a2bc46c/django_mvp_charts-0.2.0.tar.gz", hash = "sha256:b72f82349245421d5204cca740948d6f2d6c5f159af4acb8e5babd4d00dcd482", size = 16798, upload-time = "2026-09-24T12:26:16.254Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/cc/6974321285d4ac83fc8ac75f13334216c48016fa30bebf0ab380668225a1/django_mvp_charts-0.2.0-py3-none-any.whl", hash = "sha256:bb03311f14670822684b0dc68c40b8adea9f1018ae5efcc3bcd8f777b79c2bcd", size = 16998, upload-time = "2026-09-24T12:26:15.068Z" },
+]
+
+[[package]]
+name = "django-mvp-forms"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-crispy-forms" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7c/bd/2b6751fc13831aaa2988b4e1f85b809aabd8ae7035ae106f93315ab6f147/django_mvp_forms-0.2.1.tar.gz", hash = "sha256:c896c1725dfb3435e5e4ee335e3ef974866e3b09cb4d85932d5b6915c32209cf", size = 99248, upload-time = "2026-10-04T12:57:29.536Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/05/73/3d6461fba61c41ae415e7e17b490deed2d698a4560de0307a9255e0ed6c0/django_mvp_forms-0.2.1-py3-none-any.whl", hash = "sha256:c22d11c534a3b59efdb09e9c633e0cd643655837ef834fff975fcee2a3be9197", size = 79726, upload-time = "2026-10-04T12:57:27.65Z" },
 ]
 
 [[package]]
@@ -2035,11 +2035,9 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "celery" },
-    { name = "crispy-tailwind" },
     { name = "defusedxml" },
     { name = "dj-rest-auth" },
     { name = "django", extra = ["argon2"] },
-    { name = "django-accounts-center" },
     { name = "django-addanother" },
     { name = "django-admin-extra-buttons" },
     { name = "django-adminactions" },
@@ -2074,7 +2072,9 @@ dependencies = [
     { name = "django-meta" },
     { name = "django-model-utils" },
     { name = "django-mvp" },
+    { name = "django-mvp-accounts" },
     { name = "django-mvp-charts" },
+    { name = "django-mvp-forms" },
     { name = "django-orbit", extra = ["mcp"] },
     { name = "django-ordered-model" },
     { name = "django-parler" },
@@ -2137,11 +2137,9 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "celery", specifier = ">=5.6.2,<6.0.0" },
-    { name = "crispy-tailwind", specifier = ">=1.0.3,<2.0.0" },
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
     { name = "dj-rest-auth", specifier = ">=7.0.0,<8.0.0" },
     { name = "django", extras = ["argon2"], specifier = ">=5.2,<6.0.0" },
-    { name = "django-accounts-center", specifier = ">=0.8.0,<0.9.0" },
     { name = "django-addanother", specifier = ">=2.2.2,<3.0.0" },
     { name = "django-admin-extra-buttons", specifier = ">=1.5.8,<3.0.0" },
     { name = "django-adminactions", specifier = ">=2.0.0,<3.0.0" },
@@ -2175,8 +2173,10 @@ requires-dist = [
     { name = "django-markdownx", specifier = ">=4.0.11,<5.0.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
-    { name = "django-mvp", specifier = ">=0.25.1,<0.26.0" },
+    { name = "django-mvp", specifier = ">=0.26.0,<0.27.0" },
+    { name = "django-mvp-accounts", specifier = ">=0.1.0,<0.2.0" },
     { name = "django-mvp-charts", specifier = ">=0.2.0,<0.3.0" },
+    { name = "django-mvp-forms", specifier = ">=0.2,<1.0" },
     { name = "django-orbit", extras = ["mcp"], specifier = ">=0.12.1,<0.13.0" },
     { name = "django-ordered-model", specifier = ">=3.7.4,<4.0.0" },
     { name = "django-parler", specifier = ">=2.3,<3.0" },
