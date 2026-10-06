@@ -297,3 +297,36 @@ predicate admits this record would then have to be chosen.
 visible to a test and to a script through the hook. The wrapper uses `display: contents`, so the
 column's spacing treats the card's own element as the item.
 **Revisit if**: a card needs a styling hook on the element that holds it.
+
+## D15. A removal is judged by its own function and has its own wording
+
+**Decision**: `checks.validate_removals` refuses a removal that names nothing registered for the
+record type, or the record type's overview. `checks.is_overview(mount)` holds the rule: built on
+`OverviewPlaces`, or served at the record's own address. Refusals are written by
+`_fail_removal`, as `removal of '<name>' from <Model>: <problem>`, and are still a
+`PluginRegistrationError`.
+**Why**: `_fail` writes `<plugin> registered against <Model>: ...`, which reads wrongly for a
+removal. The overview rule is a function of a mount so that the clause about `replaces` can be
+added where the rule lives, and so the page tests can use the rule rather than copy it.
+**Revisit if**: a record type may have two overviews, for instance one per subtype.
+
+## D16. A Manage menu with no entry left is not drawn
+
+**Decision**: on the sample overview, where all four entries lead to removable plugins, the
+Manage dropdown is drawn only when at least one of its entries has an address. On the project,
+dataset, person and organization pages the menu always keeps an entry the overview owns, so only
+the entries that can disappear are guarded.
+**Why**: a trigger that opens an empty menu is a link to nothing, which is what removal must not
+leave behind. Entries and anchors that are drawn are untouched.
+**Revisit if**: a Manage menu is meant to stay as a visible landmark with nothing in it.
+
+## D17. The removable plugins are read from the registry when the tests are collected
+
+**Decision**: the parameters of the overview tests in
+`tests/test_templates/test_overview_removed_plugins.py` come from `registry.resolve(model)` for
+each record type with an overview page, minus the mount `is_overview` names.
+**Why**: each case needs its own rebuilt URL configuration, and a parameter per plugin keeps one
+failure from hiding the next. Nothing else adds to the registry before collection, so a plugin
+FairDM registers later is still covered without editing the file. The location record type has
+no overview page to open, so it is not in the list.
+**Revisit if**: a test fixture or an addon registers plugins before collection.
