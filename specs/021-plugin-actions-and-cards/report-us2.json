@@ -1,0 +1,121 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T006",
+      "status": "done",
+      "commits": [
+        "1c3eba4f"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_cards.py",
+          "tests/test_contrib/test_plugins/test_places.py::TestRecordTypeOffersPlaces"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-003",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins/test_cards.py tests/test_contrib/test_plugins/test_places.py -q -n0 (before: collection error, no fairdm.contrib.plugins.cards; after: 50 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T007",
+      "status": "done",
+      "commits": [
+        "e2dcd21f"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_overview_cards.py"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-003",
+          "SC-004",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_templates/test_overview_cards.py -q -n0 (before: collection error; after: 33 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T008",
+      "status": "done",
+      "commits": [
+        "384ddb9b"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-002",
+          "SC-003",
+          "SC-004",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (1253 passed)",
+          "uv run pytest tests/test_contrib/test_contributors tests/test_core/test_sample tests/test_core/test_measurement -q -n auto --dist loadscope (2683 passed, 13 skipped)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T009",
+      "status": "done",
+      "commits": [
+        "60b33701"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "the documented card example run in a throwaway test through the test client (passed, not kept)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "A Card subclass registered as a page or an action is refused, and a card must be built on Card with a template_name or its own render_card. Neither refusal is listed in the tasks.",
+      "why": "A card has no address, so a navigation entry for one would name a URL that does not exist and fail while the overview or the navigation is drawn.",
+      "decision_ref": "decisions.md#d12"
+    },
+    {
+      "what": "Each drawn card is written inside a wrapper element with display: contents and a data-contributed-card attribute.",
+      "why": "The framework never inspects a card's output, so a card that draws nothing needs a hook for tests and scripts; the brief allowed a hook on the contributed loop's output.",
+      "decision_ref": "decisions.md#d14"
+    }
+  ],
+  "concerns": [
+    "Test cards draw templates kept under tests/registry_models/templates/plugin_cards/, the only installed test app with an app-directories template path. A dedicated test templates directory would be cleaner but needs a settings change outside this story.",
+    "A further view of a card finds the record type's overview as the first mount built on OverviewPlaces. A record type that registers two such overviews would need the mount whose predicate admits the record to be chosen (decisions.md#d13).",
+    "docs/portal-development/create_a_plugin.md still says an additional view inherits its plugin's check (under 'A feature that is more than one page'), while the later worked example says it does not. Pages behave as the example says. Not touched, outside this story.",
+    "forge verify reported the docs step passed in 0s, so I could not tell whether Sphinx built the new sections; the card section was checked only by running its example."
+  ],
+  "blocked": []
+}

@@ -181,23 +181,89 @@
       "tasks": [
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_cards.py",
+              "tests/test_contrib/test_plugins/test_places.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_cards.py tests/test_contrib/test_plugins/test_places.py -q -n0 (before the implementation: fails at collection, no module fairdm.contrib.plugins.cards)",
+              "uv run pytest tests/test_contrib/test_plugins/test_cards.py tests/test_contrib/test_plugins/test_places.py -q -n0 (after: 50 passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "tests/test_contrib/test_plugins/test_cards.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_cards.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates/test_overview_cards.py -q -n0 (before the implementation: fails at collection, no module fairdm.contrib.plugins.cards)",
+              "uv run pytest tests/test_templates/test_overview_cards.py -q -n0 (after: 33 passed)",
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (after: 1253 passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "tests/test_templates/test_overview_cards.py:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_cards.py",
+              "tests/test_templates/test_overview_cards.py",
+              "tests/test_contrib/test_plugins/test_places.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope (1253 passed)",
+              "uv run pytest tests/test_contrib/test_contributors tests/test_core/test_sample tests/test_core/test_measurement -q -n auto --dist loadscope (2683 passed, 13 skipped)",
+              "uv run pre-commit run --all-files (passed)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/cards.py:20",
+              "fairdm/contrib/plugins/places.py:101",
+              "fairdm/contrib/plugins/registration.py:281",
+              "fairdm/contrib/plugins/checks.py:61",
+              "fairdm/contrib/plugins/base.py:205",
+              "fairdm/templates/overview/page.html:137",
+              "fairdm/contrib/plugins/__init__.py:22"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "the documented card example run in a throwaway test through the test client (passed, not kept)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/portal-development/create_a_plugin.md:189",
+              "docs/portal-development/overview-pages.md:49",
+              "CONTEXT.md:169"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
