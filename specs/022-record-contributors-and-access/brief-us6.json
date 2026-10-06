@@ -1,0 +1,119 @@
+{
+  "story": "US6",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 425,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T026",
+    "T027",
+    "T028",
+    "T029"
+  ],
+  "context": {
+    "why": "Stories 1 to 5 are accepted: levels decide access everywhere, Crediting (fairdm/contrib/contributors/services/crediting.py) is the one place a record's contributors change and it locks the record's row first, and the tab's pages are rebuilt over it. One page is still untested prototype code: ContributionMove in plugins/shared.py, which reorders in the view. The tab shows a record's people and its organizations as two lists, each in its own order, with move-earlier and move-later controls for someone who can manage the record. This story moves reordering into Crediting, gives the contribution queryset the two narrowing helpers, and makes the record's overview and citation follow the same order: people first, then organizations. It also closes a gap an earlier story found in the overview: a person credited with no organization must be shown with none.",
+    "spec_sections": [
+      "User Story 6 (all 7 acceptance scenarios)",
+      "FR-002",
+      "FR-024 (a person credited with no organization is shown with none)",
+      "FR-057 to FR-059",
+      "SC-011",
+      "Clarifications ('Where a record names people and organizations together...')",
+      "Assumptions (who appears in a citation stays as specification 018 has it; this feature decides only the order)"
+    ],
+    "plan_sections": [
+      "D3 (move)",
+      "D6"
+    ],
+    "prior_decisions": [
+      "Contribution is an OrderedModel with one `order` column and no order_with_respect_to, so its own up()/down() would swap with a row on another record: do not use them. Crediting.move(contribution, direction) swaps the `order` values of the contribution and its neighbour of the same kind (person or organization) on the same record, inside the same lock-then-change path story 5 built for add, update and remove (reuse it, and add `move` to TestRecordLock's parametrisation in tests/test_contrib/test_contributors/test_services/test_crediting.py if that test is parametrised over the methods). Moving the first earlier or the last later changes nothing and raises nothing. If two contributions on a record share an order value (old data), move must still produce a deterministic result: order by (order, pk).",
+      "ContributionQuerySet (fairdm/contrib/contributors/managers.py) gains people() and organizations(): the contributions whose contributor is a Person, or an Organization, ordered by order then pk. Contributor is polymorphic (polymorphic_ctype); filter without loading every contributor. Use them in Crediting, in the tab's list and in RecordOverviewPlugin.",
+      "A new person is placed last among the people and a new organization last among the organizations (FR-059). Crediting.add already places a contributor last overall; confirm that gives last-within-kind and test it. Removing or editing a contributor leaves the others' order alone.",
+      "ContributionMove (the page) becomes a thin POST over Crediting.move: a visitor is sent to sign in, someone who cannot manage is refused with nothing changed, and a manager's POST redirects back to the tab at the moved contributor's anchor as it does now. The page takes `direction` = `up` or `down` from the form the approved templates already post (cotton/contribution/controls.html and cotton/contribution/organization.html); keep those field names and the templates unchanged.",
+      "RecordOverviewPlugin.get_contributions() (fairdm/core/plugins.py) returns people first, in order, then organizations, in order. Everything the four overviews and the dataset and project citations name comes from it, so they follow (FR-058). Do not change which contributors a citation names or how it is formatted: only the order. Test it where the overview and citation are tested today (tests/test_core/...), with a record whose people and organizations have been reordered.",
+      "RecordOverviewPlugin.get_credits() still falls back to the person's primary affiliation when a credit names no organization. Remove the fallback: a person credited with no organization gets none (FR-024, decisions.md D6). A pre-existing overview test that asserts the fallback describes behaviour this feature replaces: update it in T028 and name it in progress.md.",
+      "decisions.md D12: page tests of the tab go in tests/test_contrib/test_contributors/test_plugins/test_shared.py.",
+      "Docs (T029): ordering in the user guide page (docs/user-guide/crediting-a-record.md), including that people come before organizations where both are named; Crediting.move, people(), organizations() and the ContributionMove page in docs/portal-development/contributors.md. After this story the docs step should report only ContributorSeed, which story 7 owns."
+    ],
+    "acceptance": [
+      {
+        "task": "T026",
+        "given_when_then": "Given a record with several people and several organizations, when Crediting moves one, then it changes place only among its own kind, the ends do not move, a new contributor is last among its kind, and removing or editing one leaves the rest in place."
+      },
+      {
+        "task": "T027",
+        "given_when_then": "Given a manager, a reader and a visitor, when the move page is posted to, then the manager's move is saved and redirects to the tab and the others change nothing; and given a reordered record, the overview and the citation name people in the people's order with organizations after them, and a person credited with no organization is shown with none."
+      },
+      {
+        "task": "T028",
+        "given_when_then": "Given the failing tests from T026 and T027, when the implementation lands, then all pass and the page no longer reorders in the view."
+      },
+      {
+        "task": "T029",
+        "given_when_then": "Given the user guide and developer pages, when read against the branch, then they describe ordering and the names this story makes public, and the docs step reports only ContributorSeed."
+      }
+    ],
+    "verified_base": {
+      "commit": "8469590c9990e31958359592ab464b784b62b32a",
+      "verified_at": "2026-10-06T18:10:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 5's last code commit (50ac90ef): lint, typecheck, the whole test suite, build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly two names, ContributionMove (yours) and ContributorSeed (story 7's). `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Contribution",
+      "Contributor, Person, Organization",
+      "Polymorphic models",
+      "Plugin"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T026 to T029 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not change which contributors a citation or an overview names, or how either is formatted. Only the order, and the one fallback named above.",
+    "Do not change RecordLevelBackend, the permission table, with_level, visible_to, the migrations, or the last-manager rule.",
+    "No migration: the `order` column already exists. If makemigrations wants to write one for a first-party app, report it."
+  ]
+}
