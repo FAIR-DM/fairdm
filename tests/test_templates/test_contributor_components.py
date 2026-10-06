@@ -290,3 +290,17 @@ class TestCreditedFromNone:
 
         hrefs = [a["href"] for a in soup(html).find_all("a")]
         assert primary.organization.get_absolute_url() in hrefs
+
+    def test_a_person_given_as_a_plain_contributor_row_keeps_their_primary_organization(
+        self, render_with, soup, component
+    ):
+        from fairdm.contrib.contributors.models import Contributor
+
+        person = PersonFactory()
+        primary = AffiliationFactory(person=person, is_primary=True)
+        plain = Contributor.objects.non_polymorphic().get(pk=person.pk)
+
+        html = render_with(f'<{component} :contributor="plain" />', plain=plain)
+
+        hrefs = [a["href"] for a in soup(html).find_all("a")]
+        assert primary.organization.get_absolute_url() in hrefs

@@ -5,6 +5,7 @@ the code behind them is to be rebuilt. ``specs/022-record-contributors-and-acces
 lists what is faked.
 """
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -28,7 +29,7 @@ from fairdm.views import FairDMTemplateView
 from ..access import RecordAccess
 from ..choices import ContributionLevel
 from ..models import Contribution, Contributor, Organization, Person
-from ..services.crediting import Crediting
+from ..services.crediting import UNCHANGED, Crediting
 
 
 def level_choices(record, floor=None):
@@ -52,6 +53,148 @@ def level_choices(record, floor=None):
         }
         for level in ContributionLevel
     ]
+
+
+class AffiliationChoice(forms.Form):
+    """The choice of which organization a person is credited from on one record.
+
+    The person's own affiliations are offered, the primary one selected to begin with. Any other
+    organization can be named, and none can be chosen. The two fields keep the names the
+    ``c-contribution.affiliation`` component draws.
+
+    Args:
+        person: The person, when they are already in the portal.
+        credit: The person's contribution on the record, when it is being edited.
+        suggested: An organization name to offer, such as an employer from ORCID.
+    """
+
+    affiliation = forms.CharField(required=False)
+    affiliation_name = forms.CharField(
+        required=False, max_length=Contributor._meta.get_field("name").max_length
+    )
+
+    def __init__(self, *args, person=None, credit=None, suggested="", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.credit = credit
+        self.suggested = suggested
+        self.options = self.held_by(person)
+
+    @staticmethod
+    def held_by(person):
+        """List a person's affiliations as options, the current primary first.
+
+        Args:
+            person: The person, or None.
+
+        Returns:
+            One ``{"value", "organization", "note"}`` dictionary per affiliation.
+        """
+        if person is None:
+            return []
+        held = sorted(
+            person.affiliations.select_related("organization"),
+            key=lambda a: (not a.is_primary, a.end_date is not None),
+        )
+        options = []
+        for affiliation in held:
+            if affiliation.is_primary:
+                note = _("Their primary affiliation today")
+            elif affiliation.end_date:
+                note = _("Earlier, until %(when)s") % {"when": affiliation.end_date}
+            else:
+                note = _("Also current")
+            options.append(
+                {
+                    "value": f"org:{affiliation.organization_id}",
+                    "organization": affiliation.organization,
+                    "note": note,
+                }
+            )
+        return options
+
+    def clean_affiliation(self):
+        """Accept one of the person's affiliations, another organization, or none."""
+        value = self.cleaned_data["affiliation"] or "none"
+        if value not in {option["value"] for option in self.options} | {
+            "other",
+            "none",
+        }:
+            raise ValidationError(
+                _("Choose one of the organizations offered."), code="invalid_choice"
+            )
+        return value
+
+    def clean(self):
+        """Refuse another organization chosen without a name."""
+        cleaned = super().clean()
+        if cleaned.get("affiliation") == "other" and not cleaned.get(
+            "affiliation_name"
+        ):
+            self.add_error(
+                "affiliation_name",
+                ValidationError(
+                    _("Enter the organization's name, or choose another answer."),
+                    code="required",
+                ),
+            )
+        return cleaned
+
+    @property
+    def problem(self):
+        """The first message about what is wrong with the choice, or None."""
+        for errors in self.errors.values():
+            return errors[0]
+        return None
+
+    def organization(self):
+        """Return the organization chosen, making it when it is named and not in the portal.
+
+        Call it inside the transaction that saves the credit, so that an organization made for
+        a save that is then refused is not kept.
+
+        Returns:
+            The organization, or None when none was chosen.
+        """
+        value = self.cleaned_data["affiliation"]
+        if value.startswith("org:"):
+            return Organization.objects.get(pk=value[4:])
+        if value != "other":
+            return None
+        name = self.cleaned_data["affiliation_name"]
+        match = Organization.objects.filter(name__iexact=name).first()
+        return match or Organization.objects.create(name=name)
+
+    def choice(self):
+        """Shape the choice for the component that draws it.
+
+        Returns:
+            The options, which one is selected, the name typed for another organization, and
+            every organization name for the suggestions. What a refused form held is kept.
+        """
+        values = {option["value"] for option in self.options}
+        other_name = self.suggested
+        if self.is_bound:
+            selected = self.data.get("affiliation") or "none"
+            other_name = self.data.get("affiliation_name", "")
+        elif self.credit is not None:
+            current = self.credit.affiliation
+            selected = f"org:{current.pk}" if current else "none"
+            if current and selected not in values:
+                selected, other_name = "other", current.name
+        elif self.suggested:
+            selected = "other"
+        elif self.options:
+            selected = self.options[0]["value"]
+        else:
+            selected = "none"
+        return {
+            "options": self.options,
+            "selected": selected,
+            "other_name": other_name,
+            "organizations": Organization.objects.order_by("name").values_list(
+                "name", flat=True
+            ),
+        }
 
 
 class ContributionPage(Plugin, FairDMTemplateView):
@@ -107,114 +250,14 @@ class ContributionPage(Plugin, FairDMTemplateView):
             "from_above": bool(above and above == effective and above != own),
             "has_account": is_person and contributor.can_sign_in(),
             "affiliation": contribution.affiliation if is_person else None,
-            "attached": [] if is_person else self.affiliated.get(contributor.pk, []),
-            "removable": is_person or contributor.pk not in self.affiliated,
+            "attached": [] if is_person else self.credited_from.get(contributor.pk, []),
+            "removable": is_person or contributor.pk not in self.credited_from,
         }
 
     @cached_property
-    def affiliated(self):
+    def credited_from(self):
         """Map each organization on the record to the people credited here from it."""
-        found = {}
-        credited = self.base_object.contributors.exclude(
-            affiliation=None
-        ).select_related("contributor")
-        for credit in credited.order_by("order", "pk"):
-            if credit.contributor is not None:
-                found.setdefault(credit.affiliation_id, []).append(credit.contributor)
-        return found
-
-    def affiliation_choice(self, person=None, current=None, suggested="", chosen=None):
-        """Shape the choice of which organization a person is credited from on this record.
-
-        Args:
-            person: The person, when they are already in the portal.
-            current: The organization recorded on their credit here, when editing.
-            suggested: An organization name to offer, such as an employer from ORCID.
-            chosen: What a refused form had selected: ``{"value", "name"}``.
-
-        Returns:
-            The person's own affiliations as options, which one is selected, the name typed
-            for any other organization, and every organization name for the suggestions.
-        """
-        options = []
-        if person is not None:
-            held = sorted(
-                person.affiliations.select_related("organization"),
-                key=lambda a: (not a.is_primary, a.end_date is not None),
-            )
-            for affiliation in held:
-                if affiliation.is_primary:
-                    note = _("Their primary affiliation today")
-                elif affiliation.end_date:
-                    note = _("Earlier, until %(when)s") % {"when": affiliation.end_date}
-                else:
-                    note = _("Also current")
-                options.append(
-                    {
-                        "value": f"org:{affiliation.organization_id}",
-                        "organization": affiliation.organization,
-                        "note": note,
-                    }
-                )
-        values = {option["value"] for option in options}
-        other_name = suggested
-        if chosen:
-            selected, other_name = chosen["value"], chosen["name"]
-        elif current is not None:
-            selected = f"org:{current.pk}"
-            if selected not in values:
-                selected, other_name = "other", current.name
-        elif suggested:
-            selected = "other"
-        elif options:
-            selected = options[0]["value"]
-        else:
-            selected = "none"
-        return {
-            "options": options,
-            "selected": selected,
-            "other_name": other_name,
-            "organizations": Organization.objects.order_by("name").values_list(
-                "name", flat=True
-            ),
-        }
-
-    def read_affiliation(self, data):
-        """Return what an affiliation choice was submitted as, and the organization it means.
-
-        An organization typed by name is matched to one in the portal, or made.
-
-        Returns:
-            ``(chosen, organization, error)``.
-        """
-        value = data.get("affiliation", "none")
-        name = data.get("affiliation_name", "").strip()
-        chosen = {"value": value, "name": name}
-        if value.startswith("org:") and value[4:].isdigit():
-            return chosen, Organization.objects.filter(pk=value[4:]).first(), None
-        if value == "other":
-            if not name:
-                return (
-                    chosen,
-                    None,
-                    _("Enter the organization's name, or choose another answer."),
-                )
-            match = Organization.objects.filter(name__iexact=name).first()
-            return chosen, match or Organization.objects.create(name=name), None
-        return chosen, None, None
-
-    def credit_from(self, contribution, organization):
-        """Record the organization a person is credited from, and list it on the record."""
-        contribution.affiliation = organization
-        contribution.save()
-        record = self.base_object
-        if (
-            organization
-            and not record.contributors.filter(contributor=organization).exists()
-        ):
-            Contribution.add_to(organization, record)
-            return True
-        return False
+        return Crediting(self.base_object).credited_from()
 
     def is_last_manager(self, contributor):
         """Say whether nobody else counts as able to manage the record."""
@@ -370,9 +413,9 @@ class ContributionAdd(ContributionPage):
             "errors": kwargs.get("errors", {}),
             "values": kwargs.get("values", {}),
             "same_name": kwargs.get("same_name", []),
-            "new_affiliation": self.affiliation_choice(
-                chosen=refused if via == "new" else None
-            )
+            "new_affiliation": AffiliationChoice(
+                refused if via == "new" else None
+            ).choice()
             if self.is_person
             else None,
         }
@@ -384,9 +427,9 @@ class ContributionAdd(ContributionPage):
             if person is not None and person.pk not in listed:
                 adding["picked"] = {
                     "person": person,
-                    "affiliation": self.affiliation_choice(
-                        person=person, chosen=refused if via == "portal" else None
-                    ),
+                    "affiliation": AffiliationChoice(
+                        refused if via == "portal" else None, person=person
+                    ).choice(),
                 }
         if term and not adding["picked"]:
             adding["results"] = [
@@ -399,10 +442,10 @@ class ContributionAdd(ContributionPage):
             if found is not None:
                 adding["chosen"] = {
                     "record": found,
-                    "affiliation": self.affiliation_choice(
+                    "affiliation": AffiliationChoice(
+                        refused if via == "registry" else None,
                         suggested=found.get("employer", ""),
-                        chosen=refused if via == "registry" else None,
-                    )
+                    ).choice()
                     if self.is_person
                     else None,
                 }
@@ -411,13 +454,22 @@ class ContributionAdd(ContributionPage):
         context["adding"] = adding
         return context
 
-    def add(self, contributor, organization=None):
+    def add(self, contributor, choice=None):
         """Add the contributor last, at the view level, and go on to their edit page."""
         record = self.base_object
+        organization = None
         try:
-            contribution = Crediting(record).add(contributor)
+            with transaction.atomic():
+                organization = choice.organization() if choice is not None else None
+                listed = (
+                    organization is None
+                    or record.contributors.filter(contributor=organization).exists()
+                )
+                contribution = Crediting(record).add(
+                    contributor, organization=organization
+                )
         except ValidationError as refused:
-            messages.error(self.request, refused.message)
+            messages.error(self.request, refused.messages[0])
             return redirect(self.request.get_full_path())
         if contributor.is_organization:
             said = _("%(name)s was added. Say what they did here.") % {
@@ -427,7 +479,7 @@ class ContributionAdd(ContributionPage):
             said = _(
                 "%(name)s was added. Say what they did, and what they may do here."
             ) % {"name": contributor}
-            if self.credit_from(contribution, organization):
+            if not listed:
                 said += " " + _("%(organization)s was added to the organizations.") % {
                     "organization": organization
                 }
@@ -449,15 +501,21 @@ class ContributionAdd(ContributionPage):
 
     def post(self, request, *args, **kwargs):
         """Add someone from the portal, from a registry record, or from the form."""
-        organization = None
-        if self.is_person:
-            chosen, organization, problem = self.read_affiliation(request.POST)
-            if problem:
-                return self.refuse(affiliation=chosen, errors={"affiliation": problem})
-
+        portal = None
         if pk := request.POST.get("contributor"):
-            contributor = get_object_or_404(Contributor, pk=pk)
-            return self.add(contributor.get_real_instance(), organization)
+            portal = get_object_or_404(Contributor, pk=pk).get_real_instance()
+
+        choice = None
+        if self.is_person:
+            person = portal if isinstance(portal, Person) else None
+            choice = AffiliationChoice(request.POST, person=person)
+            if not choice.is_valid():
+                return self.refuse(
+                    affiliation=request.POST, errors={"affiliation": choice.problem}
+                )
+
+        if portal is not None:
+            return self.add(portal, choice)
 
         if registry_id := request.POST.get("registry_id"):
             found = self.find_registry_record(registry_id)
@@ -470,7 +528,7 @@ class ContributionAdd(ContributionPage):
                 or self.create(
                     found["name"], found.get("given", ""), found.get("family", "")
                 ),
-                organization,
+                choice,
             )
 
         values = {key: request.POST.get(key, "").strip() for key in request.POST}
@@ -494,7 +552,7 @@ class ContributionAdd(ContributionPage):
             return self.refuse(values=values, same_name=same_name)
         return self.add(
             self.create(name, values.get("given", ""), values.get("family", "")),
-            organization,
+            choice,
         )
 
 
@@ -529,6 +587,11 @@ class ContributionEdit(ContributionPage):
         """Add the contributor, the roles on offer and the levels that may be chosen."""
         context = super().get_context_data(**kwargs)
         entry = self.describe(self.get_contribution())
+        choice = kwargs.get("choice")
+        if choice is None and entry["is_person"]:
+            choice = AffiliationChoice(
+                person=entry["contributor"], credit=entry["contribution"]
+            )
         held = set(entry["contribution"].roles.values_list("pk", flat=True))
         chosen_roles = kwargs.get("chosen_roles", held)
         context.update(
@@ -540,13 +603,7 @@ class ContributionEdit(ContributionPage):
             levels=level_choices(self.base_object, floor=entry["above"]),
             chosen_level=kwargs.get("chosen_level", entry["effective"]),
             errors=kwargs.get("errors", {}),
-            affiliation=self.affiliation_choice(
-                person=entry["contributor"],
-                current=entry["affiliation"],
-                chosen=kwargs.get("affiliation"),
-            )
-            if entry["is_person"]
-            else None,
+            affiliation=choice.choice() if choice else None,
         )
         return context
 
@@ -560,11 +617,13 @@ class ContributionEdit(ContributionPage):
         level = ContributionLevel(int(level)) if level in ("1", "2", "3") else None
         errors = {}
 
-        chosen = organization = None
+        choice = None
         if entry["is_person"]:
-            chosen, organization, problem = self.read_affiliation(request.POST)
-            if problem:
-                errors["affiliation"] = problem
+            choice = AffiliationChoice(
+                request.POST, person=contributor, credit=contribution
+            )
+            if not choice.is_valid():
+                errors["affiliation"] = choice.problem
             if level is None:
                 errors["level"] = _("Choose what this person may do.")
             elif entry["above"] and level < entry["above"]:
@@ -584,10 +643,19 @@ class ContributionEdit(ContributionPage):
                     "Give someone else “Can manage” first."
                 ) % {"name": contributor, "kind": self.access.kind}
 
+        crediting = Crediting(self.base_object)
+        listed = set(
+            self.base_object.contributors.values_list("contributor_id", flat=True)
+        )
+        organization = UNCHANGED
         with transaction.atomic():
+            if choice is not None and choice.is_valid():
+                organization = choice.organization()
             try:
-                Crediting(self.base_object).update(
-                    contribution, roles=Concept.objects.filter(pk__in=chosen_roles)
+                crediting.update(
+                    contribution,
+                    roles=Concept.objects.filter(pk__in=chosen_roles),
+                    organization=organization,
                 )
             except ValidationError as refused:
                 errors["roles"] = refused.message
@@ -601,12 +669,12 @@ class ContributionEdit(ContributionPage):
                 errors=errors,
                 chosen_roles=chosen_roles,
                 chosen_level=level,
-                affiliation=chosen,
+                choice=choice,
             )
             return self.render_to_response(context, status=422)
 
         said = _("%(name)s was saved.") % {"name": contributor}
-        if entry["is_person"] and self.credit_from(contribution, organization):
+        if organization not in (UNCHANGED, None) and organization.pk not in listed:
             said += " " + _("%(organization)s was added to the organizations.") % {
                 "organization": organization
             }
@@ -634,21 +702,22 @@ class ContributionRemove(ContributionPage):
         return context
 
     def must_stay(self, entry):
-        """Say whether removing the contributor has to be refused."""
-        if entry["attached"]:
-            return True
+        """Say whether removing the contributor would leave nobody to manage the record."""
         return entry["own"] == ContributionLevel.MANAGE and self.is_last_manager(
             entry["contributor"]
         )
 
     def post(self, request, *args, **kwargs):
-        """Remove the contributor unless they are the last who can manage the record."""
+        """Remove the contributor unless the service refuses or they are the last manager."""
         record = self.base_object
         entry = self.describe(self.get_contribution())
         contributor = entry["contributor"]
         if self.must_stay(entry):
             return self.render_to_response(self.get_context_data(), status=422)
-        Crediting(record).remove(entry["contribution"])
+        try:
+            Crediting(record).remove(entry["contribution"])
+        except ValidationError:
+            return self.render_to_response(self.get_context_data(), status=422)
         messages.success(
             request,
             _("%(name)s was removed from this %(kind)s.")
