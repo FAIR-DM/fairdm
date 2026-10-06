@@ -272,3 +272,46 @@ it.
 record a superuser creates is the one case where a record starts without a manager from its own
 team, and a superuser can always add one.
 **Revisit if**: the maintainer wants superusers credited like anyone else.
+
+## Decisions made while building story 1
+
+## D8. Levels set on the edit page and by the seeds are written to the field directly
+
+**Decision**: until the story that gives `Crediting.update` a `level`, the edit page and the seeds
+set `Contribution.level` with a plain save. `Crediting.add` gives a person the view level; the
+seed and the page raise or clear it from there.
+**Why**: `update` with a level, and the refusal of a level below what is held from above, belong to
+the story that moves levels into the service. The edit page already had that refusal and the
+last-manager refusal, and both stay in the page for now.
+**Revisit if**: never. That story moves the page's level handling into `Crediting.update` and the
+seeds follow it.
+
+## D9. A person added from the tab holds no stored permission row until the backend switches
+
+**Decision**: the add page no longer writes the guardian rows the prototype wrote. A person added
+from the tab holds the view level on the contribution and nothing else.
+**Why**: the module that wrote those rows is replaced, and rewriting them in the page would be
+code the backend story deletes. Until it lands, a person added from the tab cannot open a private
+record the permission backends still guard.
+**Revisit if**: a release is cut between this story and the backend story.
+
+## D10. `entry.manages` replaces a comparison with the word "manage"
+
+**Decision**: the page's description of a contributor carries `manages`, true when their
+effective level is manage, and `cotton/contribution/access.html` reads it in place of comparing
+`entry.effective` with a string. The `:outline` attribute on that badge is a Cotton dynamic
+attribute that cannot be resolved from an expression, so it was never applied, before or after;
+the badge draws as it did.
+**Why**: levels are integers now, so the comparison had to change, and the instruction was to
+change a template only where a context name has to.
+**Revisit if**: the maintainer wants the non-manage badges outlined, which needs a boolean in the
+context rather than an expression.
+
+## D11. The edit page checks the roles by asking the service, inside a transaction
+
+**Decision**: the edit page calls `Crediting.update` and, when other fields on the form are also
+refused, rolls the roles back with `transaction.set_rollback`.
+**Why**: the page must report every refused field in one answer and save nothing, and the offered
+roles must be decided in one place.
+**Revisit if**: `Crediting.update` takes the level and the organization as well, which makes the
+whole save one call.

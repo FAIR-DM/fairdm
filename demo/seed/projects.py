@@ -34,6 +34,7 @@ from demo.factories import (
 )
 from demo.seed.common import (
     example_accounts,
+    give_level,
     grant_team_rights,
     remove_own_projects,
 )
@@ -283,6 +284,7 @@ class ProjectSeed(BaseCommand):
         project.add_contributor(users["super.user"], with_roles=["ProjectManager"])
         for permission in PROJECT_PERMISSIONS:
             assign_perm(f"project.{permission}", users["staff.user"], project)
+        give_level(users["staff.user"], project)
 
         start = timezone.now() - timedelta(days=int(365 * 2.5))
         now = timezone.now()
@@ -335,6 +337,7 @@ class ProjectSeed(BaseCommand):
         project.add_contributor(users["staff.user"], with_roles=["Creator"])
         for permission in PROJECT_PERMISSIONS:
             assign_perm(f"project.{permission}", users["staff.user"], project)
+        give_level(users["staff.user"], project)
 
     def sparse(self, users):
         project = Project.objects.create(
@@ -396,6 +399,7 @@ class ProjectSeed(BaseCommand):
         for dataset in Dataset.all_objects.filter(project=showcase):
             for permission in ("view_dataset", "change_dataset", "delete_dataset"):
                 assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
+            give_level(users["staff.user"], dataset)
 
         cores = Dataset.all_objects.get(
             project=showcase, name__startswith="Core samples"

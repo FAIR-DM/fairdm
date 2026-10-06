@@ -1,147 +1,211 @@
-"""What a person may do on one project, dataset, sample or measurement, as a level.
+"""What a person may do on one project, dataset, sample or measurement, read from contribution levels."""
 
-Prototype. A level is read from, and written as, the record-level permissions the framework
-already stores, so nothing new is persisted. See ``specs/022-record-contributors-and-access``.
-"""
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
+from django.utils.functional import cached_property
 
-from django.utils.translation import gettext_lazy as _
-from guardian.shortcuts import get_user_perms, get_users_with_perms
+from .choices import ContributionLevel
+from .models import Contribution, Person
 
-from fairdm.core.utils import assign_perm, get_non_polymorphic_instance, remove_perm
+_CORE_MODELS = ("project", "dataset", "sample", "measurement")
 
-VIEW, EDIT, MANAGE = "view", "edit", "manage"
-
-#: Lowest first. Each level includes the ones before it.
-LEVELS = (VIEW, EDIT, MANAGE)
-
-LEVEL_LABELS = {
-    VIEW: _("Can view"),
-    EDIT: _("Can edit"),
-    MANAGE: _("Can manage"),
+#: The level a person needs for each permission a core record type declares.
+REQUIRED_LEVEL = {
+    **{f"view_{model}": ContributionLevel.VIEW for model in _CORE_MODELS},
+    **{
+        f"{action}_{model}": ContributionLevel.EDIT
+        for model in _CORE_MODELS
+        for action in ("add", "change")
+    },
+    "import_data": ContributionLevel.EDIT,
+    "modify_metadata": ContributionLevel.EDIT,
+    "change_project_metadata": ContributionLevel.EDIT,
+    "change_dataset_metadata": ContributionLevel.EDIT,
+    **{f"delete_{model}": ContributionLevel.MANAGE for model in _CORE_MODELS},
+    "add_contributor": ContributionLevel.MANAGE,
+    "modify_contributor": ContributionLevel.MANAGE,
+    "change_project_settings": ContributionLevel.MANAGE,
+    "change_dataset_settings": ContributionLevel.MANAGE,
+    "can_publish": ContributionLevel.MANAGE,
 }
 
-#: The stored permission that marks each level, as a prefix to the record type's name.
-LEVEL_ACTIONS = {VIEW: "view", EDIT: "change", MANAGE: "delete"}
 
+class RecordAccess:
+    """Answer what people may do on one record from the levels on its contributions.
 
-def record_type(record):
-    """Return the core model a record belongs to, whatever registered type it is."""
-    return getattr(record, "type_of", None) or type(record)
+    A level is held on the record or on a record above it: a sample or measurement takes its
+    dataset's levels and the dataset's project's, a dataset takes its project's. Contributions of
+    an organization hold no level.
 
-
-def stored(record):
-    """Return the instance record-level permissions are stored against."""
-    if type(record) is not record_type(record):
-        return get_non_polymorphic_instance(record)
-    return record
-
-
-def level_from(codenames, record):
-    """Return the highest level a set of permission codenames amounts to, or None."""
-    name = record_type(record)._meta.model_name
-    held = None
-    for level in LEVELS:
-        if f"{LEVEL_ACTIONS[level]}_{name}" in codenames:
-            held = level
-    return held
-
-
-def own_level(person, record):
-    """Return the level a person holds from being listed on the record itself, or None."""
-    return level_from(set(get_user_perms(person, stored(record))), record)
-
-
-def set_level(person, record, level):
-    """Give a person exactly ``level`` on the record, or nothing when ``level`` is None."""
-    name = record_type(record)._meta.model_name
-    wanted = LEVELS[: LEVELS.index(level) + 1] if level else ()
-    for each in LEVELS:
-        codename = f"{LEVEL_ACTIONS[each]}_{name}"
-        if each in wanted:
-            assign_perm(codename, person, record)
-        else:
-            remove_perm(codename, person, record)
-
-
-def records_above(record):
-    """Return the records a record takes rights from, nearest first."""
-    above = []
-    parent = getattr(record, "dataset", None) or getattr(record, "project", None)
-    while parent is not None:
-        above.append(parent)
-        parent = getattr(parent, "project", None)
-    return above
-
-
-def level_from_above(person, record):
-    """Return the highest level a person holds from a record above, and that record."""
-    best, source = None, None
-    for parent in records_above(record):
-        level = own_level(person, parent)
-        if level and (best is None or LEVELS.index(level) > LEVELS.index(best)):
-            best, source = level, parent
-    return best, source
-
-
-def higher(first, second):
-    """Return the higher of two levels, either of which may be None."""
-    ranked = [level for level in (first, second) if level]
-    return max(ranked, key=LEVELS.index) if ranked else None
-
-
-def has_account(person):
-    """Say whether a person can sign in and act."""
-    signed_in_before = person.is_claimed or person.has_usable_password()
-    return bool(person.is_active and person.email and signed_in_before)
-
-
-def people_above(record):
-    """Return ``(person, level, source)`` for everyone holding a level from a record above."""
-    found = {}
-    for parent in records_above(record):
-        holders = get_users_with_perms(
-            stored(parent),
-            attach_perms=True,
-            with_superusers=False,
-            with_group_users=False,
-        )
-        for person, codenames in holders.items():
-            level = level_from(set(codenames), parent)
-            if not level:
-                continue
-            known = found.get(person.pk)
-            if known is None or LEVELS.index(level) > LEVELS.index(known[1]):
-                found[person.pk] = (person, level, parent)
-    return sorted(found.values(), key=lambda entry: str(entry[0]))
-
-
-def managers(record):
-    """Return the ids of the people who count as able to manage a record.
-
-    A person counts when they can sign in and hold the manage level on the record or on a record
-    above it. Holders of portal roles do not count.
+    Args:
+        record: A project, dataset, sample or measurement, of any registered type.
     """
-    ids = set()
-    for each in [record, *records_above(record)]:
-        holders = get_users_with_perms(
-            stored(each),
-            attach_perms=True,
-            with_superusers=False,
-            with_group_users=False,
+
+    def __init__(self, record):
+        self.record = record
+
+    @property
+    def model(self):
+        """The core model the record belongs to, whatever registered type it is."""
+        return getattr(self.record, "type_of", None) or type(self.record)
+
+    @cached_property
+    def above(self):
+        """The records this one takes levels from, nearest first.
+
+        A measurement follows its own dataset, not its sample's.
+        """
+        found = []
+        parent = getattr(self.record, "dataset", None) or getattr(
+            self.record, "project", None
         )
-        for person, codenames in holders.items():
-            if level_from(set(codenames), each) == MANAGE and has_account(person):
-                ids.add(person.pk)
-    return ids
+        while parent is not None:
+            found.append(parent)
+            parent = getattr(parent, "project", None)
+        return found
 
+    @staticmethod
+    def key(record):
+        """Return the pair that names a record on a contribution.
 
-def can_manage(user, record):
-    """Say whether a user may change a record's contributors."""
-    if not user.is_authenticated or not user.is_active:
-        return False
-    model = record_type(record)._meta
-    if user.is_superuser or user.has_perm(
-        f"{model.app_label}.delete_{model.model_name}"
-    ):
-        return True
-    return higher(own_level(user, record), level_from_above(user, record)[0]) == MANAGE
+        Args:
+            record: A project, dataset, sample or measurement.
+
+        Returns:
+            The content type id and the object id, as stored on a contribution.
+        """
+        if hasattr(record, "get_real_instance"):
+            record = record.get_real_instance()
+        return ContentType.objects.get_for_model(record).pk, str(record.pk)
+
+    def on_chain(self, *, include_record):
+        """Narrow contributions to those on the record and the records above, or only above.
+
+        Args:
+            include_record: Whether the record itself is part of the chain.
+
+        Returns:
+            The contributions with a level, and the record each key stands for.
+        """
+        records = [self.record, *self.above] if include_record else self.above
+        keys = {self.key(record): record for record in records}
+        wanted = Q(pk__in=[])
+        for content_type_id, object_id in keys:
+            wanted |= Q(content_type_id=content_type_id, object_id=object_id)
+        return Contribution.objects.filter(wanted, level__isnull=False), keys
+
+    def levels_held(self, person_id):
+        """Return each level a person holds on the record or above it, with where it is held.
+
+        Args:
+            person_id: The id of the person.
+
+        Returns:
+            ``(record, level)`` pairs, in one query.
+        """
+        held, keys = self.on_chain(include_record=True)
+        rows = held.filter(contributor_id=person_id).values_list(
+            "content_type_id", "object_id", "level"
+        )
+        return [
+            (keys[(content_type_id, object_id)], ContributionLevel(level))
+            for content_type_id, object_id, level in rows
+        ]
+
+    def level_of(self, user):
+        """Return the highest level a user holds on the record or any record above it.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            The level, or None for a visitor, an inactive user or someone who holds none.
+        """
+        if not (user.is_authenticated and user.is_active):
+            return None
+        return max((level for _, level in self.levels_held(user.pk)), default=None)
+
+    def own_level(self, person):
+        """Return the level a person holds from being listed on the record itself.
+
+        Args:
+            person: The person.
+
+        Returns:
+            The level, or None.
+        """
+        for record, level in self.levels_held(person.pk):
+            if record is self.record:
+                return level
+        return None
+
+    def level_from_above(self, person):
+        """Return the highest level a person holds from a record above, and that record.
+
+        Args:
+            person: The person.
+
+        Returns:
+            ``(level, record)``, or ``(None, None)``.
+        """
+        best, source = None, None
+        for record, level in self.levels_held(person.pk):
+            if record is not self.record and (best is None or level > best):
+                best, source = level, record
+        return best, source
+
+    def people_above(self):
+        """Return everyone who holds a level from a record above, at the highest they hold.
+
+        Returns:
+            ``(person, level, source record)`` for each person, by name.
+        """
+        held, keys = self.on_chain(include_record=False)
+        best = {}
+        for contributor_id, content_type_id, object_id, level in held.values_list(
+            "contributor_id", "content_type_id", "object_id", "level"
+        ):
+            if contributor_id not in best or level > best[contributor_id][0]:
+                best[contributor_id] = (level, keys[(content_type_id, object_id)])
+        people = Person.objects.in_bulk(best)
+        found = [
+            (people[pk], ContributionLevel(level), source)
+            for pk, (level, source) in best.items()
+        ]
+        return sorted(found, key=lambda entry: str(entry[0]))
+
+    def managers(self):
+        """Return the ids of the people who count as able to manage the record.
+
+        A person counts when they can sign in and hold the manage level on the record or on a
+        record above it. Holders of portal roles do not count.
+
+        Returns:
+            A set of person ids.
+        """
+        held, _keys = self.on_chain(include_record=True)
+        ids = held.filter(level=ContributionLevel.MANAGE).values_list(
+            "contributor_id", flat=True
+        )
+        return {
+            person.pk
+            for person in Person.objects.filter(pk__in=list(ids))
+            if person.can_sign_in()
+        }
+
+    def can_manage(self, user):
+        """Say whether a user may change the record's contributors.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+
+        Returns:
+            True for the manage level on the record or above it, and for anyone holding
+            ``change_<model>`` for the whole portal, which a superuser and a Data Curator do.
+        """
+        if not (user.is_authenticated and user.is_active):
+            return False
+        if self.level_of(user) == ContributionLevel.MANAGE:
+            return True
+        meta = self.model._meta
+        return user.has_perm(f"{meta.app_label}.change_{meta.model_name}")

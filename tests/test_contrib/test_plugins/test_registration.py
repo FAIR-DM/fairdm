@@ -175,11 +175,20 @@ class TestExtraViews:
         assert child.view_initkwargs["plugin_class"] is Owner
 
     def test_the_shipped_contribution_views_address_their_target(self):
-        url = reverse(
-            "project:contribution-list-contribution-update",
-            kwargs={"uuid": "abc", "pk": 7},
-        )
-        assert url == "/projects/abc/contributors/7/edit/"
+        addresses = {
+            "add-person": ({}, "/projects/abc/contributors/add-person/"),
+            "add-organization": ({}, "/projects/abc/contributors/add-organization/"),
+            "edit": ({"pk": 7}, "/projects/abc/contributors/7/edit/"),
+            "remove": ({"pk": 7}, "/projects/abc/contributors/7/remove/"),
+            "move": ({"pk": 7}, "/projects/abc/contributors/7/move/"),
+        }
+
+        for name, (kwargs, expected) in addresses.items():
+            url = reverse(
+                f"project:contribution-list-contribution-{name}",
+                kwargs={"uuid": "abc", **kwargs},
+            )
+            assert url == expected, name
 
 
 @pytest.mark.django_db

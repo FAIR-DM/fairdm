@@ -3,7 +3,9 @@
 from allauth.account.models import EmailAddress
 from guardian.shortcuts import assign_perm
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Person
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.management.commands.create_dev_accounts import (
@@ -82,6 +84,25 @@ def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
     projects.delete()
 
 
+def give_level(
+    user: Person,
+    record: Project | Dataset,
+    level: ContributionLevel = ContributionLevel.MANAGE,
+) -> None:
+    """List ``user`` on ``record`` if they are not yet, and set their level on it.
+
+    Args:
+        user: The person to give the level.
+        record: The project or dataset.
+        level: The level to hold. Defaults to manage.
+    """
+    contribution = record.contributors.filter(contributor=user).first()
+    if contribution is None:
+        contribution = Crediting(record).add(user)
+    contribution.level = level
+    contribution.save(update_fields=["level"])
+
+
 def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
     """Give ``user`` the rights the team of each project or dataset holds.
 
@@ -93,3 +114,4 @@ def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
         model = record._meta.model_name
         for right in ("view", "change", "delete"):
             assign_perm(f"{model}.{right}_{model}", user, record)
+        give_level(user, record)

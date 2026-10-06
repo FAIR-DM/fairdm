@@ -143,6 +143,14 @@ class TestContributorsTab:
 
 
 @pytest.mark.django_db
+class TestOverviewLinksToTheTab:
+    def test_the_people_card_leads_to_the_tab(self, record):
+        response = browser_as(None).get(record.get_absolute_url())
+
+        assert response.context["people_url"] == tab(record)
+
+
+@pytest.mark.django_db
 class TestChangingPagesRefuseAnyoneButAManager:
     """Scenario 10: a refused request changes nothing."""
 

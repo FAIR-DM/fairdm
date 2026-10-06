@@ -6,7 +6,7 @@
   {% if not entry.is_person %}
     <span class="text-base-content/70">{% translate "Credit only. Organizations hold no access." %}</span>
   {% elif entry.effective %}
-    <c-badge text="{{ entry.label }}" size="sm" variant="{% if entry.effective == 'manage' %}primary{% else %}neutral{% endif %}" :outline="entry.effective != 'manage'" />
+    <c-badge text="{{ entry.label }}" size="sm" variant="{% if entry.manages %}primary{% else %}neutral{% endif %}" :outline="not entry.manages" />
     {% if entry.from_above %}
       <span class="text-base-content/70">{% blocktranslate with kind=entry.source_kind %}from the {{ kind }}{% endblocktranslate %}</span>
     {% endif %}

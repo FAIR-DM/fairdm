@@ -17,6 +17,7 @@ from pyecharts.charts import Bar, Line
 
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
+from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.overview import format_authors, sentence_case
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
@@ -77,6 +78,12 @@ class RecordOverviewPlugin(OverviewPlugin):
 
     people_shown = 18
     resolvable_identifier_types = ("DOI", "IGSN")
+
+    def get_context_data(self, **kwargs):
+        """Lead the People card to the record's Contributors tab."""
+        context = super().get_context_data(**kwargs)
+        context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
+        return context
 
     def get_contributions(self) -> list[Contribution]:
         """List the record's credits with each contributor as its own subtype, Person or Organization.

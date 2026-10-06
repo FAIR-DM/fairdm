@@ -1419,7 +1419,10 @@ class TestRetiredManagementPages:
             assert response.status_code == 404, segment
 
     def test_the_dataset_menu_carries_one_entry(self):
-        assert _entry_view_names(Dataset) == ["dataset:overview"]
+        assert _entry_view_names(Dataset) == [
+            "dataset:overview",
+            "dataset:contribution-list",
+        ]
 
 
 def _page(client, dataset):

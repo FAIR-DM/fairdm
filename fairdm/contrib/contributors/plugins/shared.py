@@ -7,7 +7,8 @@ lists what is faked.
 
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.utils.text import capfirst
@@ -24,35 +25,37 @@ from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
 from fairdm.views import FairDMTemplateView
 
-from .. import access
+from ..access import RecordAccess
+from ..choices import ContributionLevel
 from ..models import Contribution, Contributor, Organization, Person
+from ..services.crediting import Crediting
 
 
 def type_name(record):
     """Return the word for a record's kind: project, dataset, sample or measurement."""
-    return access.record_type(record)._meta.verbose_name
+    return RecordAccess(record).model._meta.verbose_name
 
 
 def level_choices(record, floor=None):
     """Return the three levels as the edit page draws them, marking those below ``floor``."""
     kind = type_name(record)
     hints = {
-        access.VIEW: _("Open this %(kind)s while it is private.") % {"kind": kind},
-        access.EDIT: _("Also change this %(kind)s and the data in it.")
+        ContributionLevel.VIEW: _("Open this %(kind)s while it is private.")
         % {"kind": kind},
-        access.MANAGE: _(
+        ContributionLevel.EDIT: _("Also change this %(kind)s and the data in it.")
+        % {"kind": kind},
+        ContributionLevel.MANAGE: _(
             "Also change its contributors and their access, change its visibility and delete it."
         ),
     }
-    lowest = access.LEVELS.index(floor) if floor else 0
     return [
         {
-            "value": level,
-            "label": access.LEVEL_LABELS[level],
+            "value": level.value,
+            "label": level.label,
             "hint": hints[level],
-            "disabled": index < lowest,
+            "disabled": floor is not None and level < floor,
         }
-        for index, level in enumerate(access.LEVELS)
+        for level in ContributionLevel
     ]
 
 
@@ -61,9 +64,14 @@ class ContributionPage(Plugin, FairDMTemplateView):
 
     manager_only = False
 
+    @cached_property
+    def access(self):
+        """What people may do on this record."""
+        return RecordAccess(self.base_object)
+
     def dispatch(self, request, *args, **kwargs):
         """Refuse a page for changing contributors to anyone who may not manage the record."""
-        if self.manager_only and not access.can_manage(request.user, self.base_object):
+        if self.manager_only and not self.access.can_manage(request.user):
             if not request.user.is_authenticated:
                 return redirect_to_login(request.get_full_path())
             raise PermissionDenied
@@ -85,11 +93,11 @@ class ContributionPage(Plugin, FairDMTemplateView):
         """Work out everything the pages say about one contributor on this record."""
         contributor = contribution.contributor.get_real_instance()
         is_person = not contributor.is_organization
-        own = above = source = None
+        own = above = source = effective = None
         if is_person:
-            own = access.own_level(contributor, self.base_object)
-            above, source = access.level_from_above(contributor, self.base_object)
-        effective = access.higher(own, above)
+            own = self.access.own_level(contributor)
+            above, source = self.access.level_from_above(contributor)
+            effective = max((level for level in (own, above) if level), default=None)
         return {
             "contribution": contribution,
             "contributor": contributor,
@@ -99,9 +107,10 @@ class ContributionPage(Plugin, FairDMTemplateView):
             "source": source,
             "source_kind": type_name(source) if source else "",
             "effective": effective,
-            "label": access.LEVEL_LABELS.get(effective, ""),
+            "manages": effective == ContributionLevel.MANAGE,
+            "label": effective.label if effective else "",
             "from_above": bool(above and above == effective and above != own),
-            "has_account": is_person and access.has_account(contributor),
+            "has_account": is_person and contributor.can_sign_in(),
             "affiliation": contribution.affiliation if is_person else None,
             "attached": [] if is_person else self.affiliated.get(contributor.pk, []),
             "removable": is_person or contributor.pk not in self.affiliated,
@@ -214,7 +223,7 @@ class ContributionPage(Plugin, FairDMTemplateView):
 
     def is_last_manager(self, contributor):
         """Say whether nobody else counts as able to manage the record."""
-        return access.managers(self.base_object) == {contributor.pk}
+        return self.access.managers() == {contributor.pk}
 
     def get_context_data(self, **kwargs):
         """Add the record's kind, the tab's address and whether the viewer may manage."""
@@ -224,7 +233,7 @@ class ContributionPage(Plugin, FairDMTemplateView):
             record=record,
             kind=type_name(record),
             list_url=self.list_url,
-            can_manage=access.can_manage(self.request.user, record),
+            can_manage=self.access.can_manage(self.request.user),
         )
         return context
 
@@ -410,21 +419,16 @@ class ContributionAdd(ContributionPage):
     def add(self, contributor, organization=None):
         """Add the contributor last, at the view level, and go on to their edit page."""
         record = self.base_object
-        if record.contributors.filter(contributor=contributor).exists():
-            messages.error(
-                self.request,
-                _("%(name)s is already a contributor on this %(kind)s.")
-                % {"name": contributor, "kind": type_name(record)},
-            )
+        try:
+            contribution = Crediting(record).add(contributor)
+        except ValidationError as refused:
+            messages.error(self.request, refused.message)
             return redirect(self.request.get_full_path())
-        contribution = Contribution.add_to(contributor, record)
         if contributor.is_organization:
             said = _("%(name)s was added. Say what they did here.") % {
                 "name": contributor
             }
         else:
-            if not access.own_level(contributor, record):
-                access.set_level(contributor, record, access.VIEW)
             said = _(
                 "%(name)s was added. Say what they did, and what they may do here."
             ) % {"name": contributor}
@@ -526,14 +530,6 @@ class ContributionEdit(ContributionPage):
     template_name = "contributors/plugins/contribution_edit.html"
     page_title = gettext_lazy("Edit a contributor")
 
-    def get_roles(self):
-        """Return the roles the record's type offers, in the vocabulary's order."""
-        names = list(self.base_object.CONTRIBUTOR_ROLES.values)
-        concepts = Concept.objects.filter(
-            vocabulary__name="fairdm-roles", name__in=names
-        )
-        return sorted(concepts, key=lambda concept: names.index(concept.name))
-
     def get_context_data(self, **kwargs):
         """Add the contributor, the roles on offer and the levels that may be chosen."""
         context = super().get_context_data(**kwargs)
@@ -544,7 +540,7 @@ class ContributionEdit(ContributionPage):
             entry=entry,
             roles=[
                 {"concept": concept, "checked": concept.pk in chosen_roles}
-                for concept in self.get_roles()
+                for concept in Crediting(self.base_object).offered_roles()
             ],
             levels=level_choices(self.base_object, floor=entry["above"]),
             chosen_level=kwargs.get("chosen_level", entry["effective"]),
@@ -561,44 +557,50 @@ class ContributionEdit(ContributionPage):
 
     def post(self, request, *args, **kwargs):
         """Save the roles and the level together, or neither."""
-        record = self.base_object
         entry = self.describe(self.get_contribution())
         contribution, contributor = entry["contribution"], entry["contributor"]
 
-        offered = {concept.pk: concept for concept in self.get_roles()}
         chosen_roles = {int(pk) for pk in request.POST.getlist("roles") if pk.isdigit()}
         level = request.POST.get("level")
+        level = ContributionLevel(int(level)) if level in ("1", "2", "3") else None
         errors = {}
 
-        if chosen_roles - set(offered):
-            errors["roles"] = _("Choose from the roles listed for this %(kind)s.") % {
-                "kind": type_name(record)
-            }
         chosen = organization = None
         if entry["is_person"]:
             chosen, organization, problem = self.read_affiliation(request.POST)
             if problem:
                 errors["affiliation"] = problem
-        if entry["is_person"]:
-            if level not in access.LEVELS:
+            if level is None:
                 errors["level"] = _("Choose what this person may do.")
-            elif access.higher(level, entry["above"]) != level:
+            elif entry["above"] and level < entry["above"]:
                 errors["level"] = _(
                     "They hold “%(level)s” from the %(kind)s above, and it cannot be lowered here."
                 ) % {
-                    "level": access.LEVEL_LABELS[entry["above"]],
+                    "level": entry["above"].label,
                     "kind": entry["source_kind"],
                 }
             elif (
-                entry["own"] == access.MANAGE
-                and level != access.MANAGE
+                entry["own"] == ContributionLevel.MANAGE
+                and level != ContributionLevel.MANAGE
                 and self.is_last_manager(contributor)
             ):
                 errors["level"] = _(
                     "%(name)s is the only person who can manage this %(kind)s. "
                     "Give someone else “Can manage” first."
-                ) % {"name": contributor, "kind": type_name(record)}
+                ) % {"name": contributor, "kind": type_name(self.base_object)}
 
+        with transaction.atomic():
+            try:
+                Crediting(self.base_object).update(
+                    contribution, roles=Concept.objects.filter(pk__in=chosen_roles)
+                )
+            except ValidationError as refused:
+                errors["roles"] = refused.message
+            if errors:
+                transaction.set_rollback(True)
+            elif entry["is_person"]:
+                contribution.level = level
+                contribution.save(update_fields=["level"])
         if errors:
             context = self.get_context_data(
                 errors=errors,
@@ -608,14 +610,11 @@ class ContributionEdit(ContributionPage):
             )
             return self.render_to_response(context, status=422)
 
-        contribution.roles.set([offered[pk] for pk in chosen_roles])
         said = _("%(name)s was saved.") % {"name": contributor}
-        if entry["is_person"]:
-            access.set_level(contributor, record, level)
-            if self.credit_from(contribution, organization):
-                said += " " + _("%(organization)s was added to the organizations.") % {
-                    "organization": organization
-                }
+        if entry["is_person"] and self.credit_from(contribution, organization):
+            said += " " + _("%(organization)s was added to the organizations.") % {
+                "organization": organization
+            }
         messages.success(request, said)
         return redirect(self.list_url)
 
@@ -634,7 +633,7 @@ class ContributionRemove(ContributionPage):
         entry = self.describe(self.get_contribution())
         context.update(
             entry=entry,
-            refused=entry["own"] == access.MANAGE
+            refused=entry["own"] == ContributionLevel.MANAGE
             and self.is_last_manager(entry["contributor"]),
         )
         return context
@@ -643,7 +642,7 @@ class ContributionRemove(ContributionPage):
         """Say whether removing the contributor has to be refused."""
         if entry["attached"]:
             return True
-        return entry["own"] == access.MANAGE and self.is_last_manager(
+        return entry["own"] == ContributionLevel.MANAGE and self.is_last_manager(
             entry["contributor"]
         )
 
@@ -654,9 +653,7 @@ class ContributionRemove(ContributionPage):
         contributor = entry["contributor"]
         if self.must_stay(entry):
             return self.render_to_response(self.get_context_data(), status=422)
-        if entry["is_person"]:
-            access.set_level(contributor, record, None)
-        entry["contribution"].delete()
+        Crediting(record).remove(entry["contribution"])
         messages.success(
             request,
             _("%(name)s was removed from this %(kind)s.")
@@ -759,15 +756,15 @@ class ContributionList(ContributionPage):
             access_from_above = [
                 {
                     "person": person,
-                    "label": access.LEVEL_LABELS[level],
+                    "label": level.label,
                     "source": source,
                     "source_kind": type_name(source),
                     "source_url": reverse(source, "contribution-list"),
                 }
-                for person, level, source in access.people_above(record)
+                for person, level, source in self.access.people_above()
                 if person.pk not in listed
             ]
-        parents = access.records_above(record)
+        parents = self.access.above
         context.update(
             people=groups[True],
             organizations=groups[False],

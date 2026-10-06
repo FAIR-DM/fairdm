@@ -38,7 +38,7 @@ from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .choices import AccountState, OrganizationType
+from .choices import AccountState, ContributionLevel, OrganizationType
 from .managers import AffiliationManager, ContributionManager, UserManager
 from .profiles import language_names, link_host
 from .validators import validate_iso_639_1_language_codes
@@ -759,10 +759,8 @@ class Person(AbstractUser, Contributor):
         """Say whether a user may edit this profile: the person it describes, or a community manager.
 
         A community manager may edit it only while nobody can sign in to it and keep it
-        themselves: the account is inactive, or the person never claimed it and never signed in.
-        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
-        is active and in use without being marked claimed. A superuser, an administrator and the
-        holder of any other portal role get no right from that alone.
+        themselves, as :meth:`can_sign_in` says. A superuser, an administrator and the holder of
+        any other portal role get no right from that alone.
 
         Args:
             user: The user, or an anonymous user for a visitor.
@@ -775,12 +773,20 @@ class Person(AbstractUser, Contributor):
             return False
         if user.pk == self.pk:
             return True
-        unreachable = not self.is_active or (
-            not self.is_claimed and self.last_login is None
-        )
-        return unreachable and PortalRoles.is_held_by(
+        return not self.can_sign_in() and PortalRoles.is_held_by(
             user, PortalRoles.COMMUNITY_MANAGER
         )
+
+    def can_sign_in(self) -> bool:
+        """Say whether this person's account is in use or can be: active, and claimed or signed in.
+
+        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
+        is active and in use without being marked claimed.
+
+        Returns:
+            True when the account is active and the person has claimed it or has signed in.
+        """
+        return self.is_active and (self.is_claimed or self.last_login is not None)
 
     @property
     def account_state(self) -> AccountState:
@@ -1771,6 +1777,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         contributor: The person or organisation credited.
         roles: The roles held on this credit.
         affiliation: The organisation the contributor is affiliated with for this credit.
+        level: What a person may do on the credited object. Empty for an organisation.
     """
 
     ROLES_VOCAB = FairDMRoles()
@@ -1814,6 +1821,17 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         null=True,
         blank=True,
         on_delete=models.PROTECT,
+    )
+
+    level = models.PositiveSmallIntegerField(
+        verbose_name=_("level"),
+        help_text=_(
+            "What the person may do on this record: view, edit or manage. Empty for an "
+            "organization, which holds no access."
+        ),
+        choices=ContributionLevel.choices,
+        null=True,
+        blank=True,
     )
 
     class Meta:

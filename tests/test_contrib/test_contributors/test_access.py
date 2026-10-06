@@ -6,7 +6,6 @@ record above it. Nothing here goes through a permission backend.
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Permission
-from django.contrib.contenttypes.models import ContentType
 
 from fairdm.contrib.contributors.access import REQUIRED_LEVEL, RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -137,7 +136,7 @@ class TestLevelOf:
     ):
         grant(record_chain.project, signed_in, VIEW)
         access = RecordAccess(record_chain.measurement)
-        access.above
+        access.level_of(signed_in)  # fills Django's content type cache
 
         with django_assert_num_queries(1):
             access.level_of(signed_in)
@@ -318,11 +317,11 @@ class TestCanManage:
 class TestRequiredLevel:
     @pytest.mark.parametrize("model", [Project, Dataset, Sample, Measurement])
     def test_every_permission_a_record_type_declares_is_given_a_level(self, model):
-        declared = Permission.objects.filter(
-            content_type=ContentType.objects.get_for_model(model)
-        ).values_list("codename", flat=True)
+        meta = model._meta
+        declared = {f"{action}_{meta.model_name}" for action in meta.default_permissions}
+        declared |= {codename for codename, _name in meta.permissions}
 
-        assert set(declared) - set(REQUIRED_LEVEL) == set()
+        assert declared - set(REQUIRED_LEVEL) == set()
 
     def test_every_level_asked_for_is_one_of_the_three(self):
         assert set(REQUIRED_LEVEL.values()) <= set(ContributionLevel)
