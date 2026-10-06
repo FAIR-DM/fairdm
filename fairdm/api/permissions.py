@@ -25,11 +25,12 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
     Integration:
     - :class:`fairdm.api.filters.FairDMVisibilityFilter` handles queryset-level list
       filtering so private objects never appear in list results.
-    - ``ObjectPermissionsAssignmentMixin`` in serializers assigns permissions on
-      create/update.
+    - The serializers of projects, datasets, samples and measurements list the creator at the
+      manage level on create.
     - Calls ``user.has_perm()`` which routes through ModelBackend, guardian
-      ``ObjectPermissionBackend``, and any custom permission backends
-      (e.g. ``SamplePermissionBackend``, ``MeasurementPermissionBackend``).
+      ``ObjectPermissionBackend``, and any custom permission backends. For a project, dataset,
+      sample or measurement the answer is the user's contribution level
+      (``RecordLevelBackend``).
     """
 
     perms_map = {

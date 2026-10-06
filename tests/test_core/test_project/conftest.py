@@ -1,9 +1,9 @@
 """Shared fixtures for Project tests."""
 
 import pytest
-from guardian.shortcuts import assign_perm
 
-from fairdm.factories import ProjectFactory, UserFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import ContributionFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -23,8 +23,9 @@ def user_with_change_permission(db):
     user.project = ProjectFactory()
     # Editing rights without view is a state no grant path produces: registering gives
     # all five.
-    assign_perm("view_project", user, user.project)
-    assign_perm("change_project", user, user.project)
+    ContributionFactory(
+        content_object=user.project, contributor=user, level=ContributionLevel.EDIT
+    )
     return user
 
 
@@ -32,8 +33,9 @@ def user_with_change_permission(db):
 def user_with_delete_permission(db):
     user = UserFactory()
     user.project = ProjectFactory()
-    assign_perm("view_project", user, user.project)
-    assign_perm("delete_project", user, user.project)
+    ContributionFactory(
+        content_object=user.project, contributor=user, level=ContributionLevel.MANAGE
+    )
     return user
 
 
@@ -119,6 +121,9 @@ def overview_showcase(db):
 def project_team_member(db, overview_showcase):
     """A signed-in user who may change the showcase project."""
     user = UserFactory()
-    assign_perm("view_project", user, overview_showcase.project)
-    assign_perm("change_project", user, overview_showcase.project)
+    ContributionFactory(
+        content_object=overview_showcase.project,
+        contributor=user,
+        level=ContributionLevel.EDIT,
+    )
     return user

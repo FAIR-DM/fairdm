@@ -6,8 +6,10 @@ import pytest
 from django.contrib.auth import get_user_model
 
 from demo.factories import RockSampleFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.factories import ContributionFactory
 
 User = get_user_model()
 
@@ -72,11 +74,12 @@ def model_perm_user(db):
 
 @pytest.fixture
 def object_perm_user(db, sample):
-    from fairdm.core.utils import assign_perm
     from fairdm.factories.contributors import UserFactory
 
     user = UserFactory(email="object-perm@example.com")
-    assign_perm("change_sample", user, sample)
+    ContributionFactory(
+        content_object=sample, contributor=user, level=ContributionLevel.EDIT
+    )
     return user
 
 

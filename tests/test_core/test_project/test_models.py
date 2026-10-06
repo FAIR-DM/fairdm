@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
 from fairdm.core.project.models import (
@@ -16,6 +17,7 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PersonFactory,
     ProjectDescriptionFactory,
@@ -914,7 +916,6 @@ class TestProjectObjectPermissions:
 
     def test_user_with_change_permission_can_edit(self, client):
         from django.urls import reverse
-        from guardian.shortcuts import assign_perm
 
         from fairdm.contrib.contributors.models import Organization
         from fairdm.core.project.models import Project
@@ -929,8 +930,9 @@ class TestProjectObjectPermissions:
         )
 
         editor = UserFactory(email="editor@example.com")
-        assign_perm("change_project", editor, project)
-        assign_perm("view_project", editor, project)
+        ContributionFactory(
+            content_object=project, contributor=editor, level=ContributionLevel.EDIT
+        )
 
         client.force_login(editor)
 

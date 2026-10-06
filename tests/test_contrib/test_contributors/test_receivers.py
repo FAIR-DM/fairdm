@@ -4,16 +4,21 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
-from fairdm.core.utils import assign_perm
+from fairdm.factories import ContributionFactory
 
 
 @pytest.mark.django_db
-class TestWithdrawRightsOnCreditDeletion:
+class TestDeletingACreditTakesTheLevelWithIt:
     def test_queryset_delete_withdraws_the_right(
         self, person, project_for_contributions
     ):
-        assign_perm("change_project", person, project_for_contributions)
+        ContributionFactory(
+            content_object=project_for_contributions,
+            contributor=person,
+            level=ContributionLevel.EDIT,
+        )
         assert (
             person.has_perm("project.change_project", project_for_contributions) is True
         )
@@ -30,7 +35,11 @@ class TestWithdrawRightsOnCreditDeletion:
     def test_instance_delete_still_withdraws_the_right(
         self, person, project_for_contributions
     ):
-        assign_perm("view_project", person, project_for_contributions)
+        ContributionFactory(
+            content_object=project_for_contributions,
+            contributor=person,
+            level=ContributionLevel.VIEW,
+        )
         assert (
             person.has_perm("project.view_project", project_for_contributions) is True
         )
@@ -52,7 +61,11 @@ class TestWithdrawRightsOnCreditDeletion:
     def test_deleting_the_credited_object_does_not_error(
         self, person, project_for_contributions
     ):
-        assign_perm("change_project", person, project_for_contributions)
+        ContributionFactory(
+            content_object=project_for_contributions,
+            contributor=person,
+            level=ContributionLevel.EDIT,
+        )
         Contribution.add_to(person, project_for_contributions)
 
         project_for_contributions.delete()

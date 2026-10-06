@@ -1,22 +1,7 @@
-"""Signal receivers that keep contribution rights, credit roles and shipped portal roles consistent."""
+"""Signal receivers that keep credit roles and shipped portal roles consistent."""
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
-from fairdm.utils.permissions import remove_all_model_perms
-
-
-def withdraw_rights_on_credit_deletion(sender, instance, **kwargs):
-    """Withdraw a person's object-level rights over an object when their credit on it is deleted."""
-    # A receiver, not a model hook, because QuerySet.delete() never calls an instance's delete().
-    from .models import Person
-
-    # The credited object is already gone when the credit follows it down a cascade.
-    if instance.content_object is None:
-        return
-
-    if isinstance(instance.contributor, Person):
-        remove_all_model_perms(instance.contributor, instance.content_object)
 
 
 def refuse_off_vocabulary_role(sender, action, reverse, model, pk_set, **kwargs):

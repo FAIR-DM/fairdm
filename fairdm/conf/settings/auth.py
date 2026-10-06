@@ -40,9 +40,7 @@ AUTHENTICATION_BACKENDS = [
     "fairdm.core.permissions.PolymorphicObjectPermissionBackend",
     "fairdm.contrib.contributors.permissions.OrganizationPermissionBackend",
     "fairdm.contrib.contributors.permissions.RecordLevelBackend",
-    "fairdm.core.sample.permissions.SamplePermissionBackend",
-    "fairdm.core.measurement.permissions.MeasurementPermissionBackend",
-    # Registered last so an explicit stored grant is consulted first.
+    # Registered last: a portal role's rights apply to records its members are not listed on.
     "fairdm.permissions.PortalRolePermissionBackend",
 ]
 

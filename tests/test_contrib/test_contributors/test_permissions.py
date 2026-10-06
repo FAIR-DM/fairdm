@@ -520,6 +520,15 @@ class TestRecordLevelBackend:
 
         assert asked(holder).has_perm(perm, record) is (level >= needed)
 
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_permission_the_table_does_not_know_is_refused(
+        self, record_chain, grant, holder, kind
+    ):
+        record = getattr(record_chain, kind)
+        grant(record, holder, MANAGE)
+
+        assert not asked(holder).has_perm(f"{kind}.fly_{kind}", record)
+
     def test_a_registered_sample_type_answers_as_the_core_model(
         self, record_chain, grant, holder
     ):
@@ -602,6 +611,29 @@ class TestRecordLevelBackend:
 
         assert person.has_perm("dataset.view_dataset", record_chain.dataset)
         assert not person.has_perm("project.view_project", record_chain.project)
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_stored_guardian_row_on_a_core_record_grants_nothing(
+        self, record_chain, holder, kind
+    ):
+        from fairdm.core.utils import assign_perm
+
+        record = getattr(record_chain, kind)
+        assign_perm(f"{kind}.view_{kind}", holder, record)
+        assign_perm(f"{kind}.change_{kind}", holder, record)
+
+        person = asked(holder)
+        assert not person.has_perm(f"{kind}.view_{kind}", record)
+        assert not person.has_perm(f"{kind}.change_{kind}", record)
+
+    def test_a_stored_guardian_row_on_a_dataset_no_longer_reaches_its_sample(
+        self, record_chain, holder
+    ):
+        from fairdm.core.utils import assign_perm
+
+        assign_perm("dataset.change_dataset", holder, record_chain.dataset)
+
+        assert not asked(holder).has_perm("sample.change_sample", record_chain.sample)
 
     def test_a_stored_guardian_row_still_works_on_an_organization(
         self, organization, holder

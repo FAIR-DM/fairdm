@@ -4,8 +4,14 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization
-from fairdm.factories import DatasetFactory, OrganizationFactory, PersonFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
+)
 from fairdm.permissions import PortalRolePermissionBackend
 from fairdm.portal_roles import PortalRoles
 
@@ -130,11 +136,13 @@ class TestImportAndPublishGatePermissions:
         assert not person.has_perm("dataset.import_data", dataset)
 
     def test_a_contributor_holding_the_object_level_row_is_admitted_to_import(self):
-        from fairdm.core.utils import assign_perm
-
         contributor = PersonFactory()
         dataset = DatasetFactory()
-        assign_perm("import_data", contributor, dataset)
+        ContributionFactory(
+            content_object=dataset,
+            contributor=contributor,
+            level=ContributionLevel.EDIT,
+        )
 
         assert contributor.has_perm("dataset.import_data", dataset)
 
@@ -154,10 +162,12 @@ class TestImportAndPublishGatePermissions:
         assert not person.has_perm("dataset.can_publish", dataset)
 
     def test_a_contributor_holding_the_object_level_row_is_admitted_to_publish(self):
-        from fairdm.core.utils import assign_perm
-
         contributor = PersonFactory()
         dataset = DatasetFactory()
-        assign_perm("can_publish", contributor, dataset)
+        ContributionFactory(
+            content_object=dataset,
+            contributor=contributor,
+            level=ContributionLevel.MANAGE,
+        )
 
         assert contributor.has_perm("dataset.can_publish", dataset)

@@ -10,15 +10,16 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import resolve, reverse
 from django.views.generic import CreateView
-from guardian.shortcuts import assign_perm
 from pytest_django.asserts import assertContains, assertNotContains
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.views import ProjectCreateView, ProjectListView
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
@@ -353,7 +354,6 @@ class TestProjectCreateViewExtended:
         from guardian.models import UserObjectPermission
 
         from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
 
         client.force_login(user)
         response = client.post(
@@ -471,7 +471,9 @@ class TestProjectUpdateView:
     def test_project_update_with_permission_200(self, client):
         project = ProjectFactory()
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.get(url)
@@ -502,7 +504,9 @@ class TestProjectUpdateView:
                 visibility=Visibility.PRIVATE,
                 owner=org,
             )
-            assign_perm("change_project", user, project)
+            ContributionFactory(
+                content_object=project, contributor=user, level=ContributionLevel.EDIT
+            )
             client.force_login(user)
             url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
             data = {
@@ -530,7 +534,9 @@ class TestProjectUpdateView:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Has Image", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         base_data = {
@@ -561,7 +567,9 @@ class TestProjectUpdateView:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -584,7 +592,9 @@ class TestProjectUpdateView:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
         response = client.post(
@@ -622,7 +632,9 @@ class TestAttributesIdentifierRowSet:
         project = ProjectFactory(name="Has Identifier", owner=org)
         ProjectIdentifierFactory(related=project, type="DOI", value="10.1/existing")
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -640,7 +652,9 @@ class TestAttributesIdentifierRowSet:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="No Identifiers Yet", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -667,7 +681,9 @@ class TestAttributesIdentifierRowSet:
             related=project, type="DOI", value="10.1/original"
         )
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -694,7 +710,9 @@ class TestAttributesIdentifierRowSet:
             related=project, type="DOI", value="10.1/to-remove"
         )
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -722,7 +740,9 @@ class TestAttributesIdentifierRowSet:
         ProjectIdentifierFactory(related=other_project, type="DOI", value="10.1/taken")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -751,7 +771,9 @@ class TestAttributesIdentifierRowSet:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="No Identifiers Yet", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -783,7 +805,9 @@ class TestAttributesDateRowSet:
         project = ProjectFactory(name="Has Date", owner=org)
         ProjectDateFactory(related=project, type="Start", value="2020-01-01")
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -801,7 +825,9 @@ class TestAttributesDateRowSet:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="No Dates Yet", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -824,7 +850,9 @@ class TestAttributesDateRowSet:
         project = ProjectFactory(name="Has Date", owner=org)
         date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -849,7 +877,9 @@ class TestAttributesDateRowSet:
         project = ProjectFactory(name="Has Date", owner=org)
         date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -877,7 +907,9 @@ class TestAttributesDateRowSet:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Backwards Pair", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -906,7 +938,9 @@ class TestAttributesDateRowSet:
         project = ProjectFactory(name="Backwards Pair", owner=org)
         start = ProjectDateFactory(related=project, type="Start", value="2020-06-01")
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -933,7 +967,9 @@ class TestAttributesDateRowSet:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Start Only", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -960,7 +996,9 @@ class TestAttributesSaveIsOneAtomicSubmission:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -985,7 +1023,9 @@ class TestAttributesSaveIsOneAtomicSubmission:
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
 
@@ -1024,7 +1064,9 @@ class TestProjectDeleteView:
         sample = RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=DatasetFactory(), sample=sample)
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
 
@@ -1061,7 +1103,9 @@ class TestProjectDeleteView:
     def test_project_delete_with_permission_200(self, client):
         project = ProjectFactory()
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
@@ -1070,7 +1114,9 @@ class TestProjectDeleteView:
     def test_project_delete_wrong_name_shows_error(self, client):
         project = ProjectFactory(name="My Project")
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Wrong Name"})
@@ -1082,7 +1128,9 @@ class TestProjectDeleteView:
         project = ProjectFactory(name="Spaced Project")
         pk = project.pk
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "  Spaced Project  "})
@@ -1096,7 +1144,9 @@ class TestProjectDeleteView:
             name="Public Dataset", project=project, visibility=Visibility.PUBLIC
         )
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
@@ -1112,7 +1162,9 @@ class TestProjectDeleteView:
             name="Public Dataset", project=project, visibility=Visibility.PUBLIC
         )
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
@@ -1127,7 +1179,9 @@ class TestProjectDeleteView:
             name="Public Dataset", project=project, visibility=Visibility.PUBLIC
         )
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.get(url)
@@ -1142,7 +1196,9 @@ class TestProjectDeleteView:
             name="Soon Public Dataset", project=project, visibility=Visibility.PRIVATE
         )
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
 
@@ -1166,7 +1222,9 @@ class TestProjectDeleteView:
         )
         pk = project.pk
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Private Dataset Project"})
@@ -1178,7 +1236,9 @@ class TestProjectDeleteView:
         project = ProjectFactory(name="Empty Project")
         pk = project.pk
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Empty Project"})
@@ -1380,7 +1440,9 @@ class TestDeletionPageBackControl:
     def test_the_back_control_is_a_non_empty_link_that_resolves(self, client):
         project = ProjectFactory(name="Has A Back Link")
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
 
