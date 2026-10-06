@@ -1,0 +1,158 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_access.py (TestKind, TestRecordsAbove, TestLevelOf, TestLevelParts, TestPeopleAbove, TestManagers, TestCanManage, TestRequiredLevel)",
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_access.py -q -n0 (before the implementation: collection ImportError on RecordAccess)",
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn -q -n0 (before: 4 failed, AttributeError can_sign_in)",
+          "uv run pytest tests/test_contrib/test_contributors/test_access.py tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope (after: 136 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "01d6c3ff",
+        "a8ddfa76",
+        "1a47b6bb"
+      ]
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py (TestAdd, TestOfferedRoles, TestUpdate, TestRemove)"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0 (before: collection ImportError; after: 21 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "2650f4d0",
+        "a8ddfa76"
+      ]
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py (TestContributorsTab, TestOverviewLinksToTheTab, TestChangingPagesRefuseAnyoneButAManager, TestAddFromPortal, TestEditRoles, TestRemoveContributor), each run on a project, a dataset, the demo's registered sample type and its registered measurement type"
+        ],
+        "criteria": [
+          "SC-005"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope (after: 88 passed)",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py::TestOverviewLinksToTheTab -q -n0 with fairdm/core/plugins.py reverted (3 failed, KeyError people_url, for dataset, sample and measurement)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "05012779",
+        "ddc10b48"
+      ]
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_contrib/test_plugins tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages -q -n auto --dist loadscope (1244 passed)",
+          "uv run pytest tests/test_core tests/test_templates tests/test_api -q -n auto --dist loadscope (1792 passed, 7 skipped)",
+          "uv run pytest tests/test_demo tests/test_smoke.py -q -n auto --dist loadscope (58 passed)",
+          "uv run python manage.py makemigrations contributors demo --check --dry-run (No changes detected)",
+          "uv run pre-commit run --all-files (all hooks pass)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (lint, typecheck, test, build passed; test 87s)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "a8ddfa76",
+        "1a47b6bb",
+        "6f9d6487"
+      ]
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-014"
+        ],
+        "commands": [
+          "every code block of the new portal-development section run through a throwaway test, deleted afterwards (passed)",
+          "python3 forgekit.docs_check.audit(repo, base='origin/main') lists 4 undocumented names, down from 13 (ContributionMove, ContributorSeed, give_level, level_choices)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main: docs step fails on those 4 names, owned by later stories"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "8409e1e8"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The tab's page tests are in test_plugins/test_shared.py, not the test_contribution_tab.py that tasks.md T003 names.",
+      "why": "The conformance step of the full gate refused a test module that mirrors no source module; the pages are in plugins/shared.py.",
+      "decision_ref": "decisions.md#d12-the-tabs-page-tests-live-in-test_sharedpy"
+    },
+    {
+      "what": "The edit page and the seeds set Contribution.level with a plain save; Crediting.update takes roles only.",
+      "why": "The level argument and the below-inherited refusal are the story that moves levels into the service; the page kept its own refusals for now.",
+      "decision_ref": "decisions.md#d8-levels-set-on-the-edit-page-and-by-the-seeds-are-written-to-the-field-directly"
+    },
+    {
+      "what": "The add page no longer writes the guardian view row for a person it adds.",
+      "why": "The module that wrote the rows is replaced wholesale, and rewriting them in the page would be code the backend story deletes.",
+      "decision_ref": "decisions.md#d9-a-person-added-from-the-tab-holds-no-stored-permission-row-until-the-backend-switches"
+    },
+    {
+      "what": "One template changed: cotton/contribution/access.html reads the new context value entry.manages in place of comparing entry.effective with the word manage. It draws the same.",
+      "why": "Levels are integers now, so the string comparison had to change.",
+      "decision_ref": "decisions.md#d10-entrymanages-replaces-a-comparison-with-the-word-manage"
+    },
+    {
+      "what": "Added beyond tasks.md: RecordAccess.kind, own_level, level_from_above and people_above (the tab reads them), Crediting.offered_roles (the edit page and the service check the same list), and tests TestLevelParts, TestPeopleAbove, TestRequiredLevel, TestKind, TestOfferedRoles, TestOverviewLinksToTheTab.",
+      "why": "The pages need them, and REQUIRED_LEVEL has to cover every permission the four record types declare.",
+      "decision_ref": "decisions.md#d11-the-edit-page-checks-the-roles-by-asking-the-service-inside-a-transaction"
+    }
+  ],
+  "concerns": [
+    "Docs step is red on 4 undocumented public names, all owned by later stories: ContributionMove in plugins/shared.py (US6, moving and order), level_choices in plugins/shared.py (US4, levels on the edit page), give_level in demo/seed/common.py (US4, it sits beside the guardian rows US4 removes) and ContributorSeed in demo/seed/contributors.py (US7, T031 extends the seed). Down from 17 at the base; all names this story leaves public are documented.",
+    "Conformance and the test names in tasks.md: T007, T012, T017, T023, T027 and T030 name test_plugins/test_contribution_tab.py. That module mirrors nothing and the conformance step refuses it, so those stories should add their classes to test_plugins/test_shared.py (decisions.md D12).",
+    "Until US4 switches the backend, a person added from the tab (or by seed_contributors) holds a level and no stored permission row, so on a private record that the permission backends still guard they cannot open it. The dev database is unaffected for what was seeded earlier: I set the levels on its 53 contributions with a one-off shell snippet and left its guardian rows alone. A re-seed with seed_contributors would stop granting rows. I did not rerun it.",
+    "Dev database: migration 0022 applied with DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate; the 53 contributions on the records seed_contributors made (the Contributors tab examples project, its datasets, the sample and measurement, and the no-project dataset) got the level their guardian rows amount to (view/change/delete = view/edit/manage) by a shell snippet, not a migration. Any other dev contribution has an empty level. The tab, both add pages, edit and remove returned 200 for regular.user on the seeded private dataset through the test client against that database.",
+    "Whole-project `manage.py makemigrations --check --dry-run` reports a migration for the third-party app orbit (.venv/.../orbit/migrations/0008). It is not first-party and not mine; `makemigrations contributors demo --check --dry-run` is clean and tests/test_smoke.py::TestMigrations passed in the full gate. The order-dependent smoke failure the brief warns of did not occur.",
+    "The :outline attribute on the level badge in cotton/contribution/access.html is a Cotton dynamic attribute whose expression cannot be resolved, so it was never applied (before or after). I left it so the page draws as approved; making non-manage badges outlined needs a boolean in the context.",
+    "A contribution made through Contribution.add_to, Contributor.add_to or record.add_contributor still has an empty level; only Crediting.add gives a person the view level. Their callers are in the seeds, the create pages and the API, which US4 moves.",
+    "Edit page: a person listed with no level and none from above cannot be saved until a level is chosen (the prototype's rule, kept). The prototype's last-manager and affiliation code on the add, edit and remove pages is left working and untested for US2 and US5.",
+    "The kit's `forge verify` was run in full once; after it the conformance fix (a rename) was verified with `--steps conformance,lint` (both passed) rather than another full run, since only a file name changed."
+  ],
+  "blocked": []
+}
