@@ -276,23 +276,84 @@
       "tasks": [
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py::TestRemove",
+              "tests/test_contrib/test_plugins/test_registration.py::TestRemoveRefusals"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k TestRemove (before the implementation: 26 failed, all AttributeError on registry.remove)",
+              "uv run pytest tests/test_contrib/test_plugins tests/test_conftest.py -q -n0 (after: 244 passed)"
+            ],
+            "code": [
+              "tests/test_contrib/test_plugins/test_registration.py:399",
+              "tests/test_contrib/test_plugins/test_registration.py:474"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_overview_removed_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates/test_overview_removed_plugins.py -q -n0 (before the implementation: 31 failed, 7 errors, all on fairdm.plugins having no remove; checks.is_overview stubbed for the run and then removed)",
+              "uv run pytest tests/test_templates/test_overview_removed_plugins.py -q -n0 (after: 38 passed)"
+            ],
+            "code": [
+              "tests/test_templates/test_overview_removed_plugins.py:93",
+              "tests/test_templates/test_overview_removed_plugins.py:162"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_plugins/test_registration.py",
+              "tests/test_templates/test_overview_removed_plugins.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates tests/test_contrib/test_plugins tests/test_contrib/test_contributors tests/test_core -q -n auto --dist loadscope (4111 passed, 13 skipped)",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (third run: conformance, lint, typecheck, test, build passed; docs failed on four pages that quote Django's reverse)"
+            ],
+            "code": [
+              "fairdm/contrib/plugins/registration.py:144",
+              "fairdm/contrib/plugins/registration.py:250",
+              "fairdm/contrib/plugins/checks.py:350",
+              "fairdm/contrib/plugins/checks.py:367",
+              "fairdm/contrib/plugins/utils.py:87",
+              "fairdm/contrib/plugins/templatetags/plugin_tags.py:12",
+              "fairdm/core/plugins.py:88",
+              "fairdm/contrib/contributors/plugins/shared.py:998"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run python /tmp/doc_example.py (the example on the page: remove Keywords by class and by name, validate_all, resolve, get_plugins_for_model)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "docs/portal-development/create_a_plugin.md:308"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

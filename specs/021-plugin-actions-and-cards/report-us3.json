@@ -1,0 +1,132 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T010",
+      "status": "done",
+      "commits": [
+        "ec0e98a9"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_plugins/test_registration.py::TestRemove",
+          "tests/test_contrib/test_plugins/test_registration.py::TestRemoveRefusals"
+        ],
+        "criteria": [
+          "SC-007",
+          "SC-008"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 -k TestRemove (before: 26 failed, all AttributeError on registry.remove; after the implementation: 50 passed in the file)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T011",
+      "status": "done",
+      "commits": [
+        "84b78c9a"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_overview_removed_plugins.py"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_templates/test_overview_removed_plugins.py -q -n0 (before: 31 failed, 7 errors, all on fairdm.plugins having no remove, with checks.is_overview stubbed for that run only; after: 38 passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "commits": [
+        "daf3682a",
+        "c926cde3",
+        "db0a2d69",
+        "465e9f7a",
+        "9ab2c8ba",
+        "4ec9c401",
+        "1d3c351b"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-006",
+          "SC-007",
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_templates tests/test_contrib/test_plugins tests/test_contrib/test_contributors tests/test_core -q -n auto --dist loadscope (4111 passed, 13 skipped)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (third run, exit 1: conformance, lint, typecheck, test (all tests pass) and build passed; docs failed with four docs-stale-page findings, see concerns)"
+        ],
+        "exit_code": 1
+      }
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "commits": [
+        "bbd1d9d1",
+        "4ec9c401"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "a script that runs the example on the page against the branch: plugins.remove(Sample, Keywords) and plugins.remove(Sample, 'keywords'), validate_all passes, resolve(Sample) no longer lists keywords, get_plugins_for_model still does (printed False True)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The two registry fixtures save and restore removals in the commits that implement removal, not in the T010 test commit.",
+      "why": "They read the attribute the registry creates, and the tree has to be green between commits.",
+      "decision_ref": "decisions.md#d18-the-fixtures-learn-removals-with-the-implementation-and-two-more-pages-are-touched"
+    },
+    {
+      "what": "docs/portal-development/contributors.md and overview-pages.md carry a short note on removal, beside create_a_plugin.md which T013 names.",
+      "why": "Both describe addresses and links a removal now takes away.",
+      "decision_ref": "decisions.md#d18-the-fixtures-learn-removals-with-the-implementation-and-two-more-pages-are-touched"
+    },
+    {
+      "what": "The sample overview's Manage dropdown is drawn only when at least one of its four entries has an address.",
+      "why": "With all four plugins removed the trigger would open an empty menu.",
+      "decision_ref": "decisions.md#d16-a-manage-menu-with-no-entry-left-is-not-drawn"
+    },
+    {
+      "what": "The overview page tests take their plugin list from the registry when the tests are collected, not inside the test body.",
+      "why": "Each case needs its own rebuilt URL configuration and a parameter per plugin keeps one failure from hiding the next. Nothing else registers plugins before collection.",
+      "decision_ref": "decisions.md#d17-the-removable-plugins-are-read-from-the-registry-when-the-tests-are-collected"
+    }
+  ],
+  "concerns": [
+    "forge verify docs step is red: docs-stale-page on docs/contributing/django_dev.md, docs/portal-administration/managing_contributors.md, docs/portal-development/listing-a-registered-type.md and docs/portal-development/profile-claiming-api.md. The rule matches the name `reverse` after the signature of fairdm.contrib.plugins.reverse gained `default`. Each of those four pages quotes Django's own reverse (or the word in prose) and none documents the plugin one, so I left them untouched (scope). I did update create_a_plugin.md, contributors.md and overview-pages.md, the pages that do document plugin addresses. Needs Forge's triage: either accept the findings as false positives or have the pages touched.",
+    "Unused templates found and left alone: fairdm/core/project/templates/project/plugins/overview.html, fairdm/core/dataset/templates/dataset/plugins/overview.html, fairdm/core/sample/templates/sample/plugins/overview.html and fairdm/core/measurement/templates/measurement/plugins/overview.html all extend \"plugins/overview.html\", which does not exist, and nothing renders them. The project one uses {% plugin_url \"datasets\" %}, a name no plugin has (the registered name is dataset-list). fairdm/contrib/contributors/templates/cotton/contributor/card/contribution.html uses {% plugin_url \"contributor-update\" %} and \"contributor-remove\", names no plugin registers, and no template or code includes it.",
+    "Point (fairdm/contrib/location) registers one plugin, PointOverview, served at point-overview and not built on OverviewPlaces, so is_overview does not treat it as the overview and plugins.remove(Point, PointOverview) is accepted. No page links to it (the location page is point-detail), so there is nothing to open and Point is not in the overview page tests. If it should count as an overview, the rule needs a third clause.",
+    "Checked the other shipped pages the brief names: measurement's overview template and dataset_detail.html draw no entry for a removable plugin (their urls are overview-update, overview-descriptions and overview-delete, further views of the overview, and the People card link comes from people_url with default=''). Nothing in demo/ or fairdm/ other than the pages edited links to a plugin by name.",
+    "While running the full verify twice the registry removal tests rewrote the shared navigation menus (first by building them from a few plugins, then by adding duplicate menus); both were my tests and are fixed by giving each test registry detached menus. The final run has every test passing.",
+    "fairdm.contrib.plugins.utils.NO_DEFAULT is a new public module constant, the sentinel for reverse(default=...)."
+  ],
+  "blocked": []
+}

@@ -330,3 +330,14 @@ failure from hiding the next. Nothing else adds to the registry before collectio
 FairDM registers later is still covered without editing the file. The location record type has
 no overview page to open, so it is not in the list.
 **Revisit if**: a test fixture or an addon registers plugins before collection.
+
+## D18. The fixtures learn removals with the implementation, and two more pages are touched
+
+**Decision**: `isolate_registry` and `PluginSandbox` save and restore removals in the commit that
+adds the place removals are kept, not in the test-writing commit. The Contributors section of
+`contributors.md` and a short section of `overview-pages.md` say what a removal does to the pages
+they describe, besides the page the task names.
+**Why**: the fixtures read the attribute the registry creates, so they cannot run before it
+exists, and the tree has to be green between commits. Both pages describe addresses and links that
+a removal now takes away.
+**Revisit if**: the fixtures should hold removals in a place that exists before the registry does.
