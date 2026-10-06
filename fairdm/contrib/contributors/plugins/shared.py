@@ -10,11 +10,13 @@ from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.utils.text import capfirst
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
+from django_countries import countries
 from guardian.utils import get_anonymous_user
 from research_vocabs.models import Concept
 
@@ -30,6 +32,7 @@ from ..access import RecordAccess
 from ..choices import ContributionLevel
 from ..models import Contribution, Contributor, Organization, Person
 from ..services.crediting import UNCHANGED, Crediting
+from ..services.registries import Orcid, RegistryUnavailable, Ror
 
 
 def level_choices(record, floor=None):
@@ -181,10 +184,10 @@ class AffiliationChoice(forms.Form):
             selected = f"org:{current.pk}" if current else "none"
             if current and selected not in values:
                 selected, other_name = "other", current.name
-        elif self.suggested:
-            selected = "other"
         elif self.options:
             selected = self.options[0]["value"]
+        elif self.suggested:
+            selected = "other"
         else:
             selected = "none"
         return {
@@ -195,6 +198,138 @@ class AffiliationChoice(forms.Form):
                 "name", flat=True
             ),
         }
+
+
+class NewPersonForm(forms.Form):
+    """A person typed in by hand: two names, and an email address that is kept and never shown.
+
+    The email address is refused when the portal already holds it, without saying whose it is.
+    A person whose name a profile already has is offered those profiles first: ``same_name``
+    holds them, and the form is not valid until ``confirmed`` is sent.
+    """
+
+    given = forms.CharField(
+        max_length=Person._meta.get_field("first_name").max_length,
+        error_messages={"required": gettext_lazy("Enter their given name.")},
+    )
+    family = forms.CharField(
+        max_length=Person._meta.get_field("last_name").max_length,
+        error_messages={"required": gettext_lazy("Enter their family name.")},
+    )
+    email = forms.EmailField(required=False)
+    confirmed = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.same_name = []
+
+    def clean_email(self):
+        """Refuse an address the portal holds, in any case, and say nothing of who holds it."""
+        email = self.cleaned_data["email"]
+        if email and Person.objects.filter(email__iexact=email).exists():
+            raise ValidationError(
+                _("This email address cannot be used."), code="email_in_use"
+            )
+        return email
+
+    def clean(self):
+        """Offer the profiles that share the name, unless the field errors come first."""
+        cleaned = super().clean()
+        if not self.errors:
+            same = Q(name__iexact=self.name()) | Q(
+                first_name__iexact=cleaned["given"], last_name__iexact=cleaned["family"]
+            )
+            self.same_name = list(Person.objects.real().filter(same)[:5])
+            if self.same_name and not cleaned["confirmed"]:
+                raise ValidationError(
+                    _("Someone with this name is already in the portal."),
+                    code="same_name",
+                )
+        return cleaned
+
+    def name(self):
+        """Return the full name the two names make."""
+        return f"{self.cleaned_data['given']} {self.cleaned_data['family']}"
+
+    def save(self):
+        """Make the person, with no account.
+
+        Returns:
+            The saved person: active, not claimed, with an unusable password.
+        """
+        person = Person(
+            first_name=self.cleaned_data["given"],
+            last_name=self.cleaned_data["family"],
+            name=self.name(),
+            email=self.cleaned_data["email"] or None,
+        )
+        person.set_unusable_password()
+        person.save()
+        return person
+
+
+class NewOrganizationForm(forms.Form):
+    """An organization typed in by hand: a name, and optionally a city, a country and a website.
+
+    An organization is never made when one of that name is in the portal: ``same_name`` holds the
+    existing one and the form is not valid. The country is a name or a code from the country
+    field's own list.
+    """
+
+    name = forms.CharField(
+        max_length=Contributor._meta.get_field("name").max_length,
+        error_messages={"required": gettext_lazy("Enter the organization's name.")},
+    )
+    city = forms.CharField(
+        required=False, max_length=Organization._meta.get_field("city").max_length
+    )
+    country = forms.CharField(required=False)
+    website = forms.URLField(required=False, assume_scheme="https")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.same_name = []
+
+    def clean_country(self):
+        """Resolve a country name or code to the code the field stores."""
+        value = self.cleaned_data["country"]
+        if not value:
+            return ""
+        code = value.upper() if value.upper() in countries else countries.by_name(value)
+        if not code or not isinstance(code, str):
+            raise ValidationError(
+                _("Choose a country from the list, by name or by code."),
+                code="invalid_country",
+            )
+        return code
+
+    def clean(self):
+        """Offer the organization that already has the name, and make no second."""
+        cleaned = super().clean()
+        if not self.errors:
+            self.same_name = list(
+                Organization.objects.filter(name__iexact=cleaned["name"])[:5]
+            )
+            if self.same_name:
+                raise ValidationError(
+                    _("An organization with this name is already in the portal."),
+                    code="same_name",
+                )
+        return cleaned
+
+    def save(self):
+        """Make the organization.
+
+        Returns:
+            The saved organization.
+        """
+        website = self.cleaned_data["website"]
+        return Organization.objects.create(
+            name=self.cleaned_data["name"],
+            city=self.cleaned_data["city"] or None,
+            country=self.cleaned_data["country"] or None,
+            links=[website] if website else [],
+        )
 
 
 class ContributionPage(Plugin, FairDMTemplateView):
@@ -276,88 +411,26 @@ class ContributionPage(Plugin, FairDMTemplateView):
         return context
 
 
-#: Stand-ins for what an ORCID search would return. Nothing is fetched.
-ORCID_RECORDS = [
-    {
-        "id": "0000-0002-1825-0097",
-        "shown_id": "0000-0002-1825-0097",
-        "name": "Josiah Carberry",
-        "given": "Josiah",
-        "family": "Carberry",
-        "employer": "Brown University",
-        "detail": "Brown University, Providence, United States",
-    },
-    {
-        "id": "0000-0001-5109-3700",
-        "shown_id": "0000-0001-5109-3700",
-        "name": "Sofia Maria Garcia",
-        "given": "Sofia Maria",
-        "family": "Garcia",
-        "employer": "Universidad de Granada",
-        "detail": "Universidad de Granada, Spain",
-    },
-    {
-        "id": "0000-0003-2874-1160",
-        "shown_id": "0000-0003-2874-1160",
-        "name": "Sofia Garcia Hernandez",
-        "given": "Sofia",
-        "family": "Garcia Hernandez",
-        "employer": "GFZ Helmholtz Centre for Geosciences",
-        "detail": "GFZ Helmholtz Centre for Geosciences, Potsdam, Germany",
-    },
-    {
-        "id": "0000-0002-9079-593X",
-        "shown_id": "0000-0002-9079-593X",
-        "name": "Stephen Hawking",
-        "given": "Stephen",
-        "family": "Hawking",
-        "employer": "",
-        "detail": "No current employment listed",
-    },
-]
-
-#: Stand-ins for what a search of the ROR registry would return. Nothing is fetched.
-ROR_RECORDS = [
-    {
-        "id": "https://ror.org/04z8jg394",
-        "shown_id": "ror.org/04z8jg394",
-        "name": "GFZ Helmholtz Centre for Geosciences",
-        "detail": "Facility · Potsdam, Germany",
-    },
-    {
-        "id": "https://ror.org/03bnmw459",
-        "shown_id": "ror.org/03bnmw459",
-        "name": "University of Potsdam",
-        "detail": "Education · Potsdam, Germany",
-    },
-    {
-        "id": "https://ror.org/03e8s1d88",
-        "shown_id": "ror.org/03e8s1d88",
-        "name": "Potsdam Institute for Climate Impact Research",
-        "detail": "Facility · Potsdam, Germany",
-    },
-    {
-        "id": "https://ror.org/02nv7yv05",
-        "shown_id": "ror.org/02nv7yv05",
-        "name": "Forschungszentrum Jülich",
-        "detail": "Facility · Jülich, Germany",
-    },
-]
-
-
 class ContributionAdd(ContributionPage):
     """Add a contributor: one already in the portal, one looked up in a registry, or a new one.
 
     One page holds all three ways in as tabs that switch in the browser. ``via`` in the address
     or the form says which tab to open: ``portal``, ``registry`` or ``new``. The portal search
-    reads ``q`` and the registry search reads ``rq``, so each tab keeps its own search.
+    reads ``q`` and the registry search reads ``rq``, so each tab keeps its own search. A
+    registry that cannot be reached leaves the other two ways working.
+
+    Attributes:
+        is_person: Whether the page adds a person rather than an organization.
+        registry_class: ``Orcid`` or ``Ror``.
+        form_class: The form behind the by-hand way.
+        results_shown: The most matches the portal search lists.
     """
 
     manager_only = True
     is_person = True
+    registry_class = Orcid
+    form_class = NewPersonForm
     results_shown = 20
-    registry_delay = 0.8
-    registry_records = ()
 
     @property
     def via(self):
@@ -365,57 +438,117 @@ class ContributionAdd(ContributionPage):
         via = self.request.POST.get("via") or self.request.GET.get("via")
         return via if via in ("portal", "registry", "new") else "portal"
 
-    def find_registry_record(self, identifier):
-        """Return the registry stand-in with this identifier, or None."""
-        return next((r for r in self.registry_records if r["id"] == identifier), None)
-
-    def search_registry(self, term):
-        """Pretend to search the registry by name or identifier, taking a moment over it."""
-        import time
-
-        time.sleep(self.registry_delay)
-        needle = term.lower()
-        return [
-            r
-            for r in self.registry_records
-            if needle in r["name"].lower() or needle in r["id"].lower()
-        ]
+    @cached_property
+    def registry(self):
+        """The registry behind the page's second tab."""
+        return self.registry_class()
 
     def search_portal(self, term):
-        """Return the people or organizations in the portal whose name matches."""
+        """Find the people or organizations in the portal whose name matches.
+
+        Args:
+            term: Part of a name.
+
+        Returns:
+            The matches up to ``results_shown``, and whether there are more.
+        """
         model = Person if self.is_person else Organization
         matches = model.objects.filter(name__icontains=term).order_by("name")
         if self.is_person:
             matches = matches.exclude(pk=get_anonymous_user().pk)
-        return list(matches[: self.results_shown])
+        found = list(matches[: self.results_shown + 1])
+        return found[: self.results_shown], len(found) > self.results_shown
+
+    def choice_for(self, way, choice, **fresh):
+        """Shape the organization choice a tab draws.
+
+        Args:
+            way: The tab, ``portal`` or ``new``.
+            choice: The bound ``AffiliationChoice`` of a refused request, or None.
+            **fresh: Arguments for a new ``AffiliationChoice`` when the request was not refused
+                on this tab.
+
+        Returns:
+            What ``c-contribution.affiliation`` draws.
+        """
+        if choice is None or self.via != way:
+            choice = AffiliationChoice(**fresh)
+        return choice.choice()
+
+    def chosen_record(self, record, choice):
+        """Describe the registry record the manager has chosen, with the organization choice.
+
+        Args:
+            record: The record fetched from the registry.
+            choice: The bound ``AffiliationChoice`` of a refused request, or None.
+
+        Returns:
+            What the chosen step of the registry tab draws.
+        """
+        if not self.is_person:
+            return {"record": record, "affiliation": None}
+        if choice is None:
+            choice = AffiliationChoice(
+                person=self.registry.known(record), suggested=record["employer"]
+            )
+        return {"record": record, "affiliation": choice.choice()}
+
+    def search_registry(self, adding, record, choice):
+        """Fill in the registry tab: the chosen record, or the matches of the search.
+
+        A registry that cannot be reached leaves the tab with nothing and says so.
+
+        Args:
+            adding: What the page draws, which this adds to.
+            record: A record already fetched for a refused request, or None.
+            choice: The bound ``AffiliationChoice`` of a refused request, or None.
+        """
+        chosen = self.request.GET.get("chosen") or self.request.POST.get("registry_id")
+        try:
+            if chosen and record is None:
+                record = self.registry.fetch(chosen)
+            if record is not None:
+                adding["chosen"] = self.chosen_record(record, choice)
+            elif adding["registry_term"]:
+                found = self.registry.search(adding["registry_term"])
+                adding["registry_results"] = found["results"]
+                adding["registry_more"] = found["more"]
+        except RegistryUnavailable:
+            adding["registry_unavailable"] = True
 
     def get_context_data(self, **kwargs):
-        """Add which tab is open, each tab's search and matches, and any chosen record."""
+        """Add which tab is open, each tab's search and matches, and any chosen record.
+
+        Args:
+            **kwargs: What a refused request hands back: ``form``, ``choice``, ``record``,
+                ``errors``, ``values`` and ``registry_unavailable``.
+        """
         context = super().get_context_data(**kwargs)
         via = self.via
+        form, choice = kwargs.get("form"), kwargs.get("choice")
         listed = set(
             self.base_object.contributors.values_list("contributor_id", flat=True)
         )
         term = self.request.GET.get("q", "").strip()
-        registry_term = self.request.GET.get("rq", "").strip()
-        refused = kwargs.get("affiliation")
         adding = {
             "is_person": self.is_person,
             "on_portal": via == "portal",
             "on_registry": via == "registry",
             "on_new": via == "new",
             "term": term,
-            "registry_term": registry_term,
+            "registry_term": self.request.GET.get("rq", "").strip(),
             "results": [],
+            "results_more": False,
             "registry_results": [],
+            "registry_more": False,
+            "registry_unavailable": kwargs.get("registry_unavailable", False),
             "picked": None,
             "chosen": None,
             "errors": kwargs.get("errors", {}),
             "values": kwargs.get("values", {}),
-            "same_name": kwargs.get("same_name", []),
-            "new_affiliation": AffiliationChoice(
-                refused if via == "new" else None
-            ).choice()
+            "form": form,
+            "same_name": form.same_name if form is not None else [],
+            "new_affiliation": self.choice_for("new", choice)
             if self.is_person
             else None,
         }
@@ -427,39 +560,33 @@ class ContributionAdd(ContributionPage):
             if person is not None and person.pk not in listed:
                 adding["picked"] = {
                     "person": person,
-                    "affiliation": AffiliationChoice(
-                        refused if via == "portal" else None, person=person
-                    ).choice(),
+                    "affiliation": self.choice_for("portal", choice, person=person),
                 }
         if term and not adding["picked"]:
+            matches, adding["results_more"] = self.search_portal(term)
             adding["results"] = [
-                {"contributor": c, "listed": c.pk in listed}
-                for c in self.search_portal(term)
+                {"contributor": c, "listed": c.pk in listed} for c in matches
             ]
-        chosen = self.request.GET.get("chosen") or self.request.POST.get("registry_id")
-        if chosen:
-            found = self.find_registry_record(chosen)
-            if found is not None:
-                adding["chosen"] = {
-                    "record": found,
-                    "affiliation": AffiliationChoice(
-                        refused if via == "registry" else None,
-                        suggested=found.get("employer", ""),
-                    ).choice()
-                    if self.is_person
-                    else None,
-                }
-        elif registry_term:
-            adding["registry_results"] = self.search_registry(registry_term)
+        if via == "registry" and not adding["registry_unavailable"]:
+            self.search_registry(adding, kwargs.get("record"), choice)
         context["adding"] = adding
         return context
 
-    def add(self, contributor, choice=None):
-        """Add the contributor last, at the view level, and go on to their edit page."""
+    def add(self, make, choice=None):
+        """Add the contributor last, at the view level, and go on to their edit page.
+
+        The contributor is made, the organization made and the credit written in one
+        transaction, so a refusal leaves nothing behind.
+
+        Args:
+            make: A function that returns the contributor, making them if they are new.
+            choice: The valid ``AffiliationChoice`` of a person, or None.
+        """
         record = self.base_object
         organization = None
         try:
             with transaction.atomic():
+                contributor = make()
                 organization = choice.organization() if choice is not None else None
                 listed = (
                     organization is None
@@ -486,74 +613,83 @@ class ContributionAdd(ContributionPage):
         messages.success(self.request, said)
         return redirect(f"{self.list_url}{contribution.pk}/edit/")
 
-    def create(self, name, given="", family=""):
-        """Make a new profile with nothing but a name."""
-        if not self.is_person:
-            return Organization.objects.get_or_create(name=name)[0]
-        person = Person(first_name=given, last_name=family, name=name, email=None)
-        person.set_unusable_password()
-        person.save()
-        return person
-
     def refuse(self, **kwargs):
         """Draw the page again with what was entered and what is wrong with it."""
         return self.render_to_response(self.get_context_data(**kwargs), status=422)
 
-    def post(self, request, *args, **kwargs):
-        """Add someone from the portal, from a registry record, or from the form."""
-        portal = None
-        if pk := request.POST.get("contributor"):
-            portal = get_object_or_404(Contributor, pk=pk).get_real_instance()
-
+    def add_from_portal(self):
+        """Add a contributor who is already in the portal."""
+        pk = self.request.POST.get("contributor", "")
+        contributor = get_object_or_404(
+            Contributor, pk=pk if pk.isdigit() else 0
+        ).get_real_instance()
         choice = None
         if self.is_person:
-            person = portal if isinstance(portal, Person) else None
-            choice = AffiliationChoice(request.POST, person=person)
+            person = contributor if isinstance(contributor, Person) else None
+            choice = AffiliationChoice(self.request.POST, person=person)
             if not choice.is_valid():
                 return self.refuse(
-                    affiliation=request.POST, errors={"affiliation": choice.problem}
+                    choice=choice, errors={"affiliation": choice.problem}
                 )
+        return self.add(lambda: contributor, choice)
 
-        if portal is not None:
-            return self.add(portal, choice)
+    def add_from_registry(self):
+        """Add the record the manager chose, fetched again by its identifier.
 
-        if registry_id := request.POST.get("registry_id"):
-            found = self.find_registry_record(registry_id)
-            if found is None:
-                raise PermissionDenied
-            model = Person if self.is_person else Organization
-            existing = model.objects.filter(name=found["name"]).first()
-            return self.add(
-                existing
-                or self.create(
-                    found["name"], found.get("given", ""), found.get("family", "")
-                ),
-                choice,
+        Nothing the form carries but the identifier is read. A registry that cannot be reached
+        answers 200 with the tab saying so, and nothing is made.
+        """
+        try:
+            record = self.registry.fetch(self.request.POST.get("registry_id", ""))
+        except RegistryUnavailable:
+            return self.render_to_response(
+                self.get_context_data(registry_unavailable=True)
             )
-
-        values = {key: request.POST.get(key, "").strip() for key in request.POST}
-        errors = {}
+        if record is None:
+            messages.error(
+                self.request, _("That record could not be found, so nothing was added.")
+            )
+            return redirect(self.request.get_full_path())
+        choice = None
         if self.is_person:
-            if not values.get("given"):
-                errors["given"] = _("Enter their given name.")
-            if not values.get("family"):
-                errors["family"] = _("Enter their family name.")
-            name = f"{values.get('given', '')} {values.get('family', '')}".strip()
-        else:
-            if not values.get("name"):
-                errors["name"] = _("Enter the organization's name.")
-            name = values.get("name", "")
-        if errors:
-            return self.refuse(errors=errors, values=values)
+            choice = AffiliationChoice(
+                self.request.POST, person=self.registry.known(record)
+            )
+            if not choice.is_valid():
+                return self.refuse(
+                    choice=choice,
+                    record=record,
+                    errors={"affiliation": choice.problem},
+                )
+        return self.add(lambda: self.registry.profile(record), choice)
 
-        model = Person if self.is_person else Organization
-        same_name = list(model.objects.filter(name__iexact=name)[:5])
-        if same_name and not request.POST.get("confirmed"):
-            return self.refuse(values=values, same_name=same_name)
-        return self.add(
-            self.create(name, values.get("given", ""), values.get("family", "")),
-            choice,
-        )
+    def add_by_hand(self):
+        """Make a contributor from the form, or draw the page again with what is wrong."""
+        form = self.form_class(self.request.POST)
+        choice = AffiliationChoice(self.request.POST) if self.is_person else None
+        valid = form.is_valid()
+        if choice is not None:
+            valid = choice.is_valid() and valid
+        if not valid:
+            errors = {
+                field: messages_[0]
+                for field, messages_ in form.errors.items()
+                if field != "__all__"
+            }
+            if choice is not None and choice.problem:
+                errors["affiliation"] = choice.problem
+            values = {
+                key: self.request.POST.get(key, "").strip() for key in form.fields
+            }
+            return self.refuse(form=form, choice=choice, errors=errors, values=values)
+        return self.add(form.save, choice)
+
+    def post(self, request, *args, **kwargs):
+        """Add someone from the portal, from a registry record, or from the form."""
+        return {
+            "registry": self.add_from_registry,
+            "new": self.add_by_hand,
+        }.get(self.via, self.add_from_portal)()
 
 
 class ContributionAddPerson(ContributionAdd):
@@ -562,7 +698,6 @@ class ContributionAddPerson(ContributionAdd):
     url_path = "add-person"
     template_name = "contributors/plugins/contribution_add_person.html"
     page_title = gettext_lazy("Add a person")
-    registry_records = ORCID_RECORDS
 
 
 class ContributionAddOrganization(ContributionAdd):
@@ -572,7 +707,8 @@ class ContributionAddOrganization(ContributionAdd):
     template_name = "contributors/plugins/contribution_add_organization.html"
     page_title = gettext_lazy("Add an organization")
     is_person = False
-    registry_records = ROR_RECORDS
+    registry_class = Ror
+    form_class = NewOrganizationForm
 
 
 class ContributionEdit(ContributionPage):

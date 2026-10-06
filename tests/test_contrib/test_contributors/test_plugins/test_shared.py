@@ -12,6 +12,7 @@ import pytest
 import requests
 from bs4 import BeautifulSoup
 from django.contrib.messages import ERROR, get_messages
+from django.core.exceptions import NON_FIELD_ERRORS
 from django.test import Client
 from research_vocabs.models import Concept
 
@@ -1298,6 +1299,27 @@ class TestAddFromRegistry:
         assert made() == before
         assert stored(record) == listed
 
+    def test_an_organization_made_for_a_refused_credit_is_not_kept(
+        self, record, manager, way_person
+    ):
+        held = PersonFactory()
+        ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
+        ContributionFactory(content_object=record, contributor=held, level=None)
+        before = made()
+
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "registry",
+                "registry_id": JOSIAH,
+                "affiliation": "other",
+                "affiliation_name": "Orphan Institute",
+            },
+        )
+
+        assert made() == before
+        assert not Organization.objects.filter(name="Orphan Institute").exists()
+
     def test_a_superuser_found_by_orcid_is_refused_without_an_error_page(
         self, record, manager, way_person
     ):
@@ -1569,7 +1591,7 @@ class TestAddByHand:
         assert response.status_code == 422
         assert adding["on_new"] is True
         assert {p.pk for p in adding["same_name"]} == {twin.pk, other.pk}
-        assert adding["form"].has_error(None, code="same_name")
+        assert adding["form"].has_error(NON_FIELD_ERRORS, code="same_name")
         assert made() == before
         assert stored(record) == listed
 
@@ -1775,7 +1797,7 @@ class TestAddByHand:
         assert response.status_code == 422
         assert adding["on_new"] is True
         assert [o.pk for o in adding["same_name"]] == [existing.pk]
-        assert adding["form"].has_error(None, code="same_name")
+        assert adding["form"].has_error(NON_FIELD_ERRORS, code="same_name")
         assert made() == before
         assert stored(record) == listed
 

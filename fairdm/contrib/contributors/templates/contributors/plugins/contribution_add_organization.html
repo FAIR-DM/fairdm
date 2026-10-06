@@ -46,6 +46,7 @@
                     </c-list.row>
                   {% endfor %}
                 </c-list>
+                {% if adding.results_more %}<p class="text-sm text-base-content/70" data-results="more">{% translate "There are more matches than are shown, so add more of the name to narrow the search." %}</p>{% endif %}
               {% else %}
                 <div class="flex flex-col gap-1">
                   <p class="font-semibold">{% blocktranslate with term=adding.term %}No organization in this portal matches “{{ term }}”.{% endblocktranslate %}</p>
@@ -84,7 +85,9 @@
                   <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
                 </div>
               </form>
-              {% if adding.registry_term %}
+              {% if adding.registry_unavailable %}
+                <p class="text-sm text-base-content/70" data-registry="unavailable">{% translate "Searching ROR is unavailable right now, but the other two tabs still work." %}</p>
+              {% elif adding.registry_term %}
                 {% if adding.registry_results %}
                   <c-list label="{% translate 'Matches in ROR' %}">
                     {% for result in adding.registry_results %}
@@ -101,6 +104,7 @@
                       </c-list.row>
                     {% endfor %}
                   </c-list>
+                  {% if adding.registry_more %}<p class="text-sm text-base-content/70" data-results="more">{% translate "There are more matches than are shown, so add more of the name to narrow the search." %}</p>{% endif %}
                 {% else %}
                   <div class="flex flex-col gap-1">
                     <p class="font-semibold">{% blocktranslate with term=adding.registry_term %}ROR has nothing matching “{{ term }}”.{% endblocktranslate %}</p>
