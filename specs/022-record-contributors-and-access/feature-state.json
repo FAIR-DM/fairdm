@@ -1,0 +1,1031 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "022-record-contributors-and-access",
+  "branch": "022-record-contributors-and-access",
+  "repo": "FAIR-DM/fairdm",
+  "state": "MERGED",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-06T12:02:32Z",
+      "note": "specification approved on #414 at 2e9fd280; epic #402, stories #420-426"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-06T12:11:39Z",
+      "note": "branch brought up to date with origin/main at 5998b914; started while #419 and #383 are open, on the maintainer's instruction to build"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-06T12:11:56Z",
+      "note": "plan and tasks written; one reviewer, three lenses"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-06T12:24:13Z",
+      "note": "design review applied; plan gate open; story 1 next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-06T16:02:58Z",
+      "note": "seven stories accepted; full verification green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-06T19:51:29Z",
+      "note": "converged and green; cost limit lifted by Sam; code review on the heavy tier with the security lens"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-06T20:49:33Z",
+      "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-06T20:58:21Z",
+      "note": "PR #414 merged; approved by SamuelJennings"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-06T12:02:32Z",
+      "self_resolved": [
+        "approved in the session at commit 2e9fd280, after approving the prototype; the revised text had not been read when the approval was recorded",
+        "not yet seen by the maintainer: on upgrade, people holding rights without a credit are listed as contributors"
+      ]
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-06T12:23:48Z"
+    },
+    "merge": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-06T20:51:23Z"
+    },
+    "sketch": {
+      "approved_by": "Sam",
+      "at": "2026-10-06T11:59:03Z",
+      "self_resolved": [
+        "header text defect fixed",
+        "people and organizations in two columns with two orders",
+        "separate add-person and add-organization pages linked from the column headings",
+        "client-side tabs for portal, registry and new",
+        "affiliation chosen per record, at adding and on edit",
+        "an organization removable only when nobody on the record is credited from it",
+        "organization cards reduced to logo and name, two across",
+        "no add button in the empty state"
+      ]
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-06T12:23:48Z",
+      "self_resolved": [
+        "14 findings: 4 high, 5 medium, 5 low; verdict request changes; every high and medium applied as plan and task edits",
+        "high ARCH-001 applied: every reader and writer of stored record permissions named and moved to the level query or the crediting class (plan D2 table, T016, T018, T004 seeds)",
+        "high SPEC-001 applied: a person listed only on a sample or measurement can open it (visible_to on with_level, T016, T017)",
+        "high SEC-001 applied: visibility and the parent field need manage on the update forms (plan D5, decisions D2, T017, T018)",
+        "high SPEC-002 applied: the creator's level and the data migration moved into story 4 with the backend (T021a, T022, T018)",
+        "medium applied: subtype permission names and content types (SPEC-003), group rows converted (SPEC-004, decisions D3), default-affiliation hook deleted (SPEC-005, decisions D6), merge tests added (SPEC-006, T022a), classes per subject (ARCH-002, decisions D5)",
+        "low applied: identifier format checked before any request (SEC-002), an email already held refused without naming its profile (SEC-003), can-sign-in method moved to story 1 (ARCH-003)",
+        "low carried: deleting a sample now needs manage (SPEC-007, decisions D4); a superuser is not credited (ARCH-004, decisions D7)"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-06T20:51:23Z",
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 420,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_access.py",
+              "tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_access.py tests/test_contrib/test_contributors/test_models.py::TestPersonCanSignIn -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:33",
+              "fairdm/contrib/contributors/models.py:780"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:12"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:702",
+              "fairdm/contrib/contributors/plugins/shared.py:305",
+              "fairdm/contrib/contributors/plugins/shared.py:520",
+              "fairdm/contrib/contributors/plugins/shared.py:617"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_contrib/test_plugins/test_registration.py::TestExtraViews::test_the_shipped_contribution_views_address_their_target",
+              "tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages::test_the_dataset_menu_carries_one_entry"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_contrib/test_plugins tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages -q -n auto --dist loadscope",
+              "uv run python manage.py makemigrations contributors demo --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/choices.py:43",
+              "fairdm/contrib/contributors/models.py:1826",
+              "fairdm/contrib/contributors/migrations/0022_contribution_level.py:1",
+              "fairdm/core/plugins.py:82"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 forgekit docs_check audit(repo, base=origin/main)"
+            ],
+            "code": [
+              "docs/portal-development/contributors.md:652"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T038",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestEditKeepsALevelHeldFromAbove"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k EditKeepsALevel (red: 1 failed, stored level 2 not 1; green: 3 passed)",
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 (751 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:788"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T039",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestContributorsTabQueries",
+              "tests/test_contrib/test_contributors/test_access.py::TestLevelsForPeople"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k TestContributorsTabQueries (red against the pre-fix code: 4 failed, 236 queries with 25 people against 56 with 5; green: 4 passed)",
+              "uv run pytest tests/test_contrib/test_contributors -q -n0 (2107 passed, 6 skipped)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:179",
+              "fairdm/contrib/contributors/plugins/shared.py:927"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 421,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestCreditedFrom"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:42",
+              "fairdm/contrib/contributors/services/crediting.py:146"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAffiliationChoice",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestOrganizationRemoval"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:58"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_contributor_components.py::TestCreditedFromNone"
+            ],
+            "commands": [
+              "uv run pytest tests/test_templates -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/templates/cotton/contributor/item.html:9"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_templates"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope",
+              "uv run python manage.py makemigrations --check --dry-run"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/migrations/0023_credited_from_set_null.py:1",
+              "fairdm/contrib/contributors/models.py:1815"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "python3 forgekit docs_check audit(repo, base=origin/main)"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:49"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 422,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestSearchOrcid",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestFetchOrcid",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestSearchRor",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestFetchRor",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestProfileFromRegistry"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_registries.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/registries.py:72",
+              "fairdm/contrib/contributors/services/registries.py:278"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddPages",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddFromRegistry",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddPages tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddFromRegistry tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand -q -n auto --dist loadscope -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:414"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_templates"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files",
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/registries.py:72",
+              "fairdm/contrib/contributors/plugins/shared.py:414"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:31"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P1",
+      "issue": 423,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_permissions.py::TestRecordLevelBackend"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_permissions.py -q -n0",
+              "uv run pytest -q -n 8 --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:68",
+              "fairdm/contrib/contributors/access.py:115"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_managers.py::TestWithLevel",
+              "tests/test_api/test_filters.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_managers.py tests/test_api/test_filters.py -q -n0",
+              "uv run pytest -q -n 8 --dist loadscope"
+            ],
+            "code": [
+              "fairdm/core/managers.py:46",
+              "fairdm/api/filters.py:90"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T021a",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMakeCreator",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_core/test_dataset/test_views.py",
+              "tests/test_api/test_serializers.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMakeCreator tests/test_core/test_project/test_views.py tests/test_core/test_dataset/test_views.py tests/test_api/test_serializers.py -q -n0",
+              "uv run pytest -q -n 8 --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:178",
+              "fairdm/api/serializers.py:16"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_migrations.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_migrations.py -q -n0",
+              "uv run pytest -q -n 8 --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/migrations/0024_levels_from_stored_permissions.py:34"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLevels",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPrivateRecordTab",
+              "tests/test_core/test_project/test_views.py",
+              "tests/test_core/test_dataset/test_views.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLevels tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPrivateRecordTab -q -n0",
+              "uv run pytest -q -n 8 --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:368",
+              "fairdm/core/forms.py:8"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_utils.py",
+              "tests/test_core/test_sample/test_models.py::TestSampleNoRights"
+            ],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "uv run pytest -q -n 8 --dist loadscope",
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/permissions.py:68",
+              "fairdm/core/permissions.py:1",
+              "fairdm/contrib/contributors/services/crediting.py:93"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/portal-development/contributors.md:722",
+              "docs/user-guide/crediting-a-record.md:23",
+              "CONTEXT.md:66"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestVisibilityNeedsManage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k VisibilityNeedsManage (red: 2 failed, 200 not 403; green: 8 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 (52 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:80"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T034",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestMovingARecordThroughTheApi"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k MovingARecord (red: 2 failed, 200 not 400 for the stranding move; the editor test failed on the serializer as it was before T033: 4 failed, 2 passed; green: 6 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 (58 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:80"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T035",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCreatingARecordThroughTheApi",
+              "tests/test_api/test_viewsets.py::TestParentChoicesThroughTheApi"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k CreatingARecord (red: 4 failed, 201 not 400; green: 8 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k ParentChoices (red against the serializer as it was: 2 failed; green with the fix)",
+              "uv run pytest tests/test_api -q -n0 (210 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:36"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs",
+              "tests/test_contrib/test_plugins/test_registration.py::TestRecordPagesServe::test_project_plugin_page"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_project/test_plugins.py -q -n0 -k TestAPrivateProjectsOtherTabs (red: 4 failed, 200 not 404; green: 6 passed)",
+              "uv run pytest tests/test_core/test_project/ -q -n0 (386 passed)",
+              "uv run pre-commit run --all-files (passed)",
+              "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 (passed after the project was made public)"
+            ],
+            "code": [
+              "fairdm/core/project/plugins.py:704",
+              "fairdm/core/project/plugins.py:720"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/test_forms.py::TestProjectChoicesNeedTheEditLevel"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_dataset/test_forms.py -q -n0 -k ProjectChoicesNeed (red: 3 failed; green: 3 passed)",
+              "uv run pytest tests/test_core/test_dataset tests/test_core/test_project -q -n0 (842 passed; one earlier run of the same scope showed 1 failure in test_the_contributors_figure_counts_everyone_credited that passed alone and on every re-run)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/core/dataset/forms.py:136"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T040",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "docs/more/migration-guides.md:27",
+              "docs/portal-development/restful-api.md:116",
+              "docs/portal-development/contributors.md:1020",
+              "docs/portal-administration/managing_users_and_permissions.md:114",
+              "fairdm/api/permissions.py:55",
+              "fairdm/core/project/plugins.py:76",
+              "CHANGELOG.md:144"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P2",
+      "issue": 424,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestLastManager",
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestRecordLock"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:33",
+              "fairdm/contrib/contributors/services/crediting.py:53"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/test_models.py::TestMoveKeepsManager",
+              "tests/test_core/test_sample/test_models.py::TestMoveKeepsManager",
+              "tests/test_core/test_measurement/test_models.py::TestMoveKeepsManager"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:260",
+              "fairdm/core/dataset/models.py:366",
+              "fairdm/core/sample/models.py:151",
+              "fairdm/core/measurement/models.py:112"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022a",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergeLevels",
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergePermissions"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_merge.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/merge.py:70",
+              "fairdm/contrib/contributors/services/merge.py:159"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLastManagerPages"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:724",
+              "fairdm/contrib/contributors/plugins/shared.py:819"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestLastManager",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLastManagerPages",
+              "tests/test_core/test_dataset/test_models.py::TestMoveKeepsManager",
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergeLevels"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:168",
+              "fairdm/contrib/contributors/services/crediting.py:233",
+              "fairdm/contrib/contributors/plugins/shared.py:833"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:167"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T025a",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:205"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P2",
+      "issue": 425,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMove",
+              "tests/test_contrib/test_contributors/test_managers.py::TestContributionKinds"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0",
+              "uv run pytest tests/test_contrib/test_contributors/test_managers.py -q -n0"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py:776",
+              "tests/test_contrib/test_contributors/test_managers.py:552"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T027",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestMovePage",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginOrder",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginAffiliation",
+              "tests/test_core/test_project/test_plugins.py::TestOverviewCitation",
+              "tests/test_core/test_dataset/test_plugins.py::TestOverviewCitation"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "uv run pytest tests/test_core -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py:816",
+              "tests/test_core/test_plugins.py:138",
+              "tests/test_core/test_plugins.py:181"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T028",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMove",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestMovePage",
+              "tests/test_core/test_plugins.py::TestRecordOverviewPluginOrder"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "uv run pytest tests/test_core tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:263",
+              "fairdm/contrib/contributors/managers.py:271",
+              "fairdm/contrib/contributors/managers.py:286",
+              "fairdm/contrib/contributors/plugins/shared.py:856",
+              "fairdm/core/plugins.py:88",
+              "fairdm/core/plugins.py:136"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T029",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:194",
+              "docs/portal-development/contributors.md:886"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "US7",
+      "priority": "P3",
+      "issue": 426,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T030",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles",
+              "tests/test_portal_roles.py::TestPermissionsAreThoseOnMain"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles -q -n0",
+              "uv run pytest tests/test_portal_roles.py -q -n0"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py:2408",
+              "tests/test_portal_roles.py:525"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T031",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_contributors.py",
+              "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesCreditsFromTheOrganization"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo -q -n0",
+              "DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py seed_contributors --keep-records"
+            ],
+            "code": [
+              "demo/seed/contributors.py:234",
+              "demo/seed/common.py:72",
+              "demo/management/commands/seed_profiles.py:144"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T032",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/portal-administration/roles.md:121",
+              "docs/portal-development/development_accounts.md:95"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 141.28,
+      "max": 2000
+    }
+  },
+  "pr": {
+    "number": 414,
+    "draft": false
+  },
+  "escalations": [
+    {
+      "at": "2026-10-06T19:51:22Z",
+      "reason": "Cost budget: the build stopped before the code review at $106.99 of dispatched work against the $120 hard limit; the review on the heavy tier was expected to cross it.",
+      "resolved": true,
+      "resolution": "Lifted for this feature by Sam on 2026-10-07, in his words: \"Please ignore the spending limit and continue\". budgets.tokens.max is set to 2000, the largest dollar figure the ledger accepts, to stand for no limit; it is not a target. The running total is still reported."
+    }
+  ]
+}

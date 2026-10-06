@@ -10,10 +10,9 @@ from .models import Dataset
 class DatasetFilter(BaseListFilter):
     """Filter for the dataset list, by licence, project, description type and date type.
 
-    The project choices are the public projects plus any the requester holds ``view_project``
-    on at record level. This differs from the creation form's contribution-based rule, because an
-    anonymous visitor must also get a usable queryset. A filterset built without a request offers
-    every project. All filters combine with AND.
+    The project choices are the public projects plus any the requester holds at least the view
+    level on. An anonymous visitor gets the public projects. A filterset built without a request
+    offers every project. All filters combine with AND.
 
     The list's text search is the page's own ``?q=`` control, not a filter on this class.
 
@@ -68,16 +67,14 @@ class DatasetFilter(BaseListFilter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        from fairdm.contrib.contributors.choices import ContributionLevel
         from fairdm.core.models import Project
-        from fairdm.core.utils import get_objects_for_user
 
         if self.request and hasattr(self.request, "user"):
             queryset = Project.objects.get_visible()
             if self.request.user.is_authenticated:
-                permitted = get_objects_for_user(
-                    self.request.user,
-                    "project.view_project",
-                    Project.objects.all(),
+                permitted = Project.objects.accessible_to(
+                    self.request.user, ContributionLevel.VIEW
                 )
                 queryset = (queryset | permitted).distinct()
         else:

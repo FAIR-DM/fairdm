@@ -4,12 +4,13 @@ import pytest
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
-from guardian.shortcuts import assign_perm
 
-from demo.factories import RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement, XRFMeasurement
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
@@ -103,7 +104,9 @@ class TestMeasurementFormDatasetChoices:
         user = UserFactory()
         allowed = DatasetFactory()  # private by default
         other = DatasetFactory()
-        assign_perm("change_dataset", user, allowed)
+        ContributionFactory(
+            content_object=allowed, contributor=user, level=ContributionLevel.EDIT
+        )
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
@@ -115,6 +118,56 @@ class TestMeasurementFormDatasetChoices:
         offered = set(form.fields["dataset"].queryset)
         assert offered == {allowed}
         assert other not in offered
+
+    def test_a_dataset_the_user_may_only_view_is_not_offered(self):
+        user = UserFactory()
+        viewed = DatasetFactory()
+        ContributionFactory(
+            content_object=viewed, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_a_level_on_the_project_offers_the_datasets_in_it(self):
+        user = UserFactory()
+        project = ProjectFactory()
+        inside = DatasetFactory(project=project)
+        DatasetFactory()
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == {inside}
+
+    def test_a_stored_guardian_row_alone_offers_no_dataset(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = XRFMeasurementForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
 
     def test_form_with_no_user_offers_no_dataset_at_all(self):
         DatasetFactory()
@@ -134,8 +187,12 @@ class TestMeasurementFormDatasetChoices:
         user2 = UserFactory()
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
-        assign_perm("change_dataset", user1, dataset1)
-        assign_perm("change_dataset", user2, dataset2)
+        ContributionFactory(
+            content_object=dataset1, contributor=user1, level=ContributionLevel.EDIT
+        )
+        ContributionFactory(
+            content_object=dataset2, contributor=user2, level=ContributionLevel.EDIT
+        )
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
@@ -147,6 +204,57 @@ class TestMeasurementFormDatasetChoices:
         offered = set(form.fields["dataset"].queryset)
         assert offered == {dataset1}
         assert dataset2 not in offered
+
+
+@pytest.mark.django_db
+class TestMeasurementFormOnAnExistingMeasurement:
+    """The dataset a measurement sits in is offered only to someone who can manage it."""
+
+    def _measurement(self):
+        dataset = DatasetFactory()
+        return ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+
+    def _form(self, measurement, user):
+        class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = ExampleMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        return MeasurementForm(instance=measurement, request=_request_for(user))
+
+    def test_an_editor_is_not_offered_the_dataset(self):
+        measurement = self._measurement()
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=measurement,
+            contributor=editor,
+            level=ContributionLevel.EDIT,
+        )
+
+        assert "dataset" not in self._form(measurement, editor).fields
+
+    def test_a_manager_is_offered_the_dataset(self):
+        measurement = self._measurement()
+        manager = UserFactory()
+        ContributionFactory(
+            content_object=measurement,
+            contributor=manager,
+            level=ContributionLevel.MANAGE,
+        )
+
+        assert "dataset" in self._form(measurement, manager).fields
+
+    def test_a_form_for_a_new_measurement_leaves_nothing_out(self):
+        class MeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = ExampleMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        form = MeasurementForm(request=_request_for(UserFactory()))
+
+        assert "dataset" in form.fields
 
 
 @pytest.mark.django_db
@@ -188,7 +296,9 @@ class TestMeasurementFormPolymorphicHandling:
     def test_form_handles_polymorphic_type_creation(self):
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         sample = RockSampleFactory(dataset=dataset)
 
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
@@ -215,7 +325,9 @@ class TestMeasurementFormPolymorphicHandling:
         user = UserFactory()
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
-        assign_perm("change_dataset", user, dataset1)
+        ContributionFactory(
+            content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
+        )
         sample_in_dataset2 = RockSampleFactory(dataset=dataset2)
 
         class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):

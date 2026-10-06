@@ -74,10 +74,8 @@ def visible_to_holder_of(permission):
     """Build a page check that also admits a holder of one record-level permission.
 
     Like :func:`dataset_is_visible`, except a private dataset also stays visible to a user
-    holding ``permission`` on it. ``Update`` needs this because its own permission is
-    ``change_dataset``, and creating a dataset grants the right to view it together with the
-    right to edit it, so a record-level grant of the page's own permission is already evidence
-    of legitimate access.
+    holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
+    page's own permission on the dataset can also view it, and this check says so directly.
 
     Args:
         permission: The permission to accept at record level.
@@ -688,8 +686,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         Returns:
             The project and how many other datasets in it the viewer may see, or ``None``.
         """
+        from fairdm.contrib.contributors.choices import ContributionLevel
         from fairdm.core.project.plugins import project_is_visible
-        from fairdm.core.utils import get_objects_for_user
 
         dataset = self.base_object
         project = dataset.project
@@ -700,14 +698,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             visible = Q(visibility=Visibility.PUBLIC)
             user = self.request.user
             if user.is_authenticated:
-                visible |= Q(
-                    pk__in=get_objects_for_user(
-                        user,
-                        ["dataset.view_dataset", "dataset.change_dataset"],
-                        Dataset.all_objects.all(),
-                        any_perm=True,
-                    )
-                )
+                held = Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
+                visible |= Q(pk__in=held.values("pk"))
             siblings = siblings.filter(visible)
         return {"project": project, "siblings": siblings.count()}
 

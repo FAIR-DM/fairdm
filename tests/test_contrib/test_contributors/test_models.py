@@ -6,13 +6,19 @@ import pytest
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.urls import resolve
+from django.utils import timezone
 from django.utils.formats import date_format
 
-from fairdm.contrib.contributors.choices import AccountState, OrganizationType
+from fairdm.contrib.contributors.choices import (
+    AccountState,
+    ContributionLevel,
+    OrganizationType,
+)
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -22,7 +28,6 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
-from fairdm.core.utils import assign_perm
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -31,6 +36,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
@@ -859,7 +865,7 @@ class TestContributionGFKRelationships:
         assert contribution.content_object == project
 
     @pytest.mark.django_db
-    def test_contribution_default_affiliation(self, person, organization):
+    def test_a_credit_is_not_given_the_primary_affiliation(self, person, organization):
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -867,7 +873,7 @@ class TestContributionGFKRelationships:
         )
         project = ProjectFactory()
         c = person.add_to(project)
-        assert c.affiliation == organization
+        assert c.affiliation is None
 
     @pytest.mark.django_db
     def test_contribution_has_contribution_to(
@@ -1875,7 +1881,11 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         contributions = world.person.get_visible_contributions(member)
 
@@ -1897,8 +1907,16 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
-        assign_perm("view_dataset", member, world.dataset_in_private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
+        ContributionFactory(
+            content_object=world.dataset_in_private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         records = _records(world.person.get_visible_contributions(member))
 
@@ -1912,7 +1930,11 @@ class TestGetVisibleContributions:
         world = credited_world
         world.person.add_to(world.private_sample)
         team = PersonFactory(is_active=True)
-        assign_perm("view_dataset", team, world.private_dataset)
+        ContributionFactory(
+            content_object=world.private_dataset,
+            contributor=team,
+            level=ContributionLevel.VIEW,
+        )
 
         assert _credited(world.private_sample).isdisjoint(
             _records(world.person.get_visible_contributions(AnonymousUser()))
@@ -2635,3 +2657,405 @@ class TestProfileSafety:
         person = PersonFactory(is_claimed=False, is_active=False, email=None)
 
         assert person.member_since is None
+
+
+@pytest.mark.django_db
+class TestPersonIsEditableBy:
+    def test_a_person_may_edit_their_own_profile(self, person):
+        assert person.is_editable_by(person) is True
+
+    def test_a_person_who_signed_in_without_being_marked_claimed_may_edit_their_own_profile(
+        self,
+    ):
+        # `createsuperuser` makes an active account that nothing marks as claimed.
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+
+        assert person.is_editable_by(person) is True
+
+    def test_another_signed_in_person_may_not_edit_it(self, person):
+        stranger = PersonFactory(is_active=True, password="x")
+
+        assert person.is_editable_by(stranger) is False
+
+    def test_a_visitor_may_not_edit_it(self, person):
+        assert person.is_editable_by(AnonymousUser()) is False
+
+    def test_a_superuser_who_is_somebody_else_may_not_edit_it(self, person):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert person.is_editable_by(superuser) is False
+
+    @pytest.mark.parametrize(
+        "role",
+        [
+            PortalRoles.DATA_CURATOR,
+            PortalRoles.DEVELOPER,
+            PortalRoles.PORTAL_ADMINISTRATOR,
+        ],
+    )
+    def test_a_holder_of_one_of_these_portal_roles_may_not_edit_it(self, person, role):
+        holder = PersonFactory(is_active=True, password="x")
+        holder.groups.add(Group.objects.get(name=role.name))
+
+        assert person.is_editable_by(holder) is False
+
+    def test_a_community_manager_may_edit_an_unclaimed_person(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=False)
+
+        assert person.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_edit_an_invited_person_who_has_not_signed_in(
+        self, community_manager
+    ):
+        person = PersonFactory(
+            email="invited@example.org", is_active=True, is_claimed=False
+        )
+
+        assert person.account_state == AccountState.INVITED
+        assert person.is_editable_by(community_manager) is True
+
+    @pytest.mark.parametrize("claimed", [True, False])
+    def test_a_community_manager_may_edit_a_person_whose_account_is_inactive(
+        self, community_manager, claimed
+    ):
+        person = PersonFactory(is_active=False, is_claimed=claimed, password="x")
+
+        assert person.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_not_edit_a_person_with_an_active_account(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_community_manager_may_not_edit_an_active_account_that_has_signed_in_without_being_marked_claimed(
+        self, community_manager
+    ):
+        # `createsuperuser` and signing up where email is not verified leave such an account.
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+        person.last_login = timezone.now()
+        person.save()
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_person_removed_from_the_role_may_no_longer_edit_it(
+        self, community_manager
+    ):
+        person = PersonFactory(is_active=True, is_claimed=False)
+        community_manager.groups.clear()
+
+        assert person.is_editable_by(community_manager) is False
+
+    def test_a_community_manager_may_still_edit_their_own_profile(
+        self, community_manager
+    ):
+        assert community_manager.is_editable_by(community_manager) is True
+
+    def test_a_data_curator_may_not_edit_an_unclaimed_person(self):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        person = PersonFactory(is_active=True, is_claimed=False)
+
+        assert person.is_editable_by(curator) is False
+
+@pytest.mark.django_db
+class TestOrganizationRorIdentifier:
+    @pytest.mark.parametrize("value", ["02nr0ka47", "https://ror.org/02nr0ka47"])
+    def test_a_ror_stored_as_the_bare_identifier_or_the_full_address_validates(
+        self, value
+    ):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value=value
+        )
+
+        organization.full_clean()
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "not-a-ror",
+            "https://ror.org/not-a-ror",
+            "https://example.org/02nr0ka47",
+            "https://ror.org/02nr0ka47/extra",
+            "12nr0ka47",
+        ],
+    )
+    def test_a_malformed_ror_still_fails_on_the_identifiers_field(self, value):
+        organization = OrganizationFactory()
+        ContributorIdentifier.objects.create(
+            related=organization, type="ROR", value=value
+        )
+
+        with pytest.raises(ValidationError) as error:
+            organization.full_clean()
+
+        assert "identifiers" in error.value.message_dict
+
+
+@pytest.mark.django_db
+class TestOrganizationDescendantIds:
+    def test_an_organization_with_no_sub_organizations_has_none(self):
+        organization = OrganizationFactory()
+
+        assert organization.get_descendant_ids() == set()
+
+    def test_the_children_are_included(self):
+        organization = OrganizationFactory()
+        first = OrganizationFactory(parent=organization)
+        second = OrganizationFactory(parent=organization)
+        OrganizationFactory()
+
+        assert organization.get_descendant_ids() == {first.pk, second.pk}
+
+    def test_the_grandchildren_are_included(self):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+        great_grandchild = OrganizationFactory(parent=grandchild)
+
+        assert organization.get_descendant_ids() == {
+            child.pk,
+            grandchild.pk,
+            great_grandchild.pk,
+        }
+
+    def test_the_parent_and_the_siblings_are_not_included(self):
+        parent = OrganizationFactory()
+        organization = OrganizationFactory(parent=parent)
+        OrganizationFactory(parent=parent)
+
+        assert organization.get_descendant_ids() == set()
+
+    def test_a_loop_already_stored_does_not_run_forever(self):
+        first = OrganizationFactory()
+        second = OrganizationFactory(parent=first)
+        Organization.objects.filter(pk=first.pk).update(parent=second)
+        first.refresh_from_db()
+
+        assert first.get_descendant_ids() == {first.pk, second.pk}
+
+
+@pytest.mark.django_db
+class TestOrganizationParentLoop:
+    def test_the_organization_itself_is_refused_as_its_parent(self):
+        organization = OrganizationFactory()
+        organization.parent = organization
+
+        with pytest.raises(ValidationError) as refused:
+            organization.full_clean()
+
+        assert set(refused.value.message_dict) == {"parent"}
+
+    def test_an_organization_beneath_it_is_refused_as_its_parent(self):
+        organization = OrganizationFactory()
+        child = OrganizationFactory(parent=organization)
+        grandchild = OrganizationFactory(parent=child)
+
+        for beneath in (child, grandchild):
+            organization.parent = beneath
+            with pytest.raises(ValidationError) as refused:
+                organization.full_clean()
+
+            assert set(refused.value.message_dict) == {"parent"}
+
+    def test_an_unrelated_organization_is_accepted(self):
+        organization = OrganizationFactory()
+        organization.parent = OrganizationFactory()
+
+        organization.full_clean()
+
+    def test_an_organization_that_already_has_children_of_its_own_may_gain_a_parent(
+        self,
+    ):
+        organization = OrganizationFactory()
+        OrganizationFactory(parent=organization)
+        organization.parent = OrganizationFactory()
+
+        organization.full_clean()
+
+    def test_an_organization_not_saved_yet_may_have_any_parent(self):
+        organization = OrganizationFactory.build(parent=OrganizationFactory())
+
+        organization.full_clean(exclude=["uuid"])
+
+
+@pytest.mark.django_db
+class TestOrganizationIsEditableBy:
+    @pytest.fixture
+    def organization(self):
+        return OrganizationFactory()
+
+    def _joined(self, organization, type, **kwargs):
+        person = PersonFactory(is_active=True, password="x")
+        AffiliationFactory(person=person, organization=organization, type=type, **kwargs)
+        return person
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+    )
+    def test_the_owner_and_an_administrator_may_edit_it(self, organization, type):
+        keeper = self._joined(organization, type)
+
+        assert organization.is_editable_by(keeper) is True
+
+    @pytest.mark.parametrize(
+        "type", [Affiliation.MembershipType.MEMBER, Affiliation.MembershipType.PENDING]
+    )
+    def test_an_ordinary_member_may_not_edit_it(self, organization, type):
+        member = self._joined(organization, type)
+
+        assert organization.is_editable_by(member) is False
+
+    def test_a_stranger_may_not_edit_it(self, organization):
+        stranger = PersonFactory(is_active=True, password="x")
+
+        assert organization.is_editable_by(stranger) is False
+
+    def test_a_visitor_may_not_edit_it(self, organization):
+        assert organization.is_editable_by(AnonymousUser()) is False
+
+    def test_an_administrator_whose_affiliation_has_ended_may_not_edit_it(
+        self, organization
+    ):
+        former = self._joined(
+            organization,
+            Affiliation.MembershipType.ADMIN,
+            start_date="2010",
+            end_date="2014",
+        )
+
+        assert organization.is_editable_by(former) is False
+
+    def test_a_deactivated_administrator_may_not_edit_it(self, organization):
+        keeper = self._joined(organization, Affiliation.MembershipType.ADMIN)
+        keeper.is_active = False
+        keeper.save()
+
+        assert organization.is_editable_by(keeper) is False
+
+    def test_a_data_curator_may_not_edit_it(self, organization):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert organization.is_editable_by(curator) is False
+
+    def test_a_superuser_who_keeps_no_record_may_not_edit_it(self, organization):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert organization.is_editable_by(superuser) is False
+
+    def test_an_organization_with_no_owner_or_administrators_is_editable_by_none_of_them(
+        self, organization
+    ):
+        member = self._joined(organization, Affiliation.MembershipType.MEMBER)
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        for user in (member, curator, superuser, AnonymousUser()):
+            assert organization.is_editable_by(user) is False
+
+    def test_a_community_manager_may_edit_it(self, organization, community_manager):
+        assert organization.is_editable_by(community_manager) is True
+
+    def test_a_community_manager_may_edit_one_with_no_owner(
+        self, organization, community_manager
+    ):
+        assert not organization.affiliations.exists()
+        assert organization.is_editable_by(community_manager) is True
+
+    def test_a_person_removed_from_the_role_may_no_longer_edit_it(
+        self, organization, community_manager
+    ):
+        community_manager.groups.clear()
+
+        assert organization.is_editable_by(community_manager) is False
+
+    def test_a_deactivated_community_manager_may_not_edit_it(
+        self, organization, community_manager
+    ):
+        community_manager.is_active = False
+        community_manager.save()
+
+        assert organization.is_editable_by(community_manager) is False
+
+
+class TestContributorUpdateUrl:
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("factory", [PersonFactory, OrganizationFactory])
+    def test_the_address_is_the_editing_page_of_the_overview(self, factory):
+        contributor = factory()
+
+        match = resolve(contributor.get_update_url())
+
+        assert match.view_name == "contributor:overview-update"
+        assert match.kwargs == {"uuid": contributor.uuid}
+
+
+@pytest.mark.django_db
+class TestPersonCanSignIn:
+    def test_an_active_claimed_person_can(self):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is True
+
+    def test_an_active_person_who_signed_in_without_being_marked_claimed_can(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+        person.last_login = timezone.now()
+        person.save()
+
+        assert person.can_sign_in() is True
+
+    def test_a_person_who_never_signed_in_and_never_claimed_cannot(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+
+        assert person.can_sign_in() is False
+
+    def test_an_inactive_person_cannot(self):
+        person = PersonFactory(is_active=False, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is False
+
+
+@pytest.mark.django_db
+class TestACreditMadeThroughTheHelpersStartsAtTheViewLevel:
+    @pytest.fixture(
+        params=["contribution_add_to", "contributor_add_to", "add_contributor"]
+    )
+    def credit(self, request, project_for_contributions):
+        project = project_for_contributions
+
+        def make(contributor):
+            if request.param == "contribution_add_to":
+                return Contribution.add_to(contributor, project)
+            if request.param == "contributor_add_to":
+                return contributor.add_to(project)
+            return project.add_contributor(contributor)
+
+        return make
+
+    def test_a_person_starts_at_the_view_level(self, credit):
+        person = PersonFactory(is_active=True)
+
+        assert credit(person).level == ContributionLevel.VIEW
+
+    def test_an_organization_holds_no_level(self, credit):
+        assert credit(OrganizationFactory()).level is None
+
+    def test_crediting_again_leaves_the_level_alone(self, credit):
+        person = PersonFactory(is_active=True)
+        contribution = credit(person)
+        contribution.level = ContributionLevel.MANAGE
+        contribution.save(update_fields=["level"])
+
+        assert credit(person).level == ContributionLevel.MANAGE

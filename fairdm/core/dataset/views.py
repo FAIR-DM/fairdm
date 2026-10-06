@@ -4,8 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
-from guardian.shortcuts import assign_perm
 
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
@@ -32,28 +32,13 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         return str(self.object.get_absolute_url())
 
     def form_valid(self, form) -> HttpResponse:
-        """Record the creator, grant them the dataset permissions and credit them."""
+        """Record the creator and list them at the manage level as Creator, ProjectMember and ContactPerson."""
         # `created_by` is editable=False, so it is set from the request user, never the form.
         form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
-        user = self.request.user
-        dataset = self.object
-
-        # A dataset is private by default, so the creator needs these to open, edit or delete it.
-        permissions = [
-            "view_dataset",
-            "change_dataset",
-            "delete_dataset",
-            "change_dataset_metadata",
-            "change_dataset_settings",
-        ]
-
-        for perm in permissions:
-            assign_perm(perm, user, dataset)
-
-        dataset.add_contributor(
-            user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
+        Crediting(self.object).make_creator(
+            self.request.user, roles=["Creator", "ProjectMember", "ContactPerson"]
         )
 
         return response

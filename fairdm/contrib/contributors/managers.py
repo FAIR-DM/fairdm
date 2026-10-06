@@ -268,6 +268,39 @@ class ContributionQuerySet(OrderedModelQuerySet):
         """
         return self.filter(contributor=contributor)
 
+    def people(self):
+        """Filter contributions to those of people, in the order the record names them.
+
+        The kind is read from the contributor's polymorphic content type, so no contributor is
+        loaded.
+
+        Returns:
+            Contributions whose contributor is a ``Person``, ordered by ``order`` then ``pk``.
+        """
+        from fairdm.contrib.contributors.models import Person
+
+        return self.filter(
+            contributor__polymorphic_ctype=ContentType.objects.get_for_model(Person)
+        ).order_by("order", "pk")
+
+    def organizations(self):
+        """Filter contributions to those of organizations, in the order the record names them.
+
+        The kind is read from the contributor's polymorphic content type, so no contributor is
+        loaded.
+
+        Returns:
+            Contributions whose contributor is an ``Organization``, ordered by ``order`` then
+            ``pk``.
+        """
+        from fairdm.contrib.contributors.models import Organization
+
+        return self.filter(
+            contributor__polymorphic_ctype=ContentType.objects.get_for_model(
+                Organization
+            )
+        ).order_by("order", "pk")
+
 
 class ContributionManager(OrderedModelManager.from_queryset(ContributionQuerySet)):
     """Manager for the Contribution model, with the ordered-model methods and the ``ContributionQuerySet`` filters."""

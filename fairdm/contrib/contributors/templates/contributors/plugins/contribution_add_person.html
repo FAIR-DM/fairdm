@@ -1,0 +1,201 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  Add a person to a record. Three ways in, as tabs that switch in the browser with no reload:
+  someone already in the portal, someone looked up by ORCID, or someone entered by hand. A search
+  or a choice redraws only its own tab. Every way ends by saying which organization the person is
+  credited from on this record, and goes on to their edit page.
+{% endcomment %}
+
+{% block page.content %}
+  <c-card.wrapper class="bg-base-100 max-w-3xl">
+    <div class="card-body gap-5">
+      <p class="text-sm text-base-content/70">
+        {% blocktranslate %}A person is added with the organization they were at for this {{ kind }}. That organization is listed under Organizations here too.{% endblocktranslate %}
+      </p>
+
+      <c-tabs group="add-person-via" label="{% translate 'How to find them' %}">
+
+        <c-tabs.tab group="add-person-via" label="{% translate 'Already in the portal' %}" :checked="adding.on_portal" flush>
+          <div id="tab-portal" class="flex flex-col gap-4">
+            {% if adding.picked %}
+              <c-contributor.item :contributor="adding.picked.person" size="md" secondary="none" :link="False" />
+              <form method="post" class="flex flex-col gap-4">
+                {% csrf_token %}
+                <input type="hidden" name="via" value="portal" />
+                <input type="hidden" name="contributor" value="{{ adding.picked.person.pk }}" />
+                <c-contribution.affiliation :choice="adding.picked.affiliation" kind="{{ kind }}" prefix="portal-affiliation" error="{{ adding.errors.affiliation }}" />
+                <div class="flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-primary">{% blocktranslate %}Add to this {{ kind }}{% endblocktranslate %}</button>
+                  <a href="?via=portal&q={{ adding.term|urlencode }}" class="btn btn-ghost"
+                     hx-get="{{ request.path }}?via=portal&q={{ adding.term|urlencode }}" hx-target="#tab-portal" hx-select="#tab-portal" hx-swap="outerHTML">{% translate "Choose someone else" %}</a>
+                </div>
+              </form>
+            {% else %}
+              <form method="get" role="search" class="flex flex-col gap-2"
+                    hx-get="{{ request.path }}" hx-target="#tab-portal" hx-select="#tab-portal" hx-swap="outerHTML">
+                <input type="hidden" name="via" value="portal" />
+                <label for="portal-search" class="font-semibold">{% translate "Search the people in this portal" %}</label>
+                <p id="portal-search-hint" class="text-sm text-base-content/70">{% translate "By name, or part of it." %}</p>
+                <div class="join w-full">
+                  <input type="search" id="portal-search" name="q" value="{{ adding.term }}" class="input join-item grow" aria-describedby="portal-search-hint" />
+                  <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
+                </div>
+              </form>
+              {% if adding.term %}
+                {% if adding.results %}
+                  <c-list label="{% translate 'Matches in this portal' %}">
+                    {% for result in adding.results %}
+                      <c-list.row class="items-center">
+                        <c-contributor.item :contributor="result.contributor" size="md" :link="False" class="list-col-grow" />
+                        {% if result.listed %}
+                          <span class="text-sm text-base-content/70">{% translate "Already a contributor" %}</span>
+                        {% else %}
+                          <a href="?via=portal&q={{ adding.term|urlencode }}&person={{ result.contributor.pk }}" class="btn btn-sm"
+                             hx-get="{{ request.path }}?via=portal&q={{ adding.term|urlencode }}&person={{ result.contributor.pk }}" hx-target="#tab-portal" hx-select="#tab-portal" hx-swap="outerHTML">
+                            {% translate "Choose" %}<span class="sr-only"> {{ result.contributor }}</span>
+                          </a>
+                        {% endif %}
+                      </c-list.row>
+                    {% endfor %}
+                  </c-list>
+                  {% if adding.results_more %}<p class="text-sm text-base-content/70" data-results="more">{% translate "There are more matches than are shown, so add more of the name to narrow the search." %}</p>{% endif %}
+                {% else %}
+                  <div class="flex flex-col gap-1">
+                    <p class="font-semibold">{% blocktranslate with term=adding.term %}Nobody in this portal matches “{{ term }}”.{% endblocktranslate %}</p>
+                    <p class="text-sm text-base-content/70">{% translate "Check the spelling, or use one of the other two tabs to look them up by ORCID or enter them as a new person." %}</p>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          </div>
+        </c-tabs.tab>
+
+        <c-tabs.tab group="add-person-via" label="{% translate 'Find by ORCID' %}" :checked="adding.on_registry">
+          <div id="tab-registry" class="flex flex-col gap-4">
+            {% if adding.chosen %}
+              <div class="rounded-box border border-base-300 p-4 flex flex-col gap-1">
+                <span class="font-semibold">{{ adding.chosen.record.name }}</span>
+                <span class="text-sm text-base-content/70">{{ adding.chosen.record.detail }}</span>
+                <span class="text-sm tabular-nums">ORCID {{ adding.chosen.record.shown_id }}</span>
+              </div>
+              <p class="text-sm text-base-content/70">{% translate "A profile is made for them from their ORCID record. They can claim it later by signing in with ORCID." %}</p>
+              <form method="post" class="flex flex-col gap-4">
+                {% csrf_token %}
+                <input type="hidden" name="via" value="registry" />
+                <input type="hidden" name="registry_id" value="{{ adding.chosen.record.id }}" />
+                <c-contribution.affiliation :choice="adding.chosen.affiliation" kind="{{ kind }}" prefix="registry-affiliation" error="{{ adding.errors.affiliation }}" />
+                <div class="flex flex-wrap gap-2">
+                  <button type="submit" class="btn btn-primary">{% blocktranslate %}Add to this {{ kind }}{% endblocktranslate %}</button>
+                  <a href="?via=registry&rq={{ adding.registry_term|urlencode }}" class="btn btn-ghost"
+                     hx-get="{{ request.path }}?via=registry&rq={{ adding.registry_term|urlencode }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML" hx-indicator="#registry-searching">{% translate "Choose someone else" %}</a>
+                </div>
+              </form>
+            {% else %}
+              <form method="get" role="search" class="flex flex-col gap-2"
+                    hx-get="{{ request.path }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML" hx-indicator="#registry-searching" hx-disabled-elt="find button">
+                <input type="hidden" name="via" value="registry" />
+                <label for="registry-search" class="font-semibold">{% translate "Search ORCID" %}</label>
+                <p id="registry-search-hint" class="text-sm text-base-content/70">{% translate "By name, or by ORCID iD such as 0000-0002-1825-0097." %}</p>
+                <div class="join w-full">
+                  <input type="search" id="registry-search" name="rq" value="{{ adding.registry_term }}" class="input join-item grow" aria-describedby="registry-search-hint" required />
+                  <button type="submit" class="btn btn-primary join-item">{% translate "Search" %}</button>
+                </div>
+              </form>
+              {% if adding.registry_unavailable %}
+                <p class="text-sm text-base-content/70" data-registry="unavailable">{% translate "Searching ORCID is unavailable right now, but the other two tabs still work." %}</p>
+              {% elif adding.registry_term %}
+                {% if adding.registry_results %}
+                  <c-list label="{% translate 'Matches in ORCID' %}">
+                    {% for result in adding.registry_results %}
+                      <c-list.row class="items-center">
+                        <div class="list-col-grow flex flex-col min-w-0">
+                          <span class="font-semibold">{{ result.name }}</span>
+                          <span class="text-sm text-base-content/70">{{ result.detail }}</span>
+                          <span class="text-sm tabular-nums">{{ result.shown_id }}</span>
+                        </div>
+                        <a href="?via=registry&rq={{ adding.registry_term|urlencode }}&chosen={{ result.id|urlencode:'' }}" class="btn btn-sm"
+                           hx-get="{{ request.path }}?via=registry&rq={{ adding.registry_term|urlencode }}&chosen={{ result.id|urlencode:'' }}" hx-target="#tab-registry" hx-select="#tab-registry" hx-swap="outerHTML">
+                          {% translate "Choose" %}<span class="sr-only"> {{ result.name }}</span>
+                        </a>
+                      </c-list.row>
+                    {% endfor %}
+                  </c-list>
+                  {% if adding.registry_more %}<p class="text-sm text-base-content/70" data-results="more">{% translate "There are more matches than are shown, so add more of the name to narrow the search." %}</p>{% endif %}
+                {% else %}
+                  <div class="flex flex-col gap-1">
+                    <p class="font-semibold">{% blocktranslate with term=adding.registry_term %}ORCID has nobody matching “{{ term }}”.{% endblocktranslate %}</p>
+                    <p class="text-sm text-base-content/70">{% translate "Not everyone has an ORCID iD. Check the spelling, or enter them on the New person tab." %}</p>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+            <p id="registry-searching" class="htmx-indicator flex items-center gap-2 text-sm" role="status">
+              <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>{% translate "Searching ORCID…" %}
+            </p>
+          </div>
+        </c-tabs.tab>
+
+        <c-tabs.tab group="add-person-via" label="{% translate 'New person' %}" :checked="adding.on_new">
+          <div id="tab-new" class="flex flex-col gap-4">
+            {% if adding.same_name %}
+              <c-alert variant="warning" soft>
+                <div>
+                  <p class="font-semibold">{% translate "Someone with this name is already in the portal." %}</p>
+                  <p>{% translate "If they are who you mean, find them on the first tab so their work stays on one profile. Otherwise make the new profile." %}</p>
+                </div>
+              </c-alert>
+              <c-list label="{% translate 'Profiles with the same name' %}">
+                {% for match in adding.same_name %}
+                  <c-list.row class="items-center">
+                    <c-contributor.item :contributor="match" size="md" class="list-col-grow" />
+                    <a href="?via=portal&q={{ match.name|urlencode }}&person={{ match.pk }}" class="btn btn-sm">{% translate "Choose" %}<span class="sr-only"> {{ match }}</span></a>
+                  </c-list.row>
+                {% endfor %}
+              </c-list>
+            {% endif %}
+            <form method="post" class="flex flex-col gap-4" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="via" value="new" />
+              {% if adding.same_name %}<input type="hidden" name="confirmed" value="1" />{% endif %}
+              {% if adding.on_new and adding.errors %}
+                <c-alert variant="error" soft>
+                  <div>
+                    <p class="font-semibold">{% translate "Nothing was added." %}</p>
+                    <ul>{% for field, error in adding.errors.items %}<li>{{ error }}</li>{% endfor %}</ul>
+                  </div>
+                </c-alert>
+              {% endif %}
+              <p class="text-sm text-base-content/70">{% translate "For someone who is not in the portal and has no ORCID iD. They get a profile with no account, and can be invited to claim it later." %}</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label for="new-given" class="font-semibold">{% translate "Given name" %}</label>
+                  {% if adding.errors.given %}<p id="new-given-error" class="text-sm text-error">{{ adding.errors.given }}</p>{% endif %}
+                  <input type="text" id="new-given" name="given" value="{{ adding.values.given }}" class="input w-full {% if adding.errors.given %}input-error{% endif %}" autocomplete="off" {% if adding.errors.given %}aria-invalid="true" aria-describedby="new-given-error"{% endif %} />
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label for="new-family" class="font-semibold">{% translate "Family name" %}</label>
+                  {% if adding.errors.family %}<p id="new-family-error" class="text-sm text-error">{{ adding.errors.family }}</p>{% endif %}
+                  <input type="text" id="new-family" name="family" value="{{ adding.values.family }}" class="input w-full {% if adding.errors.family %}input-error{% endif %}" autocomplete="off" {% if adding.errors.family %}aria-invalid="true" aria-describedby="new-family-error"{% endif %} />
+                </div>
+              </div>
+              <c-contribution.affiliation :choice="adding.new_affiliation" kind="{{ kind }}" prefix="new-affiliation" error="{% if adding.on_new %}{{ adding.errors.affiliation }}{% endif %}" />
+              <div>
+                <button type="submit" class="btn btn-primary">
+                  {% if adding.same_name %}{% translate "Make a new profile anyway and add" %}{% else %}{% blocktranslate %}Add to this {{ kind }}{% endblocktranslate %}{% endif %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </c-tabs.tab>
+      </c-tabs>
+
+      <div class="flex flex-col gap-3 border-t border-base-300 pt-4">
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate %}A person you add can open this {{ kind }} straight away, and nothing more until you say so. They join the end of the people.{% endblocktranslate %}
+        </p>
+        <div><c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" size="sm" ghost /></div>
+      </div>
+    </div>
+  </c-card.wrapper>
+{% endblock page.content %}

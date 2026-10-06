@@ -1,0 +1,136 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  A record's Contributors tab. People are listed in the wide column and organizations as small
+  cards, logo and name only, in a narrow column beside it, two across where there is room. Each
+  has its own order. Below `lg` the organizations drop beneath
+  the people. Someone who may manage the record also sees what each person may do, the controls
+  for changing either list, and the people who hold access from the record above.
+{% endcomment %}
+
+{% block page.actions %}
+  {% if total %}
+    <form method="get" role="search" class="join">
+      <label class="input input-sm join-item">
+        <c-icon name="search" aria-hidden="true" />
+        <input type="search" name="q" value="{{ term }}" placeholder="{% translate 'Search by name' %}" aria-label="{% translate 'Search contributors by name' %}" />
+      </label>
+      <button type="submit" class="btn btn-sm join-item">{% translate "Search" %}</button>
+    </form>
+  {% endif %}
+{% endblock page.actions %}
+
+{% block page.content %}
+  {% if term %}
+    <p class="text-sm text-base-content/70">
+      {% blocktranslate %}Showing the people and organizations whose name contains “{{ term }}”.{% endblocktranslate %}
+      <a href="{{ list_url }}" class="link link-primary">{% translate "Show everyone" %}</a>
+    </p>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div class="lg:col-span-2 flex flex-col gap-4 min-w-0">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-lg font-semibold">
+          {% translate "People" %}
+          <span class="text-base-content/60 font-normal">{{ people.total }}</span>
+        </h2>
+        {% if can_manage %}<c-button href="{{ list_url }}add-person/" text="{% translate 'Add person' %}" icon="plus" size="sm" />{% endif %}
+      </div>
+      <c-card.wrapper class="bg-base-100">
+        {% if people.rows %}
+          <c-list label="{% translate 'People, in the order this record names them' %}">
+            {% for entry in people.rows %}
+              <c-list.row class="items-center" id="contributor-{{ entry.contribution.pk }}">
+                <span class="w-6 text-end text-sm tabular-nums text-base-content/60" aria-hidden="true">{{ entry.place }}</span>
+                <c-contributor.item :contributor="entry.contribution" size="md" secondary="{% if not entry.affiliation %}none{% endif %}" class="list-col-grow" />
+                {% if can_manage %}
+                  <div class="list-col-wrap flex flex-wrap items-center justify-between gap-2">
+                    <c-contribution.access :entry="entry" />
+                    <c-contribution.controls :entry="entry" list_url="{{ list_url }}" :movable="people.movable" />
+                  </div>
+                {% endif %}
+              </c-list.row>
+            {% endfor %}
+          </c-list>
+        {% elif term %}
+          <div class="card-body"><p>{% blocktranslate %}No person on this {{ kind }} matches “{{ term }}”.{% endblocktranslate %}</p></div>
+        {% else %}
+          <div class="card-body">
+            <p class="font-semibold">{% translate "No people are credited yet." %}</p>
+            {% if can_manage %}
+              <p class="text-sm text-base-content/70">{% blocktranslate %}The order you put people in is the order this {{ kind }} names them in, its citation included.{% endblocktranslate %}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+      </c-card.wrapper>
+
+      {% if can_manage and people.rows and not term %}
+        <p class="text-sm text-base-content/70">
+          {% blocktranslate %}This order is the order the {{ kind }} names its people in, its citation included. Only people who can manage this {{ kind }} see what each person may do.{% endblocktranslate %}
+        </p>
+      {% endif %}
+
+      {% if can_manage and parent and not term %}
+        <c-card title="{% blocktranslate with kind=parent_kind|lower %}Access from the {{ kind }}{% endblocktranslate %}" class="bg-base-100">
+          <c-slot name="actions">
+            <c-button href="{{ parent_url }}" text="{% translate 'Manage there' %}" size="sm" />
+          </c-slot>
+          {% if access_from_above %}
+            <p class="text-sm text-base-content/70">
+              {% blocktranslate with this=kind %}These people are not listed on this {{ this }}. They can open it because of what they hold above it, and that can only be changed there.{% endblocktranslate %}
+            </p>
+            <c-list label="{% translate 'People with access from a record above' %}">
+              {% for holder in access_from_above %}
+                <c-list.row class="items-center">
+                  <c-contributor.item :contributor="holder.person" size="sm" class="list-col-grow" />
+                  <div class="flex flex-wrap items-center justify-end gap-2 text-sm">
+                    <c-badge text="{{ holder.label }}" size="sm" variant="neutral" outline />
+                    <a href="{{ holder.source_url }}" class="link link-hover text-base-content/70">{% blocktranslate with kind=holder.source_kind %}from the {{ kind }}{% endblocktranslate %}</a>
+                  </div>
+                </c-list.row>
+              {% endfor %}
+            </c-list>
+          {% else %}
+            <p class="text-sm text-base-content/70">
+              {% blocktranslate with kind=parent_kind|lower this=kind %}Nobody else holds access to this {{ this }} through its {{ kind }}.{% endblocktranslate %}
+            </p>
+          {% endif %}
+        </c-card>
+      {% endif %}
+    </div>
+
+    <div class="flex flex-col gap-4 min-w-0">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-lg font-semibold">
+          {% translate "Organizations" %}
+          <span class="text-base-content/60 font-normal">{{ organizations.total }}</span>
+        </h2>
+        {% if can_manage %}<c-button href="{{ list_url }}add-organization/" text="{% translate 'Add organization' %}" icon="plus" size="sm" />{% endif %}
+      </div>
+      {% if organizations.rows %}
+        <ul class="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-label="{% translate 'Organizations, in the order this record names them' %}">
+          {% for entry in organizations.rows %}
+            <li id="contributor-{{ entry.contribution.pk }}">
+              <c-contribution.organization :entry="entry" list_url="{{ list_url }}" :can_manage="can_manage" :movable="organizations.movable" />
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <c-card.wrapper class="bg-base-100">
+          <div class="card-body">
+            {% if term %}
+              <p>{% blocktranslate %}No organization on this {{ kind }} matches “{{ term }}”.{% endblocktranslate %}</p>
+            {% else %}
+              <p class="font-semibold">{% translate "No organizations are credited yet." %}</p>
+              {% if can_manage %}<p class="text-sm text-base-content/70">{% translate "A person's affiliation is listed here when they are added. An organization can also be credited on its own." %}</p>{% endif %}
+            {% endif %}
+          </div>
+        </c-card.wrapper>
+      {% endif %}
+      {% if can_manage and organizations.rows and not term %}
+        <p class="text-sm text-base-content/70">{% translate "Organizations are credited and hold no access. Their members gain none from it." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock page.content %}

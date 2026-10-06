@@ -1,153 +1,88 @@
 # Adjusting Dataset Access
 
-This guide provides a step-by-step walkthrough for controlling who can view and edit specific datasets in your FairDM portal. You'll learn how to restrict access to sensitive data, grant access to collaborators, and enable public read access for FAIR-compliant publication.
+This guide walks through controlling who can view and edit specific datasets in your FairDM portal. You'll learn how to restrict access to sensitive data, let collaborators in, and make a dataset public for FAIR-compliant publication.
+
+Access to a dataset has two parts. Its **visibility** says whether anyone may open it, and the **level** each listed contributor holds says what they may do. Both are set in the portal itself, by someone who manages the dataset. Nothing here is done in the administration interface: a permission stored there for a dataset grants nothing. See [Managing Users and Permissions](managing_users_and_permissions.md) for the levels and for how portal roles fit in.
 
 ## Prerequisites
 
-- Administrative access to the FairDM portal
+- The manage level on the dataset, or a portal role that holds the right to change datasets, such as Data Curator
 - A dataset that you want to manage access for
-- Basic familiarity with the Django admin interface
 
-## Scenario 1: Restricting a Dataset to Specific Users
+## Scenario 1: Restricting a dataset to specific people
 
-Let's say you have a dataset called "Geological Survey 2024" that should only be accessible to members of a specific research team.
+Let's say you have a dataset called "Geological Survey 2024" that should only be open to members of a specific research team.
 
-### Step 1: Log in to the Admin Interface
+### Step 1: Make the dataset private
 
-Navigate to your portal's admin interface (typically `/admin/`) and log in with your administrator credentials.
+1. Open the dataset in the portal and choose **Update** from its **Manage** menu
+2. Set **Visibility** to private and save
 
-### Step 2: Find the Dataset
+A private dataset now opens only to the people who hold a level on it, on its project or on the dataset itself, and to holders of a portal role whose rights cover it.
 
-1. In the admin sidebar, locate the **Datasets** section
-2. Click on **Datasets** to view the list
-3. Find "Geological Survey 2024" and click on it to open the dataset details
+### Step 2: Review who is listed
 
-### Step 3: Review Current Permissions
+Open the dataset's **Contributors** tab. Each person is shown with what they may do. A section beneath the lists shows anyone who holds access from the project above, with the level and where it comes from. Those people are changed on the project's own tab.
 
-Scroll down to the **Object permissions** section. You may see:
+### Step 3: Let the authorized people in
 
-- **All users**: Has "Can view dataset" permission (default public read access)
-- Or individual users/groups with specific permissions
+1. Choose **Add person** and find your colleague
+2. Choose **Edit** beside them and choose their level: **View** to read, **Edit** to change the dataset and its samples and measurements, **Manage** to also decide who else is let in
+3. Save
 
-### Step 4: Remove Broad Access
+Repeat for each team member who needs access. A level on the project reaches every dataset in it, so give the team a level on the project when it runs all of them.
 
-If "All users" or a broad group has access and you want to restrict it:
+### Step 4: Verify access
 
-1. Click the **red X** next to any permissions you want to remove
-2. Click **Save** at the bottom of the page
+Ask one of the authorized people, or sign in as one, and confirm they can open the dataset from the portal's dataset list, and edit it if they hold the **Edit** level.
 
-### Step 5: Grant Access to Authorized Users
+## Scenario 2: Making a dataset public
 
-1. In the **Object permissions** section, click **Add user permissions**
-2. Search for and select the user (e.g., "alice_researcher")
-3. Check the permissions you want to grant:
-   - ☑️ **Can view dataset** (allows viewing the dataset and its metadata)
-   - ☑️ **Can change dataset** (allows editing the dataset)
-   - ☐ **Can delete dataset** (use carefully—allows permanent removal)
-4. Click **Save**
+For FAIR compliance, you may want a finalized dataset to be open to everyone while keeping editing restricted to the research team.
 
-Repeat for each team member who needs access.
+1. Open the dataset's update page and set **Visibility** to public
+2. Check the **Contributors** tab and confirm only trusted people hold the **Edit** and **Manage** levels
 
-```{tip}
-**Using groups for team access**: Instead of adding permissions for individual users, create a Django group called "Geological Survey Team", assign users to that group, and grant permissions to the group. This makes managing access much easier as team membership changes.
-```
+A public dataset opens to everyone, signed in or not. Levels still decide who may change and manage it.
 
-### Step 6: Verify Access
+To check the result, open a private browser window, find the dataset, and confirm that its details are visible and that no editing options are offered.
 
-Log in as one of the authorized users (or ask them to test) and confirm they can:
+## Scenario 3: Revoking access
 
-- Navigate to the dataset from the portal's dataset list
-- View the dataset details
-- Edit the dataset if "Can change dataset" was granted
+If a collaborator leaves the project or you need to restrict access during data quality review:
 
-## Scenario 2: Enabling Public Read Access for a Published Dataset
+1. Open the dataset's **Contributors** tab
+2. Choose **Remove** beside the person and confirm. To keep them as a contributor but without the ability to change the dataset, choose **Edit** and lower their level instead
 
-For FAIR compliance, you may want to make a finalized dataset publicly readable while keeping editing restricted to the research team.
-
-### Step 1: Grant View Permission to All Users
-
-1. Open the dataset in the admin interface
-2. Scroll to **Object permissions**
-3. Click **Add user permissions**
-4. In the user search field, select **AnonymousUser** (this represents unauthenticated visitors)
-5. Check ☑️ **Can view dataset** only (do not grant change or delete permissions)
-6. Click **Save**
-
-Now anyone visiting your portal can view the dataset, even without logging in.
-
-### Step 2: Restrict Editing to Authorized Users
-
-Ensure that only your research team has "Can change dataset" or "Can delete dataset" permissions:
-
-1. Review the permissions list in the **Object permissions** section
-2. Confirm that only trusted users or groups have edit/delete access
-3. Remove any unnecessary permissions
-
-### Step 3: Verify Public Access
-
-1. Open an incognito/private browser window (to simulate an unauthenticated user)
-2. Navigate to your portal and find the dataset
-3. Confirm you can view the dataset details without logging in
-4. Verify that editing options (e.g., "Edit" button) are not visible
-
-## Scenario 3: Temporarily Revoking Access
-
-If a collaborator leaves the project or you need to temporarily restrict access during data quality review:
-
-### Step 1: Identify the User's Permissions
-
-1. Open the dataset in the admin interface
-2. Scroll to **Object permissions**
-3. Locate the user whose access you want to revoke
-
-### Step 2: Remove Permissions
-
-1. Click the **red X** next to the user's permissions
-2. Click **Save**
-
-The user will immediately lose access to the dataset.
-
-### Step 3: Re-Grant Access if Needed
-
-When you're ready to restore access:
-
-1. Follow the steps from **Scenario 1, Step 5** to add the user back
-2. Grant the appropriate permissions
-3. Click **Save**
+They lose what they held through being listed on the dataset straight away. If they hold a level on the project above, they still hold it there, and it is changed on the project's tab.
 
 ## Best Practices
 
 - **Document access policies**: Keep internal notes about who should have access to each dataset and why, especially for long-running projects.
-- **Use groups for scalability**: Manage permissions at the group level rather than assigning permissions to individuals one by one.
-- **Audit permissions regularly**: Periodically review dataset access, especially after team changes or project milestones.
-- **Communicate with users**: Let collaborators know when you've granted or revoked access to avoid confusion.
-- **Test access changes**: After adjusting permissions, verify by logging in as a test user or asking a collaborator to confirm access.
+- **Use the project for teams**: One entry on a project covers every dataset in it.
+- **Audit regularly**: Periodically read the Contributors tab, especially after team changes or project milestones.
+- **Communicate with users**: Let collaborators know when you've changed their level to avoid confusion.
+- **Test access changes**: After changing a level, verify by signing in as a test user or asking a collaborator to confirm access.
 
 ## Troubleshooting
 
-**I removed permissions, but the user can still access the dataset:**
+**I removed someone, but they can still open the dataset:**
 
-- The user may be in a group with broader permissions (e.g., "Database Admin"). Check group memberships in the user's profile in the admin interface.
-- Clear the browser cache or use an incognito window to test access.
+- They may hold a level on the project above. The Contributors tab lists those people beneath the lists, with where it comes from.
+- They may hold a portal role such as Data Curator, which reaches every dataset. Check their groups on their record in the administration interface.
+- The dataset may be public, which opens it to everyone.
 
-**Anonymous users can edit the dataset even though I only granted view permission:**
+**A person added to a dataset cannot change it:**
 
-- Verify that only "Can view dataset" is checked for AnonymousUser and that no other permissions are granted.
-- Check your portal's global permission settings in the Django admin.
+- A person who is added holds the view level. Edit their entry and choose the **Edit** level.
 
-**The Object permissions section is missing:**
+**A person with the Edit level cannot change the visibility or delete the dataset:**
 
-- Ensure django-guardian is installed and configured in your FairDM portal. Contact your system administrator if needed.
+- Those need the manage level, which also lets a person change who is listed.
 
-**A user with "Can change dataset" cannot edit its samples:**
+**A person with the Edit level cannot see the dataset's project:**
 
-- Rights over a dataset's samples derive from the dataset grant automatically: viewing a dataset
-  confers viewing its samples, and changing a dataset confers changing, deleting and adding
-  samples within it. If that inheritance is not holding, check that the grant was made on the
-  dataset itself (not, say, a project) and that it did not go through a raw django-guardian call —
-  see [Managing Users and Permissions](managing_users_and_permissions.md) for why samples, being
-  polymorphic, need FairDM's own permission helpers when granted programmatically rather than
-  through this admin page.
+- A level on a dataset does not reach the project above it. Give them a level on the project too.
 
 ```{seealso}
 For more details on user roles and group management, see [Managing Users and Permissions](managing_users_and_permissions.md).

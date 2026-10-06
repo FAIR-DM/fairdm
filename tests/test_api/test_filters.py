@@ -2,11 +2,16 @@
 
 import pytest
 from django.urls import reverse
-from guardian.shortcuts import assign_perm
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -40,18 +45,34 @@ class TestVisibilityFilterProjects:
     def test_private_project_visible_to_user_with_view_perm(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.VIEW
+        )
         resp = make_token_client(user).get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in resp.json()["results"]]
         assert str(proj.uuid) in uuids
+
+    def test_a_stored_guardian_row_alone_does_not_list_a_private_project(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        proj = ProjectFactory(visibility=Visibility.PRIVATE)
+        assign_perm("view_project", user, proj)
+        resp = make_token_client(user).get(reverse("api:project-list"))
+        uuids = [p["uuid"] for p in resp.json()["results"]]
+        assert str(proj.uuid) not in uuids
 
     def test_mixed_queryset_no_duplicates(self):
         user = UserFactory()
         pub = ProjectFactory(visibility=Visibility.PUBLIC)
         priv = ProjectFactory(visibility=Visibility.PRIVATE)
         # Grant view on the public project via guardian too (both filter branches apply)
-        assign_perm("view_project", user, pub)
-        assign_perm("view_project", user, priv)
+        ContributionFactory(
+            content_object=pub, contributor=user, level=ContributionLevel.VIEW
+        )
+        ContributionFactory(
+            content_object=priv, contributor=user, level=ContributionLevel.VIEW
+        )
 
         resp = make_token_client(user).get(reverse("api:project-list"))
         results = resp.json()["results"]
@@ -78,6 +99,17 @@ class TestVisibilityFilterDatasets:
         uuids = [d["uuid"] for d in resp.json()["results"]]
         assert str(ds.uuid) in uuids
 
+    def test_a_level_on_the_project_above_lists_its_private_dataset(self):
+        user = UserFactory()
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        ds = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.VIEW
+        )
+        resp = make_token_client(user).get(reverse("api:dataset-list"))
+        uuids = [d["uuid"] for d in resp.json()["results"]]
+        assert str(ds.uuid) in uuids
+
     def test_private_dataset_hidden_without_perm(self):
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
         ds = DatasetFactory(project=pub_proj, visibility=Visibility.PRIVATE)
@@ -89,7 +121,9 @@ class TestVisibilityFilterDatasets:
         user = UserFactory()
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
         ds = DatasetFactory(project=pub_proj, visibility=Visibility.PRIVATE)
-        assign_perm("view_dataset", user, ds)
+        ContributionFactory(
+            content_object=ds, contributor=user, level=ContributionLevel.VIEW
+        )
         resp = make_token_client(user).get(reverse("api:dataset-list"))
         uuids = [d["uuid"] for d in resp.json()["results"]]
         assert str(ds.uuid) in uuids

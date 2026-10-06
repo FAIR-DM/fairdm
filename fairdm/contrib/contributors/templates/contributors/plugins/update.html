@@ -1,0 +1,20 @@
+{% extends "form_view.html" %}
+{% load i18n %}
+{% comment %}
+  The page where a contributor's profile is edited. It replaces the shared form page's buttons,
+  which lead on to a list, with a save that returns to the profile and a cancel that leaves
+  without saving.
+{% endcomment %}
+{% block before_form %}
+  {% if is_own_profile %}
+    <c-alert variant="info" icon="info" soft>
+      <span>{% blocktranslate %}Your email address, password and connected sign-ins are managed in your <a href="{{ account_centre_url }}" class="link">account centre</a>.{% endblocktranslate %}</span>
+    </c-alert>
+  {% endif %}
+{% endblock before_form %}
+{% block actions %}
+  <c-group breakpoint="md" wrap>
+    <c-button text="{% translate 'Save' %}" type="submit" variant="primary" />
+    <c-button text="{% translate 'Cancel' %}" href="{{ cancel_url }}" outline />
+  </c-group>
+{% endblock actions %}

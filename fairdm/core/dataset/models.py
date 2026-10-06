@@ -16,6 +16,7 @@ from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..dates import precedes
+from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
@@ -117,7 +118,7 @@ class DatasetLiteratureRelation(models.Model):
         return f"{self.dataset} {self.get_relationship_type_display()} {self.literature_item}"
 
 
-class DatasetQuerySet(QuerySet):
+class DatasetQuerySet(RecordLevelMixin, QuerySet):
     """QuerySet for datasets, with helpers that load related records in a bounded number of queries.
 
     None of the methods widens an already-narrowed query. ``Dataset.objects`` excludes private
@@ -356,6 +357,13 @@ class Dataset(BaseModel):
         private. The two fields are still set separately, so both are checked.
         """
         return self.visibility == Visibility.PUBLIC and self.published
+
+    def clean(self):
+        """Refuse a change of project that would leave the dataset with nobody to manage it."""
+        super().clean()
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        RecordAccess(self).refuse_move_without_manager("project")
 
     def get_absolute_url(self):
         """Return the URL of the dataset's registered overview page."""

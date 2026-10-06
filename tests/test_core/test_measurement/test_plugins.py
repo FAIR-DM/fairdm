@@ -16,10 +16,15 @@ from demo.factories import (
 )
 from demo.models import XRFMeasurement
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import Measurement, MeasurementDate
 from fairdm.core.measurement.plugins import Overview
-from fairdm.core.utils import assign_perm
-from fairdm.factories import DatasetFactory, PersonFactory, PointFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    PersonFactory,
+    PointFactory,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -42,7 +47,9 @@ def _page(client, measurement):
 
 def _team_member(dataset):
     user = PersonFactory(is_active=True)
-    assign_perm("view_dataset", user, dataset)
+    ContributionFactory(
+        content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+    )
     return user
 
 

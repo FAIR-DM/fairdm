@@ -1,0 +1,132 @@
+{
+  "story": "FIX-1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 423,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T033",
+    "T034",
+    "T035",
+    "T036",
+    "T037",
+    "T038",
+    "T039",
+    "T040"
+  ],
+  "context": {
+    "why": "The code review (two reviewers: correctness and security) returned four high and five medium verified findings. This is the one fix cycle; the reviewers will not read the code again, so each fix must be shown by a test built from the finding's own reproduction. Read specs/022-record-contributors-and-access/review-findings-security.json and specs/022-record-contributors-and-access/review-findings-correctness.json in full: findings SEC-001 to SEC-004 and SEC-006, CORR-001 to CORR-005, and both notes arrays. Each task in tasks.md Phase 8 names the finding it closes. Every task: its row in feature-state.json flipped to done with attempts and evidence (tests, commands), one commit per task with the task id in the subject, tests committed with or before the code they prove. Low findings and anything not named here are out of scope: do not fix them.",
+    "spec_sections": [
+      "FR-037, FR-043, FR-049, FR-051, FR-056, FR-040",
+      "User Story 4 scenarios 3 and 11",
+      "User Story 1 scenario 5",
+      "Edge Cases: a record with hundreds of people"
+    ],
+    "plan_sections": [
+      "D2 table (who reads and writes rights)",
+      "D5 (manager-only fields on the update forms)"
+    ],
+    "prior_decisions": [
+      "D2: visibility and the parent field need the manage level. The fixes extend this rule to the API; they do not change it.",
+      "D4: deleting a sample needs manage.",
+      "D19: no email is collected on the by-hand person form."
+    ],
+    "acceptance": [
+      {
+        "task": "T033",
+        "given_when_then": "write the test first (tests/test_api/): an edit-level person PATCHes visibility on a private dataset and on a private project: 403, stored visibility unchanged. A manager's PATCH still answers 200. An edit-level PATCH of another field (name) still answers 200. Smallest fix: one check on the update path (BaseViewSet.perform_update or the serializer's update) that refuses when a manager-only field (visibility, and the parent fields project, dataset, sample where the model has them) is in validated_data with a value different from the instance's and the requester cannot manage the record (RecordAccess(instance).can_manage). Reuse the names ManagerOnlyFieldsMixin (fairdm/core/forms.py) already holds rather than a second list, if it has one."
+      },
+      {
+        "task": "T034",
+        "given_when_then": "test first, with a sample serializer that carries dataset (the default field list; see how the finding built it): an edit-level person PATCHes dataset to one they manage: 403, parent unchanged, their level unchanged. A manager moving the record to a parent that would leave it without a manager: 400, not 500 and not 200 (call RecordAccess(instance).refuse_move_without_manager for the changed parent before saving and turn its ValidationError into DRF's). A manager's valid move: 200. Same for a measurement."
+      },
+      {
+        "task": "T035",
+        "given_when_then": "test first: a signed-in account with no credit POSTs a sample (and a measurement) into another team's public dataset: 400 (the dataset is not among the choices), nothing created, no contribution. A person at edit on the dataset: 201 and listed at manage. A person at view only: 400. Fix as the finding says: in the base sample and measurement serializers give the dataset field the choices the forms use (Dataset.all_objects.accessible_to(user, ContributionLevel.EDIT)), and do the same for a dataset's project field and a measurement's sample field where the serializer carries one. Anonymous stays 401."
+      },
+      {
+        "task": "T036",
+        "given_when_then": "test first: for a private project, GET of the dataset list tab and the export tab answers 404 to a visitor and to a signed-in person with no credit, and 200 to a person at view. Fix as the finding says (PrivateRecordNotFoundMixin first in the bases and check = staticmethod(project_is_visible), as Overview does). Then look at every other plugin registered on Project, Dataset, Sample and Measurement in fairdm/ for the same gap and close any you find the same way, with a test each; name them in your report. SEC-005 (the sample editing pages answer 302/403 instead of 404) is LOW and out of scope: leave it."
+      },
+      {
+        "task": "T037",
+        "given_when_then": "test first: a person at view on a project is not offered it on the dataset create form, and a POST naming it is refused; a person at edit is offered it. The dataset update form's project field offers the same set (still manage-only to change). Fix: Project's accessible_to(user, ContributionLevel.EDIT) in fairdm/core/dataset/forms.py, as the sample and measurement forms do for datasets."
+      },
+      {
+        "task": "T038",
+        "given_when_then": "test first (page test through the client, in test_plugins/test_shared.py beside the edit tests): person at EDIT on the project and VIEW on the dataset; a manager POSTs the dataset's edit page with the preselected level (2) and a role change only: the dataset contribution's level is still VIEW and the roles changed. Posting level 3 stores MANAGE. Fix as the finding says: in ContributionEdit.post, when the posted level equals entry['above'] and is higher than entry['own'], pass level=None to Crediting.update. Do not touch the template."
+      },
+      {
+        "task": "T039",
+        "given_when_then": "test first: the Contributors tab for a manager issues the same number of queries with 5 other people as with 25 (assert equality of the two counts, or a small fixed bound; not a hard-coded total). Fix as the finding says: fetch the real contributors once and the levels on the chain once in ContributionList.get_context_data and have describe() read from them. The edit and remove pages call describe() for one contribution: keep them working. Do not change what the page draws."
+      },
+      {
+        "task": "T040",
+        "given_when_then": "docs/more/migration-guides.md: Dataset.all_objects.with_level(...) and one clause saying Dataset.objects leaves private datasets out. docs/portal-development/restful-api.md near line 102: after T033 to T035 the sentence that the API enforces the same object-level rules is true; add what a reader must know (visibility and the parent need manage; a record is created only inside a parent held at edit). docs/portal-development/contributors.md near line 1020: the ask signature as services/registries.py has it (keyword-only after parse). docs/portal-administration/managing_users_and_permissions.md: what reversing the upgrade does, as the migrations have it (read 0022 and 0023 and state only what is true). Comments: fairdm/api/permissions.py 'by guardian' and the visible_to_holder_of docstring in fairdm/core/project/plugins.py. CHANGELOG entry only if the existing FS-022 entry needs a line for the API rules; reads as current state."
+      }
+    ],
+    "verified_base": {
+      "commit": "4c799d0a",
+      "verified_at": "2026-10-06T18:07:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "The whole gate was green at ebc04955 (convergence). The two commits since change only files under specs/022-record-contributors-and-access/."
+    },
+    "glossary_terms": [
+      "Contribution",
+      "Level",
+      "Manage",
+      "Record"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T033 to T040 in specs/022-record-contributors-and-access/tasks.md, Phase 8 only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -5. Confirm HEAD is context.verified_base.commit or differs from it only under specs/.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-fix-1.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Migrations 0022 and 0023 are not to be changed, and no new migration is expected. If a fix seems to need one, stop and report.",
+    "The story field of this brief is a label for the fix cycle, not a story: do not run forge story-done and do not comment on any issue.",
+    "Do not edit review-findings-*.json."
+  ]
+}

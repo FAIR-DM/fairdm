@@ -70,13 +70,13 @@ def visible_to_holder_of(permission):
     """Build a page check that also admits a holder of one record-level permission.
 
     Like :func:`project_is_visible`, except a private project also stays visible to a user
-    holding ``permission`` on it. ``Update`` and ``Delete`` need this because their own
-    permissions are ``change_project`` and ``delete_project``, and creating a project grants the
-    right to view it together with the right to edit it, so a record-level grant of the page's own
-    permission is already evidence of legitimate access.
+    holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
+    page's own permission on the project can also view it, and this check says so directly.
 
-    A user holding ``permission`` only at the model level still finds no grant here and is
-    refused, because ``has_perm`` with an object consults only the object-level backend.
+    A user holding ``permission`` only at the model level, granted to them directly or through
+    a group the portal made up, still finds no grant here and is refused. With an object,
+    ``has_perm`` answers from the contribution level, and from membership of one of the four
+    shipped portal roles, which confers the object-level answer.
 
     Args:
         permission: The permission to accept at record level.
@@ -134,6 +134,12 @@ class Update(PrivateRecordNotFoundMixin, Plugin, FairDMUpdateView):
     def show_delete_action(self, user):
         """Offer the delete link only to a user who holds the permission ``Delete`` requires."""
         return has_perm(self.request, Delete.permission, self.base_object)
+
+    def get_form_kwargs(self):
+        """Pass the request so visibility and owner are offered only to someone who can manage."""
+        kwargs = super().get_form_kwargs()
+        kwargs["request"] = self.request
+        return kwargs
 
     def get_success_url(self):
         """Return to the project's own page."""
@@ -697,10 +703,11 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
 
 
 @plugins.register(Project, order=100)
-class DatasetList(Plugin, DatasetListView):
+class DatasetList(PrivateRecordNotFoundMixin, Plugin, DatasetListView):
     """List the datasets that belong to the project."""
 
     page_title = _("Datasets")
+    check = staticmethod(project_is_visible)
 
     def get_queryset(self, *args, **kwargs):
         """Limit to the project's datasets."""
@@ -712,8 +719,9 @@ class DatasetList(Plugin, DatasetListView):
 
 
 @plugins.register(Project, label=_("Export"), order=200)
-class ProjectExportView(Plugin, FairDMTemplateView):
+class ProjectExportView(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
     """Page for exporting the project's data."""
 
     page_title = _("Export Project Data")
+    check = staticmethod(project_is_visible)
     page_icon = "export"

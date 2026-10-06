@@ -3,7 +3,8 @@
 import pytest
 from django.urls import reverse
 
-from fairdm.factories import ProjectFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import ContributionFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -67,11 +68,12 @@ class TestPagination:
     def test_count_increases_for_authenticated_user_with_permissions(
         self, authenticated_client, user, db
     ):
-        from guardian.shortcuts import assign_perm
 
         public = ProjectFactory.create_batch(3, visibility=Visibility.PUBLIC)
         private = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, private)
+        ContributionFactory(
+            content_object=private, contributor=user, level=ContributionLevel.VIEW
+        )
 
         response = authenticated_client.get(reverse("api:project-list"))
         data = response.json()

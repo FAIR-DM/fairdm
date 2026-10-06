@@ -16,7 +16,7 @@ contributor to a later specification, and 019 shows editing on both overview pag
 yet. This is the specification that makes it available.
 
 **Input**: A person with an account needs to edit their own profile from their own page: photo,
-name, alternative names, biography, links and languages. An organization's profile needs to be
+given and family name, display name, alternative names, biography, links and languages. An organization's profile needs to be
 editable from its page by its owner and administrators: logo, name, alternative names, type, parent
 organization, city and country, description, website and links. People holding the Community
 Manager portal role can edit any organization's profile the same way, and a person's profile whenever that person does not have an active account. A profile always has
@@ -55,6 +55,9 @@ that fixes it.
   what happens when a refresh meets one is for the specification that builds refreshing.
 - Q: Is a person's name on their profile the same name their credits show? → A: Yes. There is one
   record, so a changed name appears on every credit, list and citation that names the person.
+- Q: Citations and exported metadata are built from a person's given and family name, not from
+  the name they are publicly known by. Are those on the editing page? → A: Yes, both, next to the
+  name the person is publicly known by.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -62,7 +65,7 @@ that fixes it.
 
 A researcher signs in, opens their own profile and sees that their biography and photo are missing.
 They follow the edit action in the header, or one of the items on their checklist, and arrive at a
-page where they can change their photo, the name they are publicly known by, their other names,
+page where they can change their photo, their given and family name, the name they are publicly known by, their other names,
 their biography, their links and the languages they work in. They save, land back on their profile
 and see the change, and the checklist counts the items now in place.
 
@@ -78,8 +81,8 @@ the same editing page for another person.
 
 1. **Given** a signed-in person on their own profile, **When** the page is shown, **Then** the edit
    action in the header works and leads to the page where the profile is edited.
-2. **Given** a person editing their own profile, **When** they change their photo, name,
-   alternative names, biography, links or languages and save, **Then** they are returned to their
+2. **Given** a person editing their own profile, **When** they change their photo, given or family name,
+   display name, alternative names, biography, links or languages and save, **Then** they are returned to their
    profile, told the change was saved, and the profile shows the new values.
 3. **Given** a person who changes their name, **When** a record they are credited on is opened,
    **Then** the credit shows the new name.
@@ -255,8 +258,8 @@ try all four.
 
 **What is edited**
 
-- **FR-007**: A person's editing page MUST allow changing the photo, the name the person is
-  publicly known by, alternative names, the biography, links and languages, and nothing else.
+- **FR-007**: A person's editing page MUST allow changing the photo, the given and family name,
+  the name the person is publicly known by, alternative names, the biography, links and languages, and nothing else.
 - **FR-008**: An organization's editing page MUST allow changing the logo, the name, alternative
   names, the type, the organization it is part of, the city, the country, the description, the
   website and other links, and nothing else.

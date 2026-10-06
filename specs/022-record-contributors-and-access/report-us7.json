@@ -1,0 +1,95 @@
+{
+  "story": "US7",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "RECEIPT: craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "RECEIPT: craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T030",
+      "status": "done",
+      "commits": [
+        "e2429ad8"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles (scenarios 1 to 6, signed in as the accounts create_dev_accounts makes, on all four record kinds)",
+          "tests/test_portal_roles.py::TestPermissionsAreThoseOnMain (each role against the list on origin/main)"
+        ],
+        "criteria": [
+          "SC-012"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles -q -n0 (44 passed)",
+          "uv run pytest tests/test_portal_roles.py -q -n0 (42 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T031",
+      "status": "done",
+      "commits": [
+        "d7e57319"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_demo/test_management/test_commands/test_seed_contributors.py (new)",
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesCreditsFromTheOrganization"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_demo -q -n0 (67 passed)",
+          "DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py seed_contributors --keep-records (run twice; exit 0)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T032",
+      "status": "done",
+      "commits": [
+        "0d47ebff"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-014"
+        ],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build all passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      }
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The seed creates only the Data Curator development account through demo.seed.common.data_curator(), not all five through create_dev_accounts. seed_profiles credits people from their primary affiliation in one pass at its end, and the other seeds (projects, samples, measurements) are unchanged.",
+      "why": "create_dev_accounts adds a second person named Regular User, which makes ContributorSeed.affiliate fail on its lookup by name. The people of the other three seeds have no affiliation, so there is nothing to credit them from.",
+      "decision_ref": "decisions.md#d36-the-seed-creates-only-the-data-curator-development-account-and-credits-the-profile-seeds-people-from-where-they-are"
+    }
+  ],
+  "concerns": [
+    "T030's tests passed on first run: specification 017 and RecordAccess.can_manage already admit the Data Curator, so T031 has no product-code change. Probed by making can_manage return False after the portal-wide check: 32 of 44 TestPortalRoles tests failed; restored.",
+    "tests/test_portal_roles.py already had exact-set tests for each role's permissions; TestPermissionsAreThoseOnMain adds the list from origin/main in declaration order and the installed groups, as the brief asked.",
+    "Development database: ran `seed_contributors --keep-records` twice. It added the private dataset 'Private dataset with no manager who can sign in' at /datasets/diGyqHEmJ4cMtKoqCwtzW5e/contributors/ (no project; Ingrid Solberg, who has no account, holds manage; Yusuf Demir holds view and is credited from Universität Tübingen, which is listed). It ensured data.curator@fairdm.org exists with the Data Curator role (I did not check beforehand whether it already did); it is not listed on the dataset. A shell check showed the dataset private, RecordAccess.managers() empty, the curator able to manage and not listed. No existing address changed; the second run printed the same address. A visitor gets 404 on that address, as for any private record.",
+    "No migration and no template changed. No test was modified or deleted; only new tests were added (a new file, a new class in test_seed_profiles.py, a new class in test_portal_roles.py, a new class and fixtures at the end of test_shared.py, and two imports at its top).",
+    "The module docstring of plugins/shared.py already had no prototype wording on arrival, so nothing was changed there. merge_persons now says stored permissions on projects, datasets, samples and measurements are not copied because levels move with the contributions.",
+    "The last read corrected managing_contributors.md and managing-unclaimed-profiles.md (both still said a merge copies guardian permissions), a sentence in overview-pages.md that had lost its subject, and added a changelog entry, the roles.md section, and the seed documentation (ContributorSeed, seed_contributors, --keep-records, data_curator()). Every Crediting, RecordAccess, registry, level and query example in contributors.md and the migration guide was run in a scratch test and ran as written; the scratch file was deleted.",
+    "docs/portal-development/forms-and-filters/sample-mixins.md: its form test example is a pattern for a portal's own form and does not run against the demo's RockSampleForm as written (the demo form also needs status). What this feature changed in it, that the dataset field needs the edit level, behaved as documented. Not changed.",
+    "`manage.py makemigrations --check` was not run; the brief names a known pending migration for the third-party app orbit and no model changed in this story."
+  ],
+  "blocked": []
+}

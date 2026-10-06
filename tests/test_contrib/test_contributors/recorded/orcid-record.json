@@ -1,0 +1,92 @@
+{
+  "orcid-identifier": {
+    "uri": "https://orcid.org/0000-0002-1825-0097",
+    "path": "0000-0002-1825-0097",
+    "host": "orcid.org"
+  },
+  "person": {
+    "name": {
+      "created-date": {
+        "value": 1460757617078
+      },
+      "last-modified-date": {
+        "value": 1504850007188
+      },
+      "given-names": {
+        "value": "Josiah"
+      },
+      "family-name": {
+        "value": "Carberry"
+      },
+      "credit-name": null,
+      "source": null,
+      "visibility": "public",
+      "path": "0000-0002-1825-0097"
+    }
+  },
+  "activities-summary": {
+    "employments": {
+      "affiliation-group": [
+        {
+          "summaries": [
+            {
+              "employment-summary": {
+                "organization": {
+                  "name": "Wesleyan University",
+                  "address": {
+                    "city": "Middletown",
+                    "region": "CT",
+                    "country": "US"
+                  }
+                },
+                "start-date": {
+                  "year": {
+                    "value": "1930"
+                  },
+                  "month": {
+                    "value": "02"
+                  },
+                  "day": {
+                    "value": "29"
+                  }
+                },
+                "end-date": null,
+                "visibility": "public"
+              }
+            }
+          ]
+        },
+        {
+          "summaries": [
+            {
+              "employment-summary": {
+                "organization": {
+                  "name": "Brown University",
+                  "address": {
+                    "city": "Providence",
+                    "region": "RI",
+                    "country": "US"
+                  }
+                },
+                "start-date": {
+                  "year": {
+                    "value": "1929"
+                  },
+                  "month": {
+                    "value": "02"
+                  },
+                  "day": {
+                    "value": "29"
+                  }
+                },
+                "end-date": null,
+                "visibility": "public"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "path": "/0000-0002-1825-0097"
+}

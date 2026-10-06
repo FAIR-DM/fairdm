@@ -53,6 +53,7 @@ roles
 reviewing_content
 managing_users_and_permissions
 managing_contributors
+looking-up-contributors
 adjusting_dataset_access
 managing_projects
 managing-samples

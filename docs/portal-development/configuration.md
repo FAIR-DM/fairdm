@@ -212,6 +212,26 @@ Or rely on the development fallback:
 export DJANGO_ENV=development  # falls back to SQLite
 ```
 
+### Signing in returns "429 Too Many Requests"
+
+The cache is unreachable. The baseline's Redis cache is configured to carry on when Redis is down,
+so nothing is reported, but the sign-in rate limiter cannot record the attempt and refuses it.
+
+In development, leave `REDIS_URL` unset rather than pointing it at a Redis that is not running:
+
+```bash
+export DJANGO_ENV=development
+unset REDIS_URL  # every cache is held in memory, and Celery tasks run in-process
+```
+
+With `REDIS_URL` unset, the `development` module replaces every cache alias with Django's
+in-memory backend and sets `CELERY_TASK_ALWAYS_EAGER`, so a portal runs with no Redis at all. The
+in-memory cache belongs to one process and is emptied on restart. Set `REDIS_URL` when you want
+to exercise the real cache or a Celery worker.
+
+Every other environment keeps the Redis cache, and an unset `REDIS_URL` there is reported as
+`fairdm.E200`. Start Redis, or correct `REDIS_URL`.
+
 ### "ALLOWED_HOSTS is empty"
 
 ```bash
@@ -249,6 +269,9 @@ fairdm.setup()
 ```bash
 export DJANGO_ENV=development
 ```
+
+This needs no database server and no Redis. The `development` module uses SQLite, and with
+`REDIS_URL` unset it holds every cache in memory and runs Celery tasks in-process.
 
 ### Production Setup
 

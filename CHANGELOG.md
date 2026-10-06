@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
+  `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
+  dataset's stored permissions down to its samples and measurements. A level on a dataset now
+  reaches them, through `RecordLevelBackend`. A portal that names either backend in its own
+  `AUTHENTICATION_BACKENDS` removes it.
+- The receiver that withdrew a person's stored permissions when their credit was deleted. The
+  level is on the credit and goes with it.
+- `give_level` in `demo/seed/common.py`. `grant_team_rights` lists the account at the manage level.
+- `Contribution.set_default_affiliation`. A contribution made without an organization holds none
+  and is no longer given the person's primary affiliation. The Contributors tab selects the primary
+  affiliation to begin with, and `Contribution.add_to()`, `Contributor.add_to()` and
+  `add_contributor()` leave the organization empty unless one is passed.
+- `UserProfileForm`, which nothing used. `PersonProfileForm` is the form a person edits their own
+  profile with.
 - The Statistics and Network tabs of a contributor's page. Both were blank.
 - The templates `person/plugins/overview.html` and `organization/plugins/overview.html`. A
   contributor's page is drawn from `contributors/overview/person.html` and
@@ -37,6 +51,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Signing in works in development without Redis.** With `DJANGO_ENV=development` and no
+  `REDIS_URL`, every sign-in returned "429 Too Many Requests", because the rate limiter could not
+  reach its cache. The development settings now hold every cache in memory when `REDIS_URL` is
+  unset. They also run Celery tasks in-process in that case, which the settings had always
+  claimed to do and never did. Other environments are unchanged.
+- A portal's profile form that leaves the languages field out of `Meta.fields`, as the contributors
+  guide says it may, raised `KeyError` when it was built. An organization form without the website
+  field also hid the first stored link from the links field, so saving it dropped that link. Both
+  forms now work without those fields.
+- An organization created from ROR could not be saved from its editing page or in the
+  administration interface, because `Organization.clean()` accepted only the bare ROR identifier
+  and the identifier is stored as the full address. It now accepts both, and still refuses a
+  malformed one.
+- Saving a profile whose stored record fails validation on a field the form does not carry, such
+  as a malformed identifier, answered with a server error. The form is now invalid, the problem is
+  reported on the form as a whole and nothing is saved.
+- Saving a profile returned to a page that failed with an unknown icon error while its "saved"
+  message was waiting, because `MESSAGE_TAGS` still held the old Bootstrap tag names. The setting
+  is removed, so Django's own message tags reach the alert. A portal that styles messages by the
+  old tag strings needs to set `MESSAGE_TAGS` itself.
+- `Contributor.get_update_url()` raised `NoReverseMatch` because it reversed a name no URL carried.
+  It returns the address of the profile editing page.
 - A person's own page now counts a primary affiliation toward their checklist only when it is
   verified and has not ended, as the header does, and `Person.get_location_display()` follows the
   same rule instead of naming the organization of a pending or ended primary affiliation.
@@ -86,6 +122,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A record names its people before its organizations.** Its overview and its citation take the
+  people in the order set on the Contributors tab, then the organizations in theirs, so reordering
+  a list reorders the citation. Which contributors are named, and how, is as before.
+  `RecordOverviewPlugin.get_credits()` no longer falls back to a person's primary affiliation: a
+  person credited with no organization is shown with none.
+- **`Crediting.move(contribution, direction)` reorders a record's contributors**, `"up"` or
+  `"down"` among its own kind, under the same row lock as the other changes. The Contributors tab's
+  move page calls it. `Contribution.objects.people()` and `.organizations()` narrow contributions by
+  kind, each in order.
+- **Permissions stored in django-guardian for a project, dataset, sample or measurement grant
+  nothing.** Bringing a portal up to date converts them once. Each permission of a person, and of
+  each current member of a group, is mapped to a level (view, add or change, and delete or manage
+  map to view, edit and manage) and the person is listed on the record at the highest level their
+  permissions map to, under the record's own type. Contributors with no permissions are given the
+  view level, an organization already stored with a person's entry is kept and listed on the
+  record, and the converted permissions are deleted. Permissions stored for organizations and for
+  models a portal defines are untouched. The conversion does not reverse.
+- **Creating a project or dataset, or a sample or measurement through the API, lists the creator
+  at the manage level** and stores no permission. A superuser who creates one is not listed.
+- **Deleting a sample or a measurement now needs the manage level** on it, on its dataset or on its
+  project. The right to change a dataset used to be enough for a sample.
+- On the update forms of a project, dataset, sample and measurement, visibility and the record it
+  sits under (a project's owner, a dataset's project, a sample's or measurement's dataset) are
+  offered only to someone who can manage the record. For anyone else they are left out of the
+  form, so a request cannot change them. The API applies the same rule to a `PUT` or `PATCH`,
+  answering 403, refuses a move that would leave the record with nobody to manage it with a 400,
+  and accepts as a `project`, `dataset` or `sample` only a record the requester holds the edit
+  level on, so a record is created only inside a parent they can edit. The project choices on the
+  dataset create and update forms are limited the same way.
+- The dataset choices on the sample and measurement forms and the measurement filter, the project
+  choices on the dataset filter, and the count of other datasets in a project on a dataset's page
+  read levels in place of stored permissions.
+
+- Deleting an organization no longer fails while a contribution names it as the organization a
+  person is credited from. `Contribution.affiliation` is set to none, and the person stays on the
+  record. The migration changes the column's `on_delete` and no data.
+- `c-contributor.item` and `c-contributor.card.person` show the organization named on a
+  contribution they are given, or none when it names none. They no longer fall back to the
+  person's primary affiliation for a contribution. Given a person, they show it as before.
 - A contributor's Projects and Datasets tabs, and the figures and cards on their overview, list
   only public projects and public datasets, and a public dataset inside a private project is left
   out. This holds for every viewer, including the contributor and the members of a private
@@ -127,6 +202,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that list configured, and django-mvp only warns and discards the setting. A portal including
   `dac.urls` for its Account Center route mounts `mvp.urls` at the same prefix, immediately
   above it, since the landing page and its `account-center` URL name now come from django-mvp.
+- The development settings accept any host name, so a development server answers under the
+  machine's network name as well as `localhost`. Production is unchanged: its allowed hosts
+  still come from `DJANGO_SITE_DOMAIN` and `DJANGO_ALLOWED_HOSTS`, and a wildcard there still
+  fails the configuration checks.
+- **django-mvp moves to 0.26, and django-mvp-accounts replaces django-accounts-center.**
+  Forms are now drawn by django-mvp-forms as daisyUI components, and the sign-in, sign-up and
+  account management pages come from django-mvp-accounts. FairDM's own settings carry all of
+  it, so a portal that changes none of the following has nothing to do:
+  - A portal that lists `crispy_tailwind`, `dac` or `dac.allauth` in its own `INSTALLED_APPS`
+    removes them. `mvp_forms` and `mvp_accounts` are already installed by FairDM.
+  - A portal that sets `CRISPY_TEMPLATE_PACK` or `CRISPY_ALLOWED_TEMPLATE_PACKS` to `tailwind`
+    sets `daisyui`, or drops the setting.
+  - A portal template that loads `tailwind_filters`, or overrides a template under `tailwind/`,
+    drops the load and moves the override to the matching template under `daisyui/`.
+  - A portal that includes `dac.urls` includes `allauth.urls` instead. The addresses under
+    `account-center/` are unchanged.
+  - A portal that lists `dac.icons.DAC_ICONS` in `EASY_ICONS` removes it, and one that overrides
+    a `cotton/dac/` component removes the override, since nothing draws it any more.
+  - The `ACCOUNT_MANAGEMENT_GET_AVATAR_URL` setting is gone. Nothing read it.
+  - A portal that builds its own stylesheet runs `python manage.py mvp_tailwind` again.
 - **django-mvp moves to 0.24, and FairDM now requires django-mvp-charts and pyecharts.** The
   overview pages draw their charts with them, so a portal installing FairDM gets both, and adds
   `mvp_charts` to `INSTALLED_APPS` if it does not build its apps from FairDM's own list.
@@ -134,6 +229,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Access to a project, dataset, sample or measurement is a level on a person's contribution**:
+  view, edit or manage, each including the one before it. `RecordLevelBackend`
+  (`fairdm.contrib.contributors.permissions`) answers every permission question about these
+  records from the levels, reading up through the dataset and the project, so a level on a dataset
+  reaches its samples and measurements and a level on a project reaches its datasets. Every
+  permission the four models declare is mapped to a level, and a permission the table does not
+  know is refused. `with_level(user, level)` on the four querysets lists the records a user holds
+  at least a level on, and `accessible_to(user, level)` adds every record for someone a portal
+  role gives the right to change datasets. `Crediting.update` takes a `level`, refusing one
+  below what the person holds from above with the code `below_inherited`, and
+  `Crediting.make_creator` lists whoever made a record at the manage level.
+- The Contributors tab, and every page of it, opens exactly when the record's overview does, and
+  shows what each person may do to people who can manage the record only.
+- **A record always keeps someone who can manage it.** `Crediting.update` and `Crediting.remove`
+  refuse, with the code `last_manager`, a change that would leave a project, dataset, sample or
+  measurement with nobody who can sign in and holds the manage level on it or on the record above,
+  whoever asks. The edit page shows the refusal beside the level, and the page for removing a
+  contributor offers no way to go ahead. `Crediting.would_leave_no_manager` answers the question
+  without changing anything. A dataset, sample or measurement cannot be moved to a project or
+  dataset that would leave it without a manager: `clean` refuses it with the code `no_manager`.
+  Every change to a record's contributors first locks the record's row, so two changes to one
+  record cannot overlap. Merging two profiles that are listed on the same record keeps the higher
+  level, and no stored permission row is copied for these four kinds of record. See
+  [Crediting a record](docs/user-guide/crediting-a-record.md).
+- A person credited with `Contribution.add_to()`, `Contributor.add_to()` or `add_contributor()`
+  for the first time starts at the view level.
+- `ManagerOnlyFieldsMixin` in `fairdm.core.forms`, and `CreatorCreditMixin` in
+  `fairdm.api.serializers`.
+- A data migration, `contributors.0023_levels_from_stored_permissions`, which turns the permissions
+  stored for projects, datasets, samples and measurements into levels. See Changed.
+
+- The pages for adding a person and adding an organization to a record offer three ways side by
+  side: someone already in the portal, someone looked up in ORCID or ROR, and someone entered by
+  hand. A registry match makes a profile with the name and the identifier, or uses the profile the
+  portal already holds under that identifier. A person entered by hand needs both names, and no
+  email address is asked for or kept. A name the portal already has is offered before anything is
+  made. A registry that cannot be reached leaves the other two ways working.
+  `Orcid` and `Ror` in `fairdm.contrib.contributors.services.registries` search, fetch and make
+  the profiles, and raise `RegistryUnavailable`. The portal's server needs to reach
+  `pub.orcid.org` and `api.ror.org`. See [Crediting a record](docs/user-guide/crediting-a-record.md)
+  and [Looking up contributors in ORCID and ROR](docs/portal-administration/looking-up-contributors.md).
+- The organization a person is credited from on a record is chosen when the person is added and on
+  the edit page: one of their affiliations with the primary one selected, another organization by
+  name, or none. It is kept with the record, listed among the record's organizations once, and
+  does not follow the person's profile. An organization cannot be removed from a record while
+  anyone on it is credited from it, and the refusal names them. `Crediting.add()` and
+  `Crediting.update()` take an `organization`, `Crediting.credited_from()` reports who is credited
+  from each organization, and `Crediting.remove()` raises `ValidationError` with code
+  `credited_from`. See [Crediting a record](docs/user-guide/crediting-a-record.md).
+- Projects, datasets, samples and measurements have a **Contributors** tab, including every sample
+  and measurement type a portal registers. It lists a record's people and organizations separately,
+  and people who manage the record add a person or an organization already in the portal, set a
+  contributor's contribution roles and remove a contributor. A signed-in person who cannot manage
+  the record is refused and a visitor is sent to sign in. The overview of every record leads its
+  People card to the tab through `people_url`.
+- `Contribution.level` stores what a person may do on a record: `ContributionLevel.VIEW`, `EDIT` or
+  `MANAGE`. `RecordAccess(record)` in `fairdm.contrib.contributors.access` reads it for the record
+  and the records above it, and `Crediting(record)` in
+  `fairdm.contrib.contributors.services.crediting` is the one place a record's contributors change.
+  The migration adds an empty column; existing contributions hold no level until a person is given
+  one. `Person.can_sign_in()` is the rule that decides whether an account is in use, which
+  `Person.is_editable_by()` now asks. See
+  [The Contributors tab](docs/portal-development/contributors.md#the-contributors-tab) and
+  [Crediting a record](docs/user-guide/crediting-a-record.md).
+- **A Data Curator can step in on any record.** Holding the Data Curator role, a person opens any
+  project, dataset, sample or measurement and manages its contributors without being listed on it,
+  and is refused what anyone is refused: removing or lowering the last person who counts as able to
+  manage it, and removing an organization people are credited from. The other roles gain nothing
+  here, and no role holds a permission it did not hold before. See
+  [Portal roles](docs/portal-administration/roles.md#stepping-in-on-a-record).
+- `manage.py seed_contributors` loads every state of the Contributors tab, including a private
+  dataset the seeded Data Curator account (`data.curator@fairdm.org`) is not listed on and whose
+  only manager cannot sign in. `--keep-records` adds what a newer version needs to an earlier run's
+  records without changing their addresses. `manage.py seed_profiles` credits each person it
+  affiliates from their primary affiliation. See
+  [Development accounts](docs/portal-development/development_accounts.md#accounts-for-the-contributors-tab).
+- A person can edit their own profile. The edit action in the header of their page, the prompt to
+  write a biography and the photo, biography and links items on their checklist now lead to a page
+  for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the
+  account is active nobody else is offered it, and a request for it by anyone else is refused. A portal changes the fields by
+  naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
+  `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
+  unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- An organization's owner and administrators can edit its profile. **Edit details** in the
+  **Manage** menu, the description prompt and the logo, type, city and country, description and
+  website items on its checklist now lead to a page for changing the logo, name, alternative names,
+  type, the organization it is part of, city, country, description, website and other links. An
+  ordinary member, a stranger and a Data Curator are not offered it, and a request for it by any of
+  them is refused. A portal changes the fields through the `organization` entry of
+  `FAIRDM_PROFILE_FORMS`. A portal that overrides `contributors/overview/organization.html` keeps
+  the disabled **Edit details** entry, the disabled description prompt and the unlinked checklist
+  items until it adopts the new `can_edit` and `update_url` values. See
+  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+- `Organization.get_descendant_ids()` returns every organization beneath one, at any depth. An
+  organization can no longer be made part of itself or of one of its own sub-organizations, in the
+  editing page or in the administration interface.
+- A Community Manager can edit the profile of any organization and of any person who does not have
+  an active account: one nobody has claimed, one whose owner has not yet signed in, and one whose
+  account has been deactivated. A Community Manager who does not keep an organization is offered a
+  single **Edit details** button and no checklist. A person with an active account stays the only
+  one who can edit their profile, including an account that signed in without being marked claimed.
+  An edit is not marked as the Community Manager's, and it does not claim the profile, activate the
+  account or change an organization's members. The Data Curator and Developer roles give no right
+  to edit a profile, and the permissions of every role are unchanged.
+- `PortalRoles.is_held_by(user, role)` says whether a user is an active member of a role's group.
+- `manage.py seed_profiles` creates `admin.user@example.com`, `member.user@example.com` and
+  `former-admin.user@example.com` around the organization `regular.user@example.com` owns, and
+  `community-manager.user@example.com` and `data-curator.user@example.com`, which hold those roles.
+- `Contributor.is_editable_by(user)` says whether a user may edit a contributor's profile in the
+  portal. `LinesField` is a form field for a list typed one entry per line.
 - A person's page now tells a visitor who the person is, where they work, whether their ORCID iD
   is authenticated, which public projects and datasets they are credited on, the contribution
   roles they hold and who they work with most. The side column lists their identifiers, links and

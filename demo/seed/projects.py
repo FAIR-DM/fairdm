@@ -19,7 +19,6 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
-from guardian.shortcuts import assign_perm
 from licensing.models import License
 from literature.models import LiteratureItem
 from partial_date import PartialDate
@@ -64,14 +63,6 @@ SPARSE = (
 )
 SEEDED_NAMES = [SHOWCASE, EMPTY, SPARSE]
 
-
-PROJECT_PERMISSIONS = [
-    "view_project",
-    "change_project",
-    "delete_project",
-    "change_project_metadata",
-    "change_project_settings",
-]
 
 KEYWORDS = [
     ("geothermal-energy", "Geothermal energy"),
@@ -281,8 +272,7 @@ class ProjectSeed(BaseCommand):
             project.add_contributor(self.person(first, last), with_roles=roles)
         project.add_contributor(owner, with_roles=["Other"])
         project.add_contributor(users["super.user"], with_roles=["ProjectManager"])
-        for permission in PROJECT_PERMISSIONS:
-            assign_perm(f"project.{permission}", users["staff.user"], project)
+        grant_team_rights(users["staff.user"], project)
 
         start = timezone.now() - timedelta(days=int(365 * 2.5))
         now = timezone.now()
@@ -333,8 +323,7 @@ class ProjectSeed(BaseCommand):
             created_by=users["super.user"],
         )
         project.add_contributor(users["staff.user"], with_roles=["Creator"])
-        for permission in PROJECT_PERMISSIONS:
-            assign_perm(f"project.{permission}", users["staff.user"], project)
+        grant_team_rights(users["staff.user"], project)
 
     def sparse(self, users):
         project = Project.objects.create(
@@ -394,8 +383,7 @@ class ProjectSeed(BaseCommand):
             for p in Person.objects.filter(email__endswith="@example.org")
         }
         for dataset in Dataset.all_objects.filter(project=showcase):
-            for permission in ("view_dataset", "change_dataset", "delete_dataset"):
-                assign_perm(f"dataset.{permission}", users["staff.user"], dataset)
+            grant_team_rights(users["staff.user"], dataset)
 
         cores = Dataset.all_objects.get(
             project=showcase, name__startswith="Core samples"

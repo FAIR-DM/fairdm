@@ -1,0 +1,194 @@
+{
+  "story": "FIX-1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T033",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestVisibilityNeedsManage"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k VisibilityNeedsManage (red first: 2 failed, 200 not 403; then 8 passed)",
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 (52 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "471b4a7b"
+      ]
+    },
+    {
+      "id": "T034",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestMovingARecordThroughTheApi"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k MovingARecord (red first: the stranding move answered 200 not 400; the editor move was red against the serializer as it was before T033: 4 failed, 2 passed; then 6 passed)",
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 (58 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "e203c5c9"
+      ]
+    },
+    {
+      "id": "T035",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestCreatingARecordThroughTheApi",
+          "tests/test_api/test_viewsets.py::TestParentChoicesThroughTheApi"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k CreatingARecord (red first: 4 failed, 201 not 400; then 8 passed)",
+          "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k ParentChoices (red against the serializer as it was: 2 failed; then passed)",
+          "uv run pytest tests/test_api -q -n0 (210 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "0a9fb894"
+      ]
+    },
+    {
+      "id": "T036",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_project/test_plugins.py -q -n0 -k TestAPrivateProjectsOtherTabs (red first: 4 failed, 200 not 404; then 6 passed)",
+          "uv run pytest tests/test_core/test_project/ -q -n0 (386 passed)",
+          "uv run pytest tests/test_contrib/test_plugins/test_registration.py -q -n0 (22 passed, after one pre-existing test was given a public project)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "33792fe0",
+        "4a663b6f"
+      ]
+    },
+    {
+      "id": "T037",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_dataset/test_forms.py::TestProjectChoicesNeedTheEditLevel"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_dataset/test_forms.py -q -n0 -k ProjectChoicesNeed (red first: 3 failed; then 3 passed)",
+          "uv run pytest tests/test_core/test_dataset tests/test_core/test_project -q -n0 (842 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "de49d895"
+      ]
+    },
+    {
+      "id": "T038",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestEditKeepsALevelHeldFromAbove"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k EditKeepsALevel (red first: the role-only save stored level 2, not 1; then 3 passed)",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 (751 passed)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "00ee69ad"
+      ]
+    },
+    {
+      "id": "T039",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestContributorsTabQueries",
+          "tests/test_contrib/test_contributors/test_access.py::TestLevelsForPeople"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k TestContributorsTabQueries (red against the code as it was: 4 failed, 236 queries with 25 people against 56 with 5; then 4 passed)",
+          "uv run pytest tests/test_contrib/test_contributors -q -n0 (2107 passed, 6 skipped)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "6b651ce3"
+      ]
+    },
+    {
+      "id": "T040",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (second run: lint, typecheck, test, build, conformance, docs all passed, exit 0)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "e18a7f60"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The manager-only field names are held on CreatorCreditMixin, not read from ManagerOnlyFieldsMixin.",
+      "why": "ManagerOnlyFieldsMixin holds no list of its own; each form declares a tuple, so there was nothing to reuse. The serializer list is the union of those tuples plus owner and sample.",
+      "decision_ref": "D38"
+    },
+    {
+      "what": "T039 also prefetches each contribution's content_object and each contributor's identifiers, beyond the levels and real contributors the finding names.",
+      "why": "Both were one query per person (the as_contributor filter and default_identifier); the count still grew without them.",
+      "decision_ref": "D39"
+    }
+  ],
+  "concerns": [
+    "FINDINGS CLOSED, with the test that proves each. SEC-001 and CORR-001: tests/test_api/test_viewsets.py::TestVisibilityNeedsManage (project and dataset). SEC-002: TestMovingARecordThroughTheApi (sample and measurement; editor 403, stranding move 400 with code no_manager, manager's valid move 200). SEC-003: TestCreatingARecordThroughTheApi (sample and measurement; no credit 400, edit 201 and listed at manage, view 400, visitor 401) and TestParentChoicesThroughTheApi (measurement's sample field, dataset serializer's project field). SEC-004: tests/test_core/test_project/test_plugins.py::TestAPrivateProjectsOtherTabs. CORR-005 and SEC-006: tests/test_core/test_dataset/test_forms.py::TestProjectChoicesNeedTheEditLevel. CORR-002: test_shared.py::TestEditKeepsALevelHeldFromAbove. CORR-003: test_shared.py::TestContributorsTabQueries. CORR-004 and the reviewers' notes on documentation and comments: edits in T040, no test (prose); the reviewers' note on the ask signature, the upgrade's reversal, 'by guardian' and visible_to_holder_of were each read against the code and corrected.",
+    "OTHER PLUGINS (T036): I requested every URL name under the project, dataset, sample and measurement namespaces as a visitor and as a signed-in person with no credit, on a private chain, with a throwaway module (deleted, not committed). Only the project's dataset list and export tabs answered 200. The sample's four editing pages answer 302 and 403 (SEC-005, LOW), left as the brief says. The sweep covered what fairdm/ registers; the plugins in demo/plugins.py are not registered under the test settings and were not checked.",
+    "NOT CLOSED, by the brief's scope: SEC-005, SEC-007, SEC-008, CORR-006 to CORR-009 (all LOW or likely and not named in the brief) and the spec.md SC-010 and US5 scenario 7 note about D4. Nothing in the fix tasks was left open.",
+    "Pre-existing tests I changed, each because it asserted behaviour the task replaces, with every assertion kept: T035, tests/test_api/test_viewsets.py::TestCreatedRecordsListTheirCreator (the sample and the measurement test now credit the user at edit on the dataset first). T036, tests/test_contrib/test_plugins/test_registration.py::TestRecordPagesServe::test_project_plugin_page (public project). T037, tests/test_core/test_dataset/test_forms.py::TestFormQuerysetFiltering::test_form_filters_projects_by_user_permissions, test_plugins.py::TestUpdatePageAttributesPersist and ::TestUpdatePageProjectField, and test_views.py::TestDatasetCreateView (two tests), ::TestDatasetCreatePageProjectFieldNarrowing and the _setup helper of TestDatasetUpdateView (each credited the project at view or by add_contributor, which is the view level; now edit). All are named in progress.md.",
+    "The gate ran twice. The first run failed in the test step, stopping at test_registration.py::TestRecordPagesServe::test_project_plugin_page (the T036 consequence above); I ran the whole tree without -x to see if anything else failed (one failure, 5067 passed, 14 skipped), fixed that test, committed, and the second run was green on every step.",
+    "A test in tests/test_core/test_project/test_plugins.py, test_the_contributors_figure_counts_everyone_credited, failed once in one of three runs of tests/test_core/test_dataset plus tests/test_core/test_project and passed alone, on re-runs and in both gate runs. I did not find the cause; this story did not touch it.",
+    "The demo's RockSample config lists API fields without dataset, so its own endpoint cannot create a record (IntegrityError), as SEC-003 notes. Not changed; no migration was added and none is needed, so the development database was not touched.",
+    "The report schema has no field for findings, so the findings-to-tests mapping is in this concerns list."
+  ],
+  "blocked": []
+}

@@ -334,15 +334,15 @@ When adding relationships:
 
 **Check permissions**:
 
-- Ensure you have view permission for the dataset
-- Contact a superuser if you need additional permissions
+- Ensure you hold at least the view level on the sample, its dataset or its project
+- Ask someone who manages the dataset to list you on its Contributors tab
 
 ### Can't Edit Sample
 
 **Permission issues**:
 
-- You need change permission for the dataset
-- Contact a superuser to grant permissions
+- You need the edit level on the sample, its dataset or its project
+- Ask someone who manages the dataset to raise your level on its Contributors tab
 
 **Sample in use**:
 
@@ -443,45 +443,33 @@ The import system validates:
 
 ## Permissions and Access Control
 
-### Required Permissions
+### Levels on a sample
 
-To manage samples, you need:
+Who may open, edit and manage a sample is decided by the level a person holds on it. The levels are
+view, edit and manage, and each includes the one before it. A person holds a level on a sample by
+being listed on its **Contributors** tab, or by holding one on its dataset or that dataset's
+project. See [Managing Users and Permissions](managing_users_and_permissions.md) for what each
+level allows.
 
-**View permission**: See samples in admin
+| Level | What it allows on a sample |
+|---|---|
+| View | Open the sample, even while its dataset is private. |
+| Edit | Also change the sample's details and descriptions, add samples to the dataset, and import data. |
+| Manage | Also change its contributors and their levels, and delete the sample. |
 
-- `view_sample` or `view_<sampletype>`
+- If you can edit a dataset, you can edit its samples.
+- If you can only view a dataset, you can only view its samples.
+- A person listed on one sample only opens that sample, not the others in its dataset.
+- Deleting a sample needs the manage level on it or above. The right to change a dataset is no
+  longer enough.
 
-**Add permission**: Create new samples
+**To request access**:
 
-- `add_sample` or `add_<sampletype>`
+1. Contact someone who manages the dataset or its project
+2. Specify which datasets or samples you need access to
 
-**Change permission**: Edit existing samples
-
-- `change_sample` or `change_<sampletype>`
-
-**Delete permission**: Remove samples
-
-- `delete_sample` or `delete_<sampletype>`
-
-### Dataset-Level Permissions
-
-Samples inherit permissions from their dataset:
-
-- If you can edit a dataset, you can edit its samples
-- If you can only view a dataset, you can only view its samples
-
-**To request permissions**:
-
-1. Contact the dataset owner or project manager
-2. Or contact a portal administrator
-3. Specify which datasets you need access to
-
-A right granted directly on one sample (through the admin's **Object permissions** section, or
-programmatically) holds independently of any dataset-level grant. If you are writing code that
-grants sample permissions rather than using the admin, see
-[Managing Users and Permissions](managing_users_and_permissions.md) — samples are polymorphic,
-and granting or checking their permissions needs FairDM's own helpers rather than django-guardian's
-directly.
+A permission stored for a sample in the administration interface, or by code that calls
+django-guardian, grants nothing. Put the person on the sample's Contributors tab instead.
 
 ## See Also
 

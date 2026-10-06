@@ -1,0 +1,127 @@
+{
+  "story": "US2",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 421,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T006",
+    "T007",
+    "T008",
+    "T009",
+    "T010"
+  ],
+  "context": {
+    "why": "Story 1 is accepted: Contribution.level, RecordAccess (fairdm/contrib/contributors/access.py), Crediting (services/crediting.py) with add, update(roles) and remove, and the tab's list, portal add, edit-roles and remove pages are rebuilt and tested (tests/test_contrib/test_contributors/test_access.py, test_services/test_crediting.py, test_plugins/test_shared.py with its conftest). This story rebuilds the organization a person is credited from on a record. The prototype already draws it and the maintainer approved it: the choice is the Cotton component cotton/contribution/affiliation.html (radio buttons named `affiliation` with values `org:<pk>`, `other`, `none`, and a text input `affiliation_name`), fed by ContributionPage.affiliation_choice and read by read_affiliation and credit_from in plugins/shared.py. That Python is untested prototype code. Move the rule into Crediting, put the choice behind a form field group, and test it. The ORCID and by-hand ways of adding a person also end on this choice; US3 rebuilds those ways, so here make the choice work and be tested for a person chosen from the portal and on the edit page, and keep the prototype's registry and by-hand ways working with it, untested.",
+    "spec_sections": [
+      "User Story 2 (all 10 acceptance scenarios)",
+      "FR-003",
+      "FR-021 to FR-027",
+      "FR-029",
+      "FR-032",
+      "Edge Cases (an organization deleted from the portal; the organization typed is not in the portal)",
+      "Clarifications (session 2026-10-06, both parts)",
+      "Key Entities (Contribution, Affiliation)"
+    ],
+    "plan_sections": [
+      "D3 (add with organization, update with organization, remove's credited_from refusal, credited_from())",
+      "D5 (AffiliationChoice and the remove page)",
+      "D7 (the SET_NULL step only)",
+      "D10"
+    ],
+    "prior_decisions": [
+      "decisions.md D6: delete the model hook Contribution.set_default_affiliation (fairdm/contrib/contributors/models.py). A person added with no organization is stored with none. The person's primary affiliation is only the option selected to begin with on the page. Find every caller that relied on the hook (Contribution.add_to, Contributor.add_to, record.add_contributor, seeds, factories, existing tests) and decide for each: a pre-existing test that asserted the hook's behaviour describes behaviour this feature replaces, so update it in T009 and name it in progress.md.",
+      "decisions.md D8 to D12 were written by story 1; read D8, D11 and D12. Page tests go in tests/test_contrib/test_contributors/test_plugins/test_shared.py (D12), not a new module.",
+      "Crediting.add becomes add(contributor, *, organization=None) and update becomes update(contribution, *, roles, organization=<unchanged sentinel or explicit>): design the signature so that 'leave it alone', 'set to this organization' and 'set to none' are three different things. The level argument on update is US4's; leave level writing where story 1 left it (D8).",
+      "An organization a person is credited from is listed on the record, once, as its own contribution (so it has a place in the order and can carry roles). It stays when the last person credited from it leaves or is credited from elsewhere, and can then be removed (the maintainer approved this). Removing an organization that anyone on the record is credited from is refused with ValidationError code `credited_from`, and the people are available to the page so it can name them.",
+      "Contribution.affiliation changes from on_delete=PROTECT to SET_NULL: write the migration with makemigrations, apply it to the dev database (see environment).",
+      "An organization typed by name that is not in the portal is made as a new Organization with that name (FR-023). An empty name with 'other' chosen is refused on the field.",
+      "plan D10: c-contributor.item (templates/cotton/contributor/item.html) and c-contributor.card.person (templates/cotton/contributor/card/person.html) fall back to the person's primary organization when given a contribution with no affiliation. Remove the fallback for a contribution only; given a Person they behave as before. These are shared components from an earlier feature: change only that expression. The tab's templates currently pass secondary=\"none\" to work around the fallback; once the component is right you may leave those attributes or drop them, but the page must draw the same. T008's tests go in tests/test_contrib/test_contributors/test_components.py if the conformance step accepts a module that mirrors templates; if it refuses, put them where the existing tests of these components live and note it.",
+      "decisions.md D7: a superuser is refused by Crediting.add with a ValidationError; unchanged here.",
+      "The dev database's seeded example records carry affiliations set by the prototype's seed (demo/seed/contributors.py affiliate()). Have the seed set them through Crediting. Do not rerun seed_contributors without --keep-records against the dev database."
+    ],
+    "acceptance": [
+      {
+        "task": "T006",
+        "given_when_then": "Given a record, when a person is added or updated with an organization, with none, or an organization people are credited from is removed, then the outcomes in tasks.md T006 hold and the refusal carries code credited_from and the people."
+      },
+      {
+        "task": "T007",
+        "given_when_then": "Given User Story 2's scenarios, when the portal add page and the edit page are used through the test client, then the choice offers the person's affiliations with the primary selected, another organization and none; the tab shows what was chosen and keeps showing it after the profile changes; and an organization people are credited from offers no removal and refuses a direct request, naming them."
+      },
+      {
+        "task": "T008",
+        "given_when_then": "Given a contribution with no organization, when the two shared components draw it, then no organization is shown; given a person, the primary organization is shown as before."
+      },
+      {
+        "task": "T009",
+        "given_when_then": "Given the failing tests from T006 to T008, when the implementation lands, then all pass, the SET_NULL migration exists, the hook is gone and makemigrations --check is clean for first-party apps."
+      },
+      {
+        "task": "T010",
+        "given_when_then": "Given the user guide page from story 1 and CONTEXT.md, when read against the branch, then they say how the organization is chosen, why it does not follow the profile, and that a contribution carries it."
+      }
+    ],
+    "verified_base": {
+      "commit": "1ffdf43e401c701214ab0e04575b6eb36e4fed17",
+      "verified_at": "2026-10-06T13:20:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 1's last code commit (5242cb17): lint, typecheck, the whole test suite, build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly four public names that later stories own and you should leave alone unless you touch them: ContributionMove and level_choices in plugins/shared.py, give_level in demo/seed/common.py, ContributorSeed in demo/seed/contributors.py. If your story adds public names, document them so that list does not grow. `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours, check first-party apps only. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Contribution",
+      "Contributor, Person, Organization",
+      "Member",
+      "Collaborator"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T006 to T010 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not touch any permission backend, fairdm/conf/settings/auth.py, visible_to, or the guardian grants on the create pages: US4 owns them.",
+    "Do not rebuild the ORCID, ROR or by-hand ways of adding (US3), the level handling (US4), the last-manager rule or the row lock (US5), or moving (US6). Keep the prototype's code for those parts working."
+  ]
+}

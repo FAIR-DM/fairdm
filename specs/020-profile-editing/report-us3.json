@@ -1,0 +1,189 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "skill-tool"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "skill-tool"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_portal_roles.py::TestIsHeldBy",
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonIsEditableBy",
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationIsEditableBy"
+        ],
+        "commands": [
+          "uv run pytest tests/test_portal_roles.py tests/test_contrib/test_contributors/test_models.py -q -n0 (green after T015; red before it: 13 failed, 26 passed)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-003",
+          "SC-005"
+        ]
+      },
+      "commits": [
+        "6a5b5ad6"
+      ]
+    },
+    {
+      "id": "T014",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate",
+          "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestCommunityManagerOverview"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n0 (green after T015; red before it: 21 failed, 25 passed)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-004",
+          "SC-006"
+        ]
+      },
+      "commits": [
+        "4b6d4bcc"
+      ]
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_portal_roles.py -q -n0 (935 passed)",
+          "uv run python manage.py makemigrations --check --dry-run (only the third-party orbit migration is proposed, none for fairdm)",
+          "uv run pre-commit run --all-files (passed)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-003",
+          "SC-004",
+          "SC-005",
+          "SC-006"
+        ]
+      },
+      "commits": [
+        "cee18413"
+      ]
+    },
+    {
+      "id": "T016",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesRoleAccounts",
+          "tests/test_conf/test_checks.py::TestDevAccountsAbsentReportsTheRoleAccounts"
+        ],
+        "commands": [
+          "uv run pytest tests/test_demo/test_management/test_commands/test_seed_profiles.py tests/test_conf/test_checks.py -q -n0 (112 passed; red before: 8 failed)",
+          "forge verify --repo . --base origin/main --steps docs (passed)",
+          "uv run --group docs sphinx-build -b html docs (no warning for a page changed here)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-005",
+          "SC-008"
+        ]
+      },
+      "commits": [
+        "8720462e"
+      ]
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_update.py::TestWhoMayEdit -q -n0 (3 passed; green on first run because T015 had landed, probed by two mutations that each failed it)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-003",
+          "SC-004"
+        ]
+      },
+      "commits": [
+        "754f620d"
+      ]
+    },
+    {
+      "id": "T019",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestOrganizationRorIdentifier",
+          "tests/test_contrib/test_contributors/test_plugins/test_update.py::TestCommunityManagerUpdate::test_an_organization_whose_ror_is_stored_as_the_full_address_saves"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_models.py::TestOrganizationRorIdentifier -q -n0 (7 passed; red before the fix: 1 failed, 6 passed)"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-002"
+        ]
+      },
+      "commits": [
+        "8563cf15"
+      ]
+    },
+    {
+      "id": "T020",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestFormsWithADroppedField"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py -q -n0 (170 passed; red before the fix: 2 failed, 2 passed)"
+        ],
+        "exit_code": 0,
+        "criteria": []
+      },
+      "commits": [
+        "c9dddf77"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T013 holds the Data Curator's permissions to the declared set through the existing TestDeclarations::test_data_curator_permissions_match_exactly, which already compares the set's content, and wrote no second copy.",
+      "why": "A second copy of the same assertion would only be a second place to update.",
+      "decision_ref": "progress.md, T013 entry"
+    },
+    {
+      "what": "T017 could not be seen failing: it passed on its first run because T015 had already landed. I probed it instead with two mutations (a superuser and staff bypass in the person rule, and any group member editing an organization), each of which failed it.",
+      "why": "The table checks the finished behaviour of the earlier tasks.",
+      "decision_ref": "progress.md, T017 entry"
+    },
+    {
+      "what": "T019 also gained a page test in test_update.py (a community manager saves an organization whose ROR is stored as the full address), beyond the model test the task names.",
+      "why": "US-3 scenario 7 is about the page saving.",
+      "decision_ref": "D19"
+    }
+  ],
+  "concerns": [
+    "Full verify: `forge verify --repo . --base origin/main` exited 0 with conformance, docs, lint, typecheck, test and build all passed (test step 88 s). Its report carries no per-test counts; `pytest --collect-only` on the tree collects 3824 tests.",
+    "`Organization.update_identifier` (the after-create hook in fairdm/contrib/contributors/models.py) created no identifier when I passed `synced_data` with an `id` to `Organization.objects.create` or `OrganizationFactory`. I did not find out why. If the hook does not run for the real creation path, the full-address ROR that T019 now accepts is stored by some other path.",
+    "A portal form that keeps the `website` field and drops `links` shows the website input and does not store it, because the stored list belongs to the `links` field (fairdm/contrib/contributors/forms/profile.py). Left as it is; T020 covers dropping languages, website and parent.",
+    "Saving a profile through the editing page lower-cases a stored mixed-case email, because Person.clean normalises it. My first T014 test tripped over it. It affects a community manager's save of an unclaimed profile the same way as any save, and is outside this story.",
+    "`makemigrations --check --dry-run` proposes one migration, in the third-party `orbit` package (orbit/migrations/0008_alter_orbitentry_type.py). None is proposed for fairdm and I added none.",
+    "No pre-existing test was modified or deleted. The test diff against the base has two removed lines, both import statements widened to add a name.",
+    "The story's own status and the top-level ledger fields are untouched; only the seven task rows of US3 were flipped."
+  ],
+  "blocked": []
+}

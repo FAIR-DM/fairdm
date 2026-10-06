@@ -1,0 +1,44 @@
+{# @description The choice of which organization a person is credited from on one record: their own affiliations, any other organization by name, or none. Draws a fieldset with radio buttons named affiliation and a text input named affiliation_name. #}
+{# @prop choice:text | description:"The options, the selected value, the other organization's name and the names to suggest." #}
+{# @prop kind:text | description:"The word for the record's kind." #}
+{# @prop prefix:text | description:"Makes the ids unique when the page holds more than one of these." #}
+{# @prop error:text | description:"What is wrong with the choice, when it was refused." #}
+{% load i18n %}
+<c-vars choice kind prefix="affiliation" error />
+<fieldset id="{{ prefix }}" class="flex flex-col gap-2" aria-describedby="{{ prefix }}-hint{% if error %} {{ prefix }}-error{% endif %}">
+  <legend class="font-semibold">{% blocktranslate %}Their affiliation for this {{ kind }}{% endblocktranslate %}</legend>
+  <p id="{{ prefix }}-hint" class="text-sm text-base-content/70">
+    {% blocktranslate %}Where they were when they did this work. It is kept with this {{ kind }} and does not change if they move later. The organization is listed under Organizations here.{% endblocktranslate %}
+  </p>
+  {% if error %}<p id="{{ prefix }}-error" class="text-sm text-error">{{ error }}</p>{% endif %}
+  <div class="flex flex-col gap-3">
+    {% for option in choice.options %}
+      <label class="flex items-start gap-3 cursor-pointer">
+        <input type="radio" name="affiliation" value="{{ option.value }}" class="radio radio-sm mt-1" {% if option.value == choice.selected %}checked{% endif %} />
+        <span class="flex flex-col">
+          <span>{{ option.organization.name }}</span>
+          <span class="text-sm text-base-content/70">{{ option.note }}</span>
+        </span>
+      </label>
+    {% endfor %}
+    <div class="flex items-start gap-3" x-data>
+      <input type="radio" id="{{ prefix }}-other" x-ref="other" name="affiliation" value="other" class="radio radio-sm mt-1" {% if choice.selected == "other" %}checked{% endif %} />
+      <div class="flex flex-col gap-1 grow">
+        <label for="{{ prefix }}-other" class="cursor-pointer">{% if choice.options %}{% translate "Another organization" %}{% else %}{% translate "An organization" %}{% endif %}</label>
+        <label for="{{ prefix }}-name" class="text-sm text-base-content/70">{% translate "Start typing to find one in the portal. A name that is not there yet makes a new organization." %}</label>
+        <input type="text" id="{{ prefix }}-name" name="affiliation_name" value="{{ choice.other_name }}" list="{{ prefix }}-organizations" class="input w-full max-w-md" autocomplete="off"
+               @focus="$refs.other.checked = true" />
+        <datalist id="{{ prefix }}-organizations">
+          {% for name in choice.organizations %}<option value="{{ name }}"></option>{% endfor %}
+        </datalist>
+      </div>
+    </div>
+    <label class="flex items-start gap-3 cursor-pointer">
+      <input type="radio" name="affiliation" value="none" class="radio radio-sm mt-1" {% if choice.selected == "none" %}checked{% endif %} />
+      <span class="flex flex-col">
+        <span>{% translate "No affiliation" %}</span>
+        <span class="text-sm text-base-content/70">{% blocktranslate %}They are credited on this {{ kind }} on their own.{% endblocktranslate %}</span>
+      </span>
+    </label>
+  </div>
+</fieldset>

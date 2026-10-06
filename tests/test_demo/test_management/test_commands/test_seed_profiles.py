@@ -9,8 +9,14 @@ from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.factories import PersonFactory
+from fairdm.portal_roles import PortalRoles
 
 REGULAR_USER = "regular.user@example.com"
+ADMIN_USER = "admin.user@example.com"
+MEMBER_USER = "member.user@example.com"
+FORMER_ADMIN_USER = "former-admin.user@example.com"
+COMMUNITY_MANAGER_USER = "community-manager.user@example.com"
+DATA_CURATOR_USER = "data-curator.user@example.com"
 
 
 def _seed():
@@ -190,3 +196,184 @@ class TestSeedProfilesIsSafeToRunAgain:
         _seed()
 
         assert Person.objects.filter(pk=bystander.pk).exists()
+
+
+def _owned_organization():
+    me = Person.objects.get(email=REGULAR_USER)
+    return Organization.objects.get(
+        affiliations__person=me,
+        affiliations__type=Affiliation.MembershipType.OWNER,
+        affiliations__end_date__isnull=True,
+    )
+
+
+@pytest.fixture
+def owned_organization(db):
+    """The organization the regular user owns, once the profiles are seeded."""
+    _seed()
+    return _owned_organization()
+
+
+def _affiliation(organization, email):
+    return organization.affiliations.get(person__email=email)
+
+
+@pytest.mark.django_db
+class TestSeedProfilesKeepersOfTheOwnedOrganization:
+    def test_an_administrator_is_a_current_administrator_of_it(self, owned_organization):
+        affiliation = _affiliation(owned_organization, ADMIN_USER)
+
+        assert affiliation.type == Affiliation.MembershipType.ADMIN
+        assert affiliation.end_date is None
+
+    def test_an_ordinary_member_is_a_current_member_of_it(self, owned_organization):
+        affiliation = _affiliation(owned_organization, MEMBER_USER)
+
+        assert affiliation.type == Affiliation.MembershipType.MEMBER
+        assert affiliation.end_date is None
+
+    def test_an_administrator_whose_affiliation_has_ended_was_one_of_it(
+        self, owned_organization
+    ):
+        affiliation = _affiliation(owned_organization, FORMER_ADMIN_USER)
+
+        assert affiliation.type == Affiliation.MembershipType.ADMIN
+        assert affiliation.end_date is not None
+
+    def test_only_the_owner_and_the_administrator_may_edit_it(self, owned_organization):
+        who = {
+            email: Person.objects.get(email=email)
+            for email in (REGULAR_USER, ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER)
+        }
+
+        allowed = {
+            email
+            for email, person in who.items()
+            if owned_organization.is_editable_by(person)
+        }
+
+        assert allowed == {REGULAR_USER, ADMIN_USER}
+
+    @pytest.mark.parametrize("email", [ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER])
+    def test_each_account_signs_in_with_the_shared_password(
+        self, owned_organization, client, email
+    ):
+        assert client.login(email=email, password=DEV_ACCOUNT_PASSWORD)
+
+    @pytest.mark.parametrize("email", [ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER])
+    def test_each_account_is_an_active_claimed_profile(self, owned_organization, email):
+        person = Person.objects.get(email=email)
+
+        assert person.account_state == AccountState.CLAIMED
+
+    def test_the_administrator_reaches_the_editing_page_and_the_member_does_not(
+        self, owned_organization, client
+    ):
+        url = owned_organization.get_update_url()
+
+        client.login(email=ADMIN_USER, password=DEV_ACCOUNT_PASSWORD)
+        as_admin = client.get(url).status_code
+        client.login(email=MEMBER_USER, password=DEV_ACCOUNT_PASSWORD)
+        as_member = client.get(url).status_code
+
+        assert (as_admin, as_member) == (200, 403)
+
+    def test_a_second_run_leaves_each_account_and_affiliation_once(
+        self, owned_organization
+    ):
+        _seed()
+
+        organization = _owned_organization()
+        for email in (ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER):
+            assert Person.objects.filter(email=email).count() == 1
+            assert organization.affiliations.filter(person__email=email).count() == 1
+
+
+@pytest.mark.django_db
+class TestSeedProfilesRoleAccounts:
+    @pytest.mark.parametrize(
+        ("email", "role"),
+        [
+            (COMMUNITY_MANAGER_USER, PortalRoles.COMMUNITY_MANAGER),
+            (DATA_CURATOR_USER, PortalRoles.DATA_CURATOR),
+        ],
+    )
+    def test_each_account_holds_its_role_and_only_that_one(
+        self, owned_organization, email, role
+    ):
+        person = Person.objects.get(email=email)
+
+        held = {r.name for r in PortalRoles.ROLES if PortalRoles.is_held_by(person, r)}
+
+        assert held == {role.name}
+
+    @pytest.mark.parametrize("email", [COMMUNITY_MANAGER_USER, DATA_CURATOR_USER])
+    def test_each_account_signs_in_with_the_shared_password_as_a_claimed_profile(
+        self, owned_organization, client, email
+    ):
+        assert client.login(email=email, password=DEV_ACCOUNT_PASSWORD)
+        assert Person.objects.get(email=email).account_state == AccountState.CLAIMED
+
+    def test_only_the_community_manager_may_edit_the_unclaimed_profile_and_an_organization_nobody_keeps(
+        self, owned_organization
+    ):
+        unclaimed = next(
+            person
+            for person in Person.objects.filter(config__seed="profiles")
+            if person.account_state == AccountState.GHOST
+        )
+        manager = Person.objects.get(email=COMMUNITY_MANAGER_USER)
+        curator = Person.objects.get(email=DATA_CURATOR_USER)
+
+        assert unclaimed.is_editable_by(manager) is True
+        assert unclaimed.is_editable_by(curator) is False
+        assert owned_organization.is_editable_by(manager) is True
+        assert owned_organization.is_editable_by(curator) is False
+
+    def test_a_second_run_leaves_each_account_once_and_in_its_role(
+        self, owned_organization
+    ):
+        _seed()
+
+        for email, role in (
+            (COMMUNITY_MANAGER_USER, PortalRoles.COMMUNITY_MANAGER),
+            (DATA_CURATOR_USER, PortalRoles.DATA_CURATOR),
+        ):
+            assert Person.objects.filter(email=email).count() == 1
+            assert PortalRoles.is_held_by(Person.objects.get(email=email), role)
+
+
+@pytest.mark.django_db
+class TestSeedProfilesCreditsFromTheOrganization:
+    def test_a_person_with_a_primary_affiliation_is_credited_from_it(self, seeded):
+        credited = [
+            (person, contribution)
+            for person in seeded
+            if person.primary_organization is not None
+            for contribution in person.contributions.all()
+        ]
+
+        assert credited
+        for person, contribution in credited:
+            assert contribution.affiliation_id == person.primary_organization.pk, person
+
+    def test_the_organization_is_listed_on_the_record_the_person_is_credited_on(
+        self, seeded
+    ):
+        person = next(
+            person
+            for person in seeded
+            if person.primary_organization is not None
+            and person.contributions.exists()
+        )
+
+        contribution = person.contributions.first()
+
+        assert contribution.content_object.contributors.filter(
+            contributor=person.primary_organization
+        ).exists()
+
+    def test_a_person_with_no_affiliation_is_credited_from_none(self, seeded):
+        for person in seeded:
+            if person.primary_organization is None:
+                assert not person.contributions.exclude(affiliation=None).exists()

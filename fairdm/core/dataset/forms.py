@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
 
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.core.models import Project
 from fairdm.forms import ModelForm
@@ -14,7 +16,7 @@ from fairdm.utils.choices import Visibility
 from .models import Dataset
 
 
-class DatasetForm(ModelForm):
+class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
     """Form for creating and editing a dataset.
 
     With a request, the project field offers only the authenticated user's own projects, and an
@@ -107,9 +109,12 @@ class DatasetForm(ModelForm):
         # The update page already opens a `<form>`, so the crispy helper must not nest another.
         helper_attrs = {"form_tag": False}
 
+    manager_only_fields = ("visibility", "project")
+
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.request = request
+        self.withhold_manager_only_fields(request)
 
         # Read at call time, not as a module constant, so `override_settings` is honoured.
         license_field = self.fields.get("license")
@@ -128,7 +133,9 @@ class DatasetForm(ModelForm):
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                project_field.queryset = self.request.user.projects.all()
+                project_field.queryset = Project.objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
+                )
             else:
                 project_field.queryset = Project.objects.none()
 

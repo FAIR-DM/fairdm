@@ -30,4 +30,6 @@ do not restate earlier ones, only build past them.
 0021-claims-and-merges-belong-to-a-named-role
 0022-development-accounts-are-a-command-that-refuses
 0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates
+0024-the-right-to-edit-a-profile-is-asked-of-the-record
+0025-a-level-on-the-contribution-decides-rights-over-a-core-record
 ```

@@ -27,8 +27,9 @@ SECRET_KEY = env(
     default="django-insecure-dev-key-CHANGE-THIS-IN-PRODUCTION",
 )
 
-# Never "*", and never in the production baseline, where an unset domain resolves to [].
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# A development server is reached by whatever name the machine has on the local network.
+# Never in the production baseline, where an unset domain resolves to [].
+ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     "default": {
@@ -37,19 +38,27 @@ DATABASES = {
     }
 }
 
-try:
-    CELERY_BROKER_URL = env("REDIS_URL")
-    CELERY_RESULT_BACKEND = env("REDIS_URL")
-except Exception:
+# `env()` defaults REDIS_URL to "", so test for a value. The baseline already reads the broker
+# and the caches from it when it is set.
+if not env("REDIS_URL"):
     import warnings
 
     warnings.warn(
-        "REDIS_URL not set. Celery tasks will execute synchronously (CELERY_TASK_ALWAYS_EAGER=True). "
-        "Set REDIS_URL to test async task functionality.",
+        "REDIS_URL not set. Celery tasks will execute synchronously (CELERY_TASK_ALWAYS_EAGER=True) "
+        "and every cache is held in process memory. Set REDIS_URL to test against Redis.",
         stacklevel=2,
     )
     CELERY_TASK_ALWAYS_EAGER = True
-    CELERY_TASK_EAGER_PROPAGATES = True
+
+    # An unreachable Redis cache fails silently, and allauth's rate limiter reads that as
+    # "limit reached": every sign-in returns 429.
+    CACHES = {
+        alias: {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": alias,
+        }
+        for alias in globals()["CACHES"]
+    }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

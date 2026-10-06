@@ -67,6 +67,28 @@ record. Only an *unclaimed* profile is claimed automatically this way.
 
 ---
 
+## Correcting a Profile from the Portal
+
+A Community Manager can correct an unclaimed profile, and the profile of an account that has been
+deactivated, without opening the administration interface. Open the profile in the portal and
+choose **Edit profile**. The page offers the same fields the person would get: the photo, the given and
+family name, the display name, alternative names, the biography, links and languages.
+
+A Community Manager is offered the edit action only while nobody can sign in to the profile and keep
+it themselves:
+
+- the account is inactive, or
+- the profile is not claimed and its owner has never signed in, whether or not an invitation has
+  been sent.
+
+A profile with an active account is its owner's to maintain, and that includes an account made with
+`createsuperuser` or by signing up without email verification, which is active and in use even
+though nothing marks it as claimed. Saving a correction does not claim the profile, activate the
+account or mark the edit as the Community Manager's. If the person claims the profile or the account
+is reactivated while the editing page is open, the save is refused and nothing is stored.
+
+---
+
 ## Generating a Claim Link
 
 Use this when a contributor cannot claim their profile automatically (e.g. no ORCID on
@@ -109,18 +131,18 @@ for example, an imported unclaimed profile and a freshly registered account.
 
 This is also a superuser-only action, for the same reason as generating a claim link: merging
 destroys the discarded record's identity and moves its affiliations (including any owner one),
-object-level permissions, confirmed emails and social account onto the survivor, which is not an
+object-level permissions on other objects, confirmed emails and social account onto the survivor, which is not an
 ordinary staff operation. A staff account that is not a superuser does not see **"Merge selected
 Person into another…"** in the Action dropdown, and the confirmation page refuses the request
 directly if reached by URL.
 
 **What the merge transfers:**
 
-- All dataset, sample, and measurement contributions
+- All dataset, sample, and measurement contributions. Where both people are listed on a record, one entry remains, at the higher of the two levels
 - External identifiers (ORCID, ROR, etc.)
 - Institutional affiliations
 - allauth email addresses and social accounts (ORCID, etc.)
-- Guardian object-level permissions
+- Guardian object-level permissions on objects other than projects, datasets, samples and measurements, where a person's access is the level of their contribution
 - Profile fields (blank fields on the kept record are filled from the discarded record)
 
 **What happens to the discarded record:**

@@ -1,7 +1,7 @@
 """Tests for the four roles FairDM ships and installs into every portal."""
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 
@@ -382,3 +382,159 @@ class TestPermissionsForQueryCount:
     def test_a_role_with_no_declared_permissions_resolves_to_none(self):
         # `Permission.objects.filter(Q())` matches every row, which would hand the Developer role every permission.
         assert PortalRoles._permissions_for(PortalRoles.DEVELOPER) == []
+
+
+@pytest.mark.django_db
+class TestIsHeldBy:
+    @pytest.fixture
+    def holder(self):
+        user = PersonFactory(is_active=True, password="x")
+        user.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+        return user
+
+    def test_a_member_of_the_roles_group_holds_it(self, holder):
+        assert PortalRoles.is_held_by(holder, PortalRoles.COMMUNITY_MANAGER) is True
+
+    def test_a_member_of_another_role_does_not_hold_it(self):
+        curator = PersonFactory(is_active=True, password="x")
+        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert PortalRoles.is_held_by(curator, PortalRoles.COMMUNITY_MANAGER) is False
+
+    def test_a_deactivated_member_does_not_hold_it(self, holder):
+        holder.is_active = False
+        holder.save()
+
+        assert PortalRoles.is_held_by(holder, PortalRoles.COMMUNITY_MANAGER) is False
+
+    def test_a_visitor_does_not_hold_it(self):
+        assert (
+            PortalRoles.is_held_by(AnonymousUser(), PortalRoles.COMMUNITY_MANAGER)
+            is False
+        )
+
+    def test_a_superuser_in_no_group_does_not_hold_it(self):
+        superuser = PersonFactory(
+            is_active=True, is_staff=True, is_superuser=True, password="x"
+        )
+
+        assert (
+            PortalRoles.is_held_by(superuser, PortalRoles.COMMUNITY_MANAGER) is False
+        )
+
+    def test_the_answer_is_for_the_role_asked_about(self, holder):
+        for role in PortalRoles.ROLES:
+            expected = role is PortalRoles.COMMUNITY_MANAGER
+            assert PortalRoles.is_held_by(holder, role) is expected
+
+    def test_a_portal_administrator_holds_the_change_person_permission_and_not_this_role(
+        self,
+    ):
+        administrator = PersonFactory(is_active=True, password="x")
+        administrator.groups.add(
+            Group.objects.get(name=PortalRoles.PORTAL_ADMINISTRATOR.name)
+        )
+
+        assert administrator.has_perm("contributors.change_person")
+        assert (
+            PortalRoles.is_held_by(administrator, PortalRoles.COMMUNITY_MANAGER) is False
+        )
+
+
+#: What each shipped role held before specification 022, in declaration order, written out so
+#: that a later change to a role fails here.
+PERMISSIONS_ON_MAIN = {
+    "Portal Administrator": (
+        "auth.view_group",
+        "contributors.view_person",
+        "contributors.change_person",
+        "identity.change_identity",
+    ),
+    "Data Curator": (
+        "project.view_project",
+        "project.add_project",
+        "project.change_project",
+        "project.delete_project",
+        "project.view_projectdescription",
+        "project.add_projectdescription",
+        "project.change_projectdescription",
+        "project.delete_projectdescription",
+        "project.view_projectdate",
+        "project.add_projectdate",
+        "project.change_projectdate",
+        "project.delete_projectdate",
+        "dataset.view_dataset",
+        "dataset.add_dataset",
+        "dataset.change_dataset",
+        "dataset.delete_dataset",
+        "dataset.view_datasetdescription",
+        "dataset.add_datasetdescription",
+        "dataset.change_datasetdescription",
+        "dataset.delete_datasetdescription",
+        "dataset.view_datasetdate",
+        "dataset.add_datasetdate",
+        "dataset.change_datasetdate",
+        "dataset.delete_datasetdate",
+        "dataset.import_data",
+        "dataset.can_publish",
+        "sample.view_sample",
+        "sample.add_sample",
+        "sample.change_sample",
+        "sample.delete_sample",
+        "sample.view_sampledescription",
+        "sample.add_sampledescription",
+        "sample.change_sampledescription",
+        "sample.delete_sampledescription",
+        "sample.view_sampledate",
+        "sample.add_sampledate",
+        "sample.change_sampledate",
+        "sample.delete_sampledate",
+        "measurement.view_measurement",
+        "measurement.add_measurement",
+        "measurement.change_measurement",
+        "measurement.delete_measurement",
+        "measurement.view_measurementdescription",
+        "measurement.add_measurementdescription",
+        "measurement.change_measurementdescription",
+        "measurement.delete_measurementdescription",
+        "measurement.view_measurementdate",
+        "measurement.add_measurementdate",
+        "measurement.change_measurementdate",
+        "measurement.delete_measurementdate",
+        "contributors.view_contribution",
+        "contributors.add_contribution",
+        "contributors.change_contribution",
+        "contributors.delete_contribution",
+    ),
+    "Community Manager": (
+        "contributors.view_person",
+        "contributors.change_person",
+        "contributors.view_organization",
+        "contributors.change_organization",
+        "contributors.view_affiliation",
+        "contributors.change_affiliation",
+        "contributors.view_contribution",
+        "contributors.change_contribution",
+    ),
+    "Developer": (
+    ),
+}
+
+
+@pytest.mark.django_db
+class TestPermissionsAreThoseOnMain:
+    """FR-062, SC-012: stepping in on a record gives no role a right it did not hold."""
+
+    @pytest.mark.parametrize("role", PortalRoles.ROLES, ids=lambda role: role.name)
+    def test_the_declared_permissions_are_the_same_and_in_the_same_order(self, role):
+        assert role.permissions == PERMISSIONS_ON_MAIN[role.name]
+
+    @pytest.mark.parametrize("role", PortalRoles.ROLES, ids=lambda role: role.name)
+    def test_the_installed_group_holds_the_same_permissions(self, role):
+        group = Group.objects.get(name=role.name)
+
+        assert _permission_strings(group) == _resolvable_permissions(role)
+        assert _permission_strings(group) <= set(PERMISSIONS_ON_MAIN[role.name])
+
+    def test_no_role_is_added_or_removed(self):
+        assert set(PERMISSIONS_ON_MAIN) == set(PortalRoles.shipped_names())

@@ -18,7 +18,6 @@ class ContributorsConfig(AppConfig):
         from django.contrib.auth.models import Group
         from django.db.models.signals import (
             m2m_changed,
-            post_delete,
             pre_delete,
             pre_save,
         )
@@ -28,16 +27,10 @@ class ContributorsConfig(AppConfig):
             refuse_off_vocabulary_role,
             refuse_shipped_role_deletion,
             refuse_shipped_role_rename,
-            withdraw_rights_on_credit_deletion,
         )
         from .signals import handle_email_confirmed
 
         email_confirmed.connect(handle_email_confirmed)
-        post_delete.connect(
-            withdraw_rights_on_credit_deletion,
-            sender=Contribution,
-            dispatch_uid="contributors.withdraw_rights_on_credit_deletion",
-        )
         m2m_changed.connect(
             refuse_off_vocabulary_role,
             sender=Contribution.roles.through,
