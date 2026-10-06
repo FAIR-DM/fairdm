@@ -18,7 +18,7 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -1776,7 +1776,8 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         content_object: The credited object.
         contributor: The person or organisation credited.
         roles: The roles held on this credit.
-        affiliation: The organisation the contributor is affiliated with for this credit.
+        affiliation: The organisation a person is credited from on this record, or None.
+            It is kept with the record and does not follow the person's profile.
         level: What a person may do on the credited object. Empty for an organisation.
     """
 
@@ -1820,7 +1821,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         related_name="+",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
     )
 
     level = models.PositiveSmallIntegerField(
@@ -1926,13 +1927,6 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     def __repr__(self):
         """Return the contributor and roles."""
         return f"<{self.contributor}: {self.roles}>"
-
-    @hook(BEFORE_CREATE)
-    def set_default_affiliation(self):
-        """Default a new person's credit to their primary affiliation."""
-        if not self.affiliation and self.is_person():  # noqa: SIM102
-            if org := self.contributor.affiliations.filter(is_primary=True).first():
-                self.affiliation = org.organization
 
     def is_person(self):
         """Check whether the contributor is a person.

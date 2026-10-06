@@ -862,7 +862,7 @@ class TestContributionGFKRelationships:
         assert contribution.content_object == project
 
     @pytest.mark.django_db
-    def test_contribution_default_affiliation(self, person, organization):
+    def test_a_credit_is_not_given_the_primary_affiliation(self, person, organization):
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -870,7 +870,7 @@ class TestContributionGFKRelationships:
         )
         project = ProjectFactory()
         c = person.add_to(project)
-        assert c.affiliation == organization
+        assert c.affiliation is None
 
     @pytest.mark.django_db
     def test_contribution_has_contribution_to(
