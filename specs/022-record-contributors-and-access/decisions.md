@@ -199,3 +199,76 @@ profile at upgrade would write a guess into the record as if someone had chosen 
 None. The tab is an ordinary plugin on a record's page and needs nothing from the feature that adds
 page actions, overview cards and plugin replacement (#401). The editing pages feature (#404) and
 the record list feature (#403) rely on the levels defined here and not the other way round.
+
+## Decisions made while planning the build
+
+Each has a number so later notes can point at it.
+
+## D1. Stored record permissions stop applying to core records
+
+**Decision**: a level on a contribution is the only thing that gives a person rights over a
+project, dataset, sample or measurement. Rows stored by django-guardian for those records are
+converted once, at upgrade, and are not consulted afterwards. The two backends that passed a
+dataset's rows down to its samples and measurements are removed.
+**Why**: the specification wants one decision for every page (FR-051) and a private record open
+only to people who hold a level (FR-048). A second route through stored rows would be a way in
+that the Contributors tab does not show.
+**Revisit if**: a portal needs to grant rights over core records to a whole group. That would be a
+feature of its own, with the group shown on the tab.
+
+## D2. Visibility and the record a record sits under need the manage level on the update forms
+
+**Decision**: on the existing update forms of the four record types, the visibility field and the
+parent field (a dataset's project, a sample's or measurement's dataset, a project's owner) are
+offered only to someone who can manage the record.
+**Why**: the design review showed that the edit level otherwise reaches both through the ordinary
+update page. FR-037 puts visibility with manage. Moving a record changes who holds rights over it
+from above, which is a change to access, and the specification puts every change to access with
+manage. The specification does not name the parent field, so this is a reading of it and not a
+quotation.
+**Revisit if**: the feature that rebuilds the editing pages (#404) gives moving a record a page of
+its own.
+
+## D3. Group-level rows are converted too
+
+**Decision**: at upgrade, each current member of a group that holds stored rows on a core record
+gets the level those rows map to.
+**Why**: FR-063 says nobody loses anything at upgrade. Leaving group rows behind would have taken
+access away from their members with only a changelog line to say so.
+**Revisit if**: never. It runs once.
+
+## D4. Deleting a sample now needs the manage level on it or above
+
+**Decision**: before this feature a person holding only the right to change a dataset could delete
+its samples. Deleting is now a manage-level action on every core record.
+**Why**: the specification puts deleting with manage (FR-037) without an exception for samples.
+The people affected are those given a change right and no delete right by hand, in code or a
+shell. The pages that create records grant both together. The changelog says so.
+**Revisit if**: a portal reports data-entry staff who need to delete samples they added.
+
+## D5. Classes for the access questions, the changes and the registries
+
+**Decision**: `RecordAccess(record)`, `Crediting(record)`, `Orcid` and `Ror`, with no shared base
+classes.
+**Why**: the constitution's cohesion article asks that functions sharing a subject and a first
+argument sit on a class. `Crediting` also gives the transaction and the row lock one home.
+**Revisit if**: a third registry is added, which is when a shared shape would have three callers.
+
+## D6. The default affiliation is the page's, not the model's
+
+**Decision**: the model hook that filled a new contribution's affiliation from the person's
+primary affiliation is deleted. The primary affiliation is only the option selected to begin with
+on the page.
+**Why**: a person added with no organization must be shown with none (FR-024). The hook made that
+impossible for anyone who has a primary affiliation.
+**Revisit if**: never.
+
+## D7. A superuser is not credited
+
+**Decision**: the existing rule that a superuser cannot be saved as a contributor stays. Adding
+one from the tab is refused with a message, and a superuser who creates a record is not listed on
+it.
+**Why**: the rule predates this feature and the specification does not ask for it to change. A
+record a superuser creates is the one case where a record starts without a manager from its own
+team, and a superuser can always add one.
+**Revisit if**: the maintainer wants superusers credited like anyone else.

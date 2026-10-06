@@ -31,8 +31,8 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-06T12:23:48Z"
     },
     "merge": {
       "approved_by": null,
@@ -50,6 +50,20 @@
         "an organization removable only when nobody on the record is credited from it",
         "organization cards reduced to logo and name, two across",
         "no add button in the empty state"
+      ]
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-06T12:23:48Z",
+      "self_resolved": [
+        "14 findings: 4 high, 5 medium, 5 low; verdict request changes; every high and medium applied as plan and task edits",
+        "high ARCH-001 applied: every reader and writer of stored record permissions named and moved to the level query or the crediting class (plan D2 table, T016, T018, T004 seeds)",
+        "high SPEC-001 applied: a person listed only on a sample or measurement can open it (visible_to on with_level, T016, T017)",
+        "high SEC-001 applied: visibility and the parent field need manage on the update forms (plan D5, decisions D2, T017, T018)",
+        "high SPEC-002 applied: the creator's level and the data migration moved into story 4 with the backend (T021a, T022, T018)",
+        "medium applied: subtype permission names and content types (SPEC-003), group rows converted (SPEC-004, decisions D3), default-affiliation hook deleted (SPEC-005, decisions D6), merge tests added (SPEC-006, T022a), classes per subject (ARCH-002, decisions D5)",
+        "low applied: identifier format checked before any request (SEC-002), an email already held refused without naming its profile (SEC-003), can-sign-in method moved to story 1 (ARCH-003)",
+        "low carried: deleting a sample now needs manage (SPEC-007, decisions D4); a superuser is not credited (ARCH-004, decisions D7)"
       ]
     }
   },
@@ -169,6 +183,16 @@
           "attempts": 0
         },
         {
+          "id": "T021a",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
           "id": "T017",
           "status": "todo",
           "attempts": 0
@@ -203,7 +227,7 @@
           "attempts": 0
         },
         {
-          "id": "T022",
+          "id": "T022a",
           "status": "todo",
           "attempts": 0
         },

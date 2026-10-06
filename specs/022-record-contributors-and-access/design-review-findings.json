@@ -1,0 +1,153 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "S3R design review of specs/022-record-contributors-and-access plan.md, research.md and tasks.md against the approved spec.md, with sketch.md, decisions.md, CONSTITUTION.md and CONTEXT.md. One reviewer, three lenses; each finding's lens is in its id prefix (SPEC = spec-compliance, SEC = security, ARCH = architecture) and named at the start of its claim. No diff exists at this stage. Code read: fairdm/contrib/contributors/{access.py, permissions.py, receivers.py, adapters.py, services/merge.py, services/claiming.py, utils/__init__.py}, fairdm/contrib/contributors/models.py (Person, Contribution, ContributorIdentifier, credited_object_ids), fairdm/core/{permissions.py, managers.py, utils.py, abstract.py, plugins.py}, fairdm/core/sample/{permissions.py, plugins.py, forms.py}, fairdm/core/measurement/{permissions.py, forms.py, filters.py}, fairdm/core/dataset/{plugins.py, forms.py, filters.py, views.py, models.py Meta}, fairdm/core/project/{plugins.py, forms.py, views.py, models.py Meta}, fairdm/permissions.py, fairdm/portal_roles.py, fairdm/conf/settings/auth.py, fairdm/api/{permissions.py, filters.py, serializers.py, viewsets.py}, fairdm/contrib/plugins/{access.py, utils.py}, fairdm/contrib/import_export/views.py, fairdm/utils/permissions.py, demo/seed/{common.py, contributors.py}. Both sides checked where one was relied on: has_perm callers AND the get_objects_for_user callers that never go through a backend; guardian readers AND guardian writers; user-level AND group-level rows; rows under the base content type AND under a registered subtype's; the page route AND the API route to each record; visible_to for a level on the dataset AND for a level on the sample itself; the person merge path (an organization merge path does not exist in services/merge.py). Research premise spot-check: research.md row 5 (django-ordered-model up()/down() swap across records when no order_with_respect_to is set) confirmed in the resolved package, .venv/lib/python3.13/site-packages/ordered_model/models.py:186-201 and 251-257. The ORCID expanded-search and ROR v2 response shapes in research.md row 11 are uncited and could not be checked offline (see notes). Not reviewed: template markup, copy, the seed data's content, and the test database's row-locking support.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ARCH-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[architecture] plan.md D2 stops stored guardian rows applying to core records and D7 deletes them, but the plan names only one of the places that read those rows directly (visible_to). Six other call sites look rows up with get_objects_for_user and never ask a backend, and four more keep writing rows nothing will read. After the upgrade the readers return nothing, and they never see a level set on the tab, so people lose things they could do before (FR-063, SC-010) and pages disagree with has_perm (FR-051).",
+      "evidence": "Readers that bypass every backend: fairdm/api/filters.py:79 (API list: a private record disappears from the list for its own creator and for every level holder, while the detail endpoint still answers 200 through has_perm; spec Assumptions say the API's rules about what it serves are unchanged); fairdm/core/sample/forms.py:71 and fairdm/core/measurement/forms.py:65 (SampleFormMixin and MeasurementFormMixin, the documented base for a portal's own forms, offer only datasets with a stored change_dataset row, so the dataset field offers nothing and any form carrying it cannot validate, against FR-036); fairdm/core/measurement/filters.py:149; fairdm/core/dataset/filters.py:77; fairdm/core/dataset/plugins.py:704; demo/models.py:124. Writers left behind: fairdm/api/serializers.py:28 and :71 (get_permissions_map grants the API creator view/change/delete rows on a new sample or measurement, which will then grant nothing); fairdm/contrib/contributors/receivers.py:19 (remove_all_model_perms on credit deletion, now dead); demo/seed/common.py:95 grant_team_rights and demo/seed/projects.py:285, 337, 398 (seeded staff.user rights that vanish once T018 lands; tasks.md T004 names only demo/seed/contributors.py). plan.md D2 and tasks.md T016/T018 name visible_to and nothing else.",
+      "suggested_fix": "plan.md D2: add one sentence listing these call sites and stating that each reader is switched to the same level query visible_to is rewritten on (the one queryset of records a user holds at least a given level on, directly or from above, exposed once from access.py or the core querysets), and each writer is either switched to services/crediting.py or deleted. tasks.md: add the readers and writers to T018's implementation list by file, add to T015/T016 one case per reader (a level holder with no guardian row is offered or listed; a stored row alone is not), and extend T004's seed bullet to demo/seed/common.py and demo/seed/projects.py. No new mechanism: the query already has to exist for visible_to."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The rewritten visible_to admits a sample or measurement only through a level on its dataset or project. A person listed on the sample or measurement itself is left out, so the record's own overview and tab answer 404 to its own contributor while has_perm says they may view it. That breaks FR-046 and FR-048 for samples and measurements and FR-051 for both.",
+      "evidence": "plan.md D2: 'CoreRecordQuerySet.visible_to(user) ... is rewritten to the datasets the user holds a level on, directly or through the project'. tasks.md T016: 'visible_to returns records in datasets the user holds a level on, directly or through the project, and not others'. The sample and measurement overviews decide who may open the record with exactly this queryset: fairdm/core/plugins.py:471-474 (_visible_through: base_model.objects.visible_to(request.user).filter(pk=obj.pk).exists()), and plan.md D5 makes the Contributors tab reuse the overview's check. spec.md FR-046: 'A person listed on a record MUST be able to open it at their level whatever the visibility of the records above it'. The spec's own first story credits a sample's collector on the sample alone, and FR-038 gives that person the view level; under the plan they cannot open it while its dataset is private.",
+      "reproduction": "Private dataset D, sample S in D. Add person P on S's Contributors tab (view level, FR-038). P holds nothing on D or its project. P.has_perm('sample.view_sample', S) is True through RecordLevelBackend; Sample.objects.visible_to(P).filter(pk=S.pk).exists() is False; S's overview and tab return 404.",
+      "suggested_fix": "plan.md D2: change the visible_to sentence to 'the records the user holds a level on themselves, and the records in datasets the user holds a level on directly or through the project'. tasks.md T016: replace 'and not others' with two named cases, a person listed only on the sample or measurement sees that record and not its siblings, and a person with no level anywhere sees neither. tasks.md T017: add the sample-and-measurement form of scenario 10 (listed on a sample in a private dataset: the sample opens, the dataset stays closed)."
+    },
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The plan puts change_<model> at the edit level and leaves the existing update forms as they are, but those forms carry the record's visibility and its parent. An edit-level contributor can therefore make a private dataset or project public, which FR-037 and story 4 scenario 3 reserve for manage, and can raise themself to manage by moving a dataset into a project they manage, because rights flow from the record above (FR-044). No task tests or prevents either.",
+      "evidence": "research.md permission table: edit = change_<model>. fairdm/core/dataset/plugins.py:122 Update.permission = 'dataset.change_dataset' with form_class DatasetForm; fairdm/core/dataset/forms.py:106 fields = ['image', 'name', 'project', 'license', 'reference', 'visibility'], and :124-131 offers every project the user is a contributor on (request.user.projects.all()). fairdm/core/project/plugins.py:120 Update.permission = 'project.change_project'; fairdm/core/project/forms.py:73 fields include 'visibility' and 'owner'. plan.md D8 refuses a move only when it would leave managers(record) empty, so the move below is accepted. tasks.md T017 tests scenario 3 as 'an editor may use the record's update page and is refused its delete page and the tab's changing pages', which leaves visibility out. The declared permissions change_dataset_settings and change_project_settings are mapped to manage in research.md and are checked nowhere in fairdm/ today.",
+      "reproduction": "E holds edit on private dataset D. Any signed-in person may create a project (fairdm/core/project/views.py:45, LoginRequiredMixin only), so E creates project P and is its manager. E opens D's update page, sets project = P and saves. level_of(E, D) is now manage through P: E can change D's contributors, publish it and delete it. Separately, E sets visibility to public on the same form and saves.",
+      "suggested_fix": "plan.md D5 or D8: state that on the existing update forms of the four record types the visibility field and the parent field (project on a dataset, dataset on a sample or measurement, owner on a project) are editable only by someone for whom access.can_manage(user, record) is true, and are left out of the form otherwise. Using can_manage keeps the Data Curator able to do what they do today (FR-060, FR-062). tasks.md T017: add to the scenario 3 case that an editor's POST changing visibility or the parent leaves both unchanged, and that a manager's succeeds; implement in T018. If Forge judges the update forms belong to the editing-pages feature (#404, spec Assumptions), that deferral has to be put to Sam, because story 4 scenario 3 cannot be demonstrated without it."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Story order leaves story 4's commit with a broken core flow. T018 makes stored guardian rows grant nothing on core records, but the two things that replace them arrive in story 5: the create pages still write guardian rows until T024, and the data migration that converts existing rows is also T024. At story 4's accepted commit a person who creates a project or dataset cannot open it, and every record that was not seeded through the service is closed to its own team. Tests-first then forces the story 4 implementer either to pull story 5's work forward unplanned or to edit existing creation tests to assert a lock-out.",
+      "evidence": "tasks.md T018 (Phase 4): 'core records refused by PolymorphicObjectPermissionBackend; the sample and measurement backends removed'. tasks.md T024 (Phase 5): 'the two create pages; ... the data migration'. fairdm/core/dataset/views.py:43-53 and fairdm/core/project/views.py:61-70 grant the creator five guardian rows and nothing else; a dataset is private by default (comment at fairdm/core/dataset/views.py:43). plan.md Watch items says 'The migration lands in the first story', which contradicts tasks.md, where the schema is T004, SET_NULL is T009 and the data step is T024. plan.md D7 also calls it 'One migration'.",
+      "suggested_fix": "tasks.md: move from T024 into T018 the make_creator function, its use on the two create pages, and the D7 data step; move the creation half of T021 and all of T022 from Phase 5 into Phase 4 ahead of T018. Phase 5 keeps the last-manager rule, the row lock, D8 and D9. Then correct plan.md's watch item to name the story each migration step lands in, and state in D7 that the three steps are squashed into one migration before the pull request."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The plan says the backend covers registered subtypes but does not say how in the three places where a subtype differs from its core model. (1) Permission names: the API and one shared helper ask for the subtype's own codename, which is not in the table, so the backend's 'False for an unknown permission' refuses every level holder on every registered sample and measurement type. (2) The upgrade reads rows 'on the four core models', but the API has been writing creator rows under the subtype's content type with the subtype's codenames. (3) Guardian rows for change_sample sit under the base content type, while contributions on a sample or measurement are stored under the subtype's, so a migration that carries the row's content type across writes levels that the record never finds. Each one loses access (FR-063) or leaves a registered type behaving differently (FR-001, story 1 scenario 11, FR-043).",
+      "evidence": "(1) fairdm/api/permissions.py:36-44 with :95-97 builds '%(app_label)s.view_%(model_name)s' from obj.__class__, giving e.g. demo.view_rocksample; fairdm/contrib/plugins/utils.py:65 builds change_<model_name> from the instance. plan.md D2: 'False for an unknown permission'. (2) fairdm/api/serializers.py:28-36 and :71-79: get_permissions_map uses self.Meta.model._meta.model_name, so a generated subtype serializer grants view_/change_/delete_<subtype> under the subtype's content type. research.md 'The upgrade': 'Guardian's user-level rows on the four core models are read once'. (3) fairdm/contrib/contributors/models.py:318-320: 'Credits on samples and measurements are stored under the concrete subclass's content type, which a reverse GenericRelation from the base cannot match'; fairdm/core/utils.py get_permission_target files base-declared permissions under the base. tasks.md T022 names no registered-subtype case.",
+      "suggested_fix": "plan.md D2: say that required_level reads a subtype's own default codenames (view_, add_, change_, delete_ followed by the subtype's model name) as the core model's. plan.md D7 and research.md 'The upgrade': say the data step reads rows under the four core content types and under every subtype's, maps by action, and writes each contribution under the record's own (polymorphic) content type. tasks.md T015: add one registered sample type asked with its own app-labelled permission. tasks.md T022: add a registered subtype with one row under the base content type and one under its own."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The plan knowingly drops rights held through a group-level guardian row on a core record and records it in the changelog. FR-063 and SC-010 say no person loses anything, with no exception for how the right was held, and decisions.md records no ruling that allows one. This is a departure from the approved spec made inside the plan.",
+      "evidence": "research.md 'The upgrade': 'Group-level rows are left alone and stop applying to core records, which is recorded in the changelog and the administrator guide'; tasks.md T025 documents it. spec.md FR-063: 'Bringing a portal up to date MUST leave every person able to do on every record what they could do before'. fairdm/core/utils.py:100 assign_perm accepts a group, so such rows can exist; nothing in fairdm/ writes one, so the affected population is portals that granted them in code or a shell.",
+      "suggested_fix": "research.md 'The upgrade' and plan.md D7: the data step also reads group-level rows on core records and gives each current member of the group the level those rows map to, by the same rule as a user-level row. tasks.md T022: add that case. If Forge would rather keep the plan as written, it is a spec change and goes to Sam as one; it cannot stay a changelog line."
+    },
+    {
+      "id": "SPEC-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Contribution has a model hook that fills an empty affiliation from the person's primary affiliation on creation. The plan removes the same fallback from two display components and does not mention the hook. With it in place, choosing no organization stores the primary affiliation anyway (FR-023, FR-024, story 2 scenarios 2 and 5), and every credit made outside the service (add_contributor, Contribution.add_to, the admin, an import) gains an organization that is not among the record's organizations (FR-025, SC-009).",
+      "evidence": "fairdm/contrib/contributors/models.py, Contribution.set_default_affiliation (@hook(BEFORE_CREATE)): 'if not self.affiliation and self.is_person(): ... self.affiliation = org.organization'. research.md row 14 and plan.md D10 name only c-contributor.item and c-contributor.card.person. plan.md D3 add(record, contributor, *, organization=None) passes None straight to that hook.",
+      "suggested_fix": "tasks.md T009: delete the set_default_affiliation hook; the default lives only as the initial value of the AffiliationChoice field, where the spec puts it. tasks.md T006: add 'adding a person with no organization stores none when they have a primary affiliation'. This removes code and adds one test case."
+    },
+    {
+      "id": "SPEC-006",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] plan.md D9 changes the merge service and T024 implements it, but no test task covers it. T024 is 'Implement to make T020 to T023 pass', and none of T020 to T023 mentions merging, so the spec's merge edge case can regress with every test green, and the tests-first rule in tasks.md is not met for this change.",
+      "evidence": "plan.md D9; tasks.md T024 lists 'the merge service'; tasks.md T020-T023 contain no merge case. spec.md Edge Cases: 'The merged person holds the higher of the two levels on each record, appears on it once, and keeps the organization the surviving entry was credited from'. fairdm/contrib/contributors/services/merge.py:70-84 deletes the discarded duplicate contribution today, which after D1 silently discards its level. CONSTITUTION.md Article I.",
+      "suggested_fix": "tasks.md: add to T020, or to the existing merge test module, three cases: the kept contribution takes the higher level; a non-duplicate contribution moves with its level; the kept entry's organization is unchanged."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[architecture] The plan's Constitution check claims Article X is met by putting related functions in one module. Article X's own test says the opposite: two or more module-level functions sharing a subject belong on a class. access.py is planned as about nine functions that all take the record first, services/crediting.py as six that take the record or its contribution, and services/registries.py as four plus two. The code review stage treats this as blocking, so it is cheaper to settle here.",
+      "evidence": "plan.md Constitution check row X and D2, D3, D4. CONSTITUTION.md Article X: 'two or more module-level functions that share a subject belong on a class. They share a subject when they operate on the same data, take the same first argument ...'; 'Django first ... a QuerySet or Manager method instead of a function taking a queryset, a model method or property instead of a function taking an instance'. plan.md D2 says it keeps 'the names the templates' context relies on', but templates read context names, not module function names, so this does not constrain the shape.",
+      "suggested_fix": "plan.md D2 and D3: one class per subject holding today's behaviour and nothing more, for example the record's access questions on one class constructed with the record, and the contributor changes on one class constructed with the record, which also gives the transaction and the row lock one home. D4: one class per registry is not needed; one class with the search and fetch methods is enough. No base class, no registry of implementations (Article III). Update the Constitution check row to match."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[security] plan.md D4 fetches a registry record again by the identifier posted from the form, which is the right defence against forged names, but it does not say the identifier is validated before it is put into the request path, or that the search term is sent as a query parameter. The existing code builds the address by string interpolation. A posted identifier containing path or query characters would make the server request a different address on the registry's host.",
+      "evidence": "plan.md D4 and Constitution check row V ('fetched again by identifier on the server ... two fixed hosts with a timeout'). fairdm/contrib/contributors/tasks.py:66: url = f\"https://pub.orcid.org/v3.0/{orcid_id}\". An ORCID pattern already exists at fairdm/contrib/contributors/models.py:841 and a ROR cleaner at fairdm/contrib/contributors/utils/transforms.py:663. The host is fixed, so reach is limited to the two public registries; confirming it needs the implementation.",
+      "suggested_fix": "plan.md D4: one sentence. fetch_orcid and fetch_ror refuse an identifier that does not match the registry's format before any request is made, reusing the existing pattern and cleaner, and both searches pass the term through requests' params. tasks.md T011: one case each for a malformed identifier making no request."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[security] A person entered by hand may carry an email address, and Person.email is unique. The plan and T012 cover a same-name match and say nothing about an address the portal already holds. As planned the save either fails with a server error or reports that the address is taken, and since any signed-in person can create a project and so manage a record, the page becomes a way to ask whether an address has an account.",
+      "evidence": "fairdm/contrib/contributors/models.py Person.email (unique=True) and the unique_person_email_ci constraint with the message 'A person with this email address already exists'. fairdm/core/project/views.py:45 ProjectCreateView is LoginRequiredMixin only. plan.md D5 NewPersonForm: 'the typed fields, with the same-name check'. spec.md FR-017 says the address must not be shown publicly; FR-018 covers names only.",
+      "suggested_fix": "plan.md D5: NewPersonForm turns an address the portal already holds into a field error that does not name or offer the profile behind it. tasks.md T012: add that case to TestAddByHand."
+    },
+    {
+      "id": "SPEC-007",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Fault in spec.md, not the plan. Today a person holding change_dataset on a dataset may delete its samples. The plan follows FR-037 and puts delete_<model> at manage, so after the upgrade a dataset editor who was not also given delete_dataset can no longer delete that dataset's samples. FR-037 and SC-010 cannot both hold for that person, and the plan cannot fix it without either raising them to manage on the dataset or listing them on every sample.",
+      "evidence": "fairdm/core/sample/permissions.py:61: 'sample.delete_sample': 'dataset.change_dataset'. research.md table: manage = delete_<model>. spec.md SC-010 and story 5 scenario 7 ('could open, change or delete a record before'). Reach is small: the create pages grant change and delete together, so only rows granted in code or a shell produce this person, and the portal has no sample delete page, only the API.",
+      "suggested_fix": "No plan edit. Record it in decisions.md as a known narrowing and name it in the changelog entry T025 writes. If Sam wants it kept exactly, that is a spec change through a delta brief."
+    },
+    {
+      "id": "ARCH-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] The 'can sign in' method on Person is scheduled in story 4 but needed in story 1. managers() leaves out a person who cannot sign in, and T001 tests that in Phase 1.",
+      "evidence": "tasks.md T001: 'TestManagers: ... leaves out a person who cannot sign in'. tasks.md T018: 'Person gains the \"can sign in\" method 020's rule describes and Person.is_editable_by uses it'. The prototype's own copy of the rule is fairdm/contrib/contributors/access.py has_account, which T004 rebuilds.",
+      "suggested_fix": "tasks.md: move that clause from T018 to T004."
+    },
+    {
+      "id": "ARCH-004",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] Contribution.save raises ValueError for a superuser outside debug mode. The plan routes creation and the portal search through the service, which will meet that error for a superuser who creates a project or dataset, and for a superuser picked from the portal search, and answer with a server error unless the service turns it into one of its coded refusals.",
+      "evidence": "fairdm/contrib/contributors/models.py Contribution.save: 'Superusers cannot be contributors' raised as ValueError when settings.DEBUG is False. plan.md D3 lists five refusal codes and none for this; make_creator is called for whoever creates the record. The create pages call add_contributor today, so the creation half exists already; the portal-search half is new.",
+      "suggested_fix": "Carry as a watch item into the story 1 and story 5 briefs: the service refuses a superuser with a ValidationError the add page can show, and make_creator skips the credit for a superuser without failing the create."
+    }
+  ],
+  "notes": [
+    "plan.md D7 says 'One migration' while tasks.md spreads the schema, SET_NULL and data steps over T004, T009 and T024; say once that they are squashed before the pull request.",
+    "plan.md Watch items: 'The migration lands in the first story' is true only of the schema step.",
+    "plan.md D9 fills the kept entry's organization from the discarded one when the kept entry has none; the spec's edge case says the merged person 'keeps the organization the surviving entry was credited from', and none is a valid choice (FR-024). Drop 'and the organization when the kept entry has none'.",
+    "research.md 'Merging' leaves the organization merge 'if one exists at build time'; fairdm/contrib/contributors/services/merge.py has only merge_persons, so the spec's organization-merge edge case has nothing to act on and the pull request should say so.",
+    "research.md row 11: the ORCID expanded-search and ROR v2 response shapes are uncited and could not be checked offline. T011 should build its replaced responses from a recorded real response, and fetch_ror should use the same versioned path as the search (the existing code calls the unversioned api.ror.org/organizations/<id>).",
+    "tasks.md T008 gives two possible test paths; name one.",
+    "tasks.md T030 refuses a Portal Administrator as well; scenario 5 names only the Community Manager and Developer. It is consistent with FR-062 and the story's independent test, so keep it and cite those.",
+    "No task tests the spec edge case that deleting an organization leaves a person credited with none (the SET_NULL change in T009).",
+    "PolymorphicObjectPermissionBackend.get_all_permissions will still report leftover group rows on core records after D2; nothing in fairdm/ reads it for a decision.",
+    "Docstrings that describe the removed behaviour will need the same sweep: fairdm/api/permissions.py:28-33, fairdm/core/project/plugins.py and fairdm/core/dataset/plugins.py visible_to_holder_of, fairdm/core/plugins.py:591 and :632 (which also use the wrong app label 'samples').",
+    "fairdm/utils/permissions.py assign_all_model_perms and remove_all_model_perms are public helpers that only make sense for guardian rows; after ARCH-001 they have no caller for core records."
+  ]
+}

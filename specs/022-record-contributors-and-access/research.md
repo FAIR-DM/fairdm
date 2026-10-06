@@ -60,7 +60,9 @@ Every permission the four core models declare is mapped, so none is left uncheck
 | manage | `delete_<model>`, `add_contributor`, `modify_contributor`, `change_<model>_settings`, `can_publish` |
 
 A permission on a core record that is not in the table is refused, so a new one cannot be added
-without deciding its level. `can_publish` sits with manage until the feature that builds publishing
+without deciding its level. A registered subtype's own default permissions are read as the core
+model's. The response shapes of the two registries' search endpoints are taken from their public
+documentation and are to be confirmed against a recorded real response when the tests are written. `can_publish` sits with manage until the feature that builds publishing
 says otherwise.
 
 ### Who may manage contributors
@@ -74,8 +76,10 @@ second is how the Data Curator role reaches the tab without the role's permissio
 Guardian's user-level rows on the four core models are read once. For each person and record the
 highest level any of their rows maps to is written to their contribution, which is made when they
 have none. The rows are then deleted. Existing contributions of people with no rows get the view
-level. Group-level rows are left alone and stop applying to core records, which is recorded in the
-changelog and the administrator guide. `Contribution.affiliation` changes from `PROTECT` to
+level. Group-level rows are read the same way: each current member of the group gets the level the
+group's rows map to, so nobody loses access (FR-063). Rows are read under the four core content
+types and under every registered subtype's, because the API files a subtype's rows under the
+subtype. Each contribution is written under the record's own content type. `Contribution.affiliation` changes from `PROTECT` to
 `SET_NULL`, so deleting an organization leaves the person credited with none. Each organization a
 person is already credited from gets an entry on that record.
 
@@ -89,8 +93,8 @@ form reaches it.
 
 `services/merge.py` moves a discarded person's contributions to the kept one and skips duplicates,
 and copies guardian rows. With levels on the contribution, a skipped duplicate has to pass on its
-level when it is higher. Organizations are merged by the same service's organization path, if one
-exists at build time. If none does, the edge case in the specification has nothing to act on.
+level when it is higher. The service has no path that merges organizations, so the specification's edge case about merged
+organizations has nothing to act on.
 
 ### Packages considered
 
