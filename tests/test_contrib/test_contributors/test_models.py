@@ -2981,3 +2981,28 @@ class TestContributorUpdateUrl:
 
         assert match.view_name == "contributor:overview-update"
         assert match.kwargs == {"uuid": contributor.uuid}
+
+
+@pytest.mark.django_db
+class TestPersonCanSignIn:
+    def test_an_active_claimed_person_can(self):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is True
+
+    def test_an_active_person_who_signed_in_without_being_marked_claimed_can(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+        person.last_login = timezone.now()
+        person.save()
+
+        assert person.can_sign_in() is True
+
+    def test_a_person_who_never_signed_in_and_never_claimed_cannot(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+
+        assert person.can_sign_in() is False
+
+    def test_an_inactive_person_cannot(self):
+        person = PersonFactory(is_active=False, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is False

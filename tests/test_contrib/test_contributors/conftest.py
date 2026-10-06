@@ -385,3 +385,36 @@ def organization_profile_data():
         "website": "https://example.org",
         "links": "https://example.net/wiki\nhttps://example.org/news",
     }
+
+
+@pytest.fixture
+def record_chain(db):
+    """A project, a dataset in it, a sample in that dataset, and a measurement of the sample.
+
+    The measurement belongs to a second dataset of the same project, so it is not in its
+    sample's dataset.
+    """
+    project = ProjectFactory()
+    dataset = DatasetFactory(project=project)
+    other_dataset = DatasetFactory(project=project)
+    sample = RockSampleFactory(dataset=dataset)
+    measurement = ExampleMeasurementFactory(dataset=other_dataset, sample=sample)
+    return SimpleNamespace(
+        project=project,
+        dataset=dataset,
+        other_dataset=other_dataset,
+        sample=sample,
+        measurement=measurement,
+    )
+
+
+@pytest.fixture
+def grant():
+    """Credit a person on a record at a level, and return the contribution."""
+
+    def give(record, person, level):
+        return ContributionFactory(
+            content_object=record, contributor=person, level=level
+        )
+
+    return give
