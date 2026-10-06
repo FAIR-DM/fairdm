@@ -512,7 +512,7 @@
       "id": "US5",
       "priority": "P2",
       "issue": 424,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -718,7 +718,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 83.65,
+      "used": 86.92,
       "max": 120
     }
   },
