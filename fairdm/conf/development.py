@@ -27,8 +27,9 @@ SECRET_KEY = env(
     default="django-insecure-dev-key-CHANGE-THIS-IN-PRODUCTION",
 )
 
-# Never "*", and never in the production baseline, where an unset domain resolves to [].
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# A development server is reached by whatever name the machine has on the local network.
+# Never in the production baseline, where an unset domain resolves to [].
+ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     "default": {

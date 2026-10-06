@@ -24,7 +24,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     path("account-center/", include("mvp.urls")),
-    path("account-center/", include("dac.urls")),
+    path("account-center/", include("allauth.urls")),
     # django-mvp mounts its landing page at ``account/`` inside ``mvp.urls``. Django reverses a
     # name to the last pattern that carries it, so this route, which keeps FairDM's address for
     # the same view, has to come after the include.
