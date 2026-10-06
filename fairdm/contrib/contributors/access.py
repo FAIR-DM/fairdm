@@ -49,6 +49,11 @@ class RecordAccess:
         """The core model the record belongs to, whatever registered type it is."""
         return getattr(self.record, "type_of", None) or type(self.record)
 
+    @property
+    def kind(self):
+        """The word for the record's kind: project, dataset, sample or measurement."""
+        return self.model._meta.verbose_name
+
     @cached_property
     def above(self):
         """The records this one takes levels from, nearest first.

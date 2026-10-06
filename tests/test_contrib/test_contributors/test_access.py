@@ -34,6 +34,25 @@ def signed_in():
 
 
 @pytest.mark.django_db
+class TestKind:
+    @pytest.mark.parametrize(
+        ("kind", "model"),
+        [
+            ("project", Project),
+            ("dataset", Dataset),
+            ("sample", Sample),
+            ("measurement", Measurement),
+        ],
+    )
+    def test_a_record_is_named_for_its_core_model_whatever_registered_type_it_is(
+        self, record_chain, kind, model
+    ):
+        record = getattr(record_chain, kind)
+
+        assert RecordAccess(record).kind == model._meta.verbose_name
+
+
+@pytest.mark.django_db
 class TestRecordsAbove:
     def test_a_project_has_nothing_above_it(self, record_chain):
         assert RecordAccess(record_chain.project).above == []

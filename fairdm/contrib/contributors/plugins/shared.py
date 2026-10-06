@@ -31,14 +31,9 @@ from ..models import Contribution, Contributor, Organization, Person
 from ..services.crediting import Crediting
 
 
-def type_name(record):
-    """Return the word for a record's kind: project, dataset, sample or measurement."""
-    return RecordAccess(record).model._meta.verbose_name
-
-
 def level_choices(record, floor=None):
     """Return the three levels as the edit page draws them, marking those below ``floor``."""
-    kind = type_name(record)
+    kind = RecordAccess(record).kind
     hints = {
         ContributionLevel.VIEW: _("Open this %(kind)s while it is private.")
         % {"kind": kind},
@@ -105,7 +100,7 @@ class ContributionPage(Plugin, FairDMTemplateView):
             "own": own,
             "above": above,
             "source": source,
-            "source_kind": type_name(source) if source else "",
+            "source_kind": RecordAccess(source).kind if source else "",
             "effective": effective,
             "manages": effective == ContributionLevel.MANAGE,
             "label": effective.label if effective else "",
@@ -231,7 +226,7 @@ class ContributionPage(Plugin, FairDMTemplateView):
         record = self.base_object
         context.update(
             record=record,
-            kind=type_name(record),
+            kind=RecordAccess(record).kind,
             list_url=self.list_url,
             can_manage=self.access.can_manage(self.request.user),
         )
@@ -587,7 +582,7 @@ class ContributionEdit(ContributionPage):
                 errors["level"] = _(
                     "%(name)s is the only person who can manage this %(kind)s. "
                     "Give someone else “Can manage” first."
-                ) % {"name": contributor, "kind": type_name(self.base_object)}
+                ) % {"name": contributor, "kind": self.access.kind}
 
         with transaction.atomic():
             try:
@@ -657,7 +652,7 @@ class ContributionRemove(ContributionPage):
         messages.success(
             request,
             _("%(name)s was removed from this %(kind)s.")
-            % {"name": contributor, "kind": type_name(record)},
+            % {"name": contributor, "kind": RecordAccess(record).kind},
         )
         return redirect(self.list_url)
 
@@ -758,7 +753,7 @@ class ContributionList(ContributionPage):
                     "person": person,
                     "label": level.label,
                     "source": source,
-                    "source_kind": type_name(source),
+                    "source_kind": RecordAccess(source).kind,
                     "source_url": reverse(source, "contribution-list"),
                 }
                 for person, level, source in self.access.people_above()
@@ -773,6 +768,6 @@ class ContributionList(ContributionPage):
             access_from_above=access_from_above,
             parent=parents[0] if parents else None,
             parent_url=reverse(parents[0], "contribution-list") if parents else "",
-            parent_kind=capfirst(type_name(parents[0])) if parents else "",
+            parent_kind=capfirst(RecordAccess(parents[0]).kind) if parents else "",
         )
         return context
