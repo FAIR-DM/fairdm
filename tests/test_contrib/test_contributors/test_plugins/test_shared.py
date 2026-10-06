@@ -5,24 +5,41 @@ registered measurement type, as a manager, as a signed-in reader and as a visito
 found by link target and context value. Nothing here asserts a sentence or a layout.
 """
 
+from types import SimpleNamespace
 from urllib.parse import urlparse
 
 import pytest
+import requests
 from bs4 import BeautifulSoup
 from django.contrib.messages import ERROR, get_messages
 from django.test import Client
 from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.access import RecordAccess
-from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Contribution, Organization
+from fairdm.contrib.contributors.choices import AccountState, ContributionLevel
+from fairdm.contrib.contributors.models import (
+    Contribution,
+    ContributorIdentifier,
+    Organization,
+    Person,
+)
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import (
-    AffiliationFactory,
     ContributionFactory,
+    ContributorIdentifierFactory,
     OrganizationFactory,
     PersonFactory,
 )
+
+ORCID_SEARCH = "https://pub.orcid.org/v3.0/expanded-search/"
+ROR_SEARCH = "https://api.ror.org/v2/organizations"
+JOSIAH = "0000-0002-1825-0097"
+GFZ = "04z8jg394"
+UNREACHABLE = [
+    pytest.param(requests.Timeout("slow"), 200, id="timeout"),
+    pytest.param(requests.ConnectionError("down"), 200, id="connection-error"),
+    pytest.param(None, 500, id="server-error"),
+]
 
 
 def tab(record):
@@ -76,6 +93,27 @@ def add_from_portal(record, manager, person, **chosen):
     )
 
 
+def made():
+    """How many profiles and identifiers the portal holds, to compare before and after."""
+    return (
+        Person.objects.count(),
+        Organization.objects.count(),
+        ContributorIdentifier.objects.count(),
+    )
+
+
+def orcid_record_address(orcid_id):
+    return f"https://pub.orcid.org/v3.0/{orcid_id}/record"
+
+
+def ror_record_address(ror_id):
+    return f"https://api.ror.org/v2/organizations/{ror_id}"
+
+
+def soup_of(response):
+    return BeautifulSoup(response.content.decode(), "html.parser")
+
+
 def role_pks(*names):
     found = Concept.objects.filter(vocabulary__name="fairdm-roles", name__in=names)
     return [str(pk) for pk in found.values_list("pk", flat=True)]
@@ -118,8 +156,10 @@ class TestContributorsTab:
     def test_nobody_else_is_offered_a_control(
         self, request, record, colleague, partner, viewer
     ):
-        user = None if viewer == "visitor" else request.getfixturevalue(
-            "newcomer" if viewer == "stranger" else viewer
+        user = (
+            None
+            if viewer == "visitor"
+            else request.getfixturevalue("newcomer" if viewer == "stranger" else viewer)
         )
 
         response = browser_as(user).get(tab(record))
@@ -261,7 +301,10 @@ class TestAddFromPortal:
             page_of(record, "add-person"), {"q": colleague.contributor.name}
         )
 
-        results = {r["contributor"].pk: r["listed"] for r in response.context["adding"]["results"]}
+        results = {
+            r["contributor"].pk: r["listed"]
+            for r in response.context["adding"]["results"]
+        }
         assert results[colleague.contributor_id] is True
 
     def test_someone_already_listed_cannot_be_added_again(
@@ -332,7 +375,9 @@ class TestEditRoles:
         assert stored(record) == before
 
     def test_no_role_is_allowed(self, record, manager, colleague):
-        colleague.roles.add(*Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0]))
+        colleague.roles.add(
+            *Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0])
+        )
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -352,9 +397,7 @@ class TestRemoveContributor:
         assert Contribution.objects.filter(pk=colleague.pk).exists()
 
     def test_confirming_removes_the_contributor(self, record, manager, colleague):
-        response = browser_as(manager).post(
-            page_of(record, "remove", pk=colleague.pk)
-        )
+        response = browser_as(manager).post(page_of(record, "remove", pk=colleague.pk))
 
         assert response["Location"] == tab(record)
         assert not Contribution.objects.filter(pk=colleague.pk).exists()
@@ -767,3 +810,1000 @@ class TestOrganizationRemoval:
 
         assert row_of(response, institutes.today)["removable"] is True
         assert Contribution.objects.filter(pk=credited_from.pk).exists()
+
+
+def orcid_way(registry_network, recorded):
+    """ORCID behind the page for adding a person, with its responses replaced."""
+    registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+    registry_network.answer(orcid_record_address(JOSIAH), recorded("orcid-record"))
+
+    def answer_search(more=False, empty=False):
+        body = recorded("orcid-search")
+        body["num-found"] = 3 + (60 if more else 0)
+        if empty:
+            body = {"expanded-result": None, "num-found": 0}
+        registry_network.answer(ORCID_SEARCH, body)
+
+    return SimpleNamespace(
+        page="add-person",
+        model=Person,
+        type="ORCID",
+        term="Carberry",
+        identifier=JOSIAH,
+        stored=JOSIAH,
+        name="Josiah Carberry",
+        search_address=ORCID_SEARCH,
+        record_address=orcid_record_address(JOSIAH),
+        answer_search=answer_search,
+        network=registry_network,
+        factory=PersonFactory,
+    )
+
+
+def ror_way(registry_network, recorded):
+    """ROR behind the page for adding an organization, with its responses replaced."""
+    registry_network.answer(ROR_SEARCH, recorded("ror-search"))
+    registry_network.answer(ror_record_address(GFZ), recorded("ror-record"))
+
+    def answer_search(more=False, empty=False):
+        body = recorded("ror-search")
+        if empty:
+            body = {"number_of_results": 0, "items": []}
+        elif more:
+            body["number_of_results"] = 214
+        registry_network.answer(ROR_SEARCH, body)
+
+    return SimpleNamespace(
+        page="add-organization",
+        model=Organization,
+        type="ROR",
+        term="Potsdam",
+        identifier=f"https://ror.org/{GFZ}",
+        stored=GFZ,
+        name="GFZ Helmholtz Centre for Geosciences",
+        search_address=ROR_SEARCH,
+        record_address=ror_record_address(GFZ),
+        answer_search=answer_search,
+        network=registry_network,
+        factory=OrganizationFactory,
+    )
+
+
+@pytest.fixture
+def way_person(registry_network, recorded):
+    """ORCID alone, for what only the page for adding a person has."""
+    return orcid_way(registry_network, recorded)
+
+
+@pytest.fixture
+def way(request, registry_network, recorded):
+    """The registry behind one of the two add pages: ORCID for a person, ROR for an organization."""
+    build = {"person": orcid_way, "organization": ror_way}[request.param]
+    return build(registry_network, recorded)
+
+
+both_ways = pytest.mark.parametrize("way", ["person", "organization"], indirect=True)
+
+
+@pytest.mark.django_db
+class TestAddPages:
+    @pytest.mark.parametrize("page", ["add-person", "add-organization"])
+    def test_each_page_carries_all_three_ways_in_one_response(
+        self, record, manager, registry_network, page
+    ):
+        response = browser_as(manager).get(page_of(record, page))
+
+        soup = soup_of(response)
+        assert response.status_code == 200
+        for tab_id in ("tab-portal", "tab-registry", "tab-new"):
+            assert soup.find(id=tab_id) is not None
+        assert len(soup.select("input[role=tab]")) == 3
+        assert registry_network.calls == []
+
+    @pytest.mark.parametrize("page", ["add-person", "add-organization"])
+    @pytest.mark.parametrize(
+        ("via", "open_tab"), [("portal", 0), ("registry", 1), ("new", 2)]
+    )
+    def test_a_response_reopens_on_the_way_named_in_the_address(
+        self, record, manager, page, via, open_tab
+    ):
+        response = browser_as(manager).get(page_of(record, page), {"via": via})
+
+        radios = soup_of(response).select("input[role=tab]")
+        assert [i for i, radio in enumerate(radios) if radio.has_attr("checked")] == [
+            open_tab
+        ]
+        adding = response.context["adding"]
+        assert [adding["on_portal"], adding["on_registry"], adding["on_new"]] == [
+            i == open_tab for i in range(3)
+        ]
+
+    @pytest.mark.parametrize("page", ["add-person", "add-organization"])
+    def test_a_way_nobody_named_opens_on_the_portal(self, record, manager, page):
+        for via in ({}, {"via": "elsewhere"}):
+            response = browser_as(manager).get(page_of(record, page), via)
+
+            assert response.context["adding"]["on_portal"] is True
+
+    @both_ways
+    def test_each_way_keeps_its_own_search_term(self, record, manager, way):
+        response = browser_as(manager).get(
+            page_of(record, way.page), {"via": "registry", "q": "Alice", "rq": way.term}
+        )
+
+        soup = soup_of(response)
+        assert soup.find(id="portal-search")["value"] == "Alice"
+        assert soup.find(id="registry-search")["value"] == way.term
+
+    @both_ways
+    def test_a_portal_search_does_not_ask_the_registry(self, record, manager, way):
+        browser_as(manager).get(
+            page_of(record, way.page), {"via": "portal", "q": "Alice", "rq": way.term}
+        )
+
+        assert way.network.calls == []
+
+    @pytest.mark.parametrize("page", ["add-person", "add-organization"])
+    def test_the_portal_search_says_when_there_are_more_results_than_it_shows(
+        self, record, manager, page
+    ):
+        factory = PersonFactory if page == "add-person" else OrganizationFactory
+        for number in range(30):
+            factory(name=f"Searchable {number:02d}")
+        address = page_of(record, page)
+
+        everything = browser_as(manager).get(
+            address, {"via": "portal", "q": "Searchable"}
+        )
+        narrowed = browser_as(manager).get(
+            address, {"via": "portal", "q": "Searchable 07"}
+        )
+
+        assert everything.context["adding"]["results_more"] is True
+        assert 0 < len(everything.context["adding"]["results"]) < 30
+        assert soup_of(everything).select_one("#tab-portal [data-results=more]")
+        assert narrowed.context["adding"]["results_more"] is False
+        assert soup_of(narrowed).select_one("#tab-portal [data-results=more]") is None
+
+    def test_nobody_but_a_manager_makes_anything_or_asks_a_registry(
+        self, record, manager, reader, newcomer, registry_network, recorded
+    ):
+        registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+        registry_network.answer(orcid_record_address(JOSIAH), recorded("orcid-record"))
+        registry_network.answer(ROR_SEARCH, recorded("ror-search"))
+        registry_network.answer(ror_record_address(GFZ), recorded("ror-record"))
+        person, organization = (
+            page_of(record, "add-person"),
+            page_of(record, "add-organization"),
+        )
+        requests_made = [
+            ("get", person, {"via": "registry", "rq": "Carberry"}),
+            ("get", person, {"via": "registry", "chosen": JOSIAH}),
+            ("get", organization, {"via": "registry", "rq": "Potsdam"}),
+            ("post", person, {"via": "registry", "registry_id": JOSIAH}),
+            ("post", organization, {"via": "registry", "registry_id": GFZ}),
+            ("post", person, {"via": "new", "given": "Una", "family": "Made"}),
+            ("post", organization, {"via": "new", "name": "Made Institute"}),
+        ]
+        before, listed = made(), stored(record)
+
+        for viewer, refused in ((reader, 403), (newcomer, 403), (None, 302)):
+            for method, address, data in requests_made:
+                response = getattr(browser_as(viewer), method)(address, data)
+                assert response.status_code == refused, (viewer, method, address, data)
+
+        assert made() == before
+        assert stored(record) == listed
+        assert registry_network.calls == []
+
+
+@pytest.mark.django_db
+class TestAddFromRegistry:
+    @both_ways
+    def test_a_search_lists_the_matches_with_a_way_to_choose_each(
+        self, record, manager, way
+    ):
+        response = browser_as(manager).get(
+            page_of(record, way.page), {"via": "registry", "rq": way.term}
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 200
+        assert adding["on_registry"] is True
+        assert adding["registry_unavailable"] is False
+        assert way.identifier in [r["id"] for r in adding["registry_results"]]
+        choices = soup_of(response).select("#tab-registry a[href*='chosen=']")
+        assert len(choices) == len(adding["registry_results"])
+        assert [call.url for call in way.network.calls] == [way.search_address]
+
+    @both_ways
+    def test_a_search_with_no_match_says_so_and_nothing_else_changes(
+        self, record, manager, way
+    ):
+        way.answer_search(empty=True)
+
+        response = browser_as(manager).get(
+            page_of(record, way.page), {"via": "registry", "rq": "Nobody"}
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 200
+        assert adding["registry_results"] == []
+        assert adding["registry_unavailable"] is False
+        assert adding["registry_more"] is False
+        assert soup_of(response).select("#tab-registry a[href*='chosen=']") == []
+
+    @both_ways
+    def test_the_page_says_when_a_registry_has_more_matches_than_it_shows(
+        self, record, manager, way
+    ):
+        address = page_of(record, way.page)
+        query = {"via": "registry", "rq": way.term}
+
+        way.answer_search(more=True)
+        more = browser_as(manager).get(address, query)
+        way.answer_search(more=False)
+        all_shown = browser_as(manager).get(address, query)
+
+        assert more.context["adding"]["registry_more"] is True
+        assert soup_of(more).select_one("#tab-registry [data-results=more]")
+        assert all_shown.context["adding"]["registry_more"] is False
+        assert (
+            soup_of(all_shown).select_one("#tab-registry [data-results=more]") is None
+        )
+
+    @both_ways
+    def test_a_chosen_record_is_fetched_by_identifier_and_nothing_is_made(
+        self, record, manager, way
+    ):
+        before = made()
+
+        response = browser_as(manager).get(
+            page_of(record, way.page),
+            {"via": "registry", "rq": way.term, "chosen": way.identifier},
+        )
+
+        chosen = response.context["adding"]["chosen"]
+        assert chosen["record"]["id"] == way.identifier
+        assert chosen["record"]["name"] == way.name
+        form = soup_of(response).select_one("#tab-registry input[name=registry_id]")
+        assert form["value"] == way.identifier
+        assert [call.url for call in way.network.calls] == [way.record_address]
+        assert made() == before
+
+    @both_ways
+    def test_adding_makes_the_profile_and_sends_the_manager_to_the_edit_page(
+        self, record, manager, way
+    ):
+        response = browser_as(manager).post(
+            page_of(record, way.page),
+            {"via": "registry", "registry_id": way.identifier},
+        )
+
+        contributor = way.model.objects.get(identifiers__value=way.stored)
+        added = record.contributors.get(contributor=contributor)
+        assert response.status_code == 302
+        assert response["Location"] == page_of(record, "edit", pk=added.pk)
+        assert contributor.name == way.name
+        assert contributor.identifiers.get().type == way.type
+
+    def test_a_person_added_from_orcid_has_no_account(
+        self, record, manager, way_person
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"), {"via": "registry", "registry_id": JOSIAH}
+        )
+
+        person = Person.objects.get(identifiers__value=JOSIAH)
+        assert person.email is None
+        assert not person.has_usable_password()
+        assert person.account_state == AccountState.GHOST
+        assert not person.can_sign_in()
+        assert RecordAccess(record).own_level(person) == ContributionLevel.VIEW
+
+    @both_ways
+    def test_the_profile_is_made_from_a_fresh_fetch_not_from_posted_fields(
+        self, record, manager, way
+    ):
+        browser_as(manager).post(
+            page_of(record, way.page),
+            {
+                "via": "registry",
+                "registry_id": way.identifier,
+                "name": "Mallory Forged",
+                "given": "Mallory",
+                "family": "Forged",
+                "detail": "Forged University",
+                "record": {"name": "Mallory Forged"},
+            },
+        )
+
+        assert way.network.calls[-1].url == way.record_address
+        assert way.model.objects.get(identifiers__value=way.stored).name == way.name
+        assert not way.model.objects.filter(name__icontains="Mallory").exists()
+
+    @both_ways
+    def test_an_identifier_that_is_not_well_formed_makes_no_request_and_nothing(
+        self, record, manager, way
+    ):
+        before, listed = made(), stored(record)
+
+        for forged in ("../0000-0001-5109-3700", "https://evil.example/x", "x" * 400):
+            response = browser_as(manager).post(
+                page_of(record, way.page), {"via": "registry", "registry_id": forged}
+            )
+            assert response.status_code < 500
+
+        assert way.network.calls == []
+        assert made() == before
+        assert stored(record) == listed
+
+    @both_ways
+    def test_an_identifier_the_registry_does_not_know_makes_nothing(
+        self, record, manager, way, recorded
+    ):
+        way.network.answer(way.record_address, recorded("ror-missing"), status=404)
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, way.page),
+            {"via": "registry", "registry_id": way.identifier},
+        )
+
+        assert response.status_code < 500
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_a_record_with_no_public_name_makes_nothing(
+        self, record, manager, way_person, recorded
+    ):
+        body = recorded("orcid-record")
+        body["person"]["name"] = None
+        way_person.network.answer(way_person.record_address, body)
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"), {"via": "registry", "registry_id": JOSIAH}
+        )
+
+        assert response.status_code < 500
+        assert made() == before
+        assert stored(record) == listed
+
+    @both_ways
+    def test_a_profile_the_portal_holds_under_the_identifier_is_used(
+        self, record, manager, way
+    ):
+        held = way.factory()
+        ContributorIdentifierFactory(related=held, type=way.type, value=way.stored)
+        before = made()
+
+        browser_as(manager).post(
+            page_of(record, way.page),
+            {"via": "registry", "registry_id": way.identifier},
+        )
+
+        assert made() == before
+        assert record.contributors.filter(contributor=held).exists()
+
+    @both_ways
+    def test_someone_already_on_the_record_is_not_added_again(
+        self, record, manager, way
+    ):
+        held = way.factory()
+        ContributorIdentifierFactory(related=held, type=way.type, value=way.stored)
+        ContributionFactory(content_object=record, contributor=held, level=None)
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, way.page),
+            {"via": "registry", "registry_id": way.identifier},
+        )
+
+        assert response.status_code < 500
+        assert ERROR in {m.level for m in get_messages(response.wsgi_request)}
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_a_person_from_orcid_is_asked_for_their_organization(
+        self, record, manager, way_person
+    ):
+        response = browser_as(manager).get(
+            page_of(record, "add-person"),
+            {"via": "registry", "rq": "Carberry", "chosen": JOSIAH},
+        )
+
+        values, selected = offered(response, "registry-affiliation")
+        assert values == ["other", "none"]
+        assert selected == ["other"]
+        suggested = soup_of(response).select_one(
+            "#registry-affiliation input[name=affiliation_name]"
+        )
+        assert suggested["value"] in {"Brown University", "Wesleyan University"}
+
+    def test_the_organization_chosen_for_a_person_from_orcid_is_kept_with_the_credit(
+        self, record, manager, way_person
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "registry",
+                "registry_id": JOSIAH,
+                "affiliation": "other",
+                "affiliation_name": "Brown University",
+            },
+        )
+
+        person = Person.objects.get(identifiers__value=JOSIAH)
+        brown = Organization.objects.get(name="Brown University")
+        assert record.contributors.get(contributor=person).affiliation == brown
+        assert record.contributors.filter(contributor=brown).exists()
+
+    def test_none_can_be_chosen_for_a_person_from_orcid(
+        self, record, manager, way_person
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "registry", "registry_id": JOSIAH, "affiliation": "none"},
+        )
+
+        person = Person.objects.get(identifiers__value=JOSIAH)
+        assert record.contributors.get(contributor=person).affiliation is None
+
+    def test_a_person_the_portal_holds_is_offered_their_own_affiliations(
+        self, record, manager, way_person, affiliate, institutes
+    ):
+        held = affiliate(PersonFactory())
+        ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
+
+        response = browser_as(manager).get(
+            page_of(record, "add-person"),
+            {"via": "registry", "rq": "Carberry", "chosen": JOSIAH},
+        )
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "registry",
+                "registry_id": JOSIAH,
+                "affiliation": f"org:{institutes.earlier.pk}",
+            },
+        )
+
+        values, _selected = offered(response, "registry-affiliation")
+        assert f"org:{institutes.today.pk}" in values
+        assert (
+            record.contributors.get(contributor=held).affiliation == institutes.earlier
+        )
+
+    def test_a_refused_organization_makes_no_profile_and_keeps_the_chosen_record(
+        self, record, manager, way_person
+    ):
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "registry",
+                "registry_id": JOSIAH,
+                "affiliation": "other",
+                "affiliation_name": " ",
+            },
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert "affiliation" in adding["errors"]
+        assert adding["on_registry"] is True
+        assert adding["chosen"]["record"]["id"] == JOSIAH
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_a_superuser_found_by_orcid_is_refused_without_an_error_page(
+        self, record, manager, way_person
+    ):
+        superuser = PersonFactory(is_active=True, is_superuser=True, password="x")
+        ContributorIdentifierFactory(related=superuser, type="ORCID", value=JOSIAH)
+        before = stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"), {"via": "registry", "registry_id": JOSIAH}
+        )
+
+        assert response.status_code < 500
+        assert stored(record) == before
+        assert ERROR in {m.level for m in get_messages(response.wsgi_request)}
+
+    @both_ways
+    @pytest.mark.parametrize(("error", "status"), UNREACHABLE)
+    def test_a_registry_that_cannot_be_reached_says_so_and_answers_200(
+        self, record, manager, way, error, status
+    ):
+        if error is not None:
+            way.network.fail(way.search_address, error)
+        else:
+            way.network.answer(way.search_address, {"errors": ["down"]}, status=status)
+
+        response = browser_as(manager).get(
+            page_of(record, way.page), {"via": "registry", "rq": way.term}
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 200
+        assert adding["registry_unavailable"] is True
+        assert adding["registry_results"] == []
+        assert adding["on_registry"] is True
+        assert soup_of(response).select_one("#tab-registry [data-registry=unavailable]")
+
+    @both_ways
+    def test_a_registry_that_can_be_reached_does_not_say_it_cannot(
+        self, record, manager, way
+    ):
+        response = browser_as(manager).get(
+            page_of(record, way.page), {"via": "registry", "rq": way.term}
+        )
+
+        assert soup_of(response).select_one("[data-registry=unavailable]") is None
+
+    @both_ways
+    def test_choosing_while_a_registry_cannot_be_reached_answers_200_and_makes_nothing(
+        self, record, manager, way
+    ):
+        way.network.fail(way.record_address, requests.ConnectionError("down"))
+        before, listed = made(), stored(record)
+        address = page_of(record, way.page)
+
+        chosen = browser_as(manager).get(
+            address, {"via": "registry", "rq": way.term, "chosen": way.identifier}
+        )
+        added = browser_as(manager).post(
+            address, {"via": "registry", "registry_id": way.identifier}
+        )
+
+        for response in (chosen, added):
+            assert response.status_code == 200
+            assert response.context["adding"]["registry_unavailable"] is True
+            assert response.context["adding"]["chosen"] is None
+        assert made() == before
+        assert stored(record) == listed
+
+    @both_ways
+    def test_the_other_two_ways_still_work_while_a_registry_cannot_be_reached(
+        self, record, manager, way
+    ):
+        way.network.fail(way.search_address, requests.Timeout("slow"))
+        way.network.fail(way.record_address, requests.Timeout("slow"))
+        address = page_of(record, way.page)
+        known = way.factory(name="Findable Name")
+        data = {"via": "new", "name": "Typed Name", "given": "Typed", "family": "Name"}
+
+        searched = browser_as(manager).get(address, {"via": "portal", "q": "Findable"})
+        from_portal = browser_as(manager).post(
+            address, {"via": "portal", "contributor": known.pk}
+        )
+        by_hand = browser_as(manager).post(address, data)
+
+        assert [r["contributor"].pk for r in searched.context["adding"]["results"]] == [
+            known.pk
+        ]
+        assert from_portal.status_code == 302
+        assert by_hand.status_code == 302
+        assert record.contributors.filter(contributor=known).exists()
+        assert record.contributors.filter(contributor__name="Typed Name").exists()
+        assert way.network.calls == []
+
+
+@pytest.mark.django_db
+class TestAddByHand:
+    def test_a_person_needs_both_names(self, record, manager):
+        before, listed = made(), stored(record)
+        address = page_of(record, "add-person")
+
+        for given, family, missing in (
+            ("", "Jones", {"given"}),
+            ("Ada", "", {"family"}),
+            ("", "", {"given", "family"}),
+            ("  ", "Jones", {"given"}),
+        ):
+            response = browser_as(manager).post(
+                address,
+                {
+                    "via": "new",
+                    "given": given,
+                    "family": family,
+                    "email": "x@example.com",
+                },
+            )
+
+            adding = response.context["adding"]
+            assert response.status_code == 422
+            assert adding["on_new"] is True
+            for field in missing:
+                assert adding["form"].has_error(field, code="required")
+                assert field in adding["errors"]
+            assert adding["values"]["email"] == "x@example.com"
+
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_a_person_is_made_with_no_account_and_the_manager_is_sent_to_the_edit_page(
+        self, record, manager
+    ):
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "Ada", "family": "Lovelace"},
+        )
+
+        person = Person.objects.get(first_name="Ada", last_name="Lovelace")
+        added = record.contributors.get(contributor=person)
+        assert response.status_code == 302
+        assert response["Location"] == page_of(record, "edit", pk=added.pk)
+        assert person.name == "Ada Lovelace"
+        assert person.email is None
+        assert not person.has_usable_password()
+        assert person.account_state == AccountState.GHOST
+        assert not person.can_sign_in()
+        assert added.level == ContributionLevel.VIEW
+
+    def test_an_email_address_is_stored_and_does_not_make_an_account(
+        self, record, manager, mailoutbox
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "email": " ada@example.org ",
+            },
+        )
+
+        person = Person.objects.get(first_name="Ada", last_name="Lovelace")
+        assert person.email == "ada@example.org"
+        assert not person.has_usable_password()
+        assert person.account_state == AccountState.INVITED
+        assert not person.can_sign_in()
+        assert not person.socialaccount_set.exists()
+        assert mailoutbox == []
+
+    def test_the_email_address_is_not_shown_on_the_tab_or_the_edit_page(
+        self, record, manager
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "email": "ada@example.org",
+            },
+        )
+        added = record.contributors.get(contributor__name="Ada Lovelace")
+
+        for address in (tab(record), page_of(record, "edit", pk=added.pk)):
+            response = browser_as(manager).get(address)
+            assert "ada@example.org" not in response.content.decode()
+
+    def test_an_email_address_must_be_one(self, record, manager):
+        before = made()
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "email": "not-an-address",
+            },
+        )
+
+        assert response.status_code == 422
+        assert response.context["adding"]["form"].has_error("email", code="invalid")
+        assert made() == before
+
+    @pytest.mark.parametrize("typed", ["held@example.com", "HELD@Example.COM"])
+    def test_an_address_the_portal_holds_is_refused_without_naming_its_owner(
+        self, record, manager, typed
+    ):
+        holder = PersonFactory(
+            first_name="Zacharias", last_name="Holder", email="held@example.com"
+        )
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "Alice", "family": "Typed", "email": typed},
+        )
+
+        adding = response.context["adding"]
+        content = response.content.decode()
+        assert response.status_code == 422
+        assert adding["form"].has_error("email", code="email_in_use")
+        assert "email" in adding["errors"]
+        assert adding["same_name"] == []
+        assert adding["picked"] is None
+        assert "Zacharias" not in content
+        assert str(holder.uuid) not in content
+        assert holder.get_absolute_url() not in content
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_an_address_the_portal_holds_is_refused_even_for_the_same_name(
+        self, record, manager
+    ):
+        holder = PersonFactory(
+            first_name="Zacharias", last_name="Holder", email="held@example.com"
+        )
+        before = made()
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Zacharias",
+                "family": "Holder",
+                "email": "held@example.com",
+                "confirmed": "1",
+            },
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert adding["form"].has_error("email", code="email_in_use")
+        assert adding["same_name"] == []
+        assert holder.get_absolute_url() not in response.content.decode()
+        assert made() == before
+
+    def test_the_same_name_offers_the_profiles_already_in_the_portal_and_makes_nothing(
+        self, record, manager
+    ):
+        twin = PersonFactory(first_name="Mia", last_name="Meyer")
+        other = PersonFactory(first_name="Mia", last_name="Meyer")
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "mia", "family": "MEYER"},
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert adding["on_new"] is True
+        assert {p.pk for p in adding["same_name"]} == {twin.pk, other.pk}
+        assert adding["form"].has_error(None, code="same_name")
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_a_new_profile_can_still_be_made_once_the_same_name_is_confirmed(
+        self, record, manager
+    ):
+        twin = PersonFactory(first_name="Mia", last_name="Meyer")
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "Mia", "family": "Meyer", "confirmed": "1"},
+        )
+
+        made_now = Person.objects.filter(name="Mia Meyer").exclude(pk=twin.pk).get()
+        assert response.status_code == 302
+        assert record.contributors.filter(contributor=made_now).exists()
+        assert not record.contributors.filter(contributor=twin).exists()
+
+    def test_a_superuser_with_the_same_name_is_not_offered(self, record, manager):
+        PersonFactory(
+            first_name="Root", last_name="User", is_superuser=True, is_staff=True
+        )
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "Root", "family": "User"},
+        )
+
+        assert response.status_code == 302
+
+    def test_a_person_is_asked_for_their_organization(self, record, manager):
+        response = browser_as(manager).get(
+            page_of(record, "add-person"), {"via": "new"}
+        )
+
+        values, selected = offered(response, "new-affiliation")
+        assert values == ["other", "none"]
+        assert selected == ["none"]
+
+    def test_the_organization_chosen_is_kept_with_the_credit_and_listed(
+        self, record, manager
+    ):
+        browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "affiliation": "other",
+                "affiliation_name": "Analytical Engines Ltd",
+            },
+        )
+
+        person = Person.objects.get(name="Ada Lovelace")
+        company = Organization.objects.get(name="Analytical Engines Ltd")
+        assert record.contributors.get(contributor=person).affiliation == company
+        assert record.contributors.filter(contributor=company).exists()
+
+    def test_a_refused_organization_makes_no_person_and_keeps_what_was_typed(
+        self, record, manager
+    ):
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "email": "ada@example.org",
+                "affiliation": "other",
+                "affiliation_name": " ",
+            },
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert "affiliation" in adding["errors"]
+        assert adding["on_new"] is True
+        assert adding["values"]["given"] == "Ada"
+        assert adding["values"]["email"] == "ada@example.org"
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_nothing_is_kept_when_the_credit_is_refused(self, record, manager):
+        before = made()
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {
+                "via": "new",
+                "given": "Ada",
+                "family": "Lovelace",
+                "affiliation": "org:999999",
+            },
+        )
+
+        assert response.status_code == 422
+        assert made() == before
+
+    def test_an_organization_needs_a_name(self, record, manager):
+        before, listed = made(), stored(record)
+
+        for name in ("", "   "):
+            response = browser_as(manager).post(
+                page_of(record, "add-organization"),
+                {"via": "new", "name": name, "city": "Potsdam"},
+            )
+
+            adding = response.context["adding"]
+            assert response.status_code == 422
+            assert adding["form"].has_error("name", code="required")
+            assert adding["values"]["city"] == "Potsdam"
+
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_an_organization_is_made_with_the_optional_fields_stored(
+        self, record, manager
+    ):
+        response = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {
+                "via": "new",
+                "name": "Institute of Examples",
+                "city": "Potsdam",
+                "country": "DE",
+                "website": "https://examples.example.org/",
+            },
+        )
+
+        organization = Organization.objects.get(name="Institute of Examples")
+        added = record.contributors.get(contributor=organization)
+        assert response.status_code == 302
+        assert response["Location"] == page_of(record, "edit", pk=added.pk)
+        assert organization.city == "Potsdam"
+        assert organization.country == "DE"
+        assert organization.links == ["https://examples.example.org/"]
+        assert added.level is None
+
+    def test_an_organization_needs_only_a_name(self, record, manager):
+        browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": "Institute of Examples"},
+        )
+
+        organization = Organization.objects.get(name="Institute of Examples")
+        assert not organization.city
+        assert not organization.country
+        assert not organization.links
+
+    @pytest.mark.parametrize("typed", ["DE", "de", "Germany", "germany", " Germany "])
+    def test_a_country_is_taken_by_name_or_by_code(self, record, manager, typed):
+        browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": "Institute of Examples", "country": typed},
+        )
+
+        assert Organization.objects.get(name="Institute of Examples").country == "DE"
+
+    def test_a_country_that_does_not_resolve_is_refused_on_the_field(
+        self, record, manager
+    ):
+        before = made()
+
+        response = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": "Institute of Examples", "country": "Atlantis"},
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert adding["form"].has_error("country", code="invalid_country")
+        assert adding["values"]["country"] == "Atlantis"
+        assert made() == before
+
+    def test_a_website_must_be_an_address(self, record, manager):
+        before = made()
+
+        response = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": "Institute of Examples", "website": "not a website"},
+        )
+
+        assert response.status_code == 422
+        assert response.context["adding"]["form"].has_error("website", code="invalid")
+        assert made() == before
+
+    @pytest.mark.parametrize("typed", ["Helmholtz Zentrum", " helmholtz zentrum "])
+    @pytest.mark.parametrize("confirmed", [{}, {"confirmed": "1"}])
+    def test_the_same_name_offers_the_existing_organization_and_makes_no_second(
+        self, record, manager, typed, confirmed
+    ):
+        existing = OrganizationFactory(name="Helmholtz Zentrum")
+        before, listed = made(), stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": typed, **confirmed},
+        )
+
+        adding = response.context["adding"]
+        assert response.status_code == 422
+        assert adding["on_new"] is True
+        assert [o.pk for o in adding["same_name"]] == [existing.pk]
+        assert adding["form"].has_error(None, code="same_name")
+        assert made() == before
+        assert stored(record) == listed
+
+    def test_the_existing_organization_offered_can_be_added_in_its_place(
+        self, record, manager
+    ):
+        existing = OrganizationFactory(name="Helmholtz Zentrum")
+        offer = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "new", "name": "Helmholtz Zentrum"},
+        )
+
+        form = soup_of(offer).select_one("#tab-new form input[name=contributor]")
+        browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "portal", "contributor": form["value"]},
+        )
+
+        assert form["value"] == str(existing.pk)
+        assert record.contributors.filter(contributor=existing).exists()
+        assert Organization.objects.filter(name="Helmholtz Zentrum").count() == 1
+
+    def test_a_person_with_the_name_of_an_organization_is_made(self, record, manager):
+        OrganizationFactory(name="Ada Lovelace")
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "new", "given": "Ada", "family": "Lovelace"},
+        )
+
+        assert response.status_code == 302
