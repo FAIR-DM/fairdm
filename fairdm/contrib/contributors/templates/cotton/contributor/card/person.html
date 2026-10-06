@@ -3,9 +3,9 @@
 {# @prop class:text | description:"Extra CSS classes on the card." #}
 {% load contributor_tags %}
 <c-vars contributor class />
-{% with c=contributor|as_contributor %}
+{% with c=contributor|as_contributor fallback=contributor.get_real_instance.primary_organization %}
   {% if c %}
-    {% with roles=contributor.roles.all affiliation=contributor.affiliation|default:c.primary_organization portal_roles=c.portal_roles location=c.get_location_display %}
+    {% with roles=contributor.roles.all affiliation=contributor.affiliation|default:fallback portal_roles=c.portal_roles location=c.get_location_display %}
       <c-card.wrapper class="h-full py-5 {{ class }}">
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" class="" />

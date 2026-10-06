@@ -4,17 +4,17 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
-from guardian.shortcuts import assign_perm
 
 from demo.factories import RockSampleFactory
 from demo.models import ICP_MS_Measurement, XRFMeasurement
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.filters import MeasurementFilter, MeasurementFilterMixin
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
     MeasurementDescription,
 )
-from fairdm.factories import DatasetFactory, UserFactory
+from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
 from fairdm.registry import registry
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
@@ -56,8 +56,12 @@ class TestMeasurementFilterDatasetFiltering:
             concentration_ppm=15.3,
         )
 
-        assign_perm("dataset.change_dataset", user, dataset1)
-        assign_perm("dataset.change_dataset", user, dataset2)
+        ContributionFactory(
+            content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
+        )
+        ContributionFactory(
+            content_object=dataset2, contributor=user, level=ContributionLevel.EDIT
+        )
 
         filterset = MeasurementFilter(
             data={"dataset": dataset1.id},
@@ -407,7 +411,9 @@ class TestMeasurementFilterCombinedFilters:
             concentration_ppm=8.7,
         )
 
-        assign_perm("dataset.change_dataset", user, dataset1)
+        ContributionFactory(
+            content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
+        )
 
         filterset = MeasurementFilter(
             data={"dataset": dataset1.id, "sample": sample1.id},
@@ -449,13 +455,37 @@ class TestMeasurementFilterMixinDatasetPrivacy:
         user = UserFactory()
         allowed = DatasetFactory()  # private by default
         other = DatasetFactory()
-        assign_perm("change_dataset", user, allowed)
+        ContributionFactory(
+            content_object=allowed, contributor=user, level=ContributionLevel.EDIT
+        )
 
         filterset = MeasurementFilter(request=_request_for(user))
 
         offered = set(filterset.filters["dataset"].queryset)
         assert offered == {allowed}
         assert other not in offered
+
+    def test_a_reader_who_may_only_view_is_offered_no_private_dataset(self):
+        user = UserFactory()
+        viewed = DatasetFactory()
+        ContributionFactory(
+            content_object=viewed, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        filterset = MeasurementFilter(request=_request_for(user))
+
+        assert set(filterset.filters["dataset"].queryset) == set()
+
+    def test_a_stored_guardian_row_alone_offers_no_private_dataset(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+
+        filterset = MeasurementFilter(request=_request_for(user))
+
+        assert set(filterset.filters["dataset"].queryset) == set()
 
     def test_reader_with_no_entitlement_is_offered_no_private_dataset(self):
         DatasetFactory()
@@ -474,7 +504,9 @@ class TestMeasurementFilterRegistryGeneratedDatasetPrivacy:
         user = UserFactory()
         allowed = DatasetFactory()  # private by default
         other = DatasetFactory()
-        assign_perm("change_dataset", user, allowed)
+        ContributionFactory(
+            content_object=allowed, contributor=user, level=ContributionLevel.EDIT
+        )
 
         filterset_class = FilterFactory(XRFMeasurement, fields=["dataset"]).generate()
         filterset = filterset_class(request=_request_for(user))
@@ -516,7 +548,9 @@ class TestMeasurementFilterMixinUsage:
             concentration_ppm=15.3,
         )
 
-        assign_perm("dataset.change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
 
         filterset = CustomXRFFilter(
             data={"dataset": dataset.id},

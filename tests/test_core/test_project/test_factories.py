@@ -47,12 +47,12 @@ class TestProjectFixtures:
         assert user.has_perm("change_project", user.project)
         assert not user.has_perm("delete_project", user.project)
 
-    def test_user_with_delete_permission_holds_delete_but_not_change(
+    def test_user_with_delete_permission_holds_delete_and_with_it_change(
         self, user_with_delete_permission
     ):
         user = user_with_delete_permission
         assert user.has_perm("delete_project", user.project)
-        assert not user.has_perm("change_project", user.project)
+        assert user.has_perm("change_project", user.project)
 
     def test_user_with_no_permission_holds_neither(self, user_with_no_permission):
         user = user_with_no_permission

@@ -1,4 +1,8 @@
-"""Helpers that assign and remove object-level permissions."""
+"""Helpers that assign and remove stored object-level permissions.
+
+They are for models that are not a project, dataset, sample or measurement: a stored permission
+on one of those grants nothing, because contribution levels decide.
+"""
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType

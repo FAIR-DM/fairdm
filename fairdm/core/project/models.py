@@ -16,6 +16,7 @@ from fairdm.utils.choices import Visibility
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..choices import ProjectStatus
 from ..dates import precedes
+from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
@@ -26,7 +27,7 @@ from ..vocabularies import (
 from .validators import validate_funding
 
 
-class ProjectQuerySet(QuerySet):
+class ProjectQuerySet(RecordLevelMixin, QuerySet):
     """QuerySet for projects, with helpers that load related records in a bounded number of queries."""
 
     def get_visible(self) -> "ProjectQuerySet":

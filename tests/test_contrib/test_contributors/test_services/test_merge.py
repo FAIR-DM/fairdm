@@ -84,6 +84,169 @@ class TestMergeContributions:
         assert not Person.objects.filter(pk=discard_person.pk).exists()
 
 
+class TestMergeLevels:
+    @pytest.mark.parametrize(
+        ("kept", "discarded", "expected"),
+        [
+            (1, 3, 3),
+            (3, 1, 3),
+            (2, 2, 2),
+            (1, 2, 2),
+        ],
+    )
+    def test_the_higher_level_is_kept(
+        self, db, keep_person, discard_person, kept, discarded, expected
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import ContributionFactory, ProjectFactory
+
+        project = ProjectFactory()
+        ContributionFactory(content_object=project, contributor=keep_person, level=kept)
+        ContributionFactory(
+            content_object=project, contributor=discard_person, level=discarded
+        )
+
+        merge_persons(keep_person, discard_person)
+
+        entry = Contribution.objects.get(
+            object_id=str(project.pk), contributor=keep_person
+        )
+        assert entry.level == expected
+        assert Contribution.objects.filter(object_id=str(project.pk)).count() == 1
+
+    def test_the_kept_organization_is_left_as_it_is(
+        self, db, keep_person, discard_person
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import (
+            ContributionFactory,
+            OrganizationFactory,
+            ProjectFactory,
+        )
+
+        project = ProjectFactory()
+        kept_from, discarded_from = OrganizationFactory(), OrganizationFactory()
+        ContributionFactory(
+            content_object=project,
+            contributor=keep_person,
+            level=1,
+            affiliation=kept_from,
+        )
+        ContributionFactory(
+            content_object=project,
+            contributor=discard_person,
+            level=3,
+            affiliation=discarded_from,
+        )
+
+        merge_persons(keep_person, discard_person)
+
+        entry = Contribution.objects.get(
+            object_id=str(project.pk), contributor=keep_person
+        )
+        assert entry.level == 3
+        assert entry.affiliation == kept_from
+
+    def test_a_kept_entry_with_no_organization_stays_without_one(
+        self, db, keep_person, discard_person
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import (
+            ContributionFactory,
+            OrganizationFactory,
+            ProjectFactory,
+        )
+
+        project = ProjectFactory()
+        ContributionFactory(content_object=project, contributor=keep_person, level=1)
+        ContributionFactory(
+            content_object=project,
+            contributor=discard_person,
+            level=3,
+            affiliation=OrganizationFactory(),
+        )
+
+        merge_persons(keep_person, discard_person)
+
+        entry = Contribution.objects.get(
+            object_id=str(project.pk), contributor=keep_person
+        )
+        assert entry.affiliation is None
+
+    def test_a_contribution_only_the_discarded_person_held_moves_with_its_level(
+        self, db, keep_person, discard_person
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import ContributionFactory, ProjectFactory
+
+        project = ProjectFactory()
+        ContributionFactory(content_object=project, contributor=discard_person, level=3)
+
+        merge_persons(keep_person, discard_person)
+
+        entry = Contribution.objects.get(
+            object_id=str(project.pk), contributor=keep_person
+        )
+        assert entry.level == 3
+
+    def test_a_contribution_only_the_kept_person_held_is_untouched(
+        self, db, keep_person, discard_person
+    ):
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import ContributionFactory, ProjectFactory
+
+        project = ProjectFactory()
+        ContributionFactory(content_object=project, contributor=keep_person, level=2)
+
+        merge_persons(keep_person, discard_person)
+
+        entry = Contribution.objects.get(
+            object_id=str(project.pk), contributor=keep_person
+        )
+        assert entry.level == 2
+
+
+class TestMergePermissions:
+    def test_a_stored_row_on_a_core_record_is_not_copied(
+        self, db, keep_person, discard_person
+    ):
+        from guardian.models import UserObjectPermission
+        from guardian.shortcuts import assign_perm
+
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        assign_perm("change_project", discard_person, project)
+
+        merge_persons(keep_person, discard_person)
+
+        assert not UserObjectPermission.objects.filter(user=keep_person).exists()
+
+    def test_a_stored_row_on_another_object_is_copied(
+        self, db, keep_person, discard_person
+    ):
+        from guardian.models import UserObjectPermission
+        from guardian.shortcuts import assign_perm
+
+        from fairdm.contrib.contributors.services.merge import merge_persons
+        from fairdm.factories import OrganizationFactory
+
+        organization = OrganizationFactory()
+        assign_perm("change_organization", discard_person, organization)
+
+        merge_persons(keep_person, discard_person)
+
+        assert UserObjectPermission.objects.filter(
+            user=keep_person, object_pk=str(organization.pk)
+        ).exists()
+
+
 class TestMergeIdentifiers:
     def test_identifiers_reassigned_to_keep(self, db, keep_person, discard_person):
         from fairdm.contrib.contributors.models import ContributorIdentifier

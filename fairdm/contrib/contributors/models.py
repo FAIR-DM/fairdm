@@ -18,7 +18,7 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, BEFORE_CREATE, hook
+from django_lifecycle import AFTER_CREATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -38,12 +38,18 @@ from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .choices import AccountState, OrganizationType
+from .choices import AccountState, ContributionLevel, OrganizationType
 from .managers import AffiliationManager, ContributionManager, UserManager
 from .profiles import language_names, link_host
 from .validators import validate_iso_639_1_language_codes
 
 logger = logging.getLogger(__name__)
+
+ORCID_PATTERN = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
+"""The form of an ORCID iD, without its address."""
+
+ROR_PATTERN = r"^0[a-z0-9]{6}[0-9]{2}$"
+"""The form of a ROR ID, without its address."""
 
 
 def contributor_permissions_default() -> dict:
@@ -661,6 +667,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     def add_to(self, obj, roles=None):
         """Credit the contributor on an object, adding roles to any already recorded.
 
+        A person credited for the first time starts at the view level.
+
         Args:
             obj: A project, dataset, sample or measurement.
             roles: Names of roles in the roles vocabulary.
@@ -674,6 +682,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             contributor=self,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id,
+            defaults={"level": Contribution.starting_level(self)},
         )
         if roles:
             from research_vocabs.models import Concept
@@ -759,10 +768,8 @@ class Person(AbstractUser, Contributor):
         """Say whether a user may edit this profile: the person it describes, or a community manager.
 
         A community manager may edit it only while nobody can sign in to it and keep it
-        themselves: the account is inactive, or the person never claimed it and never signed in.
-        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
-        is active and in use without being marked claimed. A superuser, an administrator and the
-        holder of any other portal role get no right from that alone.
+        themselves, as :meth:`can_sign_in` says. A superuser, an administrator and the holder of
+        any other portal role get no right from that alone.
 
         Args:
             user: The user, or an anonymous user for a visitor.
@@ -775,12 +782,20 @@ class Person(AbstractUser, Contributor):
             return False
         if user.pk == self.pk:
             return True
-        unreachable = not self.is_active or (
-            not self.is_claimed and self.last_login is None
-        )
-        return unreachable and PortalRoles.is_held_by(
+        return not self.can_sign_in() and PortalRoles.is_held_by(
             user, PortalRoles.COMMUNITY_MANAGER
         )
+
+    def can_sign_in(self) -> bool:
+        """Say whether this person's account is in use or can be: active, and claimed or signed in.
+
+        ``account_state`` alone cannot say that, because an account made with ``createsuperuser``
+        is active and in use without being marked claimed.
+
+        Returns:
+            True when the account is active and the person has claimed it or has signed in.
+        """
+        return self.is_active and (self.is_claimed or self.last_login is not None)
 
     @property
     def account_state(self) -> AccountState:
@@ -837,18 +852,17 @@ class Person(AbstractUser, Contributor):
                         {"links": _("Invalid URL: %(url)s") % {"url": url}}
                     ) from None
 
-        if self.pk and (orcid := self.identifiers.filter(type="ORCID").first()):
-            orcid_pattern = r"^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]$"
-            if not re.match(orcid_pattern, orcid.value):
-                raise ValidationError(
-                    {
-                        "identifiers": _(
-                            "Invalid ORCID format: %(value)s. Expected format: "
-                            "0000-0000-0000-0000"
-                        )
-                        % {"value": orcid.value}
-                    }
-                )
+        orcid = self.identifiers.filter(type="ORCID").first() if self.pk else None
+        if orcid and not re.match(ORCID_PATTERN, orcid.value):
+            raise ValidationError(
+                {
+                    "identifiers": _(
+                        "Invalid ORCID format: %(value)s. Expected format: "
+                        "0000-0000-0000-0000"
+                    )
+                    % {"value": orcid.value}
+                }
+            )
 
     def orcid(self):
         """Return the person's ORCID identifier.
@@ -1411,10 +1425,9 @@ class Organization(Contributor):
 
         # Identifiers exist only after the first save.
         if self.pk and (ror := self.identifiers.filter(type="ROR").first()):
-            ror_pattern = r"^0[a-z0-9]{6}[0-9]{2}$"
             import re
 
-            if not re.match(ror_pattern, ror.value.removeprefix("https://ror.org/")):
+            if not re.match(ROR_PATTERN, ror.value.removeprefix("https://ror.org/")):
                 raise ValidationError(
                     {
                         "identifiers": _(
@@ -1770,7 +1783,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         content_object: The credited object.
         contributor: The person or organisation credited.
         roles: The roles held on this credit.
-        affiliation: The organisation the contributor is affiliated with for this credit.
+        affiliation: The organisation a person is credited from on this record, or None.
+            It is kept with the record and does not follow the person's profile.
+        level: What a person may do on the credited object. Empty for an organisation.
     """
 
     ROLES_VOCAB = FairDMRoles()
@@ -1813,7 +1828,18 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         related_name="+",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+    )
+
+    level = models.PositiveSmallIntegerField(
+        verbose_name=_("level"),
+        help_text=_(
+            "What the person may do on this record: view, edit or manage. Empty for an "
+            "organization, which holds no access."
+        ),
+        choices=ContributionLevel.choices,
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -1858,9 +1884,26 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
             raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
 
+    @staticmethod
+    def starting_level(contributor):
+        """Return the level a contributor holds when first credited on a record.
+
+        Args:
+            contributor: The person or organization being credited.
+
+        Returns:
+            The view level for a person, as for one added from the Contributors tab, and None
+            for an organization, which holds no level.
+        """
+        if contributor.get_real_instance().is_organization:
+            return None
+        return ContributionLevel.VIEW
+
     @classmethod
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
         """Credit a contributor on an object, adding roles to any already recorded.
+
+        A person credited for the first time starts at the view level.
 
         Args:
             contributor: The person or organisation to credit.
@@ -1875,7 +1918,10 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             contributor=contributor,
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.pk,
-            defaults={"affiliation": affiliation} if affiliation else {},
+            defaults={
+                "level": cls.starting_level(contributor),
+                **({"affiliation": affiliation} if affiliation else {}),
+            },
         )
         if roles:
             from research_vocabs.models import Concept
@@ -1908,13 +1954,6 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     def __repr__(self):
         """Return the contributor and roles."""
         return f"<{self.contributor}: {self.roles}>"
-
-    @hook(BEFORE_CREATE)
-    def set_default_affiliation(self):
-        """Default a new person's credit to their primary affiliation."""
-        if not self.affiliation and self.is_person():  # noqa: SIM102
-            if org := self.contributor.affiliations.filter(is_primary=True).first():
-                self.affiliation = org.organization
 
     def is_person(self):
         """Check whether the contributor is a person.

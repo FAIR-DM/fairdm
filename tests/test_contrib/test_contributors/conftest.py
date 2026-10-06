@@ -1,9 +1,12 @@
 """Fixtures for contributor system tests."""
 
+import json
 from io import BytesIO
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import requests
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.utils import get_anonymous_user
@@ -385,3 +388,104 @@ def organization_profile_data():
         "website": "https://example.org",
         "links": "https://example.net/wiki\nhttps://example.org/news",
     }
+
+
+@pytest.fixture
+def record_chain(db):
+    """A project, a dataset in it, a sample in that dataset, and a measurement of the sample.
+
+    The measurement belongs to a second dataset of the same project, so it is not in its
+    sample's dataset.
+    """
+    project = ProjectFactory()
+    dataset = DatasetFactory(project=project)
+    other_dataset = DatasetFactory(project=project)
+    sample = RockSampleFactory(dataset=dataset)
+    measurement = ExampleMeasurementFactory(dataset=other_dataset, sample=sample)
+    return SimpleNamespace(
+        project=project,
+        dataset=dataset,
+        other_dataset=other_dataset,
+        sample=sample,
+        measurement=measurement,
+    )
+
+
+@pytest.fixture
+def grant():
+    """Credit a person on a record at a level, and return the contribution."""
+
+    def give(record, person, level):
+        return ContributionFactory(
+            content_object=record, contributor=person, level=level
+        )
+
+    return give
+
+
+class FakeResponse:
+    """The part of ``requests.Response`` the registries read."""
+
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self.body = body
+
+    def json(self):
+        if isinstance(self.body, Exception):
+            raise self.body
+        return self.body
+
+
+class RegistryNetwork:
+    """Stands in for ``requests.get``: answers the addresses it was told about, records each call.
+
+    A request to an address it was not told about fails the test.
+    """
+
+    def __init__(self):
+        self.answers = {}
+        self.calls = []
+
+    def answer(self, address, body, status=200):
+        """Answer a request to the address with a status and a decoded body."""
+        self.answers[address] = FakeResponse(status, body)
+
+    def fail(self, address, error):
+        """Raise the error when the address is requested, as a dead network would."""
+        self.answers[address] = error
+
+    def __call__(self, url, params=None, headers=None, timeout=None, **extra):
+        self.calls.append(
+            SimpleNamespace(
+                url=url,
+                params=dict(params or {}),
+                headers=dict(headers or {}),
+                timeout=timeout,
+                extra=extra,
+            )
+        )
+        if url not in self.answers:
+            raise AssertionError(f"Unexpected request to {url}")
+        outcome = self.answers[url]
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+
+@pytest.fixture
+def recorded():
+    """Load one trimmed copy of a response recorded from ORCID or ROR, by file name."""
+    folder = Path(__file__).parent / "recorded"
+
+    def load(name):
+        return json.loads((folder / f"{name}.json").read_text())
+
+    return load
+
+
+@pytest.fixture
+def registry_network(monkeypatch):
+    """Replace ``requests.get`` so that no test reaches ORCID or ROR."""
+    network = RegistryNetwork()
+    monkeypatch.setattr(requests, "get", network)
+    return network

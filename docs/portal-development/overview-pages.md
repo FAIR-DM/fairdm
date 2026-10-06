@@ -282,9 +282,10 @@ citation, the location and the related samples.
   relates to this sample.
 
 **Who can open it.** A sample follows its own dataset. Its page opens for everyone once that
-dataset is public and published. Before then it opens only for a user who holds `view_dataset` or
-`change_dataset` on the dataset, and anyone else gets a "not found" response, so the address never
-confirms the sample exists.
+dataset is public and published. Before then it opens only for a person who holds a level on the
+sample, or on its dataset or that dataset's project, and for a holder of a portal role that can
+view every dataset. Anyone else gets a "not found" response, so the address never confirms the
+sample exists.
 
 The same rule applies to each record the page lists. A measurement or a related sample in another
 dataset is shown only when the viewer may see that dataset. One they may not see is counted and
@@ -335,8 +336,9 @@ People, Identifiers, the citation and the location of the sample.
 
 **Who can open it.** A measurement follows its own dataset, not its sample's. Its page opens for
 everyone once the measurement's dataset is public and published, whatever the state of the sample's
-dataset. Before then it opens only for a user who holds `view_dataset` or `change_dataset` on that
-dataset, and anyone else gets a "not found" response.
+dataset. Before then it opens only for a person who holds a level on the measurement, or on that
+dataset or its project, and for a holder of a portal role that can view every dataset. Anyone else
+gets a "not found" response.
 
 The sample's dataset is checked separately. A sample in a dataset that is not published is
 described as "an unpublished sample" on the page, in the citation and in the card. It is never
@@ -652,9 +654,12 @@ answers "not found" to a visitor.
 
 **The visibility rules are queryset methods.** `published()` keeps the records whose own dataset is
 published. `visible_to(user)` keeps the records a user may see: those in a dataset that is public
-and published, and those in a dataset on which the user holds `view_dataset` or `change_dataset`.
-Both are decided against each record's own dataset, so being on one dataset's team never opens
-another dataset's records. `SampleQuerySet` and `MeasurementQuerySet` get them from
+and published, and those the user holds at least the view level on, on the record itself or from its
+dataset or that dataset's project. Both are decided against each record's own dataset, so being
+listed on one dataset never opens another dataset's records, and being listed on one sample opens
+that sample and not the others beside it. `with_level(user, level)`, on the project, dataset,
+sample and measurement querysets, keeps the records the user holds at least that level on.
+`SampleQuerySet` and `MeasurementQuerySet` get all three from
 `fairdm.core.managers.RecordVisibilityMixin`. A queryset of your own for a record that has a
 `dataset` foreign key can use the mixin too:
 
@@ -715,10 +720,10 @@ plugins subclass it. A portal building its own page for a record can subclass it
 
 | Method | What it returns |
 | --- | --- |
-| `get_contributions()` | The record's credits with each contributor as its own type, person or organisation. Ask a credit `is_person()` to tell them apart. |
+| `get_contributions()` | The record's credits with each contributor as its own type, person or organisation, people first and then organizations, each in the order set on the Contributors tab. Ask a credit `is_person()` to tell them apart. |
 | `get_role_names(contribution)` | The names of the roles held on one credit. |
 | `get_contributors_with_role(entries, role)` | The contributors in `get_credits()` entries who hold a role. |
-| `get_credits()` | Everyone credited on the record, each contributor as its own type (person or organisation), with role labels and affiliation. |
+| `get_credits()` | Everyone credited on the record in the order of `get_contributions()`, each contributor as its own type (person or organisation), with role labels and the organization the credit names, which is `None` for a person credited with none. |
 | `get_people(entries=None)` | What the People card shows: `shown` (up to `people_shown`, eighteen by default), `more` and `total`. |
 | `get_identifiers()` | The record's identifiers with a doi.org link on a DOI or an IGSN. `resolvable_identifier_types` lists the types that link. |
 | `get_citation(authors=, year=, title=, link=)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` |
@@ -794,11 +799,14 @@ it again replaces only the projects it created. See
 The command runs three seeds in `demo/seed/`: `ProjectSeed`, `SampleSeed` and `MeasurementSeed`.
 They share three helpers in `demo/seed/common.py`: `example_accounts()` returns the accounts,
 creating the missing ones, `remove_own_projects()` deletes the projects an earlier run created, and
-`grant_team_rights(user, *records)` gives an account view, change and delete rights on the projects
-and datasets it is given. `staff.user` holds those rights on every seeded project and dataset, so
+`grant_team_rights(user, *records)` lists an account at the manage level on the projects and
+datasets it is given. `staff.user` holds that level on every seeded project and dataset, so
 its pages show the readiness checklist. `regular.user` holds none.
 `manage.py seed_profiles` also uses `profile_accounts()`, which returns the five accounts the
-editing pages are tried with the same way. Both read their accounts through
+editing pages are tried with the same way, and credits each person it affiliates from their
+primary affiliation, so the record shows that organization beside their name.
+`data_curator()` returns the development account that holds the Data Curator role, creating it if
+it is missing; `manage.py seed_contributors` uses it. They read their accounts through
 `create_accounts(accounts)`, which creates the missing ones of any list of
 `(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the
 address before the `@`.

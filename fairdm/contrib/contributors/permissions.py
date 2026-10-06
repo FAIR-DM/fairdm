@@ -1,6 +1,10 @@
-"""Permission backend that derives organisation management rights from affiliations."""
+"""Permission backends that derive rights from affiliations and from contribution levels."""
+
+from django.contrib.auth.backends import BaseBackend
 
 from fairdm.core.permissions import PolymorphicObjectPermissionBackend
+
+from .access import RecordAccess
 
 
 class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
@@ -59,3 +63,53 @@ class OrganizationPermissionBackend(PolymorphicObjectPermissionBackend):
             )
             .exists()
         )
+
+
+class RecordLevelBackend(BaseBackend):
+    """Answer every object-level question about a project, dataset, sample or measurement.
+
+    The answer is the level the user holds on the record, or on a record above it, set against the
+    level the permission needs (``REQUIRED_LEVEL``). It answers only for core records of any
+    registered type, and only for object-level questions. For anything else it returns False and
+    the other backends answer. Rows that django-guardian stores for a core record grant nothing.
+
+    Extends ``BaseBackend`` for its no-op ``authenticate`` and ``get_user``, because
+    ``django.contrib.auth.authenticate()`` introspects every configured backend.
+
+    Attributes:
+        supports_object_permissions: Object-level permissions are handled.
+        supports_anonymous_user: Anonymous users are passed in, and refused.
+
+    Example:
+        Add it to ``AUTHENTICATION_BACKENDS``::
+
+            AUTHENTICATION_BACKENDS = [
+                "django.contrib.auth.backends.ModelBackend",
+                "fairdm.contrib.contributors.permissions.RecordLevelBackend",
+            ]
+    """
+
+    supports_object_permissions = True
+    supports_anonymous_user = True
+
+    def has_perm(self, user_obj, perm, obj=None):
+        """Grant a permission on a core record when the user's level on it is high enough.
+
+        Args:
+            user_obj: The user, or an anonymous user for a visitor.
+            perm: The permission, with or without its app label.
+            obj: The record asked about.
+
+        Returns:
+            True when the user is active and holds the level the permission needs. False for an
+            inactive user, a permission the table does not know, and any object that is not a
+            core record.
+        """
+        if obj is None or not RecordAccess.is_core_record(obj):
+            return False
+        access = RecordAccess(obj)
+        needed = access.required_level(perm)
+        if needed is None:
+            return False
+        level = access.level_of(user_obj)
+        return level is not None and level >= needed

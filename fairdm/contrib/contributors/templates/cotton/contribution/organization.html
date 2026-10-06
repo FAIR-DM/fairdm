@@ -1,0 +1,38 @@
+{# @description An organization on a record's Contributors tab: its logo and its name, linked to its page, and nothing else. Someone who may manage the record also gets a small menu for moving, editing and removing it. An organization that people on the record are credited from cannot be removed, and the menu says so. #}
+{# @prop entry:text | description:"One organization on a record, as the Contributors tab describes it." #}
+{# @prop list_url:text | description:"The address of the record's Contributors tab." #}
+{# @prop can_manage:boolean | description:"Whether the viewer may change the record's contributors." #}
+{# @prop movable:boolean | description:"Whether the move actions are offered." #}
+{% load i18n %}
+<c-vars entry list_url can_manage movable />
+<c-card.wrapper class="bg-base-100 h-full relative">
+  <a href="{{ entry.contributor.get_absolute_url }}" class="card-body items-center text-center gap-3 p-4">
+    <c-contributor.avatar :contributor="entry.contributor" size="xl" class="" />
+    <span class="font-semibold text-sm leading-snug break-words max-w-full">{{ entry.contributor.name }}</span>
+  </a>
+  {% if can_manage %}
+    <details class="dropdown dropdown-end absolute top-1 end-1">
+      <summary class="btn btn-ghost btn-sm btn-square" aria-label="{% blocktranslate with name=entry.contributor %}Actions for {{ name }}{% endblocktranslate %}">
+        <c-icon name="settings" aria-hidden="true" />
+      </summary>
+      <div class="dropdown-content z-10 w-56 rounded-box bg-base-100 border border-base-300 p-2 flex flex-col gap-1">
+        {% if movable %}
+          <form method="post" action="{{ list_url }}{{ entry.contribution.pk }}/move/" class="flex flex-col gap-1">
+            {% csrf_token %}
+            <button type="submit" name="direction" value="up" class="btn btn-ghost btn-sm justify-start" {% if entry.first %}disabled{% endif %}>{% translate "Move earlier" %}</button>
+            <button type="submit" name="direction" value="down" class="btn btn-ghost btn-sm justify-start" {% if entry.last %}disabled{% endif %}>{% translate "Move later" %}</button>
+          </form>
+        {% endif %}
+        <a href="{{ list_url }}{{ entry.contribution.pk }}/edit/" class="btn btn-ghost btn-sm justify-start">{% translate "Edit roles" %}</a>
+        {% if entry.removable %}
+          <a href="{{ list_url }}{{ entry.contribution.pk }}/remove/" class="btn btn-ghost btn-sm justify-start">{% translate "Remove" %}</a>
+        {% else %}
+          <p class="px-3 py-1 text-xs text-base-content/70">
+            {% blocktranslate count counter=entry.attached|length %}Cannot be removed while {{ counter }} person here is credited from it.{% plural %}Cannot be removed while {{ counter }} people here are credited from it.{% endblocktranslate %}
+            <a href="{{ list_url }}{{ entry.contribution.pk }}/remove/" class="link">{% translate "See who" %}</a>
+          </p>
+        {% endif %}
+      </div>
+    </details>
+  {% endif %}
+</c-card.wrapper>

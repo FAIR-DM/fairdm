@@ -1,18 +1,126 @@
 """Serializer base classes and the factory that builds model serializers."""
 
+import copy
 from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Model, Q
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.fields import get_error_detail
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
+
+from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.services.crediting import Crediting
 
 # One class per input, or drf-spectacular warns about components with identical names.
 _SERIALIZER_CACHE: dict[tuple, type] = {}
 
 
-class BaseSampleSerializer(
-    ObjectPermissionsAssignmentMixin, serializers.ModelSerializer
-):
+class CreatorCreditMixin:
+    """Credit the person who creates a record through the API, and hold back what needs manage.
+
+    Visibility and the record a record sits under decide who can get in, so changing either needs
+    the manage level on the record, as on the update forms.
+
+    Attributes:
+        manager_only_fields: The names of the fields only someone who can manage the record may
+            change.
+    """
+
+    manager_only_fields = ("visibility", "owner", "project", "dataset", "sample")
+
+    def get_fields(self):
+        """Offer as a parent only the records the requesting user holds the edit level on.
+
+        The same choices the forms give for a project, dataset or sample field, so a record can
+        only be created or moved into a parent the user may edit. A record being updated also
+        keeps its current parent as a choice, so a request that repeats it is not refused.
+
+        Returns:
+            The serializer's fields.
+        """
+        from fairdm.core.models import Dataset, Project, Sample
+
+        fields = super().get_fields()
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        stored = self.instance if isinstance(self.instance, Model) else None
+        for name, manager in (
+            ("project", Project.objects),
+            ("dataset", Dataset.all_objects),
+            ("sample", Sample.objects),
+        ):
+            field = fields.get(name)
+            if not isinstance(field, serializers.RelatedField) or field.read_only:
+                continue
+            choices = manager.accessible_to(user, ContributionLevel.EDIT)
+            current = getattr(stored, f"{name}_id", None)
+            if current is not None:
+                choices = manager.filter(Q(pk__in=choices.values("pk")) | Q(pk=current))
+            field.queryset = choices
+        return fields
+
+    def create(self, validated_data):
+        """Create the record, then list the requesting user on it at the manage level.
+
+        Args:
+            validated_data: The validated fields of the new record.
+
+        Returns:
+            The new record.
+        """
+        record = super().create(validated_data)
+        Crediting(record).make_creator(self.context["request"].user)
+        return record
+
+    def update(self, instance, validated_data):
+        """Update the record, refusing what only a manager may change, or a move that strands it.
+
+        Args:
+            instance: The record to update.
+            validated_data: The validated fields to set.
+
+        Returns:
+            The updated record.
+
+        Raises:
+            PermissionDenied: When a manager-only field would change and the requesting user
+                cannot manage the record.
+            serializers.ValidationError: When the new project or dataset would leave nobody who
+                can sign in able to manage the record.
+        """
+        changed = [
+            name
+            for name in self.manager_only_fields
+            if name in validated_data
+            and validated_data[name] != getattr(instance, name, None)
+        ]
+        if changed and not RecordAccess(instance).can_manage(
+            self.context["request"].user
+        ):
+            raise PermissionDenied(
+                _("Changing %(fields)s needs the manage level on this record.")
+                % {"fields": ", ".join(changed)},
+                code="manage_level_required",
+            )
+        for name in ("project", "dataset"):
+            if name in changed:
+                moved = copy.copy(instance)
+                setattr(moved, name, validated_data[name])
+                try:
+                    RecordAccess(moved).refuse_move_without_manager(name)
+                except DjangoValidationError as error:
+                    raise serializers.ValidationError(
+                        get_error_detail(error)
+                    ) from error
+        return super().update(instance, validated_data)
+
+
+class BaseSampleSerializer(CreatorCreditMixin, serializers.ModelSerializer):
     """Base DRF serializer for all Sample subtypes.
 
     All auto-generated serializers for registered :class:`~fairdm.core.sample.models.Sample`
@@ -24,16 +132,6 @@ class BaseSampleSerializer(
     ``url``, ``uuid``, ``name``, ``local_id``, ``status``, ``dataset``,
     ``added``, ``modified``, ``polymorphic_ctype``
     """
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user on create/update."""
-        current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name
-        return {
-            f"view_{model_name}": [current_user],
-            f"change_{model_name}": [current_user],
-            f"delete_{model_name}": [current_user],
-        }
 
     class Meta:
         from fairdm.core.sample.models import Sample
@@ -52,9 +150,7 @@ class BaseSampleSerializer(
         ]
 
 
-class BaseMeasurementSerializer(
-    ObjectPermissionsAssignmentMixin, serializers.ModelSerializer
-):
+class BaseMeasurementSerializer(CreatorCreditMixin, serializers.ModelSerializer):
     """Base DRF serializer for all Measurement subtypes.
 
     All auto-generated serializers for registered
@@ -67,16 +163,6 @@ class BaseMeasurementSerializer(
     ``url``, ``uuid``, ``name``, ``sample``, ``dataset``,
     ``added``, ``modified``, ``polymorphic_ctype``
     """
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user on create/update."""
-        current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name
-        return {
-            f"view_{model_name}": [current_user],
-            f"change_{model_name}": [current_user],
-            f"delete_{model_name}": [current_user],
-        }
 
     class Meta:
         from fairdm.core.measurement.models import Measurement
@@ -183,8 +269,9 @@ def build_model_serializer(
             "url" field only when provided.
         extra_kwargs: Merged into the ``Meta.extra_kwargs`` dict.
         base_class: Base serializer class to inherit from (default:
-            ``serializers.ModelSerializer`` wrapped with
-            ``ObjectPermissionsAssignmentMixin``).  Pass
+            ``serializers.ModelSerializer`` wrapped with ``CreatorCreditMixin`` for a project,
+            dataset, sample or measurement and with ``ObjectPermissionsAssignmentMixin`` for any
+            other model).  Pass
             :class:`BaseSampleSerializer` or :class:`BaseMeasurementSerializer`
             so that auto-generated subtype serializers satisfy the inheritance
             constraint enforced by :func:`_validate_sample_serializer` /
@@ -225,25 +312,26 @@ def build_model_serializer(
     )
     serializer_attrs["Meta"] = Meta
 
-    model_name = model._meta.model_name
-    perm_codenames = [
-        f"view_{model_name}",
-        f"change_{model_name}",
-        f"delete_{model_name}",
-    ]
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user."""
-        current_user = self.context["request"].user
-        return {perm: [current_user] for perm in perm_codenames}
-
-    serializer_attrs["get_permissions_map"] = get_permissions_map
-
-    # A given base_class already has ObjectPermissionsAssignmentMixin in its MRO.
+    # A given base_class already carries the mixin that credits the creator.
     bases: tuple[type, ...]
     if base_class is not None:
         bases = (base_class,)
+    elif RecordAccess.is_core_model(getattr(model, "type_of", None) or model):
+        bases = (CreatorCreditMixin, serializers.ModelSerializer)
     else:
+        model_name = model._meta.model_name
+        perm_codenames = [
+            f"view_{model_name}",
+            f"change_{model_name}",
+            f"delete_{model_name}",
+        ]
+
+        def get_permissions_map(self, created: bool) -> dict[str, list]:
+            """Assign guardian object permissions to the requesting user."""
+            current_user = self.context["request"].user
+            return {perm: [current_user] for perm in perm_codenames}
+
+        serializer_attrs["get_permissions_map"] = get_permissions_map
         bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
 
     serializer_cls = type(

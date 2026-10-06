@@ -1,0 +1,114 @@
+{
+  "story": "US7",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 426,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T030",
+    "T031",
+    "T032"
+  ],
+  "context": {
+    "why": "Stories 1 to 6 are accepted. The Contributors tab, levels, the organization a person is credited from, the registries, the last-manager rule and ordering are all rebuilt and tested. This last story confirms that portal staff can step in on any record: a person holding the Data Curator portal role can open any record and manage its contributors without being listed on it, and is bound by the same refusals as anyone. Specification 017 already gives the role its rights and RecordAccess.can_manage already admits anyone who holds change_<model> for the whole portal, so most of this story is tests that prove it end to end with the shipped development accounts. It also finishes the demo seed and does the last read of the documentation.",
+    "spec_sections": [
+      "User Story 7 (all 6 acceptance scenarios)",
+      "FR-060 to FR-062",
+      "SC-012",
+      "SC-014",
+      "Clarifications ('Who may change a record's contributors?'; 'Does a person holding a portal role need to be a contributor...')"
+    ],
+    "plan_sections": [
+      "D2 (can_manage, and that PortalRolePermissionBackend is unchanged)",
+      "Constitution check row XVII",
+      "Watch items"
+    ],
+    "prior_decisions": [
+      "Do not change what any portal role holds (fairdm/portal_roles.py) or PortalRolePermissionBackend (fairdm/permissions.py). FR-062 and SC-012: the permissions each shipped role holds are the same as on main. T030's test of that compares each role's declared permission tuple against the list written out in the test (read it from origin/main's fairdm/portal_roles.py with `git show origin/main:fairdm/portal_roles.py`), so a later change to a role fails it.",
+      "The development accounts ship with the package: fairdm/management/commands/create_dev_accounts.py (DEV_ACCOUNTS: one per portal role and one with none; EXAMPLE_ACCOUNTS: regular.user, staff.user, super.user at example.com). Use the command or its data in tests the way tests/test_portal_roles.py and tests/test_permissions.py already do.",
+      "Scenario 5 names the Community Manager and the Developer; also cover the Portal Administrator, who holds no right over research records either (FR-062).",
+      "Scenario 2: a Data Curator who changes a record's contributors is not listed on it afterwards and nothing marks the change as theirs. Assert on what is stored: no contribution for the curator, and no field on the changed contribution naming them.",
+      "Scenario 4: a curator is refused removing or lowering the last person who counts as able to manage (code last_manager) and removing an organization people are credited from (code credited_from), exactly like a manager. Scenario 3: raising a contributor on a record that has nobody who counts is allowed.",
+      "T031, the seed: demo/seed/contributors.py and demo/management/commands/seed_contributors.py reach every state of the tab for regular.user, staff.user and super.user. Extend the seed so the Data Curator development account (create it through the same data create_dev_accounts uses if it is absent) has a private record it is NOT listed on, with a record that has no manager who can sign in, so story 7's flow can be walked through by hand. Add it in the `--keep-records` path too (the affiliate() step is the model: idempotent, adds to what is already seeded, changes no address), because the maintainer's development database must keep its record addresses. Then run `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py seed_contributors --keep-records` against the dev database and say in your report what it added and the address of the new record. Never run the seed without --keep-records there.",
+      "Also in T031: since story 2 nothing fills a credit's organization from the person's profile, and story 6 removed the overview's fallback, so the other seeds' example people (demo/seed/projects.py, samples.py, measurements.py, demo/management/commands/seed_profiles.py) now show no organization on a record. Where an example person has a primary affiliation and the example is meant to show an organization on the credit, credit them from it through Crediting. Keep it small: do not restructure those seeds. Do not rerun those seeds against the dev database.",
+      "ContributorSeed (demo/seed/contributors.py) is the one public name the docs step still reports. Document it and the seed command, including --keep-records, where the other seed commands are documented (look for seed_overviews or seed_profiles under docs/).",
+      "T032, the last read: open every page under docs/ that this feature added or changed (git diff --name-only origin/main...HEAD -- docs CONTEXT.md CHANGELOG.md), read each against the code as it now stands, run every example, and correct what is no longer true. In particular: nothing may still describe an email address on the by-hand form, guardian rows granting rights on core records, the removed sample and measurement permission backends as existing, or a single order of contributors. The module docstring of fairdm/contrib/contributors/plugins/shared.py still calls the file a prototype to be rebuilt; it has been rebuilt, so correct it. fairdm/contrib/contributors/services/merge.py merge_persons docstring: say that stored permissions on projects, datasets, samples and measurements are not copied because levels move with the contributions. Public markdown reads as current state and never says how the feature was built.",
+      "decisions.md D12: page tests of the tab go in tests/test_contrib/test_contributors/test_plugins/test_shared.py."
+    ],
+    "acceptance": [
+      {
+        "task": "T030",
+        "given_when_then": "Given the development accounts, when each opens a private record it is not listed on and tries to manage its contributors, then the Data Curator succeeds, is not listed afterwards and is refused the same removals as a manager; the Community Manager, Developer and Portal Administrator are refused; a person removed from the Data Curator role is refused on the next request; and the roles' permissions equal those on main."
+      },
+      {
+        "task": "T031",
+        "given_when_then": "Given T030, when anything it shows missing is implemented and the seed is extended, then the tests pass, the seed adds the curator's record with --keep-records without changing any existing address, and the other seeds credit their example people from an organization where the example shows one."
+      },
+      {
+        "task": "T032",
+        "given_when_then": "Given every documentation page this feature added or changed, when each is read against the finished branch and its examples are run, then all are true and run as written, and the docs step passes with no undocumented name."
+      }
+    ],
+    "verified_base": {
+      "commit": "180ff2dcda1e61ac5051a5382e94c942e27c471c",
+      "verified_at": "2026-10-06T19:00:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 6's last code commit (ffcf9726): lint, typecheck, the whole test suite, build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly one name, ContributorSeed, which is yours. After this story the full gate should be green on every step. `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Roles (portal role, contribution role, rights-carrying role)",
+      "Contribution",
+      "People, in three contexts"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 180
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T030 to T032 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not change fairdm/portal_roles.py, fairdm/permissions.py, RecordLevelBackend, the permission table, with_level, visible_to, the migrations, the last-manager rule or ordering.",
+    "Never run a seed command against the development database without --keep-records, and never rerun seed_overviews or seed_profiles there.",
+    "No migration."
+  ]
+}

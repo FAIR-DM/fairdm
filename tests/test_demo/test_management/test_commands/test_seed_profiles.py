@@ -341,3 +341,39 @@ class TestSeedProfilesRoleAccounts:
         ):
             assert Person.objects.filter(email=email).count() == 1
             assert PortalRoles.is_held_by(Person.objects.get(email=email), role)
+
+
+@pytest.mark.django_db
+class TestSeedProfilesCreditsFromTheOrganization:
+    def test_a_person_with_a_primary_affiliation_is_credited_from_it(self, seeded):
+        credited = [
+            (person, contribution)
+            for person in seeded
+            if person.primary_organization is not None
+            for contribution in person.contributions.all()
+        ]
+
+        assert credited
+        for person, contribution in credited:
+            assert contribution.affiliation_id == person.primary_organization.pk, person
+
+    def test_the_organization_is_listed_on_the_record_the_person_is_credited_on(
+        self, seeded
+    ):
+        person = next(
+            person
+            for person in seeded
+            if person.primary_organization is not None
+            and person.contributions.exists()
+        )
+
+        contribution = person.contributions.first()
+
+        assert contribution.content_object.contributors.filter(
+            contributor=person.primary_organization
+        ).exists()
+
+    def test_a_person_with_no_affiliation_is_credited_from_none(self, seeded):
+        for person in seeded:
+            if person.primary_organization is None:
+                assert not person.contributions.exclude(affiliation=None).exists()

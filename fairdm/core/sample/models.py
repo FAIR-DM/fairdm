@@ -144,8 +144,11 @@ class Sample(BasePolymorphicModel):
         return f"{self.name}"
 
     def clean(self):
-        """Refuse a bare ``Sample``, which must be created as a subclass."""
+        """Refuse a bare ``Sample``, and a change of dataset that leaves nobody to manage it."""
         super().clean()
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        RecordAccess(self).refuse_move_without_manager("dataset")
 
         # Forms and the admin call full_clean() before save(), so a bare Sample becomes a
         # validation error there rather than the server error the pre_save guard raises.

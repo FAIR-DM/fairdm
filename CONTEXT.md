@@ -63,6 +63,22 @@ The link between a contributor and a specific project, dataset, sample or measur
 row per contributor per object, enforced by a uniqueness constraint on content type, object id and
 contributor. Roles accumulate on that single row rather than producing duplicates.
 
+A contribution carries a **level** for a person, which is what they may do on that record. There
+are three, and each includes the one before it: **view** opens the record, even while it is
+private; **edit** also changes the record and the data in it; **manage** also changes its
+contributors and their levels, changes its visibility and deletes it. A new person starts at view.
+`RecordLevelBackend` answers every permission question about a project, dataset, sample or
+measurement from these levels, and permissions stored in django-guardian for them grant nothing.
+The level is empty for an organization, which holds no access. A level on a project applies to its datasets, and a
+level on a dataset applies to its samples and measurements, so rights flow from the record above
+to the records beneath it and never the other way. Where a person holds a level on a record and
+another from above, the higher applies. A contribution role carries no level and changes none.
+
+A contribution carries the organization a person is credited from on that record, or none. It is
+chosen when the person is added, defaults to their primary affiliation, and is kept with the record:
+a later change to the person's affiliations does not change it. The organization is listed on the
+record once, as its own contribution.
+
 ### Collaborator
 
 Another contributor credited on the same project, dataset, sample or measurement as a given
@@ -113,7 +129,8 @@ Two more terms both use the bare word "role", and neither is the other:
   this; say "portal role".
 - **Contribution role** — the credit a `Contribution` records for how a contributor took part in
   a project, dataset, sample or measurement (e.g. "Data Collector", "Editor"). It carries no
-  rights of any kind and decides nothing about what its holder can do.
+  rights of any kind and decides nothing about what its holder can do. What a person may do on one
+  record is their **level** on it (view, edit or manage), which is a different thing.
 
 A **rights-carrying role** is a portal role that holds at least one permission — today, the Portal
 Administrator, Data Curator and Community Manager roles. Holding one gives access to the
@@ -152,7 +169,8 @@ by `polymorphic_ctype`; queries return instances of the correct subtype without 
 Access flows downward. A private project hides everything beneath it. Under a public project, each
 dataset's own visibility decides, and samples and measurements follow their dataset. A
 contributor's page goes further and names only public projects and public datasets, for every
-viewer.
+viewer. A person who holds a level on a record opens it whatever the visibility of the records
+above it, and gains nothing over those records from it.
 
 Some docstrings in the dataset layer still refer to an `INTERNAL` visibility. No such value
 exists; treat those mentions as stale.

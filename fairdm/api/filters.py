@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 
 from rest_framework.filters import BaseFilterBackend
 
+from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.utils import get_objects_for_user
 
 if TYPE_CHECKING:
@@ -52,10 +54,12 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     - Records that are publicly visible (via ``visibility=PUBLIC`` or cascaded
       through ``dataset__visibility=PUBLIC``) are always included.
-    - Records where the user has an explicit guardian 'view' permission are also
-      included.
+    - Records the user holds at least the view level on, directly or from the dataset or
+      project above, are also included. Rows that django-guardian stores for a project, dataset,
+      sample or measurement grant nothing.
+    - For any other model, records where the user holds a stored guardian 'view' permission.
 
-    Both sets are combined via queryset union to avoid N+1 queries.
+    Both sets are combined in one query to avoid N+1 queries.
 
     For models with no known visibility mechanism (such as Contributor), the
     filter returns the full queryset, making all records publicly accessible.
@@ -75,12 +79,15 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
         if request.user and request.user.is_authenticated:
             public_qs = queryset.filter(**public_filter)
-            view_perm = f"{queryset.model._meta.app_label}.view_{queryset.model._meta.model_name}"
-            permitted_qs = get_objects_for_user(
-                request.user,
-                view_perm,
-                queryset,
-            )
+            model = queryset.model
+            core = getattr(model, "type_of", None) or model
+            if RecordAccess.is_core_model(core):
+                manager = getattr(core, "all_objects", core.objects)
+                held = manager.accessible_to(request.user, ContributionLevel.VIEW)
+                permitted_qs = queryset.filter(pk__in=held.values("pk"))
+            else:
+                view_perm = f"{model._meta.app_label}.view_{model._meta.model_name}"
+                permitted_qs = get_objects_for_user(request.user, view_perm, queryset)
             return (public_qs | permitted_qs).distinct()
 
         return queryset.filter(**public_filter)

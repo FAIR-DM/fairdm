@@ -91,24 +91,34 @@ class TestBuildModelSerializer:
     def test_is_model_serializer_subclass(self, simple_serializer):
         assert issubclass(simple_serializer, serializers.ModelSerializer)
 
-    def test_has_object_permissions_mixin(self, simple_serializer):
-        assert issubclass(simple_serializer, ObjectPermissionsAssignmentMixin)
+    def test_a_core_record_serializer_credits_its_creator(self, simple_serializer):
+        from fairdm.api.serializers import CreatorCreditMixin
 
-    def test_get_permissions_map_returns_correct_perms(
-        self, simple_serializer, project_model
-    ):
+        assert issubclass(simple_serializer, CreatorCreditMixin)
+        assert not issubclass(simple_serializer, ObjectPermissionsAssignmentMixin)
+
+    def test_a_serializer_for_another_model_still_assigns_stored_permissions(self):
+        from fairdm.contrib.contributors.models import Organization
+
+        cls = build_model_serializer(Organization, ["name"])
+
+        assert issubclass(cls, ObjectPermissionsAssignmentMixin)
+
+    def test_get_permissions_map_returns_correct_perms(self):
         from unittest.mock import MagicMock
 
-        model_name = project_model._meta.model_name
+        from fairdm.contrib.contributors.models import Organization
+
+        cls = build_model_serializer(Organization, ["name"])
         expected_perms = {
-            f"view_{model_name}",
-            f"change_{model_name}",
-            f"delete_{model_name}",
+            "view_organization",
+            "change_organization",
+            "delete_organization",
         }
 
         mock_user = MagicMock()
         mock_request = MagicMock(user=mock_user)
-        instance = simple_serializer(data={}, context={"request": mock_request})
+        instance = cls(data={}, context={"request": mock_request})
         perm_map = instance.get_permissions_map(created=True)
         assert set(perm_map.keys()) == expected_perms
         for _perm, users in perm_map.items():
@@ -195,12 +205,10 @@ class TestBaseSampleSerializer:
 
         assert issubclass(BaseSampleSerializer, serializers.ModelSerializer)
 
-    def test_has_object_permissions_mixin(self):
-        from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
+    def test_credits_its_creator(self):
+        from fairdm.api.serializers import BaseSampleSerializer, CreatorCreditMixin
 
-        from fairdm.api.serializers import BaseSampleSerializer
-
-        assert issubclass(BaseSampleSerializer, ObjectPermissionsAssignmentMixin)
+        assert issubclass(BaseSampleSerializer, CreatorCreditMixin)
 
     def test_meta_model_is_sample(self):
         from fairdm.api.serializers import BaseSampleSerializer
@@ -250,12 +258,10 @@ class TestBaseMeasurementSerializer:
 
         assert issubclass(BaseMeasurementSerializer, serializers.ModelSerializer)
 
-    def test_has_object_permissions_mixin(self):
-        from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
+    def test_credits_its_creator(self):
+        from fairdm.api.serializers import BaseMeasurementSerializer, CreatorCreditMixin
 
-        from fairdm.api.serializers import BaseMeasurementSerializer
-
-        assert issubclass(BaseMeasurementSerializer, ObjectPermissionsAssignmentMixin)
+        assert issubclass(BaseMeasurementSerializer, CreatorCreditMixin)
 
     def test_meta_model_is_measurement(self):
         from fairdm.api.serializers import BaseMeasurementSerializer

@@ -546,3 +546,63 @@ class TestPersonQuerySetForCards:
             assert fetched.orcid_is_authenticated
             assert fetched.primary_organization is not None
             assert fetched.portal_roles == []
+
+
+@pytest.mark.django_db
+class TestContributionKinds:
+    @pytest.fixture
+    def credited(self):
+        from fairdm.factories import (
+            ContributionFactory,
+            DatasetFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        dataset = DatasetFactory()
+        Contribution.objects.filter(
+            content_type__model="dataset", object_id=dataset.pk
+        ).delete()
+        organization = ContributionFactory(
+            content_object=dataset, contributor=OrganizationFactory(), level=None
+        )
+        first = ContributionFactory(content_object=dataset, contributor=PersonFactory())
+        second = ContributionFactory(
+            content_object=dataset, contributor=PersonFactory()
+        )
+        return dataset, organization, first, second
+
+    def test_people_are_the_contributions_of_a_person(self, credited):
+        dataset, organization, first, second = credited
+
+        people = Contribution.objects.for_entity(dataset).people()
+
+        assert organization not in people
+        assert set(people) == {first, second}
+
+    def test_organizations_are_the_contributions_of_an_organization(self, credited):
+        dataset, organization, first, second = credited
+
+        organizations = Contribution.objects.for_entity(dataset).organizations()
+
+        assert list(organizations) == [organization]
+
+    def test_each_is_ordered_by_order_then_pk(self, credited):
+        dataset, organization, first, second = credited
+        scoped = Contribution.objects.for_entity(dataset)
+        Contribution.objects.filter(pk__in=[first.pk, second.pk]).update(order=7)
+
+        assert list(scoped.people()) == [first, second]
+
+        Contribution.objects.filter(pk=first.pk).update(order=9)
+
+        assert list(scoped.people()) == [second, first]
+
+    def test_the_kind_is_decided_in_the_query(self, credited, django_assert_num_queries):
+        dataset, *_ = credited
+        Contribution.objects.for_entity(dataset)
+
+        with django_assert_num_queries(1):
+            list(Contribution.objects.for_entity(dataset).people())
+        with django_assert_num_queries(1):
+            list(Contribution.objects.for_entity(dataset).organizations())

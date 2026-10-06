@@ -3,15 +3,16 @@
 import pytest
 from django.urls import reverse
 from django.views.generic import TemplateView
-from guardian.shortcuts import assign_perm
 
 from demo.factories import RockSampleFactory
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PointFactory,
     ProjectFactory,
@@ -175,11 +176,20 @@ class TestExtraViews:
         assert child.view_initkwargs["plugin_class"] is Owner
 
     def test_the_shipped_contribution_views_address_their_target(self):
-        url = reverse(
-            "project:contribution-list-contribution-update",
-            kwargs={"uuid": "abc", "pk": 7},
-        )
-        assert url == "/projects/abc/contributors/7/edit/"
+        addresses = {
+            "add-person": ({}, "/projects/abc/contributors/add-person/"),
+            "add-organization": ({}, "/projects/abc/contributors/add-organization/"),
+            "edit": ({"pk": 7}, "/projects/abc/contributors/7/edit/"),
+            "remove": ({"pk": 7}, "/projects/abc/contributors/7/remove/"),
+            "move": ({"pk": 7}, "/projects/abc/contributors/7/move/"),
+        }
+
+        for name, (kwargs, expected) in addresses.items():
+            url = reverse(
+                f"project:contribution-list-contribution-{name}",
+                kwargs={"uuid": "abc", **kwargs},
+            )
+            assert url == expected, name
 
 
 @pytest.mark.django_db
@@ -194,8 +204,9 @@ class TestRecordPagesServe:
     def test_dataset_plugin_page(self, client):
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("view_dataset", user, dataset)
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         response = client.get(
             reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
@@ -210,7 +221,7 @@ class TestRecordPagesServe:
         assert response.status_code == 200
 
     def test_project_plugin_page(self, client):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         response = client.get(
             reverse("project:dataset-list", kwargs={"uuid": project.uuid})
         )

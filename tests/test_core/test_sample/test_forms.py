@@ -4,11 +4,13 @@ import pytest
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
-from guardian.shortcuts import assign_perm
 
+from demo.factories import RockSampleFactory
 from demo.models import RockSample, WaterSample
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
@@ -113,7 +115,9 @@ class TestSampleFormPolymorphicHandling:
 
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -177,7 +181,9 @@ class TestCustomSampleFormIntegration:
 
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         form_data = {
             "name": "Water Sample 1",
             "dataset": dataset.pk,
@@ -233,7 +239,9 @@ class TestSampleFormDatasetChoices:
         user = UserFactory()
         allowed = DatasetFactory()
         other = DatasetFactory()
-        assign_perm("change_dataset", user, allowed)
+        ContributionFactory(
+            content_object=allowed, contributor=user, level=ContributionLevel.EDIT
+        )
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -245,6 +253,56 @@ class TestSampleFormDatasetChoices:
         offered = set(form.fields["dataset"].queryset)
         assert offered == {allowed}
         assert other not in offered
+
+    def test_a_dataset_the_user_may_only_view_is_not_offered(self):
+        user = UserFactory()
+        viewed = DatasetFactory()
+        ContributionFactory(
+            content_object=viewed, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_a_level_on_the_project_offers_the_datasets_in_it(self):
+        user = UserFactory()
+        project = ProjectFactory()
+        inside = DatasetFactory(project=project)
+        DatasetFactory()
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == {inside}
+
+    def test_a_stored_guardian_row_alone_offers_no_dataset(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
 
     def test_form_with_no_user_offers_no_dataset_at_all(self):
         DatasetFactory()
@@ -283,6 +341,73 @@ class TestSampleFormDatasetChoices:
             RockSampleForm()
 
         assert any(record.levelno == logging.WARNING for record in caplog.records)
+
+
+@pytest.mark.django_db
+class TestSampleFormOnAnExistingSample:
+    """The dataset a sample sits in is offered only to someone who can manage the sample."""
+
+    def _form(self, sample, user):
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        return RockSampleForm(instance=sample, request=_request_for(user))
+
+    def test_an_editor_is_not_offered_the_dataset(self):
+        sample = RockSampleFactory()
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=sample, contributor=editor, level=ContributionLevel.EDIT
+        )
+
+        assert "dataset" not in self._form(sample, editor).fields
+
+    def test_an_editors_post_cannot_move_the_sample(self):
+        sample = RockSampleFactory(name="Original")
+        elsewhere = DatasetFactory()
+        editor = UserFactory()
+        ContributionFactory(
+            content_object=sample, contributor=editor, level=ContributionLevel.EDIT
+        )
+        ContributionFactory(
+            content_object=elsewhere, contributor=editor, level=ContributionLevel.EDIT
+        )
+        form = self._form(sample, editor)
+        form.data = {"name": "Renamed", "dataset": elsewhere.pk}
+        form.is_bound = True
+
+        form.is_valid()
+        saved = form.save(commit=False)
+
+        assert saved.dataset_id == sample.dataset_id
+
+    def test_a_manager_is_offered_the_dataset(self):
+        sample = RockSampleFactory()
+        manager = UserFactory()
+        ContributionFactory(
+            content_object=sample, contributor=manager, level=ContributionLevel.MANAGE
+        )
+        ContributionFactory(
+            content_object=sample.dataset,
+            contributor=manager,
+            level=ContributionLevel.MANAGE,
+        )
+
+        assert "dataset" in self._form(sample, manager).fields
+
+    def test_a_form_for_a_new_sample_leaves_nothing_out(self):
+        editor = UserFactory()
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(editor))
+
+        assert "dataset" in form.fields
 
 
 @pytest.mark.django_db

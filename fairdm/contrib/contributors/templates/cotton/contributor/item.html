@@ -6,9 +6,9 @@
 {# @prop class:text | description:"Extra CSS classes on the root element." #}
 {% load contributor_tags %}
 <c-vars contributor size="sm" secondary :link="True" class />
-{% with c=contributor|as_contributor %}
+{% with c=contributor|as_contributor fallback=contributor.get_real_instance.primary_organization %}
   {% if c %}
-    {% with roles=contributor.roles.all organization=contributor.affiliation|default:c.primary_organization line=c.summary %}
+    {% with roles=contributor.roles.all organization=contributor.affiliation|default:fallback line=c.summary %}
     <div class="flex items-center gap-3 min-w-0 {{ class }}" {{ attrs }}>
       <c-contributor.avatar :contributor="c" size="{{ size }}" link="" class="" />
       <div class="min-w-0">

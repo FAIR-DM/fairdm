@@ -2,11 +2,16 @@
 
 import pytest
 from django.urls import reverse
-from guardian.shortcuts import assign_perm
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -94,7 +99,9 @@ class TestAuthenticatedWithPermission:
     def test_view_perm_allows_private_project_read(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.VIEW
+        )
         client = make_token_client(user)
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.get(url).status_code == 200
@@ -102,8 +109,9 @@ class TestAuthenticatedWithPermission:
     def test_change_perm_allows_patch(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)
-        assign_perm("change_project", user, proj)
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.EDIT
+        )
         client = make_token_client(user)
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         resp = client.patch(url, {"name": "Updated"}, format="json")
@@ -113,8 +121,9 @@ class TestAuthenticatedWithPermission:
     def test_delete_perm_allows_delete(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)
-        assign_perm("delete_project", user, proj)
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.MANAGE
+        )
         client = make_token_client(user)
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         assert client.delete(url).status_code == 204
@@ -139,7 +148,9 @@ class TestAuthenticatedWithPermission:
     def test_viewer_cannot_patch_private_project(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)  # view but not change
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.VIEW
+        )  # view but not change
         client = make_token_client(user)
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
         resp = client.patch(url, {"name": "No Access"}, format="json")
@@ -148,7 +159,9 @@ class TestAuthenticatedWithPermission:
     def test_private_project_appears_in_list_for_permitted_user(self):
         user = UserFactory()
         proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        assign_perm("view_project", user, proj)
+        ContributionFactory(
+            content_object=proj, contributor=user, level=ContributionLevel.VIEW
+        )
         client = make_token_client(user)
         response = client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
@@ -174,7 +187,9 @@ class TestDatasetPermissions:
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
         ds = DatasetFactory(project=pub_proj, visibility=Visibility.PRIVATE)
         user = UserFactory()
-        assign_perm("view_dataset", user, ds)
+        ContributionFactory(
+            content_object=ds, contributor=user, level=ContributionLevel.VIEW
+        )
         client = make_token_client(user)
         url = reverse("api:dataset-detail", kwargs={"uuid": ds.uuid})
         assert client.get(url).status_code == 200

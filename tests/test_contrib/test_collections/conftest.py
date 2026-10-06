@@ -3,7 +3,8 @@
 import pytest
 
 from demo.factories import RockSampleFactory
-from fairdm.factories import DatasetFactory, UserFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
 
 
 @pytest.fixture
@@ -28,11 +29,13 @@ def unpublished_sample(db, unpublished_dataset):
 
 @pytest.fixture
 def dataset_owner(db, unpublished_dataset):
-    from guardian.shortcuts import assign_perm
 
     user = UserFactory()
-    assign_perm("view_dataset", user, unpublished_dataset)
-    assign_perm("change_dataset", user, unpublished_dataset)
+    ContributionFactory(
+        content_object=unpublished_dataset,
+        contributor=user,
+        level=ContributionLevel.EDIT,
+    )
     return user
 
 

@@ -7,14 +7,14 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
     MeasurementDescription,
     MeasurementIdentifier,
 )
-from fairdm.core.utils import assign_perm
-from fairdm.factories import DatasetFactory, PersonFactory
+from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -261,7 +261,11 @@ class TestVisibleTo:
         self, measurements
     ):
         user = PersonFactory(is_active=True)
-        assign_perm("view_dataset", user, measurements["private"].dataset)
+        ContributionFactory(
+            content_object=measurements["private"].dataset,
+            contributor=user,
+            level=ContributionLevel.VIEW,
+        )
 
         visible = Measurement.objects.visible_to(user)
 

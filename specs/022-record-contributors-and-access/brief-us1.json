@@ -1,0 +1,136 @@
+{
+  "story": "US1",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 420,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T001",
+    "T002",
+    "T003",
+    "T004",
+    "T005"
+  ],
+  "context": {
+    "why": "A working prototype of the whole Contributors tab is already on this branch and was approved by the maintainer on the running pages. Its templates and components stay exactly as they are; the Python behind them (fairdm/contrib/contributors/access.py, plugins/shared.py and the seed) has no tests and is being rebuilt story by story. This story rebuilds the base: the stored level on a contribution, the RecordAccess class that reads it, the Crediting class that changes contributors, and the tab's list, add-from-the-portal, edit-roles and remove pages over them. Later stories own the rest, and until they land the prototype's code for those parts keeps the pages working: the affiliation choice (US2), the ORCID, ROR and by-hand ways of adding (US3), the permission backend, enforcement on private records, levels on the edit page, the creator's level and the data migration (US4), the last-manager rule (US5), moving and order (US6). Do not delete prototype behaviour another story owns; leave it working and untested.",
+    "spec_sections": [
+      "User Story 1 (all 12 acceptance scenarios)",
+      "FR-001 to FR-009",
+      "FR-010 (the two add pages exist and are reached from their lists)",
+      "FR-013",
+      "FR-020",
+      "FR-028 to FR-033",
+      "FR-038 (a new person gets the view level)",
+      "FR-040",
+      "Clarifications",
+      "Key Entities"
+    ],
+    "plan_sections": [
+      "Summary",
+      "Complexity tracking",
+      "D1",
+      "D2 (the RecordAccess class, REQUIRED_LEVEL and the can-sign-in method only; the backend, with_level and the readers-and-writers table are US4)",
+      "D3 (add, update for roles, remove; the organization handling is US2, level handling in update and make_creator are US4, last_manager and the row lock are US5, move is US6)",
+      "D5 (the list, the portal tab of both add pages, the roles part of the edit page and the remove page)",
+      "D6 (people_url only)",
+      "What is not rebuilt",
+      "Watch items"
+    ],
+    "prior_decisions": [
+      "decisions.md D5: RecordAccess(record) and Crediting(record) are classes with no base class. D7: a superuser cannot be saved as a contributor (Contribution.save raises ValueError outside DEBUG); Crediting.add refuses one with a ValidationError (give it a code) that the add page shows, never an unhandled exception.",
+      "Levels in this story are read from Contribution.level only. Stored django-guardian rows still work for everything else in the portal until US4 switches the backend, so do not touch any permission backend, AUTHENTICATION_BACKENDS, visible_to, or the create pages' assign_perm calls. RecordAccess.can_manage(user) is: level MANAGE on the record or a record above it, or the user holds change_<model> for the whole portal (user.has_perm('<app>.change_<model>') with no object), which is what a superuser and a Data Curator pass.",
+      "ContributionLevel goes in fairdm/contrib/contributors/choices.py as an IntegerChoices: VIEW=1, EDIT=2, MANAGE=3. Contribution.level is nullable, empty for an organization, with verbose_name and help_text. Write the schema migration with makemigrations and apply it to the dev server's database (see environment).",
+      "The prototype's access.py reads levels from guardian rows through get_user_perms. Replace that module wholesale with RecordAccess on the field. plugins/shared.py imports its old function names in many places, including code other stories own: update every call site so every page still renders. The templates read context names (entry.own, entry.above, entry.effective, entry.label, entry.from_above, entry.has_account, entry.is_person, entry.contributor, entry.contribution, entry.attached, entry.removable, entry.affiliation, people.rows, people.total, people.movable, organizations.*, access_from_above, parent, parent_url, parent_kind, kind, list_url, can_manage, term, total, adding.*), so keep those names.",
+      "'Can sign in' is one method on Person: active, and claimed or has signed in (last_login is not None). Specification 020 settled that rule in Person.is_editable_by; move the rule into the method and have is_editable_by use it. tests for is_editable_by already exist and must still pass unchanged.",
+      "The tab opens to anyone in this story. Refusing strangers on a private record's tab is US4 (T017 TestPrivateRecordTab); do not build it here.",
+      "A visitor asking for a changing page is redirected to sign in; a signed-in person who cannot manage the record gets 403; nothing is changed in either case.",
+      "Two pre-existing tests pin the old tab and currently fail; bring them up to date in T004 and name them in progress.md: tests/test_contrib/test_plugins/test_registration.py::TestExtraViews::test_the_shipped_contribution_views_address_their_target (the tab's additional views are now add-person, add-organization, edit, remove and move) and tests/test_core/test_dataset/test_plugins.py::TestRetiredManagementPages::test_the_dataset_menu_carries_one_entry (a dataset now also carries the Contributors tab). Keep what each test is for; change only the expectation the new tab alters.",
+      "The seeds (demo/seed/contributors.py, demo/seed/common.py grant_team_rights, demo/seed/projects.py) currently give rights with guardian rows. In this story demo/seed/contributors.py sets levels through Crediting. demo/seed/common.py and demo/seed/projects.py must keep working for the existing overview pages until US4, so in this story make them ALSO set the level (through Crediting) while still granting the rows; US4 removes the rows. Do not rerun seed_contributors without --keep-records against the dev database: the maintainer has the record addresses.",
+      "After your migration, the seeded dev database has contributions with no level. Set them once so the running pages still show the right thing: for the records seed_contributors made, give each person the level their guardian rows amount to (view/change/delete on the record means view/edit/manage). Do it with a one-off shell snippet, not a migration (the real conversion is US4's data migration), and say in your report that you did.",
+      "Documentation (T005): the docs gate fails today on 17 public names the prototype added and no page mentions. Your pages must cover the names this story leaves public. Names belonging to later stories' code will keep the docs step red until their stories; list in your report which undocumented names remain and which story owns each."
+    ],
+    "acceptance": [
+      {
+        "task": "T001",
+        "given_when_then": "Given the cases listed in tasks.md T001, when run before RecordAccess exists on the field, then they fail for that reason; after T004 they pass."
+      },
+      {
+        "task": "T002",
+        "given_when_then": "Given a record and a contributor, when Crediting adds, updates roles or removes, then the outcomes in tasks.md T002 hold and each refusal is a ValidationError with its code."
+      },
+      {
+        "task": "T003",
+        "given_when_then": "Given User Story 1's scenarios, when the real pages are opened and submitted through the test client on a project, a dataset, a registered sample type and a registered measurement type, as a manager, a signed-in reader and a visitor, then each Then holds and refused requests change nothing."
+      },
+      {
+        "task": "T004",
+        "given_when_then": "Given the failing tests from T001 to T003 and the two pre-existing failures named above, when the implementation lands, then all pass, the schema migration exists and makemigrations --check is clean."
+      },
+      {
+        "task": "T005",
+        "given_when_then": "Given the documentation pages named in tasks.md T005, when they are read against the branch, then every example runs as written and the public names this story owns are documented."
+      }
+    ],
+    "verified_base": {
+      "commit": "123cdf48478cefc83b54f22668f58b058c2df91e",
+      "verified_at": "2026-10-06T12:10:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "build",
+        "conformance"
+      ],
+      "note": "Lint, typecheck, build and conformance pass. The test step has exactly two failures, both caused by the approved prototype and both yours to fix in T004 (named in prior_decisions): 3,821 other tests pass. The docs step fails on 17 undocumented prototype names (see prior_decisions). tests/test_smoke.py::TestMigrations::test_every_model_change_has_a_migration failed once in a parallel run and passes on its own; if you see it fail before you have touched a model, it is that order-dependence and not you, and say so in concerns. Verified on the planning commit; every commit since changes only files under specs/022-record-contributors-and-access/. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Contribution",
+      "Contributor, Person, Organization",
+      "Roles (portal role, contribution role)",
+      "Plugin",
+      "Visibility"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T001 to T005 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not touch any permission backend, fairdm/conf/settings/auth.py, visible_to, or the guardian grants on the create pages: US4 owns all of them.",
+    "Do not build the affiliation choice, the registry searches, the last-manager rule, the row lock, or moving: later stories own them. Leave the prototype's code for those parts working."
+  ]
+}

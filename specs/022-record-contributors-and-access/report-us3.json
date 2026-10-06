@@ -1,0 +1,130 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_registries.py: TestSearchOrcid, TestFetchOrcid, TestSearchRor, TestFetchRor, TestProfileFromRegistry (90 cases)",
+          "tests/test_contrib/test_contributors/conftest.py fixtures recorded and registry_network; trimmed recorded responses in tests/test_contrib/test_contributors/recorded/"
+        ],
+        "criteria": [
+          "SC-002"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_registries.py -q -n0 -p no:randomly (before the module existed: collection error, ModuleNotFoundError; after: 90 passed)",
+          "six mutations of services/registries.py (ORCID pattern off, ROR pattern off, no timeout, withdrawn kept, profile matched by name, ROR more flag fixed false) each failed tests and were restored"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "60f04ed4",
+        "70378b88"
+      ]
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py: TestAddPages, TestAddFromRegistry, TestAddByHand (356 cases over four record types and both add pages)"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-005"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddPages ::TestAddFromRegistry ::TestAddByHand -q -n auto --dist loadscope -p no:randomly (before the code: 220 failed, 132 passed of 352; after: 356 passed)",
+          "mutations of plugins/shared.py after the code (via fixed to portal: 65 failed; manager_only off: 1; registry asked whatever the tab: 2; registry credit validation off: 10; posted record trusted: 4; transaction removed: 4 after I added the refused-credit case) each failed tests and were restored"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "a2e2f50c",
+        "edff3247"
+      ]
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope (1779 passed)",
+          "uv run pre-commit run --all-files (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (lint, typecheck, test, build and conformance passed; docs failed on exactly ContributionMove, ContributorSeed, give_level and level_choices)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "70378b88",
+        "1b04e050",
+        "0fb0c024"
+      ]
+    },
+    {
+      "id": "T014",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "forge verify --repo . --base origin/main --steps docs (lists only ContributionMove, ContributorSeed, give_level and level_choices; before the page for ask it also listed ask)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "51754ff8"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "fetch returns None for a 404 (and a search by identifier finds nothing) instead of raising RegistryUnavailable; other non-200 answers, network errors, timeouts and unreadable answers raise it.",
+      "why": "A 404 from the record endpoints is the registry saying there is no such record; reading it as unavailable would tell a manager the registry is down when they mistyped an identifier. tasks.md lists a timeout, a connection error and a 500, not a 404.",
+      "decision_ref": "decisions.md#d17-a-registry-that-has-no-such-record-is-an-answer-not-a-failure"
+    },
+    {
+      "what": "models.py: the ORCID and ROR patterns became the constants ORCID_PATTERN and ROR_PATTERN, used by Person.clean, Organization.clean and the registries.",
+      "why": "The brief asks the registries to reuse the pattern near Person; it was a literal inside a method. Behaviour of the two clean methods is unchanged.",
+      "decision_ref": "decisions.md#d22-the-orcid-and-ror-patterns-became-two-constants-in-modelspy"
+    },
+    {
+      "what": "AffiliationChoice.choice() (story 2) selects a person's primary affiliation before it falls back to the suggested employer.",
+      "why": "A person the portal already holds under an ORCID iD should be offered their own affiliations, with the primary selected (FR-023); nothing else sets a suggestion.",
+      "decision_ref": "decisions.md#d23-a-person-the-portal-holds-under-an-orcid-id-is-offered-their-own-affiliations"
+    },
+    {
+      "what": "The country of an organization entered by hand is a name or a code in the unchanged text input, not a select.",
+      "why": "A select changes what the approved card draws; the brief allows it only when nothing else changes.",
+      "decision_ref": "decisions.md#d18-the-country-is-typed-as-a-name-or-a-code-and-the-approved-input-stays-an-input"
+    }
+  ],
+  "concerns": [
+    "State of a person entered by hand with an email address: active, not claimed, email stored, unusable password, so account_state is INVITED, can_sign_in() is false, no social account, listed by Person.objects.invited(). Without an email: GHOST. Nothing is sent by the page. But allauth finds users by Person.email whatever their password, and a throwaway test (not kept) showed that posting the stored address to the portal's password reset page mails it, while a password sign-in fails. The brief says the stored email must not make the person able to receive mail; I could not meet that without changing the account adapter or sign-in settings, which this story does not touch. Needs a maintainer decision (decisions D19).",
+    "A profile made from ORCID or ROR saves a ContributorIdentifier, whose existing AFTER_CREATE hook queues sync_contributor_identifier after commit. On a portal with a task broker that task calls ORCID or ROR, with its own ten-second timeout, and fills in the profile. The tests run no on_commit callbacks, so none ran.",
+    "On the chosen step the employer shown comes from the fetched record (the first current employment), while the search list shows the first institution-name of the search. For a person with several current employers the two can differ (the recorded record lists Wesleyan first, the recorded search lists Brown first).",
+    "A search term is passed to ORCID as the q parameter unchanged, so a manager can use its query syntax. It is encoded by requests and can only widen or narrow what the public search returns.",
+    "ORCID answers 409 for a locked or deactivated record; fetch reads any non-200 other than 404 as unavailable.",
+    "The add-organization page offers the existing organization of the same name instead of the by-hand form, so a second organization of that name cannot be made from the page even with confirmed posted (tested). Two genuinely different organizations with one name have to be made in the administration interface.",
+    "The pages were not opened in a browser. The tests render the templates and the htmx tab behaviour is the approved prototype's; I did not look at the new lines on the running dev server.",
+    "Carried over from story 2: fairdm/core/plugins.py get_credits still falls back to a person's primary affiliation for the overview's People card.",
+    "The module docstring of plugins/shared.py still calls the file a prototype, true for the level and move parts later stories rebuild; left.",
+    "No migration was added, so the development database was not touched. forge verify --repo . --base origin/main is red only on the docs step, on exactly ContributionMove, ContributorSeed, give_level and level_choices."
+  ],
+  "blocked": []
+}

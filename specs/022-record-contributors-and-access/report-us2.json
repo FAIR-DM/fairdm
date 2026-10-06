@@ -1,0 +1,151 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T006",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestCreditedFrom (19 cases)"
+        ],
+        "criteria": [
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py::TestCreditedFrom -q -n0 -p no:randomly (before: 19 failed, 18 TypeError on the organization argument and one on the old hook; after the service: 2 failed in the file, the primary-affiliation case through the old hook and the deletion test with ProtectedError; after the migration and the hook's removal: 40 passed in the file)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "af4fcbfa",
+        "974332a0"
+      ]
+    },
+    {
+      "id": "T007",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAffiliationChoice",
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestOrganizationRemoval",
+          "tests/test_contrib/test_contributors/test_plugins/conftest.py fixtures institutes and affiliate"
+        ],
+        "criteria": [
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAffiliationChoice tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestOrganizationRemoval -q -n0 -p no:randomly (before: 16 failed, 92 passed; after: 196 passed in the file)",
+          "three mutations of plugins/shared.py (tab falls back to the profile, removable always true, remove refusal swallowed) each failed at least one test and were restored"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "4e730b84",
+        "f272650e"
+      ]
+    },
+    {
+      "id": "T008",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_templates/test_contributor_components.py::TestCreditedFromNone (6 cases, two components)"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_templates/test_contributor_components.py::TestCreditedFromNone -q -n0 -p no:randomly (before: 2 failed, 4 passed; after: all passed)",
+          "forge verify --repo . --base origin/main --steps conformance, with a throwaway tests/test_contrib/test_contributors/test_components.py: refused as mirroring no source module"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "9adf1bd0",
+        "f272650e"
+      ]
+    },
+    {
+      "id": "T009",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-008",
+          "SC-009"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope (1333 passed)",
+          "uv run python manage.py makemigrations --check --dry-run (only the third-party orbit app reports a migration)",
+          "DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate (applied contributors.0023_credited_from_set_null to the dev database)",
+          "uv run pre-commit run --all-files (passed)",
+          "forge verify --repo . --base origin/main: conformance, lint, typecheck, test and build passed; docs failed on the four names the brief says are not mine"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "974332a0",
+        "f272650e",
+        "2f657f37"
+      ]
+    },
+    {
+      "id": "T010",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "forgekit.docs_check.audit(Path('.'), base='origin/main') lists only ContributionMove, ContributorSeed, give_level and level_choices"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "a5609887"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The T008 tests are in tests/test_templates/test_contributor_components.py, not a new tests/test_contrib/test_contributors/test_components.py.",
+      "why": "The conformance step refuses a test module that mirrors no source module (run and read), and tests/test_templates/ is the repository's declared home for component tests.",
+      "decision_ref": "progress.md T008"
+    },
+    {
+      "what": "The two components read the fallback organization from contributor.get_real_instance.primary_organization, read in the outer with, instead of changing only the filter argument.",
+      "why": "A filter argument that does not resolve raises, so the name has to be read where a missing one is an empty value; get_real_instance keeps the fallback for a plain contributor row that is a person.",
+      "decision_ref": "decisions.md#d15-the-two-components-fall-back-through-get_real_instance-not-through-the-credit"
+    },
+    {
+      "what": "Public constant UNCHANGED and public method list_organization added to services/crediting.py.",
+      "why": "The organization argument of update needs three answers, and add and update share the step that lists the organization; the brief forbids leading underscores.",
+      "decision_ref": "decisions.md#d13-creditingupdate-tells-three-answers-apart-with-a-module-constant"
+    },
+    {
+      "what": "Pre-existing test tests/test_contrib/test_contributors/test_models.py test_contribution_default_affiliation was updated to test_a_credit_is_not_given_the_primary_affiliation.",
+      "why": "It asserted the model hook this story deletes.",
+      "decision_ref": "decisions.md#d16-callers-of-the-deleted-hook"
+    }
+  ],
+  "concerns": [
+    "fairdm/core/plugins.py get_credits (RecordOverviewPlugin) still falls back to the person's primary affiliation when a credit names none, so the overview's People card can show an organization for a person the tab shows with none (FR-024). Outside the brief's scope (it names only the two components); left alone.",
+    "Seeds other than demo/seed/contributors.py (seed_profiles, the project, sample and measurement seeds) and generate_fake_data credit people through add_to or add_contributor and relied on the deleted hook only implicitly; their example records now show people with no organization (decisions D16).",
+    "The by-hand and registry ways of adding a person now go through AffiliationChoice. They have no tests (story 3 owns them); I checked the stand-in ORCID way and the by-hand way, a refused empty name, and adding an organization by hand with a throwaway test that I deleted.",
+    "The module docstring of plugins/shared.py still calls the file a prototype to be rebuilt; true for the registry, level and move parts that later stories rebuild, so I left it.",
+    "The development database was migrated (0023, SET_NULL, no data change) and not reseeded; seed_contributors was run twice, the second time with --keep-records, only against the test database in a throwaway test.",
+    "forge verify --repo . --base origin/main is red only on the docs step, on exactly ContributionMove, level_choices, give_level and ContributorSeed, the four names the brief lists. conformance, lint, typecheck, test and build passed.",
+    "I ran ruff format over tests/test_contrib/test_contributors/test_plugins/ once, which reformatted lines of test_overview.py, test_update.py and four story 1 tests in test_shared.py. I restored all of them before the commit was kept; git diff against the verified base shows only my additions and the two import lines I had to extend."
+  ],
+  "blocked": []
+}

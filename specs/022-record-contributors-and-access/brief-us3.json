@@ -1,0 +1,125 @@
+{
+  "story": "US3",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 422,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T011",
+    "T012",
+    "T013",
+    "T014"
+  ],
+  "context": {
+    "why": "Stories 1 and 2 are accepted: Contribution.level, RecordAccess, Crediting (add with an organization, update, remove, credited_from) and the tab's list, portal add, edit and remove pages are rebuilt and tested, with the organization choice behind AffiliationChoice. This story rebuilds the other two ways of adding a contributor, on both add pages (add-person and add-organization): looking them up in a registry (ORCID for a person, ROR for an organization) and entering them by hand. The maintainer approved the pages as the prototype draws them (templates contributors/plugins/contribution_add_person.html and contribution_add_organization.html): three stock radio tabs that switch in the browser, a search that redraws only its own tab through htmx (hx-get with hx-select on #tab-portal / #tab-registry / #tab-new), a 'searching' indicator, results, a no-result state, a chosen step, and the by-hand form with a same-name warning. Behind them the prototype uses fixed ORCID_RECORDS and ROR_RECORDS lists and a time.sleep pause in plugins/shared.py; this story replaces those with real calls and deletes them.",
+    "spec_sections": [
+      "User Story 3 (all 15 acceptance scenarios)",
+      "FR-010 to FR-020",
+      "FR-022 and FR-023 (the organization is asked for whichever way a person is added)",
+      "Edge Cases (a search matching many entries; an ORCID record with no public name; a withdrawn ROR record)",
+      "Clarifications (session 2026-10-06: the three ways; what is kept about a person or organization entered by hand; a registry match already in the portal)",
+      "Assumptions (nobody is invited or emailed; a registry profile takes the name and the identifier)"
+    ],
+    "plan_sections": [
+      "D4",
+      "D5 (NewPersonForm and NewOrganizationForm, and the email rule)",
+      "Constitution check row V",
+      "Watch items"
+    ],
+    "prior_decisions": [
+      "decisions.md D5: `Orcid` and `Ror` are two plain classes in fairdm/contrib/contributors/services/registries.py with no shared base class. A small module-level helper for the HTTP call and its failure handling is fine. RegistryUnavailable is the one exception both raise.",
+      "Real responses are recorded under specs/022-record-contributors-and-access/recorded/ (orcid-search.json, orcid-search-by-id.json, orcid-record.json, ror-search.json, ror-record.json, ror-missing.json which is a 404 body). Build your test doubles from them: copy trimmed pieces into your test module or a fixture file under tests/, do not read from specs/ at test time. Endpoints, all public and needing no credentials: ORCID search `https://pub.orcid.org/v3.0/expanded-search/` with params q and rows and header Accept: application/json (search by iD with q=`orcid:<iD>`); ORCID fetch `https://pub.orcid.org/v3.0/<iD>/record`; ROR search `https://api.ror.org/v2/organizations` with param query; ROR fetch `https://api.ror.org/v2/organizations/<id>`. An ORCID search result has given-names, family-names, orcid-id, institution-name (a list; the first is the employer shown and suggested). A ROR item has id (a full https://ror.org/ URL), names (take the one whose types include ror_display), types, status (leave out anything not active), locations[].geonames_details (name, country_name).",
+      "Replace the network at `requests.get` (monkeypatch or unittest.mock); no test reaches the network and no new test dependency is added.",
+      "Security (plan D4): fetch refuses an identifier that does not match the registry's format before any request is made (reuse the ORCID pattern in models.py near Person and the ROR cleaner in utils/transforms.py); search terms go through requests' `params`, never string-formatted into the address; timeout five seconds; any network error, timeout or non-200 raises RegistryUnavailable. When a manager adds a chosen registry record, the page posts only the identifier and the server fetches the record again by that identifier before making a profile: never build a profile from posted name fields.",
+      "profile(record) returns the contributor the portal already holds under that identifier (ContributorIdentifier, type ORCID or ROR) or makes one with the name and the identifier. A person made this way has no email, an unusable password and no account. The prototype matched by name; that goes.",
+      "By hand: a person needs a given name and a family name, and may have an email address, which is stored and never shown; a person whose name matches profiles already in the portal gets those offered first and can still be made (the form comes back with a `confirmed` field); an organization needs a name and may have city, country and website, and when its name matches one in the portal the existing one is offered and no second is made. Person.email is unique: an address the portal already holds is refused on the email field with a code, and the response must not name, link or offer the profile it belongs to (it would let a manager find out who owns an address). The stored email must not make the person able to sign in or receive mail: check how Person and allauth treat a person with an email and an unusable password (PersonQuerySet state filters, AccountState.INVITED) and say in your report what state such a person is in.",
+      "Country on Organization is a django-countries field; the prototype's form takes free text. Offer the country as a choice from the field's own list in the form (a select) only if that does not change what the approved page draws beyond the input becoming a select; otherwise accept a country name or code and refuse what does not resolve. Say which you did in decisions.md.",
+      "FR-012: moving between the three ways must not reload the page or lose what another way holds. The templates already do this with radio tabs and htmx. Test what a test can decide: one response carries all three ways (scenario 1); a search response reopens on the way named by `via` in the address or the form (3); each tab keeps its own search term (`q` for the portal, `rq` for the registry). Do not test the browser behaviour.",
+      "FR-014: results are limited and the page says when there are more than it shows. The portal search and both registry searches need that flag in the context and one line in the template where the results end; that line is new text in an approved template, so keep it to one plain sentence in the same style as the 'no results' line beside it and name it in progress.md.",
+      "FR-015: when a registry cannot be reached the page answers 200, says that search is unavailable in the registry tab, and the other two ways still work. Same rule for new text in the template.",
+      "Every way of adding a person ends on the organization choice (AffiliationChoice, story 2) and goes through Crediting.add; then the manager is sent to the new contributor's edit page (FR-020).",
+      "decisions.md D7: a superuser is refused by Crediting.add with a ValidationError.",
+      "Docs: the names this story makes public must be documented (T014). The four names the docs step already reports belong to later stories: ContributionMove and level_choices (plugins/shared.py), give_level (demo/seed/common.py), ContributorSeed (demo/seed/contributors.py)."
+    ],
+    "acceptance": [
+      {
+        "task": "T011",
+        "given_when_then": "Given replaced responses built from the recorded ones, when Orcid and Ror search, fetch and make a profile, then the outcomes in tasks.md T011 hold, a malformed identifier makes no request, and every failure raises RegistryUnavailable."
+      },
+      {
+        "task": "T012",
+        "given_when_then": "Given User Story 3's scenarios, when both add pages are used through the test client by a manager, a reader and a visitor, then each Then holds, a registry that cannot be reached still answers 200 with the other ways working, and nothing is made by someone who may not manage the record."
+      },
+      {
+        "task": "T013",
+        "given_when_then": "Given the failing tests from T011 and T012, when the implementation lands, then all pass and the fixed records and the pause are gone from plugins/shared.py."
+      },
+      {
+        "task": "T014",
+        "given_when_then": "Given the user, administrator and developer pages named in tasks.md T014, when read against the branch, then they describe the three ways, what the portal needs to reach ORCID and ROR and what happens when it cannot, and the registry classes."
+      }
+    ],
+    "verified_base": {
+      "commit": "a0df18a1dac93d0123fbf1943e53f766f7f0a657",
+      "verified_at": "2026-10-06T14:05:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 2's last code commit (396f5be3): lint, typecheck, the whole test suite, build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly the four names listed in prior_decisions. `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Contributor, Person, Organization",
+      "People, in three contexts",
+      "Contribution"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T011 to T014 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not touch any permission backend, fairdm/conf/settings/auth.py, visible_to, or the guardian grants on the create pages: US4 owns them.",
+    "Do not rebuild the level handling (US4), the last-manager rule or the row lock (US5), or moving (US6). Keep the prototype's code for those parts working.",
+    "No new dependency, including test dependencies.",
+    "Outbound requests go only to pub.orcid.org and api.ror.org, with a timeout."
+  ]
+}

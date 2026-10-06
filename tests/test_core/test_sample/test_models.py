@@ -5,6 +5,8 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
@@ -19,6 +21,7 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
+from fairdm.core.utils import assign_perm
 from fairdm.core.vocabularies import FairDMSampleStatus
 from fairdm.factories import (
     DatasetFactory,
@@ -1780,3 +1783,98 @@ class TestSampleQuerySetRelationshipMethods:
         assert children_queryset.count() == 2
         assert child1 in children_queryset
         assert child2 in children_queryset
+
+
+@pytest.mark.django_db
+class TestSampleDeclaredPermissions:
+    def test_the_rights_the_level_table_names_are_declared(self):
+        codenames = set(
+            Permission.objects.filter(
+                content_type=ContentType.objects.get_for_model(Sample)
+            ).values_list("codename", flat=True)
+        )
+        assert {
+            "view_sample",
+            "change_sample",
+            "delete_sample",
+            "add_sample",
+            "import_data",
+        } <= codenames
+
+
+@pytest.mark.django_db
+class TestSampleNoRights:
+    # Must return False, not raise: guardian raises WrongAppError for a specimen
+    # instance when the backend does not normalise the content type.
+    def test_no_rights_anywhere_refuses_every_right(self, rock_sample, user):
+        assert user.has_perm("sample.view_sample", rock_sample) is False
+        assert user.has_perm("sample.change_sample", rock_sample) is False
+        assert user.has_perm("sample.delete_sample", rock_sample) is False
+
+    def test_a_right_on_a_different_dataset_does_not_leak(
+        self, rock_sample, dataset, user
+    ):
+        from fairdm.factories import DatasetFactory
+
+        other_dataset = DatasetFactory(project=dataset.project)
+        assign_perm("change_dataset", user, other_dataset)
+
+        assert user.has_perm("sample.change_sample", rock_sample) is False
+
+
+@pytest.mark.django_db
+class TestMoveKeepsManager:
+    def refusal_code(self, sample):
+        with pytest.raises(ValidationError) as refused:
+            sample.clean()
+        return refused.value.error_dict["dataset"][0].code
+
+    def test_a_move_to_a_dataset_that_gives_no_manager_is_refused(
+        self, make_manager, dataset
+    ):
+        make_manager(dataset)
+        sample = RockSampleFactory(dataset=dataset)
+        sample.dataset = DatasetFactory(project=dataset.project)
+
+        assert self.refusal_code(sample) == "no_manager"
+
+    def test_a_move_to_a_dataset_with_a_manager_passes(self, make_manager, dataset):
+        other = DatasetFactory(project=dataset.project)
+        make_manager(dataset)
+        make_manager(other)
+        sample = RockSampleFactory(dataset=dataset)
+        sample.dataset = other
+
+        sample.clean()
+
+    def test_a_manager_through_the_project_still_counts(self, make_manager, dataset):
+        make_manager(dataset.project)
+        sample = RockSampleFactory(dataset=dataset)
+        sample.dataset = DatasetFactory(project=dataset.project)
+
+        sample.clean()
+
+    def test_a_move_keeps_a_manager_listed_on_the_sample(self, make_manager, dataset):
+        sample = RockSampleFactory(dataset=dataset)
+        make_manager(sample)
+        sample.dataset = DatasetFactory(project=dataset.project)
+
+        sample.clean()
+
+    def test_a_sample_that_had_no_manager_may_move_anywhere(self, dataset):
+        sample = RockSampleFactory(dataset=dataset)
+        sample.dataset = DatasetFactory(project=dataset.project)
+
+        sample.clean()
+
+    def test_a_new_sample_is_never_refused(self, dataset):
+        sample = RockSample(name="New", dataset=dataset)
+
+        sample.clean()
+
+    def test_a_sample_whose_dataset_did_not_change_passes(self, make_manager, dataset):
+        make_manager(dataset)
+        sample = RockSampleFactory(dataset=dataset)
+        sample.name = "Renamed"
+
+        sample.clean()
