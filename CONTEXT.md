@@ -63,6 +63,11 @@ The link between a contributor and a specific project, dataset, sample or measur
 row per contributor per object, enforced by a uniqueness constraint on content type, object id and
 contributor. Roles accumulate on that single row rather than producing duplicates.
 
+A contribution carries the organization a person is credited from on that record, or none. It is
+chosen when the person is added, defaults to their primary affiliation, and is kept with the record:
+a later change to the person's affiliations does not change it. The organization is listed on the
+record once, as its own contribution.
+
 ### Collaborator
 
 Another contributor credited on the same project, dataset, sample or measurement as a given

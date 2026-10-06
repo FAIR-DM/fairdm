@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `Contribution.set_default_affiliation`. A contribution made without an organization holds none
+  and is no longer given the person's primary affiliation. The Contributors tab selects the primary
+  affiliation to begin with, and `Contribution.add_to()`, `Contributor.add_to()` and
+  `add_contributor()` leave the organization empty unless one is passed.
 - `UserProfileForm`, which nothing used. `PersonProfileForm` is the form a person edits their own
   profile with.
 - The Statistics and Network tabs of a contributor's page. Both were blank.
@@ -105,6 +109,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Deleting an organization no longer fails while a contribution names it as the organization a
+  person is credited from. `Contribution.affiliation` is set to none, and the person stays on the
+  record. The migration changes the column's `on_delete` and no data.
+- `c-contributor.item` and `c-contributor.card.person` show the organization named on a
+  contribution they are given, or none when it names none. They no longer fall back to the
+  person's primary affiliation for a contribution. Given a person, they show it as before.
 - A contributor's Projects and Datasets tabs, and the figures and cards on their overview, list
   only public projects and public datasets, and a public dataset inside a private project is left
   out. This holds for every viewer, including the contributor and the members of a private
@@ -173,6 +183,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The organization a person is credited from on a record is chosen when the person is added and on
+  the edit page: one of their affiliations with the primary one selected, another organization by
+  name, or none. It is kept with the record, listed among the record's organizations once, and
+  does not follow the person's profile. An organization cannot be removed from a record while
+  anyone on it is credited from it, and the refusal names them. `Crediting.add()` and
+  `Crediting.update()` take an `organization`, `Crediting.credited_from()` reports who is credited
+  from each organization, and `Crediting.remove()` raises `ValidationError` with code
+  `credited_from`. See [Crediting a record](docs/user-guide/crediting-a-record.md).
 - Projects, datasets, samples and measurements have a **Contributors** tab, including every sample
   and measurement type a portal registers. It lists a record's people and organizations separately,
   and people who manage the record add a person or an organization already in the portal, set a

@@ -33,7 +33,8 @@ contributor.
 1. Open the record's **Contributors** tab.
 2. Choose **Add person** above the people, or **Add organization** above the organizations.
 3. Search the portal by name and choose the person or the organization you want.
-4. Confirm. You arrive on the page where you set the contributor's roles.
+4. For a person, choose the organization they are credited from (see below).
+5. Confirm. You arrive on the page where you set the contributor's roles.
 
 Someone who is already credited on the record is marked in the search results and cannot be added
 a second time. A contributor appears on a record once.
@@ -45,11 +46,31 @@ members gain none from the credit.
 Superusers cannot be credited as contributors. If you choose one, the page tells you so and adds
 nobody.
 
+## The organization a person is credited from
+
+When you add a person you are asked which organization they are credited from on this record, the
+one they were at when they did the work. The person's primary affiliation is selected to begin
+with, and their other affiliations, past and present, are offered beneath it. You can also choose
+another organization by typing its name, or choose none. A name the portal does not have yet makes
+a new organization.
+
+The organization is listed among the record's organizations, once, however many people on the
+record are credited from it. The person is shown with it on the Contributors tab.
+
+It is kept with the record and does not follow the person's profile. If the person later moves to
+another institute, the record still names the one you chose, so a dataset made at one institute
+goes on saying so. A person added with no organization is shown with none, whatever their profile
+says. Choosing an organization for a record adds nothing to the person's own affiliations.
+
+To change it later, choose **Edit** beside the person and pick a different organization or none.
+Only that changes. Their roles and what they may do on the record stay as they were.
+
 ## Setting a contributor's roles
 
 Choose **Edit** beside a contributor. The roles offered are the ones the portal groups for that
 kind of record, so a dataset offers different roles from a sample. Tick the roles that describe
-what the contributor did and save.
+what the contributor did and save. For a person the same page sets the organization they are
+credited from and what they may do on the record, and all of it is saved together.
 
 A contributor does not need a role. One who has none is listed without one. Changing a
 contributor's roles never changes what they may do on the record.
@@ -61,4 +82,16 @@ confirm. Once you do, the contributor is no longer credited on the record or nam
 record names its contributors, and a person loses the access they held through being listed on it.
 Access they hold through a record above stays, and is changed on that record's own tab.
 
-If you add them again later they start with the view level and no roles.
+If you add them again later they start with the view level and no roles, and you are asked for
+their organization again.
+
+### Removing an organization
+
+An organization cannot be removed while anyone on the record is credited from it. The tab says so
+in place of offering removal, and asking for it directly changes nothing and names the people.
+Change their organization or remove them, and the organization can then be removed.
+
+An organization stays on the record when the last person credited from it leaves or is credited
+from elsewhere. It is removed by hand, like any other organization with nobody credited from it.
+If an organization is deleted from the portal, the people credited from it stay on the record and
+are shown with none.

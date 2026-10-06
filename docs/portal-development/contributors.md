@@ -396,9 +396,10 @@ Affiliation.objects.create(
 )
 ```
 
-The primary affiliation is more than a label: `Contribution.set_default_affiliation` reads it
-to fill in the crediting organisation whenever a person is credited without one being given
-explicitly (`fairdm/contrib/contributors/models.py:1335`).
+The primary affiliation is more than a label: the Contributors tab selects it to begin with
+when a person is added to a record, as the organization they are credited from there. It is
+offered as a starting point only. What is chosen is kept on the contribution and does not follow
+the profile afterwards (see [The organization a person is credited from](#the-organization-a-person-is-credited-from)).
 
 ### Worked example: a person moving between two institutions
 
@@ -498,15 +499,22 @@ contribution.roles.add(other_vocabulary_role)  # raises ValidationError; not wri
 data_collector_credits = Contribution.objects.by_role("DataCollector")
 ```
 
-### Crediting Organisation Default
+### The organization a person is credited from
 
-Where a person is credited and no organisation is named on the credit, their primary
-membership's organisation is recorded against it automatically (FR-033):
+`Contribution.affiliation` is the organization a person is credited from on one record, or none.
+It belongs to the contribution and is not read from the person's profile: a researcher who moves
+to another institute is still credited from the first on the dataset they made there. A credit
+made without an organization holds none, whatever the person's primary affiliation is:
 
 ```python
 contribution = person.add_to(my_project)
-contribution.affiliation  # person's primary Affiliation's organisation, if any
+contribution.affiliation  # None
 ```
+
+`Crediting` sets it, lists the organization on the record, and refuses to remove an organization
+that people on the record are credited from (see [Changing contributors](#changing-contributors-crediting)).
+Deleting an organization from the portal sets `affiliation` to none on every contribution that
+named it, and leaves the people on their records.
 
 ### Reporting a Contributor's Credits
 
@@ -745,10 +753,14 @@ from fairdm.contrib.contributors.services.crediting import Crediting
 
 crediting = Crediting(dataset)
 
-contribution = crediting.add(person)             # last of its kind, at the view level
+contribution = crediting.add(person)             # last of its kind, at the view level, credited from none
 crediting.add(organization)                      # no level
+crediting.add(other_person, organization=institute)  # credited from the institute, which is listed too
 crediting.offered_roles()                        # the concepts the dataset's roles group offers
 crediting.update(contribution, roles=crediting.offered_roles()[:2])
+crediting.update(contribution, roles=[], organization=institute)  # credited from the institute
+crediting.update(contribution, roles=[], organization=None)       # credited from none
+crediting.credited_from()                        # organization id to the people credited from it here
 crediting.remove(contribution)                   # and the level goes with it
 ```
 
@@ -757,10 +769,42 @@ crediting.remove(contribution)                   # and the level goes with it
 | `add` | the contributor is already listed | `duplicate` |
 | `add` | the contributor is a superuser, who cannot be credited | `superuser` |
 | `update` | a role is not in the group the record's type offers | `role_not_offered` |
+| `remove` | the contribution is an organization that people on the record are credited from | `credited_from` |
 
 `update` replaces the roles and leaves the level as it is: a contribution role carries no rights.
 `offered_roles()` returns the roles the vocabulary groups for the record's type, in the
 vocabulary's order.
+
+The organization argument of `update` has three meanings. Leaving it out, or passing `UNCHANGED`,
+leaves the organization as it is. An organization sets it, and `None` sets it to none. It applies to
+a person and is ignored for an organization. An organization named in `add` or `update` is listed
+on the record once, as its own contribution with no level, through `list_organization(organization)`.
+It stays on the record when the last person credited from it leaves or is credited from elsewhere,
+and can then be removed.
+
+The `credited_from` refusal carries the people in `params["people"]`, so a page can name them.
+`credited_from()` returns the same people for every organization on the record at once.
+
+### Choosing the organization on a page
+
+`AffiliationChoice` in `fairdm.contrib.contributors.plugins.shared` is the form behind the choice
+the Contributors tab draws with `c-contribution.affiliation`. It offers the person's affiliations
+with the primary one selected, another organization by name, and none. Its two fields are
+`affiliation`, one of `org:<id>`, `other` or `none`, and `affiliation_name`. Choosing another
+organization with no name is an error on `affiliation_name`.
+
+```python
+from fairdm.contrib.contributors.plugins.shared import AffiliationChoice
+
+choice = AffiliationChoice(request.POST, person=person)
+if choice.is_valid():
+    organization = choice.organization()   # made from the name when the portal has none
+    Crediting(record).add(person, organization=organization)
+```
+
+Call `organization()` inside the transaction that saves the credit, so that an organization made
+for a save that is then refused is not kept. `choice()` shapes the options for the component.
+Pass `credit=` the person's contribution when editing, so that its organization is selected.
 
 ## Editing a profile
 
