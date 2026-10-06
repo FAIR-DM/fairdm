@@ -28,23 +28,74 @@ Curator, manage them too.
 A person who can edit a record, and one who can only view it, cannot add, edit or remove a
 contributor.
 
-## Adding a person or an organization from the portal
+## Adding a person or an organization
 
 1. Open the record's **Contributors** tab.
 2. Choose **Add person** above the people, or **Add organization** above the organizations.
-3. Search the portal by name and choose the person or the organization you want.
+3. Find the contributor in one of the three ways below.
 4. For a person, choose the organization they are credited from (see below).
 5. Confirm. You arrive on the page where you set the contributor's roles.
+
+The page offers the three ways side by side as tabs. Moving between them does not reload the page,
+and what you typed or found in one is still there when you come back. A search stays on the tab you
+searched in, and each tab keeps its own search.
+
+A person who is added can view the record and nothing more. Their contribution roles say how they
+took part and give them no access. Organizations are credited only: they hold no access, and their
+members gain none from the credit. Nobody is invited or emailed when they are added.
+
+Superusers cannot be credited as contributors. If you choose one, the page tells you so and adds
+nobody.
+
+### Someone already in the portal
+
+Search the portal by name, or by part of a name, and choose the person or the organization. When
+there are more matches than the page lists, it says so: add more of the name to narrow the search.
 
 Someone who is already credited on the record is marked in the search results and cannot be added
 a second time. A contributor appears on a record once.
 
-A person who is added can view the record and nothing more. Their contribution roles say how they
-took part and give them no access. Organizations are credited only: they hold no access, and their
-members gain none from the credit.
+### Someone in ORCID or ROR
 
-Superusers cannot be credited as contributors. If you choose one, the page tells you so and adds
-nobody.
+For a person, search ORCID by name or by ORCID iD. For an organization, search ROR by name or by
+ROR ID. While the search runs the page says it is searching. Each match shows enough to tell
+similar names apart: for a person the institution ORCID lists, and for an organization its kind
+and where it is. Organizations that ROR has withdrawn and people with no public name are not
+listed. When there are more matches than the page lists, it says so.
+
+Choose a match to see it on its own, then add it. The portal fetches the record from the registry
+again when you add it, and makes a profile with the name and the identifier from that record. A
+person made this way has no email address and no account, and can claim the profile later by
+signing in with ORCID. Nothing else is copied from the registry when the profile is made.
+
+If the portal already holds a profile with that ORCID iD or ROR ID, that profile is used and no
+second one is made. A profile is never matched by name alone, so two people who share a name stay
+two profiles.
+
+When you choose a person from ORCID, the first current employer ORCID lists is offered as the
+organization they are credited from.
+
+When the registry cannot be reached, the tab says that searching it is unavailable. Searching the
+portal and entering someone by hand still work.
+
+### Someone entered by hand
+
+For a person with no profile and no ORCID iD, enter a given name and a family name. You may also
+enter an email address. The address is kept for later and is never shown anywhere on the portal,
+and nobody is emailed. It does not give the person an account. An address the portal already holds
+is refused, and the page does not say whose it is.
+
+For an organization, enter its name, and optionally a city, a country and a website. Give the
+country by name or by its two-letter code. A country the portal does not recognise is refused.
+
+If a person's name is the same as a profile already in the portal, the page lists those profiles
+first. If one of them is who you mean, choose them instead, so that their work stays on one
+profile. Two people can share a name, so you can still make the new profile. An organization with
+the same name as one in the portal is never made twice: the page offers the existing one and adds
+nothing until you choose it.
+
+When a submission is refused, nothing is made or added, each field at fault says what is wrong, and
+everything else you entered stays where it was.
 
 ## The organization a person is credited from
 

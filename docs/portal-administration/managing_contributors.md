@@ -677,6 +677,7 @@ def export_person_data(person):
 
 ## Related Documentation
 
+- **Looking people up**: [Looking up contributors in ORCID and ROR](looking-up-contributors.md)
 - **Developer Guide**: [Contributors System Overview](../portal-development/contributors.md)
 - **User Permissions**: [Managing Users and Permissions](managing_users_and_permissions.md)
 - **Data Import**: Configure contributor attribution during data imports

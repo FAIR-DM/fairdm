@@ -806,6 +806,84 @@ Call `organization()` inside the transaction that saves the credit, so that an o
 for a save that is then refused is not kept. `choice()` shapes the options for the component.
 Pass `credit=` the person's contribution when editing, so that its organization is selected.
 
+### Looking people up in ORCID and ROR: `Orcid` and `Ror`
+
+`Orcid` and `Ror` in `fairdm.contrib.contributors.services.registries` are the two registries the
+add pages search. They are two plain classes with no shared base. Each has `search(term)`,
+`fetch(identifier)`, `known(record)` and `profile(record)`:
+
+```python
+from fairdm.contrib.contributors.services.registries import Orcid, RegistryUnavailable, Ror
+
+found = Orcid().search("Carberry")        # or an ORCID iD: "0000-0002-1825-0097"
+found["results"][0]["name"]               # "Josiah Carberry"
+found["more"]                             # True when ORCID holds more matches than were returned
+
+record = Orcid().fetch("0000-0002-1825-0097")
+person = Orcid().profile(record)          # the person holding that iD, or a new one
+
+record = Ror().fetch("https://ror.org/04z8jg394")
+organization = Ror().profile(record)      # the organization holding that ID, or a new one
+```
+
+`search` takes a name, or an identifier, which it recognises by its form and searches for by
+identifier. It returns `{"results": [...], "more": bool}`: at most `RESULTS_SHOWN` (ten) records, and
+whether the registry holds more. ORCID records of people with no public name and ROR records of
+organizations that are not active are left out. `fetch` returns one record, or `None` when the
+identifier is not in the form of the registry's own, the registry has no such record, or the record
+cannot be chosen. A malformed identifier makes no request at all.
+
+A record is a plain dictionary, with the keys the add pages read:
+
+| Key | ORCID | ROR |
+|---|---|---|
+| `id` | the ORCID iD | the ROR address, `https://ror.org/...` |
+| `shown_id` | the ORCID iD | the address without its scheme |
+| `name` | given and family names | ROR's display name |
+| `detail` | the employer and where it is, to tell namesakes apart | the kind of organization and where it is |
+| `given`, `family`, `employer` | the two names and the first current employer | not present |
+
+`known(record)` returns the contributor the portal already holds under the record's identifier, or
+`None`. `profile(record)` returns that contributor, or makes one with the name and the identifier
+and nothing else. A person made this way has no email address, an unusable password and no account.
+A profile is never matched by name. The ROR identifier is saved as the bare ID, and a profile that
+holds it as an address is found too.
+
+Both classes raise `RegistryUnavailable` for a network error, a timeout, an answer that is not a
+200 (a 404 on `fetch` is an answer: there is no such record) and an answer that is not in the form
+the registry documents. The timeout, `TIMEOUT`, is five seconds. Search terms go in the request's
+parameters and never into the address, and no identifier reaches an address unless it has matched
+`ORCID_PATTERN` or `ROR_PATTERN` from `fairdm.contrib.contributors.models`. A test replaces
+`requests.get`, as the tests of the add pages do.
+
+`ask(address, parse, params=None, headers=None, missing_ok=False)` is the one function that makes
+a request. Both classes call it, and the failure handling above lives in it. A caller that wants a
+third registry passes the address and a function that reads the decoded answer.
+
+Saving the identifier queues the sync that `ContributorIdentifier` queues for every identifier, so
+a worker later fills in the rest of the profile.
+
+#### The pages
+
+`ContributionAdd`, the base of both add pages, offers the registry as its second tab: `registry_class`
+is `Orcid` on `ContributionAddPerson` and `Ror` on `ContributionAddOrganization`. A search reads `rq`
+and the portal search reads `q`, and `via` names the tab to open. The context's `adding` carries
+`registry_results`, `registry_more` and `registry_unavailable`. A registry that cannot be reached
+leaves the other two tabs working, and the page answers 200.
+
+Choosing a record only fetches it. Adding posts the identifier, and the page fetches the record
+again before it makes a profile: nothing else the form carries is read.
+
+`NewPersonForm` and `NewOrganizationForm` in `fairdm.contrib.contributors.plugins.shared` are the
+forms behind the by-hand tab. A person needs `given` and `family`, and may have an `email`, which is
+refused with the code `email_in_use` when the portal holds it, in any case, without saying who holds
+it. The form is not valid while `same_name` lists profiles with the person's name, until the page
+sends `confirmed`. An organization needs a `name`, and may have a `city`, a `country`, as a name or
+a code from the country field's list (the code `invalid_country`), and a `website`, which is kept in
+the organization's `links`. It is never valid while `same_name` holds an organization of that name.
+`save()` makes the contributor and does nothing else, so the page can make it, make the organization
+chosen and write the credit in one transaction.
+
 ## Editing a profile
 
 A person edits their own profile, an organization's owner and administrators edit its profile, and
