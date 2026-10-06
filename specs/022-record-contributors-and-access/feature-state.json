@@ -282,23 +282,80 @@
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestSearchOrcid",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestFetchOrcid",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestSearchRor",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestFetchRor",
+              "tests/test_contrib/test_contributors/test_services/test_registries.py::TestProfileFromRegistry"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_registries.py -q -n0 -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/registries.py:72",
+              "fairdm/contrib/contributors/services/registries.py:278"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddPages",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddFromRegistry",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddPages tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddFromRegistry tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand -q -n auto --dist loadscope -p no:randomly"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:414"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors",
+              "tests/test_templates"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files",
+              "forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/registries.py:72",
+              "fairdm/contrib/contributors/plugins/shared.py:414"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:31"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
