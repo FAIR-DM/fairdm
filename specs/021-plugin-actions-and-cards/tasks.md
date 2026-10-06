@@ -193,8 +193,7 @@ what a record type serves, and the validation at startup.
   `can_open` and `Plugin` say a further view is decided by its own rule. `CHANGELOG.md` has the
   feature's entries, and `CONTEXT.md` lists `remove` among the plugin system's exports.
 - [ ] T019 [US2] Cards. A card with no segment of its own (`url_path = None`) is refused when
-  registered. A record type with two plugins built on `OverviewPlaces` is refused at startup,
-  naming both. A further view of a card answers 404 when the record's overview refuses the viewer,
+  registered. A further view of a card answers 404 when the record's overview refuses the viewer,
   so it does not confirm that a private record exists.
 - [ ] T020 [US3] Removals. `plugins.remove` given something that is neither a plugin class nor a
   name, or a record type that is not a model, is refused with a named error.

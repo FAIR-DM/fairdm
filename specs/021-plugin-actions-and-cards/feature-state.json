@@ -62,6 +62,16 @@
         "medium applied: entries with an empty address are left out (DR-003), a fixture rebuilds URL patterns for page tests (DR-004), the owner is read from the view instance (DR-005), a card's further views also need the overview to open (DR-006, decisions D7), a replacement overview can be removed (DR-007), replacements are skipped on both sides of the segment comparison (DR-008)",
         "low applied: a declined entry carries over (DR-009), mount_name dropped (DR-010), documentation note on explicit names (DR-011), tests moved to test_registration.py (DR-012)"
       ]
+    },
+    "review": {
+      "approved_by": "code-reviewers",
+      "at": "2026-10-06T23:47:59Z",
+      "self_resolved": [
+        "two reviews, correctness and security; both approve; 0 critical, 0 high, 1 medium, 10 low",
+        "remedied: COR-001 changelog, COR-002 card with no segment refused, COR-004 action with unbuildable address left out, COR-005 sandbox tests close in finally, COR-006 docstrings, SEC-001 404 for a card's view when the overview is refused, SEC-003 order and remove arguments refused by name",
+        "declined with evidence: COR-003, the skip it names predates the feature (git log -S on checks.py)",
+        "accepted with its record: SEC-002 second overview not refused (decisions D25); SEC-004 icon names not validated, same as the navigation; COR-007 functions not moved onto a class"
+      ]
     }
   },
   "stories": [
@@ -299,25 +309,16 @@
         },
         {
           "id": "T019",
-          "status": "blocked",
+          "status": "done",
           "attempts": 1,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_plugins/test_cards.py::TestCardRegistration",
-              "tests/test_templates/test_overview_cards.py::TestFurtherViewsOfACard"
+              "tests/test_templates/test_overview_cards.py",
+              "tests/test_contrib/test_plugins/test_cards.py"
             ],
             "commands": [
-              "uv run pytest tests/test_contrib/test_plugins/test_cards.py tests/test_contrib/test_plugins/test_places.py tests/test_templates/test_overview_cards.py -q -n0 (before: 4 failed, 94 passed)",
-              "uv run pytest tests/test_contrib/test_plugins tests/test_templates/test_overview_cards.py -q -n0 (after, T019b out: 374 passed)",
-              "uv run pytest tests/test_contrib/test_plugins -q -n0 (T019b in: 1 failed, test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context, a test on origin/main)",
-              "uv run pre-commit run --all-files (passed)"
-            ],
-            "code": [
-              "fairdm/contrib/plugins/cards.py:58",
-              "fairdm/contrib/plugins/base.py:228",
-              "fairdm/contrib/plugins/checks.py:176"
-            ],
-            "verified_by_ci": false
+              "uv run pytest tests/test_templates/test_overview_cards.py tests/test_contrib/test_plugins/test_cards.py -q -n0"
+            ]
           }
         }
       ]

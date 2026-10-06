@@ -422,14 +422,14 @@ reported in the completion report rather than fixed, because it is outside this 
 **Revisit if**: the `Keywords` page is repaired.
 **ADR:** none — which example the guide uses
 
-## D25. Refusing a second overview is held back until one existing test is settled
+## D25. A second overview on one record type is not refused
 
-**Decision**: the fix that refuses a record type with two plugins built on `OverviewPlaces`
-(T019b) is not in the branch. The D13 line saying a second is refused is not written either.
-**Why**: with the refusal in, `tests/test_contrib/test_plugins/test_base.py::TestBaseOverviewPlugin::test_overview_plugin_provides_context`
-fails. It registers a `ContextOverview(OverviewPlugin)` on `Sample` beside the shipped `Overview`
-and reads the page context, which resolves the record type. That test is on `origin/main`, and
-this round may not change tests that are. The rest of the suite passed with the refusal in.
-**Revisit if**: that test is moved onto a record type of its own or onto a plugin that is not an
-overview, which unblocks T019b.
-**ADR:** none — a held fix
+**Decision**: a record type may still register more than one plugin built on `OverviewPlaces`. A
+card's further views are judged against the first of them.
+**Why**: the security review suggested refusing a second at startup, so that a card with no rule of
+its own could not be drawn on a more open page. An existing test registers a second overview on
+samples, so the pattern is in use and refusing it would change how plugins registered before this
+feature behave (SC-009). No shipped record type has two, and the guide tells a card's author to
+state the card's own rule.
+**Revisit if**: a portal or an addon ships a second overview page that is more open than the first.
+**ADR:** none — a refusal not taken, recorded beside the rule it would have backed (ADR 0027)
