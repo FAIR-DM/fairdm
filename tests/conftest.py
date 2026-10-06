@@ -114,7 +114,7 @@ class PluginSandbox:
             model: list(entries) for model, entries in self.registry._registry.items()
         }
         self.saved_removals = {
-            model: list(names) for model, names in self.registry._removals.items()
+            model: list(names) for model, names in self.registry.removals.items()
         }
 
     @contextlib.contextmanager
@@ -138,8 +138,8 @@ class PluginSandbox:
         """Restore the registry and the URL configuration as they were."""
         self.registry._registry.clear()
         self.registry._registry.update(self.saved)
-        self.registry._removals.clear()
-        self.registry._removals.update(self.saved_removals)
+        self.registry.removals.clear()
+        self.registry.removals.update(self.saved_removals)
         self.rebuild()
 
 

@@ -39,7 +39,7 @@ def _fail(plugin: Any, model: Any, problem: str) -> None:
     raise PluginRegistrationError(msg)
 
 
-def _fail_removal(name: str, model: Any, problem: str) -> None:
+def fail_removal(name: str, model: Any, problem: str) -> None:
     """Raise a registration error naming the removal, the record type and the problem.
 
     Args:
@@ -55,7 +55,7 @@ def _fail_removal(name: str, model: Any, problem: str) -> None:
     raise PluginRegistrationError(msg)
 
 
-def _fail_between(plugins: list[Any], model: Any, problem: str) -> None:
+def fail_between(plugins: list[Any], model: Any, problem: str) -> None:
     """Raise a registration error naming several plugins, the record type and the problem.
 
     Args:
@@ -473,13 +473,13 @@ def validate_removals(
     for name in removals:
         candidate = named.get(name)
         if candidate is None:
-            _fail_removal(
+            fail_removal(
                 name,
                 model,
                 f"no plugin of that name is registered against {model.__name__}",
             )
         elif candidate.replaces is None and is_overview(candidate.mount):
-            _fail_removal(
+            fail_removal(
                 name,
                 model,
                 "this is the overview of the record type, which can be replaced but not removed",
@@ -522,7 +522,7 @@ def validate_replacements(
                 f"{model.__name__}",
             )
         if target in replacers:
-            _fail_between(
+            fail_between(
                 [replacers[target].mount.plugin_class, plugin],
                 model,
                 f"both replace {target!r}; remove one of them",
@@ -537,7 +537,7 @@ def validate_replacements(
                     named[name].mount.plugin_class
                     for name in path[path.index(target) :]
                 ]
-                _fail_between(
+                fail_between(
                     circle,
                     model,
                     "replace one another in a circle, so none of them is served"
@@ -567,7 +567,7 @@ def validate_place_kept(
     stated = replacement.options.get("place")
     plugin = replacement.mount.plugin_class
     if stated is not None and Place(stated) is not place:
-        _fail_between(
+        fail_between(
             [plugin, replaced.mount.plugin_class],
             model,
             f"{plugin.__name__} is registered as a {Place(stated).value}, but it replaces "
