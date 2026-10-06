@@ -9,6 +9,7 @@ from django.test import Client
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.factories import (
+    AffiliationFactory,
     ContributionFactory,
     DatasetFactory,
     OrganizationFactory,
@@ -123,3 +124,32 @@ def newcomer(db):
 def curator(db):
     """A person who can manage any record through the portal, and is credited on none."""
     return PersonFactory(is_active=True, is_superuser=True, password="x")
+
+
+@pytest.fixture
+def institutes(db):
+    """Three organizations a person might be credited from."""
+    return SimpleNamespace(
+        today=OrganizationFactory(),
+        earlier=OrganizationFactory(),
+        elsewhere=OrganizationFactory(),
+    )
+
+
+@pytest.fixture
+def affiliate(institutes):
+    """Give a person a current primary affiliation and an earlier one that has ended."""
+
+    def give(person):
+        AffiliationFactory(
+            person=person, organization=institutes.today, is_primary=True
+        )
+        AffiliationFactory(
+            person=person,
+            organization=institutes.earlier,
+            start_date="2015",
+            end_date="2019",
+        )
+        return person
+
+    return give
