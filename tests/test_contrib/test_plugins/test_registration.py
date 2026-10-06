@@ -365,9 +365,15 @@ def offering_registry():
     """
     registry = PluginRegistry()
     menus = {}
-    registry.get_plugin_menu_for_model = lambda model: menus.setdefault(
-        model, Menu(f"{model.__name__}Menu")
-    )
+
+    def own_menu(model):
+        if model not in menus:
+            menus[model] = Menu(f"{model.__name__}Menu")
+            # A Menu joins the shared root when it is made.
+            menus[model].parent = None
+        return menus[model]
+
+    registry.get_plugin_menu_for_model = own_menu
     registry.register(Sample)(SomeOverview)
     return registry
 
