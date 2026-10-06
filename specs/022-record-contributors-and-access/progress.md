@@ -288,3 +288,10 @@ Did: CreatorCreditMixin.update in fairdm/api/serializers.py refuses (PermissionD
 Verified: the editor test failed first with 200 not 403 for both records; then uv run pytest tests/test_api/test_viewsets.py -q -n0 gave 52 passed; uv run pre-commit run --all-files passed.
 Next: T034, the parent-field move (403 for an editor is already refused by this check; the 400 for a move that leaves no manager is new).
 Watch: the manager-only names sit on the serializer mixin, because ManagerOnlyFieldsMixin holds no shared list (each form declares its own tuple).
+
+## 2026-10-06T20:06:49Z · Implementer FIX-1 · T034
+
+Did: CreatorCreditMixin.update now also refuses a changed project or dataset that would leave the record with nobody who can manage it: it calls RecordAccess(copy with the new parent).refuse_move_without_manager and answers 400 with code no_manager on the parent field. Tests in tests/test_api/test_viewsets.py::TestMovingARecordThroughTheApi, run for a sample and a measurement through a viewset built with the default field list (which carries dataset): an editor moving to a dataset they manage gets 403 with parent and levels unchanged; a manager's stranding move gets 400; a manager's valid move gets 200.
+Verified: the stranding-move test failed first with 200 not 400. The editor-move test already passes with the T033 check; to see it red I ran it against the serializer as it was before T033 (4 failed, 2 passed), then restored the file. Green: uv run pytest tests/test_api/test_viewsets.py -q -n0 gave 58 passed; pre-commit passed.
+Next: T035, the parent choices on create.
+Watch: the measurement's sample field is manager-only but needs no stranding check, as a measurement follows its own dataset.

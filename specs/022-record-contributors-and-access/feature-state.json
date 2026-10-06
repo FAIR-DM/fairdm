@@ -547,8 +547,22 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestMovingARecordThroughTheApi"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k MovingARecord (red: 2 failed, 200 not 400 for the stranding move; the editor test failed on the serializer as it was before T033: 4 failed, 2 passed; green: 6 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 (58 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:65"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T035",

@@ -498,11 +498,11 @@ def private_record(request):
     return record
 
 
-def person_at(record, level):
+def person_at(record, level, person=None):
     """Return a person who can sign in, credited on the record at the level."""
     from fairdm.factories import ContributionFactory, PersonFactory
 
-    person = PersonFactory(is_active=True, is_claimed=True)
+    person = person or PersonFactory(is_active=True, is_claimed=True)
     ContributionFactory(content_object=record, contributor=person, level=level)
     return person
 
@@ -575,3 +575,125 @@ class TestVisibilityNeedsManage:
         )
 
         assert response.status_code == 200
+
+
+def default_viewset(model):
+    """Build the viewset a registered type gets when it declares no field list."""
+    from types import SimpleNamespace
+
+    from fairdm.api.viewsets import generate_viewset
+
+    config = SimpleNamespace(
+        model=model,
+        serializer_class=None,
+        serializer_fields=None,
+        fields=None,
+        get_filterset_class=lambda: None,
+        description="",
+        metadata=None,
+    )
+    return generate_viewset(config)
+
+
+def call(viewset, method, person, data=None, uuid=None):
+    """Send a request to a viewset's list or detail route as a person, or as a visitor."""
+    from rest_framework.test import APIRequestFactory, force_authenticate
+
+    factory = APIRequestFactory()
+    request = getattr(factory, method)("/", data or {}, format="json")
+    if person is not None:
+        force_authenticate(request, user=person)
+    actions = {
+        "post": {"post": "create"},
+        "patch": {"patch": "partial_update"},
+    }
+    kwargs = {} if uuid is None else {"uuid": uuid}
+    response = viewset.as_view(actions[method])(request, **kwargs)
+    response.render()
+    return response
+
+
+@pytest.fixture(params=["sample", "measurement"])
+def moving(request):
+    """A sample or a measurement in a dataset, with the viewset that carries its dataset."""
+    from types import SimpleNamespace
+
+    from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+    from demo.models import ExampleMeasurement, RockSample
+
+    home = DatasetFactory(visibility=Visibility.PRIVATE)
+    if request.param == "sample":
+        record = RockSampleFactory(dataset=home)
+        viewset = default_viewset(RockSample)
+    else:
+        record = ExampleMeasurementFactory(
+            dataset=home, sample=RockSampleFactory(dataset=home)
+        )
+        viewset = default_viewset(ExampleMeasurement)
+    return SimpleNamespace(record=record, home=home, viewset=viewset)
+
+
+@pytest.mark.django_db
+class TestMovingARecordThroughTheApi:
+    def test_an_editor_cannot_move_a_record_to_a_dataset_they_manage(self, moving):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        owner = person_at(moving.home, ContributionLevel.MANAGE)
+        editor = person_at(moving.home, ContributionLevel.EDIT)
+        theirs = DatasetFactory(visibility=Visibility.PUBLIC)
+        person_at(theirs, ContributionLevel.MANAGE, editor)
+
+        response = call(
+            moving.viewset,
+            "patch",
+            editor,
+            {"dataset": theirs.pk},
+            uuid=moving.record.uuid,
+        )
+
+        assert response.status_code == 403
+        moving.record.refresh_from_db()
+        assert moving.record.dataset_id == moving.home.pk
+        assert RecordAccess(moving.record).level_of(editor) == ContributionLevel.EDIT
+        assert RecordAccess(moving.record).level_of(owner) == ContributionLevel.MANAGE
+
+    def test_a_move_that_leaves_nobody_to_manage_it_is_refused(self, moving):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        manager = person_at(moving.home, ContributionLevel.MANAGE)
+        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC)
+        person_at(elsewhere, ContributionLevel.EDIT, manager)
+
+        response = call(
+            moving.viewset,
+            "patch",
+            manager,
+            {"dataset": elsewhere.pk},
+            uuid=moving.record.uuid,
+        )
+
+        assert response.status_code == 400
+        assert "dataset" in response.data
+        assert response.data["dataset"][0].code == "no_manager"
+        moving.record.refresh_from_db()
+        assert moving.record.dataset_id == moving.home.pk
+
+    def test_a_manager_can_move_a_record_to_a_dataset_they_manage(self, moving):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        manager = person_at(moving.home, ContributionLevel.MANAGE)
+        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC)
+        person_at(elsewhere, ContributionLevel.MANAGE, manager)
+
+        response = call(
+            moving.viewset,
+            "patch",
+            manager,
+            {"dataset": elsewhere.pk},
+            uuid=moving.record.uuid,
+        )
+
+        assert response.status_code == 200
+        moving.record.refresh_from_db()
+        assert moving.record.dataset_id == elsewhere.pk

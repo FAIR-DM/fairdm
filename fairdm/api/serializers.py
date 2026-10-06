@@ -1,11 +1,14 @@
 """Serializer base classes and the factory that builds model serializers."""
 
+import copy
 from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.fields import get_error_detail
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
 from fairdm.contrib.contributors.access import RecordAccess
@@ -42,7 +45,7 @@ class CreatorCreditMixin:
         return record
 
     def update(self, instance, validated_data):
-        """Update the record, refusing a manager-only field changed by someone who cannot manage it.
+        """Update the record, refusing what only a manager may change, or a move that strands it.
 
         Args:
             instance: The record to update.
@@ -54,6 +57,8 @@ class CreatorCreditMixin:
         Raises:
             PermissionDenied: When a manager-only field would change and the requesting user
                 cannot manage the record.
+            serializers.ValidationError: When the new project or dataset would leave nobody who
+                can sign in able to manage the record.
         """
         changed = [
             name
@@ -69,6 +74,16 @@ class CreatorCreditMixin:
                 % {"fields": ", ".join(changed)},
                 code="manage_level_required",
             )
+        for name in ("project", "dataset"):
+            if name in changed:
+                moved = copy.copy(instance)
+                setattr(moved, name, validated_data[name])
+                try:
+                    RecordAccess(moved).refuse_move_without_manager(name)
+                except DjangoValidationError as error:
+                    raise serializers.ValidationError(
+                        get_error_detail(error)
+                    ) from error
         return super().update(instance, validated_data)
 
 
