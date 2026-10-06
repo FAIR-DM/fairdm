@@ -19,6 +19,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins.access import can_open
 from fairdm.contrib.plugins.base import Plugin
 from fairdm.core.dataset.forms import DatasetForm
@@ -37,6 +38,7 @@ from fairdm.factories import (
     DatasetIdentifierFactory,
     DatasetLiteratureRelationFactory,
     LiteratureItemFactory,
+    OrganizationFactory,
     PersonFactory,
     ProjectFactory,
     UserFactory,
@@ -1633,6 +1635,23 @@ class TestOverviewCitation:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, reference=reference)
 
         assert self._citation(client, dataset) == str(reference)
+
+    def test_creators_are_named_in_the_order_credited_people_before_organizations(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        partner = OrganizationFactory(name="Acme Lab")
+        dataset.add_contributor(partner, with_roles=["Creator"])
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            moving = dataset.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=["Creator"],
+            )
+        Crediting(dataset).move(moving, "up")
+
+        assert self._citation(client, dataset).startswith(
+            "Oliveira, T., Keller, A. & Acme Lab ("
+        )
 
     def test_without_one_the_year_is_the_published_date(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)

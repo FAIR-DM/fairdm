@@ -17,6 +17,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
@@ -24,6 +25,7 @@ from fairdm.core.project.plugins import Delete, Descriptions, Overview, Update
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
+    OrganizationFactory,
     PersonFactory,
     ProjectDateFactory,
     ProjectFactory,
@@ -1304,6 +1306,23 @@ class TestOverviewCitation:
 
         assert self._citation(client, project).startswith(
             "Keller, A., Oliveira, T. & Brandt, L. ("
+        )
+
+    def test_creators_are_named_in_the_order_credited_people_before_organizations(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        partner = OrganizationFactory(name="Acme Lab")
+        project.add_contributor(partner, with_roles=["Creator"])
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            moving = project.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=["Creator"],
+            )
+        Crediting(project).move(moving, "up")
+
+        assert self._citation(client, project).startswith(
+            "Oliveira, T., Keller, A. & Acme Lab ("
         )
 
     def test_a_project_with_a_doi_is_cited_by_it(self, client):

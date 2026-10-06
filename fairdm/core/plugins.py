@@ -86,19 +86,23 @@ class RecordOverviewPlugin(OverviewPlugin):
         return context
 
     def get_contributions(self) -> list[Contribution]:
-        """List the record's credits with each contributor as its own subtype, Person or Organization.
+        """List the record's credits, people first and then organizations, each in order.
 
-        ``select_related`` stops at the polymorphic base, which has neither a person's name parts
-        nor a way to tell the two apart, so the real instances are fetched in one extra query.
+        Everything an overview or a citation names comes from this list, so they follow the
+        order the team set on the Contributors tab. ``select_related`` stops at the polymorphic
+        base, which has neither a person's name parts nor a way to tell the two apart, so the
+        real instances are fetched in one extra query.
 
         Returns:
             The record's contributions, each with its real contributor, roles prefetched.
         """
-        contributions = list(
-            self.base_object.contributors.select_related(
-                "affiliation"
-            ).prefetch_related("roles")
-        )
+        listed = self.base_object.contributors
+        contributions = [
+            *listed.people().select_related("affiliation").prefetch_related("roles"),
+            *listed.organizations()
+            .select_related("affiliation")
+            .prefetch_related("roles"),
+        ]
         real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
         for contribution in contributions:
             contribution.contributor = real[contribution.contributor_id]
@@ -133,28 +137,20 @@ class RecordOverviewPlugin(OverviewPlugin):
         """List everyone credited on the record.
 
         Each contributor is its own type (person or organisation). The affiliation is the one
-        recorded on the credit itself, falling back to the person's primary affiliation.
+        recorded on the credit itself, so a person credited with no organization has none.
 
         Returns:
             One ``{"contributor", "roles": {name: label}, "affiliation"}`` entry per credit, in
-            the record's own order.
+            the order of :meth:`get_contributions`.
         """
-        result = []
-        for credit in self.get_contributions():
-            affiliation = credit.affiliation
-            if affiliation is None and hasattr(
-                credit.contributor, "primary_affiliation"
-            ):
-                primary = credit.contributor.primary_affiliation()
-                affiliation = primary.organization if primary else None
-            result.append(
-                {
-                    "contributor": credit.contributor,
-                    "roles": {role.name: role.label for role in credit.roles.all()},
-                    "affiliation": affiliation,
-                }
-            )
-        return result
+        return [
+            {
+                "contributor": credit.contributor,
+                "roles": {role.name: role.label for role in credit.roles.all()},
+                "affiliation": credit.affiliation,
+            }
+            for credit in self.get_contributions()
+        ]
 
     def get_people(self, entries=None) -> dict[str, Any]:
         """Work out what the People card shows.
