@@ -183,3 +183,17 @@ Pre-existing tests changed or deleted: none, documentation only.
 Verified in the resumed run: `forge verify --repo . --base origin/main` docs step lists only ContributionMove and ContributorSeed; a search of docs/, CHANGELOG.md and CONTEXT.md for the removed backends, give_level and assign_perm finds them only where they are described as removed or as the helper for organizations; the lines this story added to those files hold no em dash.
 Next: the ledger and the report.
 Watch: none.
+
+## 2026-10-06T15:16:10Z · Implementer US5 · T020
+
+Did: TestLastManager and TestRecordLock in test_services/test_crediting.py, observed red (8 failures) before the code. Crediting gained `locked()` (one transaction that selects the record's row FOR UPDATE through all_objects before any contributor is read), `would_leave_no_manager(contribution, level=None)` and `last_manager_refusal`. add, update, remove and make_creator now run inside `locked()`; update and remove raise `last_manager`. The rule reads the stored level, not the passed object's. Three pre-existing tests in TestUpdateLevel and TestRemove (test_the_level_held_from_above_is_allowed, test_a_level_held_on_a_record_below_does_not_hold_this_one_up, test_the_level_goes_with_it) lowered or removed the only manager, which is what this story refuses; each now has a second manager on the record first. No assertion changed.
+Verified: `uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0`: 87 passed, 5 skipped. The five skips are TestRecordLock, which needs a database that locks rows (SQLite here does not). I checked the lock tests once on a scratch copy with the SQL for FOR UPDATE swapped for a comment: they pass, and fail when select_for_update is removed or the default manager replaces all_objects. The scratch copy was deleted. `uv run pre-commit run --all-files`: all hooks passed. `tests/test_contrib/test_contributors/test_plugins` and test_access.py pass with the service rule in place.
+Next: T021 model checks, then merge, pages, email, docs.
+Watch: the pages still carry their own copy of the rule until T024's page step.
+
+## 2026-10-06T15:16:10Z · Implementer US5 · T021
+
+Did: TestMoveKeepsManager in the dataset, sample and measurement model test modules (21 tests), five red before the code. `RecordAccess.refuse_move_without_manager(parent_field)` compares the stored parent with the new one and raises `no_manager` on the parent field when managers() was non-empty and is now empty; Dataset.clean, Sample.clean and Measurement.clean call it. A new record, an unchanged parent and a record that had no manager are never refused. Fixture `make_manager` added in a new tests/test_core/conftest.py.
+Verified: `uv run pytest tests/test_core -q -n auto --dist loadscope`: 1534 passed, 7 skipped. pre-commit passed.
+Next: T022a merge.
+Watch: the compare reads the record through all_objects so a private record is found.
