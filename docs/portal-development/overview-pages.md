@@ -46,6 +46,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.page_actions` | Header: the dropdown of page actions that plugins register, after the buttons. It sits outside `overview.actions`, so a page that replaces those buttons keeps it, and it draws nothing when there are no actions to offer. See [Create a plugin](create_a_plugin.md). |
 | `overview.figures` | The figures strip. |
 | `overview.main` | The wide column. Each record fills it with its own blocks. |
+| `overview.contributed_main` | The cards that plugins register for the wide column, after `overview.main` and outside it, so a record that fills `overview.main` keeps them. It writes nothing when there are none. See [Create a plugin](create_a_plugin.md). |
 | `overview.side` | The side column, which holds the blocks below. |
 | `overview.readiness` | What the team still has to add. The team only. |
 | `overview.details` | What the record belongs to, its licence, status, dates and how machines reach it. |
@@ -56,6 +57,7 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.funding` | Funding awards, on records that carry them. |
 | `overview.cite` | How to cite the record. |
 | `overview.record_facts` | Cards particular to the record. |
+| `overview.contributed_side` | The cards that plugins register for the side column, after everything in `overview.side` and outside it. It writes nothing when there are none. |
 | `overview.chart_library` | The ECharts script. Replace it to serve ECharts yourself. |
 
 The blocks that wrap other blocks (`overview.main`, `overview.side`, `overview.details`) keep their

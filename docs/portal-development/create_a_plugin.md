@@ -109,6 +109,7 @@ navigation, so every registration that names none behaves as it always has.
 | --- | --- |
 | `Place.NAVIGATION` (`"navigation"`) | An entry in the record's local navigation. This is the default. |
 | `Place.ACTION` (`"action"`) | An entry in the dropdown of page actions on the record's overview. |
+| `Place.CARD` (`"card"`) | A card drawn inside the record's overview. |
 
 The place is a `Place` member or its value, so these two registrations are the same:
 
@@ -119,9 +120,10 @@ plugins.register(Dataset, place=Place.ACTION)
 plugins.register(Dataset, place="action")
 ```
 
-Whichever place a plugin names, it is a plugin like any other. It has its own address, it is
-served by its own view, and `check` and `permission` decide both whether it is offered and whether
-it opens.
+Whichever place a plugin names, it is a plugin like any other, and `check` and `permission` decide
+both whether it is offered and whether it opens. A page and a page action have their own address
+and are served by their own view. A card is drawn inside the overview and has no address of its
+own.
 
 ## A page action
 
@@ -183,6 +185,111 @@ A record type draws page actions when one of its registered plugins is built on 
 which `OverviewPlugin` carries, so a subclass of any shipped overview has it. An overview that
 replaces the header buttons keeps the dropdown, which sits in its own block,
 `overview.page_actions`. See [Overview pages](overview-pages.md).
+
+## An overview card
+
+An overview card is a block of content drawn inside the overview of a record, among the cards the
+page already has. A project's recent activity is one. It is not a page: it has no address, no entry
+in the local navigation and no place among the page actions.
+
+A card is a `Card`, which is a plugin with a template and no view of its own. The overview asks it
+to draw itself with the record being viewed and the current request, and the template receives them
+as `record` and `request`. The record is also given as `base_object`.
+
+```python
+from django.utils.translation import gettext_lazy as _
+
+from fairdm import plugins
+from fairdm.contrib.plugins import Card, Column, Place, Plugin, reverse
+from fairdm.core.dataset.models import Dataset
+from fairdm.views import FairDMTemplateView
+
+
+class Subscribe(Plugin, FairDMTemplateView):
+    url_path = "subscribe"
+    template_name = "myapp/plugins/subscribe.html"
+
+
+@plugins.register(Dataset, place=Place.CARD, column=Column.WIDE, order=10)
+class RecentActivity(Card):
+    template_name = "myapp/cards/recent_activity.html"
+    extra_views = [Subscribe]
+    check = staticmethod(lambda request, obj: request.user.is_authenticated)
+
+    class Media:
+        css = {"all": ["myapp/recent-activity.css"]}
+        js = ["myapp/recent-activity.js"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["events"] = latest_events(self.base_object)
+        context["subscribe_url"] = reverse(self.base_object, "recent-activity-subscribe")
+        return context
+```
+
+That draws Recent activity at the end of the wide column of every dataset's overview, for signed-in
+visitors, and serves the subscribe page at `/datasets/<uuid>/recent-activity/subscribe/`. The card
+has no address at `/datasets/<uuid>/recent-activity/`.
+
+A card that draws something other than a template overrides `render_card(request, record)` and
+returns the HTML. A card needs a `template_name` or its own `render_card`, and registration refuses
+one that has neither.
+
+### The column and the order
+
+`column` is `Column.WIDE` or `Column.SIDE`, or the value `"wide"` or `"side"`. A card that names no
+column goes in the side column. Contributed cards follow the cards the page already has in their
+column. Among themselves they are drawn by `order`, lowest first, and by name when two share an
+order, so the cards come out in the same order on every start of the portal.
+
+The label and icon of a registration mean nothing for a card, and `menu=False` is refused because
+a card has no entry to decline.
+
+### Who sees a card
+
+A card is drawn when `check` and `permission` let the visitor open it for this record. For anyone
+else nothing of the card is in the page, including its stylesheets and scripts. The overview is
+decided first: a card is never drawn on a page the visitor was refused.
+
+- A `check` that raises hides the card and logs the failure.
+- A card that raises while it is being drawn is left out, the rest of the page is served, and the
+  failure is logged with the card's name and the record.
+- A card with nothing to say is still drawn. What it shows then is the card's own business.
+
+The same plugin cannot be both a page and a card. That is two plugins, one registered for each
+place.
+
+### A card's further views
+
+A card can own further views, such as the address a form inside it posts to. They are listed in
+`extra_views`, served beneath the card's name and named after it, as `dataset:recent-activity-subscribe`
+above.
+
+A further view of a card is refused unless the card would be drawn for that visitor. Three things
+must hold in turn:
+
+1. The record type's overview opens for them. A card with no `check` on a private project does not
+   serve its views to a stranger, because the overview itself is refused.
+2. The card's own `check` and `permission` pass.
+3. The view's own `check` and `permission` pass.
+
+A further view of a page is decided by its own rule only, as it always was.
+
+### Assets
+
+A card declares stylesheets and scripts with an inner `Media` class, as a page does. They are added
+to the overview's own when the card is drawn and left out when it is not.
+
+### Which record types draw cards
+
+The overview of a project, dataset, sample, measurement, person and organization draws cards. A
+person's and an organization's overviews are one registration against `Contributor`, so a card for
+people only narrows itself with `is_instance_of(Person)`.
+
+The cards are written by `overview/page.html` in two blocks, `overview.contributed_main` after the
+wide column and `overview.contributed_side` after the side column. A portal that overrides the
+template and drops them shows no cards, and everything else keeps working. See
+[Overview pages](overview-pages.md).
 
 ## Who can see it, and who can open it
 
@@ -336,9 +443,10 @@ returns the `(plugin class, options)` pairs in the order they arrived.
 one `Mount` per registration. A `Mount` is read-only and carries the `plugin_class`, the `name` it
 is served under, its `url_path` (`None` for the record's own address), its `place`, and the
 `label`, `icon` and `order` of its entry. `listed` is false when the registration declined its
-entry. The URL patterns, the navigation and the page actions are all built from this list, and so
+entry. `column` is the column of a card and `None` for anything else. The URL patterns, the navigation and the page actions are all built from this list, and so
 are the checks that refuse a registration that cannot work. `registry.get_page_actions(Dataset)`
-returns the listed actions among them, by `order` and then name.
+returns the listed actions among them, by `order` and then name, and `registry.get_cards(Dataset)`
+returns the cards the same way.
 
 ## When a registration is wrong
 
@@ -352,9 +460,13 @@ registrations are checked together, and the same applies to what that finds. Ref
 - a segment that cannot appear in a route
 - a `check` that is neither callable nor a bool
 - a `place` that does not exist
-- a `column`, which no place accepts
-- a page action registered for a record type whose overview draws none, such as a location. The
-  portal does not start, and the message names the plugin and the record type
+- a `column` given for anything that is not a card, or a column that does not exist
+- a card registered with `menu=False`
+- a card whose class is not built on `Card`, or has neither a `template_name` nor its own
+  `render_card`
+- a `Card` registered as a page or a page action, since it has no page of its own
+- a page action or a card registered for a record type whose overview draws none, such as a
+  location. The portal does not start, and the message names the plugin and the record type
 - an `extra_views` entry that is not a plugin, that collides with a sibling or the parent, or that
   declares `extra_views` of its own
 

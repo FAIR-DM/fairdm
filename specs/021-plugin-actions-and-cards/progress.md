@@ -61,3 +61,10 @@ Did: added fairdm/contrib/plugins/cards.py (Card with render_card, get_media, ad
 Verified: uv run pytest tests/test_contrib/test_plugins tests/test_templates tests/test_core/test_project tests/test_core/test_dataset tests/test_apps.py tests/test_conftest.py -q -n auto --dist loadscope: 1253 passed. uv run pytest tests/test_contrib/test_contributors tests/test_core/test_sample tests/test_core/test_measurement: 2683 passed, 13 skipped. pre-commit run --all-files passes. Probes, each failing the named tests and then reverted: dropping Card.admits from has_permission (3 failures), dropping the overview check in admits (1), dropping the card's own decision (2), dropping the access check when drawing (6), never merging media (1), putting the side block before the column (1), removing the try around drawing (2), drawing wide cards in the side column (2).
 Next: T009 documentation, then the full verify.
 Watch: decisions D12 to D14.
+
+## 2026-10-06T22:03:32Z · Implementer US2 · T009
+
+Did: documented the card in docs/portal-development/create_a_plugin.md (the place table, An overview card with the column, a further view and assets, who sees a card, the further-view rule, the new refusals under When a registration is wrong, Mount.column and get_cards), the two contributed blocks in overview-pages.md, and overview card plus the exports in CONTEXT.md.
+Verified: ran the documented example (a dataset card in the wide column for signed-in visitors with a further view and assets) in a throwaway test through the test client: hidden and refused to a visitor who is not signed in, drawn with a working link to its further view for one who is, assets present, no address at the card's own name. The throwaway test and its templates were not kept.
+Next: full verify, then the report.
+Watch: the docs build is part of the full verify.

@@ -151,13 +151,13 @@ owns the model class, its fields and its validation.
 ### Plugin
 
 A unit of behaviour attached to a model's detail view, registered against one or more models. The
-public API is what `fairdm/contrib/plugins/__init__.py` exports: `Plugin`, `register`, `registry`,
-`is_instance_of`, `reverse` and `slugify`.
+public API is what `fairdm/contrib/plugins/__init__.py` exports: `Plugin`, `Card`, `Place`,
+`Column`, `register`, `registry`, `is_instance_of`, `reverse` and `slugify`.
 
 Plugin groups and tabs were removed from this system. Do not reintroduce either term.
 
 A registration also names the place its plugin appears: an entry in the record's local navigation,
-which is the default, or an entry among the page actions.
+which is the default, an entry among the page actions, or a card in the overview.
 
 ### Page action
 
@@ -165,6 +165,14 @@ A plugin offered in a dropdown among the header buttons of a record's overview, 
 in the local navigation. It is served at its own address, and the dropdown lists exactly the actions
 the visitor may open for that record. Choosing one takes the visitor to that address. The dropdown is
 not drawn when there is nothing to list.
+
+### Overview card
+
+A plugin drawn as a card inside a record's overview, in the wide column or the side column. It has no
+page, no address of its own and no entry in the navigation or the page actions. The overview draws
+it only for a visitor its access decision admits, so nothing of it, its stylesheets and scripts
+included, reaches anyone else. A card that raises is left out and the page is still served. Further
+views it owns are refused to a visitor the card is hidden from.
 
 ### Manage menu
 
