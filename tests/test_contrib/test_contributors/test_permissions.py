@@ -706,3 +706,14 @@ class TestRecordLevelBackend:
 
         assert curator.has_perm("dataset.change_dataset", record_chain.dataset)
         assert curator.has_perm("dataset.view_dataset", record_chain.dataset)
+
+
+@pytest.mark.django_db
+class TestObjectPermissionsSurvive:
+    def test_organization_grant_still_resolves(self, user):
+        from fairdm.factories import OrganizationFactory
+
+        organization = OrganizationFactory()
+        assign_perm("view_organization", user, organization)
+
+        assert user.has_perm("contributors.view_organization", organization) is True
