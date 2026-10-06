@@ -517,38 +517,136 @@
       "tasks": [
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestLastManager",
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestRecordLock"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:33",
+              "fairdm/contrib/contributors/services/crediting.py:53"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/test_models.py::TestMoveKeepsManager",
+              "tests/test_core/test_sample/test_models.py::TestMoveKeepsManager",
+              "tests/test_core/test_measurement/test_models.py::TestMoveKeepsManager"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/access.py:260",
+              "fairdm/core/dataset/models.py:366",
+              "fairdm/core/sample/models.py:151",
+              "fairdm/core/measurement/models.py:112"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T022a",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergeLevels",
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergePermissions"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services/test_merge.py -q -n0"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/merge.py:70",
+              "fairdm/contrib/contributors/services/merge.py:159"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLastManagerPages"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:724",
+              "fairdm/contrib/contributors/plugins/shared.py:819"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestLastManager",
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLastManagerPages",
+              "tests/test_core/test_dataset/test_models.py::TestMoveKeepsManager",
+              "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergeLevels"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_services tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/services/crediting.py:168",
+              "fairdm/contrib/contributors/services/crediting.py:233",
+              "fairdm/contrib/contributors/plugins/shared.py:833"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "docs/user-guide/crediting-a-record.md:167"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T025a",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/plugins/shared.py:205"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
