@@ -14,7 +14,11 @@ from django.urls import resolve
 from django.utils import timezone
 from django.utils.formats import date_format
 
-from fairdm.contrib.contributors.choices import AccountState, OrganizationType
+from fairdm.contrib.contributors.choices import (
+    AccountState,
+    ContributionLevel,
+    OrganizationType,
+)
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -24,7 +28,6 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
-from fairdm.core.utils import assign_perm
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -1878,7 +1881,11 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         contributions = world.person.get_visible_contributions(member)
 
@@ -1900,8 +1907,16 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
-        assign_perm("view_dataset", member, world.dataset_in_private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
+        ContributionFactory(
+            content_object=world.dataset_in_private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         records = _records(world.person.get_visible_contributions(member))
 
@@ -1915,7 +1930,11 @@ class TestGetVisibleContributions:
         world = credited_world
         world.person.add_to(world.private_sample)
         team = PersonFactory(is_active=True)
-        assign_perm("view_dataset", team, world.private_dataset)
+        ContributionFactory(
+            content_object=world.private_dataset,
+            contributor=team,
+            level=ContributionLevel.VIEW,
+        )
 
         assert _credited(world.private_sample).isdisjoint(
             _records(world.person.get_visible_contributions(AnonymousUser()))

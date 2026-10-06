@@ -347,6 +347,47 @@ class TestProjectCreateViewExtended:
         for perm in expected_perms:
             assert user.has_perm(perm, project), f"Missing permission: {perm}"
 
+    def test_creator_is_listed_at_the_manage_level_with_no_stored_row(
+        self, client, user
+    ):
+        from guardian.models import UserObjectPermission
+
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        client.force_login(user)
+        response = client.post(
+            reverse("project-create"),
+            data={
+                "name": "Manager Project",
+                "status": "1",
+                "visibility": str(Visibility.PRIVATE),
+            },
+        )
+        assert response.status_code == 302
+
+        project = Project.objects.get(name="Manager Project")
+        assert RecordAccess(project).own_level(user) == ContributionLevel.MANAGE
+        assert not UserObjectPermission.objects.exists()
+
+    def test_a_superuser_creates_a_project_without_being_credited(self, client):
+        from fairdm.factories import UserFactory
+
+        admin = UserFactory(is_superuser=True, is_staff=True)
+        client.force_login(admin)
+        response = client.post(
+            reverse("project-create"),
+            data={
+                "name": "Admin Project",
+                "status": "1",
+                "visibility": str(Visibility.PRIVATE),
+            },
+        )
+        assert response.status_code == 302
+
+        project = Project.objects.get(name="Admin Project")
+        assert project.contributors.count() == 0
+
     def test_creator_added_as_contributor_with_roles(self, client, user):
         client.force_login(user)
         url = reverse("project-create")

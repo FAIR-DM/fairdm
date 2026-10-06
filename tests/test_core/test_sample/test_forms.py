@@ -4,11 +4,12 @@ import pytest
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
-from guardian.shortcuts import assign_perm
 
 from demo.models import RockSample, WaterSample
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
@@ -113,7 +114,9 @@ class TestSampleFormPolymorphicHandling:
 
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -177,7 +180,9 @@ class TestCustomSampleFormIntegration:
 
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         form_data = {
             "name": "Water Sample 1",
             "dataset": dataset.pk,
@@ -233,7 +238,9 @@ class TestSampleFormDatasetChoices:
         user = UserFactory()
         allowed = DatasetFactory()
         other = DatasetFactory()
-        assign_perm("change_dataset", user, allowed)
+        ContributionFactory(
+            content_object=allowed, contributor=user, level=ContributionLevel.EDIT
+        )
 
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
@@ -245,6 +252,56 @@ class TestSampleFormDatasetChoices:
         offered = set(form.fields["dataset"].queryset)
         assert offered == {allowed}
         assert other not in offered
+
+    def test_a_dataset_the_user_may_only_view_is_not_offered(self):
+        user = UserFactory()
+        viewed = DatasetFactory()
+        ContributionFactory(
+            content_object=viewed, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
+
+    def test_a_level_on_the_project_offers_the_datasets_in_it(self):
+        user = UserFactory()
+        project = ProjectFactory()
+        inside = DatasetFactory(project=project)
+        DatasetFactory()
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == {inside}
+
+    def test_a_stored_guardian_row_alone_offers_no_dataset(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        dataset = DatasetFactory()
+        assign_perm("change_dataset", user, dataset)
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset"]
+
+        form = RockSampleForm(request=_request_for(user))
+
+        assert set(form.fields["dataset"].queryset) == set()
 
     def test_form_with_no_user_offers_no_dataset_at_all(self):
         DatasetFactory()

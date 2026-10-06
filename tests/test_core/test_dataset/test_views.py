@@ -9,16 +9,17 @@ from django import forms
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from guardian.shortcuts import assign_perm
 from licensing.models import License
 from pytest_django.asserts import assertContains, assertNotContains
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    ContributionFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
     DatasetIdentifierFactory,
@@ -308,11 +309,30 @@ class TestDatasetListingProjectFilterVisibility:
             name="Confidential Survey", visibility=Visibility.PRIVATE
         )
         user = UserFactory()
-        assign_perm("view_project", user, private_project)
+        ContributionFactory(
+            content_object=private_project,
+            contributor=user,
+            level=ContributionLevel.VIEW,
+        )
         client.force_login(user)
         response = client.get(reverse("dataset-list"))
         project_queryset = response.context["filter"].form.fields["project"].queryset
         assert private_project in project_queryset
+
+    def test_a_private_project_the_visitor_holds_only_a_stored_row_on_is_not_offered(
+        self, client
+    ):
+        from fairdm.core.utils import assign_perm
+
+        private_project = ProjectFactory(
+            name="Confidential Survey", visibility=Visibility.PRIVATE
+        )
+        user = UserFactory()
+        assign_perm("view_project", user, private_project)
+        client.force_login(user)
+        response = client.get(reverse("dataset-list"))
+        project_queryset = response.context["filter"].form.fields["project"].queryset
+        assert private_project not in project_queryset
 
 
 @pytest.mark.django_db
@@ -434,7 +454,9 @@ class TestDatasetCreatePageUsesTheDeclaredForm:
         create_response = client.get(reverse("dataset-create"))
 
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         update_response = client.get(
             reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         )
@@ -616,6 +638,49 @@ class TestDatasetCreatePagePermissionAssignment:
                 f"Missing permission: {perm}"
             )
 
+    def test_the_creator_is_listed_at_the_manage_level_with_no_stored_row(self, client):
+        from guardian.models import UserObjectPermission
+
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        user = UserFactory()
+        client.force_login(user)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        response = client.post(
+            reverse("dataset-create"),
+            data={
+                "name": "Managed Dataset",
+                "license": license_obj.pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert response.status_code == 302
+        dataset = Dataset.all_objects.get(name="Managed Dataset")
+        assert RecordAccess(dataset).own_level(user) == ContributionLevel.MANAGE
+        assert not UserObjectPermission.objects.exists()
+        roles = dataset.contributors.get(contributor=user).roles
+        assert {"Creator", "ContactPerson"} <= set(roles.values_list("name", flat=True))
+
+    def test_a_superuser_creates_a_dataset_without_being_credited(self, client):
+        admin = UserFactory(is_superuser=True, is_staff=True)
+        client.force_login(admin)
+        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        response = client.post(
+            reverse("dataset-create"),
+            data={
+                "name": "Admin Dataset",
+                "license": license_obj.pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert response.status_code == 302
+        dataset = Dataset.all_objects.get(name="Admin Dataset")
+        assert dataset.contributors.count() == 0
+
 
 @pytest.mark.django_db
 class TestDatasetCreatePageRecordsCreator:
@@ -695,7 +760,9 @@ class TestDatasetUpdateView:
     def test_with_permission_returns_200(self, client):
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -706,7 +773,9 @@ class TestDatasetUpdateView:
 
         user = UserFactory()
         dataset = DatasetFactory(name="Original Name")
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         project = dataset.project
@@ -738,7 +807,9 @@ class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
     def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -782,7 +853,9 @@ class TestDatasetDeleteView:
     def test_with_permission_returns_200(self, client):
         user = UserFactory()
         dataset = DatasetFactory()
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -791,7 +864,9 @@ class TestDatasetDeleteView:
     def test_wrong_name_shows_error(self, client):
         user = UserFactory()
         dataset = DatasetFactory(name="My Dataset")
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "Wrong Name"})
@@ -803,7 +878,9 @@ class TestDatasetDeleteView:
         user = UserFactory()
         dataset = DatasetFactory(name="Spaced Dataset")
         pk = dataset.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "  Spaced Dataset  "})
@@ -816,7 +893,9 @@ class TestDatasetDeleteView:
         # 0.19.3).
         user = UserFactory()
         dataset = DatasetFactory(name="My Dataset")
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
@@ -827,7 +906,9 @@ class TestDatasetDeleteView:
         user = UserFactory()
         dataset = DatasetFactory(name="Delete Me Dataset")
         pk = dataset.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "Delete Me Dataset"})
@@ -842,7 +923,9 @@ class TestDatasetDeleteView:
         dataset = DatasetFactory(name="Dataset With A Sample")
         sample = RockSampleFactory(dataset=dataset)
         sample_pk = sample.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -862,7 +945,9 @@ class TestDatasetDeleteView:
         sample = RockSampleFactory(dataset=dataset)
         measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
         sample_pk, measurement_pk = sample.pk, measurement.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -883,7 +968,9 @@ class TestDatasetDeleteView:
         other = DatasetFactory(name="Borrower")
         sample = RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=other, sample=sample)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -907,7 +994,9 @@ class TestDatasetDeleteView:
         dataset = DatasetFactory(name="Dataset With A Measurement")
         measurement = ExampleMeasurementFactory(dataset=dataset, sample=sample)
         measurement_pk = measurement.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -924,7 +1013,9 @@ class TestDatasetDeleteView:
             name="Public Dataset To Delete", visibility=Visibility.PUBLIC
         )
         pk = dataset.pk
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -949,11 +1040,12 @@ class TestDatasetDeleteView:
 
         dataset = DatasetFactory(name="Rich Dataset", dates=1)
         DatasetIdentifierFactory(related=dataset, value="10.9999/rich-dataset")
-        dataset.add_contributor(user)
         RockSampleFactory(dataset=dataset, name="Granite Core 1")
         WaterSampleFactory(dataset=dataset, name="Spring Water 1")
         ExampleMeasurementFactory(dataset=dataset, sample=other_sample)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -992,8 +1084,9 @@ class TestDatasetDeleteView:
         user = UserFactory()
         dataset = DatasetFactory(name="Bare Dataset", dates=1)
         DatasetIdentifierFactory(related=dataset, value="10.0000/bare-dataset")
-        dataset.add_contributor(user)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -1013,7 +1106,9 @@ class TestDatasetDeleteView:
         ]
         sample_pks = [s.pk for s in rock_samples]
         measurement_pks = [m.pk for m in measurements]
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 
@@ -1090,7 +1185,9 @@ class TestNonCollectionPagesIgnorePublished:
     ):
         user = UserFactory()
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -1110,7 +1207,9 @@ class TestNonCollectionPagesIgnorePublished:
     ):
         user = UserFactory()
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
         url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
 

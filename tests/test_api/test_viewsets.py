@@ -376,3 +376,107 @@ class TestRateLimiting:
             "DEFAULT_THROTTLE_RATES": {"anon": "50/hour", "user": "500/hour"},
         }
         assert settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["anon"] == "50/hour"
+
+
+@pytest.mark.django_db
+class TestCreatedRecordsListTheirCreator:
+    @pytest.mark.parametrize("name", ["project", "dataset"])
+    def test_a_project_or_dataset_lists_its_creator_at_the_manage_level(
+        self, authenticated_client, user, name
+    ):
+        from guardian.models import UserObjectPermission
+
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        response = authenticated_client.post(
+            reverse(f"api:{name}-list"), {"name": f"Made by API {name}"}, format="json"
+        )
+
+        assert response.status_code == 201
+        model = Project if name == "project" else Dataset
+        manager = getattr(model, "all_objects", model.objects)
+        record = manager.get(uuid=response.json()["uuid"])
+        assert RecordAccess(record).own_level(user) == ContributionLevel.MANAGE
+        assert not UserObjectPermission.objects.exists()
+
+    def test_a_sample_lists_its_creator_at_the_manage_level(self, user):
+        from types import SimpleNamespace
+
+        from guardian.models import UserObjectPermission
+
+        from demo.models import RockSample
+        from fairdm.api.serializers import BaseSampleSerializer, build_model_serializer
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        serializer_class = build_model_serializer(
+            RockSample,
+            ["name", "dataset", "rock_type", "collection_date"],
+            base_class=BaseSampleSerializer,
+        )
+        serializer = serializer_class(
+            data={
+                "name": "Made by API",
+                "dataset": DatasetFactory(visibility=Visibility.PUBLIC).pk,
+                "rock_type": "igneous",
+                "collection_date": "2024-01-02",
+            },
+            context={"request": SimpleNamespace(user=user)},
+        )
+        assert serializer.is_valid(), serializer.errors
+
+        sample = serializer.save()
+
+        assert RecordAccess(sample).own_level(user) == ContributionLevel.MANAGE
+        assert not UserObjectPermission.objects.exists()
+
+    def test_a_measurement_lists_its_creator_at_the_manage_level(self, user):
+        from types import SimpleNamespace
+
+        from guardian.models import UserObjectPermission
+
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement
+        from fairdm.api.serializers import (
+            BaseMeasurementSerializer,
+            build_model_serializer,
+        )
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        serializer_class = build_model_serializer(
+            ExampleMeasurement,
+            ["name", "dataset", "sample"],
+            base_class=BaseMeasurementSerializer,
+        )
+        serializer = serializer_class(
+            data={
+                "name": "Made by API",
+                "dataset": dataset.pk,
+                "sample": RockSampleFactory(dataset=dataset).pk,
+            },
+            context={"request": SimpleNamespace(user=user)},
+        )
+        assert serializer.is_valid(), serializer.errors
+
+        measurement = serializer.save()
+
+        assert RecordAccess(measurement).own_level(user) == ContributionLevel.MANAGE
+        assert not UserObjectPermission.objects.exists()
+
+    def test_a_superuser_creates_without_being_credited(self, db):
+        from rest_framework.test import APIClient
+
+        admin = UserFactory(is_superuser=True, is_staff=True)
+        client = APIClient()
+        client.force_authenticate(admin)
+
+        response = client.post(
+            reverse("api:project-list"), {"name": "Admin by API"}, format="json"
+        )
+
+        assert response.status_code == 201
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.contributors.count() == 0

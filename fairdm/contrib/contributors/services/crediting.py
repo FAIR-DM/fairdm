@@ -143,6 +143,35 @@ class Crediting:
             )
         contribution.delete()
 
+    def make_creator(self, user, *, roles=()):
+        """List the person who created the record at the manage level.
+
+        A superuser cannot be credited, so for one this does nothing and the create still
+        succeeds.
+
+        Args:
+            user: The person who created the record.
+            roles: Names of roles in the roles vocabulary to give them. They are not checked
+                against the record type's group.
+
+        Returns:
+            The creator's contribution, or None for a superuser.
+        """
+        if user.is_superuser:
+            return None
+        with transaction.atomic():
+            contribution = self.record.contributors.filter(contributor=user).first()
+            if contribution is None:
+                contribution = self.add(user)
+            contribution.level = ContributionLevel.MANAGE
+            contribution.save(update_fields=["level"])
+            contribution.roles.add(
+                *Concept.objects.filter(
+                    vocabulary__name="fairdm-roles", name__in=list(roles)
+                )
+            )
+        return contribution
+
     def credited_from(self):
         """Say who on the record is credited from each organization.
 

@@ -17,12 +17,13 @@ from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurementFactory
 from demo.models import RockSample
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
 from fairdm.core.sample.plugins import Descriptions, Edit, KeyDates, Keywords, Overview
-from fairdm.core.utils import assign_perm
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     PersonFactory,
     PointFactory,
@@ -66,7 +67,11 @@ class TestSampleWritePluginsAreGated:
     def test_user_holding_dataset_change_rights_is_admitted(
         self, plugin_class, rock_sample, user
     ):
-        assign_perm("change_dataset", user, rock_sample.dataset)
+        ContributionFactory(
+            content_object=rock_sample.dataset,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
         request = _request_for(user)
         assert can_open(plugin_class, request, rock_sample) is True
 
@@ -108,7 +113,11 @@ class TestDescriptionsAndKeyDatesRenderTheirOwnForm:
     def test_descriptions_page_renders_the_descriptions_form_not_the_detail_page(
         self, client, rock_sample, user
     ):
-        assign_perm("change_dataset", user, rock_sample.dataset)
+        ContributionFactory(
+            content_object=rock_sample.dataset,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
         client.force_login(user)
 
         response = client.get(
@@ -123,7 +132,11 @@ class TestDescriptionsAndKeyDatesRenderTheirOwnForm:
     def test_key_dates_page_renders_the_key_dates_form_not_the_detail_page(
         self, client, rock_sample, user
     ):
-        assign_perm("change_dataset", user, rock_sample.dataset)
+        ContributionFactory(
+            content_object=rock_sample.dataset,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
         client.force_login(user)
 
         response = client.get(
@@ -155,7 +168,9 @@ def _page(client, sample):
 
 def _team_member(dataset):
     user = PersonFactory(is_active=True)
-    assign_perm("view_dataset", user, dataset)
+    ContributionFactory(
+        content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+    )
     return user
 
 
@@ -592,8 +607,9 @@ class TestOverviewManageMenu:
 
     def _editor(self, dataset):
         user = PersonFactory(is_active=True)
-        assign_perm("view_dataset", user, dataset)
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         return user
 
     def _tab_hrefs(self, response):

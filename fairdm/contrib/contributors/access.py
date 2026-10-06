@@ -49,6 +49,18 @@ class RecordAccess:
         self.record = record
 
     @staticmethod
+    def is_core_model(model):
+        """Say whether a class is the project, dataset, sample or measurement model.
+
+        Args:
+            model: A model class.
+
+        Returns:
+            True for one of the four core models, not for a registered subtype.
+        """
+        return model in {apps.get_model(*label) for label in _CORE_LABELS}
+
+    @staticmethod
     def is_core_record(obj):
         """Say whether an object is a project, dataset, sample or measurement of any type.
 

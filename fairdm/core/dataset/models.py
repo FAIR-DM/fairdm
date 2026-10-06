@@ -16,6 +16,7 @@ from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
 from ..dates import precedes
+from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     FairDMDates,
@@ -117,7 +118,7 @@ class DatasetLiteratureRelation(models.Model):
         return f"{self.dataset} {self.get_relationship_type_display()} {self.literature_item}"
 
 
-class DatasetQuerySet(QuerySet):
+class DatasetQuerySet(RecordLevelMixin, QuerySet):
     """QuerySet for datasets, with helpers that load related records in a bounded number of queries.
 
     None of the methods widens an already-narrowed query. ``Dataset.objects`` excludes private

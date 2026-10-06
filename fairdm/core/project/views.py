@@ -5,8 +5,8 @@ from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext as _
-from guardian.shortcuts import assign_perm
 
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
@@ -43,34 +43,20 @@ class ProjectListView(FairDMListView):
 
 
 class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
-    """Create a project, granting the creating user every project permission and crediting them."""
+    """Create a project and list the creating user at the manage level."""
 
     model = Project
     form_class = ProjectCreateForm
     page_title = _("Create a project")
 
     def form_valid(self, form: ProjectCreateForm) -> HttpResponse:
-        """Record the creator, grant them the project permissions and credit them as Creator, ProjectMember and ContactPerson."""
+        """Record the creator and list them at the manage level as Creator, ProjectMember and ContactPerson."""
         # `created_by` is editable=False, so it is set from the request user, never the form.
         form.instance.created_by = self.request.user
         response: HttpResponse = super().form_valid(form)
 
-        user = self.request.user
-        project = self.object
-
-        permissions = [
-            "view_project",
-            "change_project",
-            "delete_project",
-            "change_project_metadata",
-            "change_project_settings",
-        ]
-
-        for perm in permissions:
-            assign_perm(perm, user, project)
-
-        project.add_contributor(
-            user, with_roles=["Creator", "ProjectMember", "ContactPerson"]
+        Crediting(self.object).make_creator(
+            self.request.user, roles=["Creator", "ProjectMember", "ContactPerson"]
         )
 
         return response

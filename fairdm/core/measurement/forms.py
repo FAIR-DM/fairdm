@@ -8,6 +8,7 @@ from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Measurement
@@ -60,12 +61,8 @@ class MeasurementFormMixin:
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                from guardian.shortcuts import get_objects_for_user
-
-                self.fields["dataset"].queryset = get_objects_for_user(
-                    self.request.user,
-                    "dataset.change_dataset",
-                    klass=Dataset.all_objects.all(),
+                self.fields["dataset"].queryset = Dataset.all_objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
                 )
 
         if "sample" in self.fields:

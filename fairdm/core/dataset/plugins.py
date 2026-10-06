@@ -688,8 +688,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
         Returns:
             The project and how many other datasets in it the viewer may see, or ``None``.
         """
+        from fairdm.contrib.contributors.choices import ContributionLevel
         from fairdm.core.project.plugins import project_is_visible
-        from fairdm.core.utils import get_objects_for_user
 
         dataset = self.base_object
         project = dataset.project
@@ -700,14 +700,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             visible = Q(visibility=Visibility.PUBLIC)
             user = self.request.user
             if user.is_authenticated:
-                visible |= Q(
-                    pk__in=get_objects_for_user(
-                        user,
-                        ["dataset.view_dataset", "dataset.change_dataset"],
-                        Dataset.all_objects.all(),
-                        any_perm=True,
-                    )
-                )
+                held = Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
+                visible |= Q(pk__in=held.values("pk"))
             siblings = siblings.filter(visible)
         return {"project": project, "siblings": siblings.count()}
 

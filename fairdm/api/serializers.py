@@ -6,13 +6,31 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework import serializers
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
+from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.services.crediting import Crediting
+
 # One class per input, or drf-spectacular warns about components with identical names.
 _SERIALIZER_CACHE: dict[tuple, type] = {}
 
 
-class BaseSampleSerializer(
-    ObjectPermissionsAssignmentMixin, serializers.ModelSerializer
-):
+class CreatorCreditMixin:
+    """Credit the person who creates a record through the API, at the manage level."""
+
+    def create(self, validated_data):
+        """Create the record, then list the requesting user on it at the manage level.
+
+        Args:
+            validated_data: The validated fields of the new record.
+
+        Returns:
+            The new record.
+        """
+        record = super().create(validated_data)
+        Crediting(record).make_creator(self.context["request"].user)
+        return record
+
+
+class BaseSampleSerializer(CreatorCreditMixin, serializers.ModelSerializer):
     """Base DRF serializer for all Sample subtypes.
 
     All auto-generated serializers for registered :class:`~fairdm.core.sample.models.Sample`
@@ -24,16 +42,6 @@ class BaseSampleSerializer(
     ``url``, ``uuid``, ``name``, ``local_id``, ``status``, ``dataset``,
     ``added``, ``modified``, ``polymorphic_ctype``
     """
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user on create/update."""
-        current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name
-        return {
-            f"view_{model_name}": [current_user],
-            f"change_{model_name}": [current_user],
-            f"delete_{model_name}": [current_user],
-        }
 
     class Meta:
         from fairdm.core.sample.models import Sample
@@ -52,9 +60,7 @@ class BaseSampleSerializer(
         ]
 
 
-class BaseMeasurementSerializer(
-    ObjectPermissionsAssignmentMixin, serializers.ModelSerializer
-):
+class BaseMeasurementSerializer(CreatorCreditMixin, serializers.ModelSerializer):
     """Base DRF serializer for all Measurement subtypes.
 
     All auto-generated serializers for registered
@@ -67,16 +73,6 @@ class BaseMeasurementSerializer(
     ``url``, ``uuid``, ``name``, ``sample``, ``dataset``,
     ``added``, ``modified``, ``polymorphic_ctype``
     """
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user on create/update."""
-        current_user = self.context["request"].user
-        model_name = self.Meta.model._meta.model_name
-        return {
-            f"view_{model_name}": [current_user],
-            f"change_{model_name}": [current_user],
-            f"delete_{model_name}": [current_user],
-        }
 
     class Meta:
         from fairdm.core.measurement.models import Measurement
@@ -183,8 +179,9 @@ def build_model_serializer(
             "url" field only when provided.
         extra_kwargs: Merged into the ``Meta.extra_kwargs`` dict.
         base_class: Base serializer class to inherit from (default:
-            ``serializers.ModelSerializer`` wrapped with
-            ``ObjectPermissionsAssignmentMixin``).  Pass
+            ``serializers.ModelSerializer`` wrapped with ``CreatorCreditMixin`` for a project,
+            dataset, sample or measurement and with ``ObjectPermissionsAssignmentMixin`` for any
+            other model).  Pass
             :class:`BaseSampleSerializer` or :class:`BaseMeasurementSerializer`
             so that auto-generated subtype serializers satisfy the inheritance
             constraint enforced by :func:`_validate_sample_serializer` /
@@ -225,25 +222,26 @@ def build_model_serializer(
     )
     serializer_attrs["Meta"] = Meta
 
-    model_name = model._meta.model_name
-    perm_codenames = [
-        f"view_{model_name}",
-        f"change_{model_name}",
-        f"delete_{model_name}",
-    ]
-
-    def get_permissions_map(self, created: bool) -> dict[str, list]:
-        """Assign guardian object permissions to the requesting user."""
-        current_user = self.context["request"].user
-        return {perm: [current_user] for perm in perm_codenames}
-
-    serializer_attrs["get_permissions_map"] = get_permissions_map
-
-    # A given base_class already has ObjectPermissionsAssignmentMixin in its MRO.
+    # A given base_class already carries the mixin that credits the creator.
     bases: tuple[type, ...]
     if base_class is not None:
         bases = (base_class,)
+    elif RecordAccess.is_core_model(getattr(model, "type_of", None) or model):
+        bases = (CreatorCreditMixin, serializers.ModelSerializer)
     else:
+        model_name = model._meta.model_name
+        perm_codenames = [
+            f"view_{model_name}",
+            f"change_{model_name}",
+            f"delete_{model_name}",
+        ]
+
+        def get_permissions_map(self, created: bool) -> dict[str, list]:
+            """Assign guardian object permissions to the requesting user."""
+            current_user = self.context["request"].user
+            return {perm: [current_user] for perm in perm_codenames}
+
+        serializer_attrs["get_permissions_map"] = get_permissions_map
         bases = (ObjectPermissionsAssignmentMixin, serializers.ModelSerializer)
 
     serializer_cls = type(

@@ -12,13 +12,13 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
-from guardian.shortcuts import assign_perm
 from licensing.models import License
-from partial_date import PartialDate
 from mvp.warnings import MVPDeprecationWarning
+from partial_date import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
 from fairdm.contrib.plugins.base import Plugin
 from fairdm.core.dataset.forms import DatasetForm
@@ -30,6 +30,7 @@ from fairdm.core.dataset.models import (
 from fairdm.core.dataset.plugins import Delete, Descriptions, Overview, Update
 from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.factories import (
+    ContributionFactory,
     DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
@@ -118,7 +119,9 @@ class TestUpdateStatesItsOwnPermission:
     def test_admits_a_user_holding_change_permission(self):
         dataset = DatasetFactory()
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         request = _request_for(user)
         assert can_open(Update, request, dataset) is True
 
@@ -156,7 +159,9 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
                 content_type__app_label="dataset", codename="change_dataset"
             )
         )
-        assign_perm("view_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+        )
         client.force_login(user)
 
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
@@ -179,7 +184,9 @@ class TestUpdatePageFieldSet:
     def test_the_rendered_form_offers_exactly_the_attributes_field_set(self, client):
         dataset = DatasetFactory()
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -238,7 +245,9 @@ class TestUpdatePageAttributesPersist:
                 visibility=Visibility.PRIVATE,
                 project=original_project,
             )
-            assign_perm("change_dataset", user, dataset)
+            ContributionFactory(
+                content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+            )
             client.force_login(user)
             url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
             data = {
@@ -260,7 +269,9 @@ class TestUpdatePageAttributesPersist:
     def test_submitting_an_empty_name_reports_an_error_and_saves_nothing(self, client):
         dataset = DatasetFactory(name="Original Name", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -289,7 +300,9 @@ class TestUpdatePageProjectField:
 
         dataset = DatasetFactory()
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         own_project = ProjectFactory(name="Researcher's Own Project")
@@ -312,7 +325,9 @@ class TestAttributesIdentifierRowSet:
         dataset = DatasetFactory(name="Has Identifier", project=None)
         DatasetIdentifierFactory(related=dataset, type="DOI", value="10.1/existing")
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -329,7 +344,9 @@ class TestAttributesIdentifierRowSet:
     ):
         dataset = DatasetFactory(name="No Identifiers Yet", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -355,7 +372,9 @@ class TestAttributesIdentifierRowSet:
             related=dataset, type="DOI", value="10.1/original"
         )
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -381,7 +400,9 @@ class TestAttributesIdentifierRowSet:
             related=dataset, type="DOI", value="10.1/to-remove"
         )
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -408,7 +429,9 @@ class TestAttributesIdentifierRowSet:
         DatasetIdentifierFactory(related=other_dataset, type="DOI", value="10.1/taken")
         dataset = DatasetFactory(name="Original Name", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -440,7 +463,9 @@ class TestAttributesDateRowSet:
         dataset = DatasetFactory(name="Has Date", project=None)
         DatasetDateFactory(related=dataset, type="CollectionStart", value="2020-01-01")
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -457,7 +482,9 @@ class TestAttributesDateRowSet:
     ):
         dataset = DatasetFactory(name="No Dates Yet", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -481,7 +508,9 @@ class TestAttributesDateRowSet:
             related=dataset, type="CollectionStart", value="2020-01-01"
         )
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -507,7 +536,9 @@ class TestAttributesDateRowSet:
             related=dataset, type="CollectionStart", value="2020-01-01"
         )
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -532,7 +563,9 @@ class TestAttributesDateRowSet:
     ):
         dataset = DatasetFactory(name="Backwards Pair", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -562,7 +595,9 @@ class TestAttributesDateRowSet:
             related=dataset, type="CollectionStart", value="2020-06-01"
         )
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -588,7 +623,9 @@ class TestAttributesDateRowSet:
     def test_a_start_date_with_no_end_date_is_accepted(self, client):
         dataset = DatasetFactory(name="Start Only", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -613,7 +650,9 @@ class TestAttributesSaveIsOneAtomicSubmission:
     ):
         dataset = DatasetFactory(name="Original Name", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -639,7 +678,9 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsOwnPage:
     def test_the_redirect_target_is_the_datasets_own_overview_url(self, client):
         dataset = DatasetFactory(name="Original Name", project=None)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -669,7 +710,9 @@ class TestUpdatePageEmitsExactlyOneFormElement:
     def test_the_rendered_page_carries_exactly_one_form_element(self, client):
         dataset = DatasetFactory()
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
         url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
 
@@ -751,7 +794,9 @@ class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
                 content_type__app_label="dataset", codename="change_dataset"
             )
         )
-        assign_perm("view_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+        )
         client.force_login(user)
 
         url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
@@ -980,8 +1025,9 @@ class TestUpdatePageOffersTheDeletionLink:
     def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         response = client.get(
@@ -996,7 +1042,9 @@ class TestUpdatePageOffersTheDeletionLink:
     def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1013,8 +1061,9 @@ class TestUpdatePageOffersTheDeletionLink:
     ):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
@@ -1106,7 +1155,9 @@ class TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks:
     def test_a_user_who_may_change_the_dataset_is_offered_both_links(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1142,7 +1193,9 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
     def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1169,12 +1222,12 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
 
 @pytest.mark.django_db
 class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
-    def test_a_user_who_may_delete_but_not_change_sees_no_update_or_descriptions_link(
-        self, client
-    ):
+    def test_a_user_who_may_only_view_sees_no_update_or_descriptions_link(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1191,7 +1244,9 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
     def test_a_user_who_may_change_but_not_delete_sees_no_deletion_link(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1206,8 +1261,9 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
 class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
     def _permitted_user(self, dataset):
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         return user
 
     def test_the_datasets_own_page_draws_no_empty_link(self, client):
@@ -1264,7 +1320,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
     def test_the_update_page_links_back_to_the_dataset(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1277,7 +1335,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
     def test_the_descriptions_page_links_back_to_the_dataset(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1290,7 +1350,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
     def test_the_deletion_page_links_back_to_the_dataset(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         response = client.get(
@@ -1305,8 +1367,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
 class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
     def _permitted_user(self, dataset):
         user = UserFactory()
-        assign_perm("change_dataset", user, dataset)
-        assign_perm("delete_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
+        )
         return user
 
     def _assert_no_deprecation_warning(self, client, url):
@@ -1443,10 +1506,14 @@ def _json_ld(page):
 
 
 def _team_member(dataset, *permissions):
-    """Return a signed-in-ready user holding the given permissions on the dataset."""
+    """Return a signed-in-ready user listed on the dataset at the lowest level that holds the permissions."""
     user = UserFactory()
-    for permission in ("view_dataset", *permissions):
-        assign_perm(permission, user, dataset)
+    level = ContributionLevel.VIEW
+    if "change_dataset" in permissions:
+        level = ContributionLevel.EDIT
+    if "delete_dataset" in permissions:
+        level = ContributionLevel.MANAGE
+    ContributionFactory(content_object=dataset, contributor=user, level=level)
     return user
 
 
@@ -1851,7 +1918,29 @@ class TestOverviewProjectSiblingCount:
         self, client, team_dataset, hidden
     ):
         user = _team_member(team_dataset, "change_dataset")
+        ContributionFactory(
+            content_object=hidden, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        assert self._siblings(client, user, team_dataset) == 1
+
+    def test_a_private_dataset_with_only_a_stored_row_is_not_counted(
+        self, client, team_dataset, hidden
+    ):
+        from fairdm.core.utils import assign_perm
+
+        user = _team_member(team_dataset, "change_dataset")
         assign_perm("view_dataset", user, hidden)
+
+        assert self._siblings(client, user, team_dataset) == 0
+
+    def test_a_private_dataset_under_a_level_on_the_project_is_counted(
+        self, client, project, team_dataset, hidden
+    ):
+        user = _team_member(team_dataset, "change_dataset")
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.VIEW
+        )
 
         assert self._siblings(client, user, team_dataset) == 1
 
@@ -1865,7 +1954,9 @@ class TestOverviewProjectSiblingCount:
         self, client, project, team_dataset, hidden
     ):
         user = _team_member(team_dataset)
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
 
         assert self._siblings(client, user, team_dataset) == 1
 

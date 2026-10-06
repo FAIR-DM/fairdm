@@ -10,6 +10,7 @@ from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Sample
@@ -59,19 +60,15 @@ class SampleFormMixin:
 
             from fairdm.core.dataset.models import Dataset
 
-            # `all_objects` is only the base the permission check narrows. Assigning it
+            # `all_objects` is only the base the level check narrows. Assigning it
             # unconditionally would offer every private dataset to a caller that proved nothing.
             if (
                 self.request
                 and hasattr(self.request, "user")
                 and self.request.user.is_authenticated
             ):
-                from guardian.shortcuts import get_objects_for_user
-
-                self.fields["dataset"].queryset = get_objects_for_user(
-                    self.request.user,
-                    "dataset.change_dataset",
-                    klass=Dataset.all_objects.all(),
+                self.fields["dataset"].queryset = Dataset.all_objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
                 )
             else:
                 logger.warning(

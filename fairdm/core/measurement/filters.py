@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from partial_date import PartialDate
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import Measurement
 
 
@@ -144,12 +145,8 @@ class MeasurementFilterMixin(django_filters.FilterSet):
                 and self.request.user is not None
                 and self.request.user.is_authenticated
             ):
-                from guardian.shortcuts import get_objects_for_user
-
-                self.filters["dataset"].queryset = get_objects_for_user(
-                    self.request.user,
-                    "dataset.change_dataset",
-                    klass=Dataset.all_objects.all(),
+                self.filters["dataset"].queryset = Dataset.all_objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
                 )
             else:
                 self.filters["dataset"].queryset = Dataset.objects.all()

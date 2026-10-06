@@ -6,7 +6,6 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
-from guardian.shortcuts import get_perms
 
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
@@ -874,8 +873,6 @@ class TestProjectObjectPermissions:
 
         project = Project.objects.get(name="Creator's Project")
 
-        user_perms = get_perms(user, project)
-
         expected_perms = [
             "view_project",
             "change_project",
@@ -885,7 +882,9 @@ class TestProjectObjectPermissions:
         ]
 
         for perm in expected_perms:
-            assert perm in user_perms, f"Creator missing '{perm}' permission"
+            assert user.has_perm(f"project.{perm}", project), (
+                f"Creator missing '{perm}' permission"
+            )
 
     def test_non_contributor_cannot_edit_private_project(self, client):
         from django.urls import reverse

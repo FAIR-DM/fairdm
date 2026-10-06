@@ -379,3 +379,54 @@ class TestCreditedFrom:
         Crediting(record_chain.project).add(somebody, organization=organization)
 
         assert Crediting(record_chain.dataset).credited_from() == {}
+
+
+@pytest.mark.django_db
+class TestMakeCreator:
+    @pytest.mark.parametrize("kind", RECORDS)
+    def test_the_creator_is_listed_at_the_manage_level(
+        self, record_chain, somebody, kind
+    ):
+        record = getattr(record_chain, kind)
+
+        contribution = Crediting(record).make_creator(somebody)
+
+        assert contribution in record.contributors.all()
+        assert RecordAccess(record).own_level(somebody) == ContributionLevel.MANAGE
+        assert somebody.has_perm(f"{kind}.change_{kind}", record)
+
+    def test_the_roles_given_are_held(self, record_chain, somebody):
+        contribution = Crediting(record_chain.dataset).make_creator(
+            somebody, roles=["Creator", "ContactPerson"]
+        )
+
+        assert set(contribution.roles.values_list("name", flat=True)) == {
+            "Creator",
+            "ContactPerson",
+        }
+
+    def test_no_stored_permission_row_is_written(self, record_chain, somebody):
+        from guardian.models import UserObjectPermission
+
+        Crediting(record_chain.dataset).make_creator(somebody)
+
+        assert not UserObjectPermission.objects.exists()
+
+    def test_a_superuser_creates_without_being_credited(self, record_chain):
+        admin = PersonFactory(is_active=True, is_superuser=True, password="x")
+
+        contribution = Crediting(record_chain.dataset).make_creator(admin)
+
+        assert contribution is None
+        assert not record_chain.dataset.contributors.filter(contributor=admin).exists()
+
+    def test_a_creator_already_listed_is_raised_to_manage(self, record_chain, somebody):
+        Crediting(record_chain.dataset).add(somebody)
+
+        Crediting(record_chain.dataset).make_creator(somebody)
+
+        level = RecordAccess(record_chain.dataset).own_level(somebody)
+        assert level == ContributionLevel.MANAGE
+        assert (
+            record_chain.dataset.contributors.filter(contributor=somebody).count() == 1
+        )
