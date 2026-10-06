@@ -81,17 +81,27 @@ def sample_check_has_edit_permission(request, instance, **kwargs):
     return True
 
 
-def reverse(instance, view_name, *args, **kwargs):
+NO_DEFAULT = object()
+
+
+def reverse(instance, view_name, *args, default=NO_DEFAULT, **kwargs):
     """Resolve a plugin address for a record.
+
+    A plugin another portal removed from the record type has no address, so a link to a plugin
+    that is not yours should ask with ``default=""`` and be left out when it comes back empty.
 
     Args:
         instance: The record.
         view_name: The plugin's URL name.
         *args: Positional URL arguments.
+        default: What to return when the name does not resolve. Without it the lookup raises.
         **kwargs: Keyword URL arguments. Those in the record's declared addressing are filled in.
 
     Returns:
-        The URL.
+        The URL, or ``default`` when the name does not resolve and a default was given.
+
+    Raises:
+        NoReverseMatch: The name does not resolve and no default was given.
     """
     from .registration import registry
 
@@ -100,4 +110,9 @@ def reverse(instance, view_name, *args, **kwargs):
     namespace = model._meta.model_name.lower()
     for kwarg, field in registry.lookup_for(type(instance)).items():
         kwargs.setdefault(kwarg, getattr(instance, field))
-    return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)
+    try:
+        return urls.reverse(f"{namespace}:{view_name}", args=args, kwargs=kwargs)
+    except urls.NoReverseMatch:
+        if default is NO_DEFAULT:
+            raise
+        return default

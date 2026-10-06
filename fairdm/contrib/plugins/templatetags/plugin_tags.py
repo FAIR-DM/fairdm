@@ -1,6 +1,7 @@
 """Template tags for plugin system."""
 
 from django import template
+from django.urls import NoReverseMatch
 
 from fairdm.contrib.plugins.utils import reverse
 
@@ -18,7 +19,8 @@ def plugin_url(context, view_name, *args, **kwargs):
         **kwargs: Keyword arguments for URL reversal.
 
     Returns:
-        The resolved URL, or an empty string when the context has no object.
+        The resolved URL, or an empty string when the context has no object or the plugin
+        is not served for it, so a link to a removed plugin is left out.
 
     Example:
         {% plugin_url 'contributors' %}
@@ -31,4 +33,7 @@ def plugin_url(context, view_name, *args, **kwargs):
     if not obj:
         return ""
 
-    return reverse(obj, view_name, *args, **kwargs)
+    try:
+        return reverse(obj, view_name, *args, **kwargs)
+    except NoReverseMatch:
+        return ""

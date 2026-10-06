@@ -4,7 +4,7 @@ from django import template
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from literature import utils
 from pint.delegates.formatter.plain import PrettyFormatter
@@ -223,7 +223,8 @@ def plugin_url(context, view_name, *args, **kwargs):
         **kwargs: Keyword arguments for the URL.
 
     Returns:
-        The URL, or an empty string when the context holds no object.
+        The URL, or an empty string when the context holds no object or the plugin is not
+        served for it.
     """
     from fairdm.contrib.plugins.utils import reverse
 
@@ -234,7 +235,10 @@ def plugin_url(context, view_name, *args, **kwargs):
     if not obj:
         return ""
 
-    return reverse(obj, view_name, *args, **kwargs)
+    try:
+        return reverse(obj, view_name, *args, **kwargs)
+    except NoReverseMatch:
+        return ""
 
 
 @register.filter
