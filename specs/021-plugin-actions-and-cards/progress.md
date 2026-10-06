@@ -19,3 +19,10 @@ Did: added TestNavigationUnchanged to test_registration.py and TestPluginRegistr
 Verified: uv run pytest on both classes -q -n0: 2 failed (action listed in navigation; ready() does not refuse an action against Point), 3 passed. The passing action-served-under-its-own-name test guards FR-007 while the patterns are rebuilt from mounts; it passed before the change because an unrecognised place is ignored today.
 Next: T003 page tests and the registry-and-URL fixture.
 Watch: ready() is called a second time in-process by these tests; it is safe to repeat.
+
+## 2026-10-06T21:40:07Z · Implementer US1 · T003
+
+Did: added the PluginSandbox fixture (plugin_sandbox) to tests/conftest.py, tests/test_conftest.py proving a declared plugin and its address are gone after close, and tests/test_templates/test_overview_page_actions.py (six record types, visitors, predicate, permission, subtype narrowing, empty and hidden, raising predicate, order, apart from the Manage menu).
+Verified: uv run pytest tests/test_conftest.py -q -n0: 2 passed. uv run pytest tests/test_templates/test_overview_page_actions.py -q -n0: 13 failed, 3 passed; the failures are the dropdown listing nothing where an action is expected. pre-commit passes.
+Next: T004 implementation.
+Watch: the sandbox imports the six URL modules, the core include module and the root URL configuration again, so a portal with record types mounted elsewhere is not covered.

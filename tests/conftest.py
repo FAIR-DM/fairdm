@@ -1,7 +1,12 @@
 """Root-level pytest configuration for FairDM tests."""
 
+import contextlib
+from importlib import import_module, reload
+
 import pytest
+from django.conf import settings
 from django.core.management import call_command
+from django.urls import clear_url_caches
 
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 
@@ -75,3 +80,68 @@ def project_with_datasets():
     project = ProjectFactory()
     datasets = DatasetFactory.create_batch(3, project=project)
     return project, datasets
+
+
+class PluginSandbox:
+    """Declare plugins inside a test and see them served, then put everything back.
+
+    A record type's URL patterns are built once, when its URL module is imported, so a plugin
+    registered inside a test has no address until those patterns are built again. The sandbox
+    saves the registry, rebuilds the patterns of every record type after each ``declare()``
+    block, and on close restores the registry and rebuilds the patterns once more, so the
+    plugin is gone from the registry and its address no longer resolves.
+
+    Attributes:
+        URL_MODULES: The modules that mount a record type's plugins, innermost first, then the
+            modules that include them. Each is imported again so no cached resolver survives.
+    """
+
+    URL_MODULES = (
+        "fairdm.core.project.urls",
+        "fairdm.core.dataset.urls",
+        "fairdm.core.sample.urls",
+        "fairdm.core.measurement.urls",
+        "fairdm.contrib.contributors.urls",
+        "fairdm.contrib.location.urls",
+        "fairdm.core.urls",
+    )
+
+    def __init__(self):
+        from fairdm import plugins
+
+        self.registry = plugins.registry
+        self.saved = {
+            model: list(entries) for model, entries in self.registry._registry.items()
+        }
+
+    @contextlib.contextmanager
+    def declare(self):
+        """Declare plugins in the block, then make them reachable.
+
+        Yields:
+            Nothing. Register with ``plugins.register`` inside the block.
+        """
+        yield
+        self.rebuild()
+
+    def rebuild(self):
+        """Build every record type's URL patterns and navigation again from the registry."""
+        for name in (*self.URL_MODULES, settings.ROOT_URLCONF):
+            reload(import_module(name))
+        clear_url_caches()
+
+    def close(self):
+        """Restore the registry and the URL configuration as they were."""
+        self.registry._registry.clear()
+        self.registry._registry.update(self.saved)
+        self.rebuild()
+
+
+@pytest.fixture
+def plugin_sandbox():
+    """Let a test declare plugins, serve them through the test client and leave no trace."""
+    sandbox = PluginSandbox()
+    try:
+        yield sandbox
+    finally:
+        sandbox.close()
