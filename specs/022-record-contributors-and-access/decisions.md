@@ -536,3 +536,32 @@ holding both, and the edit page reads each from its `error_list`. When only one 
 is that one, with its `code`.
 **Why**: the page must tell the person every field at fault in one answer and save nothing (D11).
 **Revisit if**: a third refusal is added to `update`.
+
+## D32. The last-manager rule is a question `Crediting` answers before it changes anything
+
+**Decision**: `Crediting.would_leave_no_manager(contribution, level=None)` is public. `update` and
+`remove` ask it inside the row lock and raise `last_manager`; the remove page asks it to draw
+`refused` before anyone submits. It reads the contribution's stored level, not the object it was
+handed, and a person who also holds manage on a record above does not make it true.
+**Why**: the page has to say so on a GET, and asking the service keeps one copy of the rule. The
+stored level is what the other request may have changed while this one waited for the lock.
+**Revisit if**: a page needs to know about a change to several contributions at once.
+
+## D33. The refusal of a move is a method of `RecordAccess`, called from three `clean` methods
+
+**Decision**: `RecordAccess.refuse_move_without_manager(parent_field)` compares the record with the
+stored one and raises `no_manager` on the parent field. `Dataset.clean`, `Sample.clean` and
+`Measurement.clean` each call it with `"project"` or `"dataset"`.
+**Why**: the three models share the rule and `RecordAccess` already answers who counts as a manager,
+for the record as it is and, because `above` follows the attributes of the object, for the record as
+it would be. A private record is read through `all_objects`.
+**Revisit if**: a fourth record kind gets a parent.
+
+## D34. The lock test is the one skip
+
+**Decision**: `TestRecordLock` is skipped when `connection.features.has_select_for_update` is false,
+which it is on the SQLite the test settings use. It asserts on the queries issued, as the brief says.
+**Why**: SQLite issues no FOR UPDATE. I ran the same assertions once on a scratch copy with the lock
+clause replaced by a comment, saw them pass, and saw them fail with the lock removed and with the
+default manager in place of `all_objects`. That copy was not kept.
+**Revisit if**: the test settings move to PostgreSQL.
