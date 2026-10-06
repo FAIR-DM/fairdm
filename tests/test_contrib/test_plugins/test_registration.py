@@ -3,6 +3,7 @@
 import pytest
 from django.urls import reverse
 from django.views.generic import TemplateView
+from flex_menu import Menu
 
 from demo.factories import RockSampleFactory
 from fairdm import plugins
@@ -357,8 +358,16 @@ PLACES = {
 
 
 def offering_registry():
-    """A registry whose Sample overview draws the places, as the shipped one does."""
+    """A registry whose Sample overview draws the places, as the shipped one does.
+
+    It builds its navigation in menus of its own, so the shipped navigation, which is shared by
+    every test, is not rewritten from the few plugins registered here.
+    """
     registry = PluginRegistry()
+    menus = {}
+    registry.get_plugin_menu_for_model = lambda model: menus.setdefault(
+        model, Menu(f"{model.__name__}Menu")
+    )
     registry.register(Sample)(SomeOverview)
     return registry
 

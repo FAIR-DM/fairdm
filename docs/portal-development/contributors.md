@@ -687,6 +687,13 @@ reverse(dataset, "contribution-list-contribution-edit", pk=contribution.pk)
 reverse(sample, "contribution-list-contribution-remove", pk=contribution.pk)
 ```
 
+A portal can take the tab away from a record type with `plugins.remove(Project, "contribution-list")`.
+The tab, its further views and their addresses are then gone from projects, and `reverse` raises
+`NoReverseMatch` for them. The tab of a dataset is still served, without the button and the links
+that lead to its project's tab. Code that links to a tab of another record asks with
+`reverse(record, "contribution-list", default="")` and draws the link only when it gets an address.
+See [Removing a plugin](create_a_plugin.md#removing-a-plugin).
+
 ### Levels
 
 What a person may do on a record is one of three levels, stored on their contribution as
