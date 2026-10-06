@@ -1,0 +1,140 @@
+{
+  "story": "US5",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 424,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T020",
+    "T021",
+    "T022a",
+    "T023",
+    "T024",
+    "T025a",
+    "T025"
+  ],
+  "context": {
+    "why": "Stories 1 to 4 are accepted. A contribution's level now decides who may open, change and manage a record everywhere: RecordLevelBackend answers for core records, stored django-guardian rows grant nothing on them, with_level and visible_to read levels, creators are listed at the manage level by Crediting.make_creator, and migration 0024 converts stored rows. RecordAccess(record).managers() already returns the people who count as able to manage a record (they can sign in and hold manage on the record or above). What is missing is the guarantee that a record keeps one: the prototype still carries an untested last-manager check in the pages (plugins/shared.py). This story moves that rule into Crediting and tests it, makes every change to a record's contributors lock the record first, refuses moving a record somewhere that would leave it without a manager, and makes merging two people keep the higher level. It also carries one small correction the maintainer asked for after story 3: the by-hand way of adding a person no longer asks for an email address (T025a).",
+    "spec_sections": [
+      "User Story 5 (scenarios 2 to 6; scenarios 1 and 7 were delivered in story 4)",
+      "User Story 7 scenario 4 (a Data Curator and a superuser are refused the same removals)",
+      "FR-017 (as now written: no email address)",
+      "FR-053 to FR-056",
+      "FR-061",
+      "Edge Cases (a record moved to another project or dataset; a manager who loses the level mid-change; an account deactivated while it is the only manager; two profiles merged)",
+      "Clarifications ('When the last-manager rule is applied, who counts?'; 'What is kept about a person or organization entered by hand?')"
+    ],
+    "plan_sections": [
+      "D3 (last_manager in update and remove, and the row lock)",
+      "D8",
+      "D9",
+      "Watch items"
+    ],
+    "prior_decisions": [
+      "The rule (FR-053, FR-054): a removal, or a lowering of level, that would leave the record with nobody who counts as able to manage it is refused with ValidationError code last_manager and changes nothing, whoever asks, including a superuser and a Data Curator. Who counts is RecordAccess(record).managers(): people who can sign in and hold manage on the record or on a record above it. Holders of portal roles do not count. So removing a sample's only listed manager is allowed when someone can manage it through its dataset, and a person with no account does not count even at the manage level. Raising someone on a record that has no manager at all is always allowed. The rule only refuses going from at least one to none.",
+      "Put the rule in Crediting.update and Crediting.remove. The edit and remove pages then show it from the service's ValidationError: on the edit page it is attached to the level field (context key the template reads: errors.level); the remove page draws its refusal from the context value `refused` and offers no way to go ahead. Delete the prototype's own check in the pages (is_last_manager and must_stay in plugins/shared.py, or whatever they are called now) once the service owns it. Keep the templates as they are.",
+      "The row lock (FR-055, plan D3): add, update, remove, make_creator and (when US6 builds it) move each run inside transaction.atomic and first lock the record's row with select_for_update on the record's own model (use the all_objects manager where the model has one, so a private record is found), before reading its contributors. Give Crediting one place that does this so US6's move can reuse it. T020's TestRecordLock asserts on the queries issued (CaptureQueriesContext: a SELECT ... FOR UPDATE on the record's table comes before the contribution queries) and is skipped on a database that cannot lock rows (connection.features.has_select_for_update is False on SQLite, which the test settings use; write the test so it runs and passes where the feature exists and is skipped with a reason where it does not; that is the one skip this brief allows). Do not try to test real concurrency with threads.",
+      "Moving a record (plan D8, FR-056): Dataset.clean, Sample.clean and Measurement.clean refuse a change of parent (a dataset's project; a sample's or measurement's dataset) that would leave RecordAccess(record).managers() empty when it was not empty before the change, with code no_manager on the parent field. A new record (no pk) is never refused. Compare against the stored parent to know whether it changed. Story 4 already leaves the parent field out of the update forms for anyone who cannot manage (decisions D2); this is the second guard, at the model.",
+      "Merging (plan D9, T022a): fairdm/contrib/contributors/services/merge.py _reassign_contributions. When both people are on the same record, the kept person's contribution takes the higher of the two levels and the discarded one's contribution is dropped. A contribution only the discarded person held moves to the kept person with its level. The kept entry's organization (affiliation) is left exactly as it is, including when it is none. _transfer_permissions still copies stored guardian rows: leave it for records that are not core records, but it must no longer copy rows for core records (they grant nothing; skip them). If a merge would leave a record with two managers collapsed into one, that is fine. The service has no path that merges organizations; do not build one.",
+      "T025a (decisions.md D19, as decided by the maintainer): take the email address off the by-hand way of adding a person. NewPersonForm in plugins/shared.py loses the email field and clean_email; the person is made with email None. The add-person template (templates/contributors/plugins/contribution_add_person.html) loses the email input with its label and hint: that is an approved template, and this removal is the one change to it this brief authorises. In tests/test_contrib/test_contributors/test_plugins/test_shared.py, the story 3 tests that store, validate or refuse an address (around TestAddByHand: test_an_email_address_is_stored_and_does_not_make_an_account, test_the_email_address_is_not_shown_on_the_tab_or_the_edit_page, test_an_email_address_must_be_one, the two email_in_use tests, and any `email` key in other posts) are removed or adjusted, and one is added: the form has no email field and a posted `email` value is ignored. Update docs/user-guide/crediting-a-record.md, docs/portal-administration/looking-up-contributors.md, docs/portal-development/contributors.md where they describe the by-hand email, and the changelog entry. decisions.md D21 still mentions 'the email rule in D19' in its last lines: correct that sentence. Do not touch the account adapter or any sign-in setting.",
+      "decisions.md D7: a superuser is not credited; unchanged.",
+      "decisions.md D12: page tests of the tab go in tests/test_contrib/test_contributors/test_plugins/test_shared.py. Story 4 put update-page tests in tests/test_core/test_project/test_views.py and tests/test_core/test_dataset/test_views.py.",
+      "Docs: the docs step reports only ContributionMove (US6) and ContributorSeed (US7). Leave those."
+    ],
+    "acceptance": [
+      {
+        "task": "T020",
+        "given_when_then": "Given a record with one, two, or no people who count as able to manage it, when Crediting removes or lowers one, then the last is refused with code last_manager and nothing changes, the others are saved, a manager through the dataset counts and a person who cannot sign in does not; and each changing method locks the record's row first."
+      },
+      {
+        "task": "T021",
+        "given_when_then": "Given a dataset, sample or measurement with a manager only through its parent, when its parent is changed to one that gives it none, then validation refuses with code no_manager; a move that keeps a manager, and a new record, pass."
+      },
+      {
+        "task": "T022a",
+        "given_when_then": "Given two people on the same record at different levels, when they are merged, then one entry remains at the higher level with the kept entry's organization unchanged; a contribution only the discarded person held moves with its level."
+      },
+      {
+        "task": "T023",
+        "given_when_then": "Given the only manager of a record, when a manager or a superuser lowers them on the edit page or opens and submits the remove page, then the edit is refused on the level field, the remove page refuses and offers no way to go ahead, and nothing changes."
+      },
+      {
+        "task": "T024",
+        "given_when_then": "Given the failing tests from T020 to T023, when the implementation lands, then all pass and the pages no longer carry their own copy of the rule."
+      },
+      {
+        "task": "T025a",
+        "given_when_then": "Given the by-hand way of adding a person, when the page is opened and submitted, then no email is asked for, a posted email value is ignored, and the person made has none."
+      },
+      {
+        "task": "T025",
+        "given_when_then": "Given the user guide page, when read against the branch, then it describes the last-manager rule and that a record cannot be moved somewhere that would leave it without a manager."
+      }
+    ],
+    "verified_base": {
+      "commit": "929327244eaecc6172e635104fa96434b8ed34ea",
+      "verified_at": "2026-10-06T17:00:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 4's last code commit (14671f51): lint, typecheck, the whole test suite (4850 passed, 8 skipped), build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly two names, ContributionMove and ContributorSeed, which later stories own. `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours. The test step of the full gate failed once today with no detail and passed on an immediate rerun with nothing changed; if you see that, rerun it once and say so in concerns. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Contribution",
+      "Contributor, Person, Organization",
+      "People, in three contexts",
+      "Dataset",
+      "Sample",
+      "Measurement"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T020 to T025 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not change RecordLevelBackend, the permission table, with_level, visible_to or migration 0024: story 4 is accepted.",
+    "Do not build moving or ordering (US6). Leave ContributionMove working as it is.",
+    "Do not touch the account adapter (fairdm/contrib/contributors/adapters.py) or any sign-in or password-reset setting.",
+    "No threads or sleeps in tests."
+  ]
+}
