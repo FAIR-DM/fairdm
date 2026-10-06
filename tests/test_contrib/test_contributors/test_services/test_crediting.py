@@ -1,5 +1,7 @@
 """Tests for ``Crediting``, the one place a record's contributors are changed."""
 
+from types import SimpleNamespace
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
@@ -136,9 +138,9 @@ class TestUpdate:
         self, record_chain, somebody, grant
     ):
         contribution = grant(record_chain.project, somebody, None)
-        elsewhere = Concept.objects.filter(
-            vocabulary__name="fairdm-roles"
-        ).exclude(name__in=Project.CONTRIBUTOR_ROLES.values)[0]
+        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
+            name__in=Project.CONTRIBUTOR_ROLES.values
+        )[0]
 
         with pytest.raises(ValidationError) as refused:
             Crediting(record_chain.project).update(contribution, roles=[elsewhere])
@@ -151,9 +153,7 @@ class TestUpdate:
     ):
         contribution = grant(record_chain.project, somebody, ContributionLevel.MANAGE)
 
-        Crediting(record_chain.project).update(
-            contribution, roles=[role("Creator")]
-        )
+        Crediting(record_chain.project).update(contribution, roles=[role("Creator")])
 
         contribution.refresh_from_db()
         assert contribution.level == ContributionLevel.MANAGE
@@ -319,7 +319,9 @@ class TestCreditedFrom:
 
         assert contribution.affiliation == organization
 
-    def test_the_organization_is_listed_on_the_record_once(self, record_chain, somebody):
+    def test_the_organization_is_listed_on_the_record_once(
+        self, record_chain, somebody
+    ):
         organization = OrganizationFactory()
 
         Crediting(record_chain.dataset).add(somebody, organization=organization)
@@ -770,6 +772,206 @@ class TestLastManager:
         assert contribution.level == ContributionLevel.MANAGE
 
 
+@pytest.mark.django_db
+class TestMove:
+    @pytest.fixture
+    def listed(self, record_chain, grant):
+        """A dataset with four people and three organizations, listed alternately."""
+        dataset = record_chain.dataset
+        people, organizations = [], []
+        for _ in range(3):
+            people.append(grant(dataset, PersonFactory(), ContributionLevel.VIEW))
+            organizations.append(grant(dataset, OrganizationFactory(), None))
+        people.append(grant(dataset, PersonFactory(), ContributionLevel.VIEW))
+        return SimpleNamespace(
+            dataset=dataset,
+            people=people,
+            organizations=organizations,
+            crediting=Crediting(dataset),
+        )
+
+    @staticmethod
+    def placed(dataset):
+        return list(Contribution.objects.for_entity(dataset).values_list("pk", "order"))
+
+    @staticmethod
+    def named(queryset):
+        return [contribution.pk for contribution in queryset]
+
+    def pks(self, items):
+        return [item.pk for item in items]
+
+    def test_a_person_moves_later_among_the_people(self, listed):
+        first, second, third, fourth = listed.people
+
+        listed.crediting.move(second, "down")
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([first, third, second, fourth])
+        )
+
+    def test_a_person_moves_earlier_among_the_people(self, listed):
+        first, second, third, fourth = listed.people
+
+        listed.crediting.move(fourth, "up")
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([first, second, fourth, third])
+        )
+
+    def test_an_organization_moves_among_the_organizations(self, listed):
+        first, second, third = listed.organizations
+
+        listed.crediting.move(first, "down")
+
+        assert self.named(
+            Contribution.objects.for_entity(listed.dataset).organizations()
+        ) == self.pks([second, first, third])
+
+    def test_moving_a_person_leaves_the_organizations_alone(self, listed):
+        before = self.named(
+            Contribution.objects.for_entity(listed.dataset).organizations()
+        )
+        orders = dict(
+            Contribution.objects.filter(pk__in=before).values_list("pk", "order")
+        )
+
+        listed.crediting.move(listed.people[1], "up")
+
+        after = Contribution.objects.filter(pk__in=before).values_list("pk", "order")
+        assert dict(after) == orders
+
+    def test_moving_an_organization_leaves_the_people_alone(self, listed):
+        orders = dict(
+            Contribution.objects.filter(pk__in=self.pks(listed.people)).values_list(
+                "pk", "order"
+            )
+        )
+
+        listed.crediting.move(listed.organizations[1], "down")
+
+        after = Contribution.objects.filter(pk__in=orders).values_list("pk", "order")
+        assert dict(after) == orders
+
+    def test_a_move_changes_no_other_record(self, listed, record_chain, grant):
+        elsewhere = [
+            grant(record_chain.other_dataset, PersonFactory(), ContributionLevel.VIEW)
+            for _ in range(2)
+        ]
+        orders = dict(
+            Contribution.objects.filter(pk__in=self.pks(elsewhere)).values_list(
+                "pk", "order"
+            )
+        )
+
+        listed.crediting.move(listed.people[0], "down")
+
+        after = Contribution.objects.filter(pk__in=orders).values_list("pk", "order")
+        assert dict(after) == orders
+
+    def test_the_first_person_cannot_move_earlier(self, listed):
+        before = self.placed(listed.dataset)
+
+        listed.crediting.move(listed.people[0], "up")
+
+        after = self.placed(listed.dataset)
+        assert after == before
+
+    def test_the_last_person_cannot_move_later(self, listed):
+        before = self.placed(listed.dataset)
+
+        listed.crediting.move(listed.people[-1], "down")
+
+        after = self.placed(listed.dataset)
+        assert after == before
+
+    def test_the_ends_of_the_organizations_do_not_move_either(self, listed):
+        before = self.placed(listed.dataset)
+
+        listed.crediting.move(listed.organizations[0], "up")
+        listed.crediting.move(listed.organizations[-1], "down")
+
+        after = self.placed(listed.dataset)
+        assert after == before
+
+    def test_the_only_one_of_its_kind_stays_put(self, record_chain, grant):
+        dataset = record_chain.dataset
+        only = grant(dataset, OrganizationFactory(), None)
+        grant(dataset, PersonFactory(), ContributionLevel.VIEW)
+
+        Crediting(dataset).move(only, "up")
+        Crediting(dataset).move(only, "down")
+
+        only.refresh_from_db()
+        assert Contribution.objects.for_entity(dataset).organizations().get() == only
+
+    def test_moving_twice_in_a_direction_goes_two_places(self, listed):
+        first, second, third, fourth = listed.people
+
+        listed.crediting.move(first, "down")
+        listed.crediting.move(first, "down")
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([second, third, first, fourth])
+        )
+
+    def test_contributions_sharing_an_order_move_deterministically(self, listed):
+        first, second, third, fourth = listed.people
+        Contribution.objects.filter(pk__in=self.pks(listed.people)).update(order=5)
+
+        listed.crediting.move(second, "up")
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([second, first, third, fourth])
+        )
+
+    def test_an_unknown_direction_is_refused_with_a_code(self, listed):
+        with pytest.raises(ValidationError) as raised:
+            listed.crediting.move(listed.people[1], "sideways")
+
+        assert raised.value.code == "direction"
+
+    def test_a_new_person_is_last_among_the_people(self, listed, somebody):
+        added = listed.crediting.add(somebody)
+
+        people = Contribution.objects.for_entity(listed.dataset).people()
+        assert list(people)[-1] == added
+
+    def test_a_new_organization_is_last_among_the_organizations(self, listed):
+        added = listed.crediting.add(OrganizationFactory())
+
+        organizations = Contribution.objects.for_entity(listed.dataset).organizations()
+        assert list(organizations)[-1] == added
+
+    def test_a_new_person_does_not_join_the_organizations_nor_the_reverse(
+        self, listed, somebody
+    ):
+        person = listed.crediting.add(somebody)
+        organization = listed.crediting.add(OrganizationFactory())
+
+        scoped = Contribution.objects.for_entity(listed.dataset)
+        assert person not in scoped.organizations()
+        assert organization not in scoped.people()
+
+    def test_removing_one_leaves_the_others_in_their_places(self, listed):
+        first, second, third, fourth = listed.people
+
+        listed.crediting.remove(second)
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([first, third, fourth])
+        )
+
+    def test_editing_one_leaves_the_others_in_their_places(self, listed):
+        first, second, third, fourth = listed.people
+
+        listed.crediting.update(second, roles=[], level=ContributionLevel.EDIT)
+
+        assert self.named(Contribution.objects.for_entity(listed.dataset).people()) == (
+            self.pks([first, second, third, fourth])
+        )
+
+
 @pytest.mark.skipif(
     not connection.features.has_select_for_update,
     reason="this database cannot lock rows, so no SELECT ... FOR UPDATE is issued",
@@ -790,9 +992,12 @@ class TestRecordLock:
             ),
             "remove": lambda: crediting.remove(listed),
             "make_creator": lambda: crediting.make_creator(somebody),
+            "move": lambda: crediting.move(listed, "up"),
         }
 
-    @pytest.mark.parametrize("method", ["add", "update", "remove", "make_creator"])
+    @pytest.mark.parametrize(
+        "method", ["add", "update", "remove", "make_creator", "move"]
+    )
     def test_the_records_row_is_locked_before_its_contributors_are_read(
         self, record_chain, changes, method
     ):

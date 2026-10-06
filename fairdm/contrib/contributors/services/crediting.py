@@ -260,6 +260,61 @@ class Crediting:
                 raise self.last_manager_refusal(contribution)
             contribution.delete()
 
+    def move(self, contribution, direction):
+        """Move a contributor one place earlier or later among the contributors of its kind.
+
+        People are placed among people and organizations among organizations, so the other list
+        is left alone. The first moving earlier and the last moving later change nothing. Where
+        old data gives two contributors the same place, their places are told apart by their
+        creation order first.
+
+        Args:
+            contribution: The contribution to move, on this record.
+            direction: ``"up"`` for earlier or ``"down"`` for later.
+
+        Raises:
+            ValidationError: With code ``direction`` when it is neither, and ``not_listed``
+                when the contribution is not on this record. Nothing is moved.
+        """
+        if direction not in ("up", "down"):
+            raise ValidationError(
+                _("Choose to move earlier or later."), code="direction"
+            )
+        with self.locked():
+            contributions = Contribution.objects.for_entity(self.record)
+            is_organization = (
+                contribution.contributor.get_real_instance().is_organization
+            )
+            peers = list(
+                contributions.organizations()
+                if is_organization
+                else contributions.people()
+            )
+            index = next(
+                (
+                    place
+                    for place, peer in enumerate(peers)
+                    if peer.pk == contribution.pk
+                ),
+                None,
+            )
+            if index is None:
+                raise ValidationError(
+                    _("This contributor is not listed on this record."),
+                    code="not_listed",
+                )
+            target = index - 1 if direction == "up" else index + 1
+            if not 0 <= target < len(peers):
+                return
+            places = [peer.order for peer in peers]
+            if len(set(places)) < len(places):
+                places = [places[0] + place for place in range(len(peers))]
+            places[index], places[target] = places[target], places[index]
+            for peer, place in zip(peers, places, strict=True):
+                peer.order = place
+            Contribution.objects.bulk_update(peers, ["order"])
+            contribution.order = places[index]
+
     def make_creator(self, user, *, roles=()):
         """List the person who created the record at the manage level.
 
