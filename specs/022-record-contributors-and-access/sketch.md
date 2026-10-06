@@ -30,9 +30,9 @@ at `example.com`, password `password`.
 
 | Screen | What it shows |
 |---|---|
-| Contributors tab, reader | Everyone credited, numbered in the record's order, with roles. Search by name. No controls |
-| Contributors tab, manager | The same list, and under each contributor what they may do, with Move up, Move down, Edit and Remove. An "Add a contributor" button. A second card naming the people who hold access from the record above |
-| Add a contributor | A search by name. Each match has an Add button, or says they are already a contributor. Adding goes straight to the edit page |
+| Contributors tab, reader | People in a wide column, numbered in their order, with roles. Organizations as cards in a narrow column beside them, in their own order. Below the large breakpoint the organizations drop beneath the people. Search by name covers both. No controls |
+| Contributors tab, manager | The same two columns. Under each person, what they may do, with Move up, Move down, Edit and Remove. Each organization card carries the same controls. An "Add a contributor" button in the page title. Under the people, a card naming those who hold access from the record above |
+| Add a contributor | One card with two rows of tabs. The first row chooses a person or an organization. The second chooses how to find them: already in the portal, by ORCID (a person) or in ROR (an organization), or entered by hand. Adding by any route goes straight to the edit page |
 | Edit a contributor | Roles as checkboxes, then the three levels as radio buttons with a line under each saying what it allows. Saved together. An organization gets the roles and a sentence saying it holds no access |
 | Remove a contributor | What goes with them, then Remove and Cancel. When they are the only manager the page says why and offers only the way back |
 
@@ -45,13 +45,21 @@ at `example.com`, password `password`.
 3. The set of people who count as able to manage a record, for the last-manager rule, checked at
    save time in a way that holds when two changes arrive together.
 4. Whether a person can sign in and act, so the tab can say a level has not taken effect yet.
-5. A record's contributors in one order that the overview, the citation and the tab all read.
-6. Moving one contributor up or down one place. The numbers shown are positions, not stored values.
-7. Search over a record's contributors by name, and a search over every person and organization in
-   the portal that marks the ones already listed.
+5. A record's people in one order and its organizations in another, which the overview, the
+   citation and the tab all read.
+6. Moving one contributor up or down one place among their own kind. The numbers shown are
+   positions, not stored values.
+7. Search over a record's contributors by name, and separate searches over the people and over the
+   organizations in the portal that mark the ones already listed.
 8. The roles a record type offers, in the vocabulary's order.
 9. The link from each overview's People card to this tab. Only the project overview has it today.
 10. The tab on every registered sample and measurement type with no configuration.
+11. A search of ORCID by name or iD, and of ROR by name or ID, returning for each match a name, one
+    line that tells namesakes apart, and the identifier.
+12. Making a person from an ORCID record and an organization from a ROR record, with the identifier
+    kept, and recognising one that is already in the portal by that identifier.
+13. Making a person or an organization from a few typed fields, after checking for profiles with the
+    same name.
 
 ## What the sketch faked
 
@@ -72,6 +80,16 @@ at `example.com`, password `password`.
   permissions amount to.
 - Moving a record to another project or dataset is not checked.
 - The add search is a plain name match limited to 20 results, with no paging.
+- ORCID and ROR are not contacted. Each search answers from four fixed records after a short pause,
+  so the searching state can be seen. For people, try "garcia", "carberry" or an iD shown in the
+  results. For organizations, try "potsdam" or "jülich". Anything else finds nothing.
+- A contributor added from ORCID or ROR is saved with a name only. The identifier, the affiliation
+  and the place are shown on the confirmation and then dropped. A match already in the portal is
+  recognised by name, not by identifier.
+- A person or organization entered by hand is saved with a name only. The email address, city,
+  country and website are asked for and not kept. Nobody is invited.
+- People and organizations share one stored order. The two lists on the tab are that order split
+  by kind.
 - The list is not paged. The long example has 37 contributors.
 - The order shown on the tab is not yet what the overview and the citation read.
 - The affiliation recorded with a contribution, which the old edit form offered, has no place on
@@ -82,12 +100,35 @@ at `example.com`, password `password`.
 
 ## What was ruled by eye
 
-Nothing has been reviewed yet. These are the choices that have no right answer, as built:
+Asked for in review, and done:
 
-- Adding is a page with a search, not a dialog over the list.
-- Adding one contributor at a time, then straight to their edit page. The old form added several at
-  once and left roles for later.
-- A manager's row has two lines at every width: who and roles above, access and controls below.
+- People and organizations are two lists, not one. People are in the main column. Organizations
+  are cards stacked in one narrower column to the right, and drop below the people on a narrow
+  screen. Each list has its own order. The alternative named in review was a filter in the page's
+  actions that switches between people and organizations. It was not built and can be asked for if
+  the two columns do not sit right.
+- Adding has two pathways, a person and an organization, kept in one card with tabs. Each has three
+  ways in: search the portal, search ORCID or ROR, or enter by hand.
+- The empty state has no button of its own. "Add a contributor" in the page title is the one way in.
+
+Not yet reviewed. These are the choices that have no right answer, as built:
+
+- The add card's tabs are two rows. The top row is underlined tabs for "A person" and "An
+  organization". Under it a smaller boxed row holds the three ways in, so the two choices look
+  different and both stay in view. Every tab is a link, so a search or a chosen record keeps its
+  place in the address.
+- A match from ORCID or ROR is chosen first and confirmed on a second step that shows the name, one
+  line of detail and the identifier. A match in the portal is added in one step.
+- When someone typed in by hand has the same name as a profile in the portal, the form comes back
+  with those profiles offered first and a button to make the new profile anyway.
+- An organization entered by hand is asked for name, city, country and website. A person is asked
+  for given name, family name and an optional email address.
+- A manager sees one line under the organizations saying they hold no access. It is no longer
+  repeated on every organization.
+- Adding is a page, not a dialog over the list.
+- Adding one contributor at a time, then straight to their edit page.
+- A manager's row for a person has two lines at every width: who and roles above, access and
+  controls below.
 - Reordering is Move up and Move down buttons. Dragging is not offered. (Buttons are needed anyway
   for people who cannot drag, so dragging would be an addition and not a replacement.)
 - Roles are a grid of checkboxes, two columns from the small breakpoint up, including the dataset's
@@ -95,7 +136,7 @@ Nothing has been reviewed yet. These are the choices that have no right answer, 
 - The level names shown are "Can view", "Can edit" and "Can manage". The manage badge is filled and
   the other two are outlined.
 - People who hold access from the record above and are not listed get their own card under the
-  list, shown to managers only, with a link to where it is changed.
+  people, shown to managers only, with a link to where it is changed.
 - A listed person whose effective level comes from above shows that level with "from the project"
   or "from the dataset" beside it.
 - Remove is reached from the row and from the foot of the edit page.
@@ -116,3 +157,12 @@ Nothing has been reviewed yet. These are the choices that have no right answer, 
   managers see.
 - **Upgrade keeps access by listing people.** No screen changes. It decides who is in the list on
   the day a portal upgrades.
+
+## Where review has moved past the specification
+
+The specification's assumptions say a person to be added must already have a profile in the
+portal, and put creating a person or an organization from the tab outside its scope. The add card
+now offers both, and looks people up by ORCID and organizations in ROR. The specification needs
+that assumption replaced and requirements added for the three ways in before it is approved. It
+also speaks of one order of contributors, where the tab now keeps one for people and one for
+organizations.

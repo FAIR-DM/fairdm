@@ -24,7 +24,7 @@ from fairdm.core.sample.models import Sample
 from fairdm.views import FairDMTemplateView
 
 from .. import access
-from ..models import Contribution, Contributor
+from ..models import Contribution, Contributor, Organization, Person
 
 
 def type_name(record):
@@ -120,56 +120,228 @@ class ContributionPage(Plugin, FairDMTemplateView):
         return context
 
 
+#: Stand-ins for what an ORCID search would return. Nothing is fetched.
+ORCID_RECORDS = [
+    {
+        "id": "0000-0002-1825-0097",
+        "given": "Josiah",
+        "family": "Carberry",
+        "detail": "Brown University, Providence, United States",
+    },
+    {
+        "id": "0000-0001-5109-3700",
+        "given": "Sofia Maria",
+        "family": "Garcia",
+        "detail": "Universidad de Granada, Spain",
+    },
+    {
+        "id": "0000-0003-2874-1160",
+        "given": "Sofia",
+        "family": "Garcia Hernandez",
+        "detail": "GFZ Helmholtz Centre for Geosciences, Potsdam, Germany",
+    },
+    {
+        "id": "0000-0002-9079-593X",
+        "given": "Stephen",
+        "family": "Hawking",
+        "detail": "No current employment listed",
+    },
+]
+
+#: Stand-ins for what a search of the ROR registry would return. Nothing is fetched.
+ROR_RECORDS = [
+    {
+        "id": "https://ror.org/04z8jg394",
+        "name": "GFZ Helmholtz Centre for Geosciences",
+        "detail": "Facility · Potsdam, Germany",
+    },
+    {
+        "id": "https://ror.org/03bnmw459",
+        "name": "University of Potsdam",
+        "detail": "Education · Potsdam, Germany",
+    },
+    {
+        "id": "https://ror.org/03e8s1d88",
+        "name": "Potsdam Institute for Climate Impact Research",
+        "detail": "Facility · Potsdam, Germany",
+    },
+    {
+        "id": "https://ror.org/02nv7yv05",
+        "name": "Forschungszentrum Jülich",
+        "detail": "Facility · Jülich, Germany",
+    },
+]
+
+
 class ContributionAdd(ContributionPage):
-    """Find a person or an organization and add them to the record."""
+    """Add a person or an organization: one already in the portal, one looked up, or a new one.
+
+    The address carries the two choices the card's tabs make. ``kind`` is ``person`` or
+    ``organization``. ``via`` is ``portal`` (search the portal), ``registry`` (ORCID for a
+    person, ROR for an organization) or ``new`` (a form).
+    """
 
     url_path = "add"
     manager_only = True
     template_name = "contributors/plugins/contribution_add.html"
     page_title = gettext_lazy("Add a contributor")
     results_shown = 20
+    registry_delay = 0.8
+
+    @property
+    def kind(self):
+        """Whether a person or an organization is being added."""
+        kind = self.request.GET.get("kind")
+        return kind if kind in ("person", "organization") else "person"
+
+    @property
+    def via(self):
+        """How the contributor is being found."""
+        via = self.request.GET.get("via")
+        return via if via in ("portal", "registry", "new") else "portal"
+
+    def registry_records(self):
+        """Return the registry stand-ins for the kind being added, as the page draws them."""
+        if self.kind == "person":
+            return [
+                {**r, "name": f"{r['given']} {r['family']}", "shown_id": r["id"]}
+                for r in ORCID_RECORDS
+            ]
+        return [
+            {**r, "shown_id": r["id"].removeprefix("https://")} for r in ROR_RECORDS
+        ]
+
+    def search_registry(self, term):
+        """Pretend to search ORCID or ROR by name or identifier, taking a moment over it."""
+        import time
+
+        time.sleep(self.registry_delay)
+        needle = term.lower()
+        return [
+            r
+            for r in self.registry_records()
+            if needle in r["name"].lower() or needle in r["id"].lower()
+        ]
+
+    def search_portal(self, term):
+        """Return the people or organizations in the portal whose name matches."""
+        model = Person if self.kind == "person" else Organization
+        matches = model.objects.filter(name__icontains=term).order_by("name")
+        if self.kind == "person":
+            matches = matches.exclude(pk=get_anonymous_user().pk)
+        return list(matches[: self.results_shown])
 
     def get_context_data(self, **kwargs):
-        """Add the search term and who it matches, marking those already listed."""
+        """Add which tabs are open, the search and its matches, and any chosen record."""
         context = super().get_context_data(**kwargs)
+        kind, via = self.kind, self.via
         term = self.request.GET.get("q", "").strip()
         listed = set(
             self.base_object.contributors.values_list("contributor_id", flat=True)
         )
-        results = []
-        if term:
-            matches = (
-                Contributor.objects.filter(name__icontains=term)
-                .exclude(pk=get_anonymous_user().pk)
-                .order_by("name")[: self.results_shown]
-            )
-            results = [{"contributor": c, "listed": c.pk in listed} for c in matches]
-        context.update(term=term, results=results)
+        adding = {
+            "kind": kind,
+            "via": via,
+            "term": term,
+            "is_person": kind == "person",
+            "results": [],
+            "chosen": None,
+            "errors": kwargs.get("errors", {}),
+            "values": kwargs.get("values", {}),
+            "same_name": kwargs.get("same_name", []),
+        }
+        if via == "portal" and term:
+            adding["results"] = [
+                {"contributor": c, "listed": c.pk in listed}
+                for c in self.search_portal(term)
+            ]
+        elif via == "registry":
+            chosen = self.request.GET.get("chosen")
+            if chosen:
+                adding["chosen"] = next(
+                    (r for r in self.registry_records() if r["id"] == chosen), None
+                )
+            elif term:
+                adding["results"] = self.search_registry(term)
+        context["adding"] = adding
         return context
 
-    def post(self, request, *args, **kwargs):
-        """Add the chosen contributor last, at the view level, and go on to their roles."""
+    def add(self, contributor):
+        """Add the contributor last, at the view level, and go on to their edit page."""
         record = self.base_object
-        contributor = get_object_or_404(Contributor, pk=request.POST.get("contributor"))
-        contributor = contributor.get_real_instance()
         if record.contributors.filter(contributor=contributor).exists():
             messages.error(
-                request,
+                self.request,
                 _("%(name)s is already a contributor on this %(kind)s.")
                 % {"name": contributor, "kind": type_name(record)},
             )
-            return redirect(request.get_full_path())
+            return redirect(self.request.get_full_path())
         contribution = Contribution.add_to(contributor, record)
-        if not contributor.is_organization and not access.own_level(
-            contributor, record
-        ):
-            access.set_level(contributor, record, access.VIEW)
-        messages.success(
-            request,
-            _("%(name)s was added. Say what they did, and what they may do here.")
-            % {"name": contributor},
-        )
+        if contributor.is_organization:
+            said = _("%(name)s was added. Say what they did here.")
+        else:
+            if not access.own_level(contributor, record):
+                access.set_level(contributor, record, access.VIEW)
+            said = _(
+                "%(name)s was added. Say what they did, and what they may do here."
+            )
+        messages.success(self.request, said % {"name": contributor})
         return redirect(f"{self.list_url}{contribution.pk}/edit/")
+
+    def create(self, name, given="", family=""):
+        """Make a new profile with nothing but a name, or reuse one from an earlier try."""
+        if self.kind == "organization":
+            return Organization.objects.get_or_create(name=name)[0]
+        person = Person(first_name=given, last_name=family, name=name, email=None)
+        person.set_unusable_password()
+        person.save()
+        return person
+
+    def post(self, request, *args, **kwargs):
+        """Add someone from the portal, from a registry record, or from the form."""
+        if pk := request.POST.get("contributor"):
+            contributor = get_object_or_404(Contributor, pk=pk)
+            return self.add(contributor.get_real_instance())
+
+        if registry_id := request.POST.get("registry_id"):
+            found = next(
+                (r for r in self.registry_records() if r["id"] == registry_id), None
+            )
+            if found is None:
+                raise PermissionDenied
+            model = Person if self.kind == "person" else Organization
+            existing = model.objects.filter(name=found["name"]).first()
+            return self.add(
+                existing
+                or self.create(
+                    found["name"], found.get("given", ""), found.get("family", "")
+                )
+            )
+
+        values = {key: request.POST.get(key, "").strip() for key in request.POST}
+        errors = {}
+        if self.kind == "person":
+            if not values.get("given"):
+                errors["given"] = _("Enter their given name.")
+            if not values.get("family"):
+                errors["family"] = _("Enter their family name.")
+            name = f"{values.get('given', '')} {values.get('family', '')}".strip()
+        else:
+            if not values.get("name"):
+                errors["name"] = _("Enter the organization's name.")
+            name = values.get("name", "")
+        if errors:
+            context = self.get_context_data(errors=errors, values=values)
+            return self.render_to_response(context, status=422)
+
+        model = Person if self.kind == "person" else Organization
+        same_name = list(model.objects.filter(name__iexact=name)[:5])
+        if same_name and not request.POST.get("confirmed"):
+            context = self.get_context_data(values=values, same_name=same_name)
+            return self.render_to_response(context, status=422)
+        return self.add(
+            self.create(name, values.get("given", ""), values.get("family", ""))
+        )
 
 
 class ContributionEdit(ContributionPage):
@@ -292,22 +464,35 @@ class ContributionRemove(ContributionPage):
 
 
 class ContributionMove(ContributionPage):
-    """Move a contributor one place up or down the record's order."""
+    """Move a contributor one place up or down among the people, or among the organizations."""
 
     url_path = "<int:pk>/move"
     manager_only = True
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
-        """Swap the contributor with their neighbour and renumber the record's order."""
-        ordered = list(self.base_object.contributors.order_by("order", "pk"))
-        index = next(i for i, c in enumerate(ordered) if c.pk == self.kwargs["pk"])
+        """Swap the contributor with the neighbour of their own kind."""
+        everyone = list(
+            self.base_object.contributors.select_related("contributor").order_by(
+                "order", "pk"
+            )
+        )
+        for place, contribution in enumerate(everyone):
+            contribution.order = place
+        moving = next(c for c in everyone if c.pk == self.kwargs["pk"])
+        is_organization = moving.contributor.get_real_instance().is_organization
+        peers = [
+            c
+            for c in everyone
+            if c.contributor is not None
+            and c.contributor.get_real_instance().is_organization == is_organization
+        ]
+        index = peers.index(moving)
         target = index - 1 if request.POST.get("direction") == "up" else index + 1
-        if 0 <= target < len(ordered):
-            ordered[index], ordered[target] = ordered[target], ordered[index]
-            for place, contribution in enumerate(ordered):
-                contribution.order = place
-            Contribution.objects.bulk_update(ordered, ["order"])
+        if 0 <= target < len(peers):
+            other = peers[target]
+            moving.order, other.order = other.order, moving.order
+        Contribution.objects.bulk_update(everyone, ["order"])
         return redirect(f"{self.list_url}#contributor-{self.kwargs['pk']}")
 
 
@@ -321,7 +506,7 @@ class ContributionMove(ContributionPage):
     order=150,
 )
 class ContributionList(ContributionPage):
-    """List a record's contributors in order, with the controls for whoever may manage it."""
+    """List a record's people and organizations, each in their own order, with the controls."""
 
     url_path = "contributors"
     template_name = "contributors/plugins/contribution_list.html"
@@ -338,32 +523,37 @@ class ContributionList(ContributionPage):
         return str(self.base_object)
 
     def get_context_data(self, **kwargs):
-        """Add the contributors, the search term and, for a manager, access held from above."""
+        """Add the people, the organizations and, for a manager, access held from above."""
         context = super().get_context_data(**kwargs)
         record = self.base_object
         term = self.request.GET.get("q", "").strip()
-        contributions = list(
-            record.contributors.select_related("contributor")
+        contributions = [
+            c
+            for c in record.contributors.select_related("contributor")
             .prefetch_related("roles")
             .order_by("order", "pk")
-        )
-        total = len(contributions)
-        rows = []
-        for place, contribution in enumerate(contributions, start=1):
-            if contribution.contributor is None:
-                continue
-            entry = self.describe(contribution)
-            if term and term.lower() not in entry["contributor"].name.lower():
-                continue
-            entry.update(place=place, first=place == 1, last=place == total)
-            rows.append(entry)
-
-        above = []
-        if context["can_manage"]:
-            listed = {
-                c.contributor_id for c in contributions if c.contributor_id is not None
+            if c.contributor is not None
+        ]
+        entries = [self.describe(contribution) for contribution in contributions]
+        groups = {}
+        for is_person in (True, False):
+            group = [entry for entry in entries if entry["is_person"] == is_person]
+            for place, entry in enumerate(group, start=1):
+                entry.update(place=place, first=place == 1, last=place == len(group))
+            groups[is_person] = {
+                "total": len(group),
+                "movable": not term and len(group) > 1,
+                "rows": [
+                    entry
+                    for entry in group
+                    if not term or term.lower() in entry["contributor"].name.lower()
+                ],
             }
-            above = [
+
+        access_from_above = []
+        if context["can_manage"]:
+            listed = {c.contributor_id for c in contributions}
+            access_from_above = [
                 {
                     "person": person,
                     "label": access.LEVEL_LABELS[level],
@@ -376,10 +566,11 @@ class ContributionList(ContributionPage):
             ]
         parents = access.records_above(record)
         context.update(
-            rows=rows,
-            total=total,
+            people=groups[True],
+            organizations=groups[False],
+            total=len(entries),
             term=term,
-            above=above,
+            access_from_above=access_from_above,
             parent=parents[0] if parents else None,
             parent_url=reverse(parents[0], "contribution-list") if parents else "",
             parent_kind=capfirst(type_name(parents[0])) if parents else "",
