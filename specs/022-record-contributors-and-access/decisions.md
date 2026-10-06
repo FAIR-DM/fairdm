@@ -465,3 +465,79 @@ affiliations that `org:<id>` can name. FR-023 selects the primary affiliation to
 **Why**: both forms exist in a portal's data, and a second organization for the same ROR ID is the
 failure FR-016 rules out.
 **Revisit if**: the two forms are made one.
+
+## Decisions made while building story 4
+
+## D25. The upgrade's tests run its function on the historical apps of the state before it
+
+**Decision**: `test_migrations.py` takes the historical `apps` for the state just before the data
+step from `MigrationLoader` (with `MIGRATION_MODULES` overridden to `{}`), and calls the migration's
+`convert_stored_permissions` on them against the test database.
+**Why**: the suite runs with `--no-migrations`, so the executor has no migration history to walk, and
+the project has no migration-test helper. Building the database from every migration for each case
+would take minutes. The test database already has the tables the models give it, and the data step
+changes no table, so the historical models read and write the same rows.
+**Revisit if**: a later migration changes the schema the data step reads, which would make the two
+differ.
+
+## D26. The data step reads what the permission table can map, and nothing else
+
+**Decision**: a stored permission the table does not know maps to no level. A superuser is never
+listed, and the django-guardian anonymous user's rows are deleted without a credit. A person who
+cannot sign in is listed all the same.
+**Why**: the level is "the lowest that covers every right held" and an unknown right is not covered
+by any of the three. A superuser cannot be saved as a contributor outside debug and passes every
+check anyway, and the anonymous user is a placeholder. A person with no active account keeps the
+level their rows gave, which takes effect when the account is active (FR-042).
+**Revisit if**: a portal stored custom permissions on core records that it needs kept. It would have
+to map them to a level before upgrading.
+
+## D27. Choice lists add the portal-wide right with `accessible_to`
+
+**Decision**: `with_level` answers only for levels. The sample and measurement forms, the measurement
+filter, the dataset filter's projects, the dataset page's sibling count and the API's list read
+`accessible_to`, which is `with_level` plus every record for someone who holds `view_<model>` (for the
+view level) or `change_<model>` (above it) for the whole portal.
+**Why**: the guardian calls these replaced returned every record to a superuser and to a Data Curator,
+because they accepted the model-level right. Moving them to `with_level` alone would have taken the
+choices away from both, which D1 and FR-062 do not ask for.
+**Revisit if**: the model-level right and the level are ever to be told apart on a list.
+
+## D28. A first credit through the three older helpers starts at the view level
+
+**Decision**: `Contribution.add_to`, `Contributor.add_to` and `add_contributor` set the view level
+when they make a credit for a person, and none for an organization. A credit that exists is left as
+it is.
+**Why**: FR-038 says a person newly added as a contributor is at the view level, and the upgrade
+gives the same level to every existing credit with none. Leaving these helpers at no level would have
+made a record's people hold different access depending on which helper listed them.
+**Revisit if**: a caller wants a credit that holds no access. It sets the level to none afterwards,
+as `seed_contributors` does.
+
+## D29. A refused editing page of a private project or dataset still answers 404
+
+**Decision**: the update and deletion pages of a private project or dataset keep answering 404 to
+anyone refused, including a person who may open the record. The tab's own pages answer 403 to such a
+person, and 404 only to someone who may not open the record.
+**Why**: `PrivateRecordNotFoundMixin` already has that rule, with its own tests, and the brief asks for
+403 on the tab's pages only. The mixin shows a reader nothing they could not already learn from the
+record.
+**Revisit if**: the editing pages are rebuilt (#404).
+
+## D30. A form for an existing record leaves the manager-only fields out, and a new one leaves nothing out
+
+**Decision**: `ManagerOnlyFieldsMixin.withhold_manager_only_fields(request)` removes visibility and
+the parent field from the update forms unless `RecordAccess(instance).can_manage(user)`. With no
+request it removes them. A form with no instance yet is untouched.
+**Why**: the field is absent, so a posted value is never read, which is stronger than a field that is
+shown disabled. A caller that builds a form without a request is asking for the safe default, the same
+as the dataset choices do.
+**Revisit if**: someone wants the field shown read-only to editors.
+
+## D31. `Crediting.update` reports every refusal in one error
+
+**Decision**: when both a role and the level are refused, `update` raises one `ValidationError`
+holding both, and the edit page reads each from its `error_list`. When only one is refused the error
+is that one, with its `code`.
+**Why**: the page must tell the person every field at fault in one answer and save nothing (D11).
+**Revisit if**: a third refusal is added to `update`.
