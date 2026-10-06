@@ -3,7 +3,7 @@
   "feature": "021-plugin-actions-and-cards",
   "branch": "021-plugin-actions-and-cards",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -29,6 +29,11 @@
       "state": "CONVERGE",
       "at": "2026-10-06T23:12:09Z",
       "note": "all four stories accepted"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-06T23:23:20Z",
+      "note": "convergence exit green"
     }
   ],
   "gates": {
@@ -462,7 +467,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
