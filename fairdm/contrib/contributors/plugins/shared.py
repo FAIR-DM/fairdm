@@ -11,7 +11,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.utils.text import capfirst
@@ -32,7 +32,7 @@ from fairdm.views import FairDMTemplateView
 
 from ..access import RecordAccess
 from ..choices import ContributionLevel
-from ..models import Contribution, Contributor, Organization, Person
+from ..models import Contributor, Organization, Person
 from ..services.crediting import UNCHANGED, Crediting
 from ..services.registries import Orcid, RegistryUnavailable, Ror
 
@@ -861,29 +861,20 @@ class ContributionMove(ContributionPage):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
-        """Swap the contributor with the neighbour of their own kind."""
-        everyone = list(
-            self.base_object.contributors.select_related("contributor").order_by(
-                "order", "pk"
+        """Move the contributor one place in the direction posted, then return to their row.
+
+        Returns:
+            A redirect to the tab at the moved contributor, or a 400 when the direction is
+            neither ``up`` nor ``down``.
+        """
+        contribution = self.get_contribution()
+        try:
+            Crediting(self.base_object).move(
+                contribution, request.POST.get("direction")
             )
-        )
-        for place, contribution in enumerate(everyone):
-            contribution.order = place
-        moving = next(c for c in everyone if c.pk == self.kwargs["pk"])
-        is_organization = moving.contributor.get_real_instance().is_organization
-        peers = [
-            c
-            for c in everyone
-            if c.contributor is not None
-            and c.contributor.get_real_instance().is_organization == is_organization
-        ]
-        index = peers.index(moving)
-        target = index - 1 if request.POST.get("direction") == "up" else index + 1
-        if 0 <= target < len(peers):
-            other = peers[target]
-            moving.order, other.order = other.order, moving.order
-        Contribution.objects.bulk_update(everyone, ["order"])
-        return redirect(f"{self.list_url}#contributor-{self.kwargs['pk']}")
+        except ValidationError:
+            return HttpResponseBadRequest()
+        return redirect(f"{self.list_url}#contributor-{contribution.pk}")
 
 
 @plugins.register(
@@ -918,17 +909,21 @@ class ContributionList(ContributionPage):
         context = super().get_context_data(**kwargs)
         record = self.base_object
         term = self.request.GET.get("q", "").strip()
-        contributions = [
-            c
-            for c in record.contributors.select_related("contributor")
-            .prefetch_related("roles")
-            .order_by("order", "pk")
-            if c.contributor is not None
-        ]
-        entries = [self.describe(contribution) for contribution in contributions]
+        listed = {
+            True: record.contributors.people(),
+            False: record.contributors.organizations(),
+        }
+        entries = {
+            is_person: [
+                self.describe(contribution)
+                for contribution in contributions.select_related(
+                    "contributor"
+                ).prefetch_related("roles")
+            ]
+            for is_person, contributions in listed.items()
+        }
         groups = {}
-        for is_person in (True, False):
-            group = [entry for entry in entries if entry["is_person"] == is_person]
+        for is_person, group in entries.items():
             for place, entry in enumerate(group, start=1):
                 entry.update(place=place, first=place == 1, last=place == len(group))
             groups[is_person] = {
@@ -943,7 +938,9 @@ class ContributionList(ContributionPage):
 
         access_from_above = []
         if context["can_manage"]:
-            listed = {c.contributor_id for c in contributions}
+            credited = {
+                entry["contributor"].pk for group in entries.values() for entry in group
+            }
             access_from_above = [
                 {
                     "person": person,
@@ -953,13 +950,13 @@ class ContributionList(ContributionPage):
                     "source_url": reverse(source, "contribution-list"),
                 }
                 for person, level, source in self.access.people_above()
-                if person.pk not in listed
+                if person.pk not in credited
             ]
         parents = self.access.above
         context.update(
             people=groups[True],
             organizations=groups[False],
-            total=len(entries),
+            total=sum(len(group) for group in entries.values()),
             term=term,
             access_from_above=access_from_above,
             parent=parents[0] if parents else None,

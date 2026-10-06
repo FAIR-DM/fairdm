@@ -806,6 +806,129 @@ class TestRemoveContributor:
         assert colleague.contributor_id not in listed
 
 
+def listed_order(record, kind):
+    """The pks of the people or the organizations of the record, in the order it names them."""
+    contributions = Contribution.objects.for_entity(record)
+    return [c.pk for c in getattr(contributions, kind)()]
+
+
+@pytest.mark.django_db
+class TestMovePage:
+    @pytest.fixture
+    def two_people(self, record, manager, colleague):
+        """The manager and a colleague, in that order, with the colleague last."""
+        manager_credit = record.contributors.get(contributor=manager)
+        return manager_credit, colleague
+
+    @pytest.fixture
+    def two_organizations(self, record, partner):
+        """The record's partner and another organization, in that order."""
+        other = ContributionFactory(
+            content_object=record, contributor=OrganizationFactory(), level=None
+        )
+        return partner, other
+
+    def test_a_manager_moves_a_person_earlier_and_returns_to_the_tab(
+        self, record, manager, two_people
+    ):
+        first, last = two_people
+
+        response = browser_as(manager).post(
+            page_of(record, "move", pk=last.pk), {"direction": "up"}
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == f"{tab(record)}#contributor-{last.pk}"
+        assert listed_order(record, "people") == [last.pk, first.pk]
+
+    def test_a_manager_moves_a_person_later(self, record, manager, two_people):
+        first, last = two_people
+
+        browser_as(manager).post(
+            page_of(record, "move", pk=first.pk), {"direction": "down"}
+        )
+
+        assert listed_order(record, "people") == [last.pk, first.pk]
+
+    def test_a_manager_moves_an_organization_among_the_organizations(
+        self, record, manager, two_organizations
+    ):
+        first, last = two_organizations
+
+        response = browser_as(manager).post(
+            page_of(record, "move", pk=last.pk), {"direction": "up"}
+        )
+
+        assert response["Location"] == f"{tab(record)}#contributor-{last.pk}"
+        assert listed_order(record, "organizations") == [last.pk, first.pk]
+
+    def test_the_tab_lists_them_in_the_new_order(self, record, manager, two_people):
+        first, last = two_people
+        client = browser_as(manager)
+        client.post(page_of(record, "move", pk=last.pk), {"direction": "up"})
+
+        response = client.get(tab(record))
+
+        rows = response.context["people"]["rows"]
+        assert [row["contributor"].pk for row in rows] == [
+            last.contributor_id,
+            first.contributor_id,
+        ]
+
+    def test_moving_the_first_earlier_changes_nothing_and_returns_to_the_tab(
+        self, record, manager, two_people
+    ):
+        first, last = two_people
+
+        response = browser_as(manager).post(
+            page_of(record, "move", pk=first.pk), {"direction": "up"}
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == f"{tab(record)}#contributor-{first.pk}"
+        assert listed_order(record, "people") == [first.pk, last.pk]
+
+    @pytest.mark.parametrize("viewer", ["reader", "visitor"])
+    def test_nobody_else_moves_anyone(
+        self, request, record, manager, two_people, viewer
+    ):
+        first, last = two_people
+        user = None if viewer == "visitor" else request.getfixturevalue(viewer)
+
+        response = browser_as(user).post(
+            page_of(record, "move", pk=last.pk), {"direction": "up"}
+        )
+
+        assert response.status_code in (302, 403)
+        assert listed_order(record, "people")[:2] == [first.pk, last.pk]
+
+    def test_a_direction_that_is_neither_is_refused_and_changes_nothing(
+        self, record, manager, two_people
+    ):
+        first, last = two_people
+
+        response = browser_as(manager).post(
+            page_of(record, "move", pk=last.pk), {"direction": "sideways"}
+        )
+
+        assert response.status_code == 400
+        assert listed_order(record, "people") == [first.pk, last.pk]
+
+    def test_a_contribution_of_another_record_is_not_found(
+        self, record, manager, two_people, public_chain
+    ):
+        other = ContributionFactory(
+            content_object=DatasetFactory(visibility=Visibility.PUBLIC),
+            level=None,
+        )
+
+        response = browser_as(manager).post(
+            page_of(record, "move", pk=other.pk), {"direction": "up"}
+        )
+
+        assert response.status_code == 404
+
+
 @pytest.fixture
 def data_curator(db):
     """A person who can manage any record through the Data Curator role, credited on none."""
