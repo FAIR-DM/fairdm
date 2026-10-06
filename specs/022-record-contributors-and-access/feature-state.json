@@ -122,10 +122,10 @@
           "attempts": 1,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py"
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py"
             ],
             "commands": [
-              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py -q -n auto --dist loadscope"
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope"
             ],
             "code": [
               "fairdm/contrib/contributors/plugins/shared.py:702",

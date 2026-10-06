@@ -42,3 +42,10 @@ Did: docs/user-guide/crediting-a-record.md (linked from the user guide index): t
 Verified: ran every code block of the new portal-development section through a throwaway test (deleted afterwards) with a project, dataset, registered sample and person: all ran as written. The kit's docs audit (`forgekit.docs_check.audit(repo, base="origin/main")`) now lists four names: ContributionMove (moving and order, US6), level_choices (levels on the edit page, US4), give_level in demo/seed/common.py (US4, with the rows it sits beside) and ContributorSeed (the seed command, US7). Before this story's docs it listed 13.
 Next: the full gate once, then the completion report.
 Watch: the user guide page describes only what the tab does today: adding from the portal, roles, removing. ORCID, ROR and by-hand adding, the affiliation choice, levels on the edit page and ordering are for the stories that own them to add to it.
+
+## 2026-10-06T12:45:24Z · Implementer US1 · T003
+
+Did: renamed tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py to test_shared.py. The conformance step of the full gate refused the first name because a test module has to mirror a source module, and the tab's pages live in plugins/shared.py. The classes in it are unchanged.
+Verified: `forge verify --repo . --base origin/main --steps conformance` is rerun after the rename (result in the report).
+Next: the completion report.
+Watch: tasks T007, T012, T017, T023, T027 and T030 in tasks.md name test_plugins/test_contribution_tab.py. Their stories add their classes to test_shared.py, which the conformance rule requires.

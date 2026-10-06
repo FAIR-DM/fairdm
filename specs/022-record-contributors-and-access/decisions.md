@@ -315,3 +315,13 @@ refused, rolls the roles back with `transaction.set_rollback`.
 roles must be decided in one place.
 **Revisit if**: `Crediting.update` takes the level and the organization as well, which makes the
 whole save one call.
+
+## D12. The tab's page tests live in test_shared.py
+
+**Decision**: the tests of the Contributors tab and its pages are in
+`tests/test_contrib/test_contributors/test_plugins/test_shared.py`, not in the
+`test_contribution_tab.py` that `tasks.md` names.
+**Why**: the pages are in `plugins/shared.py`, and the conformance step refuses a test module that
+mirrors no source module.
+**Revisit if**: the pages move to a module of their own, which is when a test module of that name
+would mirror it. Later stories add their classes to `test_shared.py`.
