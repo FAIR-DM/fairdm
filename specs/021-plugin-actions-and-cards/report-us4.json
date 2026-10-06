@@ -139,7 +139,8 @@
     "fairdm/core/sample/plugins.py: the shipped sample Keywords page does not open. A request raises ImproperlyConfigured (no queryset, 'Keywords is missing a QuerySet') for a superuser, with or without a replacement. Descriptions on the same file sets model = Sample for the same reason (#280). Not touched; the documentation example uses Descriptions.",
     "First forge verify run of this story: docs failed on the new public name Candidate, which I fixed by documenting it on the page on what a record type serves, and uv:test stopped on tests/test_core/test_project/test_plugins.py::TestOverviewFiguresAndChartsCountWhatTheViewerMaySee::test_the_contributors_figure_counts_everyone_credited (21 where 22 was expected). That test passed alone, in the whole suite run once without -x (5413 passed) and in the second verify run; nothing in the story touches it, so it looks like a data-dependent flake, but I did not find the cause.",
     "CHANGELOG.md has no entry for this feature; none was written for stories 1 to 3 either.",
-    "No existing test was edited, and tamper-check against the base reports clean (0 flags)."
+    "No existing test was edited, and tamper-check against the base reports clean (0 flags).",
+    "The full verify (exit 0) ran before commit 0a213120, which only moves an import line in tests/test_contrib/test_plugins/test_registration.py; that file was run again afterwards (138 passed), the full verify was not."
   ],
   "blocked": []
 }
