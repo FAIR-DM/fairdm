@@ -717,3 +717,108 @@ class ProjectExportView(Plugin, FairDMTemplateView):
 
     page_title = _("Export Project Data")
     page_icon = "export"
+
+
+@plugins.register(Project, label=_("Statistics"), icon="statistics", order=300)
+class Statistics(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
+    """Summarise the project's datasets together and show how the project has grown.
+
+    Only datasets and records the viewer may see are counted.
+    """
+
+    url_path = "statistics"
+    check = staticmethod(project_is_visible)
+    template_name = "statistics/project.html"
+    page_subtitle = _("Statistics")
+
+    def get_context_data(self, **kwargs):
+        """Add the roll-up, the breakdown by dataset and the running totals."""
+        from django.contrib.contenttypes.models import ContentType
+
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.core.statistics import RecordStatistics
+
+        context = super().get_context_data(**kwargs)
+        project = self.base_object
+        user = self.request.user
+        # Dataset by dataset: a viewer on the team of one private dataset sees that one.
+        can_manage = has_perm(self.request, Update.permission, project)
+        datasets = [
+            dataset
+            for dataset in Dataset.all_objects.filter(project=project)
+            if can_manage
+            or dataset.visibility == Visibility.PUBLIC
+            or has_perm(self.request, "dataset.view_dataset", dataset)
+        ]
+        samples = Sample.objects.filter(dataset__in=datasets).visible_to(user)
+        measurements = Measurement.objects.filter(dataset__in=datasets).visible_to(user)
+
+        per_sample = Counter(samples.order_by().values_list("dataset_id", flat=True))
+        per_measurement = Counter(
+            measurements.order_by().values_list("dataset_id", flat=True)
+        )
+        breakdown = [
+            {
+                "dataset": dataset,
+                "samples": per_sample.get(dataset.pk, 0),
+                "measurements": per_measurement.get(dataset.pk, 0),
+            }
+            for dataset in datasets
+        ]
+        breakdown.sort(key=lambda row: -(row["samples"] + row["measurements"]))
+        most = max(
+            (row["samples"] + row["measurements"] for row in breakdown), default=0
+        )
+        for row in breakdown:
+            row["percent"] = (
+                round(100 * (row["samples"] + row["measurements"]) / most)
+                if most
+                else 0
+            )
+
+        # A contribution carries no date, so a contributor joins the running total on the
+        # date the first record they are credited on was added.
+        first_credit = {}
+        records = [(project, project.added)] + [(d, d.added) for d in datasets]
+        for record, added in records:
+            credited = Contribution.objects.filter(
+                content_type=ContentType.objects.get_for_model(record),
+                object_id=str(record.pk),
+            ).values_list("contributor_id", flat=True)
+            for contributor in credited:
+                if contributor not in first_credit or added < first_credit[contributor]:
+                    first_credit[contributor] = added
+
+        context.update(
+            {
+                "project": project,
+                "counts": {
+                    "datasets": len(breakdown),
+                    "samples": samples.count(),
+                    "measurements": measurements.count(),
+                    "contributors": len(first_credit),
+                },
+                "breakdown": breakdown,
+                "records_chart": RecordStatistics.get_running_totals_chart(
+                    {
+                        gettext("Samples"): samples.values_list("added", flat=True),
+                        gettext("Measurements"): measurements.values_list(
+                            "added", flat=True
+                        ),
+                    }
+                ),
+                "team_chart": RecordStatistics.get_running_totals_chart(
+                    {
+                        gettext("Datasets"): [d.added for d in datasets],
+                        gettext("Contributors"): list(first_credit.values()),
+                    }
+                ),
+                "types": RecordStatistics.get_type_summaries(
+                    samples, gettext("Sample type")
+                )
+                + RecordStatistics.get_type_summaries(
+                    measurements, gettext("Measurement type")
+                ),
+            }
+        )
+        return context

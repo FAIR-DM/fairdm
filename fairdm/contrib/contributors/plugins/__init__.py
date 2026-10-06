@@ -4,3 +4,4 @@ from .organisation import *
 from .overview import *
 from .person import *
 from .shared import *
+from .statistics import *

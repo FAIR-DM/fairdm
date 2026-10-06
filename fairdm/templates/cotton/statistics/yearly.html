@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+  <c-statistics.yearly> — counts per year as a bar chart, with the same figures in a table a
+  reader can open beneath it.
+
+  Attributes:
+    yearly   – {chart, labels, rows: [{year, counts}], description} from
+               `RecordStatistics.get_yearly_chart()`
+    id       – element id for the chart
+    name     – accessible name of the chart
+    caption  – printed under the chart
+{% endcomment %}
+<c-vars yearly id name caption />
+<c-chart :chart="yearly.chart"
+         id="{{ id }}"
+         aspect-ratio="16/9"
+         name="{{ name }}"
+         caption="{{ caption }}"
+         description="{{ yearly.description }}" />
+<details class="text-sm">
+  <summary class="link link-hover text-base-content/70">{% translate "Show the figures" %}</summary>
+  <div class="overflow-x-auto">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Year" %}</th>
+          {% for label in yearly.labels %}<th scope="col" class="text-end">{{ label }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in yearly.rows %}
+          <tr>
+            <th scope="row" class="font-normal tabular-nums">{{ row.year }}</th>
+            {% for count in row.counts %}<td class="text-end tabular-nums">{{ count }}</td>{% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>

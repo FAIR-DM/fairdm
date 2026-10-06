@@ -36,7 +36,7 @@ from fairdm.core.related_records import DatasetDateInline, DatasetIdentifierInli
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMDeleteView, FairDMUpdateView
+from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
 from .forms import DatasetForm
 from .models import (
@@ -924,3 +924,46 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "ready": done_required == len(required),
             "missing_required": len(required) - done_required,
         }
+
+
+@plugins.register(Dataset, label=_("Statistics"), icon="statistics", order=300)
+class Statistics(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
+    """Summarise the dataset's samples and measurements field by field.
+
+    Only records the viewer may see are counted, so a visitor to a dataset that is not
+    published is shown no summaries.
+    """
+
+    url_path = "statistics"
+    check = staticmethod(dataset_is_visible)
+    template_name = "statistics/dataset.html"
+    page_subtitle = _("Statistics")
+
+    def get_context_data(self, **kwargs):
+        """Add the summaries of each sample and measurement type."""
+        from fairdm.core.statistics import RecordStatistics
+
+        context = super().get_context_data(**kwargs)
+        dataset = self.base_object
+        user = self.request.user
+        samples = Sample.objects.filter(dataset=dataset).visible_to(user)
+        measurements = Measurement.objects.filter(dataset=dataset).visible_to(user)
+        context.update(
+            {
+                "dataset": dataset,
+                "counts": {
+                    "samples": samples.count(),
+                    "measurements": measurements.count(),
+                },
+                "awaiting_publication": not dataset.data_is_public,
+                "holds_records": Sample.objects.filter(dataset=dataset).exists()
+                or Measurement.objects.filter(dataset=dataset).exists(),
+                "types": RecordStatistics.get_type_summaries(
+                    samples, gettext("Sample type")
+                )
+                + RecordStatistics.get_type_summaries(
+                    measurements, gettext("Measurement type")
+                ),
+            }
+        )
+        return context

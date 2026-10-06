@@ -1,0 +1,24 @@
+{% load i18n %}
+{% comment %}
+  <c-statistics.histogram> — a small distribution drawn in plain markup, so a page with thirty
+  of them loads no charting library and every one still reads with scripts off.
+
+  Attributes:
+    histogram  – {bars: [{label, count, percent}], first, last, description}, percent being the
+                 share of the tallest bar
+    label      – what is distributed, for assistive technology
+{% endcomment %}
+<c-vars histogram label />
+<div class="flex flex-col gap-1 min-w-0">
+  <div class="flex items-end gap-0.5 h-14" role="img" aria-label="{% blocktranslate %}Distribution of {{ label }}{% endblocktranslate %}: {{ histogram.description }}">
+    {% for bar in histogram.bars %}
+      <div class="flex-1 h-full flex items-end tooltip" data-tip="{{ bar.label }}: {{ bar.count }}">
+        <div class="w-full rounded-t-sm bg-primary {% if not bar.count %}opacity-20{% endif %}" style="height: {% if bar.count %}{{ bar.percent|default:1 }}{% else %}2{% endif %}%"></div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex justify-between text-xs text-base-content/60 tabular-nums" aria-hidden="true">
+    <span>{{ histogram.first }}</span>
+    <span>{{ histogram.last }}</span>
+  </div>
+</div>

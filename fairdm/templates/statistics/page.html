@@ -1,0 +1,32 @@
+{% extends "page_view.html" %}
+{% load i18n static %}
+{% comment %}
+  The page every Statistics tab shares: project, dataset, person and organization.
+
+  Each of the four extends this one and fills `statistics.content`. Blocks, in page order:
+
+    statistics.notices        alerts above the figures
+    statistics.figures        the figures strip
+    statistics.content        the page's own cards
+    statistics.chart_library  the ECharts script; replace it to serve ECharts yourself
+{% endcomment %}
+
+{% block page.content %}
+  <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
+    {% block statistics.notices %}{% endblock statistics.notices %}
+    {% block statistics.figures %}{% endblock statistics.figures %}
+    {% block statistics.content %}{% endblock statistics.content %}
+  </div>
+{% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% block statistics.chart_library %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+            integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+  {% endblock statistics.chart_library %}
+  <script src="{% static 'js/chart-theme.js' %}"></script>
+  <script defer src="{% static 'mvp_charts/js/mvp-charts.js' %}"></script>
+{% endblock extra_js %}
