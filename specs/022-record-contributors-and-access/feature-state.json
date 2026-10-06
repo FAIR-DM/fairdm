@@ -528,8 +528,22 @@
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestVisibilityNeedsManage"
+            ],
+            "commands": [
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 -k VisibilityNeedsManage (red: 2 failed, 200 not 403; green: 8 passed)",
+              "uv run pytest tests/test_api/test_viewsets.py -q -n0 (52 passed)",
+              "uv run pre-commit run --all-files (passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:44"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T034",

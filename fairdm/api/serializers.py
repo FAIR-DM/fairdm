@@ -3,7 +3,9 @@
 from typing import Any
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 from rest_framework_guardian.serializers import ObjectPermissionsAssignmentMixin
 
 from fairdm.contrib.contributors.access import RecordAccess
@@ -14,7 +16,17 @@ _SERIALIZER_CACHE: dict[tuple, type] = {}
 
 
 class CreatorCreditMixin:
-    """Credit the person who creates a record through the API, at the manage level."""
+    """Credit the person who creates a record through the API, and hold back what needs manage.
+
+    Visibility and the record a record sits under decide who can get in, so changing either needs
+    the manage level on the record, as on the update forms.
+
+    Attributes:
+        manager_only_fields: The names of the fields only someone who can manage the record may
+            change.
+    """
+
+    manager_only_fields = ("visibility", "owner", "project", "dataset", "sample")
 
     def create(self, validated_data):
         """Create the record, then list the requesting user on it at the manage level.
@@ -28,6 +40,36 @@ class CreatorCreditMixin:
         record = super().create(validated_data)
         Crediting(record).make_creator(self.context["request"].user)
         return record
+
+    def update(self, instance, validated_data):
+        """Update the record, refusing a manager-only field changed by someone who cannot manage it.
+
+        Args:
+            instance: The record to update.
+            validated_data: The validated fields to set.
+
+        Returns:
+            The updated record.
+
+        Raises:
+            PermissionDenied: When a manager-only field would change and the requesting user
+                cannot manage the record.
+        """
+        changed = [
+            name
+            for name in self.manager_only_fields
+            if name in validated_data
+            and validated_data[name] != getattr(instance, name, None)
+        ]
+        if changed and not RecordAccess(instance).can_manage(
+            self.context["request"].user
+        ):
+            raise PermissionDenied(
+                _("Changing %(fields)s needs the manage level on this record.")
+                % {"fields": ", ".join(changed)},
+                code="manage_level_required",
+            )
+        return super().update(instance, validated_data)
 
 
 class BaseSampleSerializer(CreatorCreditMixin, serializers.ModelSerializer):

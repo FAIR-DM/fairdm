@@ -281,3 +281,10 @@ Did: documented stepping in on a record (roles.md), ContributorSeed and seed_con
 Verified: grep for em dashes in added lines, for removed backends, set_default_affiliation and give_level in docs: none left outside the changelog entries that name the removal; every backticked name in the added lines exists in code except the removed ones. pre-commit all files passed.
 Next: the full gate, then the report.
 Watch: the sample-mixins test example is a pattern for a portal's own form and does not run against the demo form as written (the demo form also needs status); the part this feature changed, the dataset field needing the edit level, behaved as documented.
+
+## 2026-10-06T20:05:45Z · Implementer FIX-1 · T033
+
+Did: CreatorCreditMixin.update in fairdm/api/serializers.py refuses (PermissionDenied, code manage_level_required) a change to visibility, owner, project, dataset or sample when RecordAccess(instance).can_manage is false. A value equal to the stored one is not a change. Tests: tests/test_api/test_viewsets.py::TestVisibilityNeedsManage for a private project and a private dataset (editor 403 and stored value kept; manager 200; editor changing name 200; editor re-sending the stored visibility 200).
+Verified: the editor test failed first with 200 not 403 for both records; then uv run pytest tests/test_api/test_viewsets.py -q -n0 gave 52 passed; uv run pre-commit run --all-files passed.
+Next: T034, the parent-field move (403 for an editor is already refused by this check; the 400 for a move that leaves no manager is new).
+Watch: the manager-only names sit on the serializer mixin, because ManagerOnlyFieldsMixin holds no shared list (each form declares its own tuple).
