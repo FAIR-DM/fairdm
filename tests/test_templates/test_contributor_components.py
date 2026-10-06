@@ -252,3 +252,41 @@ class TestCard:
         html = render_with('<c-contributor.card :contributor="org" />', org=organization)
 
         assert soup(html).find("a", string=organization.name) is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("component", ["c-contributor.item", "c-contributor.card.person"])
+class TestCreditedFromNone:
+    def test_a_credit_with_no_organization_shows_none(
+        self, render_with, soup, credit, component
+    ):
+        primary = AffiliationFactory(person=credit.contributor, is_primary=True)
+
+        html = render_with(f'<{component} :contributor="credit" />', credit=credit)
+
+        hrefs = [a["href"] for a in soup(html).find_all("a")]
+        assert primary.organization.get_absolute_url() not in hrefs
+
+    def test_a_credit_shows_the_organization_it_names(
+        self, render_with, soup, credit, component
+    ):
+        AffiliationFactory(person=credit.contributor, is_primary=True)
+        credited_with = OrganizationFactory()
+        credit.affiliation = credited_with
+        credit.save()
+
+        html = render_with(f'<{component} :contributor="credit" />', credit=credit)
+
+        hrefs = [a["href"] for a in soup(html).find_all("a")]
+        assert credited_with.get_absolute_url() in hrefs
+
+    def test_a_person_is_shown_with_their_primary_organization(
+        self, render_with, soup, component
+    ):
+        person = PersonFactory()
+        primary = AffiliationFactory(person=person, is_primary=True)
+
+        html = render_with(f'<{component} :contributor="person" />', person=person)
+
+        hrefs = [a["href"] for a in soup(html).find_all("a")]
+        assert primary.organization.get_absolute_url() in hrefs
