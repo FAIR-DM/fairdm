@@ -1,0 +1,82 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "approve",
+  "risk": "medium",
+  "scope": "Feature branch 021-plugin-actions-and-cards against origin/main (git diff origin/main...HEAD at 7e041e75de9310ec822866369a400a20206ef5bd), with docs/portal-development/create_a_plugin.md, overview-pages.md, contributors.md, ADR 0026 and 0027, and CONTEXT.md read as pages.",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95", "loaded_via": "path-read"},
+    {"name": "craft-simplify", "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1", "loaded_via": "path-read"}
+  ],
+  "findings": [
+    {
+      "id": "COR-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "CHANGELOG.md is not updated, although the branch adds public API and changes behaviour a consumer can trip over. CONSTITUTION.md Article VI requires README and CHANGELOG to be updated in the same pull request as a public API change, and every earlier feature on main did so.",
+      "evidence": "`git diff origin/main...HEAD --stat -- CHANGELOG.md README.md` prints nothing. CONSTITUTION.md:58 and :301 state the rule. Changes with no entry: (1) new `place`, `column` and `replaces` options, `plugins.remove`, `Card`, `Place`, `Column`, `OverviewPlaces`, and `default=` on `fairdm.contrib.plugins.reverse`; (2) `{% plugin_url %}` in both tag libraries now writes an empty string where it raised NoReverseMatch (fairdm/contrib/plugins/templatetags/plugin_tags.py:36-39, fairdm/templatetags/fairdm.py:238-241), so a misspelt name no longer fails the page; (3) the registry now calls `plugin_class.get_urls(menu_class=..., model=..., name=..., url_path=...)` (fairdm/contrib/plugins/registration.py:422-428), so a plugin that overrides `get_urls(cls, menu_class=None, model=None)` raises TypeError when the URL patterns are built; (4) `PluginRegistry.configure_tab` changed from `(plugin_class, model, **kwargs)` to `(mount, model)` (registration.py:435) and `checks.url_names_for` is gone; (5) every record type's registrations are now checked in `FairDMConfig.ready()` (fairdm/apps.py:60-62), so a bad registration stops every management command.",
+      "reproduction": "git diff origin/main...HEAD --stat -- CHANGELOG.md",
+      "suggested_fix": "Add entries under `## [Unreleased]` in CHANGELOG.md: Added for item 1, Changed for items 2 to 5."
+    },
+    {
+      "id": "COR-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A card that sets `url_path = None` is taken for the record type's overview. It cannot be removed, the refusal tells the developer it is the overview, and its further views are mounted at the record's own address instead of beneath the card's name.",
+      "evidence": "fairdm/contrib/plugins/checks.py:455 `is_overview` returns True for any mount whose `url_path is None`, whatever its place. `validate_options` (checks.py:147-171) accepts a card without a segment. Probe: `class RootCard(Card): template_name = 'plugin_cards/card.html'; url_path = None`, then `plugins.register(Dataset, place='card')(RootCard)`, `plugins.remove(Dataset, RootCard)`, `registry.resolve(Dataset)` raises `removal of 'root-card' from Dataset: this is the overview of the record type, which can be replaced but not removed`. `Plugin.get_urls` (fairdm/contrib/plugins/base.py:119) gives such a card an empty prefix, so a further view with `url_path = 'subscribe'` is served at `/datasets/<uuid>/subscribe/`.",
+      "reproduction": "Register the RootCard above against Dataset, declare its removal and call `registry.resolve(Dataset)`.",
+      "suggested_fix": "In `validate_options`, refuse a card whose `get_url_path()` is None, saying a card needs a segment for its further views."
+    },
+    {
+      "id": "COR-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The same plugin class registered twice against one record type is no longer refused when it is registered. It is refused only when the record type is resolved, which is a change to how a registration made before this feature is refused (SC-009).",
+      "evidence": "fairdm/contrib/plugins/checks.py:360-361 adds `if other is plugin_class: continue` to `validate_against_existing`. On origin/main the loop had no such skip, so the second registration raised `another plugin already uses the name`. Probe on the branch: `plugins.register(Project)(DupA)` twice returns without error, and `registry.resolve(Project)` then raises `DupA registered against Project: another plugin already uses the name 'dup-a'`. The portal still does not start, because `validate_all` resolves every record type, so the consequence is the moment and place of the refusal only. No test or decision names a reason for the skip.",
+      "reproduction": "Call `plugins.register(Project)(SomePlugin)` twice in a shell and observe that the second call returns.",
+      "suggested_fix": "Delete the two lines at checks.py:360-361, or keep them and record why a class may be registered twice."
+    },
+    {
+      "id": "COR-004",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A page action whose address does not reverse from the record alone takes the whole overview down, although the neighbouring access check is guarded so that one broken action never fails the page.",
+      "evidence": "fairdm/contrib/plugins/places.py:96 calls `reverse(record, mount.name)` outside the try block at lines 83-90 and with no default. An action registered with a segment that captures something more, such as `url_path = '<int:pk>/flag'`, passes `validate_segment` and startup, and then every overview of that record type raises NoReverseMatch. The shipped contribution views use segments of that shape as further views, so the shape is known to plugin authors.",
+      "suggested_fix": "Ask with `reverse(record, mount.name, default='')` and leave out, and log, an action that comes back empty."
+    },
+    {
+      "id": "COR-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The two tests of the sandbox fixture leak a plugin into the rest of the worker's session when one of their assertions fails, which would bury the real failure under failures in unrelated tests.",
+      "evidence": "tests/test_conftest.py:18-33 and :35-44 build `PluginSandbox()` by hand and call `sandbox.close()` only after the first assertions. If `reverse('project:sandbox-page', ...)` or the menu assertion fails, `SandboxPage` stays registered against Project and stays in the rebuilt URL patterns and navigation, and the 'no trace' tests that follow see an extra navigation entry.",
+      "suggested_fix": "Wrap each body in try/finally with `sandbox.close()` in the finally, keeping the assertions that follow the close."
+    },
+    {
+      "id": "COR-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Two docstrings still promise that a further view is governed by its owning plugin's predicate. The code does the opposite, and the page this branch corrected now says so, which leaves the API reference contradicting the guide on an access rule.",
+      "evidence": "fairdm/contrib/plugins/access.py:111-112 says `The predicate is read from the owning plugin, so an additional view cannot be opened while its restricted parent is refused`, and fairdm/contrib/plugins/base.py:30-31 says the owner's `predicate governs the whole group`. `can_open` reads `getattr(view_class, 'plugin_class', None)` from the class (access.py:122), which base.py:213 notes is always None, so the view's own `check` is used. docs/portal-development/create_a_plugin.md:590 and ADR 0027 state the real rule, and tests/test_templates/test_overview_cards.py `test_a_view_of_a_page_is_decided_as_it_always_was` holds it in place.",
+      "suggested_fix": "Reword the two docstrings to say a further view is decided by its own `check` and `permission`, and that a card's further views also need `Card.admits`."
+    },
+    {
+      "id": "COR-007",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "Six new module-level functions in checks.py share one subject, the registrations of one record type as they are being resolved, and are only meaningful in the order `resolve` and `collapse` call them. The repository's cohesion rule (Article X) puts functions like that on a class.",
+      "evidence": "fairdm/contrib/plugins/checks.py:392 `validate_mounts`, :414 `validate_places_offered`, :441 `is_overview`, :458 `validate_removals`, :489 `validate_replacements`, :551 `validate_place_kept`. Each takes the model with its candidates, mounts or removals, and registration.py:316-334 and :351-359 import them one by one inside the methods that call them. `Claim` in the same file shows the move already made for the address rules.",
+      "suggested_fix": "Move the six onto one class that holds the model, its candidates and its removals, with `resolve` asking it for the mounts. No base class and no second implementation."
+    }
+  ],
+  "notes": [
+    "No verified critical or high finding. resolve() held under every case in the brief: removal and replacement in either order, a chain of four, the middle or the head of a chain removed, two replacements with one removed, a replaced overview for project (own address) and sample (overview/), a card replaced by a card, a replacement stating menu=False, order=0, label='' and icon=None, and `replaces` given as a class with an explicit name.",
+    "FR-032 was checked beyond the overview: with each removable shipped plugin taken away in turn, every remaining page of that record type was requested as a visitor and as a superuser. None failed and none carried an empty link, apart from the sample Keywords page, which is issue #441.",
+    "Every example in create_a_plugin.md was registered and resolved against the branch (Follow, Message, RecentActivity with Subscribe, the Keywords removal, GuidedDescriptions, FullDescriptions, RicherOverview). All were accepted and reversed to the addresses the page gives. `latest_events` in the card example is not defined on the page.",
+    "The guards the branch adds were read and run, not checked by putting each defect back, because this review may not edit code.",
+    "A replacement card registered with `column=` and no `place` is refused with `this registration is a navigation entry` (checks.py:133-139). The page says a replacement card must state place='card', but the message does not.",
+    "CONTEXT.md lists the plugin system's exports without `remove`, which this branch adds to `__all__`.",
+    "`OverviewPlaces.get_context_data` (places.py:55-60) has a three-line docstring with no Args or Returns.",
+    "`order=None` in a registration raises TypeError when page actions or cards are sorted (registration.py:392, :405). The navigation sort does the same on main."
+  ]
+}

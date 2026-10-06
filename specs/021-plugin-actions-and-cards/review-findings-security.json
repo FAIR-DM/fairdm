@@ -1,0 +1,62 @@
+{
+  "lens": "security",
+  "stage": "code",
+  "verdict": "approve",
+  "risk": "low",
+  "scope": "Feature branch 021-plugin-actions-and-cards against origin/main at 5401bd93 (the brief names 7e041e75; the one commit after it adds the two review briefs and a state file, no source). Read in full: fairdm/contrib/plugins/{registration,checks,places,cards,base,access,utils}.py, both plugin_url tags, fairdm/core/plugins.py, cotton/plugins/actions.html, overview/page.html, the shipped template hunks, spec.md requirements, decisions D7 and D13, ADR 0027's subject and create_a_plugin.md. Four scratch probes were run from /tmp against the test settings; nothing in the worktree was edited.",
+  "skills_loaded": [
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A further view of a card confirms that a private record exists. The overview of a private project answers a stranger with 404, exactly as an unknown address does, but a card's further view on the same project answers 302 to the sign-in page for an anonymous visitor and 403 for a signed-in stranger.",
+      "evidence": "fairdm/contrib/plugins/base.py:205-221: has_permission returns False when Card.admits refuses, and the refusal is then written by the further view's own handle_no_permission, which is Django's default (redirect or 403). The 404 the overview gives comes from PrivateRecordNotFoundMixin.handle_no_permission (fairdm/contrib/plugins/mixins.py:20-27) and TypedOverviewPlugin.handle_no_permission (fairdm/core/plugins.py:520-526), neither of which a card's view inherits. Observed: anonymous GET of /projects/<private uuid>/open-card/detail/ -> 302 to /account-center/login/?next=...; the same project's overview -> 404; the same address with an unknown identifier -> 404; signed-in stranger -> 403. tests/test_templates/test_overview_cards.py:295-315 asserts only `status_code != 200`, so it passes on the redirect.",
+      "reproduction": "Register a card with no check and one view in extra_views against Project with place='card'. Create a project with visibility PRIVATE. As an anonymous client GET plugins.reverse(project, '<card>-<view>'), then the project's get_absolute_url(), then the first address with the identifier changed to one that does not exist. Compare the three status codes.",
+      "suggested_fix": "Reach is small: the visitor must already hold the record's 22-character identifier, and only existence is disclosed. Smallest edit: in create_a_plugin.md, under 'A card's further views', say that a view on a record type whose overview answers 404 to strangers must list PrivateRecordNotFoundMixin (or raise Http404 from handle_no_permission) to answer the same way, as the page already says for ordinary pages. If a code change is preferred instead: in Plugin.has_permission, raise Http404 when the owner is a card and the overview mount refuses the viewer, leaving the card's own refusal as it is so test_overview_cards.py:255-279 (which expects 403) still holds."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A record type may serve two plugins built on OverviewPlaces, and the two access rules a card is judged by then disagree. Every such page draws every card after asking only the card's own rule, while a card's further views are judged against the first such mount only. A card with no check, written on the documented assumption that the overview is its gate, is drawn on a second, more open page for viewers the overview refuses.",
+      "evidence": "fairdm/contrib/plugins/places.py:112-121: get_overview_cards asks can_open(mount.plugin_class, ...) for the card and nothing about the page beyond the fact that it opened. fairdm/contrib/plugins/cards.py:76-86: admits takes `next(...)` over registry.resolve(model), the first mount built on OverviewPlaces. fairdm/contrib/plugins/checks.py:428: validate_places_offered only asks whether any mount is built on OverviewPlaces and never refuses a second. docs/portal-development/create_a_plugin.md:285-286 tells a card author that a card with no check on a private project is safe 'because the overview itself is refused'. Decision D13 records this as something to revisit, not as refused. Not run: no shipped record type registers two, so this needs an addon to add the second page.",
+      "reproduction": "Against Project, register a second navigation plugin built on OverviewPlugin with check=True and its own url_path, and a card with no check. As a stranger, open the second page of a private project: the card is drawn with the private record. What would confirm it: a test asserting the card's marker is absent from that response.",
+      "suggested_fix": "In validate_places_offered (checks.py:426-438), refuse a record type whose mounts hold more than one class built on OverviewPlaces, naming both plugins and the record type. That is one more named refusal at startup and makes D13's assumption true."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Three malformed declarations fail with a bare Python exception instead of a named refusal, and one of them passes startup and fails every overview request of the record type.",
+      "evidence": "(a) fairdm/contrib/plugins/registration.py:207: plugins.remove(Dataset, 123) raises AttributeError \"'int' object has no attribute 'get_name'\". (b) fairdm/contrib/plugins/checks.py:479: plugins.remove('Dataset', 'map') stores the string as the record type, and registry.validate_all() then raises AttributeError \"'str' object has no attribute '__name__'\" while building the refusal message, because the message reads model.__name__ directly where fail_removal uses getattr. (c) registration.py:392 and :405: an `order` that is not a number is never checked (validate_options, checks.py:97-171, does not look at it). With place='action', order='5' on one plugin and order=1 on another, validate_all() passes and GET of the record's overview raises TypeError \"'<' not supported between instances of 'int' and 'str'\" from sorted(). All three observed.",
+      "reproduction": "As in the evidence: each is one declaration in a plugins module. For (c), register two page actions on Dataset with order='5' and order=1, call registry.validate_all() (no error), then open a public dataset's overview (500).",
+      "suggested_fix": "In validate_options, refuse an `order` that is not an int with the usual _fail message. In PluginRegistry.remove, refuse a `plugin` that is neither a string nor a Plugin subclass, and a `model` that is not a model class, through fail_removal. In checks.py:479, use the same getattr(model, '__name__', repr(model)) that fail_removal already uses."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "An action's icon name is never checked, and an unknown one fails the whole overview for exactly the visitors the action is offered to, while everyone else is served the page. The failure of one addon's entry is not contained the way a failing check or a failing card is.",
+      "evidence": "fairdm/templates/cotton/plugins/actions.html:10 passes action.icon to c-menu.item, which draws it with c-icon. easy_icons raises IconNotFoundError when the name is unknown and EASY_ICONS_FAIL_SILENTLY is unset, which it defaults to DEBUG, so False in production (easy_icons/utils.py:316-338). Observed: an action registered with an icon the portal does not define makes GET of the overview raise IconNotFoundError. places.py:84-99 guards only the access check with try/except. The navigation behaves the same way before this feature, so this is the existing behaviour reaching a new place rather than a new class of fault.",
+      "reproduction": "Register a page action on Dataset with icon='no-such-icon' and open a public dataset's overview as a visitor the action admits, with DEBUG off.",
+      "suggested_fix": "None needed for this feature if the navigation's behaviour is accepted. If it is to be contained: check the icon name against the icon registry in validate_all, where every other declaration is judged, and refuse it by name."
+    }
+  ],
+  "notes": [
+    "Checked and found sound: a page action is listed and opened by the same can_open call on the same class and the same record (places.py:84, base.py:221), including after a replacement, where both the dropdown and the address use the replacement.",
+    "Checked and found sound: a hidden card leaves nothing in the response. The wrapper element, the HTML and the assets are all added only after the access check passes and the card has drawn (places.py:112-134); a failure is logged with the card's class name, the record's model label and its primary key only, and nothing of it reaches the page.",
+    "Checked and found sound: the owner of a further view is read from the instance (base.py:214), so a card's views are refused for a stranger on a private project, for a card with a permission and no check, and when the view's own rule refuses. Further views of ordinary pages are still decided by can_open(self.__class__, ...) alone, unchanged from main.",
+    "Checked and found sound: a removed plugin and the views it owned contribute no URL pattern (registration.py:421-429 builds from resolve() only), so a former address answers as an unknown one and its name does not reverse. A replacement is mounted from its own class under the target's name and segment, so the replaced plugin's further views are not served and nothing of its check or permission is read.",
+    "A replacement of an overview, an editing page or the Contributors page is judged by its own check and permission and nothing else. A replacement with no check opens private records to anyone holding the address, because get_base_object reads past the filtered manager. FR-037 and create_a_plugin.md:397-399 state this outright, so it is the specified behaviour and not a finding.",
+    "Label, icon and url of an action are escaped: a label of '<script>alert(1)</script>\"x' is written as &lt;script&gt;...&quot;x in the dropdown. Card HTML is marked safe only as the output of render_to_string, where autoescaping applies; a render_card override that returns a plain string is escaped by page.html.",
+    "plugins.reverse(default='') and both plugin_url tags return an empty string only for a name that does not resolve; every shipped use in this diff is a link guarded by {% if %} or passed to a component that draws no link for an empty value. The one hx-get that uses plugin_url (cotton/contributor/card/contribution.html:11) is a GET and names a view owned by the page that draws it. No redirect target is built from a default.",
+    "The owning plugin's check does not reach a page's further views, since can_open is given the class, whose plugin_class is always None. This predates the feature, is documented at create_a_plugin.md:508-511 and :590, and decision D7 keeps it; the docstring of can_open in access.py:111-112 still says the opposite."
+  ]
+}

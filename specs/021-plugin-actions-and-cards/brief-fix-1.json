@@ -1,0 +1,110 @@
+{
+  "story": "FIX-1",
+  "repo": "FAIR-DM/fairdm",
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T018",
+    "T019",
+    "T020"
+  ],
+  "context": {
+    "why": "All four stories are built and accepted, and two reviewers have read the whole feature and approved it with low findings and one medium. This is the single round of fixes for those findings. Each is small. Write the failing test first for every behaviour change.",
+    "spec_sections": [
+      "FR-005",
+      "FR-011",
+      "FR-018",
+      "FR-022",
+      "FR-043",
+      "Edge Cases (a card is drawn on a private record)"
+    ],
+    "plan_sections": [
+      "D3",
+      "D5",
+      "D6"
+    ],
+    "prior_decisions": [
+      "T018a. fairdm/contrib/plugins/places.py get_page_actions calls reverse(record, mount.name) outside the try block. An action whose segment captures something more than the record, such as url_path = '<int:pk>/flag', passes startup and then every overview of that record type raises NoReverseMatch. Ask with reverse(record, mount.name, default='') and, when it comes back empty, leave the action out and log it with logger.warning naming the plugin. Test through the sandbox: the overview answers 200 and the action is absent.",
+      "T018b. An `order` that is not a whole number is never checked, and sorting the actions or cards then raises TypeError on every overview request (order='5' beside order=1). In validate_options (checks.py) refuse an `order` that is given and is not an int (bool is not an int for this purpose) with the usual _fail message. Do not touch how the navigation sorts.",
+      "T018c. tests/test_conftest.py builds PluginSandbox() by hand in two tests and calls close() only after the first assertions, so a failing assertion leaks a plugin into the rest of the worker's session. Wrap each body in try/finally with sandbox.close() in the finally, keeping the assertions that follow the close.",
+      "T018d. Two docstrings say a further view is governed by its owning plugin's predicate: can_open in fairdm/contrib/plugins/access.py ('The predicate is read from the owning plugin, so an additional view cannot be opened while its restricted parent is refused') and the plugin_class attribute in Plugin's docstring in base.py ('whose predicate governs the whole group'). The code does not do that at dispatch: has_permission passes the class, whose plugin_class is None, so a further view of a page is decided by its own check and permission. Reword both to say so, and that a card's further views also need Card.admits. Docstrings only: do not change can_open's behaviour.",
+      "T018e. CHANGELOG.md, under the existing '## [Unreleased]', in the file's existing style (read its neighbours). Added: the `place`, `column` and `replaces` registration options; `plugins.remove`; `Card`, `Place`, `Column` and `OverviewPlaces`; `default=` on `fairdm.contrib.plugins.reverse`; the `overview.page_actions`, `overview.contributed_main` and `overview.contributed_side` blocks. Changed: `{% plugin_url %}` in both tag libraries writes an empty string for a name that does not resolve, where it raised NoReverseMatch; the registry calls `Plugin.get_urls` with `name` and `url_path`, so a plugin that overrides `get_urls` must accept them; `PluginRegistry.configure_tab` takes `(mount, model)`; `fairdm.contrib.plugins.checks.url_names_for` is gone; every record type's registrations are checked when the portal starts, so a registration that cannot work stops every management command. If the file has a Removed list in Unreleased, put url_names_for there. Plain prose, no em dashes, reads as current state.",
+      "T018f. CONTEXT.md's Plugin entry lists what the plugin system exports. Add `remove`, and any other name this feature added to __all__ in fairdm/contrib/plugins/__init__.py that the entry lacks.",
+      "T019a. A card that sets url_path = None is accepted, is then taken for the record type's overview by is_overview (it cannot be removed, and the refusal calls it the overview), and its further views are mounted at the record's own address. In validate_options refuse a card whose get_url_path() is None, saying a card needs a segment for its further views.",
+      "T019b. A record type may serve two plugins built on OverviewPlaces. Card.admits judges a card's further views against the first only, and each such page draws every card after asking only the card's own rule, so a card with no check could be drawn on a second, more open page. In validate_places_offered (checks.py) refuse a record type whose mounts hold more than one class built on OverviewPlaces, naming both plugins and the record type (fail_between). A replacement overview collapses into the one mount, so it is not a second. Check that no shipped record type registers two (run the suite), and that this does not refuse a record type with one. Add to decisions.md D13 a line saying the second is now refused. Document the refusal under 'When a registration is wrong' in docs/portal-development/create_a_plugin.md.",
+      "T019c. A card's further view on a private project answers an anonymous visitor with a redirect to sign-in and a signed-in stranger with 403, while the project's overview and an unknown address both answer 404. That confirms the private record exists. In the path where the owner is a card: when the record type's overview does not open for the viewer, raise Http404 (django.http.Http404) instead of returning False. When the overview opens and the card's own rule refuses, keep returning False, so the existing test that expects 403 for that case still holds. Card.admits returns a bool today: split it or give has_permission what it needs to tell the two refusals apart, in the smallest way. Tighten the test in tests/test_templates/test_overview_cards.py that asserts only `status_code != 200` for a stranger on a private project: assert 404, for an anonymous visitor and for a signed-in stranger. Update the sentence in create_a_plugin.md about a card's further views and ADR 0027's Decision paragraph (docs/adr/0027-*.md) to say the view answers as an unknown address when the overview is refused.",
+      "T020a. plugins.remove(Dataset, 123) raises AttributeError, and plugins.remove('Dataset', 'map') stores a string as the record type and fails later with AttributeError while building a message. In PluginRegistry.remove refuse, when called, a `plugin` that is neither a non-empty string nor a Plugin subclass and a `model` that is not a Django model class, with a PluginRegistrationError through fail_removal. Where checks.py reads model.__name__ directly inside a removal or replacement message, use the same getattr(model, '__name__', repr(model)) fail_removal uses.",
+      "Not to be changed, decided: the six validate_* functions stay module-level functions in checks.py; icon names are not validated; resolve() stays uncached; registering the same class twice keeps behaving as it does (the skip in validate_against_existing predates this feature)."
+    ],
+    "acceptance": [
+      {
+        "task": "T018",
+        "given_when_then": "Given the items T018a to T018f, when each is fixed test-first where it changes behaviour, then an action with an address that needs more than the record is left out with the page served, a non-integer order is refused at registration, the sandbox tests close in a finally, the two docstrings state the real rule, and CHANGELOG.md and CONTEXT.md carry the feature."
+      },
+      {
+        "task": "T019",
+        "given_when_then": "Given the items T019a to T019c, when each is fixed test-first, then a card with no segment is refused at registration, a record type with two plugins built on OverviewPlaces is refused at startup naming both, and a card's further view answers 404 to an anonymous visitor and to a signed-in stranger when the record's overview refuses them, and 403 when the overview opens and the card's own rule refuses."
+      },
+      {
+        "task": "T020",
+        "given_when_then": "Given item T020a, when fixed test-first, then plugins.remove with a plugin that is neither a class nor a name, or a model that is not a model class, raises PluginRegistrationError when called."
+      }
+    ],
+    "verified_base": {
+      "commit": "5401bd93390aff7244e32e491bfba21d7716f422",
+      "verified_at": "2026-10-06T23:32:20Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance",
+        "docs"
+      ],
+      "note": "All six steps passed on the code at this commit; commits since touch only specs/. Three tests that create many people fail now and then for a reason outside this feature (issue #440: test_the_collaborators_card_shows_eighteen_and_counts_the_rest, test_the_contributors_figure_counts_everyone_credited, test_the_count_does_not_grow_with_the_number_of_people). If the full verify is red on one of those and only those, run it once more and report both runs. Do not touch them or the factory."
+    },
+    "glossary_terms": [
+      "Plugin"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards on branch 021-plugin-actions-and-cards; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. There are no model changes in this feature, so no migrations.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_plugins/ with its conftest.py (registry tests and the isolate_registry fixture), tests/test_templates/test_overview_page.py and tests/test_core/test_project/test_plugins.py (pages through the test client). Line length 88. Docstrings follow docs/contributing/standards/code-documentation.md. Public markdown (docs, CONTEXT.md) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. No leading-underscore names for new functions or methods, and no compatibility aliases. Reusable template pieces are Cotton components, never {% include %} partials. Prefer django-mvp and DaisyUI components and utilities over custom CSS; add no CSS file. A Django {% comment %} tag with text after it is single-line only: use {% comment %}...{% endcomment %} blocks for multi-line notes."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 240
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks in specs/021-plugin-actions-and-cards/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm HEAD is context.verified_base.commit, or differs from it only under specs/021-plugin-actions-and-cards/.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/021-plugin-actions-and-cards/specs/021-plugin-actions-and-cards/report-fix-1.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, id, data attribute or context value.",
+    "Ship no page action and no card of your own in fairdm/ or demo/. Plugins that exist only to test live in the tests.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/. No test reaches the network. No new dependency.",
+    "The Manage menus, header buttons and existing cards keep what they hold and how they look. The only change allowed to them is to leave out an entry whose address is empty or None.",
+    "You may edit tests written in this feature (anything under tests/ that git diff origin/main...HEAD shows as added) where a fix below requires it. Never modify or delete a test that exists on origin/main.",
+    "Fix exactly the items listed. No refactoring beyond them."
+  ]
+}
