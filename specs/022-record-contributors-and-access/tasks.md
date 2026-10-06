@@ -40,7 +40,7 @@ and the service that changes contributors.
   `TestUpdate`: roles saved; a role from another record type's group
   refused (`role_not_offered`); changing roles leaves the level alone (FR-040). `TestRemove`: the
   contribution and the person's level are gone.
-- [ ] T003 [US1] `tests/test_contrib/test_contributors/test_plugins/test_contribution_tab.py`,
+- [ ] T003 [US1] `tests/test_contrib/test_contributors/test_plugins/test_shared.py`,
   new. `TestContributorsTab`, for a project, a dataset, a registered sample type and a registered
   measurement type: the tab opens and lists people and organizations separately (scenario 1); a
   manager is offered the two add pages (2); a reader and a visitor are offered no controls and are
@@ -80,7 +80,7 @@ and the service that changes contributors.
   organization stays when its last person leaves or is credited from elsewhere, and can then be
   removed (FR-027); removing an organization people are credited from is refused (`credited_from`)
   and names them (FR-026).
-- [ ] T007 [US2] `test_plugins/test_contribution_tab.py`: `TestAffiliationChoice`. After a person
+- [ ] T007 [US2] `test_plugins/test_shared.py`: `TestAffiliationChoice`. After a person
   with affiliations is chosen, their primary affiliation is selected and the others, past and
   present, are offered (scenario 1); another organization and none can be chosen (2); an
   organization not in the portal is made from its name; an empty name is refused on the field. The
@@ -111,7 +111,7 @@ and the service that changes contributors.
   withdrawn organization left out. `TestProfileFromRegistry`: makes a person with the ORCID iD and
   no account, or an organization with the ROR ID (scenarios 7, 8); returns the existing profile
   when the identifier is already held (9).
-- [ ] T012 [US3] `test_plugins/test_contribution_tab.py`: `TestAddPages`. Each add page carries
+- [ ] T012 [US3] `test_plugins/test_shared.py`: `TestAddPages`. Each add page carries
   all three ways in one response (scenario 1) and reopens on the way named in the address or the
   form (3). `TestAddFromRegistry`: results; no results; a chosen record; adding makes the profile
   from a fresh fetch by identifier, not from posted fields, and sends the manager to the edit page
@@ -163,7 +163,7 @@ the creator's level land here with the backend, so no commit leaves a creator lo
   rows map to; a registered subtype with one row under the base content type and one under its own
   is read from both; the rows are gone; an organization already stored on a person's entry is kept
   and listed on the record, and an entry with none is left with none (FR-063 to FR-065, SC-010).
-- [ ] T017 [US4] `test_plugins/test_contribution_tab.py`: `TestLevels`. A newly added person can
+- [ ] T017 [US4] `test_plugins/test_shared.py`: `TestLevels`. A newly added person can
   open a private record and cannot change it (scenario 1, FR-038); the edit page sets the level
   with the roles (2); an editor may use the record's update page, and a POST from them that
   changes the visibility or the record it sits under leaves both unchanged, while a manager's and
@@ -211,7 +211,7 @@ the creator's level land here with the backend, so no commit leaves a creator lo
 - [ ] T022a [US5] The merge service's existing test module: merging two people who are both on a
   record leaves one entry with the higher level; a contribution only the discarded person held
   moves with its level; the kept entry's organization is unchanged, including when it is none.
-- [ ] T023 [US5] `test_plugins/test_contribution_tab.py`: `TestLastManagerPages`. The edit page
+- [ ] T023 [US5] `test_plugins/test_shared.py`: `TestLastManagerPages`. The edit page
   refuses lowering the only manager on the level field and the remove page refuses and offers no
   way to go ahead, for a manager and for a superuser alike.
 - [ ] T024 [US5] Implement to make T020 to T023 pass (plan D3 `last_manager` and the row lock, D8,
@@ -225,7 +225,7 @@ the creator's level land here with the backend, so no commit leaves a creator lo
   organization among organizations, each leaving the other list alone (scenarios 1, 2); the first
   cannot move earlier nor the last later; a new person is last among people and a new organization
   last among organizations (4); removing or editing one leaves the others in place (5).
-- [ ] T027 [US6] `test_plugins/test_contribution_tab.py`: `TestMovePage`, a POST moves and
+- [ ] T027 [US6] `test_plugins/test_shared.py`: `TestMovePage`, a POST moves and
   redirects to the tab, and someone who cannot manage is refused (6). `tests/test_core/`:
   `get_contributions()` returns people in order, then organizations in order, and the dataset and
   project citations name creators in that order (3, FR-058, SC-011).
@@ -235,7 +235,7 @@ the creator's level land here with the backend, so no commit leaves a creator lo
 
 ## Phase 7: US-7, portal staff can step in on any record (P3)
 
-- [ ] T030 [US7] `test_plugins/test_contribution_tab.py`: `TestPortalRoles`, with the development
+- [ ] T030 [US7] `test_plugins/test_shared.py`: `TestPortalRoles`, with the development
   accounts. A Data Curator opens a private record they are not listed on and manages its
   contributors, and is not listed afterwards (scenarios 1, 2); raises a contributor on a record
   with no manager (3); is refused the last-manager removal and the removal of an organization
