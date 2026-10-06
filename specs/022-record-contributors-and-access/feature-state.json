@@ -754,18 +754,60 @@
       "tasks": [
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles",
+              "tests/test_portal_roles.py::TestPermissionsAreThoseOnMain"
+            ],
+            "commands": [
+              "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestPortalRoles -q -n0",
+              "uv run pytest tests/test_portal_roles.py -q -n0"
+            ],
+            "code": [
+              "tests/test_contrib/test_contributors/test_plugins/test_shared.py:2408",
+              "tests/test_portal_roles.py:525"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_contributors.py",
+              "tests/test_demo/test_management/test_commands/test_seed_profiles.py::TestSeedProfilesCreditsFromTheOrganization"
+            ],
+            "commands": [
+              "uv run pytest tests/test_demo -q -n0",
+              "DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py seed_contributors --keep-records"
+            ],
+            "code": [
+              "demo/seed/contributors.py:234",
+              "demo/seed/common.py:72",
+              "demo/management/commands/seed_profiles.py:144"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/portal-administration/roles.md:121",
+              "docs/portal-development/development_accounts.md:95"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }
