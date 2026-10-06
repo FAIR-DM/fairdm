@@ -131,3 +131,10 @@ Did: brought the branch up to date with origin/main; wrote ADRs 0026 and 0027 an
 Verified: lint, types, the whole suite, build, structure and documentation checks pass on the whole feature; no test that existed on main was changed.
 Next: code review.
 Watch: three older tests that create many people fail now and then (#440). A sample's Keywords page does not open (#441). Neither is caused by this feature.
+
+## 2026-10-06T23:34:25Z · Implementer FIX-1 · T018
+
+Did: Page actions whose address needs more than the record are left out and logged; an order that is not a whole number is refused at registration; the two sandbox tests close in a finally; the docstrings of can_open and Plugin.plugin_class state the real rule; CHANGELOG.md and CONTEXT.md carry the feature.
+Verified: new tests failed first (NoReverseMatch on the overview, DID NOT RAISE for order), then `uv run pytest tests/test_conftest.py tests/test_contrib/test_plugins tests/test_templates/test_overview_page_actions.py -q -n0` gave 358 passed; `uv run pre-commit run --all-files` passed.
+Next: T019 cards.
+Watch: none.

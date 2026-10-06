@@ -23,7 +23,8 @@ class Card(Plugin):
     Register it with ``place="card"``. The overview asks it to draw itself with the record being
     viewed and the current request, so a card never runs the permission handling of a page. Its
     ``check`` and ``permission`` decide whether it is drawn, and a card that owns further views
-    is served at ``<name>/<segment>/`` to the same viewers only.
+    is served at ``<name>/<segment>/`` to the same viewers only. Where the record's overview does not
+    open for a viewer, the view answers as an address that does not exist.
 
     Attributes:
         template_name: The template the card draws. A card that overrides
@@ -54,11 +55,10 @@ class Card(Plugin):
         return patterns[1:]
 
     @classmethod
-    def admits(cls, request: HttpRequest, record: Model, model: type[Model]) -> bool:
-        """Decide whether this card would be drawn for this viewer on this record.
-
-        The record type's overview must open for the viewer, and then the card's own predicate
-        and permission must pass. A further view of the card is served only when this holds.
+    def overview_opens(
+        cls, request: HttpRequest, record: Model, model: type[Model]
+    ) -> bool:
+        """Decide whether the record type's overview opens for this viewer on this record.
 
         Args:
             request: The current request.
@@ -66,7 +66,7 @@ class Card(Plugin):
             model: The record type the card is mounted on.
 
         Returns:
-            True when the card would be drawn.
+            True when the overview opens. False when it does not, or the record type has none.
         """
         from .places import OverviewPlaces
         from .registration import registry
@@ -79,9 +79,26 @@ class Card(Plugin):
             ),
             None,
         )
-        if overview is None or not can_open(overview.plugin_class, request, record):
-            return False
-        return can_open(cls, request, record)
+        return overview is not None and can_open(overview.plugin_class, request, record)
+
+    @classmethod
+    def admits(cls, request: HttpRequest, record: Model, model: type[Model]) -> bool:
+        """Decide whether this card would be drawn for this viewer on this record.
+
+        The record type's overview must open for the viewer, and then the card's own predicate
+        and permission must pass.
+
+        Args:
+            request: The current request.
+            record: The record the card belongs to.
+            model: The record type the card is mounted on.
+
+        Returns:
+            True when the card would be drawn.
+        """
+        return cls.overview_opens(request, record, model) and can_open(
+            cls, request, record
+        )
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """Give the template the record as ``record`` and ``base_object``, and the request.

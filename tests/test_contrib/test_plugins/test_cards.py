@@ -104,6 +104,19 @@ class TestCardRegistration:
             with pytest.raises(PluginRegistrationError, match="ActivityCard"):
                 offering.register(Sample, **options)(ActivityCard)
 
+    def test_a_card_with_no_segment_of_its_own_is_refused_when_registered(
+        self, offering
+    ):
+        segmentless = make_card("SegmentlessCard", url_path=None)
+
+        with pytest.raises(PluginRegistrationError, match="SegmentlessCard") as excinfo:
+            offering.register(Sample, place="card")(segmentless)
+
+        assert "segment" in str(excinfo.value)
+        assert segmentless not in [
+            cls for cls, _ in offering.get_plugins_for_model(Sample)
+        ]
+
     def test_a_card_with_no_column_resolves_to_the_side_column(self, offering):
         offering.register(Sample, place="card")(ActivityCard)
 

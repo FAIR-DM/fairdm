@@ -311,8 +311,21 @@ class TestFurtherViewsOfACard:
         client.force_login(reader)
         member = client.get(address)
 
-        assert stranger.status_code != 200
+        assert stranger.status_code == 404
         assert member.status_code == 200
+
+    def test_a_view_of_a_card_on_a_private_project_answers_a_visitor_who_is_not_signed_in_as_an_unknown_address(
+        self, client, plugin_sandbox, private_project
+    ):
+        card = make_card("OpenCard", extra_views=[make_view("Detail")])
+        with plugin_sandbox.declare():
+            plugins.register(Project, place="card")(card)
+
+        visitor = client.get(plugin_reverse(private_project, "open-card-detail"))
+        overview = client.get(private_project.get_absolute_url())
+
+        assert visitor.status_code == 404
+        assert overview.status_code == 404
 
     def test_a_view_of_a_page_is_decided_as_it_always_was(
         self, client, plugin_sandbox, public_dataset

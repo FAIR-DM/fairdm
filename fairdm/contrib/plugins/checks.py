@@ -169,6 +169,13 @@ def validate_options(
             model,
             "cannot be drawn as a card because it is not built on Card",
         )
+    if plugin_class.get_url_path() is None:
+        _fail(
+            plugin_class,
+            model,
+            "url_path is None, but a card needs a segment for its further views, and "
+            "without one it would be taken for the record type's overview",
+        )
     if not plugin_class.template_name and plugin_class.render_card is Card.render_card:
         _fail(
             plugin_class,

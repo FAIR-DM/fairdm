@@ -283,8 +283,10 @@ A further view of a card is refused unless the card would be drawn for that visi
 must hold in turn:
 
 1. The record type's overview opens for them. A card with no `check` on a private project does not
-   serve its views to a stranger, because the overview itself is refused.
-2. The card's own `check` and `permission` pass.
+   serve its views to a stranger, because the overview itself is refused. The view then answers as
+   an address that does not exist, a 404, so it does not confirm the record is there.
+2. The card's own `check` and `permission` pass. A visitor the overview admits and the card refuses
+   is answered as for any refused page, with a 403 or a redirect to sign in.
 3. The view's own `check` and `permission` pass.
 
 A further view of a page is decided by its own rule only, as it always was.
@@ -648,6 +650,8 @@ registrations are checked together, and the same applies to what that finds. Ref
 - a card whose class is not built on `Card`, or has neither a `template_name` nor its own
   `render_card`
 - a `Card` registered as a page or a page action, since it has no page of its own
+- a card with `url_path = None`. A card needs a segment for its further views, and without one it
+  would be taken for the record type's overview
 - a page action or a card registered for a record type whose overview draws none, such as a
   location. The portal does not start, and the message names the plugin and the record type
 - an `extra_views` entry that is not a plugin, that collides with a sibling or the parent, or that

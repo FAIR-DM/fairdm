@@ -10,7 +10,10 @@ for a viewer its `check` and `permission` admit.
 A further view that a card owns, such as the address a form in the card posts to, is served only
 when the card would be drawn for that viewer on that record. `Card.admits` decides it: the record
 type's overview must open for the viewer, and then the card's own predicate and permission must
-pass. `Plugin.has_permission` asks it before the view's own rule.
+pass. `Plugin.has_permission` asks it before the view's own rule. When the overview does not open
+for the viewer, the view answers as an unknown address, a 404, and not with the redirect or 403 of
+a refused page, so it does not confirm that a private record exists. When the overview opens and
+the card's own rule refuses, the answer is the ordinary refusal.
 
 A further view of a page is decided by its own predicate and permission, as before.
 

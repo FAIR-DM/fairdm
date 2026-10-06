@@ -208,18 +208,26 @@ class Plugin(PermissionRequiredMixin, View):
         """Decide with :func:`~fairdm.contrib.plugins.access.can_open`, as the navigation entry does.
 
         A further view of an overview card is also refused unless the card would be drawn for
-        this viewer. Further views of pages are decided by their own rule only.
+        this viewer. Where the record type's overview does not open for them, it answers as an
+        address that does not exist, so it does not confirm a private record. Further views of
+        pages are decided by their own rule only.
+
+        Raises:
+            Http404: A further view of a card, and the overview does not open for the viewer.
         """
+        from django.http import Http404
+
         from .cards import Card
 
         # `as_view` sets the owner on the instance; the class attribute is always None.
         owner = self.plugin_class
-        if (
-            owner is not None
-            and issubclass(owner, Card)
-            and not owner.admits(self.request, self.base_object, self.registered_model)
-        ):
-            return False
+        if owner is not None and issubclass(owner, Card):
+            if not owner.overview_opens(
+                self.request, self.base_object, self.registered_model
+            ):
+                raise Http404
+            if not can_open(owner, self.request, self.base_object):
+                return False
         return can_open(self.__class__, self.request, self.base_object)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
