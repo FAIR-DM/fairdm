@@ -1,5 +1,7 @@
 """The one place the contributors of a project, dataset, sample or measurement are changed."""
 
+from contextlib import contextmanager
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -27,6 +29,79 @@ class Crediting:
     def __init__(self, record):
         self.record = record
 
+    @contextmanager
+    def locked(self):
+        """Hold the record's row for the length of a change, in one transaction.
+
+        Two changes to one record wait for each other, so each reads the contributors the other
+        left. A private record is found too. A database that cannot lock rows runs the change
+        in the transaction alone.
+
+        Yields:
+            Nothing. Read the record's contributors only inside the block.
+        """
+        model = type(self.record)
+        manager = getattr(model, "all_objects", model._default_manager)
+        with transaction.atomic():
+            list(
+                manager.select_for_update()
+                .filter(pk=self.record.pk)
+                .values_list("pk", flat=True)
+            )
+            yield
+
+    def would_leave_no_manager(self, contribution, level=None):
+        """Say whether removing a contribution, or lowering its level, leaves nobody to manage.
+
+        Only going from at least one person who counts as able to manage the record to none is
+        a refusal. A record that has no manager already may lose or raise anyone.
+
+        Args:
+            contribution: The contribution on this record to remove or lower.
+            level: The level it would be given. None asks about removing it.
+
+        Returns:
+            True when the contribution is the only thing that makes the record manageable.
+        """
+        if level == ContributionLevel.MANAGE:
+            return False
+        stored = (
+            Contribution.objects.filter(pk=contribution.pk)
+            .values_list("level", flat=True)
+            .first()
+        )
+        if stored != ContributionLevel.MANAGE:
+            return False
+        access = RecordAccess(self.record)
+        person = contribution.contributor_id
+        if access.managers() != {person}:
+            return False
+        return not any(
+            held == ContributionLevel.MANAGE and record is not access.record
+            for record, held in access.levels_held(person)
+        )
+
+    def last_manager_refusal(self, contribution):
+        """Build the refusal for a change that would leave the record with nobody to manage.
+
+        Args:
+            contribution: The contribution of the person who must stay.
+
+        Returns:
+            A ``ValidationError`` with code ``last_manager``.
+        """
+        return ValidationError(
+            _(
+                "%(name)s is the only person who can manage this %(kind)s. "
+                "Give someone else \u201cCan manage\u201d first."
+            ),
+            code="last_manager",
+            params={
+                "name": str(contribution.contributor),
+                "kind": RecordAccess(self.record).kind,
+            },
+        )
+
     def offered_roles(self):
         """Return the contribution roles the record's type offers.
 
@@ -53,16 +128,10 @@ class Crediting:
             The new contribution.
 
         Raises:
-            ValidationError: With code ``duplicate`` when the contributor is already listed,
-                or ``superuser`` when they are a superuser, who cannot be credited.
+            ValidationError: With code ``superuser`` when they are a superuser, who cannot be
+                credited, or ``duplicate`` when the contributor is already listed.
         """
         contributor = contributor.get_real_instance()
-        if self.record.contributors.filter(contributor=contributor).exists():
-            raise ValidationError(
-                _("%(name)s is already a contributor on this record.")
-                % {"name": contributor},
-                code="duplicate",
-            )
         is_person = isinstance(contributor, Person)
         if is_person and contributor.is_superuser:
             raise ValidationError(
@@ -70,7 +139,13 @@ class Crediting:
                 % {"name": contributor},
                 code="superuser",
             )
-        with transaction.atomic():
+        with self.locked():
+            if self.record.contributors.filter(contributor=contributor).exists():
+                raise ValidationError(
+                    _("%(name)s is already a contributor on this record.")
+                    % {"name": contributor},
+                    code="duplicate",
+                )
             if is_person and organization is not None:
                 self.list_organization(organization)
             return Contribution.objects.create(
@@ -105,40 +180,43 @@ class Crediting:
         Raises:
             ValidationError: With code ``role_not_offered`` when a role is not in the group the
                 record's type offers, and ``below_inherited`` when the level is below what the
-                person holds from a record above. When both apply the error holds both, in its
-                ``error_list``. Nothing is saved.
+                person holds from a record above, and ``last_manager`` when it would leave the
+                record with nobody who counts as able to manage it. When several apply the error
+                holds them all, in its ``error_list``. Nothing is saved.
         """
         is_person = not contribution.contributor.get_real_instance().is_organization
-        refusals = []
-        offered = {concept.pk for concept in self.offered_roles()}
-        if any(role.pk not in offered for role in roles):
-            refusals.append(
-                ValidationError(
-                    _("Choose from the roles offered for this kind of record."),
-                    code="role_not_offered",
-                )
-            )
-        if level is not None and is_person:
-            held, source = RecordAccess(self.record).level_from_above(
-                contribution.contributor.get_real_instance()
-            )
-            if held is not None and level < held:
+        with self.locked():
+            refusals = []
+            offered = {concept.pk for concept in self.offered_roles()}
+            if any(role.pk not in offered for role in roles):
                 refusals.append(
                     ValidationError(
-                        _(
-                            "They hold \u201c%(level)s\u201d from the %(kind)s above, and it cannot be lowered here."
-                        ),
-                        code="below_inherited",
-                        params={
-                            "level": held.label,
-                            "kind": RecordAccess(source).kind,
-                            "source": source,
-                        },
+                        _("Choose from the roles offered for this kind of record."),
+                        code="role_not_offered",
                     )
                 )
-        if refusals:
-            raise refusals[0] if len(refusals) == 1 else ValidationError(refusals)
-        with transaction.atomic():
+            if level is not None and is_person:
+                held, source = RecordAccess(self.record).level_from_above(
+                    contribution.contributor.get_real_instance()
+                )
+                if held is not None and level < held:
+                    refusals.append(
+                        ValidationError(
+                            _(
+                                "They hold \u201c%(level)s\u201d from the %(kind)s above, and it cannot be lowered here."
+                            ),
+                            code="below_inherited",
+                            params={
+                                "level": held.label,
+                                "kind": RecordAccess(source).kind,
+                                "source": source,
+                            },
+                        )
+                    )
+                if self.would_leave_no_manager(contribution, level):
+                    refusals.append(self.last_manager_refusal(contribution))
+            if refusals:
+                raise refusals[0] if len(refusals) == 1 else ValidationError(refusals)
             contribution.roles.set(roles)
             changed = []
             if level is not None and is_person:
@@ -160,20 +238,27 @@ class Crediting:
 
         Raises:
             ValidationError: With code ``credited_from`` when it is an organization that
-                people on the record are credited from. Its ``params["people"]`` lists them.
+                people on the record are credited from, its ``params["people"]`` listing them,
+                and ``last_manager`` when it is the only person who counts as able to manage
+                the record. Nothing is removed.
         """
-        people = self.credited_from().get(contribution.contributor_id, [])
-        if people:
-            raise ValidationError(
-                _("%(name)s cannot be removed while %(names)s are credited from it."),
-                code="credited_from",
-                params={
-                    "name": str(contribution.contributor),
-                    "names": ", ".join(person.name for person in people),
-                    "people": people,
-                },
-            )
-        contribution.delete()
+        with self.locked():
+            people = self.credited_from().get(contribution.contributor_id, [])
+            if people:
+                raise ValidationError(
+                    _(
+                        "%(name)s cannot be removed while %(names)s are credited from it."
+                    ),
+                    code="credited_from",
+                    params={
+                        "name": str(contribution.contributor),
+                        "names": ", ".join(person.name for person in people),
+                        "people": people,
+                    },
+                )
+            if self.would_leave_no_manager(contribution):
+                raise self.last_manager_refusal(contribution)
+            contribution.delete()
 
     def make_creator(self, user, *, roles=()):
         """List the person who created the record at the manage level.
@@ -191,7 +276,7 @@ class Crediting:
         """
         if user.is_superuser:
             return None
-        with transaction.atomic():
+        with self.locked():
             contribution = self.record.contributors.filter(contributor=user).first()
             if contribution is None:
                 contribution = self.add(user)
