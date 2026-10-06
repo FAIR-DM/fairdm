@@ -3,7 +3,7 @@
   "feature": "022-record-contributors-and-access",
   "branch": "022-record-contributors-and-access",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-06T20:49:33Z",
       "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-06T20:58:21Z",
+      "note": "PR #414 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -55,8 +60,8 @@
       "at": "2026-10-06T12:23:48Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-06T20:51:23Z"
     },
     "sketch": {
       "approved_by": "Sam",
@@ -87,8 +92,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-06T20:44:24Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-06T20:51:23Z",
       "self_resolved": []
     }
   },
