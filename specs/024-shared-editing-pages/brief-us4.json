@@ -1,0 +1,125 @@
+{
+ "story": "US4",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 447,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T010",
+  "T011",
+  "T012"
+ ],
+ "context": {
+  "why": "Stories 1 to 3 are accepted. fairdm/core/editing.py holds RecordEditingPage, EditDetails, EditDescriptions, EditKeyDates, EditIdentifiers, DeleteRecord and manage_menu, registered on Project, Dataset, Sample and Measurement with menu=False, and <c-actions.manage> draws the menu on all four overviews. tests/test_core/test_editing.py holds the tests and fixtures. This last story adds the keywords page on all four record types, repairs KeywordForm so the page can open at all, and removes the sample's old Keywords page and its generic base. It also closes the menu: all six entries, in one order, on every record type.",
+  "spec_sections": [
+   "Clarifications",
+   "User Story 4 (all 5 acceptance scenarios)",
+   "Edge Cases",
+   "FR-006",
+   "FR-022 to FR-024",
+   "FR-034",
+   "SC-001, SC-004"
+  ],
+  "plan_sections": [
+   "D1",
+   "D2",
+   "D3",
+   "D4 (the paragraph on the crispy helper)",
+   "D7",
+   "D9 (row US-4)",
+   "D10",
+   "D11",
+   "Tests"
+  ],
+  "prior_decisions": [
+   "decisions.md planning decision D4 (the keywords form is repaired to a working state, not redesigned) and D8 onward, which describe the module as it stands.",
+   "KeywordForm is in fairdm/contrib/generic/forms.py around lines 148-238. Today it raises for every sample type: it calls get_setting(<MODELNAME>, 'keywords'), which is getattr(settings, 'FAIRDM_ROCKSAMPLE') with no default (fairdm/utils/utils.py:33-44). It reads FAIRDM_DATASET['keyword_vocabularies'] for datasets and FAIRDM_<MODELNAME>['keywords'] otherwise. It also assigns KeywordForm._meta.model on every instantiation. Repair: read the vocabularies configured for the record's core model (RecordAccess(record).model, so RockSample reads the Sample setting) with a default of none when the setting or the key is absent, and stop writing to the shared _meta. Keep the two existing setting names and shapes; add no new setting. What the form offers and how it saves is otherwise unchanged.",
+   "The sample's old Keywords page raises ImproperlyConfigured on its own (no model or queryset). The shared page avoids that through RecordEditingPage.get_object().",
+   "KeywordForm sets a crispy FormHelper with a form_id and no form_tag = False. Treat its helper as EditDetails treats one (plan D4): form_tag False and no inputs, so django-mvp's form element and Save buttons are the only ones. If EditDetails has a helper-reset function, reuse it; do not write a second.",
+   "Every record has `keywords` (many-to-many to research_vocabs.Concept) and `tags` (TaggableManager) from BaseModel (fairdm/core/abstract.py:42-48). The page test for a record type with no vocabulary configured uses the free-text tags field.",
+   "The sample template still passes an Edit keywords item through the Manage menu's slot, where it is drawn after Delete (decisions D20). Remove that item when manage_menu lists the shared page. The fixed order is: edit details, descriptions, keywords, key dates, identifiers, divider, delete. After this story no record template passes anything through the slot unless it is something other than these six.",
+   "fairdm/core/sample/plugins.py: the heading_config description on the old sample Keywords page talks about key dates. It goes with the page.",
+   "The readiness checklists of the project and dataset overviews have a keywords item with no address today; it now carries the keywords page's address.",
+   "docs/user-guide/project/about.md and docs/user-guide/dataset/about.md still say Edit details covers dates and identifiers; correct that sentence in T012 while you are in the user guide."
+  ],
+  "acceptance": [
+   {
+    "task": "T010",
+    "given_when_then": "Given the test classes tasks.md T010 lists, when they are run before T011, then they fail because the shared keywords page does not exist and KeywordForm raises."
+   },
+   {
+    "task": "T011",
+    "given_when_then": "Given a project, a dataset, a demo sample type and a demo measurement type, when someone at each level requests and submits the keywords page and opens each overview, then every outcome in tasks.md T010 holds, all 24 page and record type combinations are offered to a manage-level person in one order, and the sample's old keywords page is gone."
+   },
+   {
+    "task": "T012",
+    "given_when_then": "Given the documentation, when it is read, then record-editing-pages.md covers all six pages and says the keywords page is to be replaced by #298."
+   }
+  ],
+  "verified_base": {
+   "commit": "d54fc5c6e2ba2386c759785c6de9113761a3e7fd",
+   "verified_at": "2026-10-07T21:40:00Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance",
+    "docs"
+   ],
+   "note": "Verified independently at story 3's last commit (d54fc5c6): lint, typecheck, the whole test suite, build, conformance and docs pass. Every commit since changes only files under specs/024-shared-editing-pages/."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Plugin",
+   "Registry",
+   "Visibility",
+   "Contribution"
+  ],
+  "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages on branch 024-shared-editing-pages; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. This feature adds no migration.",
+  "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. All of this feature's page tests go in tests/test_core/test_editing.py, parametrised over a project, a dataset, a demo sample type and a demo measurement type. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/ with its conftest.py (page tests through the test client on all four record types, levels given with ContributionFactory, people made with is_active=True), tests/test_core/test_project/test_plugins.py (a record's plugin pages). Access is tested by requesting the page through the client, never by calling a check function. Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG, docs/adr) is plain prose: no em dashes, sentence-case headings, reads as current state, never says how the feature was built, and never mentions an agent, a reviewer or a plan stage. Every user-facing string is translatable. Raise every ValidationError with a code. Templates: reusable pieces are Cotton components; use django-mvp components and DaisyUI utilities, no custom CSS."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks T010 to T012 in specs/024-shared-editing-pages/tasks.md, your tasks only, plus the paragraphs above Phase 1 of that file.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "Read the CONTEXT.md entries named in context.glossary_terms.",
+  "git log --oneline -10. Confirm only files under specs/024-shared-editing-pages/ differ between HEAD and context.verified_base.commit, unless context.verified_base.note says otherwise.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages/specs/024-shared-editing-pages/report-us4.json and commit it with your last commit. Your final message is a short summary and that path."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, with the exception tasks.md names: a pre-existing test that requests a page this feature removes, or reverses its old URL name, is rewritten against the shared page where it asserts something your new tests do not, and removed where they do. List every test class you changed or removed in progress.md, with one line each on why.",
+  "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+  "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+  "No compatibility aliases, no redirects from the old addresses, and no leading-underscore names for new functions or methods.",
+  "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence. evidence is an object with only tests, commands, code (path:line) and verified_by_ci.",
+  "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+  "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+  "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+  "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+  "Never touch .github/. No test reaches the network.",
+  "Do not change any permission backend, fairdm/contrib/contributors/access.py, visible_to, or who may change or delete a record (FR-012).",
+  "Do not tidy fairdm/contrib/generic/forms.py or any other module beyond what your tasks name. Dead code you notice goes in your report's concerns, not in a commit.",
+  "In fairdm/contrib/generic/forms.py change KeywordForm only, plus removing code that only the removed KeywordsPlugin used. Running `uv run ruff check` with fixes enabled rewrites unrelated files: use `uv run pre-commit run --files <your files>` or revert anything outside your story before committing."
+ ]
+}
