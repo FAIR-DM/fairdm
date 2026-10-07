@@ -526,7 +526,7 @@ If duplicate person records exist:
    # Move affiliations
    duplicate.affiliations.update(person=canonical)
    
-   # Delete duplicate
+   # Remove the duplicate
    duplicate.delete()
    ```
 
