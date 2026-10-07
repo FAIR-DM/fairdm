@@ -7,6 +7,7 @@ from django import forms
 from django.conf import settings
 from django.forms import BaseFormSet, BaseInlineFormSet
 from django.utils.module_loading import import_string
+from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2TagWidget
 from extra_views import InlineFormSetFactory
 from markdownx.fields import MarkdownxFormField
@@ -210,8 +211,11 @@ class KeywordForm(forms.ModelForm):
                     self.initial[field_name] = matching_keywords
 
         self.fields["tags"] = forms.CharField(
-            label="Free keywords",
-            help_text="Additional keywords that are not available in the listed controlled vocabularies.",
+            label=_("Free keywords"),
+            help_text=_(
+                "Additional keywords that are not available in the listed controlled "
+                "vocabularies."
+            ),
             widget=TagWidget,
             required=False,
         )

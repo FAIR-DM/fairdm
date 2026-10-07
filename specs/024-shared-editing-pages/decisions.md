@@ -259,17 +259,16 @@ record.
 
 **ADR:** none — a record of a check on this feature's tests
 
-## D15. The key dates and identifiers pages draw their rows stacked
+## D15. The key dates and identifiers pages draw their rows as a table
 
-**Decision:** `EditKeyDates` and `EditIdentifiers` set no template, so their rows draw in
-django-mvp's default stacked layout. The dataset's old update page drew its rows as a table.
-**Why:** the tabular layout is a `layout="tabular"` argument to `<c-form.formset>`, chosen in the
-page template's `formset` block. Neither the view nor the row set can ask for it, so using it needs
-a template of our own. The brief asked for the table only where it is available without one.
-**Revisit if:** the stacked rows read badly on a walkthrough. A template extending `form_view.html`
-that overrides the `formset` block with `layout="tabular"` is the change, and it serves both pages.
+**Decision:** `EditKeyDates` and `EditIdentifiers` use `editing/rows.html`, which extends
+django-mvp's `form_view.html` and asks `<c-form.formset>` for its `tabular` layout.
+**Why:** a row is a type and a value, which reads as a table. The layout is chosen in the page
+template's `formset` block, and neither the view nor the row set can ask for it, so one small
+template serves both pages. It is the layout the dataset's old details page used for the same rows.
+**Revisit if:** django-mvp lets a row set name its own layout.
 
-**ADR:** none, a layout choice
+**ADR:** none — a layout choice
 
 ## D16. The vocabulary-with-no-types state is not built for dates and identifiers
 

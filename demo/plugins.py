@@ -1,12 +1,14 @@
 """Example plugins demonstrating inheritance and reusability patterns.
 
 This module shows how portal developers can:
-1. Inherit from framework base classes (OverviewPlugin, UpdatePlugin, DeletePlugin)
+1. Inherit from the framework's base class for an overview (OverviewPlugin)
 2. Customize behavior by overriding methods
 3. Use polymorphic visibility checks
 4. Register plugins for custom models
 
-These examples serve as living documentation for plugin development patterns.
+These examples serve as living documentation for plugin development patterns. Editing and
+deleting a project, dataset, sample or measurement needs no plugin of your own: the shared pages
+in fairdm.core.editing are registered on every record type.
 
 ### Example 1: Basic Inheritance from Framework Base Classes
 
@@ -34,47 +36,6 @@ class ProjectOverview(OverviewPlugin):
         context["contributors"] = self.object.contributors.all()
 
         return context
-
-
-@plugins.register(Project)
-class ProjectEdit(UpdatePlugin):
-    '''Project edit form inheriting standard form handling.
-
-    This demonstrates:
-    - Setting form_class for edit functionality
-    - Overriding menu configuration to customize appearance
-    - Setting explicit permissions
-    '''
-
-    form_class = ProjectForm
-
-    # Customize menu (override default from UpdatePlugin)
-    menu = {"label": _("Edit Project"), "icon": "pencil-square", "order": 10}
-
-    # Set explicit permission (required for editing projects)
-    permission = "demo.change_project"
-
-
-@plugins.register(Project)
-class ProjectDelete(DeletePlugin):
-    '''Project deletion with confirmation.
-
-    This demonstrates:
-    - Inheriting deletion confirmation behavior
-    - Customizing success URL after deletion
-    - High order value to position tab at the end
-    '''
-
-    # Menu inherited from DeletePlugin, but reposition it
-    menu = {"label": _("Delete"), "icon": "trash", "order": 1000}
-
-    permission = "demo.delete_project"
-
-    def get_success_url(self):
-        '''Redirect to project list after deletion.'''
-        from django.urls import reverse
-
-        return reverse("fairdm:project-list")
 ```
 
 ### Example 2: Custom Plugin Without Inheritance
@@ -103,15 +64,6 @@ class SampleOverview(Plugin):
         context["location"] = getattr(self.object, "location", None)
 
         return context
-
-
-@plugins.register(Sample)
-class SampleEdit(UpdatePlugin):
-    '''Sample edit form.'''
-
-    form_class = SampleForm
-    menu = {"label": _("Edit"), "icon": "pencil", "order": 10}
-    permission = "demo.change_sample"
 ```
 
 ### Example 3: Polymorphic Visibility with Check Functions
@@ -197,21 +149,12 @@ class LocationOverview(OverviewPlugin):
         context["samples"] = self.object.samples.all()
 
         return context
-
-
-@plugins.register(Location)
-class LocationEdit(UpdatePlugin):
-    '''Location edit form.'''
-
-    form_class = LocationForm
-    menu = {"label": _("Edit Location"), "icon": "pencil", "order": 10}
-    permission = "demo.change_location"
 ```
 
 ## Notes for Portal Developers
 
 1. **Import base classes from framework:**
-   from fairdm.core.plugins import OverviewPlugin, UpdatePlugin, DeletePlugin
+   from fairdm.core.plugins import OverviewPlugin
 
 2. **Register plugins with decorator:**
    @plugins.register(YourModel)

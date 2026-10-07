@@ -1,0 +1,6 @@
+{% extends "form_view.html" %}
+{# A page of rows that each pair a type with a value reads as a table, so the row set uses the `tabular` layout in place of the default stacked one. #}
+{% block formset %}
+  {% if formset %}<c-form.formset :formset="formset" />{% endif %}
+  {% for inline in inlines %}<c-form.formset :formset="inline" layout="tabular" />{% endfor %}
+{% endblock formset %}

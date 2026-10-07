@@ -339,6 +339,7 @@ class EditKeyDates(RecordEditingPage, FairDMUpdateView):
     menu_icon = "date"
     page_title = _("Key dates")  # type: ignore[assignment]
     fields = ()
+    template_name = "editing/rows.html"
 
     INLINES: ClassVar[dict[type, list]] = {
         Project: [ProjectDatesInline],
@@ -365,6 +366,7 @@ class EditIdentifiers(RecordEditingPage, FairDMUpdateView):
     menu_icon = "identifier"
     page_title = _("Identifiers")  # type: ignore[assignment]
     fields = ()
+    template_name = "editing/rows.html"
 
     INLINES: ClassVar[dict[type, list]] = {
         Project: [ProjectIdentifierInline],
