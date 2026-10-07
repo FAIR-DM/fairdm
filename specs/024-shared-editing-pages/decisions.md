@@ -373,7 +373,7 @@ else, and only the removed sample page used it.
 **Why:** the plan removes code that only a removed page used.
 **Revisit if:** none.
 
-**ADR:** none
+**ADR:** none — removing a module only the removed page used, local to this feature
 
 ## D26. Existing tests changed in story 4 were checked against the list in the progress log
 
