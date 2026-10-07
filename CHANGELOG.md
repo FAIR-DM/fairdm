@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The project, dataset and sample editing pages are replaced by shared ones.** A project's
+  `Update` and `Descriptions` pages, a dataset's, and a sample's `Edit` and `Descriptions` pages are
+  gone, with the `overview-update` and `overview-descriptions` URL names on projects and datasets
+  and the `/update/` address of both, the sample's `basic-information` page and its address, and
+  `UpdatePlugin` and `DescriptionsPlugin` with the `plugins/descriptions.html` template. A project,
+  a dataset, a sample and a measurement now have the URL names `edit` and `descriptions`, at
+  `<record address>/edit/` and `<record address>/descriptions/`, reached from the Manage menu. The
+  old addresses are not redirected. A portal that linked to one reverses `edit` or `descriptions`
+  in the record's namespace instead, and a portal that subclassed `UpdatePlugin` for its own page
+  builds on `FairDMUpdateView` and `Plugin`. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
 - `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
   `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
   dataset's stored permissions down to its samples and measurements. A level on a dataset now
@@ -229,6 +240,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A measurement can be edited through the portal.** Its overview page gains a Manage menu, and the
+  edit details and descriptions pages open at `/measurement/<uuid>/edit/` and `/descriptions/`.
+  Every registered sample and measurement type receives both pages with no work by the portal
+  developer.
+- `RecordEditingPage`, the class the shared editing pages inherit, which decides who may open a
+  page on every request. A visitor is sent to sign in, a signed-in person who may see the record and
+  may not use the page gets a 403, and someone who may not see the record gets a 404. A private
+  project's or dataset's edit page used to answer 404 to a signed-in person who could open the
+  project.
+- `<c-actions.manage>` and the `overview.manage` block, which draw the Manage menu on all four
+  overview pages. A record's template adds its own entries through the component's slot.
 - **Access to a project, dataset, sample or measurement is a level on a person's contribution**:
   view, edit or manage, each including the one before it. `RecordLevelBackend`
   (`fairdm.contrib.contributors.permissions`) answers every permission question about these

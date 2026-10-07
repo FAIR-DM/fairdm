@@ -13,12 +13,14 @@ cannot be used to find out whether a private project is there.
 
 ## The other project pages
 
-If you hold the right permission, the project's own page links to:
+If you hold the right permission, the **Manage** menu in the header of the project's own page links
+to:
 
-- **Update project** — correct the project's name, status, visibility, owning organisation, dates
+- **Edit details**: correct the project's name, status, visibility, owning organisation, dates
   and identifiers. Requires permission to change the project.
-- **Descriptions** — write the project's abstract and the other prose passages about it.
+- **Edit descriptions**: write the project's abstract and the other prose passages about it.
   Requires permission to change the project.
-- **Delete** — remove the project entirely. Requires permission to delete the project.
+- **Delete project**: remove the project entirely. Requires permission to delete the project.
 
-A link only appears if you are allowed to open the page it points to.
+An entry only appears if you are allowed to open the page it points to, and the menu is not shown
+when there is nothing in it.

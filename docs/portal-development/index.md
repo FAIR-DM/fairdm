@@ -92,6 +92,7 @@ overview-pages
 :maxdepth: 2
 
 create_a_plugin
+record-editing-pages
 rich-text
 quality_control
 portal_roles

@@ -129,8 +129,9 @@ the **Edit** level. To close the dataset to them again, they remove the entry.
 
 ## Example: Restricting a dataset
 
-Set the dataset's visibility to private on its update page, which needs the manage level or a
-portal role that holds the right to change datasets. Then only the people listed on it, or on its
+Set the dataset's visibility to private on its edit details page, reached from the dataset's
+**Manage** menu, which needs the manage level or a portal role that holds the right to change
+datasets. Then only the people listed on it, or on its
 project, and the holders of such a role, can open it. See [Adjusting dataset
 access](adjusting_dataset_access.md).
 

@@ -1,14 +1,15 @@
 # Update dataset
 
-The update page is where a dataset's own record is corrected: its image, name, project, licence,
-data publication and visibility, together with its dates and external identifiers.
+The edit details page is where a dataset's own record is corrected: its image, name, project,
+licence, data publication and visibility, together with its dates and external identifiers. Open
+the **Manage** menu in the header of the dataset's page and choose **Edit details**.
 
 ## Who can open it
 
-Anyone holding permission to change the dataset — typically its contributors. Anyone else is
-refused, and the link to this page is not shown to them on the dataset's own page. A private
-dataset does not answer at all to someone who cannot see it, the same rule the dataset's own
-page applies.
+Anyone holding permission to change the dataset, typically its contributors. Anyone else who can
+open the dataset is refused, and the **Manage** menu is not shown to them. A visitor who is not
+signed in is asked to sign in. A private dataset does not answer at all to someone who cannot see
+it, the same rule the dataset's own page applies.
 
 ## What you can change
 
@@ -36,6 +37,7 @@ same type would say the same thing twice.
 
 ## What isn't here
 
-Descriptions have a page of their own — see [Descriptions](descriptions.md). Keywords are not
+Descriptions have a page of their own, **Edit descriptions** in the same menu. See
+[Descriptions](descriptions.md). Keywords are not
 editable through the portal at present. They are deferred until the portal's controlled
 vocabulary support is in place. Contributors are managed elsewhere.

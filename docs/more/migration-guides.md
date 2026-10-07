@@ -262,9 +262,9 @@ permission actually needs it.
 
 ### Sample editing pages now require a permission
 
-The Edit, Descriptions, Keywords and Key Dates plugins on a sample previously admitted every
-request, including an anonymous one — no permission was declared, and the framework treats an
-undeclared permission as "open to everyone". They now declare `permission = "sample.change_sample"`.
+The pages that edit a sample (its details, descriptions, keywords and key dates) previously
+admitted every request, including an anonymous one, because no permission was declared and the framework
+treats an undeclared permission as "open to everyone". They now require `sample.change_sample`.
 
 If your portal built its own view, template, or link assuming these surfaces were reachable
 without authorisation, that assumption no longer holds. Give the people who should retain access

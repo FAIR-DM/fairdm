@@ -5,7 +5,7 @@ page: a row set (dates, identifiers) and a fixed set of vocabulary-driven descri
 than each record type rebuilding these, `fairdm/core/related_records.py`, `fairdm/core/formsets.py`
 and `fairdm/core/descriptions.py` declare the shared pieces once. None of these three modules is
 itself a page, view or URL — a record type's own page (for example
-`fairdm.core.project.plugins.Update`) assembles them.
+`fairdm.core.editing.EditDetails`) assembles them.
 
 ## Related-record row sets
 
@@ -35,18 +35,23 @@ class ProjectDateInline(RelatedRecordInline):
 
 `fairdm.core.related_records` declares one such subclass per related model on Project and Dataset:
 `ProjectDateInline`, `ProjectIdentifierInline`, `DatasetDateInline`, `DatasetIdentifierInline`. A
-record's page lists the ones it wants by setting `inlines` directly — django-mvp's `InlinesMixin`
-is mixed into `MVPUpdateView` (and so into `FairDMUpdateView`) by default, rather than being added
-to each page's own base classes:
+record's page lists the ones it wants by returning them from `get_inlines`, which django-mvp's
+`InlinesMixin` provides on `MVPUpdateView` (and so on `FairDMUpdateView`) rather than needing to be
+added to each page's own base classes. `EditDetails` does this for a project and a dataset:
 
 ```python
-class Update(Plugin, FairDMUpdateView):
-    model = Project
-    inlines = [ProjectIdentifierInline, ProjectDatesInline]
+class EditDetails(RecordEditingPage, FairDMUpdateView):
+    INLINES = {
+        Project: [ProjectIdentifierInline, ProjectDatesInline],
+        Dataset: [DatasetIdentifierInline, DatasetDatesInline],
+    }
+
+    def get_inlines(self):
+        return list(self.INLINES.get(RecordAccess(self.base_object).model, []))
 ```
 
-(`ProjectDatesInline` is `ProjectDateInline` plus the date-ordering rule below — see
-`fairdm.core.project.plugins.ProjectDatesInline`.)
+(`ProjectDatesInline` is `ProjectDateInline` plus the date-ordering rule below, and sits beside it
+in `fairdm.core.related_records`.)
 
 ## Keeping a date pair in order
 
@@ -118,13 +123,12 @@ field set from the related model's vocabulary, so the descriptions page grows wi
 and needs no code change:
 
 ```python
-class Descriptions(Plugin, MetadataMixin, MVPFormView):
-    model = Project
+class EditDescriptions(RecordEditingPage, MetadataMixin, MVPFormView):
     form_class = VocabularyDescriptionsForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs["related_model"] = ProjectDescription
+        kwargs["related_model"] = self.DESCRIPTIONS[RecordAccess(self.base_object).model]
         kwargs["instance"] = self.base_object
         return kwargs
 ```

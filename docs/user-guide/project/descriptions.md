@@ -1,13 +1,15 @@
 # Descriptions
 
 The descriptions page is where the prose about a project is written: a set of labelled areas,
-one for each kind of description the project supports.
+one for each kind of description the project supports. Open the **Manage** menu in the header of
+the project's page and choose **Edit descriptions**.
 
 ## Who can open it
 
-Anyone holding permission to change the project — typically its contributors. Anyone else is
-refused. A private project does not answer at all to anyone who may not change it — the page
-behaves as though no such project existed, the same rule the project's own page applies.
+Anyone holding permission to change the project, typically its contributors. Anyone else who can
+open the project is refused. A visitor who is not signed in is asked to sign in. A private project
+does not answer at all to someone who may not see it. The page behaves as though no such project
+existed, the same rule the project's own page applies.
 
 ## The description types
 

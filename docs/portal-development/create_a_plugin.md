@@ -166,10 +166,11 @@ def visible_to_holder_of(permission):
     return check
 ```
 
-`Update` and `Delete` each set `check = staticmethod(visible_to_holder_of("project.change_project"))`
-(and `"project.delete_project"` respectively) rather than the bare `project_is_visible` their owner
-uses: their own `permission` is the change/delete right, not the view right, and a record-level grant
-of a page's own permission is already evidence of legitimate access.
+`Delete` sets `check = staticmethod(visible_to_holder_of("project.delete_project"))` rather than the
+bare `project_is_visible` its owner uses: its own `permission` is the delete right, not the view
+right, and a record-level grant of a page's own permission is already evidence of legitimate
+access. The pages that edit a record are shared by all four record types and decide this in
+`RecordEditingPage` instead, see [Record editing pages](record-editing-pages.md).
 
 `fairdm.core.dataset.plugins.dataset_is_visible` is the same rule for a dataset, reading
 `dataset.view_dataset`. Write one of these for every record type you register pages against, even

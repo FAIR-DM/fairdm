@@ -106,8 +106,20 @@
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge check-adrs --repo . --feature 024-shared-editing-pages"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:1",
+              "docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md:1"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

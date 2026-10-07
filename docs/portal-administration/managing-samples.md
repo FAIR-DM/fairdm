@@ -199,6 +199,13 @@ From the sample list:
 3. Add/update/remove metadata using inline forms
 4. Click **Save** or **Save and continue editing**
 
+### Editing from the portal
+
+A person who may change a sample can also edit it without the administration interface. Open the
+**Manage** menu in the header of the sample's own page and choose **Edit details** to change its
+fields, or **Edit descriptions** to write its descriptions. Both pages are at
+`/samples/<uuid>/edit/` and `/samples/<uuid>/descriptions/`.
+
 ### Bulk Actions
 
 Select multiple samples using checkboxes, then:

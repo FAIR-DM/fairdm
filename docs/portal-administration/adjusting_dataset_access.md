@@ -40,7 +40,7 @@ Ask one of the authorized people, or sign in as one, and confirm they can open t
 
 For FAIR compliance, you may want a finalized dataset to be open to everyone while keeping editing restricted to the research team.
 
-1. Open the dataset's update page and set **Visibility** to public
+1. Open the dataset's **Manage** menu, choose **Edit details** and set **Visibility** to public
 2. Check the **Contributors** tab and confirm only trusted people hold the **Edit** and **Manage** levels
 
 A public dataset opens to everyone, signed in or not. Levels still decide who may change and manage it.

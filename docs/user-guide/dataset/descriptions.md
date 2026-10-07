@@ -1,13 +1,15 @@
 # Descriptions
 
 The descriptions page is where the prose about a dataset is written: a set of labelled areas,
-one for each kind of description the dataset supports.
+one for each kind of description the dataset supports. Open the **Manage** menu in the header of
+the dataset's page and choose **Edit descriptions**.
 
 ## Who can open it
 
-Anyone holding permission to change the dataset — typically its contributors. Anyone else is
-refused. A private dataset does not answer at all to someone who cannot see it, the same rule
-the dataset's own page applies.
+Anyone holding permission to change the dataset, typically its contributors. Anyone else who can
+open the dataset is refused. A visitor who is not signed in is asked to sign in. A private dataset
+does not answer at all to someone who cannot see it, the same rule the dataset's own page
+applies.
 
 ## The description types
 

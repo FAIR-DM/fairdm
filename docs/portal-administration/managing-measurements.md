@@ -326,6 +326,13 @@ From the measurement list:
 3. Add/update/remove metadata using inline forms
 4. Click **Save** or **Save and continue editing**
 
+### Editing from the portal
+
+A person who may change a measurement can also edit it without the administration interface. Open
+the **Manage** menu in the header of the measurement's own page and choose **Edit details** to
+change its fields, or **Edit descriptions** to write its descriptions. Both pages are at
+`/measurement/<uuid>/edit/` and `/measurement/<uuid>/descriptions/`.
+
 ### Bulk Actions
 
 Select multiple measurements using checkboxes, then:

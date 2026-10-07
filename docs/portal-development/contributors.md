@@ -1084,7 +1084,8 @@ organization is editable by the people who keep its record, the ones `is_managed
 accepts, while their account is active, and by any active Community Manager, whether or not the
 organization has an owner.
 
-The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`. It declares its own
+The page is the `Update` class in `fairdm.contrib.contributors.plugins.update`, apart from the
+[pages that edit a record](record-editing-pages.md). It declares its own
 `check`, `contributor_is_editable`, because an additional view is governed by its own check and
 not by its owner's. A visitor who is not signed in is sent to sign in, and a signed-in user who may
 not edit gets a 403. `Contributor.get_update_url()` returns its address.

@@ -351,7 +351,7 @@ Every tab in one set takes the same `group`. `label` on `c-tabs` names the set f
 technology, and `checked` marks the tab shown first.
 
 ```django
-<c-tabs group="about" label="Descriptions">
+<c-tabs group="about" label="About">
   <c-tabs.tab group="about" label="Abstract" checked>An abstract.</c-tabs.tab>
   <c-tabs.tab group="about" label="Methods">The methods.</c-tabs.tab>
 </c-tabs>

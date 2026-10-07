@@ -31,7 +31,7 @@ Four fields:
    dataset, so prefer the full name over an internal abbreviation.
 
 2. **Project** (optional) — the project this dataset belongs to. The list offers only your own
-   projects. A dataset without a project can be attached to one later on its update page.
+   projects. A dataset without a project can be attached to one later with **Edit details** in the dataset's **Manage** menu.
 
 3. **Licence** — how others may use the dataset. The portal's default licence is pre-selected,
    and can be changed here or later.
