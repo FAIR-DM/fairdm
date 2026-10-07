@@ -125,3 +125,10 @@ Did: Added "024 - A record's editing pages are six shared pages" to docs/more/mi
 Verified: grep of the added lines finds no em dash; uv run pre-commit run --files on the changed files passed. The docs build runs in the full verify.
 Next: T017.
 Watch: none.
+
+## 2026-10-07T21:41:30Z · Implementer FIX1 · T017
+
+Did: manage_menu now evaluates the overview visibility check once and hands the answer to each page through the new optional may_see argument of RecordEditingPage.verdict and may_be_used_by; left out, verdict checks it itself, so the rule is unchanged. Added a query-count test in TestManageMenu: building the menu for a manager of a private sample issues 5 queries. Removed documentation_link from fairdm/core/utils.py and DateForm from fairdm/contrib/generic/forms.py, with the imports only they used (gettext and user_guide in utils, PartialDateField in forms) and the words "documentation links" from the utils module docstring.
+Verified: the new test failed before the change (5 expected, 10 performed) and passed after; uv run pytest tests/test_core/test_editing.py::TestManageMenu tests/test_contrib/test_generic -q -n0 gave 32 passed; uv run pre-commit run --files on the changed files passed. A grep over fairdm, demo, tests and docs finds no other use of the two removed names.
+Next: the full verify and the completion report.
+Watch: CoreInlineFormset in forms.py is reached only from DescriptionInline and Description2Inline, which nothing references; left in place as the brief says.
