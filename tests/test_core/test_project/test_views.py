@@ -439,7 +439,7 @@ def _date_management_data(total=0, initial=0):
 class TestProjectUpdateView:
     def test_project_update_anonymous_redirects_to_login(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
@@ -448,7 +448,7 @@ class TestProjectUpdateView:
         project = ProjectFactory()
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -456,7 +456,7 @@ class TestProjectUpdateView:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -464,7 +464,7 @@ class TestProjectUpdateView:
         self, client
     ):
         project = ProjectFactory()
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -475,7 +475,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
@@ -508,7 +508,7 @@ class TestProjectUpdateView:
                 content_object=project, contributor=user, level=ContributionLevel.MANAGE
             )
             client.force_login(user)
-            url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+            url = reverse("project:edit", kwargs={"uuid": project.uuid})
             data = {
                 **base_data,
                 field: new_value,
@@ -527,7 +527,7 @@ class TestProjectUpdateView:
 
     def _post_changes(self, client, user, project, owner):
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         return client.post(
             url,
             data={
@@ -570,7 +570,7 @@ class TestProjectUpdateView:
         client.force_login(editor)
 
         response = client.get(
-            reverse("project:overview-update", kwargs={"uuid": project.uuid})
+            reverse("project:edit", kwargs={"uuid": project.uuid})
         )
 
         assert {"name", "status"} <= set(response.context["form"].fields)
@@ -627,7 +627,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         base_data = {
             "name": project.name,
             "status": project.status,
@@ -660,7 +660,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -685,7 +685,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.post(
             url,
             data={
@@ -725,7 +725,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
@@ -745,7 +745,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -774,7 +774,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -803,7 +803,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -833,7 +833,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -864,7 +864,7 @@ class TestAttributesIdentifierRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -898,7 +898,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
@@ -918,7 +918,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -943,7 +943,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -970,7 +970,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1000,7 +1000,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1031,7 +1031,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1060,7 +1060,7 @@ class TestAttributesDateRowSet:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1089,7 +1089,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1116,7 +1116,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,

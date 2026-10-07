@@ -19,7 +19,10 @@
     overview.byline         header: the people behind the record (a project's leads, a
                             dataset's creators), avatar and name, no caption
     overview.keywords       header: keywords
-    overview.actions        header: buttons (Cite and Share by default)
+    overview.actions        header: buttons (Cite and Share by default, then the Manage menu)
+      overview.manage         the Manage menu, drawn by `<c-actions.manage>`; fill it to add
+                              entries through the component's slot, and put any button that
+                              belongs before the menu in front of it
     overview.figures        the figures strip
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
@@ -109,6 +112,9 @@
           {% block overview.actions %}
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
             <c-addons.share-dropdown size="sm" />
+            {% block overview.manage %}
+              <c-actions.manage :entries="manage_menu" />
+            {% endblock overview.manage %}
           {% endblock overview.actions %}
         </div>
       </div>

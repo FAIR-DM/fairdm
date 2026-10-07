@@ -6,6 +6,8 @@ measurement of the demo portal's registered types, so a registered type is what 
 
 import pytest
 from bs4 import BeautifulSoup
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit
 from django.conf import settings
 from django.contrib.messages import SUCCESS, get_messages
 from django.shortcuts import resolve_url
@@ -25,6 +27,7 @@ from fairdm.factories import (
     PersonFactory,
     ProjectFactory,
 )
+from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 KINDS = ("project", "dataset", "sample", "measurement")
@@ -65,6 +68,11 @@ class Case:
     def own_url(self):
         """Return the address of the record's own page."""
         return self.record.get_absolute_url()
+
+    @property
+    def root_url(self):
+        """Return the address every page of the record sits beneath."""
+        return self.own_url.removesuffix("overview/")
 
 
 @pytest.fixture
@@ -172,12 +180,12 @@ def hrefs(element):
 class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
-    def test_the_page_sits_beneath_the_records_own_address(
+    def test_the_page_sits_beneath_the_records_address(
         self, make_case, kind, page
     ):
         case = make_case(kind)
 
-        assert case.url(page) == f"{case.own_url}{page}/"
+        assert case.url(page) == f"{case.root_url}{page}/"
 
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
@@ -360,7 +368,7 @@ class TestManageMenu:
         assert delete in hrefs(manage_menu(response))
         assert client.get(delete).status_code == 200
 
-    def test_the_sample_key_dates_and_keywords_pages_stay_in_the_menu_and_open(
+    def test_the_sample_key_dates_and_keywords_pages_stay_in_the_menu(
         self, make_case, person_at
     ):
         case = make_case("sample")
@@ -369,9 +377,10 @@ class TestManageMenu:
 
         response = client.get(case.own_url)
 
-        for page in ("key-dates", "keywords"):
-            assert case.url(page) in hrefs(manage_menu(response))
-            assert client.get(case.url(page)).status_code == 200
+        assert {case.url("key-dates"), case.url("keywords")} <= set(
+            hrefs(manage_menu(response))
+        )
+        assert client.get(case.url("key-dates")).status_code == 200
 
 
 @pytest.mark.django_db
@@ -456,6 +465,30 @@ class TestEditDetails:
         response = browser_as(editor).get(case.url("edit"))
 
         form = main_form(response)
+        assert form.select('[type="submit"]')
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_form_whose_helper_draws_its_own_tag_and_button_still_gives_one_form(
+        self, make_case, person_at, monkeypatch, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        config = registry.get_for_model(type(case.record))
+        built = config.get_form_class()
+
+        class WithHelper(built):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.helper = FormHelper()
+                self.helper.layout = Layout("name")
+                self.helper.add_input(Submit("own_submit", "Save"))
+
+        monkeypatch.setattr(config, "get_form_class", lambda: WithHelper)
+
+        response = browser_as(editor).get(case.url("edit"))
+
+        form = main_form(response)
+        assert not form.select('[name="own_submit"]')
         assert form.select('[type="submit"]')
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
@@ -576,4 +609,4 @@ class TestOverviewPrompts:
 
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert {case.url("edit"), case.url("descriptions")} <= addresses
-        assert f"{case.own_url}update/" not in addresses
+        assert f"{case.root_url}update/" not in addresses

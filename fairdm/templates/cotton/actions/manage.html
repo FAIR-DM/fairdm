@@ -1,0 +1,16 @@
+{# @description The Manage menu of a record's page: a dropdown of the editing pages the viewer may use. Draws nothing when there are no entries and the slot is empty, so it never opens empty. #}
+{# @prop entries:list | description:"The entries to draw, from `manage_menu`. Each has a `label`, an `icon` and a `url`." #}
+{# @slot Further menu items a record's own template adds after the entries, such as `<c-menu.item>` links. #}
+<c-vars entries />
+{% if entries or slot|wordcount %}
+  <div data-menu="manage">
+    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu>
+        {% for entry in entries %}
+          <c-menu.item label="{{ entry.label }}" icon="{{ entry.icon }}" href="{{ entry.url }}" />
+        {% endfor %}
+        {{ slot }}
+      </c-menu>
+    </c-dropdown>
+  </div>
+{% endif %}

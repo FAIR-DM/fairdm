@@ -176,3 +176,51 @@ alone, and no level on its dataset, lands on the dataset list after deleting it,
 not open the dataset.
 
 **ADR:** none — review record for this feature
+
+## D8. The shared pages are imported from the last of the four record plugin modules
+
+**Decision:** `fairdm/core/editing.py` is imported at the foot of `fairdm/core/measurement/plugins.py`,
+not at the foot of `fairdm/core/project/plugins.py` as the plan says.
+**Why:** plugin discovery loads the project, dataset, sample and measurement modules in that order.
+Importing from the project module registers the six pages on `Sample` and `Measurement` before
+those models' own overview pages, and an existing test in `tests/test_contrib/test_plugins/`
+(`test_a_predicate_written_to_the_wrong_signature_hides_its_entry`) takes the first plugin
+registered on `Sample` to be the overview. Importing from the measurement module keeps each
+overview first on every record type and leaves that test as written.
+**Revisit if:** a fifth core record type is added, or that test stops reading `registered[0]`.
+
+**ADR:** none — an import placement
+
+## D9. Dates and identifiers on the details page draw stacked until they leave it
+
+**Decision:** `EditDetails` sets no template of its own. A project's and a dataset's identifier and
+date rows draw in django-mvp's default stacked layout, where the dataset's old update page drew
+them as a two-column table through `dataset/plugins/update.html`.
+**Why:** the shared page serves four record types and only two of them carry row sets, and US-2
+takes the rows off this page. A template that exists for two stories would be deleted by US-2.
+**Revisit if:** the stacked rows read badly enough that US-2 should not wait.
+
+**ADR:** none — a short-lived layout choice
+
+## D10. An empty crispy helper is falsy, so the registry's own button never nests
+
+**Decision:** `EditDetails.get_form` still sets `form_tag = False` and empties `inputs` on any form
+that carries a helper.
+**Why:** django-mvp draws the helper only when `form.helper` is truthy, and a `FormHelper` with no
+layout is falsy. The registry's default form therefore never nested a second `<form>`. A form whose
+helper has a layout does, and a portal can supply one through its configuration. The test
+`test_a_form_whose_helper_draws_its_own_tag_and_button_still_gives_one_form` builds such a form.
+**Revisit if:** django-mvp stops drawing the helper from `form.helper`.
+
+**ADR:** none — a test note
+
+## D11. The sample keywords page is reachable from the menu and fails to open
+
+**Decision:** the Manage menu keeps the sample's keywords item through the component's slot, and the
+tests assert the item and not that the page opens.
+**Why:** `Keywords` in `fairdm/core/sample/plugins.py` sets no `model`, `queryset` or
+`get_queryset`, and the page raises `ImproperlyConfigured` on the base commit. Repairing the
+keywords page is story US-4.
+**Revisit if:** US-4 lands, when its page tests take over.
+
+**ADR:** none — a pre-existing fault left for US-4

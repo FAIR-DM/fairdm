@@ -462,7 +462,7 @@ class TestDatasetCreatePageUsesTheDeclaredForm:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         update_response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         create_label = create_response.context["form"].fields["name"].label
@@ -737,14 +737,14 @@ def _date_management_data(total=0, initial=0):
 class TestDatasetUpdateView:
     def test_anonymous_redirects_to_login(self, client):
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
         dataset = DatasetFactory()
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -752,7 +752,7 @@ class TestDatasetUpdateView:
         user = UserFactory()
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -760,7 +760,7 @@ class TestDatasetUpdateView:
         user = UserFactory()
         dataset = DatasetFactory()
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -771,14 +771,14 @@ class TestDatasetUpdateView:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
     def _post_changes(self, client, user, dataset, project):
         license_obj = dataset.license or License.objects.first()
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         return client.post(
             url,
             data={
@@ -828,7 +828,7 @@ class TestDatasetUpdateView:
         client.force_login(user)
 
         response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         assert {"name", "license"} <= set(response.context["form"].fields)
@@ -883,7 +883,7 @@ class TestDatasetUpdateView:
         project.add_contributor(user)
         license_obj = dataset.license if dataset.license else License.objects.first()
 
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.post(
             url,
             data={
@@ -912,7 +912,7 @@ class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -1290,7 +1290,7 @@ class TestNonCollectionPagesIgnorePublished:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
         unpublished = client.get(url)

@@ -10,9 +10,9 @@ class TestTheProjectsPagesSitUnderThePluralPrefix:
         url = reverse("project:overview", kwargs={"uuid": public_project.uuid})
         assert url == f"/projects/{public_project.uuid}/"
 
-    def test_the_attributes_page_resolves_under_the_plural_prefix(self, public_project):
-        url = reverse("project:overview-update", kwargs={"uuid": public_project.uuid})
-        assert url == f"/projects/{public_project.uuid}/update/"
+    def test_the_edit_page_resolves_under_the_plural_prefix(self, public_project):
+        url = reverse("project:edit", kwargs={"uuid": public_project.uuid})
+        assert url == f"/projects/{public_project.uuid}/edit/"
 
     def test_the_deletion_page_resolves_under_the_plural_prefix(self, public_project):
         url = reverse("project:overview-delete", kwargs={"uuid": public_project.uuid})

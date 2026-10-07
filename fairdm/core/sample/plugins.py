@@ -1,4 +1,4 @@
-"""Registered pages for a sample: overview, edit, descriptions, keywords and key dates."""
+"""Registered pages for a sample: overview, keywords and key dates."""
 
 from typing import Any
 
@@ -6,17 +6,12 @@ from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import (
-    DescriptionsPlugin,
-    KeyDatesPlugin,
-    KeywordsPlugin,
-)
+from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
-from fairdm.core.plugins import TypedOverviewPlugin, UpdatePlugin
-from fairdm.core.sample.models import SampleDate, SampleDescription
-from fairdm.utils.utils import user_guide
+from fairdm.core.plugins import TypedOverviewPlugin
+from fairdm.core.sample.models import SampleDate
 
 from ..utils import documentation_link
 from .models import Sample, SampleRelation
@@ -98,12 +93,10 @@ class Overview(TypedOverviewPlugin):
                 "can_manage": has_perm(
                     self.request, "dataset.change_dataset", sample.dataset
                 ),
-                "can_edit": has_perm(self.request, Edit.permission, sample),
+                "can_edit": has_perm(self.request, "sample.change_sample", sample),
                 "urls": {
                     key: safe_reverse(f"sample:{name}", uuid=sample.uuid)
                     for key, name in (
-                        ("update", "edit"),
-                        ("descriptions", "basic-information"),
                         ("keywords", "keywords"),
                         ("key_dates", "key-dates"),
                     )
@@ -319,36 +312,7 @@ class Overview(TypedOverviewPlugin):
 
 
 # A plugin with no declared `permission` admits every request, anonymous included, so each
-# editing page below names the right it needs. None of them is a tab: the overview's Manage
-# menu links to them.
-@plugins.register(Sample, label=_("Edit"), icon="pencil", menu=False)
-class Edit(UpdatePlugin):
-    """Edit the sample's name and image."""
-
-    permission = "sample.change_sample"
-    title = _("Basic Information")
-    model = Sample
-    fields = ["image", "name"]
-    about = _(
-        "Edit basic information about your sample, including its name and image. "
-        "These fields help others understand your sample and its key characteristics."
-    )
-    learn_more = user_guide("sample/edit")
-
-
-@plugins.register(Sample, label=_("Descriptions"), icon="description", menu=False)
-class Descriptions(DescriptionsPlugin):
-    """Edit the sample's descriptions."""
-
-    permission = "sample.change_sample"
-    name = "basic-information"
-    title = _("Basic Information")
-    learn_more = user_guide("dataset/basic-information")
-    # SingleObjectMixin.get_queryset() needs this to resolve the record (#280).
-    model = Sample
-    inline_model = SampleDescription
-
-
+# page below names the right it needs. Neither is a tab: the overview's Manage menu links to them.
 @plugins.register(Sample, label=_("Keywords"), icon="keywords", menu=False)
 class Keywords(KeywordsPlugin):
     """Edit the sample's keywords."""

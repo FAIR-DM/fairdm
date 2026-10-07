@@ -1,4 +1,4 @@
-"""Reusable overview, update and delete plugins for the core record pages."""
+"""Reusable overview and delete plugins for the core record pages."""
 
 from collections import OrderedDict
 from dataclasses import replace
@@ -19,7 +19,7 @@ from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.overview import format_authors, sentence_case
-from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
+from fairdm.views import FairDMDeleteView, FairDMTemplateView
 
 
 class OverviewPlugin(Plugin, FairDMTemplateView):
@@ -80,9 +80,12 @@ class RecordOverviewPlugin(OverviewPlugin):
     resolvable_identifier_types = ("DOI", "IGSN")
 
     def get_context_data(self, **kwargs):
-        """Lead the People card to the record's Contributors tab."""
+        """Lead the People card to the record's Contributors tab and add the Manage menu."""
+        from fairdm.core.editing import manage_menu
+
         context = super().get_context_data(**kwargs)
         context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
+        context["manage_menu"] = manage_menu(self.request, self.base_object)
         return context
 
     def get_contributions(self) -> list[Contribution]:
@@ -565,47 +568,6 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
             "keywords": metadata.keywords,
         }
         return info if any(info.values()) else None
-
-
-class UpdatePlugin(Plugin, FairDMUpdateView):
-    """Reusable edit plugin for model forms.
-
-    This base class provides a standard edit view with form handling.
-    Portal developers can inherit from this and customize:
-    - form_class: Set the form class for editing
-    - menu: Configure tab label, icon, and order
-    - template_name: Override the template (or use hierarchical resolution)
-    - permission: Set required permission (defaults to change permission)
-
-    Attributes:
-        page_subtitle: The page subtitle.
-        page_icon: The icon shown beside the page title.
-
-    Example:
-        ```python
-        from fairdm import plugins
-        from fairdm.core.plugins import UpdatePlugin
-        from .forms import SampleForm
-
-
-        @plugins.register(Sample)
-        class SampleEdit(UpdatePlugin):
-            form_class = SampleForm
-            menu = {"label": "Edit", "icon": "pencil", "order": 10}
-            permission = "samples.change_sample"
-        ```
-    """
-
-    page_subtitle = _("Update")
-    page_icon = "edit"
-
-    def get_success_url(self):
-        """Return to the base object's detail page after a successful save."""
-        return self.base_object.get_absolute_url()
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Return the context from the parent view unchanged."""
-        return super().get_context_data(**kwargs)
 
 
 class DeletePlugin(Plugin, FairDMDeleteView):

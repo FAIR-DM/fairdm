@@ -264,3 +264,8 @@ class Overview(TypedOverviewPlugin):
                 "date": measurement.modified,
             },
         ]
+
+
+# `fairdm.core` is not an installed app, so plugin discovery does not reach its modules. This is
+# the last of the four record modules to load, so each record's overview stays first registered.
+import fairdm.core.editing  # noqa: E402, F401

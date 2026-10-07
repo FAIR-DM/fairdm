@@ -4,7 +4,6 @@ import json
 import re
 import warnings
 from datetime import UTC, date, datetime
-from urllib.parse import quote
 
 import pytest
 from bs4 import BeautifulSoup
@@ -28,8 +27,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetLiteratureRelation,
 )
-from fairdm.core.dataset.plugins import Delete, Descriptions, Overview, Update
-from fairdm.core.descriptions import VocabularyDescriptionsForm
+from fairdm.core.dataset.plugins import Delete, Overview
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -93,46 +91,6 @@ def _date_management_data(total=0, initial=0):
     }
 
 
-class TestUpdateIsAnExtraViewOfTheOverview:
-    def test_the_update_page_resolves_as_an_extra_view_of_the_overview(self):
-        dataset = DatasetFactory()
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        assert url.endswith(f"{dataset.uuid}/update/")
-
-    def test_the_dataset_menu_carries_no_entry_for_update(self):
-        assert "dataset:overview-update" not in _entry_view_names(Dataset)
-
-    def test_update_uses_the_shared_inlines_mixin_not_a_hand_written_formset(self):
-        from mvp.views.inline import InlineFormSet, InlinesMixin
-
-        assert issubclass(Update, InlinesMixin)
-        assert len(Update.inlines) == 2
-        for declaration in Update.inlines:
-            assert issubclass(declaration, InlineFormSet)
-
-
-class TestUpdateStatesItsOwnPermission:
-    def test_refuses_a_signed_in_user_without_change_permission(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        request = _request_for(user)
-        assert can_open(Update, request, dataset) is False
-
-    def test_admits_a_user_holding_change_permission(self):
-        dataset = DatasetFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        request = _request_for(user)
-        assert can_open(Update, request, dataset) is True
-
-    def test_refuses_an_anonymous_request(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        request = _request_for(AnonymousUser())
-        assert can_open(Update, request, dataset) is False
-
-
 class TestUpdatePageDoesNotDiscloseAPrivateDataset:
     def test_a_model_level_holder_with_no_record_level_grant_is_refused(self, client):
         from django.contrib.auth.models import Permission
@@ -146,7 +104,7 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
         )
         client.force_login(user)
 
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         assert response.status_code == 404
@@ -166,7 +124,7 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
         )
         client.force_login(user)
 
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         assert response.status_code == 200
@@ -190,7 +148,7 @@ class TestUpdatePageFieldSet:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -200,21 +158,6 @@ class TestUpdatePageFieldSet:
     def test_the_declared_form_class_offers_no_excluded_field(self):
         fields = set(DatasetForm.Meta.fields)
         assert not fields & self.EXCLUDED_FIELDS
-
-    def test_exactly_one_page_offers_the_attributes_field_set(self):
-        pages = []
-        for plugin_cls, _kwargs in plugins.registry.get_plugins_for_model(Dataset):
-            pages.append(plugin_cls)
-            pages.extend(plugin_cls.get_extra_views())
-
-        offering_pages = []
-        for page in pages:
-            form_class = getattr(page, "form_class", None)
-            fields = getattr(getattr(form_class, "Meta", None), "fields", None)
-            if fields and self.ATTRIBUTES_FIELDS & set(fields):
-                offering_pages.append(page)
-
-        assert offering_pages == [Update]
 
 
 class TestUpdatePageAttributesPersist:
@@ -255,7 +198,7 @@ class TestUpdatePageAttributesPersist:
                 content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
             )
             client.force_login(user)
-            url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
             data = {
                 **_dataset_field_data(dataset),
                 field: new_value,
@@ -279,7 +222,7 @@ class TestUpdatePageAttributesPersist:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -318,7 +261,7 @@ class TestUpdatePageProjectField:
             level=ContributionLevel.EDIT,
         )
 
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         project_queryset = response.context["form"].fields["project"].queryset
@@ -338,7 +281,7 @@ class TestAttributesIdentifierRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -357,7 +300,7 @@ class TestAttributesIdentifierRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -385,7 +328,7 @@ class TestAttributesIdentifierRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -413,7 +356,7 @@ class TestAttributesIdentifierRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -442,7 +385,7 @@ class TestAttributesIdentifierRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -476,7 +419,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -495,7 +438,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -521,7 +464,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -549,7 +492,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -576,7 +519,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -608,7 +551,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -636,7 +579,7 @@ class TestAttributesDateRowSet:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -663,7 +606,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -691,7 +634,7 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsOwnPage:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.post(
             url,
@@ -723,7 +666,7 @@ class TestUpdatePageEmitsExactlyOneFormElement:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -732,46 +675,6 @@ class TestUpdatePageEmitsExactlyOneFormElement:
         main = BeautifulSoup(response.content, "html.parser").find("main")
         assert main is not None
         assert len(re.findall(r"<form[ >]", str(main))) == 1
-
-
-@pytest.mark.django_db
-class TestDescriptionsIsAnExtraViewNotARegistrationOfItsOwn:
-    def test_reversed_by_name_it_resolves_at_an_address_keyed_by_the_datasets_identifier(
-        self, public_dataset
-    ):
-        url = reverse(
-            "dataset:overview-descriptions", kwargs={"uuid": public_dataset.uuid}
-        )
-        assert url == f"/datasets/{public_dataset.uuid}/descriptions/"
-
-    def test_an_anonymous_visitor_is_redirected_to_sign_in(
-        self, client, public_dataset
-    ):
-        url = reverse(
-            "dataset:overview-descriptions", kwargs={"uuid": public_dataset.uuid}
-        )
-        response = client.get(url)
-        assert response.status_code == 302
-        assert reverse("account_login") in response.url
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageStatesItsOwnPermission:
-    def test_refuses_a_signed_in_user_without_change_permission(
-        self, public_dataset, user_with_no_permission
-    ):
-        request = _request_for(user_with_no_permission)
-        assert can_open(Descriptions, request, public_dataset) is False
-
-    def test_admits_a_user_holding_change_permission(self, user_with_change_permission):
-        request = _request_for(user_with_change_permission)
-        assert (
-            can_open(Descriptions, request, user_with_change_permission.dataset) is True
-        )
-
-    def test_refuses_an_anonymous_request(self, public_dataset):
-        request = _request_for(AnonymousUser())
-        assert can_open(Descriptions, request, public_dataset) is False
 
 
 @pytest.mark.django_db
@@ -788,7 +691,7 @@ class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
         )
         client.force_login(user)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         assert response.status_code == 404
@@ -808,14 +711,14 @@ class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
         )
         client.force_login(user)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         assert response.status_code == 200
 
     def test_an_anonymous_visitor_to_a_private_dataset_gets_not_found(self, client):
         dataset = DatasetFactory()
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -828,7 +731,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -840,7 +743,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -857,7 +760,7 @@ class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
         first_type = DatasetDescription.VOCABULARY.values[0]
         concept = DatasetDescription.VOCABULARY.get_concept(first_type)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -874,7 +777,7 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
         client.force_login(user_with_change_permission)
         first_type = DatasetDescription.VOCABULARY.values[0]
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "Some abstract text."})
 
         assert DatasetDescription.objects.filter(related=dataset).count() == 1
@@ -895,7 +798,7 @@ class TestExistingDescriptionsShowInTheirOwnArea:
             related=dataset, type=first_type, value="Existing abstract."
         )
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         form = response.context["form"]
@@ -913,7 +816,7 @@ class TestEditingAnExistingDescriptionPersists:
             related=dataset, type=first_type, value="Original text."
         )
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "Changed text."})
 
         row.refresh_from_db()
@@ -930,7 +833,7 @@ class TestRepeatSubmissionNeverDuplicatesAType:
         client.force_login(user_with_change_permission)
         first_type = DatasetDescription.VOCABULARY.values[0]
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "First."})
         client.post(url, data={first_type: "Second."})
         client.post(url, data={first_type: "Third."})
@@ -957,7 +860,7 @@ class TestClearingAnAreaRemovesTheDescription:
             related=dataset, type=first_type, value="Existing text."
         )
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: ""})
 
         assert not DatasetDescription.objects.filter(
@@ -973,7 +876,7 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={})
 
         assert not DatasetDescription.objects.filter(related=dataset).exists()
@@ -988,7 +891,7 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
             related=dataset, type=first_type, value="Existing text."
         )
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "   \n  "})
 
         assert not DatasetDescription.objects.filter(
@@ -1005,7 +908,7 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
         client.force_login(user_with_change_permission)
         first_type = DatasetDescription.VOCABULARY.values[0]
 
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={first_type: "Some text."})
 
         assert response.status_code == 302
@@ -1014,81 +917,9 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
         )
 
 
-class TestDescriptionsUsesTheVocabularyDrivenForm:
-    def test_the_declared_form_class_is_the_vocabulary_driven_form(self):
-        assert Descriptions.form_class is VocabularyDescriptionsForm
-
-    def test_the_page_is_not_built_on_the_generic_row_based_plugin(self):
-        from fairdm.contrib.generic.plugins import DescriptionsPlugin
-
-        assert not issubclass(Descriptions, DescriptionsPlugin)
-
-
 def _hrefs(content: str) -> list[str]:
     """Return every ``href`` attribute value in rendered HTML, in document order."""
     return re.findall(r'href="([^"]*)"', content)
-
-
-@pytest.mark.django_db
-class TestUpdatePageOffersTheDeletionLink:
-    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        )
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assert any(
-            href.startswith(delete_url) for href in _hrefs(response.content.decode())
-        )
-
-    def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        )
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assert not any(
-            href.startswith(delete_url) for href in _hrefs(response.content.decode())
-        )
-
-    def test_the_link_returns_to_the_update_page_when_deletion_is_abandoned(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        response = client.get(update_url)
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        link = next(
-            href
-            for href in _hrefs(response.content.decode())
-            if href.startswith(delete_url)
-        )
-
-        assert f"back={quote(update_url, safe='')}" in link
-
-        deletion_page = client.get(link)
-
-        assert update_url in _hrefs(deletion_page.content.decode())
 
 
 class TestTheSingularAddressNoLongerAnswers:
@@ -1103,10 +934,8 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
     def test_the_overview_states_no_permission_of_its_own(self):
         assert "permission" not in Overview.__dict__
 
-    def test_update_delete_and_descriptions_each_declare_their_own_permission(self):
-        assert Update.__dict__.get("permission") == "dataset.change_dataset"
+    def test_delete_declares_its_own_permission(self):
         assert Delete.__dict__.get("permission") == "dataset.delete_dataset"
-        assert Descriptions.__dict__.get("permission") == "dataset.change_dataset"
 
     def test_a_page_stating_no_permission_does_not_inherit_its_owners(self):
         class _OwnerWithPermission(Plugin):
@@ -1138,8 +967,8 @@ class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
 
         for name in (
             "dataset:overview",
-            "dataset:overview-update",
-            "dataset:overview-descriptions",
+            "dataset:edit",
+            "dataset:descriptions",
             "dataset:overview-delete",
         ):
             url = reverse(name, kwargs={"uuid": dataset.uuid})
@@ -1154,47 +983,9 @@ class TestTheDatasetsPagesContributeExactlyOneNavigationEntry:
 
     def test_update_descriptions_and_deletion_contribute_no_entry_of_their_own(self):
         view_names = _entry_view_names(Dataset)
-        assert "dataset:overview-update" not in view_names
-        assert "dataset:overview-descriptions" not in view_names
+        assert "dataset:edit" not in view_names
+        assert "dataset:descriptions" not in view_names
         assert "dataset:overview-delete" not in view_names
-
-
-@pytest.mark.django_db
-class TestTheDatasetsOwnPageOffersUpdateAndDescriptionsLinks:
-    def test_a_user_who_may_change_the_dataset_is_offered_both_links(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        descriptions_url = reverse(
-            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
-        )
-        assertContains(response, f'href="{update_url}"')
-        assertContains(response, f'href="{descriptions_url}"')
-
-    def test_a_signed_in_user_who_may_not_change_it_is_offered_neither(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
-        descriptions_url = reverse(
-            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
-        )
-        assertNotContains(response, f'href="{update_url}"')
-        assertNotContains(response, f'href="{descriptions_url}"')
 
 
 @pytest.mark.django_db
@@ -1243,9 +1034,9 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
             reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         )
 
-        update_url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        update_url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         descriptions_url = reverse(
-            "dataset:overview-descriptions", kwargs={"uuid": dataset.uuid}
+            "dataset:descriptions", kwargs={"uuid": dataset.uuid}
         )
         assertNotContains(response, f'href="{update_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
@@ -1292,7 +1083,7 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         client.force_login(self._permitted_user(dataset))
 
         response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -1304,7 +1095,7 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         client.force_login(self._permitted_user(dataset))
 
         response = client.get(
-            reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -1335,7 +1126,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
         client.force_login(user)
 
         response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
@@ -1350,7 +1141,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
         client.force_login(user)
 
         response = client.get(
-            reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         )
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
@@ -1397,13 +1188,13 @@ class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
     def test_the_update_page_emits_no_deprecation_warning(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         self._assert_no_deprecation_warning(client, url)
 
     def test_the_descriptions_page_emits_no_deprecation_warning(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         self._assert_no_deprecation_warning(client, url)
 
     def test_the_deletion_page_emits_no_deprecation_warning(self, client):
@@ -1419,13 +1210,13 @@ class TestNoAddressDisclosesAPrivateDatasetsExistence:
     # 404.
     ADDRESSES = (
         "dataset:overview",
-        "dataset:overview-update",
-        "dataset:overview-descriptions",
+        "dataset:edit",
+        "dataset:descriptions",
         "dataset:overview-delete",
     )
     PERMISSION_BEARING_ADDRESSES = (
-        "dataset:overview-update",
-        "dataset:overview-descriptions",
+        "dataset:edit",
+        "dataset:descriptions",
         "dataset:overview-delete",
     )
 

@@ -82,8 +82,27 @@
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pytest tests demo -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:41",
+              "fairdm/core/editing.py:189",
+              "fairdm/core/editing.py:246",
+              "fairdm/core/editing.py:283",
+              "fairdm/templates/cotton/actions/manage.html:5",
+              "fairdm/templates/overview/page.html:115"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T003",
