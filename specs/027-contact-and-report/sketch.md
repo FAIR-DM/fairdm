@@ -26,8 +26,8 @@ default, then a Manage menu for people with rights. Projects, datasets and sampl
 menu. Measurements have none yet. A person's page carries a Contact button that is disabled and
 says it is not available. Notices go above the header in `overview.notices`.
 
-**What is missing.** There is no dropdown of actions open to any visitor. That is specification
-021 (#401). The portal sends email for sign-in and nothing else, and it has no record of messages
+**What is missing.** There is no dropdown of actions open to any visitor. This feature draws one
+for its own two actions. The portal sends email for sign-in and nothing else, and it has no record of messages
 or reports. The portal-wide contact page writes to the people running the portal and is a
 different thing.
 
@@ -74,12 +74,10 @@ different thing.
 
 ## What the sketch faked
 
-- The actions dropdown. Specification 021 (#401) delivers it, and the way a plugin declares
-  itself an action. Here it is one component, `c-actions.page`, drawn by the shared overview
-  template from a template tag that knows only about these two actions. Its label, its icon and
-  its place in the header are stand-ins for whatever 021 settles.
-- Contact and Report a problem as plugins. They are registered as ordinary plugins kept out of
-  the tab strip. Removing or replacing one, which the specification requires, is not possible yet.
+- Nothing about the actions dropdown. It is one component, `c-actions.page`, drawn by the shared
+  overview template from a template tag that knows only about these two actions, and that is how
+  it is meant to be built. Contact and Report a problem are ordinary plugins kept out of the tab
+  strip.
 - A measurement's Manage menu. Measurements have none until #404. The sketch draws one that
   holds only the reported-problems entry.
 - Who may edit. The recipients and the list read the grants that exist today. Specification

@@ -321,8 +321,10 @@ administration interface.
   and on no other record's page.
 - **FR-002**: Report a problem MUST be a page action on dataset, sample and measurement pages,
   including every registered sample and measurement type, and on no other record's page.
-- **FR-003**: Both MUST be contributed as page actions in the way #401 defines, so that a portal
-  or an addon can remove or replace either one.
+- **FR-003**: The page actions of a record MUST be offered together in one dropdown in the header
+  of its overview, open to any visitor and separate from the Manage menu. FairDM writes the
+  dropdown's entries itself. The dropdown MUST NOT be shown when it would hold nothing for this
+  visitor.
 - **FR-004**: Each action MUST be offered only on a record the visitor may open, and a request for
   its page on a record the visitor may not open MUST be refused in the same way the record is.
 - **FR-005**: The contact action specification 019 shows on a person's page as not available MUST
@@ -431,8 +433,6 @@ administration interface.
 - **FR-044**: The documentation for portal administrators MUST say who receives each kind of
   message, what the portal records, how the daily limit is set, and that sending needs outgoing
   email to be configured.
-- **FR-045**: The documentation for portal developers MUST say how a portal or an addon removes or
-  replaces either action.
 
 ### Requirements by user story
 
@@ -456,8 +456,8 @@ administration interface.
   reported problem. Always a person, never an organization.
 - **Contact Person**: the contribution role that names who to write to about a project or dataset.
   It decides who receives a Contact message and gives its holder no rights.
-- **Page action**: an entry in the dropdown of actions open to any visitor on a record's page,
-  as #401 defines it. Contact and Report a problem are both page actions.
+- **Page action**: an entry in the dropdown of actions open to any visitor on a record's
+  overview. FairDM writes the entries itself, and Contact and Report a problem are the two it has.
 - **Manage menu**: the menu shown only to people with rights over a record. The entry for reported
   problems lives there.
 
@@ -485,10 +485,9 @@ administration interface.
 
 ## Assumptions
 
-- The page actions dropdown, and the way a plugin contributes an entry to it, are delivered by
-  #401 before this is built. This specification assumes only what that request states: a dropdown
-  open to any visitor on project, dataset, sample, measurement, person and organization pages,
-  separate from the Manage menu, where what is hidden is also refused.
+- This feature draws the page actions dropdown itself, for the two actions it ships. There is no
+  way for a portal or an addon to add an action to it, take one away or replace one. A request for
+  that (#401) was decided against until developers building on FairDM need it.
 - "May edit the record" means whatever the portal's access rules say when the message is sent.
   When #402 lets a team set permissions per contributor, the recipients follow those permissions
   with no change here.
@@ -498,7 +497,7 @@ administration interface.
   can an organization's owner and administrators. A setting for this belongs with the privacy
   settings a later specification covers.
 - The choices for what a message is about are the ones FairDM ships. A portal that wants others
-  replaces the action.
+  changes them in its own project.
 - A Contact message has no thread in the portal. The conversation continues by email. Discussion
   on a record is left to an addon.
 - Reports are not public. A public list of known problems on a dataset would be a different

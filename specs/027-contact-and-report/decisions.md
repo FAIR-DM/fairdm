@@ -134,7 +134,7 @@ there is no data or specimen to ask about.
 
 Specification 019 put a contact action on a person's page marked as not available. The plan in
 #397 lists Contact as a page action. This specification requires one working action on the page
-and leaves where it sits to #401, which owns the dropdown.
+and puts it in the dropdown of page actions this feature draws.
 
 ## Sample pages do not get Contact
 
