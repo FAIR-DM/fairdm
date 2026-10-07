@@ -3,7 +3,7 @@
   "feature": "021-plugin-actions-and-cards",
   "branch": "021-plugin-actions-and-cards",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "ABANDONED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-06T23:50:49Z",
       "note": "review exit green; walkthrough laid out"
+    },
+    {
+      "state": "ABANDONED",
+      "at": "2026-10-07T07:15:16Z",
+      "note": "maintainer decided against the feature at the merge gate: template extension and hard-coded actions cover the need; pull request closed unmerged"
     }
   ],
   "gates": {
