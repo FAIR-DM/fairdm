@@ -3,7 +3,7 @@
   "feature": "024-shared-editing-pages",
   "branch": "024-shared-editing-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-07T19:20:15Z",
       "note": "design review applied; plan gate open; story 1 next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-07T21:17:15Z",
+      "note": "all four stories accepted"
     }
   ],
   "gates": {
@@ -189,6 +194,22 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n auto"
+            ],
+            "code": [
+              "fairdm/core/editing.py:342"
+            ]
+          }
         }
       ]
     },
@@ -329,7 +350,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {

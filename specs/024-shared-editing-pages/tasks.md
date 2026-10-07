@@ -149,3 +149,10 @@ This story also lays what the others stand on: the module, the access rule and t
   readiness keywords item leads to the page.
 - [ ] T012 [US4] Documentation: the keywords page in `record-editing-pages.md`, saying it is
   replaced by #298; `CHANGELOG.md`.
+
+## Phase 5: After the stories
+
+- [ ] T013 [US2] Draw the rows of the key dates and identifiers pages as a table
+  (`fairdm/templates/editing/rows.html`), fill in the user guide pages for a sample's and a
+  measurement's key dates and descriptions, mark the free keywords label for translation, and
+  remove the examples in `demo/plugins.py` that used the removed base classes.
