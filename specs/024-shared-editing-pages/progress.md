@@ -104,3 +104,10 @@ Did: docs/portal-development/record-editing-pages.md now lists the keywords page
 Verified: no em dash in the changed documents, checked with grep on the diff; the docs build runs in the full verify.
 Next: full verify, then the completion report.
 Watch: demo/plugins.py still names DeletePlugin and UpdatePlugin in its module docstring (story 3's note).
+
+## 2026-10-07T21:33:34Z · Implementer FIX1 · T014
+
+Did: DeleteRecord now drops the record's own base row from what goes with a sample or measurement, and drops every sample relationship that reaches a sample the viewer may not see, counting them in the new related_unlisted context entry that delete_record.html draws as a count. Tests added to TestDeleteRecord: the record is not listed (sample, measurement), a hidden sample is absent by name and portal ID whether it is source or target and is counted, a visible related sample is listed. The portal-development page says so.
+Verified: uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 gave 32 passed; the four new tests failed before the change (the record listed, the hidden name on the page, no related_unlisted key); uv run pre-commit run --files on the changed files passed.
+Next: T015, tests only.
+Watch: related_unlisted is 0 on a protected page, which lists no related rows.
