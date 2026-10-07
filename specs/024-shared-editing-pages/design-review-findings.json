@@ -1,0 +1,127 @@
+{
+  "lens": "spec-compliance",
+  "stage": "design",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Design review of specs/024-shared-editing-pages (plan.md, tasks.md, research.md, decisions.md) against the approved spec.md; no diff. One reviewer, three lenses in order: spec-compliance (SPEC-), security (SEC-), architecture (ARCH-). The schema has one top-level lens, so each finding's lens is its id prefix. Read in full: spec.md, plan.md, tasks.md, research.md, decisions.md, design-review-brief.json, docs/adr/0008 and 0012, fairdm/contrib/plugins/{base,access,registration,checks,mixins}.py, fairdm/core/plugins.py, fairdm/core/sample/plugins.py, fairdm/core/measurement/plugins.py, fairdm/contrib/contributors/{access,permissions}.py, fairdm/core/related_records.py, fairdm/core/descriptions.py, fairdm/contrib/generic/plugins.py, fairdm/permissions.py, fairdm/core/permissions.py, mvp/views/inline.py, mvp/templates/form_view.html, delete_view.html, cotton/form/index.html and render.html (installed django-mvp 0.26.0). Read in part: fairdm/core/project/plugins.py:1-330, fairdm/core/dataset/plugins.py:1-330, fairdm/contrib/contributors/plugins/shared.py:300-420 and 880-930 (ContributionPage.dispatch, the four-model registration), fairdm/registry/config.py:500-580, fairdm/registry/factories.py:55-180, fairdm/contrib/generic/forms.py:130-323, fairdm/core/sample/forms.py and measurement/forms.py (the two form mixins), fairdm/core/managers.py:137-162 (visible_to), fairdm/core/overview.py:17-30, fairdm/apps.py, fairdm/conf/settings/{apps,auth}.py, fairdm/views/base.py:165-215, mvp/views/edit.py:431-700 (MVPDeleteView), mvp/views/detail.py:150-180, the overview.actions blocks of the project, dataset and sample templates and fairdm/templates/overview/page.html:105-140, CONSTITUTION.md articles II, III and V, docs/contributing/standards/testing.md section 1, CONTEXT.md headings and the level entry, docs/adr/0025 by title only. Not read: the demo app's registrations and forms, the existing test modules beyond three guard tests. Both sides checked for each rule relied on: plan D2 step 1 (global grant or grant on the record) and step 3 (grant on the record only), each against a level, a shipped portal role (PortalRolePermissionBackend) and a direct model-level grant, on a visible and on a hidden record, for project/dataset (visible_to_holder_of plus permission) and for sample/measurement (visible_to); checks.py name, segment and URL-name clashes for a top-level registration against the overview's additional views; mvp delete on GET and on POST, for RESTRICT/PROTECT and for the project's pre_delete signal; mvp rows-only on fields=() and on fields=None.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SPEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance, demonstrability] Plan D4 and D7 put a form that carries a crispy helper with form_tag left on inside django-mvp's form_view.html, which renders a second <form> element inside the page's own. The only guard the plan names is a test that the page draws one Save control. That test passes in a state where the page cannot be saved from a browser, and the Django test client cannot tell the difference, so US-1 scenario 3 (FR-019) and SC-006 have no working test seam on a registered sample or measurement type, and US-4 scenario 3 has none on any record type.",
+      "evidence": "fairdm/registry/factories.py:93-97: the generated form's __init__ replaces the helper with a fresh FormHelper() (form_tag defaults to True) and adds Submit('submit', 'Save'), overwriting the form_tag = False that SampleFormMixin sets at fairdm/core/sample/forms.py:97-98. fairdm/contrib/generic/forms.py:205-206: KeywordForm sets FormHelper() with a form_id and no form_tag = False. mvp/templates/cotton/form/render.html:3-5: a form with a helper is rendered through {% crispy form %}, and the template's own comment says the helper must set form_tag = False or the tag renders a nested <form>. mvp/templates/form_view.html:17-51 and cotton/form/index.html: that output sits inside the page's <form>, and the page's Save buttons come after it in the slot. A browser ignores the nested opening tag and honours its closing tag, so the outer form ends before mvp's buttons and they submit nothing. plan.md D4 says only 'The page must draw exactly one Save control, and a test asserts it'; D7 does not mention the helper. An implementation that removes the helper's Submit and leaves form_tag on satisfies T001 and leaves the page with no working Save. ProjectForm and DatasetForm already set form_tag = False (fairdm/core/project/forms.py:88-89, fairdm/core/dataset/forms.py:110), so only the registry-built form and KeywordForm are affected.",
+      "reproduction": "Open the details page of a demo sample type that has no form of its own (the SC-006 case) in a browser, with the helper's Submit removed and form_tag untouched: the response contains two <form> opening tags and the page's Save buttons sit after the first </form>. A test-client POST to the same address still saves.",
+      "suggested_fix": "plan.md D4: replace the sentence about one Save control with 'Where the form carries a crispy helper, the page sets helper.form_tag = False and empties helper.inputs before drawing it, so django-mvp's own form element and Save buttons are the only ones.' plan.md D7: say the same of KeywordForm's helper. tasks.md T001 (TestEditDetails) and T010 (TestEditKeywords): assert the response holds exactly one <form> element and that the page's submit control is inside it, in place of counting Save controls."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance, ordering] Plan D9 removes the project and dataset overviews' crud_views entries in US-3, but two of the three name pages US-1 removes. As written, the tree is not green at the US-1 boundary: the project and dataset overview pages raise for anyone who may change the record.",
+      "evidence": "fairdm/core/project/plugins.py:254-276 and fairdm/core/dataset/plugins.py:285-315: Overview.directory lists update, delete and descriptions, crud_views maps them to project:overview-update, project:overview-delete and project:overview-descriptions, and show_update_action and show_descriptions_action read Update.permission and Descriptions.permission. mvp/views/detail.py:150-173: resolve_crud_url reverses the name of every shown action and lets NoReverseMatch propagate, by design. plan.md D9 row US-1 removes Update and Descriptions from both overviews; row US-3 is where 'crud_views entries that name the old pages' go. After US-1 the two classes are gone (a NameError in show_update_action) or, with the permission written out, the two names no longer reverse (NoReverseMatch) on every overview request by an edit-level person. The same rows also remove 'the hand-written menus' in US-1, while D3 lists only registered pages, so between US-1 and US-3 the project and dataset menus carry no delete entry although the old delete page is still mounted, and the sample's key dates page is unreachable from its menu until US-2.",
+      "suggested_fix": "plan.md D9: move the update and descriptions entries of directory and crud_views, and show_update_action and show_descriptions_action, on the project and dataset overviews into row US-1. Leave the delete entry and show_delete_action in row US-3, and remove CRUDDirectoryMixin from both overviews there, since nothing is left for it to do. plan.md D3: say that until US-3 the project and dataset templates pass their existing delete item through the component's slot, and until US-2 the sample template passes its key dates item the same way, so no entry disappears between stories. tasks.md T002, T005 and T008 follow those rows."
+    },
+    {
+      "id": "SEC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security, data exposure] Plan D8's delete page for a sample 'lists' the measurements that protect it, using django-mvp's protected-objects list. That list is every restricting measurement, including one that belongs to another team's private dataset, which the sample's own page deliberately hides from this viewer.",
+      "evidence": "mvp/views/edit.py:527-534: _collect_deletion_data returns every object behind a RestrictedError with no reference to the viewer, and get_context_data (around :653) puts them in protected_objects. mvp/templates/delete_view.html:17-19 prints each as {{ obj }}. fairdm/core/measurement/models.py:98-103: str(measurement) is its value, else its name. fairdm/core/sample/plugins.py:218-234: the sample overview shows a measurement 'only if the viewer may see its own dataset, and being on the sample's dataset team opens nothing else', through Measurement.objects.visible_to(user). spec.md edge cases confirm a measurement may sit in a different dataset from its sample. Scenario: a person at manage level on dataset A opens the delete page of a sample in A that has a measurement recorded in private dataset B, where they hold no level. The page prints that measurement's value. CONSTITUTION.md Article V (privacy and protection of research data) and the rule FR-014 states for the six pages. The dataset delete page has the same behaviour today through the same list; that is outside this feature.",
+      "suggested_fix": "plan.md D8, 'Protection on GET': a sample's page names the measurements in Measurement.objects.visible_to(request.user), by record_name, and gives a count for the rest. tasks.md T007, scenario 7: one more case, a restricting measurement in a dataset the viewer holds no level on is counted and not named. Nothing else in D8 changes."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance, research premise] Research finding 14 says django-mvp's delete page 'does not catch either error on POST'. For RESTRICT and PROTECT it does: the installed view checks protection again on POST before it validates the form. D8's form_valid needs to catch only the project's own PublicDatasetsProtect.",
+      "evidence": "mvp/views/edit.py:687-694: MVPDeleteView.post re-runs _collect_deletion_data and, if anything protects the record, renders the page in its protected state without calling form_valid. PublicDatasetsProtect is raised from a pre_delete receiver, which the collector does not run, so it is the one case that reaches form_valid, as the existing fairdm/core/project/plugins.py:182-189 already handles. plan.md D8 'Protection on POST' catches PublicDatasetsProtect, ProtectedError and RestrictedError.",
+      "suggested_fix": "plan.md D8: 'Protection on POST (FR-032): django-mvp refuses a restricted or protected record on POST itself. form_valid catches PublicDatasetsProtect and draws the page again.' Correct research.md finding 14 to match. T007 scenario 9 keeps both cases; the sample case needs no code."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance, research premise] Research finding 1 reads 'Plugin.get_urls binds the model per mount' as enough for an update or delete view registered on four models. It binds registered_model, not the view's model, and three of the four models have no all_objects manager, so the view cannot resolve its record unless the plan says how.",
+      "evidence": "fairdm/contrib/plugins/base.py:116-121 passes registered_model to as_view. base.py:190-198: Plugin.get_queryset falls back to the view class's own get_queryset when the model has no all_objects; only Dataset has one (fairdm/core/dataset/models.py:246; fairdm/core/sample/models.py:130, measurement/models.py:50 and project/models.py:102 declare objects alone). With model unset, SingleObjectMixin.get_queryset raises ImproperlyConfigured. fairdm/core/sample/plugins.py:347 records the same trap ('SingleObjectMixin.get_queryset() needs this to resolve the record'). ContributionList, the precedent the research cites, is a template view and never calls get_object. mvp/views/edit.py:689 calls get_object on every delete POST. T001 would fail on its first run, which is why this is low.",
+      "suggested_fix": "plan.md D2, in the paragraph on what the base class supplies: 'get_object() returns base_object, so no page depends on a model attribute.' No task changes."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[security, authorisation] The access rule in D2 is sound on both arms and matches today's project and dataset pages. It does take one right away on samples, which SC-007 and FR-012 read literally forbid: a person holding sample.change_sample only as a direct model-level grant can open the sample edit and key dates pages of an unreleased sample today and gets 404 under D2. The fault is a tension inside spec.md between FR-012 and FR-014, not a plan defect, and the plan's choice is the safer one.",
+      "evidence": "Checked: fairdm/core/project/plugins.py:69-95 and :110-121 (check = visible_to_holder_of(perm), permission = perm) against D2 steps 1-4, for a level, a shipped portal role (fairdm/permissions.py:36-56 answers on the record) and a direct model-level grant, on a public and on a private record. Each lands where it does today, except that a viewer who may see a private record and not use the page now gets 403, which FR-013 asks for. fairdm/core/sample/plugins.py:324-371: the four sample pages state a permission and no visibility rule, so a model-level holder is admitted on any sample. Under D2 step 3 that person neither sees the sample (fairdm/core/managers.py:154-162) nor holds the permission on the record, so the answer is 404, as FR-014 requires. A Data Curator is unaffected (shipped role, and visible_to admits a portal-wide dataset right). plan.md D2 notes the added visibility step in one clause; decisions.md does not record it against FR-012.",
+      "suggested_fix": "No plan edit. decisions.md, planning decision D2: add that on samples a direct model-level grant with no level on the record no longer opens the pages of a sample the holder cannot see, that FR-014 is taken over a literal reading of FR-012, and that this is the rule project and dataset pages already apply. Put that one line to Sam with the plan, since it is the spec's own two requirements pulling apart."
+    },
+    {
+      "id": "SPEC-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance, demonstrability] FR-010 has a test seam for two prompts only. The readiness checklist items that T002, T005 and T011 repoint have none, and a wrong name there fails silently.",
+      "evidence": "tasks.md T001 TestOverviewPrompts covers the missing-description and visibility prompts. T002 repoints 'the readiness checklists of the project and dataset overviews', T005 the date and identifier items, T011 the keywords item; T004 and T010 list no assertion for them. fairdm/core/overview.py:17-30: safe_reverse returns None where no route matches, and fairdm/core/project/plugins.py:578-583 says an item with no address 'carries no link', so a mistyped or stale URL name yields a checklist item with no link and a green suite. Link targets are in the tested list of docs/contributing/standards/testing.md section 1.",
+      "suggested_fix": "tasks.md T001, T004 and T010: add to TestOverviewPrompts, in each story, that the readiness items the story repoints carry the shared page's address, read from the overview's context on a project and a dataset."
+    },
+    {
+      "id": "SPEC-006",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[spec-compliance, spec fault] FR-033 sends a person who deletes a sample or a measurement to its dataset. A person whose manage level is held on the sample alone cannot see a private dataset, so they land on a 404. This is in spec.md, not the plan.",
+      "evidence": "spec.md FR-033 and US-3 scenario 5; plan.md D8 'Landing' follows it. fairdm/core/managers.py:140-142: 'Someone listed only on one record sees that record and not its siblings', and a level never flows upward (CONTEXT.md:72-75). fairdm/core/dataset/plugins.py:52-70 and PrivateRecordNotFoundMixin answer 404 to that person on the dataset. Not exercised by a test here; it needs a contribution at manage level made directly on a sample.",
+      "suggested_fix": "No plan edit. Record it in decisions.md as a known edge, for Sam to rule on if it matters: the fallback would be the dataset list when the deleter cannot open the dataset."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture, ordering] D1 leaves open where fairdm/core/editing.py is imported, and it will not be discovered on its own. Separately, the two date-ordering row sets are needed by EditDetails in US-1 and are scheduled to move in US-2.",
+      "evidence": "fairdm/apps.py:58 discovers modules named plugins in installed apps. fairdm/conf/settings/apps.py:37-40 installs fairdm.core.project, .dataset, .sample and .measurement, not fairdm.core, so neither fairdm/core/editing.py nor fairdm/core/plugins.py is discovered directly. plan.md D1: 'imported where plugin discovery reaches it'. plan.md D4 keeps the identifier and date row sets on EditDetails until US-2; those are ProjectDatesInline (fairdm/core/project/plugins.py:98-107) and DatasetDatesInline (fairdm/core/dataset/plugins.py:97-107), which D6 and T005 move to related_records.py in US-2. In US-1, editing.py would import both plugins modules for them while those modules reach editing.py through RecordOverviewPlugin.",
+      "suggested_fix": "plan.md D1: name the one import, for example at the foot of fairdm/core/project/plugins.py, the first of the four apps to load. plan.md D6 and tasks.md: move the two date-ordering subclasses into fairdm/core/related_records.py in T002, not T005."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture, simplicity] D6's rule that 'a row a model refuses on save must come back as an error on the page', and the T004 test line for it, trace to no requirement and cannot be reached through the page.",
+      "evidence": "plan.md D6 and tasks.md T004 ('a row the model refuses comes back as an error on the page and not as a server error'). fairdm/core/measurement/models.py:188-196: VocabularyGuardedSave.save refuses a type outside the vocabulary. fairdm/core/abstract.py:347-349 sets the type field's choices to the vocabulary on every subclass, so the row's model form refuses that value in validation before save() is called. No FR or acceptance scenario asks for it.",
+      "suggested_fix": "Drop the paragraph from plan.md D6 and the test line from tasks.md T004. If a guard is wanted, the existing line already covers it once reworded as 'a type outside the vocabulary is refused by the row's form', which needs no code."
+    },
+    {
+      "id": "ARCH-003",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture, seams] D8 gives every record type django-mvp's raw related-objects preview and keeps a summary for datasets only. A project's deletion cascades through every dataset, sample and measurement, which is the case the dataset summary was written to avoid.",
+      "evidence": "plan.md D8 'What goes with it'. fairdm/core/dataset/models.py:297-302: Dataset.project cascades. fairdm/core/dataset/plugins.py:203-259: the dataset page caches the collector walk and replaces the preview with counts by type because the full list 'would run to thousands of lines'. The project delete page shows no preview today (fairdm/core/project/plugins.py:149-189 sets no show_related_objects). mvp/views/edit.py:518-553 loads every cascaded row on each GET.",
+      "suggested_fix": "plan.md D8: the summary by type is what a project and a dataset both show, from one method on DeleteRecord. A sample and a measurement use django-mvp's preview as planned."
+    }
+  ],
+  "notes": [
+    "The findings schema allows one top-level lens. All three lenses were run; each finding's lens is its id prefix and the bracket at the start of its claim.",
+    "research.md finding 14 cites fairdm/core/measurement/models.py:70 for the RESTRICT rule; it is at :75.",
+    "decisions.md 'For Sam to confirm' item 6 still describes the right to delete as uneven; planning decision D1 lower in the same file says it no longer is. Edit item 6 to the current state.",
+    "plan.md D2 does not say how it sits with ADR 0012 (every page states its own permission and visibility rule). The new ADR 0026 should say that each page states its access and that the rule lives on the class the page inherits, not on an owning page.",
+    "plan.md D11 and T003: the CHANGELOG entries should name the removed public classes (UpdatePlugin, DeletePlugin, KeywordsPlugin, DescriptionsPlugin, KeyDatesPlugin) as well as the removed addresses, since fairdm/core/plugins.py documents the first two for portal developers to subclass.",
+    "plan.md D4 'request is passed when the form's constructor accepts it': a portal's own form that forwards **kwargs unchanged to ModelForm would be handed request and raise. Worth one line saying how acceptance is decided.",
+    "plan.md D3 and research finding 6 say nothing else is in the Manage menu today, so FR-009 has nothing to test; the dataset's Publish control and the project's Add dataset button sit beside the menu, not in it, and the plan keeps them.",
+    "plan.md D6 applies FR-026 to projects and datasets only. The measurement vocabulary has Setup and TearDown, which the plan does not treat as a start and an end; say so in D6 so the reading is on record.",
+    "tasks.md T001 TestEditDescriptions does not assert the return to the record's page or the saved message (FR-019) for the descriptions page; TestEditDetails does for details.",
+    "docs/adr/0008 and tests/test_core/test_project/test_plugins.py:346-365 and test_dataset/test_plugins.py:204-217 assert that exactly one page offers a record's own attributes and that it is Update; they are among the existing tests T002 rewrites."
+  ]
+}

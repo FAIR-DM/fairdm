@@ -45,23 +45,30 @@ This story also lays what the others stand on: the module, the access rule and t
     stores the value, on all four (3); an invalid save stores nothing, reports the error on the
     field and keeps the other values (4, FR-018); a demo sample type's page offers its type's
     fields with their current values and no `dataset` field, and a demo measurement type's offers
-    neither `dataset` nor `sample` (5, FR-017); the page of a registry-built form draws one Save
-    control; an edit-level person is not offered visibility on a project or a dataset and a
+    neither `dataset` nor `sample` (5, FR-017); the page of a registry-built form holds exactly one
+    `<form>` element and its submit control is inside it; an edit-level person is not offered visibility on a project or a dataset and a
     manage-level person is.
   - `TestEditDescriptions`: one area per type in the record's vocabulary, filled with what is
     recorded, on all four (7, FR-020); filling an area records it and emptying one removes it (8,
-    FR-021).
+    FR-021); a save returns to the record's page with a success message (FR-019).
   - `TestOverviewPrompts`: the prompt for a missing description and the prompt to change
-    visibility on a project and a dataset lead to the shared pages (12, FR-010).
+    visibility on a project and a dataset lead to the shared pages (12, FR-010); the readiness
+    items this story repoints carry the shared page's address, read from the overview's context on
+    a project and a dataset.
 - [ ] T002 [US1] Implement to make T001 pass (plan D1 to D5, D9 row US-1, D10):
   - `fairdm/core/editing.py`: `RecordEditingPage`, `EditDetails`, `EditDescriptions`,
-    `manage_menu`, registered on the four models and imported where plugin discovery reaches it
+    `manage_menu`, registered on the four models and imported at the foot of
+    `fairdm/core/project/plugins.py`
+  - the two date-ordering row sets move from the project and dataset plugin modules into
+    `fairdm/core/related_records.py`
   - `<c-actions.manage>`, used on all four overview pages. `RecordOverviewPlugin` adds
     `manage_menu` to the context
-  - remove `Update` and `Descriptions` from the project and dataset overviews, `Edit` and
+  - remove `Update` and `Descriptions` from the project and dataset overviews with their
+    `directory` and `crud_views` entries and the two `show_*_action` methods, `Edit` and
     `Descriptions` from the sample, `UpdatePlugin`, `DescriptionsPlugin` and the templates only
     they used. `EditDetails` keeps the identifier and date row sets on a project and a dataset
-    until US-2
+    until US-2. The project and dataset menus keep their delete item, and the sample menu its key
+    dates and keywords items, through the component's slot
   - repoint the overview prompts and the readiness checklists of the project and dataset overviews
   - bring the existing tests of the removed pages up to date, as the heading of this file says
 - [ ] T003 [US1] Documentation: `docs/portal-development/record-editing-pages.md`, new and linked
@@ -80,18 +87,19 @@ This story also lays what the others stand on: the module, the access rule and t
   - `TestEditKeyDates`, over the four record types: the page offers the date types of the record's
     vocabulary and shows the dates recorded (2); adding, changing and removing a date is stored
     (3); on a project and a dataset an end before the start stores nothing and reports which date
-    is wrong (4, FR-026); a year-only date is stored and read back as year-only (5, FR-027); a row
-    the model refuses comes back as an error on the page and not as a server error.
+    is wrong (4, FR-026); a year-only date is stored and read back as year-only (5, FR-027).
   - `TestEditIdentifiers`, over the four record types: the page offers the identifier types of the
     record's vocabulary and shows those recorded (6); adding, changing and removing is stored (7);
     the record's portal ID is not among the rows and cannot be changed through the page (8,
     FR-029).
   - `TestEditDetails`: the details page of a project and a dataset carries no date and no
     identifier rows (9, FR-016).
+  - `TestOverviewPrompts`: the readiness items for dates and identifiers carry the new pages'
+    addresses.
   - `tests/test_core/test_related_records.py`: the four new row-set classes are capped at one row
     per type.
 - [ ] T005 [US2] Implement to make T004 pass (plan D6, D9 row US-2, D10): the four row-set classes
-  and the two date-ordering subclasses in `fairdm/core/related_records.py`; `EditKeyDates` and
+  in `fairdm/core/related_records.py`; `EditKeyDates` and
   `EditIdentifiers`; the row sets leave `EditDetails`; remove the sample `KeyDates` page,
   `KeyDatesPlugin` and its template; the readiness items for dates and identifiers lead to the new
   pages; existing tests of the row sets on the old details page move to the new pages.
@@ -109,14 +117,17 @@ This story also lays what the others stand on: the module, the access rule and t
   - `TestDeleteRecord`: GET deletes nothing and lists what goes with the record (3, 4, FR-030); a
     POST without the right confirmation deletes nothing; confirming a sample or a measurement
     deletes it, lands on its dataset and sets a message (5); confirming a dataset or a project
-    lands on its list page with a message (6); a sample with measurements shows them and has no
-    confirmation form (7); a project with a public dataset shows those datasets and has no
+    lands on its list page with a message (6); a person who may not open the dataset lands on the
+    dataset list after deleting a sample; a sample with measurements shows them and has no
+    confirmation form, and a measurement in a dataset the viewer holds no level on is counted and
+    not named (7); a project with a public dataset shows those datasets and has no
     confirmation form (8); a POST for a record that became protected deletes nothing and answers
     with the page in its protected state (9, FR-032); a measurement without a name is confirmed by
     its portal ID.
 - [ ] T008 [US3] Implement to make T007 pass (plan D8, D9 row US-3): `DeleteRecord`; remove
-  `Delete` from the project and dataset overviews, `DeletePlugin`, and the `crud_views` entries
-  that name removed pages; existing tests of the old delete pages are brought up to date.
+  `Delete` from the project and dataset overviews, `DeletePlugin`, the remaining `crud_views`
+  entries, `show_delete_action` and `CRUDDirectoryMixin` on both overviews, and the delete items
+  the templates passed through the menu's slot; existing tests of the old delete pages are brought up to date.
 - [ ] T009 [US3] Documentation: the delete page in `record-editing-pages.md`; the user guide pages
   for deleting a project and a dataset; `CHANGELOG.md`.
 
@@ -128,7 +139,9 @@ This story also lays what the others stand on: the module, the access rule and t
     (FR-006), and that all 24 combinations are offered to a manage-level person (SC-001).
   - `TestEditKeywords`, over the four record types: the keywords a record carries are shown as
     chosen (2); adding and removing is stored and shown on the record's page (3); the page opens
-    and saves on a record type with no keyword vocabulary configured (4, FR-023).
+    and saves on a record type with no keyword vocabulary configured (4, FR-023); the page holds
+    exactly one `<form>` element with its submit control inside it.
+  - `TestOverviewPrompts`: the readiness keywords item carries the page's address.
   - `tests/test_contrib/test_generic/test_forms.py`: building `KeywordForm` for two different
     models leaves each bound to its own.
 - [ ] T011 [US4] Implement to make T010 pass (plan D7, D9 row US-4, D10): `EditKeywords`; the

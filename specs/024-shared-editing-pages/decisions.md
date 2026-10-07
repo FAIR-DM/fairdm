@@ -37,10 +37,9 @@ written on the reading given here. If any is wrong, it is one requirement to cha
    still be deleted by someone with the right, as it can be today through other routes. The glossary
    says publication constrains deletion. If a public dataset should also protect its samples and
    measurements, that is a requirement to add here (FR-031).
-6. **The right to delete is left as it stands, and it is uneven.** Deleting a sample needs the right
-   to change its dataset. Deleting a measurement needs the right to delete its dataset. The
-   specification does not align them (FR-012), because who may do what on a record is #402's
-   subject. It is listed here so the difference is a known one.
+6. **The right to delete is the one the portal checks.** Deleting any of the four record types
+   needs the manage level, which specification 022 settled. The specification does not change it
+   (FR-012).
 
 ## Rights are the ones the portal checks today
 
@@ -114,6 +113,10 @@ record. A signed-in viewer who may see it is refused with 403, and a visitor is 
 **Why:** FR-013 and FR-014 draw that line. The project and dataset pages answer 404 to every
 refusal on a private record today, and specification 022 (its D29) left that to be revisited when
 these pages were rebuilt.
+On a sample the old pages asked only for the permission, so a person granted
+`sample.change_sample` for the whole portal, with no level on a record, could open the pages of a
+sample they could not see. They now get 404. FR-014 is taken over a literal reading of FR-012 here,
+and it is the rule the project and dataset pages already apply. A Data Curator is unaffected.
 **Revisit if:** a refusal is found to reveal something the record's own page does not.
 
 **ADR:** docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md
@@ -159,3 +162,17 @@ marked ready.
 **Revisit if:** #383 changes the overview's actions block.
 
 **ADR:** none — an ordering note for this run
+
+## D7. The design review's findings, and what was done with each
+
+One reviewer read the plan through three lenses before any code was written. One finding was high:
+a form built by the registry draws its own form element, which would have left the page's Save
+buttons outside any form. The plan now turns that off (D4, D7 of the plan). The others changed the
+order in which old code is removed so no story leaves a broken page, limited the measurements a
+sample's delete page names to those the viewer may see, and removed one test nothing asked for.
+
+One edge is recorded and built the simple way: a person who holds the manage level on a sample
+alone, and no level on its dataset, lands on the dataset list after deleting it, because they may
+not open the dataset.
+
+**ADR:** none — review record for this feature
