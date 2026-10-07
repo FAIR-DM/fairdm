@@ -97,3 +97,10 @@ Existing tests changed, with why:
 Verified: uv run pytest tests/test_core/test_editing.py::TestEditKeywords -q -n0 gave 20 passed; uv run pytest tests/test_core tests/test_contrib/test_generic tests/test_contrib/test_plugins tests/test_templates -q -n auto --dist loadscope gave 2142 passed, 1 failed (the project readiness test above, fixed and re-run: 115 passed in tests/test_core/test_project/test_plugins.py); uv run pre-commit run --all-files passed.
 Next: T012, documentation.
 Watch: the project keywords default (FAIRDM_PROJECT) offers the fairdm-roles vocabulary; the sample and measurement settings do not exist in the shipped defaults, so those pages show the free-text field alone.
+
+## 2026-10-07T21:06:51Z · Implementer US4 · T012
+
+Did: docs/portal-development/record-editing-pages.md now lists the keywords page in the page table, the addresses and URL names and the menu order, says all six pages are on every record type, and has a Keywords section covering the four settings, the free keywords field and the fact that the page is to be replaced by #298. docs/portal-development/overview-pages.md lists the sample's pages in menu order. The project and dataset about pages in the user guide no longer say Edit details covers dates and identifiers, and list the keywords, key dates and identifiers entries. The two update pages point to Edit keywords. The sample and measurement keywords pages, which said "Coming soon", are written. CHANGELOG.md has an Added entry for the page, a Removed entry naming the sample Keywords plugin and KeywordsPlugin, and a Fixed entry for KeywordForm.
+Verified: no em dash in the changed documents, checked with grep on the diff; the docs build runs in the full verify.
+Next: full verify, then the completion report.
+Watch: demo/plugins.py still names DeletePlugin and UpdatePlugin in its module docstring (story 3's note).
