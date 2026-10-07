@@ -3,7 +3,7 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
-## 024 - A record's editing pages are six shared pages
+## 024 - Upgrading to the shared editing pages
 
 A project, a dataset, a sample and a measurement are now edited and deleted through six pages
 that are written once and registered on all four: edit details, descriptions, keywords, key
