@@ -340,3 +340,38 @@ removes, or to one that reversed its URL name. The list in `progress.md` under T
 class. The one reversal of behaviour is the 403 that decision D2 records.
 
 **ADR:** none — a record of a check on this feature's tests
+
+## D23. The helper reset moves onto the shared page base so the keywords page reuses it
+
+**Decision:** the two lines in `EditDetails.get_form` that turn off a crispy helper's form tag and
+empty its buttons are now `RecordEditingPage.without_form_tag`, and `EditDetails` and
+`EditKeywords` both call it.
+**Why:** the brief asks for the keywords page to treat its helper as the details page does and not to
+write a second copy. The details page had the reset inline, not as a function, so it was lifted
+unchanged.
+**Revisit if:** a page needs a different helper treatment.
+
+**ADR:** none, a refactor inside the module
+
+## D24. The keywords form shows and saves free-text keywords as well as vocabulary ones
+
+**Decision:** `KeywordForm` offers the record's recorded tags as the choices of its tag input and
+as its initial value, and passes the tags to `instance.tags.set` as one list.
+**Why:** FR-022 asks the page to show the keywords a record carries and let them be removed. The tag
+input drew no option for a recorded tag, so opening the page and saving it would have cleared every
+tag. The save also called `set` with the tags spread as separate arguments, which the installed
+taggit version rejects with a `TypeError`, so a save with any tag failed. On a record type with no
+vocabulary configured the tag input is the whole page, so both repairs are what FR-023 needs.
+Vocabulary fields are unchanged.
+**Revisit if:** #298 replaces the form.
+
+**ADR:** none, a repair inside this feature
+
+## D25. The module that held the sample keywords page's base class goes with the page
+
+**Decision:** `fairdm/contrib/generic/plugins.py` is deleted. It held `KeywordsPlugin` and nothing
+else, and only the removed sample page used it.
+**Why:** the plan removes code that only a removed page used.
+**Revisit if:** none.
+
+**ADR:** none

@@ -835,6 +835,7 @@ class TestOverviewReadinessChecklistIsForTheTeam:
         links = {a["href"] for a in card.select("ul a")}
         assert links == {
             reverse("project:descriptions", kwargs={"uuid": project.uuid}),
+            reverse("project:keywords", kwargs={"uuid": project.uuid}),
             reverse("project:key-dates", kwargs={"uuid": project.uuid}),
             reverse("project:identifiers", kwargs={"uuid": project.uuid}),
             reverse("project:contribution-list", kwargs={"uuid": project.uuid}),

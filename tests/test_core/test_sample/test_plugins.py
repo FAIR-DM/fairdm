@@ -21,7 +21,7 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
-from fairdm.core.sample.plugins import Keywords, Overview
+from fairdm.core.sample.plugins import Overview
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -32,8 +32,6 @@ from fairdm.factories import (
 from fairdm.registry import registry
 from fairdm.registry.config import Citation
 from fairdm.utils.choices import Visibility
-
-EDITING_PLUGINS = [Keywords]
 
 
 def _request_for(user):
@@ -50,31 +48,7 @@ def published_rock_sample(db):
 
 
 @pytest.mark.django_db
-class TestSampleWritePluginsAreGated:
-    @pytest.mark.parametrize("plugin_class", EDITING_PLUGINS)
-    def test_anonymous_request_is_refused(self, plugin_class, rock_sample):
-        request = _request_for(AnonymousUser())
-        assert can_open(plugin_class, request, rock_sample) is False
-
-    @pytest.mark.parametrize("plugin_class", EDITING_PLUGINS)
-    def test_signed_in_user_with_no_rights_is_refused(
-        self, plugin_class, rock_sample, user
-    ):
-        request = _request_for(user)
-        assert can_open(plugin_class, request, rock_sample) is False
-
-    @pytest.mark.parametrize("plugin_class", EDITING_PLUGINS)
-    def test_user_holding_dataset_change_rights_is_admitted(
-        self, plugin_class, rock_sample, user
-    ):
-        ContributionFactory(
-            content_object=rock_sample.dataset,
-            contributor=user,
-            level=ContributionLevel.EDIT,
-        )
-        request = _request_for(user)
-        assert can_open(plugin_class, request, rock_sample) is True
-
+class TestSampleReadingSurfaceIsOpen:
     def test_the_reading_surface_stays_open_for_a_user_with_no_rights(
         self, published_rock_sample, user
     ):
@@ -86,24 +60,6 @@ class TestSampleWritePluginsAreGated:
     ):
         request = _request_for(AnonymousUser())
         assert can_open(Overview, request, published_rock_sample) is True
-
-
-@pytest.mark.django_db
-class TestPermissionStillGatesEvenWithAnAlwaysTruePredicate:
-    @pytest.mark.parametrize("plugin_class", EDITING_PLUGINS)
-    # A truthy-but-not-callable `check` is treated by can_open as no gate at all, so
-    # permission alone must still refuse an anonymous request.
-    def test_an_always_true_predicate_does_not_reopen_the_surface(
-        self, plugin_class, rock_sample
-    ):
-        always_open = type(
-            f"AlwaysOpen{plugin_class.__name__}",
-            (plugin_class,),
-            {"check": staticmethod(lambda request, obj: True)},
-        )
-        request = _request_for(AnonymousUser())
-
-        assert can_open(always_open, request, rock_sample) is False
 
 
 # Development data reaches every state; `DatasetFactory()` alone gives a private, unpublished one.
@@ -553,7 +509,7 @@ class TestOverviewCardsAlwaysShown:
 class TestOverviewManageMenu:
     """FR-036: the sample's editing pages are reached from a Manage menu, not from tabs."""
 
-    EDITING_PAGES = ["edit", "descriptions", "key-dates", "identifiers", "keywords"]
+    EDITING_PAGES = ["edit", "descriptions", "keywords", "key-dates", "identifiers"]
 
     def _addresses(self, sample):
         return [

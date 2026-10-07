@@ -19,6 +19,7 @@ from meta.views import MetadataMixin
 from mvp.views import MVPFormView
 
 from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.generic.forms import KeywordForm
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import registry as plugin_registry
 from fairdm.contrib.plugins import reverse as plugin_reverse
@@ -199,6 +200,25 @@ class RecordEditingPage(Plugin):
         """The page's record, named by :meth:`name_of`."""
         return self.name_of(self.base_object)
 
+    @staticmethod
+    def without_form_tag(form):
+        """Strip a form's crispy helper of the tag and buttons, which the page draws itself.
+
+        A form element nested in another ends the outer one early, leaving the page's Save
+        buttons outside any form.
+
+        Args:
+            form: A form that may carry a crispy ``helper``.
+
+        Returns:
+            The same form.
+        """
+        helper = getattr(form, "helper", None)
+        if helper is not None:
+            helper.form_tag = False
+            helper.inputs = []
+        return form
+
     def get_success_message(self, cleaned_data):
         """Tell the person which record was saved."""
         return gettext("Saved %(name)s.") % {"name": self.record_name}
@@ -249,11 +269,7 @@ class EditDetails(RecordEditingPage, FairDMUpdateView):
         if RecordAccess(self.base_object).model in {Sample, Measurement}:
             for name in ("dataset", "sample"):
                 form.fields.pop(name, None)
-        helper = getattr(form, "helper", None)
-        if helper is not None:
-            helper.form_tag = False
-            helper.inputs = []
-        return form
+        return self.without_form_tag(form)
 
 
 @plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
@@ -289,6 +305,25 @@ class EditDescriptions(RecordEditingPage, MetadataMixin, MVPFormView):
         """Save the descriptions before redirecting."""
         form.save()
         return super().form_valid(form)
+
+
+@plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
+class EditKeywords(RecordEditingPage, FairDMUpdateView):
+    """Edit the record's keywords: one field per vocabulary the portal configures for its kind.
+
+    A record type with no vocabulary configured gets the free-text keywords alone.
+    """
+
+    name = "keywords"
+    access = "change"
+    menu_label = _("Keywords")
+    menu_icon = "keywords"
+    page_title = _("Keywords")  # type: ignore[assignment]
+    form_class = KeywordForm
+
+    def get_form(self, form_class=None):
+        """Drop the form tag and buttons the page draws itself."""
+        return self.without_form_tag(super().get_form(form_class))
 
 
 @plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
@@ -486,6 +521,7 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
 MENU_PAGES = (
     EditDetails,
     EditDescriptions,
+    EditKeywords,
     EditKeyDates,
     EditIdentifiers,
     DeleteRecord,

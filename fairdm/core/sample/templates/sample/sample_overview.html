@@ -31,14 +31,6 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.manage %}
-  <c-actions.manage :entries="manage_menu">
-    {% if can_edit %}
-      <c-menu.item label="{% translate 'Edit keywords' %}" icon="keywords" href="{{ urls.keywords }}" />
-    {% endif %}
-  </c-actions.manage>
-{% endblock overview.manage %}
-
 {% block overview.notices %}
   {% if status.value == "destroyed" %}
     <c-alert variant="warning" icon="warning" soft>

@@ -124,6 +124,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "key_dates": safe_reverse("project:key-dates", uuid=project.uuid),
                 "identifiers": safe_reverse("project:identifiers", uuid=project.uuid),
                 "descriptions": safe_reverse("project:descriptions", uuid=project.uuid),
+                "keywords": safe_reverse("project:keywords", uuid=project.uuid),
                 "add_dataset": safe_reverse("dataset-create"),
             },
         }
@@ -419,7 +420,11 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 page["timeline"]["start"] is not None,
                 urls["key_dates"],
             ),
-            (gettext("Keywords make it findable"), project.keywords.exists(), None),
+            (
+                gettext("Keywords make it findable"),
+                project.keywords.exists(),
+                urls["keywords"],
+            ),
             (gettext("Funding is acknowledged"), bool(project.funding), None),
             (
                 gettext("It has a persistent identifier (DOI)"),

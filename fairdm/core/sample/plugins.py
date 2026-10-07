@@ -1,4 +1,4 @@
-"""Registered pages for a sample: its overview and keywords."""
+"""Registered pages for a sample: its overview."""
 
 from typing import Any
 
@@ -6,13 +6,11 @@ from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import KeywordsPlugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
 from fairdm.core.plugins import TypedOverviewPlugin
 
-from ..utils import documentation_link
 from .models import Sample, SampleRelation
 
 
@@ -92,8 +90,6 @@ class Overview(TypedOverviewPlugin):
                 "can_manage": has_perm(
                     self.request, "dataset.change_dataset", sample.dataset
                 ),
-                "can_edit": has_perm(self.request, "sample.change_sample", sample),
-                "urls": {"keywords": safe_reverse("sample:keywords", uuid=sample.uuid)},
                 "sample_type": str(type(sample)._meta.verbose_name),
                 "status": status,
                 "lifecycle": self.get_timeline(
@@ -302,18 +298,3 @@ class Overview(TypedOverviewPlugin):
                 % {"n": len(relations["children"])}
             )
         return " · ".join(parts) or gettext("None recorded")
-
-
-# A plugin with no declared `permission` admits every request, anonymous included, so the page
-# below names the right it needs. It is not a tab: the overview's Manage menu links to it.
-@plugins.register(Sample, label=_("Keywords"), icon="keywords", menu=False)
-class Keywords(KeywordsPlugin):
-    """Edit the sample's keywords."""
-
-    permission = "sample.change_sample"
-    heading_config = {
-        "description": _(
-            "Providing key dates for your sample is essential for understanding its timeline and context. Key dates help users identify important milestones, such as when the sample was collected, processed, or analyzed. This information is crucial for interpreting the sample's relevance and applicability to specific research questions or applications."
-        ),
-        "links": [documentation_link("sample/keywords")],
-    }

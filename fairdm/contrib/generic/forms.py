@@ -216,7 +216,11 @@ class KeywordForm(forms.ModelForm):
             required=False,
         )
         if self.instance.pk:
-            self.initial["tags"] = list(self.instance.tags.names())
+            tags = list(self.instance.tags.names())
+            self.initial["tags"] = tags
+            # A tag input draws only the options it is given, so the recorded tags are offered as
+            # its choices to show as chosen.
+            self.fields["tags"].widget.choices = [(tag, tag) for tag in tags]
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
@@ -242,11 +246,9 @@ class KeywordForm(forms.ModelForm):
                 tags_value = self.cleaned_data["tags"]
                 if tags_value:
                     instance.tags.set(
-                        *(
-                            tags_value.split(",")
-                            if isinstance(tags_value, str)
-                            else tags_value
-                        )
+                        tags_value.split(",")
+                        if isinstance(tags_value, str)
+                        else tags_value
                     )
                 else:
                     instance.tags.clear()

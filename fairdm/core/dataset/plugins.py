@@ -117,6 +117,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "update": safe_reverse("dataset:edit", uuid=dataset.uuid),
                 "key_dates": safe_reverse("dataset:key-dates", uuid=dataset.uuid),
                 "descriptions": safe_reverse("dataset:descriptions", uuid=dataset.uuid),
+                "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
             },
         }
         page["counts"]["publications"] = len(page["literature"]["items"])
@@ -661,7 +662,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             (
                 gettext("Keywords make it findable"),
                 dataset.keywords.exists(),
-                None,
+                urls["keywords"],
                 False,
             ),
             (

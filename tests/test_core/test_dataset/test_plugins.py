@@ -9,7 +9,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
-from django.urls import NoReverseMatch, reverse
+from django.urls import reverse
 from django.utils.formats import date_format
 from licensing.models import License
 from mvp.warnings import MVPDeprecationWarning
@@ -856,22 +856,6 @@ class TestNoAddressDisclosesAPrivateDatasetsExistence:
 
 @pytest.mark.django_db
 class TestRetiredManagementPages:
-    RETIRED_ADDRESSES = ("dataset:keywords",)
-    RETIRED_PATHS = ("keywords",)
-
-    def test_no_address_resolves_for_either_retired_page(self):
-        for name in self.RETIRED_ADDRESSES:
-            with pytest.raises(NoReverseMatch):
-                reverse(name, kwargs={"uuid": DatasetFactory.build().uuid})
-
-    def test_neither_retired_address_answers(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        overview = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-
-        for segment in self.RETIRED_PATHS:
-            response = client.get(f"{overview}{segment}/")
-            assert response.status_code == 404, segment
-
     def test_the_dataset_menu_carries_one_entry(self):
         assert _entry_view_names(Dataset) == [
             "dataset:overview",
