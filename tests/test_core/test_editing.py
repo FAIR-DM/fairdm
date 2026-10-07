@@ -14,6 +14,7 @@ from django.shortcuts import resolve_url
 from django.test import Client
 from django.urls import NoReverseMatch, reverse
 from partial_date import PartialDate
+from research_vocabs.models import Concept
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
@@ -60,7 +61,17 @@ from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 KINDS = ("project", "dataset", "sample", "measurement")
-PAGES = ("edit", "descriptions", "key-dates", "identifiers")
+PAGES = ("edit", "descriptions", "keywords", "key-dates", "identifiers")
+# The order the Manage menu offers every page in, delete last.
+MENU_ORDER = (*PAGES, "delete")
+ROLES = "fairdm.core.vocabularies.FairDMRoles"
+# Per record type: the setting that names its keyword vocabularies and the key it sits under.
+KEYWORD_SETTINGS = {
+    "project": ("FAIRDM_PROJECT", "keywords"),
+    "dataset": ("FAIRDM_DATASET", "keyword_vocabularies"),
+    "sample": ("FAIRDM_SAMPLE", "keywords"),
+    "measurement": ("FAIRDM_MEASUREMENT", "keywords"),
+}
 DESCRIPTION_MODELS = {
     "project": ProjectDescription,
     "dataset": DatasetDescription,
@@ -237,6 +248,40 @@ def row_set_errors(row_set):
     for form in row_set.forms:
         errors.extend(str(message) for message in form.errors.values())
     return " ".join(str(error) for error in errors)
+
+
+@pytest.fixture
+def with_vocabulary(settings):
+    """Configure the roles vocabulary as the keyword vocabulary of one record type."""
+
+    def configure(kind):
+        name, key = KEYWORD_SETTINGS[kind]
+        setattr(settings, name, {key: [ROLES]})
+
+    return configure
+
+
+@pytest.fixture
+def without_vocabularies(settings):
+    """Leave every record type with no keyword setting at all."""
+    for name, _key in KEYWORD_SETTINGS.values():
+        if hasattr(settings, name):
+            delattr(settings, name)
+
+
+def roles(count=2):
+    """Return concepts of the roles vocabulary to use as keywords."""
+    found = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:count])
+    assert len(found) == count
+    return found
+
+
+def chosen(form, name):
+    """List the values a rendered form shows as selected in one of its select controls."""
+    return {
+        option["value"]
+        for option in form.select(f'select[name="{name}"] option[selected]')
+    }
 
 
 def delete_confirmation(case):
@@ -517,6 +562,19 @@ class TestManageMenu:
         assert [url for url in hrefs(menu) if url in shared] == shared
         offered = [entry["url"] for entry in response.context["manage_menu"]]
         assert [url for url in offered if url in shared] == shared
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_person_who_may_manage_is_offered_all_six_pages_in_one_order(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.own_url)
+
+        expected = [case.url(page) for page in MENU_ORDER]
+        assert [entry["url"] for entry in response.context["manage_menu"]] == expected
+        assert hrefs(manage_menu(response)) == expected
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_only_view_is_offered_no_menu(
@@ -1188,6 +1246,103 @@ class TestEditDescriptions:
 
 
 @pytest.mark.django_db
+class TestEditKeywords:
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_keywords_a_record_carries_are_shown_as_chosen(
+        self, make_case, person_at, with_vocabulary, kind
+    ):
+        with_vocabulary(kind)
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        first, second = roles()
+        case.record.keywords.add(first, second)
+        case.record.tags.add("granite", "outcrop")
+
+        response = browser_as(editor).get(case.url("keywords"))
+
+        form = main_form(response)
+        assert chosen(form, "FairDMRoles") == {str(first.pk), str(second.pk)}
+        assert chosen(form, "tags") == {"granite", "outcrop"}
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_adding_and_removing_keywords_is_stored_and_shown_on_the_record(
+        self, make_case, person_at, with_vocabulary, kind
+    ):
+        with_vocabulary(kind)
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        kept, dropped = roles()
+        case.record.keywords.add(dropped)
+        case.record.tags.add("old")
+        payload = form_payload(main_form(client.get(case.url("keywords"))))
+        payload.update({"FairDMRoles": [str(kept.pk)], "tags": ["new"]})
+
+        response = client.post(case.url("keywords"), payload)
+
+        assert response.status_code == 302
+        assert response.url == case.own_url
+        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
+        stored = type(case.record).objects.get(pk=case.record.pk)
+        assert list(stored.keywords.all()) == [kept]
+        assert sorted(stored.tags.names()) == ["new"]
+        shown = client.get(response.url)
+        assert list(shown.context["record"].keywords.all()) == [kept]
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_saving_with_nothing_chosen_removes_every_keyword(
+        self, make_case, person_at, with_vocabulary, kind
+    ):
+        with_vocabulary(kind)
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        case.record.keywords.add(*roles())
+        case.record.tags.add("old")
+
+        response = client.post(case.url("keywords"), {})
+
+        assert response.status_code == 302
+        assert not case.record.keywords.exists()
+        assert not case.record.tags.exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_opens_and_saves_where_no_vocabulary_is_configured(
+        self, make_case, person_at, without_vocabularies, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        case.record.tags.add("old")
+
+        opened = client.get(case.url("keywords"))
+
+        assert opened.status_code == 200
+        form = main_form(opened)
+        assert chosen(form, "tags") == {"old"}
+        assert list(opened.context["form"].fields) == ["tags"]
+        payload = form_payload(form)
+        payload["tags"] = ["old", "added"]
+        response = client.post(case.url("keywords"), payload)
+        assert response.status_code == 302
+        stored = type(case.record).objects.get(pk=case.record.pk)
+        assert sorted(stored.tags.names()) == ["added", "old"]
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_holds_one_form_with_its_submit_control_inside_it(
+        self, make_case, person_at, with_vocabulary, kind
+    ):
+        with_vocabulary(kind)
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.url("keywords"))
+
+        form = main_form(response)
+        assert form.select('[type="submit"]')
+
+
+@pytest.mark.django_db
 class TestOverviewPrompts:
     @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_the_prompt_for_a_missing_description_leads_to_the_shared_page(
@@ -1236,6 +1391,21 @@ class TestOverviewPrompts:
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert {case.url("edit"), case.url("descriptions")} <= addresses
         assert f"{case.root_url}update/" not in addresses
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_the_readiness_item_for_keywords_carries_the_keywords_page(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        if kind == "dataset":
+            case.record.published = False
+            case.record.save()
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.own_url)
+
+        addresses = {item["url"] for item in response.context["readiness"]["items"]}
+        assert case.url("keywords") in addresses
 
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
