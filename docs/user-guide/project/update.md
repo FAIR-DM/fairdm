@@ -1,8 +1,7 @@
 # Update project
 
 The edit details page is where a project's own record is corrected: its image, name, lifecycle
-status, visibility, and owning organisation, together with its dates and external identifiers.
-Open the **Manage** menu in the header of the project's page and choose **Edit details**.
+status, visibility, and owning organisation. Open the **Manage** menu in the header of the project's page and choose **Edit details**.
 
 ## Who can open it
 
@@ -24,12 +23,18 @@ applies.
 
 ## Dates and identifiers
 
-The same page lets you record the project's key dates (its start and end) and external
-identifiers (a DOI, a grant number, or a proposal ID), each as its own row alongside the
-project's other attributes — there is no separate page for these.
+The project's dates and identifiers are not on this page. The **Manage** menu has an entry for
+each.
 
-Each row set holds at most one row per type its vocabulary offers, since a second row of the
-same type would say the same thing twice.
+- **Key dates** records the project's start and end. An end that falls before the start is
+  refused, and the page says which dates clash. A date can be entered as a year, a month or a
+  full day, and is shown as precisely as it was entered.
+- **Identifiers** records the project's external identifiers: a DOI, a grant number or a
+  proposal ID. A value already recorded against another record is refused. The project's portal
+  ID is given by the portal and is not edited here.
+
+Each of the two pages holds at most one row per type, since a second row of the same type would
+say the same thing twice.
 
 ## What isn't here
 

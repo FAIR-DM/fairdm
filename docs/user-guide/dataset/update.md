@@ -1,8 +1,7 @@
 # Update dataset
 
 The edit details page is where a dataset's own record is corrected: its image, name, project,
-licence, data publication and visibility, together with its dates and external identifiers. Open
-the **Manage** menu in the header of the dataset's page and choose **Edit details**.
+licence, data publication and visibility. Open the **Manage** menu in the header of the dataset's page and choose **Edit details**.
 
 ## Who can open it
 
@@ -24,16 +23,19 @@ it, the same rule the dataset's own page applies.
 
 ## Dates and identifiers
 
-The same page records the dataset's dates and its external identifiers, each as its own row
-alongside the dataset's other attributes — there is no separate page for either.
+The dataset's dates and identifiers are not on this page. The **Manage** menu has an entry for
+each.
 
-Dates carry a type from the dataset date vocabulary, among them the collection start and
-collection end. A collection end earlier than its collection start is refused, and the page says
-which of the two is at fault. Identifiers carry a type as well. A DOI is one, and an identifier
-value already recorded against another dataset is refused.
+- **Key dates** records the dataset's dates, among them the collection start and collection end.
+  A collection end earlier than its collection start is refused, and the page says which dates
+  clash. A date can be entered as a year, a month or a full day, and is shown as precisely as it
+  was entered.
+- **Identifiers** records the dataset's external identifiers. A DOI is one. A value already
+  recorded against another record is refused. The dataset's portal ID is given by the portal and
+  is not edited here.
 
-Each row set holds at most one row per type its vocabulary offers, since a second row of the
-same type would say the same thing twice.
+Each of the two pages holds at most one row per type its vocabulary offers, since a second row of
+the same type would say the same thing twice.
 
 ## What isn't here
 

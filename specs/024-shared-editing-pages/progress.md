@@ -50,3 +50,10 @@ Existing tests changed, with why:
 Verified: uv run pytest tests/test_core/test_editing.py tests/test_core/test_related_records.py -q -n0 (all pass); uv run pytest tests/test_core tests/test_contrib -q -n 4 --dist loadscope: 4108 passed, 1 failed (the project readiness test above, fixed afterwards and re-run: 4 passed); uv run pytest tests demo/tests excluding those two trees: 1223 passed, 1 skipped; uv run pre-commit run --all-files passes.
 Next: T006, documentation.
 Watch: DateForm in fairdm/contrib/generic/forms.py has no user left (decision D17). A row set whose vocabulary offers nothing is not built (D16). Rows draw stacked (D15).
+
+## 2026-10-07T20:20:44Z · Implementer US2 · T006
+
+Did: docs/portal-development/record-editing-pages.md now lists the key dates and identifiers pages in the page table, the addresses and URL names, the menu order, and has Key dates, Identifiers and After a save sections; the details section no longer says project and dataset keep rows. docs/portal-development/overview-pages.md names the five sample pages. docs/user-guide/project/update.md and docs/user-guide/dataset/update.md say dates and identifiers have Manage menu entries of their own; the two create.md pages point at them. CHANGELOG.md has an Added entry for the two pages and Removed entries for the rows on the details page and the sample key dates page, naming KeyDatesPlugin.
+Verified: documentation not yet built; the docs step runs in the full verify. The new text was checked for em dashes with git diff and grep.
+Next: full verify, then the completion report.
+Watch: docs/user-guide/sample/key-dates.md and docs/user-guide/measurement/key-dates.md still say "Coming soon", outside this task.

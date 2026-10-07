@@ -44,5 +44,5 @@ private and be opened up once it is.
 ## Step 3: Save
 
 Click **Create**. You land on the new project's own page, from which you can add its image,
-owning organisation, dates, identifiers and descriptions — see
-[Update project](update.md) and [Descriptions](descriptions.md).
+owning organisation, dates, identifiers and descriptions. See
+[Update project](update.md), which says where each is edited, and [Descriptions](descriptions.md).

@@ -247,9 +247,10 @@ badge opens that description in a dialog, with the type's keywords, the authorit
 its schema and how to cite it. A type the registry does not describe opens nothing. The status
 badge is green for available, blue for in use, grey for stored and red for destroyed; a sample
 with no recorded status reads "Status unknown". A user who may change the sample also gets a
-Manage menu that links to the pages for editing its details, descriptions, keywords and key dates.
-Those pages are not tabs. They are at `/samples/<uuid>/edit/`, `/descriptions/`, `/keywords/` and
-`/key-dates/`, and a portal's own content tabs stay in the tab strip.
+Manage menu that links to the pages for editing its details, descriptions, key dates, identifiers
+and keywords. Those pages are not tabs. They are at `/samples/<uuid>/edit/`, `/descriptions/`,
+`/key-dates/`, `/identifiers/` and `/keywords/`, and a portal's own content tabs stay in the tab
+strip.
 
 **Notices.** A destroyed specimen says it no longer exists and that its record and measurements
 are kept. A sample whose dataset is not public and published says that only people with access to

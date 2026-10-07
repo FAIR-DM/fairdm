@@ -11,6 +11,8 @@ registration itself.
 | --- | --- | --- | --- |
 | Edit details | `EditDetails` | `<record address>/edit/` | change the record |
 | Descriptions | `EditDescriptions` | `<record address>/descriptions/` | change the record |
+| Key dates | `EditKeyDates` | `<record address>/key-dates/` | change the record |
+| Identifiers | `EditIdentifiers` | `<record address>/identifiers/` | change the record |
 
 The record address is the record's permanent address with the `overview/` segment left off where
 the record has one. For a record `<uuid>` of each kind the pages are at:
@@ -22,10 +24,10 @@ the record has one. For a record `<uuid>` of each kind the pages are at:
 | Sample | `/samples/<uuid>/edit/` |
 | Measurement | `/measurement/<uuid>/edit/` |
 
-The descriptions page follows the same pattern, with `descriptions/` in place of `edit/`. The
-URL names are `edit` and `descriptions` in the namespace of the record's kind, so
-`reverse("sample:edit", kwargs={"uuid": sample.uuid})` gives a sample's address, whatever type the
-sample is.
+The other pages follow the same pattern, with `descriptions/`, `key-dates/` or `identifiers/` in
+place of `edit/`. The URL names are `edit`, `descriptions`, `key-dates` and `identifiers` in the
+namespace of the record's kind, so `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})`
+gives a sample's key dates address, whatever type the sample is.
 
 None of the pages is a tab. They are registered with `menu=False`, so the tab strip beside the
 overview never lists them.
@@ -34,7 +36,8 @@ overview never lists them.
 
 A record's overview page carries a **Manage** menu in its header. It lists the pages the
 signed-in person may use, in a fixed order, and is not drawn at all when there is nothing in it.
-The same two entries appear on a project, a dataset, a sample and a measurement.
+The same entries appear on a project, a dataset, a sample and a measurement, in this order: edit
+details, descriptions, key dates, identifiers.
 
 Two pieces draw the menu:
 
@@ -85,8 +88,7 @@ The page edits the record's own fields.
   which comes from the type's registry configuration. The fields that would move the record to
   another dataset or sample are removed. Set `form_class` or `form_fields` on the type's
   configuration to change what the page offers.
-- A project's and a dataset's dates and identifiers are edited on the same page, as rows below
-  the other fields.
+- Dates and identifiers are not on this page. They have the pages described below.
 
 When a form carries a crispy-forms helper with a form tag or buttons of its own, the page turns
 both off. The page draws one form element and its own Save buttons.
@@ -99,5 +101,43 @@ empty area removes it. The vocabularies are `ProjectDescription.VOCABULARY`,
 `DatasetDescription.VOCABULARY`, `SampleDescription.VOCABULARY` and
 `MeasurementDescription.VOCABULARY`.
 
-After a save, both pages return to the record's own page and add a message saying what was saved.
-A measurement with no name is called by its portal ID in that message.
+## Key dates
+
+The page is a set of rows, one per date, each with a type and a value. The types on offer are the
+ones in the record's date vocabulary: `ProjectDate.VOCABULARY`, `DatasetDate.VOCABULARY`,
+`SampleDate.VOCABULARY` and `MeasurementDate.VOCABULARY`. A date can be added, changed and
+removed, and a record holds at most one date of each type.
+
+- A date is kept as precisely as it was entered. A year, a month and a full day are each stored
+  and shown as entered, never rounded to a day.
+- A project refuses an end that falls before its start, and a dataset refuses a collection end
+  that falls before its collection start. The page keeps what was typed and says which dates
+  clash, and nothing is saved. No other record type has an ordering rule: a sample's types are not
+  a start and an end, and a measurement's setup and tear down are not read as one.
+
+The page edits only the rows, never a field of the record itself.
+
+## Identifiers
+
+The page is a set of rows with a type and a value, laid out like the key dates page. The types
+on offer are the ones in the record's identifier vocabulary: `ProjectIdentifier.VOCABULARY`,
+`DatasetIdentifier.VOCABULARY`, `SampleIdentifier.VOCABULARY` and
+`MeasurementIdentifier.VOCABULARY`. An identifier can be added, changed and removed, and a record
+holds at most one identifier of each type.
+
+- An identifier value that is already recorded against any other record is refused, whatever kind
+  of record holds it, and so is the same value entered twice in one save.
+- The identifier the portal gives the record is its `uuid`. It is shown on the record's page, is
+  never a row on this page, and cannot be changed through it.
+- A row set that fails validation saves none of its rows.
+
+The row sets behind both pages are declared in `fairdm/core/related_records.py`: `ProjectDatesInline`
+and `ProjectIdentifierInline`, `DatasetDatesInline` and `DatasetIdentifierInline`,
+`SampleDateInline` and `SampleIdentifierInline`, and `MeasurementDateInline` and
+`MeasurementIdentifierInline`. A sample type or measurement type you register uses the row sets of
+its base record, so it needs no declaration.
+
+## After a save
+
+Every page returns to the record's own page and adds a message saying what was saved. A
+measurement with no name is called by its portal ID in that message.

@@ -50,5 +50,5 @@ the community what you are working on.
 ## Step 3: Save
 
 Click **Create**. You land on the new dataset's own page, from which you can add its image,
-data publication, dates, identifiers and descriptions — see [Update dataset](update.md) and
-[Descriptions](descriptions.md).
+data publication, dates, identifiers and descriptions. See [Update dataset](update.md), which says
+where each is edited, and [Descriptions](descriptions.md).

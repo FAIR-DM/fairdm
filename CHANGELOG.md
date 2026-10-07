@@ -7,8 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Key dates and identifiers pages on projects, datasets, samples and measurements.** Each record
+  type has the URL names `key-dates` and `identifiers`, at `<record address>/key-dates/` and
+  `<record address>/identifiers/`, reached from the Manage menu after the descriptions entry. A
+  measurement's dates and identifiers can be edited for the first time. A date is kept as
+  precisely as it was entered, and a project and a dataset still refuse an end that falls before
+  the start. New row sets `SampleDateInline`, `SampleIdentifierInline`, `MeasurementDateInline`
+  and `MeasurementIdentifierInline` are in `fairdm.core.related_records`. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
+
 ### Removed
 
+- **A project's and a dataset's dates and identifiers are no longer rows on the details page.**
+  They are edited on the key dates and identifiers pages. A portal that posted `dates-` or
+  `identifiers-` fields to the `edit` page now posts them to `key-dates` or `identifiers`.
+- **The sample's key dates page is replaced by the shared one.** `KeyDatesPlugin`, the sample
+  `KeyDates` plugin and the `plugins/key-dates.html` template are gone. The sample's key dates
+  address and URL name `sample:key-dates` stay, and now serve the shared page.
 - **The project, dataset and sample editing pages are replaced by shared ones.** A project's
   `Update` and `Descriptions` pages, a dataset's, and a sample's `Edit` and `Descriptions` pages are
   gone, with the `overview-update` and `overview-descriptions` URL names on projects and datasets
