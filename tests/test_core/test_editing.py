@@ -11,7 +11,7 @@ from crispy_forms.layout import Layout, Submit
 from django.conf import settings
 from django.contrib.messages import SUCCESS, get_messages
 from django.shortcuts import resolve_url
-from django.test import Client
+from django.test import Client, RequestFactory
 from django.urls import NoReverseMatch, reverse
 from partial_date import PartialDate
 from research_vocabs.models import Concept
@@ -25,6 +25,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetIdentifier,
 )
+from fairdm.core.editing import manage_menu as build_manage_menu
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
@@ -564,6 +565,21 @@ class TestManageMenu:
         assert [url for url in hrefs(menu) if url in shared] == shared
         offered = [entry["url"] for entry in response.context["manage_menu"]]
         assert [url for url in offered if url in shared] == shared
+
+    def test_the_menu_asks_whether_the_viewer_may_see_the_record_once(
+        self, make_case, person_at, django_assert_num_queries
+    ):
+        case = make_case("sample", public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        request = RequestFactory().get(case.own_url)
+        request.user = manager
+
+        with django_assert_num_queries(5):
+            entries = build_manage_menu(request, case.record)
+
+        assert [entry["url"] for entry in entries] == [
+            case.url(page) for page in MENU_ORDER
+        ]
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_manage_is_offered_all_six_pages_in_one_order(

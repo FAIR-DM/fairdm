@@ -131,35 +131,40 @@ class RecordEditingPage(Plugin):
         }[RecordAccess(record).model]
 
     @classmethod
-    def verdict(cls, request, record):
+    def verdict(cls, request, record, may_see=None):
         """Decide what the viewer is told when they ask for this page on a record.
 
         Args:
             request: The current request.
             record: The record the page belongs to.
+            may_see: Whether the viewer may open the record's overview, when the caller already
+                knows. Left out, it is checked here.
 
         Returns:
             ``OPEN`` when the page may run, ``MISSING`` when the viewer is to be told the record
             does not exist, ``REFUSED`` when they may see the record and may not use the page.
         """
         permission = cls.permission_for(record)
-        may_see = can_open(cls.overview_for(record), request, record)
+        if may_see is None:
+            may_see = can_open(cls.overview_for(record), request, record)
         if not may_see and not request.user.has_perm(permission, record):
             return cls.MISSING
         return cls.OPEN if has_perm(request, permission, record) else cls.REFUSED
 
     @classmethod
-    def may_be_used_by(cls, request, record):
+    def may_be_used_by(cls, request, record, may_see=None):
         """Say whether the page would open for the viewer, for the Manage menu.
 
         Args:
             request: The current request.
             record: The record the page belongs to.
+            may_see: Whether the viewer may open the record's overview, when the caller already
+                knows.
 
         Returns:
             True when the page would run.
         """
-        return cls.verdict(request, record) == cls.OPEN
+        return cls.verdict(request, record, may_see) == cls.OPEN
 
     def dispatch(self, request, *args, **kwargs):
         """Answer 404 for a record the viewer may not see, before any other refusal."""
@@ -595,6 +600,7 @@ def manage_menu(request, record):
         One entry per page the viewer may open, each with a ``label``, an ``icon``, a ``url`` and
         ``destructive``, which marks the entry that deletes the record.
     """
+    may_see = can_open(RecordEditingPage.overview_for(record), request, record)
     return [
         {
             "label": page.menu_label,
@@ -603,5 +609,5 @@ def manage_menu(request, record):
             "destructive": page.access == "delete",
         }
         for page in MENU_PAGES
-        if page.may_be_used_by(request, record)
+        if page.may_be_used_by(request, record, may_see)
     ]
