@@ -770,6 +770,48 @@ class TestEditDetails:
         assert ("visibility" in response.context["form"].fields) is offered
 
 
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_manager_cannot_move_a_sample_or_a_measurement(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+        other = make_case("measurement")
+        before = {"dataset": case.record.dataset_id}
+        stray = {"dataset": other.record.dataset_id}
+        if kind == "measurement":
+            before["sample"] = case.record.sample_id
+            stray["sample"] = other.record.sample_id
+        payload = form_payload(main_form(client.get(case.url("edit"))))
+        payload.update({name: str(pk) for name, pk in stray.items()})
+
+        response = client.post(case.url("edit"), payload)
+
+        assert response.status_code == 302
+        case.record.refresh_from_db()
+        assert {name: getattr(case.record, f"{name}_id") for name in before} == before
+
+    def test_an_editor_cannot_move_a_dataset_or_change_its_visibility(
+        self, make_case, person_at
+    ):
+        case = make_case("dataset", public=False)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        other = make_case("dataset", public=True)
+        project_id = case.record.project_id
+        payload = form_payload(main_form(client.get(case.url("edit"))))
+        payload.update(
+            project=str(other.record.project_id), visibility=str(Visibility.PUBLIC)
+        )
+
+        response = client.post(case.url("edit"), payload)
+
+        assert response.status_code == 302
+        case.record.refresh_from_db()
+        assert case.record.project_id == project_id
+        assert case.record.visibility == Visibility.PRIVATE
+
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_page_carries_no_date_or_identifier_rows(
         self, make_case, person_at, kind
@@ -879,6 +921,30 @@ class TestEditKeyDates:
         assert response.status_code == 302
         row.refresh_from_db()
         assert str(row.value) == "2021-06-15"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("remove", [False, True])
+    def test_a_row_of_another_record_is_left_as_it_was(
+        self, make_case, person_at, kind, remove
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory, recorded, _other = DATES[kind]
+        foreign = factory(
+            related=make_case(kind).record, type=recorded, value="2020-01-01"
+        )
+        row = {"id": foreign.pk, "type": recorded, "value": "2031-12-31"}
+        if remove:
+            row["DELETE"] = "on"
+
+        response = browser_as(editor).post(
+            case.url("key-dates"), rows_payload("dates", [row], initial=1)
+        )
+
+        assert response.status_code == 302
+        foreign.refresh_from_db()
+        assert str(foreign.value) == "2020-01-01"
+        assert not case.record.dates.exists()
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_removing_a_date_deletes_it(self, make_case, person_at, kind):
@@ -1691,6 +1757,29 @@ class TestDeleteRecord:
         assert response.status_code == 200
         assert Sample.objects.filter(pk=sample.pk).exists()
         assert Measurement.objects.filter(pk=hidden.pk).exists()
+
+    def test_a_dataset_whose_sample_is_measured_in_another_dataset_shows_the_protected_state(
+        self, make_case, person_at
+    ):
+        case = make_case("dataset", public=False)
+        sample = RockSampleFactory(dataset=case.record)
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        ExampleMeasurementFactory(dataset=elsewhere, sample=sample)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+
+        response = client.get(case.url("delete"))
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert response.context["form"] is None
+        assert response.context["protected_unlisted"] == 1
+
+        response = client.post(case.url("delete"), {"confirmation": case.record.name})
+
+        assert response.status_code == 200
+        assert still_exists(case.record)
+        assert Sample.objects.filter(pk=sample.pk).exists()
 
     def test_a_project_that_became_protected_after_the_page_was_opened_is_not_deleted(
         self, make_case, person_at
