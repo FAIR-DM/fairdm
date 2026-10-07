@@ -249,3 +249,12 @@ in this story registers a delete page, so neither branch could be exercised by a
 component.
 
 **ADR:** none — deferred to the story that needs it
+
+## D14. Existing tests changed in story 1 were checked against the list in the progress log
+
+Twelve existing test modules were flagged as changed. Each change is one the task list allows: the
+test requested a page this feature removes or reversed its old URL name. The list in `progress.md`
+under T002 names every class. The two reversals of behaviour are the ones decisions D2 and D3
+record.
+
+**ADR:** none — a record of a check on this feature's tests
