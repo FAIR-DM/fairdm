@@ -224,3 +224,28 @@ keywords page is story US-4.
 **Revisit if:** US-4 lands, when its page tests take over.
 
 **ADR:** none — a pre-existing fault left for US-4
+
+## D12. The descriptions page does not handle a vocabulary with no types
+
+**Decision:** `EditDescriptions` draws the form its vocabulary gives it and has no separate
+state for a record type whose description vocabulary offers nothing.
+**Why:** the four core vocabularies are fixed and never empty, so the state cannot occur on a core
+record, and a test of it would have to empty a vocabulary by patching library internals. The
+specification lists the edge as a requirement for a record's vocabulary, which only a portal that
+replaces one could meet.
+**Revisit if:** a portal can configure a core record's description vocabulary, or a test seam for
+an empty vocabulary exists.
+
+**ADR:** none — a scope note
+
+## D13. The Manage menu draws no divider or flag for the delete entry yet
+
+**Decision:** `manage_menu` entries carry a label, an icon and an address, and
+`<c-actions.manage>` draws them in order. The delete entry reaches the menu through the
+component's slot, with its own divider, until the delete page is registered.
+**Why:** the plan gives each entry a flag marking the delete entry and a divider before it. Nothing
+in this story registers a delete page, so neither branch could be exercised by a test.
+**Revisit if:** the delete page is registered, when the flag and the divider move into the
+component.
+
+**ADR:** none — deferred to the story that needs it
