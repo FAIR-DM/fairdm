@@ -23,9 +23,11 @@ were made by eye.
 
 ## The screens
 
-One page, `locations/sample_map.html`, on five kinds of record. It is a single card under the
-tab's title: a sentence saying how many samples are on the map and how many are not, then the map,
-then a line on how to use it.
+One page, `locations/sample_map.html`, on five kinds of record. The map spends the whole page
+under the record's tabs: no title, no card and no footer, the way a table view fills its page
+(`<c-page fill>`). When there is nothing to plot the map is still drawn, open on the whole world,
+with the reason laid over its middle. The sentence saying how many samples are on the map and how
+many are not is on the page for a screen reader and is not shown.
 
 | Screen | State |
 |---|---|
@@ -67,24 +69,25 @@ then a line on how to use it.
 - The old location plugin is deleted without checking that nothing links to its address.
 - The MapLibre script and stylesheet tags are copied from the overview's map into the new
   component, so the version is pinned in two places.
+- The theme's colours are turned into plain RGB for MapLibre by a few lines copied from
+  `chart-theme.js`. The overview's map passes the theme colour to its marker unconverted.
 - The four overview placeholders are deleted, and the template comments that list each page's
   blocks were edited by hand. Portals that override `overview.map` were not considered.
 - All development data: the project, its six datasets, the people and the organization.
 
 ## What was ruled by eye
 
-Nothing has been reviewed yet. These are the choices that have no right answer, as built:
+The maintainer asked for the first two. The rest are choices with no right answer, as built:
 
-- The map sits in one card under the tab's title, at the same 16:9 shape as the maps on the
-  overview pages, not as a full-height map.
+- The map fills the page, with no title and no card around it.
+- A record with nothing to plot still shows the map, with the reason in a box over its middle.
 - Nearby points are gathered into a numbered circle that shows how many samples it holds.
   Selecting it zooms in.
 - Selecting a point opens a small box on the map that lists its samples. With many samples at one
   location the list scrolls inside the box.
-- The counts are a sentence above the map, not figures in a strip.
-- A sample's page states its latitude and longitude in the sentence.
-- On a person's or an organization's page a line under the map says it covers public datasets
-  only.
+- The counts, a sample's coordinates and the line saying a contributor's map covers public
+  datasets only are read out to a screen reader and not shown, so nothing sits on top of the map.
+- The scroll wheel zooms the map directly, because the page itself no longer scrolls.
 - The tab is labelled "Map" and sits after the other tabs.
 - With a single point the map opens at regional scale, the same zoom the overview's map uses.
 

@@ -1,30 +1,44 @@
 {% load i18n %}
 {% comment %}
-  <c-map.samples> — samples plotted as points, one point per location.
+  <c-map.samples> — samples plotted as points, one point per location, filling the space it is
+  given.
 
   Nearby points are gathered into one numbered circle until the reader zooms in. Selecting a point
   opens a list of the samples recorded there, each linked to its page. The map opens with every
-  point in view. Drawn with MapLibre GL on OpenFreeMap tiles, which need no key, as the location
-  card on the overview pages is.
+  point in view, or on the whole world when there are none. Drawn with MapLibre GL on OpenFreeMap
+  tiles, which need no key, as the location card on the overview pages is.
+
+  The parent must be a flex column with a height to give, as `<c-page fill>` is.
 
   Attributes:
     points  – a GeoJSON FeatureCollection of points; each feature's properties carry `count` and
               `samples`, a list of {name, type, url}
     label   – the map's accessible name
-    class   – extra classes on the map
+    class   – extra classes on the map's box
+
+  The default slot is a message laid over the middle of the map, for a map with nothing on it.
 {% endcomment %}
 <c-vars points label class />
-<div class="overview-map bg-base-200 {{ class }}"
-     role="region"
-     aria-label="{{ label }}"
-     data-sample-map
-     data-more-label="{% translate 'samples at this location' %}"></div>
-<p class="text-sm text-base-content/70" data-sample-map-hint>
-  {% translate "Select a point to see the samples recorded there. A numbered circle gathers nearby points: select it to zoom in." %}
-</p>
-<c-alert variant="warning" soft class="text-sm" hidden data-sample-map-failed only>
-  {% translate "The map could not be loaded. The figures above still describe what it would show." %}
-</c-alert>
+<div class="relative flex-1 min-h-0 flex flex-col {{ class }}">
+  <div class="flex-1 min-h-0 w-full bg-base-200"
+       role="region"
+       aria-label="{{ label }}"
+       data-sample-map
+       data-more-label="{% translate 'samples at this location' %}"></div>
+  {% if slot.strip %}
+    <div class="absolute inset-0 z-10 flex items-center justify-center p-4 pointer-events-none"
+         data-sample-map-message>
+      <c-missing class="max-w-md bg-base-100">{{ slot }}</c-missing>
+    </div>
+  {% endif %}
+  <div class="absolute inset-0 z-10 flex items-center justify-center p-4"
+       hidden
+       data-sample-map-failed>
+    <c-alert variant="warning" soft class="text-sm max-w-md" only>
+      {% translate "The map could not be loaded." %}
+    </c-alert>
+  </div>
+</div>
 {{ points|json_script:"sample-map-points" }}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"
       integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK"
@@ -36,26 +50,39 @@
   (function () {
     var el = document.querySelector("[data-sample-map]");
     if (!window.maplibregl) {
-      el.hidden = true;
-      document.querySelector("[data-sample-map-hint]").hidden = true;
+      var message = document.querySelector("[data-sample-map-message]");
+      if (message) message.hidden = true;
       document.querySelector("[data-sample-map-failed]").hidden = false;
       return;
     }
     var points = JSON.parse(document.getElementById("sample-map-points").textContent);
-    var theme = getComputedStyle(el);
-    var fill = theme.getPropertyValue("--color-primary").trim() || "#3b82f6";
-    var ink = theme.getPropertyValue("--color-primary-content").trim() || "#ffffff";
-    var bounds = new maplibregl.LngLatBounds();
-    points.features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
+    // daisyUI 5 declares its colours in oklch(), which MapLibre's colour parser does not read.
+    // Painting one pixel and reading it back gives the same colour as plain sRGB.
+    var probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    function token(name, fallback) {
+      var value = getComputedStyle(el).getPropertyValue(name).trim();
+      if (!value) return fallback;
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = fallback;
+      probe.fillStyle = value;
+      probe.fillRect(0, 0, 1, 1);
+      var pixel = probe.getImageData(0, 0, 1, 1).data;
+      return "rgb(" + pixel[0] + ", " + pixel[1] + ", " + pixel[2] + ")";
+    }
+    var fill = token("--color-primary", "#3b82f6");
+    var ink = token("--color-primary-content", "#ffffff");
+    var view = { center: [0, 20], zoom: 1 };
+    if (points.features.length) {
+      var bounds = new maplibregl.LngLatBounds();
+      points.features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
+      view = { bounds: bounds, fitBoundsOptions: { padding: 64, maxZoom: 8 } };
+    }
 
-    var map = new maplibregl.Map({
+    var map = new maplibregl.Map(Object.assign({
       container: el,
       style: "https://tiles.openfreemap.org/styles/liberty",
-      bounds: bounds,
-      fitBoundsOptions: { padding: 48, maxZoom: 8 },
       attributionControl: { compact: true },
-      cooperativeGestures: true,
-    });
+    }, view));
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
     map.on("load", function () {

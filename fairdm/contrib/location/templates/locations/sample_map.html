@@ -4,24 +4,42 @@
   The map beside a record's overview: where its samples were taken.
 
   The same page on a project, a dataset, a sample, a person and an organization. What it plots is
-  decided by the plugin. The sentence above the map says how many samples are on it and how many
-  could not be placed, and is what a reader has when the map itself cannot be seen.
+  decided by the plugin. The map spends the whole page: no title, no card and no footer under it,
+  the way a table view does (`<c-page fill>`). The sentence saying how many samples are on the map
+  and how many could not be placed is kept for a reader who cannot see the map. When there is
+  nothing to plot the map is still drawn, with the reason laid over its middle.
 {% endcomment %}
-
-{% block page.content %}
-  <c-card class="bg-base-100" data-card="sample-map">
-    {% if kind == "sample" %}
-      {% if plotted %}
-        <p>
+{% block app.footer %}{% endblock app.footer %}
+{% block content %}
+  <c-page fill gap="0" class="{{ page.class }}" data-page="sample-map">
+    <h1 class="sr-only">{{ page.title }}</h1>
+    {% if plotted %}
+      <p class="sr-only">
+        {% if kind == "sample" %}
           {% blocktranslate with lat=sample_location.y lon=sample_location.x %}This sample was taken at latitude {{ lat }}, longitude {{ lon }}.{% endblocktranslate %}
-        </p>
-      {% elif sample_location %}
-        <c-missing>{% translate "This sample's location is not a latitude and longitude the map can show." %}</c-missing>
-      {% else %}
-        <c-missing>{% translate "No location has been recorded for this sample." %}</c-missing>
-      {% endif %}
-    {% elif not total %}
-      <c-missing>
+        {% elif unplotted %}
+          {% blocktranslate with plotted=plotted total=total %}{{ plotted }} of {{ total }} samples are on the map.{% endblocktranslate %}
+          {% if locations != plotted %}{% blocktranslate count n=locations %}They share one location.{% plural %}They were taken at {{ n }} locations.{% endblocktranslate %}{% endif %}
+          {% blocktranslate count n=unplotted %}The other one has no location the map can show.{% plural %}The other {{ n }} have no location the map can show.{% endblocktranslate %}
+        {% else %}
+          {% blocktranslate count n=total %}The one sample is on the map.{% plural %}All {{ n }} samples are on the map.{% endblocktranslate %}
+          {% if locations != plotted %}{% blocktranslate count n=locations %}They share one location.{% plural %}They were taken at {{ n }} locations.{% endblocktranslate %}{% endif %}
+        {% endif %}
+        {% if kind == "contributor" %}
+          {% blocktranslate with name=record.name %}The map covers samples in the public datasets {{ name }} is credited on.{% endblocktranslate %}
+        {% endif %}
+      </p>
+    {% endif %}
+    <c-map.samples :points="geojson"
+                   label="{% if kind == 'sample' %}{% translate 'Map of where the sample was taken' %}{% else %}{% translate 'Map of sample locations' %}{% endif %}">
+      {% if plotted %}
+      {% elif kind == "sample" %}
+        {% if sample_location %}
+          {% translate "This sample's location is not a latitude and longitude the map can show." %}
+        {% else %}
+          {% translate "No location has been recorded for this sample." %}
+        {% endif %}
+      {% elif not total %}
         {% if kind == "contributor" %}
           {% blocktranslate with name=record.name %}{{ name }} is not credited on a public dataset that has samples, so there is nothing to map.{% endblocktranslate %}
         {% elif kind == "project" %}
@@ -29,33 +47,9 @@
         {% else %}
           {% translate "This dataset has no samples yet, so there is nothing to map." %}
         {% endif %}
-      </c-missing>
-    {% elif not plotted %}
-      <c-missing>
+      {% else %}
         {% blocktranslate count n=total %}The one sample has no location, so there is nothing to map.{% plural %}None of the {{ n }} samples has a location, so there is nothing to map.{% endblocktranslate %}
-      </c-missing>
-    {% else %}
-      <p>
-        {% if unplotted %}
-          {% blocktranslate with plotted=plotted total=total %}<strong>{{ plotted }}</strong> of {{ total }} samples are on the map.{% endblocktranslate %}
-          {% if locations != plotted %}{% blocktranslate count n=locations %}They share one location.{% plural %}They were taken at {{ n }} locations.{% endblocktranslate %}{% endif %}
-          {% blocktranslate count n=unplotted %}The other one has no location the map can show.{% plural %}The other {{ n }} have no location the map can show.{% endblocktranslate %}
-        {% else %}
-          {% blocktranslate count n=total %}The one sample is on the map.{% plural %}All <strong>{{ n }}</strong> samples are on the map.{% endblocktranslate %}
-          {% if locations != plotted %}{% blocktranslate count n=locations %}They share one location.{% plural %}They were taken at {{ n }} locations.{% endblocktranslate %}{% endif %}
-        {% endif %}
-      </p>
-    {% endif %}
-
-    {% if plotted %}
-      <c-map.samples :points="geojson"
-                     label="{% if kind == 'sample' %}{% translate 'Map of where the sample was taken' %}{% else %}{% translate 'Map of sample locations' %}{% endif %}" />
-    {% endif %}
-
-    {% if kind == "contributor" and total %}
-      <p class="text-sm text-base-content/70">
-        {% blocktranslate with name=record.name %}The map covers samples in the public datasets {{ name }} is credited on.{% endblocktranslate %}
-      </p>
-    {% endif %}
-  </c-card>
-{% endblock page.content %}
+      {% endif %}
+    </c-map.samples>
+  </c-page>
+{% endblock content %}
