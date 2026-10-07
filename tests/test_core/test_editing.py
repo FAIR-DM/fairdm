@@ -239,6 +239,11 @@ def row_set_errors(row_set):
     return " ".join(str(error) for error in errors)
 
 
+def delete_confirmation(case):
+    """Return what a person types to confirm deleting the record: its name, else its portal ID."""
+    return case.record.name or str(case.record.uuid)
+
+
 def manage_menu(response):
     """Return the Manage menu element of an overview page, or None when it has none."""
     return soup_of(response).select_one('[data-menu="manage"]')
@@ -280,6 +285,26 @@ class TestRegistration:
         ],
     )
     def test_the_pages_they_replace_are_gone(self, name):
+        with pytest.raises(NoReverseMatch):
+            reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_delete_page_sits_beneath_the_records_address(self, make_case, kind):
+        case = make_case(kind)
+
+        assert case.url("delete") == f"{case.root_url}delete/"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_delete_page_is_not_a_tab(self, kind):
+        model = CORE_MODELS[kind]
+        reverse(f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
+        plugins.registry.get_urls_for_model(model)
+        menu = plugins.registry.get_plugin_menu_for_model(model)
+
+        assert f"{kind}:delete" not in [item.view_name for item in menu.children]
+
+    @pytest.mark.parametrize("name", ["project:overview-delete", "dataset:overview-delete"])
+    def test_the_delete_pages_they_replace_are_gone(self, name):
         with pytest.raises(NoReverseMatch):
             reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
 
@@ -379,6 +404,95 @@ class TestAccess:
         assert not DESCRIPTION_MODELS[kind].objects.filter(related=case.record).exists()
 
 
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_person_who_may_manage_opens_the_delete_page(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("level", [ContributionLevel.VIEW, ContributionLevel.EDIT])
+    def test_a_person_below_manage_is_refused_the_delete_page_and_nothing_is_deleted(
+        self, make_case, person_at, kind, level
+    ):
+        case = make_case(kind, public=False)
+        person = person_at(case, level)
+        client = browser_as(person)
+
+        assert client.get(case.url("delete")).status_code == 403
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 403
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_signed_in_person_with_no_level_is_refused_the_delete_page(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=True)
+        stranger = person_at()
+        client = browser_as(stranger)
+
+        assert client.get(case.url("delete")).status_code == 403
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 403
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_visitor_to_a_public_record_is_sent_to_sign_in_from_the_delete_page(
+        self, make_case, kind
+    ):
+        case = make_case(kind, public=True)
+
+        response = browser_as().get(case.url("delete"))
+
+        assert response.status_code == 302
+        assert response.url.startswith(resolve_url(settings.LOGIN_URL))
+
+    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("signed_in", [True, False])
+    def test_a_person_who_may_not_see_the_record_gets_not_found_from_the_delete_page(
+        self, make_case, person_at, kind, signed_in
+    ):
+        case = make_case(kind, public=False)
+        client = browser_as(person_at() if signed_in else None)
+
+        assert client.get(case.url("delete")).status_code == 404
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 404
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_level_removed_after_the_delete_page_was_opened_refuses_the_deletion(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=True)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+        assert client.get(case.url("delete")).status_code == 200
+
+        manager.contributions.all().delete()
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 403
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+
+
 @pytest.mark.django_db
 class TestManageMenu:
     @pytest.mark.parametrize("kind", KINDS)
@@ -449,6 +563,35 @@ class TestManageMenu:
         response = browser_as(editor).get(case.own_url)
 
         assert case.url("keywords") in hrefs(manage_menu(response))
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_person_who_may_manage_is_offered_delete_last_and_marked(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.own_url)
+
+        entries = response.context["manage_menu"]
+        assert entries[-1]["url"] == case.url("delete")
+        assert entries[-1]["destructive"] is True
+        assert not any(entry.get("destructive") for entry in entries[:-1])
+        assert hrefs(manage_menu(response)).count(case.url("delete")) == 1
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_person_who_may_only_edit_is_offered_the_editing_pages_and_not_delete(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.own_url)
+
+        offered = [entry["url"] for entry in response.context["manage_menu"]]
+        assert case.url("delete") not in offered
+        assert case.url("edit") in offered
+        assert case.url("delete") not in hrefs(manage_menu(response))
 
 
 @pytest.mark.django_db
@@ -1119,3 +1262,262 @@ class TestOverviewPrompts:
         assert case.url("key-dates") in addresses
         if kind == "project":
             assert case.url("identifiers") in addresses
+
+
+def landing_for(case):
+    """Return where deleting the record leads: its dataset's page, or a list page."""
+    if case.kind in {"sample", "measurement"}:
+        return case.record.dataset.get_absolute_url()
+    return reverse(f"{case.kind}-list")
+
+
+def dataset_of(case):
+    """Return the dataset a record belongs to, the dataset itself for a dataset."""
+    return case.record if case.kind == "dataset" else case.record.dataset
+
+
+@pytest.mark.django_db
+class TestDeleteRecord:
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_opening_the_page_deletes_nothing_and_asks_for_confirmation(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is False
+        assert "confirmation" in form_payload(main_form(response))
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_wrong_confirmation_deletes_nothing(self, make_case, person_at, kind):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).post(
+            case.url("delete"), {"confirmation": "something else"}
+        )
+
+        assert response.status_code == 200
+        assert response.context["form"].errors.get("confirmation")
+        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert list(get_messages(response.wsgi_request)) == []
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_confirming_deletes_the_record_and_lands_on_a_page_that_exists(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+        landing = landing_for(case)
+
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 302
+        assert response.url == landing
+        assert not type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
+        assert client.get(response.url).status_code == 200
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_person_who_may_not_open_the_dataset_lands_on_the_dataset_list(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        holder = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(holder)
+        assert client.get(dataset_of(case).get_absolute_url()).status_code == 404
+
+        response = client.post(
+            case.url("delete"), {"confirmation": delete_confirmation(case)}
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("dataset-list")
+        assert not type(case.record).objects.filter(pk=case.record.pk).exists()
+
+    def test_a_dataset_counts_what_goes_with_it_by_record_type(
+        self, make_case, person_at
+    ):
+        case = make_case("dataset", public=False)
+        RockSampleFactory(dataset=case.record)
+        sample = RockSampleFactory(dataset=case.record)
+        ExampleMeasurementFactory(dataset=case.record, sample=sample)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        groups = response.context["related_objects"]
+        assert len(groups) == 2
+        assert any("(3)" in line for line in groups[0][1])
+        assert any("(1)" in line for line in groups[1][1])
+
+    def test_a_project_counts_its_datasets_samples_and_measurements(
+        self, make_case, person_at
+    ):
+        case = make_case("project", public=False)
+        dataset = case.record.datasets.get()
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        groups = response.context["related_objects"]
+        assert len(groups) == 3
+        assert all(any("(1)" in line for line in lines) for _, lines, _ in groups)
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_sample_and_a_measurement_list_the_rows_that_go_with_them(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        factory = {"sample": SampleDateFactory, "measurement": MeasurementDateFactory}[
+            kind
+        ]
+        row = factory(related=case.record)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        listed = [
+            item
+            for _, items, _ in response.context["related_objects"]
+            for item in items
+        ]
+        assert row in listed
+
+    def test_a_project_with_a_public_dataset_lists_it_and_offers_no_confirmation(
+        self, make_case, person_at
+    ):
+        case = make_case("project", public=True)
+        public = case.record.datasets.get()
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+
+        response = client.get(case.url("delete"))
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert public in response.context["protected_objects"]
+        assert response.context["form"] is None
+        assert 'name="confirmation"' not in response.content.decode()
+
+        response = client.post(case.url("delete"), {"confirmation": case.record.name})
+
+        assert response.status_code == 200
+        assert Project.objects.filter(pk=case.record.pk).exists()
+
+    def test_a_sample_with_measurements_names_those_the_viewer_may_see_and_counts_the_rest(
+        self, make_case, person_at
+    ):
+        measured = make_case("measurement", public=False)
+        sample = measured.record.sample
+        measured.record.name = "Visible run"
+        measured.record.save()
+        unnamed = ExampleMeasurementFactory(
+            dataset=sample.dataset, sample=sample, name="", char_field="plain value"
+        )
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        hidden = ExampleMeasurementFactory(
+            dataset=elsewhere,
+            sample=sample,
+            name="Secret run",
+            char_field="secret value",
+        )
+        case = Case("sample", sample)
+        manager = ContributionFactory(
+            content_object=sample.dataset,
+            contributor=PersonFactory(is_active=True, is_claimed=True, password="x"),
+            level=ContributionLevel.MANAGE,
+        ).contributor
+        client = browser_as(manager)
+
+        response = client.get(case.url("delete"))
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert response.context["form"] is None
+        page = response.content.decode()
+        assert "Visible run" in page
+        assert str(unnamed.uuid) in page
+        for private in ("Secret run", "secret value", str(hidden.uuid)):
+            assert private not in page
+        assert response.context["protected_unlisted"] == 1
+
+        response = client.post(case.url("delete"), {"confirmation": sample.name})
+
+        assert response.status_code == 200
+        assert Sample.objects.filter(pk=sample.pk).exists()
+        assert Measurement.objects.filter(pk=hidden.pk).exists()
+
+    def test_a_project_that_became_protected_after_the_page_was_opened_is_not_deleted(
+        self, make_case, person_at
+    ):
+        case = make_case("project", public=False)
+        dataset = case.record.datasets.get()
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+        assert client.get(case.url("delete")).context["is_protected"] is False
+
+        dataset.visibility = Visibility.PUBLIC
+        dataset.save()
+        response = client.post(case.url("delete"), {"confirmation": case.record.name})
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert dataset in response.context["protected_objects"]
+        assert Project.objects.filter(pk=case.record.pk).exists()
+
+    def test_a_sample_that_became_protected_after_the_page_was_opened_is_not_deleted(
+        self, make_case, person_at
+    ):
+        case = make_case("sample", public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+        assert client.get(case.url("delete")).context["is_protected"] is False
+
+        ExampleMeasurementFactory(dataset=case.record.dataset, sample=case.record)
+        response = client.post(case.url("delete"), {"confirmation": case.record.name})
+
+        assert response.status_code == 200
+        assert response.context["is_protected"] is True
+        assert Sample.objects.filter(pk=case.record.pk).exists()
+
+    def test_a_measurement_without_a_name_is_confirmed_by_its_portal_id(
+        self, make_case, person_at
+    ):
+        case = make_case("measurement", public=False)
+        case.record.name = ""
+        case.record.save()
+        manager = person_at(case, ContributionLevel.MANAGE)
+        client = browser_as(manager)
+
+        refused = client.post(case.url("delete"), {"confirmation": "a note"})
+
+        assert refused.status_code == 200
+        assert Measurement.objects.filter(pk=case.record.pk).exists()
+
+        response = client.post(
+            case.url("delete"), {"confirmation": str(case.record.uuid)}
+        )
+
+        assert response.status_code == 302
+        assert not Measurement.objects.filter(pk=case.record.pk).exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_back_control_leads_to_the_records_own_page(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        assert response.context["back_url"] == case.own_url
