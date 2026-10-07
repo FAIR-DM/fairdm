@@ -27,7 +27,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetLiteratureRelation,
 )
-from fairdm.core.dataset.plugins import Delete, Overview
+from fairdm.core.dataset.plugins import Overview
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -577,9 +577,6 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
     def test_the_overview_states_no_permission_of_its_own(self):
         assert "permission" not in Overview.__dict__
 
-    def test_delete_declares_its_own_permission(self):
-        assert Delete.__dict__.get("permission") == "dataset.delete_dataset"
-
     def test_a_page_stating_no_permission_does_not_inherit_its_owners(self):
         class _OwnerWithPermission(Plugin):
             permission = "dataset.delete_dataset"
@@ -590,7 +587,6 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
 
         request = _request_for(AnonymousUser())
         assert can_open(_ChildStatingNone, request, None) is True
-
 
 @pytest.mark.django_db
 class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
@@ -612,7 +608,7 @@ class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
             "dataset:overview",
             "dataset:edit",
             "dataset:descriptions",
-            "dataset:overview-delete",
+            "dataset:delete",
         ):
             url = reverse(name, kwargs={"uuid": dataset.uuid})
             response = client.get(url)
@@ -628,26 +624,11 @@ class TestTheDatasetsPagesContributeExactlyOneNavigationEntry:
         view_names = _entry_view_names(Dataset)
         assert "dataset:edit" not in view_names
         assert "dataset:descriptions" not in view_names
-        assert "dataset:overview-delete" not in view_names
+        assert "dataset:delete" not in view_names
 
 
 @pytest.mark.django_db
 class TestTheDatasetsOwnPageOffersTheDeletionLink:
-    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assertContains(response, f'href="{delete_url}"')
-
     def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(
         self, client
     ):
@@ -659,9 +640,8 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
             reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         )
 
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        delete_url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         assertNotContains(response, f'href="{delete_url}"')
-
 
 @pytest.mark.django_db
 class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
@@ -683,22 +663,6 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
         )
         assertNotContains(response, f'href="{update_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
-
-    def test_a_user_who_may_change_but_not_delete_sees_no_deletion_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assertNotContains(response, f'href="{delete_url}"')
-
 
 @pytest.mark.django_db
 class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
@@ -750,7 +714,7 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         client.force_login(self._permitted_user(dataset))
 
         response = client.get(
-            reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -790,22 +754,6 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
 
-    def test_the_deletion_page_links_back_to_the_dataset(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        )
-
-        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        assertContains(response, f'href="{dataset_url}"')
-
-
 @pytest.mark.django_db
 class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
     def _permitted_user(self, dataset):
@@ -843,7 +791,7 @@ class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
     def test_the_deletion_page_emits_no_deprecation_warning(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         self._assert_no_deprecation_warning(client, url)
 
 
@@ -855,12 +803,12 @@ class TestNoAddressDisclosesAPrivateDatasetsExistence:
         "dataset:overview",
         "dataset:edit",
         "dataset:descriptions",
-        "dataset:overview-delete",
+        "dataset:delete",
     )
     PERMISSION_BEARING_ADDRESSES = (
         "dataset:edit",
         "dataset:descriptions",
-        "dataset:overview-delete",
+        "dataset:delete",
     )
 
     def test_an_anonymous_visitor_gets_not_found_at_every_address(self, client):
@@ -1454,25 +1402,6 @@ class TestOverviewSchemaOrgDescription:
         response = _page(client, dataset)
 
         assert person.email not in response.content.decode()
-
-
-class TestOverviewManageMenu:
-    def test_a_user_who_may_delete_the_dataset_is_offered_the_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(_team_member(dataset, "delete_dataset"))
-
-        response = _page(client, dataset)
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assert response.page.find("a", href=delete_url) is not None
-
-    def test_a_visitor_is_offered_no_delete_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, dataset)
-
-        delete_url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        assert response.page.find("a", href=delete_url) is None
 
 
 @pytest.mark.django_db

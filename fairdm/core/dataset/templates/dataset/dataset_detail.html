@@ -34,12 +34,7 @@
     {% translate "Checks the list under Ready to publish?, mints a DOI and releases the data." as reason %}
     <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" />
   {% endif %}
-  <c-actions.manage :entries="manage_menu">
-    {% if directory.delete_url %}
-      {% if manage_menu %}<c-menu.divider />{% endif %}
-      <c-menu.item label="{% translate 'Delete dataset' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
-    {% endif %}
-  </c-actions.manage>
+  <c-actions.manage :entries="manage_menu" />
 {% endblock overview.manage %}
 
 {% block overview.notices %}

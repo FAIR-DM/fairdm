@@ -252,6 +252,16 @@ class TestDatasetVisibilityGuarantees:
             )
         }
 
+        # The permissions a dataset's pages ask for now sit in the editing pages' table.
+        from fairdm.core.editing import RecordEditingPage
+
+        referenced |= {
+            permission.rsplit(".", 1)[-1]
+            for table in RecordEditingPage.PERMISSIONS.values()
+            for model, permission in table.items()
+            if model is Dataset
+        }
+
         # The scan is the guard, so an empty scan is a broken guard, not a pass:
         # `referenced <= declared` is trivially true of the empty set.
         assert referenced, (

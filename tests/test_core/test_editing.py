@@ -244,6 +244,12 @@ def delete_confirmation(case):
     return case.record.name or str(case.record.uuid)
 
 
+def still_exists(record):
+    """Say whether the record is still stored, whatever its visibility."""
+    model = type(record)
+    return getattr(model, "all_objects", model.objects).filter(pk=record.pk).exists()
+
+
 def manage_menu(response):
     """Return the Manage menu element of an overview page, or None when it has none."""
     return soup_of(response).select_one('[data-menu="manage"]')
@@ -430,7 +436,7 @@ class TestAccess:
         )
 
         assert response.status_code == 403
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_signed_in_person_with_no_level_is_refused_the_delete_page(
@@ -446,7 +452,7 @@ class TestAccess:
         )
 
         assert response.status_code == 403
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_visitor_to_a_public_record_is_sent_to_sign_in_from_the_delete_page(
@@ -473,7 +479,7 @@ class TestAccess:
         )
 
         assert response.status_code == 404
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_level_removed_after_the_delete_page_was_opened_refuses_the_deletion(
@@ -490,7 +496,7 @@ class TestAccess:
         )
 
         assert response.status_code == 403
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
 
 
 @pytest.mark.django_db
@@ -541,20 +547,6 @@ class TestManageMenu:
 
         contributors = reverse("project:contribution-list", kwargs={"uuid": case.record.uuid})
         assert contributors not in hrefs(manage_menu(response))
-
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_the_delete_page_stays_in_the_menu_and_opens(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        manager = person_at(case, ContributionLevel.MANAGE)
-        client = browser_as(manager)
-
-        response = client.get(case.own_url)
-
-        delete = reverse(f"{kind}:overview-delete", kwargs={"uuid": case.record.uuid})
-        assert delete in hrefs(manage_menu(response))
-        assert client.get(delete).status_code == 200
 
     def test_the_sample_keywords_page_stays_in_the_menu(self, make_case, person_at):
         case = make_case("sample")
@@ -1290,7 +1282,7 @@ class TestDeleteRecord:
         assert response.status_code == 200
         assert response.context["is_protected"] is False
         assert "confirmation" in form_payload(main_form(response))
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_wrong_confirmation_deletes_nothing(self, make_case, person_at, kind):
@@ -1303,7 +1295,7 @@ class TestDeleteRecord:
 
         assert response.status_code == 200
         assert response.context["form"].errors.get("confirmation")
-        assert type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert still_exists(case.record)
         assert list(get_messages(response.wsgi_request)) == []
 
     @pytest.mark.parametrize("kind", KINDS)
@@ -1311,7 +1303,8 @@ class TestDeleteRecord:
         self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
-        manager = person_at(case, ContributionLevel.MANAGE)
+        held = Case("dataset", dataset_of(case)) if kind in {"sample", "measurement"} else case
+        manager = person_at(held, ContributionLevel.MANAGE)
         client = browser_as(manager)
         landing = landing_for(case)
 
@@ -1321,7 +1314,7 @@ class TestDeleteRecord:
 
         assert response.status_code == 302
         assert response.url == landing
-        assert not type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert not still_exists(case.record)
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         assert client.get(response.url).status_code == 200
 
@@ -1340,7 +1333,7 @@ class TestDeleteRecord:
 
         assert response.status_code == 302
         assert response.url == reverse("dataset-list")
-        assert not type(case.record).objects.filter(pk=case.record.pk).exists()
+        assert not still_exists(case.record)
 
     def test_a_dataset_counts_what_goes_with_it_by_record_type(
         self, make_case, person_at
@@ -1355,14 +1348,14 @@ class TestDeleteRecord:
 
         groups = response.context["related_objects"]
         assert len(groups) == 2
-        assert any("(3)" in line for line in groups[0][1])
+        assert any("(2)" in line for line in groups[0][1])
         assert any("(1)" in line for line in groups[1][1])
 
     def test_a_project_counts_its_datasets_samples_and_measurements(
         self, make_case, person_at
     ):
         case = make_case("project", public=False)
-        dataset = case.record.datasets.get()
+        dataset = Dataset.all_objects.get(project=case.record)
         sample = RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=dataset, sample=sample)
         manager = person_at(case, ContributionLevel.MANAGE)
@@ -1461,7 +1454,7 @@ class TestDeleteRecord:
         self, make_case, person_at
     ):
         case = make_case("project", public=False)
-        dataset = case.record.datasets.get()
+        dataset = Dataset.all_objects.get(project=case.record)
         manager = person_at(case, ContributionLevel.MANAGE)
         client = browser_as(manager)
         assert client.get(case.url("delete")).context["is_protected"] is False

@@ -1,0 +1,12 @@
+{% extends "delete_view.html" %}
+{% load i18n %}
+{% block before_form %}
+  {{ block.super }}
+  {% if protected_unlisted %}
+    <c-alert variant="error">
+      <span>
+        {% blocktrans count counter=protected_unlisted %}One more record you do not have access to also stops this deletion.{% plural %}{{ counter }} more records you do not have access to also stop this deletion.{% endblocktrans %}
+      </span>
+    </c-alert>
+  {% endif %}
+{% endblock before_form %}

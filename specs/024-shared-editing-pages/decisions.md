@@ -300,3 +300,35 @@ have a page to describe, because a page is now either a form or rows. The list i
 under T005 names every class.
 
 **ADR:** none — a record of a check on this feature's tests
+
+## D19. Any measurement that blocks a deletion is named only if the viewer may see it
+
+**Decision:** the delete page filters every protected measurement through
+`Measurement.objects.visible_to(request.user)`, not only the ones that block a sample. Those the
+viewer may see are named by `name_of`, the rest are counted in the `protected_unlisted` context
+entry, and a small template over django-mvp's `delete_view.html` draws that count.
+**Why:** a dataset whose samples another dataset measures is refused by the same RESTRICT relation,
+and its old page printed `str()` of a measurement from a dataset the viewer might hold no level on.
+One rule on the page closes both, and `str()` of a measurement is its value, not its name.
+**Revisit if:** a record type other than a measurement can sit in a dataset the viewer cannot see.
+
+**ADR:** none, a scope note
+
+## D20. The delete entry is drawn after the menu's slot items
+
+**Decision:** `<c-actions.manage>` draws the delete entry, after a divider, within the entries
+loop, so a sample's Edit keywords item, still passed through the slot, comes after it until the
+keywords story removes that item.
+**Why:** the component draws the entries and then the slot, and moving the slot above the entries
+would change where every record's own items sit. The keywords item goes in the next story.
+**Revisit if:** the keywords story is dropped.
+
+**ADR:** none, a scope note
+
+## D21. Existing tests changed in story 3 are listed in the progress log
+
+The old project and dataset delete pages are gone, so the tests that requested them were swapped to
+the shared page where they assert something the new tests do not, and removed where they do. The
+list in `progress.md` under T008 names every class.
+
+**ADR:** none, a record of a check on this feature's tests

@@ -347,21 +347,9 @@ def changing_page(record):
     return reverse(record, "edit")
 
 
-def refusal(record):
-    """The status a signed-in person who may open the record gets from its deletion page.
-
-    A private project's or dataset's deletion page answers a refusal as a record that does not
-    exist, which is the rule that page already had.
-    """
-    private = getattr(record, "visibility", None) == Visibility.PRIVATE
-    return 404 if private else 403
-
-
 def deletion_page(record):
-    """The address of the page that deletes the record, or None when it has none."""
-    if RecordAccess(record).kind in ("project", "dataset"):
-        return reverse(record, "overview-delete")
-    return None
+    """The address of the page that deletes the record."""
+    return reverse(record, "delete")
 
 
 def tab_pages(record, contribution):
@@ -452,10 +440,7 @@ class TestLevels:
             assert (
                 browser_as(editor).get(changing_page(private_record)).status_code == 200
             )
-        if deletion_page(private_record):
-            assert browser_as(editor).get(
-                deletion_page(private_record)
-            ).status_code == refusal(private_record)
+        assert browser_as(editor).get(deletion_page(private_record)).status_code == 403
         for url in tab_pages(private_record, colleague)[1:]:
             assert browser_as(editor).get(url).status_code == 403, url
         assert browser_as(editor).get(tab(private_record)).status_code == 200
@@ -469,11 +454,7 @@ class TestLevels:
                 browser_as(manager).get(changing_page(private_record)).status_code
                 == 200
             )
-        if deletion_page(private_record):
-            assert (
-                browser_as(manager).get(deletion_page(private_record)).status_code
-                == 200
-            )
+        assert browser_as(manager).get(deletion_page(private_record)).status_code == 200
         for url in tab_pages(private_record, colleague):
             assert browser_as(manager).get(url).status_code == 200, url
 

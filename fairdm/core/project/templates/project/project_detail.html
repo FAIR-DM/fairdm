@@ -29,12 +29,7 @@
               size="sm"
               variant="primary" />
   {% endif %}
-  <c-actions.manage :entries="manage_menu">
-    {% if directory.delete_url %}
-      {% if manage_menu %}<c-menu.divider />{% endif %}
-      <c-menu.item label="{% translate 'Delete project' %}" icon="delete" href="{{ directory.delete_url }}" class="text-error" />
-    {% endif %}
-  </c-actions.manage>
+  <c-actions.manage :entries="manage_menu" />
 {% endblock overview.manage %}
 
 {% block overview.notices %}

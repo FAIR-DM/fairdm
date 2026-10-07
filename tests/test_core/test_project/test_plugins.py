@@ -20,7 +20,7 @@ from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.core.project.plugins import Delete, Overview
+from fairdm.core.project.plugins import Overview
 from fairdm.factories import (
     ContributionFactory,
     OrganizationFactory,
@@ -82,44 +82,11 @@ class TestOverviewIsTheProjectsOwnRegistration:
 
 
 @pytest.mark.django_db
-class TestDeletionIsAnExtraViewNotAnEntry:
-
-
-    def test_the_deletion_page_resolves_as_an_extra_view_of_the_overview(
-        self, public_project
-    ):
-        url = reverse("project:overview-delete", kwargs={"uuid": public_project.uuid})
-        assert url.endswith(f"{public_project.uuid}/delete/")
-
-    def test_the_project_menu_carries_no_entry_for_deletion(self):
-        assert "project:overview-delete" not in _entry_view_names(Project)
-
+class TestTheProjectMenuEntries:
     def test_the_project_menu_carries_exactly_one_entry_for_the_collection(self):
         view_names = _entry_view_names(Project)
         assert view_names.count("project:overview") == 1
         assert "project:configure" not in view_names
-
-
-@pytest.mark.django_db
-class TestEachExtraViewStatesItsOwnPermission:
-    # An additional view inherits its owner's `check` but never its `permission` (#279).
-
-
-    def test_deletion_refuses_a_signed_in_user_without_delete_permission(
-        self, public_project, user_with_no_permission
-    ):
-        request = _request_for(user_with_no_permission)
-        assert can_open(Delete, request, public_project) is False
-
-    def test_deletion_admits_a_user_holding_delete_permission(
-        self, user_with_delete_permission
-    ):
-        request = _request_for(user_with_delete_permission)
-        assert can_open(Delete, request, user_with_delete_permission.project) is True
-
-    def test_deletion_refuses_an_anonymous_request(self, public_project):
-        request = _request_for(AnonymousUser())
-        assert can_open(Delete, request, public_project) is False
 
 
 @pytest.mark.django_db
@@ -168,7 +135,7 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
             "project:overview",
             "project:edit",
             "project:descriptions",
-            "project:overview-delete",
+            "project:delete",
         ):
             url = reverse(name, kwargs={"uuid": private_project.uuid})
             response = client.get(url)
@@ -505,21 +472,6 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
 
 @pytest.mark.django_db
 class TestProjectsOwnPageOffersTheDeletionLink:
-    def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("project:overview", kwargs={"uuid": project.uuid})
-        )
-
-        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        assertContains(response, f'href="{delete_url}"')
-
     def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(
         self, client
     ):
@@ -531,9 +483,8 @@ class TestProjectsOwnPageOffersTheDeletionLink:
             reverse("project:overview", kwargs={"uuid": project.uuid})
         )
 
-        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        delete_url = reverse("project:delete", kwargs={"uuid": project.uuid})
         assertNotContains(response, f'href="{delete_url}"')
-
 
 @pytest.mark.django_db
 class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
@@ -564,21 +515,6 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assertContains(response, f'href="{project_url}"')
-
-    def test_the_deletion_page_links_back_to_the_project(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
-        assertContains(response, f'href="{project_url}"')
-
 
 @pytest.mark.django_db
 class TestEveryLinkEachPageDrawsResolvesToARealAddress:
@@ -640,7 +576,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         client.force_login(self._permitted_user(project))
 
         response = client.get(
-            reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+            reverse("project:delete", kwargs={"uuid": project.uuid})
         )
 
         hrefs = _hrefs(response.content.decode())
@@ -1551,32 +1487,12 @@ class TestOverviewManageMenu:
         ContributionFactory(content_object=project, contributor=user, level=level)
         return user
 
-    def test_a_user_who_may_change_and_delete_is_offered_delete_in_the_manage_menu(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._team_member(project, "change", "delete"))
-
-        response = _page(client, project)
-
-        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        assert response.page.find("a", href=delete_url) is not None
-
-    def test_a_user_who_may_change_but_not_delete_is_not_offered_it(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._team_member(project, "change"))
-
-        response = _page(client, project)
-
-        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        assert response.page.find("a", href=delete_url) is None
-
     def test_a_visitor_is_offered_no_manage_links(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         response = _page(client, project)
 
-        for name in ("edit", "overview-delete", "descriptions"):
+        for name in ("edit", "delete", "descriptions"):
             url = reverse(f"project:{name}", kwargs={"uuid": project.uuid})
             assert response.page.find("a", href=url) is None
 
@@ -1592,7 +1508,6 @@ class TestOverviewManageMenu:
 
         assert visitor.page.find("a", href=add_url) is None
         assert team.page.find("a", href=add_url) is not None
-
 
 @pytest.mark.django_db
 class TestOverviewNotAvailableYet:

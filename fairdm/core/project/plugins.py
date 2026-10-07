@@ -1,20 +1,17 @@
-"""Registered pages for a project: overview, delete, datasets and export."""
+"""Registered pages for a project: overview, datasets and export."""
 
 from collections import Counter
 
 from django.db.models import Count
-from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
-from mvp.views.detail import CRUDDirectoryMixin
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
     PrivateRecordNotFoundMixin,
-    RecordOwnPageBackFallbackMixin,
 )
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
@@ -27,10 +24,10 @@ from fairdm.core.overview import (
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMDeleteView, FairDMTemplateView
+from fairdm.views import FairDMTemplateView
 
 from ..dataset.views import DatasetListView
-from .models import Project, ProjectDescription, PublicDatasetsProtect
+from .models import Project, ProjectDescription
 from .transforms import to_json_ld
 
 
@@ -41,10 +38,6 @@ def project_is_visible(request, obj):
     A registered page resolves its record past filtered managers and relies on the page to gate
     itself, so without this check a private project would be readable by anyone holding its
     address. It is set as ``Overview.check``.
-
-    An additional view does not inherit this rule (the owner is read from ``plugin_class``, which
-    exists only on the view instance, while ``has_permission`` passes the class). ``Delete``
-    therefore states a visibility rule of its own (#284).
 
     Args:
         request: The current request.
@@ -60,83 +53,10 @@ def project_is_visible(request, obj):
     return has_perm(request, "project.view_project", obj)
 
 
-def visible_to_holder_of(permission):
-    """Build a page check that also admits a holder of one record-level permission.
-
-    Like :func:`project_is_visible`, except a private project also stays visible to a user
-    holding ``permission`` on it. A level includes the ones below it, so anyone who holds the
-    page's own permission on the project can also view it, and this check says so directly.
-
-    A user holding ``permission`` only at the model level, granted to them directly or through
-    a group the portal made up, still finds no grant here and is refused. With an object,
-    ``has_perm`` answers from the contribution level, and from membership of one of the four
-    shipped portal roles, which confers the object-level answer.
-
-    Args:
-        permission: The permission to accept at record level.
-
-    Returns:
-        A ``check(request, obj)`` callable.
-    """
-
-    def check(request, obj):
-        if project_is_visible(request, obj):
-            return True
-        if obj is None:
-            return False
-        return request.user.has_perm(permission, obj)
-
-    return check
-
-
-class Delete(
-    PrivateRecordNotFoundMixin, RecordOwnPageBackFallbackMixin, Plugin, FairDMDeleteView
-):
-    """Delete the project, confirmed by typing its name.
-
-    An additional view of :class:`Overview`.
-    """
-
-    url_path = "delete"
-    permission = "project.delete_project"
-    check = staticmethod(visible_to_holder_of("project.delete_project"))
-    page_title = _("Delete project")
-    model = Project
-    require_confirmation = True
-    success_url = reverse_lazy("project-list")
-
-    def get_confirmation_value(self):
-        """Ask the user to type the project's name."""
-        return self.base_object.name
-
-    def get_context_data(self, **kwargs):
-        """Report the project's public datasets as the objects protecting it from deletion."""
-        # Set after `super()`, because passing these as keyword arguments would be overwritten.
-        context = super().get_context_data(**kwargs)
-        public_datasets = self.base_object.datasets.filter(visibility=Visibility.PUBLIC)
-        if public_datasets.exists():
-            context["is_protected"] = True
-            context["protected_objects"] = list(public_datasets)
-            # `cotton/form/index.html` renders any `form` in context, which would duplicate the
-            # confirmation input the `is_protected` branch already withholds.
-            context["form"] = None
-        return context
-
-    def form_valid(self, form):
-        """Re-render the page when a public dataset blocks the deletion."""
-        try:
-            return super().form_valid(form)
-        except PublicDatasetsProtect:
-            return self.render_to_response(
-                self.get_context_data(object=self.base_object)
-            )
-
-
 @plugins.register(Project, label=_("Overview"), icon="view", order=0)
-class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlugin):
+class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The project's own page and the root of its collection.
 
-    Its ``extra_views`` are :class:`Delete`, and ``directory`` names the action link it needs.
     The editing pages are the shared ones in :mod:`fairdm.core.editing`, reached from the Manage
     menu.
 
@@ -159,17 +79,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
     model = Project
     check = staticmethod(project_is_visible)
     template_name = "project/project_detail.html"
-    extra_views = [Delete]
-
-    directory = ["delete"]
-    crud_views = {"delete": "project:overview-delete"}
-
     dataset_preview = 5
     lead_roles = ["ProjectLeader", "ProjectManager"]
-
-    def show_delete_action(self, user):
-        """Show the delete action to a user who may open the delete page."""
-        return has_perm(self.request, Delete.permission, self.base_object)
 
     def get_context_data(self, **kwargs):
         """Add the project and everything the overview page draws.
@@ -213,7 +124,6 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                 "key_dates": safe_reverse("project:key-dates", uuid=project.uuid),
                 "identifiers": safe_reverse("project:identifiers", uuid=project.uuid),
                 "descriptions": safe_reverse("project:descriptions", uuid=project.uuid),
-                "delete": safe_reverse("project:overview-delete", uuid=project.uuid),
                 "add_dataset": safe_reverse("dataset-create"),
             },
         }

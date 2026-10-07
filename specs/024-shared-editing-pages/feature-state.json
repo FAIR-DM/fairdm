@@ -201,13 +201,44 @@
       "tasks": [
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py::TestDeleteRecord",
+              "tests/test_core/test_editing.py::TestAccess",
+              "tests/test_core/test_editing.py::TestManageMenu",
+              "tests/test_core/test_editing.py::TestRegistration"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:1272"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py::TestDeleteRecord"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pytest tests/test_core tests/test_contrib tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:347",
+              "fairdm/templates/editing/delete_record.html:1"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T009",

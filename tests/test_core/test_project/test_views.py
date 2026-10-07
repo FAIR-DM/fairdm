@@ -742,13 +742,6 @@ class TestAttributesSaveIsOneAtomicSubmission:
 
 @pytest.mark.django_db
 class TestProjectDeleteView:
-    def test_project_delete_anonymous_redirects_to_login(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
-
     def test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample(
         self, client
     ):
@@ -763,60 +756,12 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
         assert response.status_code == 200
         assert response.context["is_protected"] is True
-        assert Project.objects.filter(pk=project.pk).exists()
-
-    def test_project_delete_without_permission_on_a_private_project_404(self, client):
-        project = ProjectFactory()
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_delete_without_permission_on_a_public_project_403(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 403
-
-    def test_project_delete_without_permission_anonymous_on_a_private_project_404(
-        self, client
-    ):
-        project = ProjectFactory()
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_delete_with_permission_200(self, client):
-        project = ProjectFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_project_delete_wrong_name_shows_error(self, client):
-        project = ProjectFactory(name="My Project")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Wrong Name"})
-        assert response.status_code == 200
-        assert "confirmation" in response.context["form"].errors
         assert Project.objects.filter(pk=project.pk).exists()
 
     def test_project_delete_confirmation_ignores_surrounding_whitespace(self, client):
@@ -827,7 +772,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "  Spaced Project  "})
         assert response.status_code == 302
         assert response.url == reverse("project-list")
@@ -843,7 +788,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
         assertContains(response, "Public Dataset")
@@ -861,71 +806,12 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
         assert response.context["is_protected"] is True
         assertNotContains(response, 'id="id_confirmation"')
         assertNotContains(response, 'id="delete-submit-btn"')
-
-    def test_project_delete_get_shows_refusal_without_submitting(self, client):
-        project = ProjectFactory(name="Dataset Project")
-        Dataset.objects.create(
-            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-        assert response.context["is_protected"] is True
-        assertContains(response, "Public Dataset")
-        assertNotContains(response, 'id="id_confirmation"')
-
-    def test_project_delete_evaluates_visibility_at_submission_time(self, client):
-        project = ProjectFactory(name="Dataset Project")
-        dataset = Dataset.objects.create(
-            name="Soon Public Dataset", project=project, visibility=Visibility.PRIVATE
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-
-        get_response = client.get(url)
-        assert get_response.status_code == 200
-        assert get_response.context["is_protected"] is False
-
-        dataset.visibility = Visibility.PUBLIC
-        dataset.save()
-
-        response = client.post(url, data={"confirmation": "Dataset Project"})
-        assert response.status_code == 200
-        assert response.context["is_protected"] is True
-        assertContains(response, "Soon Public Dataset")
-        assert Project.objects.filter(pk=project.pk).exists()
-
-    def test_project_delete_allows_private_only_datasets(self, client):
-        project = ProjectFactory(name="Private Dataset Project")
-        Dataset.objects.create(
-            name="Private Dataset", project=project, visibility=Visibility.PRIVATE
-        )
-        pk = project.pk
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Private Dataset Project"})
-        assert response.status_code == 302
-        assert response.url == reverse("project-list")
-        assert not Project.objects.filter(pk=pk).exists()
 
     def test_project_delete_no_datasets_success(self, client):
         project = ProjectFactory(name="Empty Project")
@@ -935,7 +821,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Empty Project"})
         assert response.status_code == 302
         assert response.url == reverse("project-list")
@@ -1139,7 +1025,7 @@ class TestDeletionPageBackControl:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
         content = response.content.decode()

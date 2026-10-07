@@ -14,7 +14,7 @@ from fairdm.utils.choices import Visibility
 from fairdm.factories import DatasetFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
-from fairdm.core.plugins import DeletePlugin, OverviewPlugin
+from fairdm.core.plugins import OverviewPlugin
 from fairdm.core.sample.models import Sample
 from fairdm.factories.contributors import UserFactory
 
@@ -809,31 +809,6 @@ class TestBaseOverviewPlugin:
         context = plugin.get_context_data()
 
         assert "object" in context
-
-
-class TestBaseDeletePlugin:
-    def test_delete_plugin_inheritance(self):
-
-        @plugins.register(Sample)
-        class SampleDelete(DeletePlugin):
-            menu = {"label": "Delete", "icon": "trash", "order": 20}
-            permission = "sample.delete_sample"
-
-        assert hasattr(SampleDelete, "get_object")
-        assert hasattr(SampleDelete, "delete")
-
-        registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
-        assert "SampleDelete" in plugin_names
-
-    def test_delete_plugin_requires_permission(self):
-
-        @plugins.register(Sample)
-        class RestrictedDelete(DeletePlugin):
-            menu = {"label": "Restricted Delete", "icon": "lock", "order": 21}
-            permission = "sample.delete_sample"
-
-        assert RestrictedDelete.permission == "sample.delete_sample"
 
 
 class TestInheritancePatterns:
