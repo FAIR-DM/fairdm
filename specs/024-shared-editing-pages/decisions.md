@@ -258,3 +258,36 @@ under T002 names every class. The two reversals of behaviour are the ones decisi
 record.
 
 **ADR:** none — a record of a check on this feature's tests
+
+## D15. The key dates and identifiers pages draw their rows stacked
+
+**Decision:** `EditKeyDates` and `EditIdentifiers` set no template, so their rows draw in
+django-mvp's default stacked layout. The dataset's old update page drew its rows as a table.
+**Why:** the tabular layout is a `layout="tabular"` argument to `<c-form.formset>`, chosen in the
+page template's `formset` block. Neither the view nor the row set can ask for it, so using it needs
+a template of our own. The brief asked for the table only where it is available without one.
+**Revisit if:** the stacked rows read badly on a walkthrough. A template extending `form_view.html`
+that overrides the `formset` block with `layout="tabular"` is the change, and it serves both pages.
+
+**ADR:** none, a layout choice
+
+## D16. The vocabulary-with-no-types state is not built for dates and identifiers
+
+**Decision:** the key dates and identifiers pages have no separate state for a record whose
+vocabulary offers no date types or no identifier types.
+**Why:** the four core date vocabularies and the four core identifier vocabularies are fixed and
+never empty, so the state cannot occur on a core record, and a test of it would have to empty a
+vocabulary by patching library internals. This is the same reasoning as D12.
+**Revisit if:** a portal can configure a core record's date or identifier vocabulary.
+
+**ADR:** none, a scope note
+
+## D17. `DateForm` is left in place
+
+**Decision:** `fairdm/contrib/generic/forms.py` keeps `DateForm`, which only the removed
+`KeyDatesPlugin` used.
+**Why:** the brief forbids tidying that module in this story. It is listed in the completion report
+as dead code.
+**Revisit if:** a later tidy of that module is scheduled.
+
+**ADR:** none, a scope note

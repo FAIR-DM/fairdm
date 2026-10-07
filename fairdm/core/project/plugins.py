@@ -210,6 +210,8 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
                     "project:contribution-list", uuid=project.uuid
                 ),
                 "update": safe_reverse("project:edit", uuid=project.uuid),
+                "key_dates": safe_reverse("project:key-dates", uuid=project.uuid),
+                "identifiers": safe_reverse("project:identifiers", uuid=project.uuid),
                 "descriptions": safe_reverse("project:descriptions", uuid=project.uuid),
                 "delete": safe_reverse("project:overview-delete", uuid=project.uuid),
                 "add_dataset": safe_reverse("dataset-create"),
@@ -505,14 +507,14 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             (
                 gettext("A start date is recorded"),
                 page["timeline"]["start"] is not None,
-                urls["update"],
+                urls["key_dates"],
             ),
             (gettext("Keywords make it findable"), project.keywords.exists(), None),
             (gettext("Funding is acknowledged"), bool(project.funding), None),
             (
                 gettext("It has a persistent identifier (DOI)"),
                 page["citation"]["has_doi"],
-                urls["update"],
+                urls["identifiers"],
             ),
             (
                 gettext("At least one dataset is public"),

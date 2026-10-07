@@ -235,6 +235,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
             "urls": {
                 "update": safe_reverse("dataset:edit", uuid=dataset.uuid),
+                "key_dates": safe_reverse("dataset:key-dates", uuid=dataset.uuid),
                 "descriptions": safe_reverse("dataset:descriptions", uuid=dataset.uuid),
                 "delete": safe_reverse("dataset:overview-delete", uuid=dataset.uuid),
             },
@@ -775,7 +776,7 @@ class Overview(PrivateRecordNotFoundMixin, CRUDDirectoryMixin, RecordOverviewPlu
             (
                 gettext("The collection period is recorded"),
                 page["dates"]["collection_start"] is not None,
-                urls["update"],
+                urls["key_dates"],
                 True,
             ),
             (

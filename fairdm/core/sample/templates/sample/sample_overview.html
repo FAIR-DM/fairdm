@@ -35,7 +35,6 @@
   <c-actions.manage :entries="manage_menu">
     {% if can_edit %}
       <c-menu.item label="{% translate 'Edit keywords' %}" icon="keywords" href="{{ urls.keywords }}" />
-      <c-menu.item label="{% translate 'Edit key dates' %}" icon="date" href="{{ urls.key_dates }}" />
     {% endif %}
   </c-actions.manage>
 {% endblock overview.manage %}

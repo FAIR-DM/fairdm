@@ -1,7 +1,7 @@
 """Row-set declarations for the related records that carry a ``type``/``value`` pair.
 
 Covers the models built on ``AbstractDate`` and ``AbstractIdentifier``
-(``fairdm/core/abstract.py``), each edited on its owning record's page as a row set.
+(``fairdm/core/abstract.py``), each edited as a row set on its record's key dates or identifiers page.
 """
 
 from django.utils.translation import gettext_lazy as _
@@ -9,7 +9,9 @@ from mvp.views.inline import InlineFormSet
 
 from .dataset.models import DatasetDate, DatasetIdentifier
 from .formsets import date_ordering_formset
+from .measurement.models import MeasurementDate, MeasurementIdentifier
 from .project.models import ProjectDate, ProjectIdentifier
+from .sample.models import SampleDate, SampleIdentifier
 
 
 class RelatedRecordInline(InlineFormSet):
@@ -53,6 +55,30 @@ class DatasetIdentifierInline(RelatedRecordInline):
     """Row set for a dataset's identifiers."""
 
     model = DatasetIdentifier
+
+
+class SampleDateInline(RelatedRecordInline):
+    """Row set for a sample's dates."""
+
+    model = SampleDate
+
+
+class SampleIdentifierInline(RelatedRecordInline):
+    """Row set for a sample's identifiers."""
+
+    model = SampleIdentifier
+
+
+class MeasurementDateInline(RelatedRecordInline):
+    """Row set for a measurement's dates."""
+
+    model = MeasurementDate
+
+
+class MeasurementIdentifierInline(RelatedRecordInline):
+    """Row set for a measurement's identifiers."""
+
+    model = MeasurementIdentifier
 
 
 class ProjectDatesInline(ProjectDateInline):

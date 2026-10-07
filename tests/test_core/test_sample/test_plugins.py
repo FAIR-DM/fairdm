@@ -21,7 +21,7 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
-from fairdm.core.sample.plugins import KeyDates, Keywords, Overview
+from fairdm.core.sample.plugins import Keywords, Overview
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -33,7 +33,7 @@ from fairdm.registry import registry
 from fairdm.registry.config import Citation
 from fairdm.utils.choices import Visibility
 
-EDITING_PLUGINS = [Keywords, KeyDates]
+EDITING_PLUGINS = [Keywords]
 
 
 def _request_for(user):
@@ -104,32 +104,6 @@ class TestPermissionStillGatesEvenWithAnAlwaysTruePredicate:
         request = _request_for(AnonymousUser())
 
         assert can_open(always_open, request, rock_sample) is False
-
-
-@pytest.mark.django_db
-class TestKeyDatesRendersItsOwnForm:
-    # The page returns 200 even when InlineFormSetView silently falls back to the
-    # sample's detail template, so status alone never caught it (#280).
-
-    def test_key_dates_page_renders_the_key_dates_form_not_the_detail_page(
-        self, client, rock_sample, user
-    ):
-        ContributionFactory(
-            content_object=rock_sample.dataset,
-            contributor=user,
-            level=ContributionLevel.EDIT,
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("sample:key-dates", kwargs={"uuid": rock_sample.uuid})
-        )
-
-        template_names = [t.name for t in response.templates if t.name]
-        assert "plugins/key-dates.html" in template_names
-        assert "sample/sample_detail.html" not in template_names
-        content = response.content.decode()
-        assert "key-dates-form" in content
 
 
 # Development data reaches every state; `DatasetFactory()` alone gives a private, unpublished one.
@@ -579,7 +553,7 @@ class TestOverviewCardsAlwaysShown:
 class TestOverviewManageMenu:
     """FR-036: the sample's editing pages are reached from a Manage menu, not from tabs."""
 
-    EDITING_PAGES = ["edit", "descriptions", "keywords", "key-dates"]
+    EDITING_PAGES = ["edit", "descriptions", "key-dates", "identifiers", "keywords"]
 
     def _addresses(self, sample):
         return [
@@ -637,5 +611,5 @@ class TestOverviewManageMenu:
     def test_the_editing_pages_keep_their_addresses(self, rock):
         assert self._addresses(rock) == [
             f"/samples/{rock.uuid}/{segment}/"
-            for segment in ["edit", "descriptions", "keywords", "key-dates"]
+            for segment in self.EDITING_PAGES
         ]

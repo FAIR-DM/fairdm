@@ -231,6 +231,14 @@ def only_row_set(response, prefix):
     return row_sets[0]
 
 
+def row_set_errors(row_set):
+    """Gather every error a row set reports, on the set and on its rows, as one string."""
+    errors = list(row_set.non_form_errors())
+    for form in row_set.forms:
+        errors.extend(str(message) for message in form.errors.values())
+    return " ".join(str(error) for error in errors)
+
+
 def manage_menu(response):
     """Return the Manage menu element of an overview page, or None when it has none."""
     return soup_of(response).select_one('[data-menu="manage"]')
@@ -633,9 +641,10 @@ class TestEditKeyDates:
         response = browser_as(editor).get(case.url("key-dates"))
 
         names = [c["name"] for c in main_form(response).select("[name]")]
-        assert [n for n in names if not n.startswith("dates-")] == [
-            "csrfmiddlewaretoken"
-        ]
+        assert {n for n in names if not n.startswith("dates-")} <= {
+            "csrfmiddlewaretoken",
+            "default_next",
+        }
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_adding_a_date_stores_it_and_returns_to_the_record(
@@ -722,8 +731,7 @@ class TestEditKeyDates:
         )
 
         assert response.status_code == 200
-        errors = " ".join(only_row_set(response, "dates").non_form_errors())
-        assert "2010-01-01" in errors
+        assert "2010-01-01" in row_set_errors(only_row_set(response, "dates"))
         assert not case.record.dates.exists()
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
@@ -748,7 +756,7 @@ class TestEditKeyDates:
         )
 
         assert response.status_code == 200
-        assert only_row_set(response, "dates").non_form_errors()
+        assert "2010-01-01" in row_set_errors(only_row_set(response, "dates"))
         assert not case.record.dates.filter(type=end).exists()
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
@@ -940,6 +948,24 @@ class TestEditIdentifiers:
         assert only_row_set(response, "identifiers").non_form_errors()
         assert not case.record.identifiers.exists()
 
+    def test_one_invalid_row_stores_none_of_the_rows(self, make_case, person_at):
+        case = make_case("project")
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload(
+                "identifiers",
+                [
+                    {"type": "DOI", "value": "10.1/valid"},
+                    {"type": "GRANT_NUMBER", "value": ""},
+                ],
+            ),
+        )
+
+        assert response.status_code == 200
+        assert not case.record.identifiers.exists()
+
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_portal_id_is_not_among_the_rows_and_cannot_be_changed(
         self, make_case, person_at, kind
@@ -948,7 +974,7 @@ class TestEditIdentifiers:
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
         _model, factory = IDENTIFIERS[kind]
-        factory(related=case.record, type="DOI", value="10.1/recorded")
+        recorded = factory(related=case.record, type="DOI", value="10.1/recorded")
         portal_id = case.record.uuid
 
         opened = client.get(case.url("identifiers"))
@@ -960,11 +986,14 @@ class TestEditIdentifiers:
         assert "uuid" not in names
 
         payload = rows_payload(
-            "identifiers", [{"type": "DOI", "value": "10.1/another"}]
+            "identifiers",
+            [{"id": recorded.pk, "type": "DOI", "value": "10.1/another"}],
+            initial=1,
         )
         payload["uuid"] = "00000000-0000-4000-8000-000000000000"
-        client.post(case.url("identifiers"), payload)
+        response = client.post(case.url("identifiers"), payload)
 
+        assert response.status_code == 302
         case.record.refresh_from_db()
         assert case.record.uuid == portal_id
 

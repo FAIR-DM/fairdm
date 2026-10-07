@@ -30,8 +30,12 @@ from fairdm.core.project.models import Project, ProjectDescription
 from fairdm.core.related_records import (
     DatasetDatesInline,
     DatasetIdentifierInline,
+    MeasurementDateInline,
+    MeasurementIdentifierInline,
     ProjectDatesInline,
     ProjectIdentifierInline,
+    SampleDateInline,
+    SampleIdentifierInline,
 )
 from fairdm.core.sample.models import Sample, SampleDescription
 from fairdm.registry import registry
@@ -189,9 +193,9 @@ class RecordEditingPage(Plugin):
 class EditDetails(RecordEditingPage, FairDMUpdateView):
     """Edit the record's own fields.
 
-    A project and a dataset keep their identifier and date rows here for now. A sample or
-    measurement is edited with the form its registered type creates records with, less the fields
-    that would move it to another dataset or sample.
+    A sample or measurement is edited with the form its registered type creates records with, less
+    the fields that would move it to another dataset or sample. Dates and identifiers have pages
+    of their own.
     """
 
     name = "edit"
@@ -199,11 +203,6 @@ class EditDetails(RecordEditingPage, FairDMUpdateView):
     menu_label = _("Edit details")
     menu_icon = "edit"
     page_title = _("Edit details")  # type: ignore[assignment]
-
-    INLINES: ClassVar[dict[type, list]] = {
-        Project: [ProjectIdentifierInline, ProjectDatesInline],
-        Dataset: [DatasetIdentifierInline, DatasetDatesInline],
-    }
 
     def get_form_class(self):
         """Choose the record's form by its kind, and by its registered type for a sample or measurement."""
@@ -236,10 +235,6 @@ class EditDetails(RecordEditingPage, FairDMUpdateView):
             helper.form_tag = False
             helper.inputs = []
         return form
-
-    def get_inlines(self):
-        """List the row sets this kind of record carries."""
-        return list(self.INLINES.get(RecordAccess(self.base_object).model, []))
 
 
 @plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
@@ -277,7 +272,59 @@ class EditDescriptions(RecordEditingPage, MetadataMixin, MVPFormView):
         return super().form_valid(form)
 
 
-MENU_PAGES = (EditDetails, EditDescriptions)
+@plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
+class EditKeyDates(RecordEditingPage, FairDMUpdateView):
+    """Edit the record's dates, one row per date type its vocabulary offers.
+
+    A project and a dataset refuse an end that falls before the start.
+    """
+
+    name = "key-dates"
+    access = "change"
+    menu_label = _("Key dates")
+    menu_icon = "date"
+    page_title = _("Key dates")  # type: ignore[assignment]
+    fields = ()
+
+    INLINES: ClassVar[dict[type, list]] = {
+        Project: [ProjectDatesInline],
+        Dataset: [DatasetDatesInline],
+        Sample: [SampleDateInline],
+        Measurement: [MeasurementDateInline],
+    }
+
+    def get_inlines(self):
+        """List the row set of this kind of record's dates."""
+        return list(self.INLINES[RecordAccess(self.base_object).model])
+
+
+@plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
+class EditIdentifiers(RecordEditingPage, FairDMUpdateView):
+    """Edit the record's identifiers, one row per identifier type its vocabulary offers.
+
+    The identifier the portal gives the record is its ``uuid``, which is not a row here.
+    """
+
+    name = "identifiers"
+    access = "change"
+    menu_label = _("Identifiers")
+    menu_icon = "identifier"
+    page_title = _("Identifiers")  # type: ignore[assignment]
+    fields = ()
+
+    INLINES: ClassVar[dict[type, list]] = {
+        Project: [ProjectIdentifierInline],
+        Dataset: [DatasetIdentifierInline],
+        Sample: [SampleIdentifierInline],
+        Measurement: [MeasurementIdentifierInline],
+    }
+
+    def get_inlines(self):
+        """List the row set of this kind of record's identifiers."""
+        return list(self.INLINES[RecordAccess(self.base_object).model])
+
+
+MENU_PAGES = (EditDetails, EditDescriptions, EditKeyDates, EditIdentifiers)
 
 
 def manage_menu(request, record):

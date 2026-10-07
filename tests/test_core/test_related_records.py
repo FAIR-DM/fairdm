@@ -38,6 +38,12 @@ ROW_SET_CASES = [
     (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory, "CollectionStart"),
 ]
 
+def make_measurement():
+    """Make a measurement of a demo type on a sample in the same dataset."""
+    sample = RockSampleFactory()
+    return ExampleMeasurementFactory(sample=sample, dataset=sample.dataset)
+
+
 ALL_FOUR_INLINE_CASES = [
     (Project, ProjectDateInline, ProjectFactory, ProjectDateFactory),
     (Project, ProjectIdentifierInline, ProjectFactory, ProjectIdentifierFactory),
@@ -45,16 +51,11 @@ ALL_FOUR_INLINE_CASES = [
     (Dataset, DatasetIdentifierInline, DatasetFactory, DatasetIdentifierFactory),
     (Sample, SampleDateInline, RockSampleFactory, SampleDateFactory),
     (Sample, SampleIdentifierInline, RockSampleFactory, SampleIdentifierFactory),
-    (
-        Measurement,
-        MeasurementDateInline,
-        ExampleMeasurementFactory,
-        MeasurementDateFactory,
-    ),
+    (Measurement, MeasurementDateInline, make_measurement, MeasurementDateFactory),
     (
         Measurement,
         MeasurementIdentifierInline,
-        ExampleMeasurementFactory,
+        make_measurement,
         MeasurementIdentifierFactory,
     ),
 ]

@@ -1,4 +1,4 @@
-"""Registered pages for a sample: overview, keywords and key dates."""
+"""Registered pages for a sample: its overview and keywords."""
 
 from typing import Any
 
@@ -6,12 +6,11 @@ from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
-from fairdm.contrib.generic.plugins import KeyDatesPlugin, KeywordsPlugin
+from fairdm.contrib.generic.plugins import KeywordsPlugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
 from fairdm.core.plugins import TypedOverviewPlugin
-from fairdm.core.sample.models import SampleDate
 
 from ..utils import documentation_link
 from .models import Sample, SampleRelation
@@ -94,13 +93,7 @@ class Overview(TypedOverviewPlugin):
                     self.request, "dataset.change_dataset", sample.dataset
                 ),
                 "can_edit": has_perm(self.request, "sample.change_sample", sample),
-                "urls": {
-                    key: safe_reverse(f"sample:{name}", uuid=sample.uuid)
-                    for key, name in (
-                        ("keywords", "keywords"),
-                        ("key_dates", "key-dates"),
-                    )
-                },
+                "urls": {"keywords": safe_reverse("sample:keywords", uuid=sample.uuid)},
                 "sample_type": str(type(sample)._meta.verbose_name),
                 "status": status,
                 "lifecycle": self.get_timeline(
@@ -311,8 +304,8 @@ class Overview(TypedOverviewPlugin):
         return " · ".join(parts) or gettext("None recorded")
 
 
-# A plugin with no declared `permission` admits every request, anonymous included, so each
-# page below names the right it needs. Neither is a tab: the overview's Manage menu links to them.
+# A plugin with no declared `permission` admits every request, anonymous included, so the page
+# below names the right it needs. It is not a tab: the overview's Manage menu links to it.
 @plugins.register(Sample, label=_("Keywords"), icon="keywords", menu=False)
 class Keywords(KeywordsPlugin):
     """Edit the sample's keywords."""
@@ -324,12 +317,3 @@ class Keywords(KeywordsPlugin):
         ),
         "links": [documentation_link("sample/keywords")],
     }
-
-
-@plugins.register(Sample, label=_("Key Dates"), icon="date", menu=False)
-class KeyDates(KeyDatesPlugin):
-    """Edit the sample's key dates."""
-
-    permission = "sample.change_sample"
-    model = Sample
-    inline_model = SampleDate
