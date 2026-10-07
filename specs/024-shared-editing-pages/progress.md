@@ -118,3 +118,10 @@ Did: Added tests to TestEditKeyDates (a row id of another record, posted with a 
 Verified: uv run pytest tests/test_core/test_editing.py -q -n0 gave 428 passed. The new tests passed on first run, as the brief expects, and no code was changed for them. Probed two of them by mutation: removing the pop of dataset and sample from EditDetails.get_form made the measurement case fail, and emptying DatasetForm.manager_only_fields made the editor case fail; both restored.
 Next: T016, documentation.
 Watch: the sample case of the move test passes without the pop because the demo sample form carries no dataset field.
+
+## 2026-10-07T21:40:10Z · Implementer FIX1 · T016
+
+Did: Added "024 - A record's editing pages are six shared pages" to docs/more/migration-guides.md as steps: the removed URL names with the ones to reverse, the removed classes and what to build on, the removed templates and overview context keys with manage_menu as the replacement, dates and identifiers rows now posted to key-dates and identifiers, an overview.actions Manage dropdown now filling overview.manage, the 404 to 403 change and the portal-wide sample right. Each removed name was checked against git diff origin/main...HEAD; CRUDDirectoryMixin is django-mvp's and stays, so the step says the overviews no longer use it. The project and dataset about and update pages call the entries Keywords and Delete. CHANGELOG.md says the project Manage menu has no contributors entry.
+Verified: grep of the added lines finds no em dash; uv run pre-commit run --files on the changed files passed. The docs build runs in the full verify.
+Next: T017.
+Watch: none.
