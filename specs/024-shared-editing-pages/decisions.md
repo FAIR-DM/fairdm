@@ -375,3 +375,15 @@ else, and only the removed sample page used it.
 **Revisit if:** none.
 
 **ADR:** none
+
+## D26. Existing tests changed in story 4 were checked against the list in the progress log
+
+Four existing test modules were flagged. The changes are to tests of the sample's old keywords page
+and of the retired dataset keywords address, and to the readiness link set, which gains the keywords
+page. The list in `progress.md` under T011 names every class.
+
+One unrelated test errored once in a full run and passed on the next:
+`TestOrganizationUpdate` in the contributors tests, on a uniqueness collision between two
+affiliations built from random data. Nothing in this feature touches it.
+
+**ADR:** none — a record of a check on this feature's tests
