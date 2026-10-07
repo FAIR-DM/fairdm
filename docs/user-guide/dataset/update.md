@@ -40,5 +40,5 @@ the same type would say the same thing twice.
 ## What isn't here
 
 Descriptions have a page of their own, **Edit descriptions** in the same menu. See
-[Descriptions](descriptions.md). Keywords have **Edit keywords**, also in the Manage menu.
+[Descriptions](descriptions.md). Keywords are chosen on their own page, the **Keywords** entry of the Manage menu.
 Contributors are managed elsewhere.

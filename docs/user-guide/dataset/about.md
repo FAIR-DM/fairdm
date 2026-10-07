@@ -20,13 +20,13 @@ to:
   visibility. Requires permission to change the dataset.
 - **Edit descriptions**: write the dataset's abstract and the other prose passages about it.
   Requires permission to change the dataset.
-- **Edit keywords**: choose the keywords the dataset is found under. Requires permission to change
+- **Keywords**: choose the keywords the dataset is found under. Requires permission to change
   the dataset.
 - **Key dates**: record the dataset's collection period and other dates. Requires permission to
   change the dataset.
 - **Identifiers**: record the dataset's DOI and other identifiers. Requires permission to change
   the dataset.
-- **Delete dataset**: remove the dataset entirely. Requires permission to delete the dataset.
+- **Delete**: remove the dataset entirely. Requires permission to delete the dataset.
 
 An entry only appears if you are allowed to open the page it points to, and the menu is not shown
 when there is nothing in it.

@@ -20,13 +20,13 @@ to:
   Requires permission to change the project.
 - **Edit descriptions**: write the project's abstract and the other prose passages about it.
   Requires permission to change the project.
-- **Edit keywords**: choose the keywords the project is found under. Requires permission to change
+- **Keywords**: choose the keywords the project is found under. Requires permission to change
   the project.
 - **Key dates**: record the project's start, end and other dates. Requires permission to change the
   project.
 - **Identifiers**: record the project's DOI and other identifiers. Requires permission to change
   the project.
-- **Delete project**: remove the project entirely. Requires permission to delete the project.
+- **Delete**: remove the project entirely. Requires permission to delete the project.
 
 An entry only appears if you are allowed to open the page it points to, and the menu is not shown
 when there is nothing in it.

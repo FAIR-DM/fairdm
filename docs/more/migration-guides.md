@@ -3,6 +3,62 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## 024 - A record's editing pages are six shared pages
+
+A project, a dataset, a sample and a measurement are now edited and deleted through six pages
+that are written once and registered on all four: edit details, descriptions, keywords, key
+dates, identifiers and delete. See [Record editing pages](../portal-development/record-editing-pages.md)
+for what each page does. The pages they replace are removed, and no redirect is left behind.
+Nothing in the database changes. Check your portal's own code for these:
+
+- **URL names on projects and datasets**: `project:overview-update`, `project:overview-descriptions`,
+  `project:overview-delete` and the same three on `dataset` no longer exist. Reverse
+  `project:edit`, `project:descriptions` and `project:delete` instead, and the same names on
+  `dataset`. The update address moves from `<record address>/update/` to
+  `<record address>/edit/`, so a link written by hand to `/update/` now answers 404.
+- **URL names on samples**: `sample:basic-information` no longer exists. Reverse
+  `sample:descriptions` for the descriptions page and `sample:edit` for the sample's own
+  fields. `sample:keywords` and `sample:key-dates` keep their names and addresses and now serve the
+  shared pages. A measurement has all six names in the `measurement` namespace.
+- **Classes you subclassed**: `UpdatePlugin` and `DeletePlugin` (in `fairdm.core.plugins`) and
+  `DescriptionsPlugin`, `KeyDatesPlugin` and `KeywordsPlugin` (the module
+  `fairdm.contrib.generic.plugins`, which no longer exists) are gone, with the project, dataset
+  and sample `Update`, `Edit`, `Descriptions`, `Keywords`, `KeyDates` and `Delete` plugins. A page
+  of your own that edits or deletes a record builds on `FairDMUpdateView` or `FairDMDeleteView`
+  together with `Plugin`. To change what the shared pages do, subclass the class in
+  `fairdm.core.editing` and register it for your model. The project and dataset `Overview`
+  plugins no longer build on the `CRUDDirectoryMixin` of django-mvp, so the `directory` and
+  `crud_views` attributes and the `show_update_action`, `show_descriptions_action` and
+  `show_delete_action` methods are gone from them, and `visible_to_holder_of` is removed from the
+  project and dataset plugin modules. A subclass of either overview that read one of these reads
+  `manage_menu` instead (see the overview context below).
+- **Templates**: `plugins/descriptions.html`, `plugins/key-dates.html` and
+  `dataset/plugins/update.html` are removed. The row-set page is now `editing/rows.html`, and
+  the delete page is `editing/delete_record.html`. A template of yours that extended one of the
+  removed names extends the page you need from the shared ones, or `form_view.html`.
+- **Overview context**: a sample's overview no longer sets `urls` or `can_edit`, and a project's
+  and a dataset's no longer set `urls.delete`, `directory` or `crud_views`. The addresses and the
+  menu are in `manage_menu`, a list of entries each carrying a `label`, an `icon`, a `url` and a
+  `destructive` flag, built for the signed-in person by
+  `fairdm.core.editing.manage_menu(request, record)`. Read the entry you want from that list
+  rather than from the old keys.
+- **Dates and identifiers**: a project's and a dataset's dates and identifiers are no longer rows
+  on the details page. A form of yours that posts `dates-` or `identifiers-` fields to the `edit`
+  page now posts them to the `key-dates` or `identifiers` page of the record.
+- **Your own Manage menu**: a template that overrides `overview.actions` to draw a Manage
+  dropdown now fills `overview.manage` instead, with
+  `<c-actions.manage :entries="manage_menu">` and any extra entries in its slot. The shared
+  overview draws the menu in that block, so an override of `overview.actions` that keeps
+  `{{ block.super }}` and draws its own dropdown shows two.
+- **Who gets 404 and who gets 403**: a signed-in person who may see a project or a dataset and
+  may not use one of its editing pages is now refused with 403. The old pages answered 404 to
+  every refusal on a private record. A person who may not see the record still gets 404, and a
+  visitor who may see it is sent to sign in.
+- **Portal-wide change rights on samples**: the editing pages of a sample now answer 404 to a
+  person who holds `sample.change_sample` for the whole portal, has no level on the sample and
+  may not see it. The old pages opened for them. Give the people who should keep access a level
+  on the sample or on its dataset, on the Contributors tab. A Data Curator is unaffected.
+
 ## 022 - Access to a record is a level on its contribution
 
 A project, dataset, sample or measurement is now opened, changed and managed according to the

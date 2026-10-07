@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The project's Manage menu no longer has a contributors entry.** The Contributors tab is where
+  a project's contributors are managed, as on a dataset.
 - **The sample keywords page is replaced by the shared one.** The sample `Keywords` plugin,
   `KeywordsPlugin` (the module `fairdm.contrib.generic.plugins`) and the `urls` and `can_edit`
   entries of the sample overview context are gone, along with the Edit keywords item the sample
