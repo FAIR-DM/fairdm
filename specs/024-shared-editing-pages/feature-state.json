@@ -3,7 +3,7 @@
   "feature": "024-shared-editing-pages",
   "branch": "024-shared-editing-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -29,6 +29,11 @@
       "state": "CONVERGE",
       "at": "2026-10-07T21:17:15Z",
       "note": "all four stories accepted"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-07T21:22:05Z",
+      "note": "converged: verify green, decision records checked"
     }
   ],
   "gates": {
@@ -354,7 +359,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "design_review_cycles": {
