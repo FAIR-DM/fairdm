@@ -133,18 +133,57 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 (428 passed; the new tests passed on first run as the brief expects)"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:790",
+              "tests/test_core/test_editing.py:811",
+              "tests/test_core/test_editing.py:943",
+              "tests/test_core/test_editing.py:1777"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "docs/more/migration-guides.md:6"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py::TestManageMenu tests/test_contrib/test_generic -q -n0 (32 passed; the query-count test failed first with 10 queries against 5)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:134",
+              "fairdm/core/editing.py:603",
+              "tests/test_core/test_editing.py:569"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
@@ -300,8 +339,22 @@
         },
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 (32 passed; the four new tests failed first)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:422",
+              "fairdm/templates/editing/delete_record.html:12",
+              "tests/test_core/test_editing.py:1663"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

@@ -1,0 +1,116 @@
+{
+  "story": "FIX-1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T014",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 (before the change: 4 failed, 28 deselected; after: 32 passed)",
+          "uv run pre-commit run --files fairdm/core/editing.py fairdm/templates/editing/delete_record.html tests/test_core/test_editing.py (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "8c59e502"
+      ]
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py"
+        ],
+        "criteria": [
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py -q -n0 (428 passed; the new tests passed on first run, as the brief says they should)",
+          "Mutation probes: removing the pop of dataset and sample in EditDetails.get_form made the measurement move test fail; emptying DatasetForm.manager_only_fields made the editor test fail; both restored with git checkout"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "2d2b1dfb"
+      ]
+    },
+    {
+      "id": "T016",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs (exit 0 after the section was titled as an upgrade; the first full run failed on docs-stale-symbol for the removed names the guide lists)",
+          "uv run pre-commit run --files on the changed documents (passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "f7aaaa36",
+        "d46f295a"
+      ]
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py::TestManageMenu -q -n0 -k once (before: 10 queries performed against 5 expected)",
+          "uv run pytest tests/test_core/test_editing.py::TestManageMenu tests/test_contrib/test_generic -q -n0 (32 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test, build)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "74f2b3a4",
+        "93ba3b46"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "T014 filters the cached deletion walk (DeleteRecord._collect_deletion_data) instead of related_objects in get_context_data, and the number dropped is the related_unlisted context entry.",
+      "why": "The parent view builds related_objects and its overflow count from that walk, so filtering there keeps the cap and the 'and N more' line from counting hidden rows or the record's own row.",
+      "decision_ref": "decisions.md#d27-the-delete-page-drops-hidden-relationships-and-the-records-own-row-from-the-cached-walk"
+    },
+    {
+      "what": "The migration guide section is titled 'Upgrading to the shared editing pages' and not with the feature title.",
+      "why": "The documentation gate exempts removed names only under a heading that says upgrade, migration, deprecation, breaking or removed; the first full verify failed on eleven names until the heading was changed.",
+      "decision_ref": "decisions.md#d27-the-delete-page-drops-hidden-relationships-and-the-records-own-row-from-the-cached-walk"
+    }
+  ],
+  "concerns": [
+    "Full verify ran twice. The first run exited 1 on docs-stale-symbol (migration guide heading); after the fix the second run exited 0: conformance, docs, lint, typecheck, test (118s), build all passed. No test errored, so TestOrganizationUpdate did not need a rerun.",
+    "The brief names the story FIX1 but the report schema allows only FIX-<n>; the report uses FIX-1.",
+    "No pre-existing test was changed or removed. T014 to T017 added tests to TestDeleteRecord, TestEditDetails, TestEditKeyDates and TestManageMenu in tests/test_core/test_editing.py, plus the import of manage_menu under the name build_manage_menu, because the file already has a helper called manage_menu.",
+    "The sample case of the move test passes even without the field removal in EditDetails.get_form, because the demo sample form has no dataset field; the measurement case is the one that depends on the removal.",
+    "fairdm/contrib/generic/forms.py: CoreInlineFormset is reached only from DescriptionInline and Description2Inline, which nothing references. Left alone as the brief says.",
+    "demo/README.md still imports BaseEditPlugin and BaseDeletePlugin from fairdm.core.plugins, names that exist on neither branch. Not touched.",
+    "fairdm/contrib/theme/templates/plugins/keywords.html is referenced by nothing. Not touched.",
+    "docs/portal-development/record-editing-pages.md says Delete is drawn last, while an entry added through the component slot is drawn after it (review note). Not touched, outside the four tasks.",
+    "The delete page draws related_unlisted as a warning alert beside the existing blocking-measurements alert; the wording is for Sam's eye and has no test."
+  ],
+  "blocked": []
+}

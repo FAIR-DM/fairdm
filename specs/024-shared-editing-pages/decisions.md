@@ -386,3 +386,18 @@ One unrelated test errored once in a full run and passed on the next:
 affiliations built from random data. Nothing in this feature touches it.
 
 **ADR:** none — a record of a check on this feature's tests
+
+## D27. The delete page drops hidden relationships and the record's own row from the cached walk
+
+**Decision:** `DeleteRecord._collect_deletion_data` removes, once per request, the record's own base
+row and every sample relationship that reaches a sample the viewer may not see, and keeps the
+number of relationships removed in `related_unlisted`. The page draws that number in
+`delete_record.html` beside the count of blocking measurements it already does not name.
+**Why:** the brief asked for the filter in `get_context_data`. The list in `related_objects` is
+built by the parent view from the walk, capped at 25 rows per model, and the "and N more" line is
+counted from the same walk. Filtering the walk keeps both honest: a hidden relationship cannot be
+counted in the overflow, and the record's own row cannot take a place in the cap. The result is the
+same as the brief's description.
+**Revisit if:** a second kind of row that names another record needs the same treatment.
+
+**ADR:** none — the rule is the one D19 sets for blocking measurements
