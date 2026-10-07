@@ -183,7 +183,9 @@ What goes with the record is shown before the person confirms:
   samples and measurements, and a dataset its samples and measurements. The counts come from
   `DeleteRecord.related_objects_summary`.
 - A sample and a measurement list the rows that go with them, such as their descriptions, dates and
-  identifiers.
+  identifiers, and never the record itself. A relationship row prints the names of both samples,
+  so a sample's page leaves out every relationship that reaches a sample the viewer may not see
+  and says how many rows it does not list.
 
 A record that cannot be deleted says so, names what is in the way and offers no way to confirm:
 

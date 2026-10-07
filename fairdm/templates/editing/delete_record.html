@@ -9,4 +9,11 @@
       </span>
     </c-alert>
   {% endif %}
+  {% if related_unlisted %}
+    <c-alert variant="warning">
+      <span>
+        {% blocktrans count counter=related_unlisted %}One more row you do not have access to also goes with this record.{% plural %}{{ counter }} more rows you do not have access to also go with this record.{% endblocktrans %}
+      </span>
+    </c-alert>
+  {% endif %}
 {% endblock before_form %}

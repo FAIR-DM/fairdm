@@ -45,7 +45,7 @@ from fairdm.core.related_records import (
     SampleDateInline,
     SampleIdentifierInline,
 )
-from fairdm.core.sample.models import Sample, SampleDescription
+from fairdm.core.sample.models import Sample, SampleDescription, SampleRelation
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMDeleteView, FairDMUpdateView
@@ -409,8 +409,59 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
         # The walk loads every row that goes with the record, and the protection check and the
         # counts both need it.
         if not hasattr(self, "deletion_data"):
-            self.deletion_data = super()._collect_deletion_data()
+            related, protected = super()._collect_deletion_data()
+            self.related_unlisted = self.drop_unlisted(related)
+            self.deletion_data = (related, protected)
         return self.deletion_data
+
+    def drop_unlisted(self, related):
+        """Remove from the walk what the page must not list, and count the rows that hide a sample.
+
+        The record's own base row is dropped: a registered type reaches it through its core
+        model, and it is not something that goes with the record. For a sample, a relationship
+        row is dropped when either end is a sample the viewer may not see, because the row
+        prints both names.
+
+        Args:
+            related: What the collector found, by model. Changed in place.
+
+        Returns:
+            How many relationship rows were dropped for naming a sample the viewer may not see.
+        """
+        record = self.base_object
+        model = RecordAccess(record).model
+        if model not in {Sample, Measurement}:
+            return 0
+        for instances in related.values():
+            instances[:] = [
+                item
+                for item in instances
+                if not (type(item) is model and item.pk == record.pk)
+            ]
+        relations = [
+            item
+            for instances in related.values()
+            for item in instances
+            if isinstance(item, SampleRelation)
+        ]
+        ends = {end for item in relations for end in (item.source_id, item.target_id)}
+        seen = set(
+            Sample.objects.visible_to(self.request.user)
+            .filter(pk__in=ends)
+            .values_list("pk", flat=True)
+        ) | {record.pk}
+        hidden = {
+            item.pk
+            for item in relations
+            if not {item.source_id, item.target_id} <= seen
+        }
+        for instances in related.values():
+            instances[:] = [
+                item
+                for item in instances
+                if not (isinstance(item, SampleRelation) and item.pk in hidden)
+            ]
+        return len(hidden)
 
     def get_success_message(self, cleaned_data):
         """Tell the person which record was deleted."""
@@ -437,6 +488,7 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
         record = self.base_object
         model = RecordAccess(record).model
         context["protected_unlisted"] = 0
+        context["related_unlisted"] = 0
         if model is Project:
             public = list(record.datasets.filter(visibility=Visibility.PUBLIC))
             if public:
@@ -447,8 +499,10 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
             listed, unlisted = self.split_protected(context["protected_objects"])
             context["protected_objects"] = listed
             context["protected_unlisted"] = unlisted
-        elif model in {Project, Dataset}:
-            context["related_objects"] = self.related_objects_summary()
+        else:
+            context["related_unlisted"] = self.related_unlisted
+            if model in {Project, Dataset}:
+                context["related_objects"] = self.related_objects_summary()
         return context
 
     def split_protected(self, protected):

@@ -42,6 +42,7 @@ from fairdm.core.sample.models import (
     SampleDate,
     SampleDescription,
     SampleIdentifier,
+    SampleRelation,
 )
 from fairdm.factories import (
     ContributionFactory,
@@ -56,6 +57,7 @@ from fairdm.factories import (
     ProjectIdentifierFactory,
     SampleDateFactory,
     SampleIdentifierFactory,
+    SampleRelationFactory,
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -1555,6 +1557,76 @@ class TestDeleteRecord:
             for item in items
         ]
         assert row in listed
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_the_page_does_not_list_the_record_itself(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind, public=False)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        base = CORE_MODELS[kind]
+        listed = [
+            item
+            for _, items, _ in response.context["related_objects"]
+            for item in items
+        ]
+        assert not [
+            item for item in listed if type(item) is base and item.pk == case.record.pk
+        ]
+
+    @pytest.mark.parametrize("hidden_is_source", [True, False])
+    def test_a_sample_does_not_name_a_related_sample_the_viewer_may_not_see(
+        self, make_case, person_at, hidden_is_source
+    ):
+        case = make_case("sample", public=False)
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        hidden = RockSampleFactory(dataset=elsewhere, name="Secret sample")
+        ends = (
+            {"source": hidden, "target": case.record}
+            if hidden_is_source
+            else {"source": case.record, "target": hidden}
+        )
+        SampleRelationFactory(**ends)
+        manager = person_at(
+            Case("dataset", case.record.dataset), ContributionLevel.MANAGE
+        )
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        assert response.status_code == 200
+        page = response.content.decode()
+        assert hidden.name not in page
+        assert str(hidden.uuid) not in page
+        assert not [
+            item
+            for _, items, _ in response.context["related_objects"]
+            for item in items
+            if isinstance(item, SampleRelation)
+        ]
+        assert response.context["related_unlisted"] == 1
+
+    def test_a_sample_lists_a_relation_to_a_sample_the_viewer_may_see(
+        self, make_case, person_at
+    ):
+        case = make_case("sample", public=False)
+        neighbour = RockSampleFactory(dataset=case.record.dataset)
+        relation = SampleRelationFactory(source=case.record, target=neighbour)
+        manager = person_at(
+            Case("dataset", case.record.dataset), ContributionLevel.MANAGE
+        )
+
+        response = browser_as(manager).get(case.url("delete"))
+
+        listed = [
+            item
+            for _, items, _ in response.context["related_objects"]
+            for item in items
+        ]
+        assert relation in listed
+        assert response.context["related_unlisted"] == 0
 
     def test_a_project_with_a_public_dataset_lists_it_and_offers_no_confirmation(
         self, make_case, person_at
