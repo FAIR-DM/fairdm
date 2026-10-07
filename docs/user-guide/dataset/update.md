@@ -40,6 +40,5 @@ the same type would say the same thing twice.
 ## What isn't here
 
 Descriptions have a page of their own, **Edit descriptions** in the same menu. See
-[Descriptions](descriptions.md). Keywords are not
-editable through the portal at present. They are deferred until the portal's controlled
-vocabulary support is in place. Contributors are managed elsewhere.
+[Descriptions](descriptions.md). Keywords have **Edit keywords**, also in the Manage menu.
+Contributors are managed elsewhere.

@@ -39,7 +39,6 @@ say the same thing twice.
 ## What isn't here
 
 Descriptions have a page of their own, **Edit descriptions** in the same menu. See
-[Descriptions](descriptions.md). Keywords are not
-yet editable through the portal; they are deferred until the portal's controlled-vocabulary
-support is in place. Funding is not editable here either; it is being replaced by a proper
+[Descriptions](descriptions.md). Keywords have **Edit keywords**, also in the Manage menu.
+Funding is not editable here either; it is being replaced by a proper
 funding record shared between projects and datasets.

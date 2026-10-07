@@ -3,7 +3,8 @@
 A project, a dataset, a sample and a measurement are edited through the same pages. Each page is
 written once, in `fairdm/core/editing.py`, and registered on all four record types. A sample type
 or measurement type your portal registers receives every page below with no work beyond the
-registration itself. The same registration gives each type a page that deletes the record.
+registration itself. The same registration gives each type a page that deletes the record. Six
+pages in all: edit details, descriptions, keywords, key dates, identifiers and delete.
 
 ## The pages
 
@@ -11,6 +12,7 @@ registration itself. The same registration gives each type a page that deletes t
 | --- | --- | --- | --- |
 | Edit details | `EditDetails` | `<record address>/edit/` | change the record |
 | Descriptions | `EditDescriptions` | `<record address>/descriptions/` | change the record |
+| Keywords | `EditKeywords` | `<record address>/keywords/` | change the record |
 | Key dates | `EditKeyDates` | `<record address>/key-dates/` | change the record |
 | Identifiers | `EditIdentifiers` | `<record address>/identifiers/` | change the record |
 | Delete | `DeleteRecord` | `<record address>/delete/` | delete the record |
@@ -25,9 +27,9 @@ the record has one. For a record `<uuid>` of each kind the pages are at:
 | Sample | `/samples/<uuid>/edit/` |
 | Measurement | `/measurement/<uuid>/edit/` |
 
-The other pages follow the same pattern, with `descriptions/`, `key-dates/` or `identifiers/` in
-place of `edit/`. The URL names are `edit`, `descriptions`, `key-dates`, `identifiers` and
-`delete` in the namespace of the record's kind, so `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})`
+The other pages follow the same pattern, with `descriptions/`, `keywords/`, `key-dates/` or
+`identifiers/` in place of `edit/`. The URL names are `edit`, `descriptions`, `keywords`,
+`key-dates`, `identifiers` and `delete` in the namespace of the record's kind, so `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})`
 gives a sample's key dates address, whatever type the sample is.
 
 None of the pages is a tab. They are registered with `menu=False`, so the tab strip beside the
@@ -38,7 +40,8 @@ overview never lists them.
 A record's overview page carries a **Manage** menu in its header. It lists the pages the
 signed-in person may use, in a fixed order, and is not drawn at all when there is nothing in it.
 The same entries appear on a project, a dataset, a sample and a measurement, in this order: edit
-details, descriptions, key dates, identifiers and, for someone who may delete the record, delete.
+details, descriptions, keywords, key dates, identifiers and, for someone who may delete the record,
+delete.
 Delete is drawn last, after a divider.
 
 Two pieces draw the menu:
@@ -95,7 +98,8 @@ The page edits the record's own fields.
 - Dates and identifiers are not on this page. They have the pages described below.
 
 When a form carries a crispy-forms helper with a form tag or buttons of its own, the page turns
-both off. The page draws one form element and its own Save buttons.
+both off. The page draws one form element and its own Save buttons. The keywords page does the
+same.
 
 ## Descriptions
 
@@ -104,6 +108,31 @@ what is recorded. Saving an area with text records or replaces that description,
 empty area removes it. The vocabularies are `ProjectDescription.VOCABULARY`,
 `DatasetDescription.VOCABULARY`, `SampleDescription.VOCABULARY` and
 `MeasurementDescription.VOCABULARY`.
+
+## Keywords
+
+The page edits the record's keywords with `KeywordForm`. It offers one autocomplete field for each
+keyword vocabulary the portal configures for the record's kind, followed by a field for free-text
+keywords. The keywords the record carries are shown as chosen, and saving replaces them with
+what is chosen. Emptying every field removes every keyword.
+
+The vocabularies are named in a setting for each kind of record:
+
+| Record | Setting |
+| --- | --- |
+| Project | `FAIRDM_PROJECT["keywords"]` |
+| Dataset | `FAIRDM_DATASET["keyword_vocabularies"]` |
+| Sample | `FAIRDM_SAMPLE["keywords"]` |
+| Measurement | `FAIRDM_MEASUREMENT["keywords"]` |
+
+Each value is a list of dotted paths to vocabulary classes. A sample type or measurement type reads
+the setting of the kind it belongs to, so a `RockSample` reads `FAIRDM_SAMPLE`. A kind with no
+setting, or no key under it, gets the free-text field alone. The page opens and saves in that case
+and shows nothing that suggests a fault.
+
+The keywords page is to be replaced by the keyword editing that
+[#298](https://github.com/FAIR-DM/fairdm/issues/298) describes. The registration, the Manage menu
+entry and the access rule stay as they are.
 
 ## Key dates
 

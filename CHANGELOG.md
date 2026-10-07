@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A keywords page on projects, datasets, samples and measurements.** Each record type has the URL
+  name `keywords`, at `<record address>/keywords/`, reached from the Manage menu after the
+  descriptions entry. The Manage menu now offers all six pages in one order on every record type: edit
+  details, descriptions, keywords, key dates, identifiers and delete. The readiness items for
+  keywords on a project's and a dataset's page lead to it. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
 - **A delete page on projects, datasets, samples and measurements.** Each record type has the URL
   name `delete`, at `<record address>/delete/`, reached from the last entry of the Manage menu. A
   sample and a measurement can be deleted through the portal for the first time. The page asks for
@@ -29,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The sample keywords page is replaced by the shared one.** The sample `Keywords` plugin,
+  `KeywordsPlugin` (the module `fairdm.contrib.generic.plugins`) and the `urls` and `can_edit`
+  entries of the sample overview context are gone, along with the Edit keywords item the sample
+  template passed through the Manage menu. The address and URL name `sample:keywords` stay, and now
+  serve the shared page. A portal that subclassed `KeywordsPlugin` for its own page builds on
+  `FairDMUpdateView` and `Plugin`.
 - **The project and dataset delete pages are replaced by the shared one.** The project `Delete` and
   dataset `Delete` plugins, the `overview-delete` URL names on both, `DeletePlugin`, the
   `show_delete_action` method, the `directory` and `crud_views` attributes and the
@@ -96,6 +108,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The keywords form builds for every record type.** `KeywordForm` read a setting named after the
+  concrete model, such as `FAIRDM_ROCKSAMPLE`, which does not exist, so it raised for every sample
+  type. It now reads the setting of the record's core model with a default of none, so a record type
+  with no keyword vocabulary configured gets the free keywords field alone. It no longer rebinds
+  its own class to the model of the last record it was built for, shows a record's free keywords as
+  chosen, and saves them.
 - **Signing in works in development without Redis.** With `DJANGO_ENV=development` and no
   `REDIS_URL`, every sign-in returned "429 Too Many Requests", because the rate limiter could not
   reach its cache. The development settings now hold every cache in memory when `REDIS_URL` is

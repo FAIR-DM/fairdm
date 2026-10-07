@@ -16,10 +16,16 @@ cannot be used to find out whether a private project is there.
 If you hold the right permission, the **Manage** menu in the header of the project's own page links
 to:
 
-- **Edit details**: correct the project's name, status, visibility, owning organisation, dates
-  and identifiers. Requires permission to change the project.
+- **Edit details**: correct the project's name, status, visibility and owning organisation.
+  Requires permission to change the project.
 - **Edit descriptions**: write the project's abstract and the other prose passages about it.
   Requires permission to change the project.
+- **Edit keywords**: choose the keywords the project is found under. Requires permission to change
+  the project.
+- **Key dates**: record the project's start, end and other dates. Requires permission to change the
+  project.
+- **Identifiers**: record the project's DOI and other identifiers. Requires permission to change
+  the project.
 - **Delete project**: remove the project entirely. Requires permission to delete the project.
 
 An entry only appears if you are allowed to open the page it points to, and the menu is not shown
