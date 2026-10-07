@@ -92,3 +92,70 @@ portal detects this today, and adding it is not what the request asks for.
 
 Every page here is a form or a confirmation in a layout the portal already has, reached from a menu
 that already exists. Nothing needs to be drawn first.
+
+## Decisions made while planning the build
+
+Read against `main` on 2026-10-07, after specifications 020 and 022 were delivered and #401 was
+closed.
+
+## D1. The right to delete is no longer uneven
+
+Item 6 above described deleting a sample as needing the right to change its dataset, and deleting a
+measurement as needing the right to delete its dataset. Specification 022 changed both: deleting any
+of the four record types needs the manage level, through `<type>.delete_<type>`. The delete page
+asks that permission and nothing else. FR-012 holds because the page reads the right that exists.
+
+**ADR:** none — the rule is recorded in 0025, and this page only reads it
+
+## D2. A viewer who may see a record and not use a page gets 403, not 404
+
+**Decision:** a request for an editing page answers 404 only when the viewer may not see the
+record. A signed-in viewer who may see it is refused with 403, and a visitor is sent to sign in.
+**Why:** FR-013 and FR-014 draw that line. The project and dataset pages answer 404 to every
+refusal on a private record today, and specification 022 (its D29) left that to be revisited when
+these pages were rebuilt.
+**Revisit if:** a refusal is found to reveal something the record's own page does not.
+
+**ADR:** docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md
+
+## D3. The project's "Manage contributors" entry is not carried into the shared menu
+
+**Decision:** the shared Manage menu has the six entries and no entry for contributors.
+**Why:** specification 022 FR-007 says managing contributors must not appear in the Manage menu.
+The entry on the project page predates it. FR-009 here keeps whatever else the menu carries, and it
+was written with entries such as importing data in mind, none of which is in the menu today.
+**Revisit if:** the Contributors tab stops being offered on a record type.
+
+**ADR:** none — local to this feature, and the rule it follows is specification 022's
+
+## D4. The keywords form is repaired to a working state
+
+**Decision:** `KeywordForm` is changed so that it reads the configured vocabularies with a default
+of none and no longer rewrites its own class. Nothing else about it changes.
+**Why:** FR-024 asks for the page as it works today, and it does not work: the form raises for every
+sample type because it reads a setting that does not exist. FR-023 asks for a page that works with
+no vocabulary configured. The smallest change that satisfies both is this one.
+**Revisit if:** #298 lands first, in which case US-4 only registers its page.
+
+**ADR:** none — a repair inside this feature, and the form is replaced by #298
+
+## D5. Dates and identifiers leave the details page, and the pages are registrations of their own
+
+**Decision:** the six pages are six registered plugins, not additional views of the overview, and
+dates and identifiers are edited on their own pages.
+**Why:** the specification asks for both (FR-003, FR-016). Architecture decision 0008 says the
+opposite on each point, so a new record supersedes it.
+**Revisit if:** never without a new specification.
+
+**ADR:** docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md
+
+## D6. Started while another pull request is open
+
+**Decision:** the build started while #383, which shows a record's image as a banner on its
+overview, is open and waiting for review.
+**Why:** the maintainer asked for this feature to be built now. #383 changes the overview's header
+image and two user guide pages. If it merges first, this branch is brought up to date before it is
+marked ready.
+**Revisit if:** #383 changes the overview's actions block.
+
+**ADR:** none — an ordering note for this run

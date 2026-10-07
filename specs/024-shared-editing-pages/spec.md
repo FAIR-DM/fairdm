@@ -403,7 +403,7 @@ Check the record's own page after each.
 - Entries the Manage menu carries beyond these six, such as importing data or reviewing and
   publishing a dataset, belong to other features.
 - People and organizations are not covered. Their editing pages are specified in 020.
-- An addon replacing one of these pages on one record type relies on #401, which specifies removing
-  and replacing a registered plugin. Nothing here depends on it.
+- An addon cannot remove or replace one of these pages on a record type. #401, which would have
+  specified that, was closed without being built. Nothing here depends on it.
 - The portal has not had a stable release, so the addresses of the pages being replaced are not
   preserved.
