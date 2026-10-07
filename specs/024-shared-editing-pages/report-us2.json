@@ -1,0 +1,100 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T004",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py",
+          "tests/test_core/test_related_records.py"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py -q -n0 (at cca243e6: 126 failed by design, NoReverseMatch for key-dates and identifiers, details page still carries the rows)",
+          "uv run pytest tests/test_core/test_related_records.py -q -n0 (at cca243e6: import error, the four row sets did not exist)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "cca243e6"
+      ]
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py",
+          "tests/test_core/test_related_records.py"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py tests/test_core/test_related_records.py -q -n0",
+          "uv run pytest tests/test_core tests/test_contrib -q -n 4 --dist loadscope",
+          "uv run pytest tests demo/tests -q -n 4 --dist loadscope --ignore=tests/test_core --ignore=tests/test_contrib",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "0194ba12"
+      ]
+    },
+    {
+      "id": "T006",
+      "status": "done",
+      "evidence": {
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (conformance, lint, typecheck, test, build passed; docs failed on four undocumented names)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs (passed after the four row-set names were added to record-editing-pages.md)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "e28b86b0"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The key dates and identifiers pages draw their rows stacked, not as a table",
+      "why": "The tabular layout is chosen in the page template's formset block, so it needs a template of our own; the brief allowed it only where available without one.",
+      "decision_ref": "decisions.md#d15-the-key-dates-and-identifiers-pages-draw-their-rows-stacked"
+    },
+    {
+      "what": "The state for a vocabulary that offers no date types or no identifier types is not built",
+      "why": "The four core vocabularies of each kind are fixed and never empty, and a test would have to empty one by patching library internals.",
+      "decision_ref": "decisions.md#d16-the-vocabulary-with-no-types-state-is-not-built-for-dates-and-identifiers"
+    },
+    {
+      "what": "DateForm in fairdm/contrib/generic/forms.py is left in place although the removed KeyDatesPlugin was its only user",
+      "why": "The brief forbids tidying that module in this story.",
+      "decision_ref": "decisions.md#d17-dateform-is-left-in-place"
+    }
+  ],
+  "concerns": [
+    "fairdm/contrib/generic/forms.py: DateForm has no user left now that KeyDatesPlugin is gone (decision D17). TypeVocabularyFormMixin and CoreInlineFormset are still used by other classes in the module.",
+    "docs/user-guide/sample/key-dates.md and docs/user-guide/measurement/key-dates.md still read 'Coming soon...' and are in the sample and measurement guide indexes, although the pages now exist. They were outside T006, which names the project and dataset guides.",
+    "fairdm/core/sample/plugins.py: the heading_config description on the sample Keywords page talks about key dates, not keywords. Left for the keywords story.",
+    "The tabular row layout would read better for type and value rows. It needs one small template that extends form_view.html and passes layout='tabular' in the formset block; decision D15 says what to add if the walkthrough asks for it.",
+    "Reports of which date is wrong rely on the date-ordering formset's message, which names the two dates by value. The test asserts the entered end value appears in the errors, not the wording.",
+    "Existing tests changed or removed are listed class by class in progress.md under T005: removed project test_views TestAttributesIdentifierRowSet, TestAttributesDateRowSet and one test of TestAttributesSaveIsOneAtomicSubmission; dataset test_plugins TestAttributesIdentifierRowSet, TestAttributesDateRowSet and TestAttributesSaveIsOneAtomicSubmission; sample test_plugins TestKeyDatesRendersItsOwnForm. Rewritten: dataset TestRetiredManagementPages (key-dates is no longer retired), project TestOverviewReadinessChecklistIsForTheTeam (the dates and DOI items now link to the new pages), sample EDITING_PLUGINS and TestOverviewManageMenu (five addresses, in menu order). In test_editing.py two story 1 tests were renamed and adjusted: TestManageMenu's both-pages test and the sample key-dates-and-keywords menu test.",
+    "In T004 the measurement parent factory in test_related_records.py first built a measurement with no sample and failed with an IntegrityError; the helper that builds a measurement on a sample was added in the T005 commit."
+  ],
+  "blocked": []
+}

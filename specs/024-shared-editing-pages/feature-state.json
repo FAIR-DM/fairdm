@@ -132,18 +132,63 @@
       "tasks": [
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_core/test_related_records.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 (126 failed at cca243e6, red by design)",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:615",
+              "tests/test_core/test_editing.py:823"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_core/test_related_records.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py tests/test_core/test_related_records.py -q -n0",
+              "uv run pytest tests/test_core tests/test_contrib -q -n 4 --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:276",
+              "fairdm/core/editing.py:302",
+              "fairdm/core/editing.py:327",
+              "fairdm/core/related_records.py:60"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:1",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },
