@@ -332,3 +332,11 @@ the shared page where they assert something the new tests do not, and removed wh
 list in `progress.md` under T008 names every class.
 
 **ADR:** none, a record of a check on this feature's tests
+
+## D22. Existing tests changed in story 3 were checked against the list in the progress log
+
+Eight existing test modules were flagged. Each change is to a test of a delete page this story
+removes, or to one that reversed its URL name. The list in `progress.md` under T008 names every
+class. The one reversal of behaviour is the 403 that decision D2 records.
+
+**ADR:** none — a record of a check on this feature's tests
