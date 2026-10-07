@@ -156,3 +156,32 @@ This story also lays what the others stand on: the module, the access rule and t
   (`fairdm/templates/editing/rows.html`), fill in the user guide pages for a sample's and a
   measurement's key dates and descriptions, mark the free keywords label for translation, and
   remove the examples in `demo/plugins.py` that used the removed base classes.
+
+## Phase 6: After the code review
+
+Each task names the review finding it answers. The findings are in `review-findings.json`.
+
+- [ ] T014 [US3] SEC-001 and COR-001. Tests first, in `TestDeleteRecord`: a sample related to a
+  sample in a dataset the viewer holds no level on has a delete page that carries neither that
+  sample's name nor its portal ID, and counts the relation among the records it does not list;
+  the delete page of a sample and of a measurement does not list the record itself among what goes
+  with it. Then `DeleteRecord.get_context_data`: for a sample, drop from `related_objects` every
+  sample relation whose source or target is not in `Sample.objects.visible_to(request.user)` and
+  add the number dropped to `protected_unlisted`'s counterpart for listed rows; for a sample or a
+  measurement, drop the group that is the record's own base row.
+- [ ] T015 [US1] TEST-001. Tests only: a row id belonging to another record posted to key dates
+  leaves that row unchanged; a manager's POST carrying `dataset` to a sample's edit page, and
+  `dataset` and `sample` to a measurement's, moves nothing; an editor's POST carrying `project` and
+  `visibility` to a dataset's edit page changes neither; a dataset blocked by a measurement in
+  another dataset shows the protected state.
+- [ ] T016 [US1] DOC-001, DOC-002, DOC-003. A section for this feature in
+  `docs/more/migration-guides.md`, as steps: each removed URL name with the one to reverse
+  instead, each removed class with what to build on, each removed template and context key with
+  its replacement, that date and identifier rows are posted to the key dates and identifiers
+  pages, and that a template which drew its own Manage dropdown in `overview.actions` fills
+  `overview.manage`. The user guide names the menu entries as they are labelled. `CHANGELOG.md`
+  says the project's Manage menu no longer has a contributors entry.
+- [ ] T017 [US1] PERF-001 and SIMP-001. `manage_menu` asks the overview's visibility check once
+  per record, not once per page, with a test that pins the number of queries it issues for a
+  sample. Remove `documentation_link` from `fairdm/core/utils.py` and `DateForm` from
+  `fairdm/contrib/generic/forms.py`, which lost their only callers in this feature.

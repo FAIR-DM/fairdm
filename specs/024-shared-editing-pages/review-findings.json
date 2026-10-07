@@ -1,0 +1,106 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Feature branch 024-shared-editing-pages vs origin/main (git diff origin/main...HEAD, head 0489baf6): source, templates, tests and docs. Files under specs/ read as the yardstick, not reviewed as code. Phase 1 correctness and spec compliance, then the security lens, then the documentation pass.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "A sample's delete page names a related sample that sits in a dataset the viewer holds no level on. The page withholds the names of blocking measurements the viewer may not see (split_protected), but the list of rows that go with a sample is drawn unfiltered, and a sample relationship row prints both samples' names.",
+      "evidence": "fairdm/core/editing.py:434-452: DeleteRecord.get_context_data replaces `related_objects` with counts only when `model in {Project, Dataset}` (line 450). For a sample or measurement it keeps what MVPDeleteView.get_context_data built: up to 25 instances per model, each drawn with str(). fairdm/core/sample/models.py:428-430: SampleRelation.__str__ returns f\"{self.source} {self.type} {self.target}\". SampleRelation.source and .target both cascade (models.py:412, 418), so the row is in the collector's data. The sample overview filters the same relations through Sample.visible_to (fairdm/core/sample/plugins.py:213, 253), so the delete page shows what the record's own page hides. Observed against a throwaway test database: the delete page of sample 'Mine' answered 200 and its body contained 'SecretSampleName'; context related_objects was [('Samples', ['Mine']), ('Sample Relationships', ['Mine child_of SecretSampleName'])]; the overview of 'Mine' for the same person did not contain 'SecretSampleName'. The only test of this listing, tests/test_core/test_editing.py:1540 test_a_sample_and_a_measurement_list_the_rows_that_go_with_them, reads that one date row is in the list and never looks for a row naming another record.",
+      "reproduction": "Dataset A (private), person P at the manage level on A. Sample 'Mine' in A. Dataset B (private, P holds nothing on it) with sample 'SecretSampleName'. SampleRelation(source=Mine, target=SecretSampleName, type='child_of'). As P, GET reverse('sample:delete', uuid=Mine.uuid). The page lists 'Mine child_of SecretSampleName'. The same holds with the hidden sample as source.",
+      "suggested_fix": "In DeleteRecord.get_context_data, for a sample, drop from `related_objects` every SampleRelation whose source or target is not in Sample.objects.visible_to(self.request.user), and add how many were dropped to the count the page already shows for unlisted records. Add a test beside test_a_sample_with_measurements_names_those_the_viewer_may_see_and_counts_the_rest that asserts the hidden sample's name and uuid are absent from the page."
+    },
+    {
+      "id": "DOC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The breaking changes in this branch have no section in the migration guide, which the constitution requires for a breaking change.",
+      "evidence": "CONSTITUTION.md:70: 'Breaking changes MUST include a migration guide with concrete, step-by-step instructions.' docs/more/migration-guides.md carries a section per earlier breaking feature ('022 - Access to a record is a level on its contribution', '005 — The sample record'). The diff touches that file only to reword three lines at 265-267 and adds no section. The branch removes the URL names project:overview-update, project:overview-descriptions, project:overview-delete, the same three on dataset, and sample:basic-information; the /update/ address on projects and datasets; UpdatePlugin, DeletePlugin and the module fairdm.contrib.generic.plugins (KeywordsPlugin, DescriptionsPlugin, KeyDatesPlugin); the templates plugins/descriptions.html, plugins/key-dates.html and dataset/plugins/update.html; the `urls` and `can_edit` keys of the sample overview context and `urls.delete`, `directory` and `crud_views` on the project and dataset overviews; and changes a 404 to a 403 for a signed-in viewer of a private project or dataset. The upgrade directions exist only as clauses spread over five CHANGELOG.md entries (lines 38-67).",
+      "suggested_fix": "Add one section to docs/more/migration-guides.md for this feature that lists, as steps: each removed URL name with the name to reverse instead; each removed class with what to build on; each removed template and context key with its replacement; that `dates-` and `identifiers-` rows are now posted to `key-dates` and `identifiers`; and that a template which drew its own Manage dropdown in `overview.actions` now fills `overview.manage`."
+    },
+    {
+      "id": "DOC-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The project and dataset user guide pages name Manage menu entries that do not exist.",
+      "evidence": "docs/user-guide/project/about.md:23 and docs/user-guide/dataset/about.md:23 list an entry '**Edit keywords**'; docs/user-guide/project/update.md:42 and docs/user-guide/dataset/update.md:43 say 'Keywords have **Edit keywords**'. The entry is labelled 'Keywords' (fairdm/core/editing.py:319). docs/user-guide/project/about.md:29 lists '**Delete project**' and docs/user-guide/dataset/about.md:29 '**Delete dataset**'. The entry is labelled 'Delete' on every record type (fairdm/core/editing.py:396). The sample and measurement guide pages use the real labels (docs/user-guide/sample/keywords.md: 'as **Keywords**').",
+      "suggested_fix": "Change the four 'Edit keywords' mentions to 'Keywords' and the two 'Delete project' / 'Delete dataset' entries to 'Delete'."
+    },
+    {
+      "id": "COR-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "A sample's or measurement's delete page lists the record itself among what goes with it.",
+      "evidence": "A registered type is a multi-table child of Sample or Measurement, so the collector reports the base row under the core model. MVPDeleteView._collect_deletion_data skips only `model is type(self.object)` (mvp/views/edit.py), and DeleteRecord.get_context_data (fairdm/core/editing.py:450) corrects the listing for projects and datasets alone. Observed: the delete page of RockSample 'Mine' had related_objects [('Samples', ['Mine']), ...]. FR-030 asks the page to say what else is removed.",
+      "suggested_fix": "For a sample or measurement, drop from `related_objects` the group whose instances are the record's own base row (same pk, class is the core model)."
+    },
+    {
+      "id": "DOC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The project Manage menu lost its 'Manage contributors' entry and the changelog does not say so.",
+      "evidence": "fairdm/core/project/templates/project/project_detail.html: the diff removes `<c-menu.item label=\"Manage contributors\" ... href=\"{{ urls.contributors }}\" />`. tests/test_core/test_editing.py:600 test_the_project_menu_has_no_contributors_entry pins the removal. `grep -n \"Manage contributors\" CHANGELOG.md` returns nothing, and no Removed entry mentions it.",
+      "suggested_fix": "Add a line under Removed in CHANGELOG.md: the project Manage menu no longer carries a contributors entry, and the Contributors tab is where they are managed."
+    },
+    {
+      "id": "TEST-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Three properties the pages hold are asserted by no test, so a later change could break them with the suite green: a row id from another record posted to key dates or identifiers, a POST that tries to move a sample or measurement, and a POST by an editor that tries to set the withheld parent or visibility.",
+      "evidence": "tests/test_core/test_editing.py: TestEditKeyDates and TestEditIdentifiers post only rows of the record itself. Line 702 test_the_page_offers_the_types_own_fields_with_their_values and line 760 test_visibility_is_offered_to_a_manager_only read `form.fields` on a GET and never post; line 760 does not look at `project` on a dataset or `owner` on a project. No test covers the delete page of a dataset or project blocked by a measurement in another dataset, which docs/portal-development/record-editing-pages.md:191 and docs/user-guide/project/delete.md describe. Probed against a throwaway test database, the code holds in each case: posting another project's and another sample's date row id with a new value and then with DELETE left the row unchanged and stored; a manager posting `dataset` to sample:edit and `dataset` plus `sample` to measurement:edit moved nothing; an editor posting `project` and `visibility` to dataset:edit changed neither; a visitor's POST to all four delete pages answered 302 and deleted nothing.",
+      "suggested_fix": "Add one test for each: a foreign row id posted to key-dates leaves that row unchanged; a manager's POST with `dataset` (and `sample`) to the edit page of a sample and a measurement leaves both unchanged; an editor's POST with `project` and `visibility` to dataset:edit leaves both unchanged."
+    },
+    {
+      "id": "PERF-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Drawing the Manage menu asks the overview's visibility check once per page, six times per overview render.",
+      "evidence": "fairdm/core/editing.py:146: RecordEditingPage.verdict calls can_open(cls.overview_for(record), request, record) and manage_menu (line 544-553) calls verdict for each of the six pages. On a sample or measurement the check is a `visible_to(...).filter(pk=...).exists()` query that nothing memoises (fairdm/core/plugins.py:476-479). Measured for a manager: manage_menu(request, record) issued 10 queries on a sample, 10 on a measurement and 16 on a project.",
+      "suggested_fix": "Evaluate the overview check once in manage_menu and hand the answer to each page's verdict, or keep it on the request beside the permission memo that has_perm already uses."
+    },
+    {
+      "id": "SIMP-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "Two helpers lost their only caller in this branch and were left behind.",
+      "evidence": "fairdm/core/utils.py:17 documentation_link: its one caller on origin/main was fairdm/core/sample/plugins.py:361 (the removed sample Keywords plugin); no reference remains in fairdm, demo, tests or docs. fairdm/contrib/generic/forms.py:139 DateForm: its one caller on origin/main was fairdm/contrib/generic/plugins.py:64 (the removed KeyDatesPlugin); no reference remains. CoreInlineFormset (forms.py:101) is now reached only from DescriptionInline and Description2Inline (forms.py:288, 318), which nothing referenced before this branch either.",
+      "suggested_fix": "Remove documentation_link and DateForm, or record why they stay. The removal of the classes that were already unreferenced is a separate decision."
+    }
+  ],
+  "notes": [
+    "Access rule walked for a visitor, a signed-in person with no level, view, edit and manage levels, each shipped portal role and direct model-level grants, on public and private records of all four types, GET and POST. No gain found. Data Curator opens edit and delete on private records of all four types; the other three roles get 404. A direct model-level change or delete grant alone gets 404 on a private record of every type, as decision D2 records.",
+    "Outside this diff: a person holding only a direct model-level dataset.change_dataset gets 404 on a private dataset's own page but 200 on the overview of its samples and measurements, because Sample and Measurement visible_to admit that grant. The editing pages inherit this through the overview check and add nothing to it.",
+    "FR-001/002/005, SC-006: TestRegistration and every kind-parametrised test run on demo RockSample and ExampleMeasurement through the test client. FR-006/008, SC-001/004: TestManageMenu reads both context['manage_menu'] and the hrefs inside [data-menu=manage]. FR-007, SC-003: test_the_page_is_not_a_tab and test_the_delete_page_is_not_a_tab read the registry's menu children. FR-011/013/014/015: TestAccess reads status codes and stored state on GET and POST, including a level removed between GET and POST. FR-016/018/019: TestEditDetails. FR-017: read from form.fields only (TEST-001). FR-020/021: TestEditDescriptions. FR-022/023/024: TestEditKeywords, which reads the rendered selected options. FR-025/026/027: TestEditKeyDates. FR-028/029: TestEditIdentifiers. FR-030 to FR-033: TestDeleteRecord. FR-010: TestOverviewPrompts, projects and datasets only; the sample and measurement overviews carry no such prompt.",
+    "FR-003 and SC-005 have no test and need none: the removed classes, URL names and templates were checked by search and nothing in fairdm, demo or tests still imports, reverses or extends them.",
+    "FR-009: the dataset Manage menu on origin/main carried no import entry, so there was nothing to carry over. The pending Publish button stays in front of the menu.",
+    "A foreign row id posted to key-dates or identifiers answers 302 as a successful save while storing nothing for that row. Harmless, but the person is told it was saved.",
+    "EditDetails.get_form_kwargs passes the request only when the form's constructor names a `request` parameter. SampleFormMixin and MeasurementFormMixin take it through **kwargs, so forms built on them get no request on this page. Nothing reads it today because `dataset` and `sample` are removed from the form.",
+    "docs/portal-development/record-editing-pages.md says Delete is drawn last; an entry added through the component's slot is drawn after it (fairdm/templates/cotton/actions/manage.html: {{ slot }} follows the loop).",
+    "docs/user-guide/project/update.md and dataset/update.md keep the title 'Update project' / 'Update dataset' for a page the menu calls 'Edit details'.",
+    "fairdm/core/measurement/plugins.py ends with a side-effect import of fairdm.core.editing that depends on the measurement module loading last. The comment says so; a test that the overview stays the first registered page on each type would hold it in place.",
+    "demo/README.md still imports BaseEditPlugin and BaseDeletePlugin from fairdm.core.plugins, names that exist on neither branch. Not introduced here.",
+    "fairdm/contrib/theme/templates/plugins/keywords.html is referenced by nothing on either branch.",
+    "Ran: uv run pytest tests/test_core/test_editing.py tests/test_contrib/test_generic/test_forms.py tests/test_core/test_related_records.py — 438 passed. Probes ran against a test database created in memory; db.sqlite3 and media/ were not written."
+  ]
+}
