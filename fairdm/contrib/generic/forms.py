@@ -16,7 +16,6 @@ from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.sample.models import SampleDescription
-from fairdm.forms import PartialDateField
 
 
 class TagWidget(Select2TagWidget):
@@ -134,19 +133,6 @@ class TypeVocabularyFormMixin(forms.ModelForm):
             concept = vocabulary.get_concept(type_value)
             self.fields["value"].label = concept.label()
             self.fields["value"].help_text = concept.definition()
-
-
-class DateForm(TypeVocabularyFormMixin):
-    """Form for a typed date whose ``value`` may be partial, such as a year or year-month.
-
-    Attributes:
-        value: The optional partial date. Label and help text come from the type's concept.
-    """
-
-    value = PartialDateField(required=False)
-
-    class Meta:
-        fields = ["value", "type"]
 
 
 class KeywordForm(forms.ModelForm):
