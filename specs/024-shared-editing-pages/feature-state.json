@@ -1,174 +1,179 @@
 {
- "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
- "feature": "024-shared-editing-pages",
- "branch": "024-shared-editing-pages",
- "repo": "FAIR-DM/fairdm",
- "state": "DESIGN_REVIEW",
- "state_history": [
-  {
-   "state": "QUEUED",
-   "at": "2026-10-07T18:52:55Z",
-   "note": "specification approved in the session on #410 at 81a0176d; epic #404, stories #444-447"
-  },
-  {
-   "state": "PLAN",
-   "at": "2026-10-07T19:10:52Z",
-   "note": "branch brought up to date with origin/main at 9abbd75a; started while #383 is open, on the maintainer's instruction to build"
-  },
-  {
-   "state": "DESIGN_REVIEW",
-   "at": "2026-10-07T19:11:01Z",
-   "note": "plan and tasks written; one reviewer, three lenses"
-  }
- ],
- "gates": {
-  "spec": {
-   "approved_by": "Sam",
-   "at": "2026-10-07T18:52:55Z",
-   "self_resolved": [
-    "approved in the session at commit 81a0176d by the instruction to run the feature through to a pull request; the six choices listed for confirmation in decisions.md were not ruled on one by one"
-   ]
-  },
-  "plan": {
-   "approved_by": "open",
-   "at": "2026-10-07T19:20:15Z"
-  },
-  "merge": {
-   "approved_by": null,
-   "at": null
-  },
-  "design_review": {
-   "approved_by": "design review, one reviewer",
-   "at": "2026-10-07T19:18:00Z",
-   "self_resolved": [
-    "SPEC-001 high: crispy helper nested form, fixed in plan D4 and D7 and tasks T001, T010",
-    "SPEC-002: removal order fixed in plan D3 and D9",
-    "SEC-001: delete page names only measurements the viewer may see",
-    "SPEC-003, SPEC-004, SPEC-005, ARCH-001, ARCH-002, ARCH-003: applied as plan and task edits",
-    "SEC-002: recorded in decisions.md D2 and reported to the maintainer",
-    "SPEC-006: fallback landing planned"
-   ]
-  }
- },
- "stories": [
-  {
-   "id": "US1",
-   "priority": "P1",
-   "issue": 444,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "024-shared-editing-pages",
+  "branch": "024-shared-editing-pages",
+  "repo": "FAIR-DM/fairdm",
+  "state": "IMPLEMENT",
+  "state_history": [
     {
-     "id": "T001",
-     "status": "todo",
-     "attempts": 0
+      "state": "QUEUED",
+      "at": "2026-10-07T18:52:55Z",
+      "note": "specification approved in the session on #410 at 81a0176d; epic #404, stories #444-447"
     },
     {
-     "id": "T002",
-     "status": "todo",
-     "attempts": 0
+      "state": "PLAN",
+      "at": "2026-10-07T19:10:52Z",
+      "note": "branch brought up to date with origin/main at 9abbd75a; started while #383 is open, on the maintainer's instruction to build"
     },
     {
-     "id": "T003",
-     "status": "todo",
-     "attempts": 0
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-07T19:11:01Z",
+      "note": "plan and tasks written; one reviewer, three lenses"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-07T19:20:15Z",
+      "note": "design review applied; plan gate open; story 1 next"
     }
-   ]
-  },
-  {
-   "id": "US2",
-   "priority": "P2",
-   "issue": 445,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T004",
-     "status": "todo",
-     "attempts": 0
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-07T18:52:55Z",
+      "self_resolved": [
+        "approved in the session at commit 81a0176d by the instruction to run the feature through to a pull request; the six choices listed for confirmation in decisions.md were not ruled on one by one"
+      ]
     },
-    {
-     "id": "T005",
-     "status": "todo",
-     "attempts": 0
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-07T19:20:15Z"
     },
-    {
-     "id": "T006",
-     "status": "todo",
-     "attempts": 0
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design review, one reviewer",
+      "at": "2026-10-07T19:18:00Z",
+      "self_resolved": [
+        "SPEC-001 high: crispy helper nested form, fixed in plan D4 and D7 and tasks T001, T010",
+        "SPEC-002: removal order fixed in plan D3 and D9",
+        "SEC-001: delete page names only measurements the viewer may see",
+        "SPEC-003, SPEC-004, SPEC-005, ARCH-001, ARCH-002, ARCH-003: applied as plan and task edits",
+        "SEC-002: recorded in decisions.md D2 and reported to the maintainer",
+        "SPEC-006: fallback landing planned"
+      ]
     }
-   ]
   },
-  {
-   "id": "US3",
-   "priority": "P2",
-   "issue": 446,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
+  "stories": [
     {
-     "id": "T007",
-     "status": "todo",
-     "attempts": 0
+      "id": "US1",
+      "priority": "P1",
+      "issue": 444,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     },
     {
-     "id": "T008",
-     "status": "todo",
-     "attempts": 0
+      "id": "US2",
+      "priority": "P2",
+      "issue": 445,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     },
     {
-     "id": "T009",
-     "status": "todo",
-     "attempts": 0
+      "id": "US3",
+      "priority": "P2",
+      "issue": 446,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T007",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T008",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P3",
+      "issue": 447,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "US4",
-   "priority": "P3",
-   "issue": 447,
-   "status": "todo",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T010",
-     "status": "todo",
-     "attempts": 0
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
     },
-    {
-     "id": "T011",
-     "status": "todo",
-     "attempts": 0
+    "review_cycles": {
+      "used": 0,
+      "max": 1
     },
-    {
-     "id": "T012",
-     "status": "todo",
-     "attempts": 0
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
     }
-   ]
-  }
- ],
- "budgets": {
-  "converge_cycles": {
-   "used": 0,
-   "max": 2
   },
-  "review_cycles": {
-   "used": 0,
-   "max": 1
+  "pr": {
+    "number": 410,
+    "draft": true
   },
-  "design_review_cycles": {
-   "used": 1,
-   "max": 1
-  },
-  "tokens": {
-   "used": 0,
-   "max": 120
-  }
- },
- "pr": {
-  "number": 410,
-  "draft": true
- },
- "escalations": []
+  "escalations": []
 }
