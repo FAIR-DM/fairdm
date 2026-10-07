@@ -1,463 +1,473 @@
 {
- "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
- "feature": "024-shared-editing-pages",
- "branch": "024-shared-editing-pages",
- "repo": "FAIR-DM/fairdm",
- "state": "REVIEW",
- "state_history": [
-  {
-   "state": "QUEUED",
-   "at": "2026-10-07T18:52:55Z",
-   "note": "specification approved in the session on #410 at 81a0176d; epic #404, stories #444-447"
-  },
-  {
-   "state": "PLAN",
-   "at": "2026-10-07T19:10:52Z",
-   "note": "branch brought up to date with origin/main at 9abbd75a; started while #383 is open, on the maintainer's instruction to build"
-  },
-  {
-   "state": "DESIGN_REVIEW",
-   "at": "2026-10-07T19:11:01Z",
-   "note": "plan and tasks written; one reviewer, three lenses"
-  },
-  {
-   "state": "IMPLEMENT",
-   "at": "2026-10-07T19:20:15Z",
-   "note": "design review applied; plan gate open; story 1 next"
-  },
-  {
-   "state": "CONVERGE",
-   "at": "2026-10-07T21:17:15Z",
-   "note": "all four stories accepted"
-  },
-  {
-   "state": "REVIEW",
-   "at": "2026-10-07T21:22:05Z",
-   "note": "converged: verify green, decision records checked"
-  }
- ],
- "gates": {
-  "spec": {
-   "approved_by": "Sam",
-   "at": "2026-10-07T18:52:55Z",
-   "self_resolved": [
-    "approved in the session at commit 81a0176d by the instruction to run the feature through to a pull request; the six choices listed for confirmation in decisions.md were not ruled on one by one"
-   ]
-  },
-  "plan": {
-   "approved_by": "open",
-   "at": "2026-10-07T19:20:15Z"
-  },
-  "merge": {
-   "approved_by": null,
-   "at": null
-  },
-  "design_review": {
-   "approved_by": "design review, one reviewer",
-   "at": "2026-10-07T19:18:00Z",
-   "self_resolved": [
-    "SPEC-001 high: crispy helper nested form, fixed in plan D4 and D7 and tasks T001, T010",
-    "SPEC-002: removal order fixed in plan D3 and D9",
-    "SEC-001: delete page names only measurements the viewer may see",
-    "SPEC-003, SPEC-004, SPEC-005, ARCH-001, ARCH-002, ARCH-003: applied as plan and task edits",
-    "SEC-002: recorded in decisions.md D2 and reported to the maintainer",
-    "SPEC-006: fallback landing planned"
-   ]
-  },
-  "review": {
-   "approved_by": "code review, one reviewer",
-   "at": "2026-10-07T21:50:37Z",
-   "self_resolved": [
-    "SEC-001 high: remedied in T014, verified by test_a_sample_does_not_name_a_related_sample_the_viewer_may_not_see",
-    "COR-001: remedied in T014",
-    "TEST-001: remedied in T015",
-    "DOC-001, DOC-002, DOC-003: remedied in T016",
-    "PERF-001, SIMP-001: remedied in T017"
-   ]
-  }
- },
- "stories": [
-  {
-   "id": "US1",
-   "priority": "P1",
-   "issue": 444,
-   "status": "done",
-   "replans": 0,
-   "tasks": [
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "024-shared-editing-pages",
+  "branch": "024-shared-editing-pages",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PR_READY",
+  "state_history": [
     {
-     "id": "T001",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0"
-      ],
-      "code": [
-       "tests/test_core/test_editing.py:1"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "QUEUED",
+      "at": "2026-10-07T18:52:55Z",
+      "note": "specification approved in the session on #410 at 81a0176d; epic #404, stories #444-447"
     },
     {
-     "id": "T002",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0",
-       "uv run pytest tests demo -q -n auto --dist loadscope",
-       "uv run pre-commit run --all-files"
-      ],
-      "code": [
-       "fairdm/core/editing.py:41",
-       "fairdm/core/editing.py:189",
-       "fairdm/core/editing.py:246",
-       "fairdm/core/editing.py:283",
-       "fairdm/templates/cotton/actions/manage.html:5",
-       "fairdm/templates/overview/page.html:115"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "PLAN",
+      "at": "2026-10-07T19:10:52Z",
+      "note": "branch brought up to date with origin/main at 9abbd75a; started while #383 is open, on the maintainer's instruction to build"
     },
     {
-     "id": "T003",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [],
-      "commands": [
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs",
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge check-adrs --repo . --feature 024-shared-editing-pages"
-      ],
-      "code": [
-       "docs/portal-development/record-editing-pages.md:1",
-       "docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md:1"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-07T19:11:01Z",
+      "note": "plan and tasks written; one reviewer, three lenses"
     },
     {
-     "id": "T015",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0 (428 passed; the new tests passed on first run as the brief expects)"
-      ],
-      "code": [
-       "tests/test_core/test_editing.py:790",
-       "tests/test_core/test_editing.py:811",
-       "tests/test_core/test_editing.py:943",
-       "tests/test_core/test_editing.py:1777"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "IMPLEMENT",
+      "at": "2026-10-07T19:20:15Z",
+      "note": "design review applied; plan gate open; story 1 next"
     },
     {
-     "id": "T016",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [],
-      "commands": [
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
-      ],
-      "code": [
-       "docs/more/migration-guides.md:6"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "CONVERGE",
+      "at": "2026-10-07T21:17:15Z",
+      "note": "all four stories accepted"
     },
     {
-     "id": "T017",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py::TestManageMenu tests/test_contrib/test_generic -q -n0 (32 passed; the query-count test failed first with 10 queries against 5)"
-      ],
-      "code": [
-       "fairdm/core/editing.py:134",
-       "fairdm/core/editing.py:603",
-       "tests/test_core/test_editing.py:569"
-      ],
-      "verified_by_ci": false
-     }
+      "state": "REVIEW",
+      "at": "2026-10-07T21:22:05Z",
+      "note": "converged: verify green, decision records checked"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-07T21:54:16Z",
+      "note": "review closed with no open finding; walkthrough laid out on the pull request"
     }
-   ]
-  },
-  {
-   "id": "US2",
-   "priority": "P2",
-   "issue": 445,
-   "status": "done",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T004",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py",
-       "tests/test_core/test_related_records.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0 (126 failed at cca243e6, red by design)",
-       "uv run pre-commit run --all-files"
-      ],
-      "code": [
-       "tests/test_core/test_editing.py:615",
-       "tests/test_core/test_editing.py:823"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T005",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py",
-       "tests/test_core/test_related_records.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py tests/test_core/test_related_records.py -q -n0",
-       "uv run pytest tests/test_core tests/test_contrib -q -n 4 --dist loadscope",
-       "uv run pre-commit run --all-files"
-      ],
-      "code": [
-       "fairdm/core/editing.py:276",
-       "fairdm/core/editing.py:302",
-       "fairdm/core/editing.py:327",
-       "fairdm/core/related_records.py:60"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T006",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [],
-      "commands": [
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main",
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
-      ],
-      "code": [
-       "docs/portal-development/record-editing-pages.md:1",
-       "CHANGELOG.md:10"
-      ],
-      "verified_by_ci": false
-     }
-    },
-    {
-     "id": "T013",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n auto"
-      ],
-      "code": [
-       "fairdm/core/editing.py:342"
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-07T18:52:55Z",
+      "self_resolved": [
+        "approved in the session at commit 81a0176d by the instruction to run the feature through to a pull request; the six choices listed for confirmation in decisions.md were not ruled on one by one"
       ]
-     }
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-07T19:20:15Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design review, one reviewer",
+      "at": "2026-10-07T19:18:00Z",
+      "self_resolved": [
+        "SPEC-001 high: crispy helper nested form, fixed in plan D4 and D7 and tasks T001, T010",
+        "SPEC-002: removal order fixed in plan D3 and D9",
+        "SEC-001: delete page names only measurements the viewer may see",
+        "SPEC-003, SPEC-004, SPEC-005, ARCH-001, ARCH-002, ARCH-003: applied as plan and task edits",
+        "SEC-002: recorded in decisions.md D2 and reported to the maintainer",
+        "SPEC-006: fallback landing planned"
+      ]
+    },
+    "review": {
+      "approved_by": "code review, one reviewer",
+      "at": "2026-10-07T21:50:37Z",
+      "self_resolved": [
+        "SEC-001 high: remedied in T014, verified by test_a_sample_does_not_name_a_related_sample_the_viewer_may_not_see",
+        "COR-001: remedied in T014",
+        "TEST-001: remedied in T015",
+        "DOC-001, DOC-002, DOC-003: remedied in T016",
+        "PERF-001, SIMP-001: remedied in T017"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-07T21:53:59Z",
+      "self_resolved": []
     }
-   ]
   },
-  {
-   "id": "US3",
-   "priority": "P2",
-   "issue": 446,
-   "status": "done",
-   "replans": 0,
-   "tasks": [
+  "stories": [
     {
-     "id": "T007",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py::TestDeleteRecord",
-       "tests/test_core/test_editing.py::TestAccess",
-       "tests/test_core/test_editing.py::TestManageMenu",
-       "tests/test_core/test_editing.py::TestRegistration"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0",
-       "uv run pre-commit run --all-files"
-      ],
-      "code": [
-       "tests/test_core/test_editing.py:1272"
-      ],
-      "verified_by_ci": false
-     }
+      "id": "US1",
+      "priority": "P1",
+      "issue": 444,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pytest tests demo -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:41",
+              "fairdm/core/editing.py:189",
+              "fairdm/core/editing.py:246",
+              "fairdm/core/editing.py:283",
+              "fairdm/templates/cotton/actions/manage.html:5",
+              "fairdm/templates/overview/page.html:115"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge check-adrs --repo . --feature 024-shared-editing-pages"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:1",
+              "docs/adr/0026-a-records-editing-pages-are-six-shared-pages.md:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 (428 passed; the new tests passed on first run as the brief expects)"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:790",
+              "tests/test_core/test_editing.py:811",
+              "tests/test_core/test_editing.py:943",
+              "tests/test_core/test_editing.py:1777"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "docs/more/migration-guides.md:6"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py::TestManageMenu tests/test_contrib/test_generic -q -n0 (32 passed; the query-count test failed first with 10 queries against 5)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:134",
+              "fairdm/core/editing.py:603",
+              "tests/test_core/test_editing.py:569"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
     },
     {
-     "id": "T008",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py::TestDeleteRecord"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0",
-       "uv run pytest tests/test_core tests/test_contrib tests/test_templates -q -n auto --dist loadscope",
-       "uv run pre-commit run --all-files"
-      ],
-      "code": [
-       "fairdm/core/editing.py:347",
-       "fairdm/templates/editing/delete_record.html:1"
-      ],
-      "verified_by_ci": false
-     }
+      "id": "US2",
+      "priority": "P2",
+      "issue": 445,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_core/test_related_records.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 (126 failed at cca243e6, red by design)",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:615",
+              "tests/test_core/test_editing.py:823"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_core/test_related_records.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py tests/test_core/test_related_records.py -q -n0",
+              "uv run pytest tests/test_core tests/test_contrib -q -n 4 --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:276",
+              "fairdm/core/editing.py:302",
+              "fairdm/core/editing.py:327",
+              "fairdm/core/related_records.py:60"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:1",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n auto"
+            ],
+            "code": [
+              "fairdm/core/editing.py:342"
+            ]
+          }
+        }
+      ]
     },
     {
-     "id": "T009",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [],
-      "commands": [
-       "uv run pre-commit run --all-files",
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
-      ],
-      "code": [
-       "docs/portal-development/record-editing-pages.md:144",
-       "CHANGELOG.md:10"
-      ],
-      "verified_by_ci": false
-     }
+      "id": "US3",
+      "priority": "P2",
+      "issue": 446,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py::TestDeleteRecord",
+              "tests/test_core/test_editing.py::TestAccess",
+              "tests/test_core/test_editing.py::TestManageMenu",
+              "tests/test_core/test_editing.py::TestRegistration"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:1272"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py::TestDeleteRecord"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0",
+              "uv run pytest tests/test_core tests/test_contrib tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files"
+            ],
+            "code": [
+              "fairdm/core/editing.py:347",
+              "fairdm/templates/editing/delete_record.html:1"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:144",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 (32 passed; the four new tests failed first)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:422",
+              "fairdm/templates/editing/delete_record.html:12",
+              "tests/test_core/test_editing.py:1663"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
     },
     {
-     "id": "T014",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 (32 passed; the four new tests failed first)"
-      ],
-      "code": [
-       "fairdm/core/editing.py:422",
-       "fairdm/templates/editing/delete_record.html:12",
-       "tests/test_core/test_editing.py:1663"
-      ],
-      "verified_by_ci": false
-     }
+      "id": "US4",
+      "priority": "P3",
+      "issue": 447,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_contrib/test_generic/test_forms.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py tests/test_contrib/test_generic/test_forms.py -q -n0 (61 failed, 355 passed at 051327b2, all failures on the missing keywords page and the KeywordForm faults)"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:1249",
+              "tests/test_contrib/test_generic/test_forms.py:35"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T011",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_contrib/test_generic/test_forms.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 -k TestEditKeywords (20 passed)",
+              "uv run pytest tests/test_core tests/test_contrib/test_generic tests/test_contrib/test_plugins tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:311",
+              "fairdm/contrib/generic/forms.py:151"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:112",
+              "CHANGELOG.md:12"
+            ],
+            "verified_by_ci": false
+          }
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "US4",
-   "priority": "P3",
-   "issue": 447,
-   "status": "done",
-   "replans": 0,
-   "tasks": [
-    {
-     "id": "T010",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py",
-       "tests/test_contrib/test_generic/test_forms.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py tests/test_contrib/test_generic/test_forms.py -q -n0 (61 failed, 355 passed at 051327b2, all failures on the missing keywords page and the KeywordForm faults)"
-      ],
-      "code": [
-       "tests/test_core/test_editing.py:1249",
-       "tests/test_contrib/test_generic/test_forms.py:35"
-      ],
-      "verified_by_ci": false
-     }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
     },
-    {
-     "id": "T011",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [
-       "tests/test_core/test_editing.py",
-       "tests/test_contrib/test_generic/test_forms.py"
-      ],
-      "commands": [
-       "uv run pytest tests/test_core/test_editing.py -q -n0 -k TestEditKeywords (20 passed)",
-       "uv run pytest tests/test_core tests/test_contrib/test_generic tests/test_contrib/test_plugins tests/test_templates -q -n auto --dist loadscope",
-       "uv run pre-commit run --all-files",
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
-      ],
-      "code": [
-       "fairdm/core/editing.py:311",
-       "fairdm/contrib/generic/forms.py:151"
-      ],
-      "verified_by_ci": false
-     }
+    "review_cycles": {
+      "used": 1,
+      "max": 1
     },
-    {
-     "id": "T012",
-     "status": "done",
-     "attempts": 1,
-     "evidence": {
-      "tests": [],
-      "commands": [
-       "uv run pre-commit run --all-files",
-       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
-      ],
-      "code": [
-       "docs/portal-development/record-editing-pages.md:112",
-       "CHANGELOG.md:12"
-      ],
-      "verified_by_ci": false
-     }
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 50.41,
+      "max": 120
     }
-   ]
-  }
- ],
- "budgets": {
-  "converge_cycles": {
-   "used": 1,
-   "max": 2
   },
-  "review_cycles": {
-   "used": 1,
-   "max": 1
+  "pr": {
+    "number": 410,
+    "draft": true
   },
-  "design_review_cycles": {
-   "used": 1,
-   "max": 1
-  },
-  "tokens": {
-   "used": 50.41,
-   "max": 120
-  }
- },
- "pr": {
-  "number": 410,
-  "draft": true
- },
- "escalations": []
+  "escalations": []
 }
