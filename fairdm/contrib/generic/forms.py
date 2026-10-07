@@ -1,7 +1,10 @@
 """Forms and formsets for the vocabulary-typed models (descriptions, dates, keywords)."""
 
+import copy
+
 from crispy_forms.helper import FormHelper
 from django import forms
+from django.conf import settings
 from django.forms import BaseFormSet, BaseInlineFormSet
 from django.utils.module_loading import import_string
 from django_select2.forms import Select2TagWidget
@@ -9,10 +12,10 @@ from extra_views import InlineFormSetFactory
 from markdownx.fields import MarkdownxFormField
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
+from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.sample.models import SampleDescription
 from fairdm.forms import PartialDateField
-from fairdm.utils.utils import get_setting
 
 
 class TagWidget(Select2TagWidget):
@@ -148,8 +151,10 @@ class DateForm(TypeVocabularyFormMixin):
 class KeywordForm(forms.ModelForm):
     """Manage an object's keywords with one autocomplete field per configured vocabulary.
 
-    The vocabularies come from ``FAIRDM_DATASET["keyword_vocabularies"]`` for datasets
-    and ``FAIRDM_{MODEL}["keywords"]`` for other models. Free-text tags come last.
+    The vocabularies come from ``FAIRDM_DATASET["keyword_vocabularies"]`` for datasets and
+    ``FAIRDM_{MODEL}["keywords"]`` for the other core models, read for the record's core model, so
+    a registered sample type reads the sample setting. A record type with nothing configured gets
+    the free-text tags alone. Tags come last.
 
     Args:
         *args: Passed to ``ModelForm``.
@@ -159,21 +164,30 @@ class KeywordForm(forms.ModelForm):
     class Meta:
         fields = ["keywords"]
 
+    @staticmethod
+    def configured_vocabularies(record):
+        """List the keyword vocabularies the portal configures for a record's core model.
+
+        Args:
+            record: A project, dataset, sample or measurement, of any registered type.
+
+        Returns:
+            The dotted paths of the vocabularies, empty when the setting or its key is absent.
+        """
+        name = RecordAccess(record).model._meta.model_name.upper()
+        key = "keyword_vocabularies" if name == "DATASET" else "keywords"
+        return (getattr(settings, f"FAIRDM_{name}", None) or {}).get(key) or []
+
     def __init__(self, *args, **kwargs):
-        if kwargs.get("instance"):
-            self._meta.model = kwargs["instance"].__class__
+        instance = kwargs.get("instance")
+        if instance:
+            # A copy, so building the form for one model never rebinds the class for the next.
+            self._meta = copy.copy(self._meta)
+            self._meta.model = type(instance)
 
         super().__init__(*args, **kwargs)
 
-        model_name = self._meta.model._meta.model_name.upper()
-
-        vocabularies = None
-        if model_name == "DATASET":
-            vocabularies = get_setting("DATASET", "keyword_vocabularies")
-        else:
-            vocabularies = get_setting(model_name, "keywords")
-
-        vocabularies = vocabularies or []
+        vocabularies = self.configured_vocabularies(self.instance)
 
         existing_keywords = []
         if self.instance and self.instance.pk:
@@ -201,6 +215,8 @@ class KeywordForm(forms.ModelForm):
             widget=TagWidget,
             required=False,
         )
+        if self.instance.pk:
+            self.initial["tags"] = list(self.instance.tags.names())
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
