@@ -52,7 +52,7 @@ then a line on how to use it.
 - A way to deliver many points. The prototype writes every sample's name and address into the
   page: 1,200 samples add about 275 kB. Five thousand would add over a megabyte.
 - Points a keyboard user can reach. The map's pan and zoom controls work from the keyboard, and
-  the links inside an open point do too, but a point can only be opened with a pointer. FR-026
+  the links inside an open point do too, but a point can only be opened with a pointer. FR-024
   asks for more than the prototype gives.
 - A plural-aware, translatable heading for a point that holds several samples. The prototype
   joins a number to a fixed phrase.
@@ -62,8 +62,6 @@ then a line on how to use it.
 
 ## What the prototype faked
 
-- Removing and replacing the map (the third user story) is not shown. It has no screen, and it
-  depends on #401.
 - Whether a viewer may see a sample is decided from its dataset's visibility alone. The overview
   pages also ask whether the dataset is published.
 - The old location plugin is deleted without checking that nothing links to its address.

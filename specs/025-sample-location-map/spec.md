@@ -18,8 +18,9 @@ organizations each say that a map of samples is not available yet. The location 
 is an edit form registered against a point. FairDM should ship one basic map tab that plots sample
 locations as points: a project's samples, a dataset's samples, the one sample on a sample's page,
 and on a person's or an organization's page the samples in the datasets they are credited on. It
-reads plain latitude and longitude, shows only what the viewer may see, and has no extension
-points. An addon that wants a richer map removes this one and registers its own.
+reads plain latitude and longitude, shows only what the viewer may see, and stays basic. It has no
+settings and no hooks. A portal that wants something different overrides the tab's template, as it
+would for any page.
 
 ## Clarifications
 
@@ -32,8 +33,8 @@ settled while writing this specification, and the reasoning behind each is in `d
   different set of samples.
 - Q: Does the map need a geospatial database? → A: No. It reads the latitude and longitude a
   location already stores as plain numbers, so dropping GeoDjango (#196) does not affect it.
-- Q: How far does it go? → A: It stays basic. It plots points and has no extension points. An addon
-  that wants a richer map removes this plugin and registers its own.
+- Q: How far does it go? → A: It stays basic. It plots points and has no settings or hooks. A
+  portal that wants something different overrides the tab's template.
 - Q: Which samples are plotted? → A: Only samples the viewer may see.
 - Q: What happens to the location app's existing overview plugin? → A: It is retired.
 - Q: On a person's or an organization's page, does a member of a private dataset's team see that
@@ -155,34 +156,6 @@ dataset's team. Compare against FR-018 to FR-022.
 
 ---
 
-### User Story 3 - An addon developer replaces the map with a richer one (Priority: P3)
-
-A developer writing a geospatial addon wants their own map on these pages, with layers and shapes
-the basic one does not have. They do not configure or extend the map FairDM ships, because it
-offers nothing to configure or extend. They remove it and register their own plugin in its place,
-using the documented way to remove and replace a registered plugin. A portal that installs the
-addon has one map tab on each page, the addon's.
-
-**Why this priority**: It concerns addon authors, not visitors, and it depends on plugins being
-removable and replaceable (#401). The first two stories are complete without it.
-
-**Independent Test**: In a test project, remove the map plugin and confirm that none of the five
-pages offers a map tab and that its address is not found. Register a replacement and confirm that
-it is the only map tab on each page. Follow the documentation alone to do both.
-
-**Acceptance Scenarios**:
-
-1. **Given** a portal in which the map plugin has been removed, **When** a project, dataset,
-   sample, person or organization page is opened, **Then** no map tab is offered, the map's address
-   is not found, and the rest of the page works.
-2. **Given** a portal in which an addon has replaced the map plugin with its own, **When** any of
-   the five pages is opened, **Then** exactly one map tab is offered and it is the addon's.
-3. **Given** the documentation, **When** a developer looks for a way to add a layer, change the
-   points or change the map's settings, **Then** it tells them that the shipped map has no such
-   options and shows how to replace it.
-
----
-
 ### Edge Cases
 
 - A dataset may hold thousands of located samples. The map tab still opens and can be moved and
@@ -269,28 +242,22 @@ it is the only map tab on each page. Follow the documentation alone to do both.
 - **FR-022**: FR-002 to FR-008 and FR-012 to FR-015 apply to the person and organization pages as
   they do to the record pages.
 
-**Keeping it basic, and replacing it**
+**Keeping it basic**
 
-- **FR-023**: The map plugin MUST offer no settings, hooks, template blocks or other extension
-  points for changing what it plots or how.
-- **FR-024**: Removing the map plugin, using the way of removing a registered plugin that #401
-  delivers, MUST take the map tab and its address off all five pages and leave the rest of each
-  page working.
-- **FR-025**: An addon MUST be able to replace the map plugin with its own, using the way of
-  replacing a registered plugin that #401 delivers, so that each page offers one map tab and it is
-  the addon's.
+- **FR-023**: The map plugin MUST offer no settings and no hooks for changing what it plots or how.
+  Its page is an ordinary template, which a portal can override like any other.
 
 **Accessibility, language, documentation and development data**
 
-- **FR-026**: The map's controls and the links to samples MUST be operable by keyboard. The text
+- **FR-024**: The map's controls and the links to samples MUST be operable by keyboard. The text
   required by FR-005 and FR-008 is the map's text alternative and MUST be readable when the map
   library has not loaded.
-- **FR-027**: Every piece of text the tab shows MUST be marked for translation, and numbers MUST
+- **FR-025**: Every piece of text the tab shows MUST be marked for translation, and numbers MUST
   follow the active locale.
-- **FR-028**: The documentation MUST say which pages carry the map, which samples each page plots,
-  what a viewer may see on it, and that it has no extension points. It MUST show, with a working
-  example, how an addon removes it and how an addon replaces it.
-- **FR-029**: The development data MUST include what the stories are tested against: a dataset with
+- **FR-026**: The documentation MUST say which pages carry the map, which samples each page plots,
+  what a viewer may see on it, and that it has no settings or hooks. It MUST name the template a
+  portal overrides to change the page.
+- **FR-027**: The development data MUST include what the stories are tested against: a dataset with
   located and unlocated samples, several samples at one location, a project with a public and a
   private dataset, and a person and an organization credited on public and private datasets.
 
@@ -298,11 +265,10 @@ it is the only map tab on each page. Follow the documentation alone to do both.
 
 | Story | Requirements |
 |---|---|
-| US-1: the map on dataset, project and sample pages | FR-001 to FR-016, FR-017 for projects and datasets, FR-026, FR-027 |
+| US-1: the map on dataset, project and sample pages | FR-001 to FR-016, FR-017 for projects and datasets, FR-023, FR-024, FR-025 |
 | US-2: the map on person and organization pages | FR-017 for people and organizations, FR-018 to FR-022 |
-| US-3: replacing the map | FR-023 to FR-025 |
 
-Each story extends the documentation (FR-028) and the development data (FR-029) for its own part.
+Each story extends the documentation (FR-026) and the development data (FR-027) for its own part.
 
 ### Key entities
 
@@ -331,15 +297,10 @@ Each story extends the documentation (FR-028) and the development data (FR-029) 
   and zoomed.
 - **SC-006**: The map tab works on a portal whose database has no geospatial extension installed.
 - **SC-007**: No map tab renders an empty page or an error, whatever the record holds.
-- **SC-008**: An addon developer can remove the map, and replace it with their own, using the
-  documentation alone.
-- **SC-009**: No overview page says that a map of samples is not available yet.
+- **SC-008**: No overview page says that a map of samples is not available yet.
 
 ## Assumptions
 
-- Plugins can be removed and replaced once #401 is delivered. This specification assumes only what
-  that request states: a registered plugin can be removed, and one can be replaced with another.
-  The first two stories need nothing from it.
 - A tab is contributed the way plugins contribute tabs today.
 - The stored coordinates are latitude and longitude in degrees, which is what a portal gets unless
   it changes the coordinate settings. A portal that stores something else gets no points, as the
