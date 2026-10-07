@@ -1,0 +1,592 @@
+{
+  "number_of_results": 5,
+  "time_taken": 4,
+  "items": [
+    {
+      "admin": {
+        "created": {
+          "date": "2018-11-14",
+          "schema_version": "1.0"
+        },
+        "last_modified": {
+          "date": "2025-03-26",
+          "schema_version": "2.1"
+        }
+      },
+      "domains": [
+        "gfz-potsdam.de",
+        "gfz.de"
+      ],
+      "established": 1992,
+      "external_ids": [
+        {
+          "all": [
+            "501100010956"
+          ],
+          "preferred": "501100010956",
+          "type": "fundref"
+        },
+        {
+          "all": [
+            "grid.23731.34"
+          ],
+          "preferred": "grid.23731.34",
+          "type": "grid"
+        },
+        {
+          "all": [
+            "0000 0000 9195 2461"
+          ],
+          "preferred": null,
+          "type": "isni"
+        },
+        {
+          "all": [
+            "Q1205654"
+          ],
+          "preferred": null,
+          "type": "wikidata"
+        }
+      ],
+      "id": "https://ror.org/04z8jg394",
+      "links": [
+        {
+          "type": "website",
+          "value": "https://www.gfz.de"
+        },
+        {
+          "type": "wikipedia",
+          "value": "https://en.wikipedia.org/wiki/GFZ_Helmholtz_Centre_for_Geosciences"
+        }
+      ],
+      "locations": [
+        {
+          "geonames_details": {
+            "continent_code": "EU",
+            "continent_name": "Europe",
+            "country_code": "DE",
+            "country_name": "Germany",
+            "country_subdivision_code": "BB",
+            "country_subdivision_name": "Brandenburg",
+            "lat": 52.39886,
+            "lng": 13.06566,
+            "name": "Potsdam"
+          },
+          "geonames_id": 2852458
+        }
+      ],
+      "names": [
+        {
+          "lang": null,
+          "types": [
+            "acronym"
+          ],
+          "value": "GFZ"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "label",
+            "ror_display"
+          ],
+          "value": "GFZ Helmholtz Centre for Geosciences"
+        },
+        {
+          "lang": "de",
+          "types": [
+            "label"
+          ],
+          "value": "GFZ Helmholtz-Zentrum für Geoforschung"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "Helmholtz Centre Potsdam - GFZ German Research Centre for Geosciences"
+        },
+        {
+          "lang": "de",
+          "types": [
+            "alias"
+          ],
+          "value": "Helmholtz-Zentrum Potsdam - Deutsches GeoForschungsZentrum GFZ"
+        }
+      ],
+      "relationships": [
+        {
+          "label": "Research Institute for Sustainability at GFZ",
+          "type": "child",
+          "id": "https://ror.org/01vvnmw35"
+        },
+        {
+          "label": "Helmholtz Association of German Research Centres",
+          "type": "parent",
+          "id": "https://ror.org/0281dp749"
+        }
+      ],
+      "status": "active",
+      "types": [
+        "facility",
+        "funder"
+      ]
+    },
+    {
+      "admin": {
+        "created": {
+          "date": "2018-11-14",
+          "schema_version": "1.0"
+        },
+        "last_modified": {
+          "date": "2024-12-11",
+          "schema_version": "2.1"
+        }
+      },
+      "domains": [],
+      "established": 1816,
+      "external_ids": [
+        {
+          "all": [
+            "100010968"
+          ],
+          "preferred": "100010968",
+          "type": "fundref"
+        },
+        {
+          "all": [
+            "grid.264275.0"
+          ],
+          "preferred": "grid.264275.0",
+          "type": "grid"
+        },
+        {
+          "all": [
+            "0000 0000 9900 0190"
+          ],
+          "preferred": null,
+          "type": "isni"
+        },
+        {
+          "all": [
+            "Q7603628"
+          ],
+          "preferred": null,
+          "type": "wikidata"
+        }
+      ],
+      "id": "https://ror.org/032qgrc76",
+      "links": [
+        {
+          "type": "website",
+          "value": "http://www.potsdam.edu/"
+        },
+        {
+          "type": "wikipedia",
+          "value": "http://en.wikipedia.org/wiki/State_University_of_New_York_at_Potsdam"
+        }
+      ],
+      "locations": [
+        {
+          "geonames_details": {
+            "continent_code": "NA",
+            "continent_name": "North America",
+            "country_code": "US",
+            "country_name": "United States",
+            "country_subdivision_code": "NY",
+            "country_subdivision_name": "New York",
+            "lat": 44.66978,
+            "lng": -74.98131,
+            "name": "Potsdam"
+          },
+          "geonames_id": 5132103
+        }
+      ],
+      "names": [
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "SUNY Potsdam"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "ror_display",
+            "label"
+          ],
+          "value": "State University of New York at Potsdam"
+        }
+      ],
+      "relationships": [
+        {
+          "label": "State University of New York",
+          "type": "parent",
+          "id": "https://ror.org/01q1z8k08"
+        },
+        {
+          "label": "Great Lakes Research Consortium",
+          "type": "related",
+          "id": "https://ror.org/05cshtm26"
+        }
+      ],
+      "status": "active",
+      "types": [
+        "education",
+        "funder"
+      ]
+    },
+    {
+      "admin": {
+        "created": {
+          "date": "2018-11-14",
+          "schema_version": "1.0"
+        },
+        "last_modified": {
+          "date": "2024-12-11",
+          "schema_version": "2.1"
+        }
+      },
+      "domains": [],
+      "established": 2009,
+      "external_ids": [
+        {
+          "all": [
+            "grid.466357.5"
+          ],
+          "preferred": "grid.466357.5",
+          "type": "grid"
+        },
+        {
+          "all": [
+            "0000 0004 0512 6390"
+          ],
+          "preferred": null,
+          "type": "isni"
+        },
+        {
+          "all": [
+            "Q1017599"
+          ],
+          "preferred": null,
+          "type": "wikidata"
+        }
+      ],
+      "id": "https://ror.org/017bbsh25",
+      "links": [
+        {
+          "type": "website",
+          "value": "https://www.businessschool-berlin.de"
+        }
+      ],
+      "locations": [
+        {
+          "geonames_details": {
+            "continent_code": "EU",
+            "continent_name": "Europe",
+            "country_code": "DE",
+            "country_name": "Germany",
+            "country_subdivision_code": "BE",
+            "country_subdivision_name": "Berlin",
+            "lat": 52.52437,
+            "lng": 13.41053,
+            "name": "Berlin"
+          },
+          "geonames_id": 2950159
+        }
+      ],
+      "names": [
+        {
+          "lang": null,
+          "types": [
+            "acronym"
+          ],
+          "value": "BSP"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "BSP Business & Law School"
+        },
+        {
+          "lang": null,
+          "types": [
+            "ror_display",
+            "label"
+          ],
+          "value": "BSP Business & Law School – Hochschule für Management und Recht"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "BSP Business School Berlin"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "BSP Business and Law School"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "Business School Potsdam"
+        }
+      ],
+      "relationships": [],
+      "status": "active",
+      "types": [
+        "education"
+      ]
+    },
+    {
+      "admin": {
+        "created": {
+          "date": "2018-11-14",
+          "schema_version": "1.0"
+        },
+        "last_modified": {
+          "date": "2026-10-06",
+          "schema_version": "2.1"
+        }
+      },
+      "domains": [
+        "pik-potsdam.de"
+      ],
+      "established": 1992,
+      "external_ids": [
+        {
+          "all": [
+            "grid.4556.2"
+          ],
+          "preferred": "grid.4556.2",
+          "type": "grid"
+        },
+        {
+          "all": [
+            "0000 0004 0493 9031"
+          ],
+          "preferred": null,
+          "type": "isni"
+        },
+        {
+          "all": [
+            "Q251061"
+          ],
+          "preferred": null,
+          "type": "wikidata"
+        }
+      ],
+      "id": "https://ror.org/03e8s1d88",
+      "links": [
+        {
+          "type": "website",
+          "value": "https://www.pik-potsdam.de/"
+        },
+        {
+          "type": "wikipedia",
+          "value": "http://en.wikipedia.org/wiki/Potsdam_Institute_for_Climate_Impact_Research"
+        }
+      ],
+      "locations": [
+        {
+          "geonames_details": {
+            "continent_code": "EU",
+            "continent_name": "Europe",
+            "country_code": "DE",
+            "country_name": "Germany",
+            "country_subdivision_code": "BB",
+            "country_subdivision_name": "Brandenburg",
+            "lat": 52.39886,
+            "lng": 13.06566,
+            "name": "Potsdam"
+          },
+          "geonames_id": 2852458
+        }
+      ],
+      "names": [
+        {
+          "lang": null,
+          "types": [
+            "acronym"
+          ],
+          "value": "PIK"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "ror_display",
+            "label"
+          ],
+          "value": "Potsdam Institute for Climate Impact Research"
+        },
+        {
+          "lang": "de",
+          "types": [
+            "label"
+          ],
+          "value": "Potsdam-Institut für Klimafolgenforschung"
+        }
+      ],
+      "relationships": [
+        {
+          "label": "Leibniz Association",
+          "type": "parent",
+          "id": "https://ror.org/01n6r0e97"
+        },
+        {
+          "label": "Climate Media Factory (Germany)",
+          "type": "related",
+          "id": "https://ror.org/00wfjhc88"
+        }
+      ],
+      "status": "active",
+      "types": [
+        "facility"
+      ]
+    },
+    {
+      "admin": {
+        "created": {
+          "date": "2018-11-14",
+          "schema_version": "1.0"
+        },
+        "last_modified": {
+          "date": "2026-09-22",
+          "schema_version": "2.1"
+        }
+      },
+      "domains": [],
+      "established": 1991,
+      "external_ids": [
+        {
+          "all": [
+            "501100004238"
+          ],
+          "preferred": null,
+          "type": "fundref"
+        },
+        {
+          "all": [
+            "grid.11348.3f"
+          ],
+          "preferred": "grid.11348.3f",
+          "type": "grid"
+        },
+        {
+          "all": [
+            "0000 0001 0942 1117"
+          ],
+          "preferred": null,
+          "type": "isni"
+        },
+        {
+          "all": [
+            "Q153012"
+          ],
+          "preferred": null,
+          "type": "wikidata"
+        }
+      ],
+      "id": "https://ror.org/03bnmw459",
+      "links": [
+        {
+          "type": "website",
+          "value": "https://www.uni-potsdam.de/en/"
+        },
+        {
+          "type": "wikipedia",
+          "value": "http://en.wikipedia.org/wiki/University_of_Potsdam"
+        }
+      ],
+      "locations": [
+        {
+          "geonames_details": {
+            "continent_code": "EU",
+            "continent_name": "Europe",
+            "country_code": "DE",
+            "country_name": "Germany",
+            "country_subdivision_code": "BB",
+            "country_subdivision_name": "Brandenburg",
+            "lat": 52.39886,
+            "lng": 13.06566,
+            "name": "Potsdam"
+          },
+          "geonames_id": 2852458
+        }
+      ],
+      "names": [
+        {
+          "lang": "en",
+          "types": [
+            "alias"
+          ],
+          "value": "Potsdam University"
+        },
+        {
+          "lang": null,
+          "types": [
+            "acronym"
+          ],
+          "value": "UP"
+        },
+        {
+          "lang": "de",
+          "types": [
+            "alias"
+          ],
+          "value": "Universitaet Potsdam"
+        },
+        {
+          "lang": "en",
+          "types": [
+            "ror_display",
+            "label"
+          ],
+          "value": "University of Potsdam"
+        },
+        {
+          "lang": "de",
+          "types": [
+            "label"
+          ],
+          "value": "Universität Potsdam"
+        }
+      ],
+      "relationships": [
+        {
+          "label": "Hasso Plattner Institute",
+          "type": "child",
+          "id": "https://ror.org/058rn5r42"
+        },
+        {
+          "label": "Weizenbaum Institute",
+          "type": "child",
+          "id": "https://ror.org/023kksk09"
+        },
+        {
+          "label": "Moses Mendelssohn Center for European Jewish Studies",
+          "type": "child",
+          "id": "https://ror.org/04vj48162"
+        },
+        {
+          "label": "Universitätsverlag Potsdam",
+          "type": "child",
+          "id": "https://ror.org/01femje42"
+        }
+      ],
+      "status": "active",
+      "types": [
+        "education",
+        "funder"
+      ]
+    }
+  ]
+}

@@ -14,7 +14,11 @@ from django.urls import resolve
 from django.utils import timezone
 from django.utils.formats import date_format
 
-from fairdm.contrib.contributors.choices import AccountState, OrganizationType
+from fairdm.contrib.contributors.choices import (
+    AccountState,
+    ContributionLevel,
+    OrganizationType,
+)
 from fairdm.contrib.contributors.models import (
     Affiliation,
     Contribution,
@@ -24,7 +28,6 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
-from fairdm.core.utils import assign_perm
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -862,7 +865,7 @@ class TestContributionGFKRelationships:
         assert contribution.content_object == project
 
     @pytest.mark.django_db
-    def test_contribution_default_affiliation(self, person, organization):
+    def test_a_credit_is_not_given_the_primary_affiliation(self, person, organization):
         AffiliationFactory(
             person=person,
             organization=organization,
@@ -870,7 +873,7 @@ class TestContributionGFKRelationships:
         )
         project = ProjectFactory()
         c = person.add_to(project)
-        assert c.affiliation == organization
+        assert c.affiliation is None
 
     @pytest.mark.django_db
     def test_contribution_has_contribution_to(
@@ -1878,7 +1881,11 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         contributions = world.person.get_visible_contributions(member)
 
@@ -1900,8 +1907,16 @@ class TestGetVisibleContributions:
     ):
         world = credited_world
         member = PersonFactory(is_active=True)
-        assign_perm("view_project", member, world.private_project)
-        assign_perm("view_dataset", member, world.dataset_in_private_project)
+        ContributionFactory(
+            content_object=world.private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
+        ContributionFactory(
+            content_object=world.dataset_in_private_project,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
 
         records = _records(world.person.get_visible_contributions(member))
 
@@ -1915,7 +1930,11 @@ class TestGetVisibleContributions:
         world = credited_world
         world.person.add_to(world.private_sample)
         team = PersonFactory(is_active=True)
-        assign_perm("view_dataset", team, world.private_dataset)
+        ContributionFactory(
+            content_object=world.private_dataset,
+            contributor=team,
+            level=ContributionLevel.VIEW,
+        )
 
         assert _credited(world.private_sample).isdisjoint(
             _records(world.person.get_visible_contributions(AnonymousUser()))
@@ -2981,3 +3000,62 @@ class TestContributorUpdateUrl:
 
         assert match.view_name == "contributor:overview-update"
         assert match.kwargs == {"uuid": contributor.uuid}
+
+
+@pytest.mark.django_db
+class TestPersonCanSignIn:
+    def test_an_active_claimed_person_can(self):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is True
+
+    def test_an_active_person_who_signed_in_without_being_marked_claimed_can(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+        person.last_login = timezone.now()
+        person.save()
+
+        assert person.can_sign_in() is True
+
+    def test_a_person_who_never_signed_in_and_never_claimed_cannot(self):
+        person = PersonFactory(is_active=True, is_claimed=False, password="x")
+
+        assert person.can_sign_in() is False
+
+    def test_an_inactive_person_cannot(self):
+        person = PersonFactory(is_active=False, is_claimed=True, password="x")
+
+        assert person.can_sign_in() is False
+
+
+@pytest.mark.django_db
+class TestACreditMadeThroughTheHelpersStartsAtTheViewLevel:
+    @pytest.fixture(
+        params=["contribution_add_to", "contributor_add_to", "add_contributor"]
+    )
+    def credit(self, request, project_for_contributions):
+        project = project_for_contributions
+
+        def make(contributor):
+            if request.param == "contribution_add_to":
+                return Contribution.add_to(contributor, project)
+            if request.param == "contributor_add_to":
+                return contributor.add_to(project)
+            return project.add_contributor(contributor)
+
+        return make
+
+    def test_a_person_starts_at_the_view_level(self, credit):
+        person = PersonFactory(is_active=True)
+
+        assert credit(person).level == ContributionLevel.VIEW
+
+    def test_an_organization_holds_no_level(self, credit):
+        assert credit(OrganizationFactory()).level is None
+
+    def test_crediting_again_leaves_the_level_alone(self, credit):
+        person = PersonFactory(is_active=True)
+        contribution = credit(person)
+        contribution.level = ContributionLevel.MANAGE
+        contribution.save(update_fields=["level"])
+
+        assert credit(person).level == ContributionLevel.MANAGE

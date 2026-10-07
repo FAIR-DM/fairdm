@@ -396,9 +396,10 @@ Affiliation.objects.create(
 )
 ```
 
-The primary affiliation is more than a label: `Contribution.set_default_affiliation` reads it
-to fill in the crediting organisation whenever a person is credited without one being given
-explicitly (`fairdm/contrib/contributors/models.py:1335`).
+The primary affiliation is more than a label: the Contributors tab selects it to begin with
+when a person is added to a record, as the organization they are credited from there. It is
+offered as a starting point only. What is chosen is kept on the contribution and does not follow
+the profile afterwards (see [The organization a person is credited from](#the-organization-a-person-is-credited-from)).
 
 ### Worked example: a person moving between two institutions
 
@@ -498,15 +499,22 @@ contribution.roles.add(other_vocabulary_role)  # raises ValidationError; not wri
 data_collector_credits = Contribution.objects.by_role("DataCollector")
 ```
 
-### Crediting Organisation Default
+### The organization a person is credited from
 
-Where a person is credited and no organisation is named on the credit, their primary
-membership's organisation is recorded against it automatically (FR-033):
+`Contribution.affiliation` is the organization a person is credited from on one record, or none.
+It belongs to the contribution and is not read from the person's profile: a researcher who moves
+to another institute is still credited from the first on the dataset they made there. A credit
+made without an organization holds none, whatever the person's primary affiliation is:
 
 ```python
 contribution = person.add_to(my_project)
-contribution.affiliation  # person's primary Affiliation's organisation, if any
+contribution.affiliation  # None
 ```
+
+`Crediting` sets it, lists the organization on the record, and refuses to remove an organization
+that people on the record are credited from (see [Changing contributors](#changing-contributors-crediting)).
+Deleting an organization from the portal sets `affiliation` to none on every contribution that
+named it, and leaves the people on their records.
 
 ### Reporting a Contributor's Credits
 
@@ -626,20 +634,20 @@ fill_slots(list(range(12)), 10, reserve=True)
 # {"shown": [0, 1, 2, 3, 4, 5, 6, 7, 8], "more": 3, "total": 12}
 ```
 
-### Deleting a Credit Withdraws Rights - Creating One Grants None
+### A Level Goes With Its Credit
 
-Deleting a person's credit on an object withdraws every object-level right that person
-holds over that object, whether the credit is deleted on the instance or in bulk through
-a queryset (FR-036). **Creating a credit grants nothing** - crediting someone confers no
-permission by itself, so there is no corresponding grant to mirror the withdrawal. A
-portal that wants a credited contributor to also gain a right over the object must grant
-it separately.
+What a person may do on a record is the level on their credit, so deleting the credit, on the
+instance or in bulk through a queryset, withdraws everything the person held through being listed
+on it. Nothing else is stored, and nothing needs undoing.
 
-Deleting the credited object itself is the one case where nothing is withdrawn: the
-project or dataset row is gone before its credits are removed, so there is no object left
-to hold a right over. Rights recorded against a deleted object are cleared by
-django-guardian's `clean_orphan_obj_perms` management command, which is worth scheduling
-on any portal that deletes records regularly.
+Crediting a person for the first time with `Contribution.add_to()`, `Contributor.add_to()` or
+`add_contributor()` starts them at the view level, as adding them from the Contributors tab does.
+An organization starts with no level. Crediting a person who is already credited adds the roles and
+leaves their level as it is. `Contribution.starting_level(contributor)` returns the level a first
+credit starts at.
+
+A permission stored with django-guardian for a project, dataset, sample or measurement grants
+nothing. See [Levels](#levels).
 
 ### Supported Content Types
 
@@ -648,6 +656,394 @@ Contributions use Django's GenericForeignKey to link to:
 - `fairdm.core.Dataset`
 - `fairdm.core.Sample`
 - `fairdm.core.Measurement`
+
+## The Contributors tab
+
+Projects, datasets, samples and measurements each have a **Contributors** tab beside their
+overview. The tab lists a record's people and organizations and is where the people who manage the
+record add, edit and remove its contributors. It is one plugin, `ContributionList` in
+`fairdm.contrib.contributors.plugins.shared`, registered on `Project`, `Dataset`, `Sample` and
+`Measurement`.
+
+**A sample or measurement type your portal registers gets the tab with no configuration.** The
+plugin is registered on the base `Sample` and `Measurement` classes, so every subtype inherits it,
+and the record's roles, levels and addresses are read from the core model the subtype extends.
+
+The tab's additional views share the base class `ContributionPage`, which works out the record, its
+kind and whether the viewer may manage it. `ContributionAddPerson` and `ContributionAddOrganization`
+add from the portal and share `ContributionAdd`. `ContributionEdit` sets a contributor's roles and
+`ContributionRemove` removes one. `ContributionMove` takes a POST with `direction` set to `up` or
+`down` and hands it to `Crediting.move`, then returns to the tab at the moved contributor, and a
+`direction` that is neither answers 400. A page that changes anything is refused to a signed-in person who
+cannot manage the record and sends a visitor to sign in. Addresses resolve with the plugin
+`reverse`, the same way for every record type:
+
+```python
+from fairdm.contrib.plugins import reverse
+
+reverse(dataset, "contribution-list")
+reverse(dataset, "contribution-list-contribution-add-person")
+reverse(dataset, "contribution-list-contribution-edit", pk=contribution.pk)
+reverse(sample, "contribution-list-contribution-remove", pk=contribution.pk)
+```
+
+### Levels
+
+What a person may do on a record is one of three levels, stored on their contribution as
+`Contribution.level`. Each includes the ones before it, and they are integers so that "at least"
+is a comparison.
+
+| `ContributionLevel` | Value | Lets its holder |
+|---|---|---|
+| `VIEW` | 1 | open the record |
+| `EDIT` | 2 | also change the record and the data in it |
+| `MANAGE` | 3 | also change its contributors and their levels, change its visibility and delete it |
+
+The field is empty for an organization, which holds no level, and for a person who is credited
+without one. A level on a project applies to its datasets, and a level on a dataset applies to its
+samples and measurements. A measurement follows its own dataset, not its sample's.
+`REQUIRED_LEVEL` in `fairdm.contrib.contributors.access` maps each permission a core record type
+declares to the level that carries it.
+
+#### Which permission means which level
+
+Every permission a core record type declares is mapped, so none is left that nothing checks.
+
+| Level | Permissions on the record |
+|---|---|
+| View | `view_<model>` |
+| Edit | `change_<model>`, `add_<model>`, `import_data`, `modify_metadata`, `change_<model>_metadata` |
+| Manage | `delete_<model>`, `add_contributor`, `modify_contributor`, `change_<model>_settings`, `can_publish` |
+
+`RecordAccess(record).required_level(perm)` returns the level a permission needs on the record, or
+None for a permission the table does not know, which is refused. A registered type's own default
+permissions, such as `demo.view_rocksample` on a rock sample, are read as the core model's. A
+permission your own record type adds to its `Meta.permissions` must be added to `REQUIRED_LEVEL`
+with the level that carries it, or it is refused.
+
+#### `RecordLevelBackend`
+
+`fairdm.contrib.contributors.permissions.RecordLevelBackend` is in `AUTHENTICATION_BACKENDS` and is
+the one decision behind every `user.has_perm(perm, record)` about a project, dataset, sample or
+measurement, of any registered type. It grants a permission when the user's level on the record,
+or from a record above it, is at least the level the permission needs, and it refuses an inactive
+user and a visitor. For any other object, or a question with no object, it returns False and the
+other backends answer.
+
+```python
+user.has_perm("dataset.change_dataset", dataset)       # edit level or above
+user.has_perm("demo.delete_rocksample", rock_sample)   # manage level or above
+```
+
+`PolymorphicObjectPermissionBackend` returns False for these four kinds of record, so a row that
+django-guardian stores for one grants nothing. It still answers for organizations and for any
+model your portal defines. The two backends that passed a dataset's rows down to its samples and
+measurements are removed, together with their modules `fairdm.core.sample.permissions` and
+`fairdm.core.measurement.permissions`: delete them from your own `AUTHENTICATION_BACKENDS` if it
+names them.
+`PortalRolePermissionBackend` is unchanged, so a portal role's rights still apply to every record
+of a kind without the holder being listed.
+
+#### `with_level`
+
+The querysets of the four core models get `with_level(user, level)` from
+`fairdm.core.managers.RecordLevelMixin`, which `ProjectQuerySet`, `DatasetQuerySet`,
+`SampleQuerySet` and `MeasurementQuerySet` mix in. `with_level` keeps the records the user holds
+at least that level on, on the record itself or from a record above it, in one query.
+`accessible_to(user, level)` is the same and also keeps every record for someone the portal gives
+the matching right for the whole model (`view` for the view level, `change` above it), as a
+superuser or a Data Curator has. Choice lists and filters offer what `accessible_to` returns.
+
+```python
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.dataset.models import Dataset
+
+Dataset.all_objects.with_level(request.user, ContributionLevel.EDIT)    # datasets the user may edit
+Dataset.all_objects.accessible_to(request.user, ContributionLevel.EDIT)
+Sample.objects.visible_to(request.user)    # released samples, and those the user holds a level on
+```
+
+`visible_to` on the sample and measurement querysets is the released records plus
+`with_level(user, VIEW)`, and keeps its rule that a user who holds `view_dataset` or
+`change_dataset` for the whole portal sees everything. A person listed only on one sample sees that
+sample and not the others in its dataset. Use these querysets from your own views and filters in
+place of django-guardian's `get_objects_for_user`, which finds nothing for these four models.
+
+#### Forms for existing records
+
+On the update forms of a project, dataset, sample and measurement, the fields that decide who gets
+in (a project's visibility and owner, a dataset's visibility and project, a sample's or
+measurement's dataset) are offered only to someone who can manage the record, and are left out for
+anyone else, so an editor's request cannot change them. `ManagerOnlyFieldsMixin` in
+`fairdm.core.forms` does it: list the field names in `manager_only_fields` and call
+`withhold_manager_only_fields(request)` once the form's fields exist. `ProjectForm` takes the
+request as a `request` keyword. A form for a record that does not exist yet leaves nothing out.
+`SampleFormMixin` and `MeasurementFormMixin` already do this for `dataset`.
+
+### Asking what a person may do: `RecordAccess`
+
+A page of your own asks through `RecordAccess(record)`, which takes a project, dataset, sample or
+measurement of any registered type:
+
+```python
+from fairdm.contrib.contributors.access import RecordAccess
+from fairdm.contrib.contributors.choices import ContributionLevel
+
+access = RecordAccess(sample)
+
+access.above                       # [dataset, project]: the records it takes levels from
+access.level_of(request.user)      # the highest level held on the sample or above, or None
+access.level_of(request.user) == ContributionLevel.MANAGE
+access.can_manage(request.user)    # manage level, or change_sample for the whole portal
+
+access.own_level(person)           # the level from being listed on this record only
+level, source = access.level_from_above(person)   # and the record it comes from
+access.people_above()              # (person, level, source) for everyone holding one from above
+access.managers()                  # ids of people who can sign in and hold manage here or above
+access.kind                        # "sample", whatever registered type the record is
+access.required_level("sample.change_sample")     # the level a permission needs: EDIT
+RecordAccess.is_core_record(obj)   # a project, dataset, sample or measurement, of any type
+RecordAccess.is_core_model(Sample) # the model itself, not a registered subtype
+```
+
+`level_of` answers None for a visitor, an inactive user and anyone who holds no level, and reads
+the record and the records above it in one query. To ask whether a person may view, edit or manage a
+record, compare it with the level:
+
+```python
+level = RecordAccess(dataset).level_of(request.user)
+may_edit = level is not None and level >= ContributionLevel.EDIT
+```
+
+`can_manage` is true for the manage level on the record or above it, and for anyone holding
+`change_<model>` for the whole portal, which a superuser and a Data Curator do. People who can
+manage only through a portal role are not counted by `managers()`, so a record's managers are
+always people listed on it or above it who can sign in. `Person.can_sign_in()` is that test.
+
+### Changing contributors: `Crediting`
+
+`Crediting(record)` in `fairdm.contrib.contributors.services.crediting` is the one place a record's
+contributors change. Each refusal is a `ValidationError` with a code, so a page can attach it to a
+field and a test can assert on it:
+
+```python
+from fairdm.contrib.contributors.services.crediting import Crediting
+
+crediting = Crediting(dataset)
+
+contribution = crediting.add(person)             # last of its kind, at the view level, credited from none
+crediting.add(organization)                      # no level
+crediting.add(other_person, organization=institute)  # credited from the institute, which is listed too
+crediting.offered_roles()                        # the concepts the dataset's roles group offers
+crediting.update(contribution, roles=crediting.offered_roles()[:2])
+crediting.update(contribution, roles=[], organization=institute)  # credited from the institute
+crediting.update(contribution, roles=[], organization=None)       # credited from none
+crediting.update(contribution, roles=[], level=ContributionLevel.EDIT)  # and what they may do
+crediting.make_creator(user, roles=["Creator"])  # at the manage level, for whoever just made the record
+crediting.credited_from()                        # organization id to the people credited from it here
+crediting.move(contribution, "up")               # one place earlier among its own kind
+crediting.remove(contribution)                   # and the level goes with it
+```
+
+| Method | Raises | Code |
+|---|---|---|
+| `add` | the contributor is already listed | `duplicate` |
+| `add` | the contributor is a superuser, who cannot be credited | `superuser` |
+| `update` | a role is not in the group the record's type offers | `role_not_offered` |
+| `update` | the level is below what the person holds from a record above | `below_inherited` |
+| `update` | the change would leave the record with nobody who counts as able to manage it | `last_manager` |
+| `remove` | the contribution is an organization that people on the record are credited from | `credited_from` |
+| `remove` | the contribution is the only thing that makes the record manageable | `last_manager` |
+| `move` | the direction is neither `"up"` nor `"down"` | `direction` |
+| `move` | the contribution is not listed on this record | `not_listed` |
+
+`update` replaces the roles and sets the level when one is given: leave `level` out and it stays as it
+is, because a contribution role carries no rights. A level is ignored for an organization. When
+several refusals apply the error holds them all, in its `error_list`, and nothing is saved. `offered_roles()` returns the roles the vocabulary groups for the record's type, in the
+vocabulary's order.
+
+`make_creator(user, roles=())` lists the person who made a record at the manage level, with the
+named roles, or raises an existing entry to it. The project and dataset create pages call it, and
+so do the API's serializers for projects, datasets, samples and measurements, through
+`fairdm.api.serializers.CreatorCreditMixin`. For a superuser it does nothing, because a superuser
+cannot be credited, and the create still succeeds. Call it from your own page that makes a record
+in place of granting the creator permissions.
+
+`level_choices(record, floor=None)` in `fairdm.contrib.contributors.plugins.shared` returns the
+three levels as the edit page draws them, each with its label and a hint that names the record's
+kind, and marks as disabled those below `floor`, the level the person holds from above.
+
+The organization argument of `update` has three meanings. Leaving it out, or passing `UNCHANGED`,
+leaves the organization as it is. An organization sets it, and `None` sets it to none. It applies to
+a person and is ignored for an organization. An organization named in `add` or `update` is listed
+on the record once, as its own contribution with no level, through `list_organization(organization)`.
+It stays on the record when the last person credited from it leaves or is credited from elsewhere,
+and can then be removed.
+
+The `credited_from` refusal carries the people in `params["people"]`, so a page can name them.
+`credited_from()` returns the same people for every organization on the record at once.
+
+#### Order
+
+A record names its people in one order and its organizations in another, and `Crediting.move` is the
+only thing that changes either. `crediting.move(contribution, "up")` moves a contribution one place
+earlier among the contributions of its own kind, and `"down"` one place later. It swaps `order` with
+the neighbour of the same kind on the same record, so the other kind is left alone, and the first
+moving earlier and the last moving later change nothing and raise nothing. Contributions that share
+an order value, as old data may have, are told apart by their primary key, so a move is the same
+every time. Do not use `contribution.up()` or `contribution.down()` from `OrderedModel`: a
+contribution has no `order_with_respect_to`, so they swap with a row on another record.
+
+`add` places a contributor last overall, which is last among its own kind. Removing or updating a
+contributor leaves the others' order as it is.
+
+To read either list, narrow the contributions with `people()` and `organizations()` on the
+`Contribution` manager and querysets. Each filters on the contributor's polymorphic type, without
+loading any contributor, and orders by `order` then `pk`:
+
+```python
+from fairdm.contrib.contributors.models import Contribution
+
+Contribution.objects.for_entity(dataset).people()
+dataset.contributors.organizations()
+```
+
+`RecordOverviewPlugin.get_contributions()` is those two lists one after the other, people first, so
+everything an overview or a citation names follows the order the team set. `get_credits()` follows
+it and gives a person credited with no organization an `affiliation` of `None`.
+
+#### The last manager
+
+A record that has someone who counts as able to manage it, as `RecordAccess(record).managers()`
+reckons, keeps one. `update` and `remove` refuse, with code `last_manager`, a change that would take
+the record from at least one such person to none, whoever asks. A record that has none already may
+lose or raise anyone. The person's own level and the level they hold from a record above are both
+read, so lowering a manager who also manages through the dataset is allowed. The refusal's
+`params` hold `name` and `kind`.
+
+`would_leave_no_manager(contribution, level=None)` answers the same question without changing
+anything, for a page that has to say so before the person asks: `level=None` asks about removing the
+contribution, and a level asks about lowering it to that level. The edit page attaches
+`last_manager` to its level field, and the remove page draws its refusal from that answer.
+
+#### One change at a time
+
+`add`, `update`, `remove`, `move` and `make_creator` each run in a transaction that first locks the record's
+row with `select_for_update`, through the model's `all_objects` manager where it has one so that a
+private record is found, before anything about its contributors is read. Two changes to one record
+wait for each other and each sees what the other left, so two managers cannot remove each other at
+the same moment. `locked()` is the context manager that does it, and a method you add to `Crediting`
+that changes contributors uses it too. A database that cannot lock rows, such as SQLite, runs the
+change in the transaction alone.
+
+### Moving a record
+
+`Dataset.clean`, `Sample.clean` and `Measurement.clean` refuse a change of parent, a dataset's
+project or a sample's or measurement's dataset, that would leave the record with nobody who counts
+as able to manage it when it had someone before the change. The error is attached to the parent field
+with code `no_manager`. A new record, a record whose parent did not change and a record that had
+nobody already are never refused. The check is
+`RecordAccess(record).refuse_move_without_manager("project")` or `("dataset")`, which compares the
+record with the one stored.
+
+### Choosing the organization on a page
+
+`AffiliationChoice` in `fairdm.contrib.contributors.plugins.shared` is the form behind the choice
+the Contributors tab draws with `c-contribution.affiliation`. It offers the person's affiliations
+with the primary one selected, another organization by name, and none. Its two fields are
+`affiliation`, one of `org:<id>`, `other` or `none`, and `affiliation_name`. Choosing another
+organization with no name is an error on `affiliation_name`.
+
+```python
+from fairdm.contrib.contributors.plugins.shared import AffiliationChoice
+
+choice = AffiliationChoice(request.POST, person=person)
+if choice.is_valid():
+    organization = choice.organization()   # made from the name when the portal has none
+    Crediting(record).add(person, organization=organization)
+```
+
+Call `organization()` inside the transaction that saves the credit, so that an organization made
+for a save that is then refused is not kept. `choice()` shapes the options for the component.
+Pass `credit=` the person's contribution when editing, so that its organization is selected.
+
+### Looking people up in ORCID and ROR: `Orcid` and `Ror`
+
+`Orcid` and `Ror` in `fairdm.contrib.contributors.services.registries` are the two registries the
+add pages search. They are two plain classes with no shared base. Each has `search(term)`,
+`fetch(identifier)`, `known(record)` and `profile(record)`:
+
+```python
+from fairdm.contrib.contributors.services.registries import Orcid, RegistryUnavailable, Ror
+
+found = Orcid().search("Carberry")        # or an ORCID iD: "0000-0002-1825-0097"
+found["results"][0]["name"]               # "Josiah Carberry"
+found["more"]                             # True when ORCID holds more matches than were returned
+
+record = Orcid().fetch("0000-0002-1825-0097")
+person = Orcid().profile(record)          # the person holding that iD, or a new one
+
+record = Ror().fetch("https://ror.org/04z8jg394")
+organization = Ror().profile(record)      # the organization holding that ID, or a new one
+```
+
+`search` takes a name, or an identifier, which it recognises by its form and searches for by
+identifier. It returns `{"results": [...], "more": bool}`: at most `RESULTS_SHOWN` (ten) records, and
+whether the registry holds more. ORCID records of people with no public name and ROR records of
+organizations that are not active are left out. `fetch` returns one record, or `None` when the
+identifier is not in the form of the registry's own, the registry has no such record, or the record
+cannot be chosen. A malformed identifier makes no request at all.
+
+A record is a plain dictionary, with the keys the add pages read:
+
+| Key | ORCID | ROR |
+|---|---|---|
+| `id` | the ORCID iD | the ROR address, `https://ror.org/...` |
+| `shown_id` | the ORCID iD | the address without its scheme |
+| `name` | given and family names | ROR's display name |
+| `detail` | the employer and where it is, to tell namesakes apart | the kind of organization and where it is |
+| `given`, `family`, `employer` | the two names and the first current employer | not present |
+
+`known(record)` returns the contributor the portal already holds under the record's identifier, or
+`None`. `profile(record)` returns that contributor, or makes one with the name and the identifier
+and nothing else. A person made this way has no email address, an unusable password and no account.
+A profile is never matched by name. The ROR identifier is saved as the bare ID, and a profile that
+holds it as an address is found too.
+
+Both classes raise `RegistryUnavailable` for a network error, a timeout, an answer that is not a
+200 (a 404 on `fetch` is an answer: there is no such record) and an answer that is not in the form
+the registry documents. The timeout, `TIMEOUT`, is five seconds. Search terms go in the request's
+parameters and never into the address, and no identifier reaches an address unless it has matched
+`ORCID_PATTERN` or `ROR_PATTERN` from `fairdm.contrib.contributors.models`. A test replaces
+`requests.get`, as the tests of the add pages do.
+
+`ask(address, parse, *, params=None, headers=None, missing_ok=False)` is the one function that
+makes a request. Everything after `parse` is passed by keyword. Both classes call it, and the failure handling above lives in it. A caller that wants a
+third registry passes the address and a function that reads the decoded answer.
+
+Saving the identifier queues the sync that `ContributorIdentifier` queues for every identifier, so
+a worker later fills in the rest of the profile.
+
+#### The pages
+
+`ContributionAdd`, the base of both add pages, offers the registry as its second tab: `registry_class`
+is `Orcid` on `ContributionAddPerson` and `Ror` on `ContributionAddOrganization`. A search reads `rq`
+and the portal search reads `q`, and `via` names the tab to open. The context's `adding` carries
+`registry_results`, `registry_more` and `registry_unavailable`. A registry that cannot be reached
+leaves the other two tabs working, and the page answers 200.
+
+Choosing a record only fetches it. Adding posts the identifier, and the page fetches the record
+again before it makes a profile: nothing else the form carries is read.
+
+`NewPersonForm` and `NewOrganizationForm` in `fairdm.contrib.contributors.plugins.shared` are the
+forms behind the by-hand tab. A person needs `given` and `family` and has no other field: a posted
+`email` is ignored, and the person is saved with none, an unusable password and no account. The
+form is not valid while `same_name` lists profiles with the person's name, until the page sends
+`confirmed`. An organization needs a `name`, and may have a `city`, a `country`, as a name or
+a code from the country field's list (the code `invalid_country`), and a `website`, which is kept in
+the organization's `links`. It is never valid while `same_name` holds an organization of that name.
+`save()` makes the contributor and does nothing else, so the page can make it, make the organization
+chosen and write the credit in one transaction.
 
 ## Editing a profile
 
@@ -680,7 +1076,8 @@ right to edit a profile, and the rule never asks Django for a permission.
 
 A person's profile is editable by a Community Manager only while nobody can sign in to it and keep
 it themselves: the account is inactive, or the person is not claimed and has never signed in
-(`last_login` is empty). `account_state` alone cannot say that, because an account made with
+(`last_login` is empty). `Person.can_sign_in()` is that rule: the account is active, and the person
+has claimed it or has signed in. `account_state` alone cannot say it, because an account made with
 `createsuperuser`, or by signing up on a portal that does not verify email addresses, is active and
 in use without being marked claimed. Such a person edits their own profile and nobody else does. An
 organization is editable by the people who keep its record, the ones `is_managed_by(user)`

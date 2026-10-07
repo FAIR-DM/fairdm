@@ -103,9 +103,13 @@ class Measurement(BasePolymorphicModel):
         return self.name or self.uuid
 
     def clean(self):
-        """Refuse a bare ``Measurement``, which must be created as a subclass."""
+        """Refuse a bare ``Measurement``, and a change of dataset that leaves nobody to manage it."""
         super().clean()
         from django.core.exceptions import ValidationError
+
+        from fairdm.contrib.contributors.access import RecordAccess
+
+        RecordAccess(self).refuse_move_without_manager("dataset")
 
         if self.__class__ == Measurement:
             raise ValidationError(

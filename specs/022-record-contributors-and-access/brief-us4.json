@@ -1,0 +1,155 @@
+{
+  "story": "US4",
+  "repo": "FAIR-DM/fairdm",
+  "issue": 423,
+  "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access",
+  "required_skills": [
+    {
+      "name": "craft-tdd",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07"
+    },
+    {
+      "name": "craft-increments",
+      "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12"
+    }
+  ],
+  "tasks": [
+    "T015",
+    "T016",
+    "T021a",
+    "T022",
+    "T017",
+    "T018",
+    "T019"
+  ],
+  "context": {
+    "why": "Stories 1 to 3 are accepted: a contribution stores a level; RecordAccess (fairdm/contrib/contributors/access.py) reads it for a record, including from the dataset and project above; Crediting (services/crediting.py) adds, updates and removes contributors and handles the organization a person is credited from; the tab and both add pages are rebuilt and tested. Until now a level has been a number on a row that only the tab reads. The portal still decides who may open or change a record from django-guardian rows through the old backends. This story makes the level the thing that decides, everywhere, in one go: the permission backend, the queryset that lists what a user may see, every place that reads or writes stored rows directly, the creator's level, the upgrade migration that converts existing rows, and the level on the edit page. It is the largest story and the one with the widest reach, so take it in small slices and keep the suite green between them. From the commit that switches the backend, a guardian row on a core record grants nothing, so the data migration and the creator's level must land in the same slice or before it: no commit may leave a record's creator locked out.",
+    "spec_sections": [
+      "User Story 4 (all 14 acceptance scenarios)",
+      "User Story 5 scenarios 1 and 7 (the creator, and the upgrade)",
+      "FR-006",
+      "FR-029",
+      "FR-033 to FR-051",
+      "FR-052 (see the watch item: no page creates a sample or measurement)",
+      "FR-060 and FR-062 (portal roles unchanged)",
+      "FR-063 to FR-065",
+      "Edge Cases (levels on a record and above it; a measurement in a different dataset from its sample; a dataset with no project)",
+      "Clarifications (the three levels; rights reaching the records beneath; who may change contributors; the upgrade)",
+      "Key Entities"
+    ],
+    "plan_sections": [
+      "Summary",
+      "Complexity tracking",
+      "D1",
+      "D2 (all of it, including the table of readers and writers)",
+      "D3 (level handling in update, and make_creator)",
+      "D5 (the level on the edit form, the tab's check, and 'The existing update forms')",
+      "D7",
+      "Watch items"
+    ],
+    "prior_decisions": [
+      "decisions.md D1: a level is the only thing that gives a person rights over a project, dataset, sample or measurement. PolymorphicObjectPermissionBackend.has_perm (fairdm/core/permissions.py) returns False for a core record, the way it already does for manage_organization. SamplePermissionBackend and MeasurementPermissionBackend (fairdm/core/sample/permissions.py, fairdm/core/measurement/permissions.py) are removed from AUTHENTICATION_BACKENDS and deleted, with their tests replaced by T015's. PortalRolePermissionBackend (fairdm/permissions.py) is unchanged and no portal role's permissions change (FR-062). Guardian keeps working for organizations and for any model that is not a core record.",
+      "The permission table (research.md, 'Which permission means which level'): view = view_<model>; edit = change_<model>, add_<model>, import_data, modify_metadata, change_<model>_metadata; manage = delete_<model>, add_contributor, modify_contributor, change_<model>_settings, can_publish. REQUIRED_LEVEL already exists in access.py from story 1; check it against every permission the four models declare (CORE_PERMISSIONS in fairdm/core/utils.py and each model's Meta.permissions) and against this table. A registered subtype's own default permissions (demo.view_rocksample and the like, built by fairdm/api/permissions.py and fairdm/contrib/plugins/utils.py from the record's own class) are read as the core model's. A permission the table does not know is refused.",
+      "RecordLevelBackend goes in fairdm/contrib/contributors/permissions.py and is added to AUTHENTICATION_BACKENDS in fairdm/conf/settings/auth.py. It answers only for core records (including registered subtypes) and only object-level questions; for anything else it returns False and the other backends answer. It refuses an inactive user.",
+      "with_level(user, level) is a queryset method on each core model's queryset: the records the user holds at least that level on, on the record itself or from a record above (a sample or measurement through its own dataset and that dataset's project; a dataset through its project). visible_to (fairdm/core/managers.py) becomes the released records plus with_level(user, VIEW), and keeps its existing rule that a user holding the model-level view or change permission for datasets sees everything. A person listed only on a sample sees that sample and not its siblings.",
+      "Every reader and writer in plan D2's table moves, by file: fairdm/api/filters.py:79; fairdm/core/sample/forms.py:71 and fairdm/core/measurement/forms.py:65; fairdm/core/measurement/filters.py:149; fairdm/core/dataset/filters.py:77; fairdm/core/dataset/plugins.py:704; demo/models.py:124; fairdm/api/serializers.py:28 and :71; fairdm/contrib/contributors/receivers.py:19; demo/seed/common.py grant_team_rights and give_level; demo/seed/projects.py. Line numbers are from before story 1 and may have shifted: search for get_objects_for_user, assign_perm, remove_perm, get_perms, UserObjectPermission and guardian across fairdm/ and demo/ and account for every hit that concerns a core record. If you find a reader or writer the table does not list, treat it the same way and name it in your report.",
+      "make_creator(user) on Crediting adds the user at the manage level. The project and dataset create pages (fairdm/core/project/views.py, fairdm/core/dataset/views.py) call it in place of their assign_perm loops and their add_contributor call, keeping the contribution roles they give today (Creator, ProjectMember, ContactPerson). The API's create serializers call it in place of get_permissions_map. decisions.md D7: a superuser cannot be saved as a contributor outside DEBUG (Contribution.save); make_creator skips the credit for a superuser without failing the create, and Crediting.add already refuses one with a ValidationError.",
+      "decisions.md D8 and D9 (written by story 1) describe two interim states that end here: the edit page and the seeds write Contribution.level directly, and a person added from the tab holds a level and no stored row. Crediting.update gains `level`: a level below what the person holds from above is refused with code below_inherited. The last-manager refusal and the row lock are US5's; the prototype's last-manager check on the edit and remove pages stays working and untested until then. Every caller that still makes a contribution through Contribution.add_to, Contributor.add_to or record.add_contributor and should give a level goes through Crediting. level_choices in plugins/shared.py belongs to this story now: make it part of the edit form or document it.",
+      "The data migration (plan D7, research.md 'The upgrade'): one RunPython in the contributors app after 0023. For every user-level guardian row (guardian's UserObjectPermission) and every group-level row (GroupObjectPermission, each current member of the group) on a project, dataset, sample or measurement, under the four core content types AND under every registered subtype's content type, work out the highest level the person's rows on that record map to by the table above, write it to the person's contribution on that record (made when they have none, under the record's own polymorphic content type, the way add_to stores it), keeping the higher when a level is already there, then delete the rows. Existing contributions of people with no level get VIEW. An organization gets none. Each organization already stored as a person's affiliation on a record gets its own contribution on that record if it has none. An entry with no affiliation is left with none. Use the historical models from `apps` and do not import the live service. The reverse leaves the levels in place (noop). Apply it to the dev database (see environment); it must convert the seeded records' rows correctly, and the running pages must still work for regular.user, staff.user and super.user afterwards. Say in your report how many rows it converted there.",
+      "decisions.md D2: on the existing update forms of the four record types, the visibility field and the parent field (a dataset's project, a sample's or measurement's dataset, a project's owner) are offered only to someone for whom RecordAccess(record).can_manage(user) is true, and are left out of the form otherwise, so an editor's POST cannot change them. A Data Curator keeps them through can_manage. Find where each form is built (fairdm/core/project/forms.py and plugins.py Update, fairdm/core/dataset/forms.py and plugins.py Update, fairdm/core/sample/forms.py and the generic sample edit plugin, the measurement forms) and pass what the form needs to decide. On a create form nothing is left out.",
+      "The tab's own check (plan D5): the Contributors tab and every page of it open only when the record's overview would. Projects and datasets: PrivateRecordNotFoundMixin with the overview's check. Samples and measurements: the check TypedOverviewPlugin builds from visible_to (fairdm/core/plugins.py). A stranger and a visitor get 404 on every page of a private record's tab; the changing pages still redirect a visitor to sign in and refuse a signed-in reader with 403 on a record they may open.",
+      "decisions.md D4: deleting a sample now needs manage on it or above. Before, change_dataset allowed it. Name it in the changelog.",
+      "The :outline attribute on the level badge in templates/cotton/contribution/access.html is a Cotton dynamic attribute whose expression never resolved, so the non-manage badges have always drawn filled; the maintainer approved the page as it draws. Leave it.",
+      "decisions.md D12: page tests of the tab go in tests/test_contrib/test_contributors/test_plugins/test_shared.py. Tests of removed backends: tests/test_core/test_sample/test_permissions.py and the measurement equivalent describe behaviour this feature replaces; replace them with the cases in T015 (put the backend's tests where the conformance step wants them for fairdm/contrib/contributors/permissions.py) and name every pre-existing test you change or delete in progress.md, with one line each on why. Other pre-existing tests that assert guardian grants on core records (project and dataset creation, visible_to, API creation, filters) are changed the same way, in the task that changes the behaviour.",
+      "Docs (T019): document the names this story makes public, including with_level, RecordLevelBackend, the permission table, make_creator and the removed backends. The docs step currently reports four names; give_level and level_choices are yours to document or remove here. ContributionMove (US6) and ContributorSeed (US7) stay."
+    ],
+    "acceptance": [
+      {
+        "task": "T015",
+        "given_when_then": "Given each core record type and each level, when user.has_perm is asked every permission in the table, then it is granted at its level and above and refused below, levels reach the records beneath, the higher applies, a stored guardian row grants nothing on a core record and still works on an organization."
+      },
+      {
+        "task": "T016",
+        "given_when_then": "Given people with a level on a dataset, on its project, on one sample only, and nowhere, when with_level, visible_to and each reader in plan D2's table are asked, then each sees exactly what their level gives and a stored row alone gives nothing."
+      },
+      {
+        "task": "T021a",
+        "given_when_then": "Given a signed-in person, when they create a project or dataset through the portal or a sample or measurement through the API, then they are listed at the manage level and no guardian row is written; a superuser's create succeeds and credits nobody."
+      },
+      {
+        "task": "T022",
+        "given_when_then": "Given a database at the migration before the data step holding the rows listed in tasks.md T022, when the migration runs, then each person holds the level their rows map to and is listed, group members and registered subtypes included, the rows are gone, and affiliations are kept and listed."
+      },
+      {
+        "task": "T017",
+        "given_when_then": "Given User Story 4's scenarios, when the pages are used through the test client as each kind of account, then each Then holds: levels decide who opens, edits and manages; an editor cannot change visibility or the parent; a private record's tab answers 404 to strangers; a reader sees nobody's level."
+      },
+      {
+        "task": "T018",
+        "given_when_then": "Given the failing tests from T015, T016, T021a, T022 and T017, when the implementation lands, then all pass, the whole suite passes, and no commit leaves a creator unable to open their own record."
+      },
+      {
+        "task": "T019",
+        "given_when_then": "Given the pages named in tasks.md T019, when read against the branch, then they describe the levels, the backend, the upgrade for user and group rows, what no longer applies, and CONTEXT.md defines the three levels."
+      }
+    ],
+    "verified_base": {
+      "commit": "5fd1870b404d297f3cfd6ce7bbd397328c9e01ca",
+      "verified_at": "2026-10-06T15:05:00Z",
+      "steps": [
+        "lint",
+        "typecheck",
+        "test",
+        "build",
+        "conformance"
+      ],
+      "note": "Verified independently at story 3's last code commit (f1049cd0): lint, typecheck, the whole test suite, build and conformance pass. Every commit since changes only files under specs/022-record-contributors-and-access/. The docs step is red on exactly four names: ContributionMove, ContributorSeed, give_level, level_choices. `manage.py makemigrations --check` for the whole project reports a migration for the third-party app orbit; that is not ours. Anything else red on arrival: report it, do not work around it."
+    },
+    "glossary_terms": [
+      "Roles (portal role, contribution role, rights-carrying role)",
+      "Visibility",
+      "Contribution",
+      "Polymorphic models",
+      "Plugin",
+      "Dataset",
+      "Sample",
+      "Measurement"
+    ],
+    "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access on branch 022-record-contributors-and-access; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. If you add a migration, apply it to that database too with `DJANGO_ENV=development DJANGO_SETTINGS_MODULE=config.devserver uv run python manage.py migrate` so the running pages keep working, and say in your report that you did.",
+    "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/test_update.py and test_overview.py with their conftest.py (page tests through the test client), tests/test_core/test_project/test_plugins.py (a record's plugin pages), tests/test_contrib/test_contributors/test_permissions.py (backend tests through user.has_perm). Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG) is plain prose: no em dashes, sentence-case headings, reads as current state, and never mentions how the feature was built. Every user-facing string is translatable. Raise every ValidationError with a code."
+  },
+  "budgets": {
+    "attempts_per_task": 5,
+    "wallclock_minutes": 360
+  },
+  "rituals": [
+    "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+    "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+    "Read this brief in full, then your own tasks T015 to T019 in specs/022-record-contributors-and-access/tasks.md, your tasks only.",
+    "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+    "Read the CONTEXT.md entries named in context.glossary_terms.",
+    "git log --oneline -10. Confirm only files under specs/022-record-contributors-and-access/ differ between HEAD and context.verified_base.commit.",
+    "Do not run the suite to check your starting point; context.verified_base is that assurance, including the failures it names.",
+    "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/022-record-contributors-and-access/specs/022-record-contributors-and-access/report-<story lowercased, e.g. us1>.json and commit it with your last commit. Your final message is a short summary and that path."
+  ],
+  "prohibitions": [
+    "The templates under fairdm/contrib/contributors/templates/contributors/plugins/ and templates/cotton/contribution/ were approved by the maintainer on the running pages. Do not redesign, reword or restructure them. Change one only where a context name or a form field name has to change, keep what it draws the same, and name the change in progress.md.",
+    "Never modify or delete a test you did not author in this story, with the exceptions this brief or tasks.md names: a pre-existing test that asserts behaviour this feature replaces is updated in the task that changes the behaviour, and named in progress.md.",
+    "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+    "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+    "No compatibility aliases and no leading-underscore names for new functions or methods.",
+    "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence.",
+    "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+    "Never weaken an assertion, add a skip or an xfail (other than the one database-capability skip tasks.md names), or special-case code to make a test pass.",
+    "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+    "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+    "Never touch .github/.",
+    "No test reaches the network.",
+    "Do not change what any portal role holds (fairdm/portal_roles.py) or PortalRolePermissionBackend.",
+    "Do not build the last-manager rule, the row lock, the move guard or the merge change (US5), or moving and order (US6). Keep the prototype's last-manager check on the pages working.",
+    "The data migration uses historical models from `apps` only and must be safe to run on a database with no guardian rows at all.",
+    "If the migration, applied to the dev database, leaves any of regular.user, staff.user or super.user unable to open a seeded record they could open before, stop and report it; do not patch the data by hand."
+  ]
+}

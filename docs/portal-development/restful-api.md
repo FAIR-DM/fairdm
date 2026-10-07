@@ -48,7 +48,7 @@ Core model endpoints are also available:
 }
 ```
 
-The `count` field reflects only records visible to the requesting user (public records for anonymous users, additional private records for authenticated users with guardian permissions).
+The `count` field reflects only records visible to the requesting user (public records for anonymous users, additional private records for authenticated users who hold a level on them).
 
 ## Interactive Documentation
 
@@ -109,22 +109,38 @@ FairDM's API enforces the same object-level permission model as the web interfac
 | Authenticated GET on private object without view perm | 404 Not Found |
 | Authenticated PATCH on public object without change perm | 403 Forbidden |
 | Authenticated PATCH on private object without any perm | 404 Not Found |
-| Owner (has guardian perms) on any operation | 200/201/204 OK |
+| Creator, or anyone at the manage level, on any operation | 200/201/204 OK |
 
 Non-disclosure (404 instead of 403) is used for unauthorized access to detail endpoints to avoid leaking whether a private object exists.
 
+Three rules about what a request may change apply to projects, datasets, samples and measurements,
+and they are the ones the update forms apply:
+
+- **Visibility and the record a record sits under need the manage level.** A `PUT` or `PATCH` that
+  sets `visibility`, or a `project`, `dataset` or `sample` field, to a value different from the
+  stored one answers 403 and stores nothing unless the requester can manage the record. Sending the
+  value already stored is not a change.
+- **A move that would leave the record with nobody to manage it answers 400.** The error is on the
+  parent field and carries the code `no_manager`.
+- **A record is created only inside a parent the requester holds the edit level on.** The
+  `project`, `dataset` and `sample` fields of a serializer accept only the records the requester can
+  edit, so a `POST` naming any other answers 400 as it does for any value that is not a choice,
+  creates nothing and lists nobody.
+
 ### Permission Assignment on Create
 
-When you create an object via the API, FairDM's `ObjectPermissionsAssignmentMixin` automatically assigns guardian object permissions (`view_*`, `change_*`, `delete_*`) to the requesting user, making the creator the object owner.
+When you create a project, dataset, sample or measurement via the API, the requesting user is
+listed on it at the manage level, which makes them its creator. A superuser who creates one is not
+listed, because a superuser cannot be a contributor. No django-guardian permission is stored.
 
 ```{note}
-This is the API's own permission assignment path, separate from the `fairdm.core.utils` helpers
-described in [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md).
-If you are writing portal code outside the API — a management command, a signal receiver, a data
-migration — that grants or checks a permission on a sample, a measurement, or a
-contributor/organization programmatically, use those helpers rather than calling
-`django-guardian` directly: those records are polymorphic, and a raw guardian call files or looks
-for the grant under the wrong content type.
+For any other model, the serializer still assigns stored guardian permissions (`view_*`,
+`change_*`, `delete_*`) to the requesting user. If you are writing portal code outside the API that
+grants or checks one of those on a contributor or organization programmatically, use the
+`fairdm.core.utils` helpers described in
+[Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
+rather than calling `django-guardian` directly: those records are polymorphic, and a raw guardian
+call files or looks for the grant under the wrong content type.
 ```
 
 ## Customizing Serializer Fields

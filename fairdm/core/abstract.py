@@ -105,6 +105,9 @@ class BaseModel(models.Model):
         ``Contributor.add_to`` and ``Contribution.add_to``, the other two ways to record
         a credit.
 
+        A person credited here for the first time starts at the view level, as one added from
+        the Contributors tab does. An organization holds no level.
+
         Args:
             contributor: The contributor to credit.
             with_roles: Names of the ``fairdm-roles`` concepts to add to the credit.
@@ -112,8 +115,11 @@ class BaseModel(models.Model):
         Returns:
             The contributor's credit on this object.
         """
+        from fairdm.contrib.contributors.models import Contribution
+
         contribution, _created = self.contributors.get_or_create(
-            contributor=contributor
+            contributor=contributor,
+            defaults={"level": Contribution.starting_level(contributor)},
         )
         if with_roles:
             contribution.roles.add(

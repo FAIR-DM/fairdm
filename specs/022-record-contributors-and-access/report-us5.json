@@ -1,0 +1,191 @@
+{
+  "story": "US5",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T020",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestLastManager",
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestRecordLock"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0 (87 passed, 5 skipped; the five are TestRecordLock, skipped because SQLite cannot lock rows)",
+          "8 TestLastManager tests were red before the code (DID NOT RAISE)",
+          "scratch copy with the FOR UPDATE clause swapped for a comment: TestRecordLock passed, failed with select_for_update removed and with all_objects replaced by the default manager; copy deleted"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "07e91a3f"
+      ]
+    },
+    {
+      "id": "T021",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_dataset/test_models.py::TestMoveKeepsManager",
+          "tests/test_core/test_sample/test_models.py::TestMoveKeepsManager",
+          "tests/test_core/test_measurement/test_models.py::TestMoveKeepsManager"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_core -q -k TestMoveKeepsManager -n0 (5 red, then 21 passed)",
+          "uv run pytest tests/test_core -q -n auto --dist loadscope (1534 passed, 7 skipped)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "49539bac"
+      ]
+    },
+    {
+      "id": "T022a",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergeLevels",
+          "tests/test_contrib/test_contributors/test_services/test_merge.py::TestMergePermissions"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_merge.py -q -n0 (4 red, then 21 passed)",
+          "uv run pytest tests/test_contrib/test_contributors/test_admin.py -q -n0 (64 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "f9b707a8"
+      ]
+    },
+    {
+      "id": "T023",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestLastManagerPages"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n0 -k TestLastManagerPages (72 passed on arrival, because the prototype's own check in the pages gave the same answers; probed by making would_leave_no_manager return False after the pages used the service: 36 failed)",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n auto --dist loadscope (928 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "611b87ba"
+      ]
+    },
+    {
+      "id": "T024",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0",
+          "uv run pytest tests/test_core -q -n auto --dist loadscope",
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins -q -n auto --dist loadscope",
+          "grep -rn 'is_last_manager\\|must_stay' fairdm tests docs (no match)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "07e91a3f",
+        "49539bac",
+        "f9b707a8",
+        "611b87ba"
+      ]
+    },
+    {
+      "id": "T025a",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestAddByHand::test_no_email_address_is_asked_for_and_one_posted_is_ignored"
+        ],
+        "criteria": [
+          "SC-002",
+          "SC-014"
+        ],
+        "commands": [
+          "new test red on four record kinds, then uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope (668 passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "b65853bd"
+      ]
+    },
+    {
+      "id": "T025",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-006",
+          "SC-014"
+        ],
+        "commands": [
+          "uv run pre-commit run --all-files (all hooks passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "a869a5d6"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "Three pre-existing Crediting tests (TestUpdateLevel::test_the_level_held_from_above_is_allowed, test_a_level_held_on_a_record_below_does_not_hold_this_one_up and TestRemove::test_the_level_goes_with_it) lowered or removed the only manager of a record, which this story refuses. Each now lists a second manager first; no assertion was changed.",
+      "why": "They assert behaviour this feature replaces; the brief allows updating such a test in the task that changes the behaviour.",
+      "decision_ref": "D32"
+    },
+    {
+      "what": "Five story 3 tests in TestAddByHand that stored, validated or refused an email address were removed, and the email key and its assertions were taken out of two other tests.",
+      "why": "T025a names them; the by-hand form no longer has the field.",
+      "decision_ref": "D19"
+    },
+    {
+      "what": "The add-person template lost the email input with its label and hint. Nothing else in it changed.",
+      "why": "The one template change T025a authorises.",
+      "decision_ref": "D19"
+    },
+    {
+      "what": "The T023 page tests passed when first written, so there was no red step for them. They were written against behaviour the prototype's check already provided; I probed them afterwards by disabling the service rule and 36 cases failed.",
+      "why": "craft-tdd asks for the red step to be observed; here it was not available, and the probe stands in for it.",
+      "decision_ref": "D32"
+    }
+  ],
+  "concerns": [
+    "TestRecordLock (5 tests) is skipped on SQLite, the one allowed skip. It has not run against a database that locks rows. I checked its assertions on a scratch copy with the FOR UPDATE clause replaced by a SQL comment (passes; fails when the lock is removed or all_objects is replaced); the copy was deleted. A run on PostgreSQL in CI would confirm it.",
+    "The full gate, /home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main, exited 1 once, at the end of the story: conformance, lint, typecheck, test (102s) and build passed, and docs failed on exactly ContributionMove and ContributorSeed, which stories 6 and 7 own. The test step did not flake.",
+    "No migration was added, so the development database needed no migrate.",
+    "fairdm/contrib/contributors/services/merge.py: the docstring of merge_persons still says the kept person receives 'object permissions' without saying core records are skipped; I left the function docstring and updated the docs page instead.",
+    "Crediting.remove reads the contribution's stored level inside the lock. If another request deleted that contribution while this one waited, the read returns nothing, the rule does not refuse, and the delete removes nothing. I did not add handling for it."
+  ],
+  "blocked": []
+}

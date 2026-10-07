@@ -53,5 +53,6 @@ getting_started
 core_data_model
 metadata_practices
 claiming-a-profile
+crediting-a-record
 
 ```

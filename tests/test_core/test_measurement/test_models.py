@@ -1329,3 +1329,70 @@ class TestPrintValue:
         assert unicodedata.normalize(
             "NFKC", measurement.print_value()
         ) == unicodedata.normalize("NFKC", "5.00 ± 0.30 µg/l")
+
+
+@pytest.mark.django_db
+class TestMoveKeepsManager:
+    def refusal_code(self, measurement):
+        with pytest.raises(ValidationError) as refused:
+            measurement.clean()
+        return refused.value.error_dict["dataset"][0].code
+
+    def test_a_move_to_a_dataset_that_gives_no_manager_is_refused(self, make_manager):
+        dataset = DatasetFactory()
+        make_manager(dataset)
+        measurement = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+        measurement.dataset = DatasetFactory(project=dataset.project)
+
+        assert self.refusal_code(measurement) == "no_manager"
+
+    def test_a_move_to_a_dataset_with_a_manager_passes(self, make_manager):
+        dataset, other = DatasetFactory(), DatasetFactory()
+        make_manager(dataset)
+        make_manager(other)
+        measurement = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+        measurement.dataset = other
+
+        measurement.clean()
+
+    def test_a_move_keeps_a_manager_listed_on_the_measurement(self, make_manager):
+        dataset = DatasetFactory()
+        measurement = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+        make_manager(measurement)
+        measurement.dataset = DatasetFactory()
+
+        measurement.clean()
+
+    def test_the_samples_dataset_does_not_hold_a_measurement_up(self, make_manager):
+        dataset = DatasetFactory()
+        make_manager(dataset)
+        measurement = ExampleMeasurementFactory(
+            dataset=DatasetFactory(), sample=RockSampleFactory(dataset=dataset)
+        )
+        measurement.dataset = DatasetFactory()
+
+        measurement.clean()
+
+    def test_a_measurement_that_had_no_manager_may_move_anywhere(self):
+        dataset = DatasetFactory()
+        measurement = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+        measurement.dataset = DatasetFactory()
+
+        measurement.clean()
+
+    def test_a_measurement_whose_dataset_did_not_change_passes(self, make_manager):
+        dataset = DatasetFactory()
+        make_manager(dataset)
+        measurement = ExampleMeasurementFactory(
+            dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+        )
+
+        measurement.clean()

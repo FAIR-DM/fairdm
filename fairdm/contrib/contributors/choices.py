@@ -40,6 +40,17 @@ class OrganizationalIdentifiers(models.TextChoices):
     CROSSREF_FUNDER_ID = "Crossref Funder ID", "Crossref Funder ID"
 
 
+class ContributionLevel(models.IntegerChoices):
+    """What a person may do on one record, each level including the ones before it.
+
+    Stored as integers so that "at least this level" is a comparison.
+    """
+
+    VIEW = 1, _("Can view")
+    EDIT = 2, _("Can edit")
+    MANAGE = 3, _("Can manage")
+
+
 class AccountState(models.TextChoices):
     """The four states a Person's account can be in.
 

@@ -439,3 +439,102 @@ class TestIsHeldBy:
         assert (
             PortalRoles.is_held_by(administrator, PortalRoles.COMMUNITY_MANAGER) is False
         )
+
+
+#: What each shipped role held before specification 022, in declaration order, written out so
+#: that a later change to a role fails here.
+PERMISSIONS_ON_MAIN = {
+    "Portal Administrator": (
+        "auth.view_group",
+        "contributors.view_person",
+        "contributors.change_person",
+        "identity.change_identity",
+    ),
+    "Data Curator": (
+        "project.view_project",
+        "project.add_project",
+        "project.change_project",
+        "project.delete_project",
+        "project.view_projectdescription",
+        "project.add_projectdescription",
+        "project.change_projectdescription",
+        "project.delete_projectdescription",
+        "project.view_projectdate",
+        "project.add_projectdate",
+        "project.change_projectdate",
+        "project.delete_projectdate",
+        "dataset.view_dataset",
+        "dataset.add_dataset",
+        "dataset.change_dataset",
+        "dataset.delete_dataset",
+        "dataset.view_datasetdescription",
+        "dataset.add_datasetdescription",
+        "dataset.change_datasetdescription",
+        "dataset.delete_datasetdescription",
+        "dataset.view_datasetdate",
+        "dataset.add_datasetdate",
+        "dataset.change_datasetdate",
+        "dataset.delete_datasetdate",
+        "dataset.import_data",
+        "dataset.can_publish",
+        "sample.view_sample",
+        "sample.add_sample",
+        "sample.change_sample",
+        "sample.delete_sample",
+        "sample.view_sampledescription",
+        "sample.add_sampledescription",
+        "sample.change_sampledescription",
+        "sample.delete_sampledescription",
+        "sample.view_sampledate",
+        "sample.add_sampledate",
+        "sample.change_sampledate",
+        "sample.delete_sampledate",
+        "measurement.view_measurement",
+        "measurement.add_measurement",
+        "measurement.change_measurement",
+        "measurement.delete_measurement",
+        "measurement.view_measurementdescription",
+        "measurement.add_measurementdescription",
+        "measurement.change_measurementdescription",
+        "measurement.delete_measurementdescription",
+        "measurement.view_measurementdate",
+        "measurement.add_measurementdate",
+        "measurement.change_measurementdate",
+        "measurement.delete_measurementdate",
+        "contributors.view_contribution",
+        "contributors.add_contribution",
+        "contributors.change_contribution",
+        "contributors.delete_contribution",
+    ),
+    "Community Manager": (
+        "contributors.view_person",
+        "contributors.change_person",
+        "contributors.view_organization",
+        "contributors.change_organization",
+        "contributors.view_affiliation",
+        "contributors.change_affiliation",
+        "contributors.view_contribution",
+        "contributors.change_contribution",
+    ),
+    "Developer": (
+    ),
+}
+
+
+@pytest.mark.django_db
+class TestPermissionsAreThoseOnMain:
+    """FR-062, SC-012: stepping in on a record gives no role a right it did not hold."""
+
+    @pytest.mark.parametrize("role", PortalRoles.ROLES, ids=lambda role: role.name)
+    def test_the_declared_permissions_are_the_same_and_in_the_same_order(self, role):
+        assert role.permissions == PERMISSIONS_ON_MAIN[role.name]
+
+    @pytest.mark.parametrize("role", PortalRoles.ROLES, ids=lambda role: role.name)
+    def test_the_installed_group_holds_the_same_permissions(self, role):
+        group = Group.objects.get(name=role.name)
+
+        assert _permission_strings(group) == _resolvable_permissions(role)
+        assert _permission_strings(group) <= set(PERMISSIONS_ON_MAIN[role.name])
+
+    def test_no_role_is_added_or_removed(self):
+        assert set(PERMISSIONS_ON_MAIN) == set(PortalRoles.shipped_names())

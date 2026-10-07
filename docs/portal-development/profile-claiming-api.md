@@ -183,11 +183,14 @@ except Exception:
 
 **What is transferred:**
 
-- Contributions (with `unique_together` deduplication)
+- Contributions. When both people are listed on a record, the kept person's entry stays, at the
+  higher of the two levels and with its organization as it is, and the other entry is dropped. An
+  entry only the discarded person held moves to the kept person with its level.
 - `ContributorIdentifier` records
 - Affiliations (with `unique_together` deduplication)
 - allauth `EmailAddress` and `SocialAccount` records
-- Guardian `UserObjectPermission` assignments
+- Guardian `UserObjectPermission` assignments on objects that are not projects, datasets, samples
+  or measurements. A stored row grants nothing on those four, so none is copied for them.
 - Blank profile fields (`first_name`, `last_name`, `website`, `bio`, `image`)
 
 **What is NOT merged:** `is_active`, `is_claimed` — managed by the service layer.

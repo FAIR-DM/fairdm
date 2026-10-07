@@ -1,8 +1,8 @@
 """Shared fixtures for Dataset tests."""
 
 import pytest
-from guardian.shortcuts import assign_perm
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -42,8 +42,9 @@ def user_with_change_permission(db):
     user.dataset = DatasetFactory()
     # Editing rights without view is a state no grant path produces: registering gives
     # all five.
-    assign_perm("view_dataset", user, user.dataset)
-    assign_perm("change_dataset", user, user.dataset)
+    ContributionFactory(
+        content_object=user.dataset, contributor=user, level=ContributionLevel.EDIT
+    )
     return user
 
 
@@ -51,8 +52,9 @@ def user_with_change_permission(db):
 def user_with_delete_permission(db):
     user = UserFactory()
     user.dataset = DatasetFactory()
-    assign_perm("view_dataset", user, user.dataset)
-    assign_perm("delete_dataset", user, user.dataset)
+    ContributionFactory(
+        content_object=user.dataset, contributor=user, level=ContributionLevel.MANAGE
+    )
     return user
 
 

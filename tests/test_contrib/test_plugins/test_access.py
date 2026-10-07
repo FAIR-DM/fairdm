@@ -3,10 +3,10 @@
 import pytest
 from django.urls import reverse
 from django.views.generic import TemplateView
-from guardian.shortcuts import assign_perm
 
 from demo.factories import RockSampleFactory
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import (
     can_open,
@@ -18,6 +18,7 @@ from fairdm.contrib.plugins.access import (
 )
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     UserFactory,
 )
@@ -280,7 +281,9 @@ class TestRecordPageAccess:
     def test_dataset_overview_admits_a_holder_of_view_permission(self, client):
         dataset = DatasetFactory()
         user = UserFactory()
-        assign_perm("view_dataset", user, dataset)
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+        )
         client.force_login(user)
         response = client.get(
             reverse("dataset:overview", kwargs={"uuid": dataset.uuid})

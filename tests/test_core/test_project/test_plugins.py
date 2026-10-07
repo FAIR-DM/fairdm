@@ -16,13 +16,16 @@ from partial_date import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.plugins import Delete, Descriptions, Overview, Update
-from fairdm.core.utils import assign_perm
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
+    OrganizationFactory,
     PersonFactory,
     ProjectDateFactory,
     ProjectFactory,
@@ -167,7 +170,11 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
     def test_a_private_project_admits_a_user_holding_view_permission(
         self, private_project, user_with_no_permission
     ):
-        assign_perm("view_project", user_with_no_permission, private_project)
+        ContributionFactory(
+            content_object=private_project,
+            contributor=user_with_no_permission,
+            level=ContributionLevel.VIEW,
+        )
         request = _request_for(user_with_no_permission)
         assert can_open(Overview, request, private_project) is True
 
@@ -229,6 +236,36 @@ class TestAPrivateProjectsPageThroughARealRequest:
             reverse("project:overview", kwargs={"uuid": public_project.uuid})
         )
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestAPrivateProjectsOtherTabs:
+    @pytest.fixture(params=["project:dataset-list", "project:project-export-view"])
+    def address(self, request, private_project):
+        return reverse(request.param, kwargs={"uuid": private_project.uuid})
+
+    def test_an_anonymous_visitor_is_answered_as_for_a_missing_project(
+        self, client, address
+    ):
+        assert client.get(address).status_code == 404
+
+    def test_a_signed_in_person_with_no_credit_is_answered_as_for_a_missing_project(
+        self, client, address, user_with_no_permission
+    ):
+        client.force_login(user_with_no_permission)
+
+        assert client.get(address).status_code == 404
+
+    def test_a_person_at_view_reaches_the_tab(self, client, address, private_project):
+        viewer = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=private_project,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        client.force_login(viewer)
+
+        assert client.get(address).status_code == 200
 
 
 @pytest.mark.django_db
@@ -294,7 +331,9 @@ class TestUpdatePageOverHTTP:
                 content_type__app_label="project", codename="change_project"
             )
         )
-        assign_perm("view_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.VIEW
+        )
         client.force_login(user)
 
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
@@ -585,7 +624,9 @@ class TestProjectsOwnPageOffersUpdateAndDescriptionsLinks:
     def test_a_user_who_may_change_the_project_is_offered_both_links(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -621,7 +662,9 @@ class TestProjectsOwnPageOffersTheDeletionLink:
     def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         response = client.get(
@@ -651,7 +694,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
     def test_the_update_page_links_back_to_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
@@ -663,7 +708,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
     def test_the_descriptions_page_links_back_to_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         url = reverse("project:overview-descriptions", kwargs={"uuid": project.uuid})
@@ -675,7 +722,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
     def test_the_deletion_page_links_back_to_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
@@ -689,8 +738,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
 class TestEveryLinkEachPageDrawsResolvesToARealAddress:
     def _permitted_user(self, project):
         user = UserFactory()
-        assign_perm("change_project", user, project)
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         return user
 
     def test_the_listing_draws_no_empty_link(self, client):
@@ -757,8 +807,9 @@ class TestUpdatePageOffersTheDeletionLink:
     def test_a_user_who_may_delete_the_project_is_offered_the_link(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         response = client.get(
@@ -773,7 +824,9 @@ class TestUpdatePageOffersTheDeletionLink:
     def test_a_user_who_may_change_but_not_delete_is_offered_no_link(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = client.get(
@@ -790,8 +843,9 @@ class TestUpdatePageOffersTheDeletionLink:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("change_project", user, project)
-        assign_perm("delete_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.MANAGE
+        )
         client.force_login(user)
 
         update_url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
@@ -857,8 +911,11 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
     def test_a_visitor_holding_view_rights_still_reaches_it(
         self, client, private_project, user_with_no_permission
     ):
-        assign_perm("view_project", user_with_no_permission, private_project)
-        assign_perm("change_project", user_with_no_permission, private_project)
+        ContributionFactory(
+            content_object=private_project,
+            contributor=user_with_no_permission,
+            level=ContributionLevel.EDIT,
+        )
         client.force_login(user_with_no_permission)
 
         response = client.get(
@@ -1085,8 +1142,9 @@ class TestOverviewNotices:
     def test_the_team_of_a_private_project_is_told_it_is_private(self, client):
         project = ProjectFactory(visibility=Visibility.PRIVATE)
         user = UserFactory()
-        assign_perm("view_project", user, project)
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = _page(client, project)
@@ -1278,6 +1336,23 @@ class TestOverviewCitation:
 
         assert self._citation(client, project).startswith(
             "Keller, A., Oliveira, T. & Brandt, L. ("
+        )
+
+    def test_creators_are_named_in_the_order_credited_people_before_organizations(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        partner = OrganizationFactory(name="Acme Lab")
+        project.add_contributor(partner, with_roles=["Creator"])
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            moving = project.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=["Creator"],
+            )
+        Crediting(project).move(moving, "up")
+
+        assert self._citation(client, project).startswith(
+            "Oliveira, T., Keller, A. & Acme Lab ("
         )
 
     def test_a_project_with_a_doi_is_cited_by_it(self, client):
@@ -1534,8 +1609,9 @@ class TestOverviewFirstRun:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         user = UserFactory()
-        assign_perm("view_project", user, project)
-        assign_perm("change_project", user, project)
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
         client.force_login(user)
 
         response = _page(client, project)
@@ -1687,9 +1763,12 @@ class TestOverviewFollowsTheActiveLanguage:
 class TestOverviewManageMenu:
     def _team_member(self, project, *rights):
         user = UserFactory()
-        assign_perm("view_project", user, project)
-        for right in rights:
-            assign_perm(f"{right}_project", user, project)
+        level = ContributionLevel.VIEW
+        if "change" in rights:
+            level = ContributionLevel.EDIT
+        if "delete" in rights:
+            level = ContributionLevel.MANAGE
+        ContributionFactory(content_object=project, contributor=user, level=level)
         return user
 
     def test_a_user_who_may_change_and_delete_is_offered_delete_in_the_manage_menu(
@@ -1711,15 +1790,6 @@ class TestOverviewManageMenu:
 
         delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
         assert response.page.find("a", href=delete_url) is None
-
-    def test_a_user_who_may_delete_but_not_change_is_still_offered_delete(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._team_member(project, "delete"))
-
-        response = _page(client, project)
-
-        delete_url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        assert response.page.find("a", href=delete_url) is not None
 
     def test_a_visitor_is_offered_no_manage_links(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)

@@ -213,6 +213,7 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         else:
             view_name = f"api:{model._meta.model_name}-detail"
 
+        ser_base_class: type[serializers.ModelSerializer] | None
         if issubclass(model, Sample):
             ser_base_class = BaseSampleSerializer
         elif issubclass(model, Measurement):

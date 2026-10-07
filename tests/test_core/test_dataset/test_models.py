@@ -1659,3 +1659,71 @@ class TestDatasetQuerySetGetVisible:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, project=None)
 
         assert dataset in Dataset.objects.get_visible()
+
+
+@pytest.mark.django_db
+class TestMoveKeepsManager:
+    def refusal_code(self, dataset):
+        with pytest.raises(ValidationError) as refused:
+            dataset.clean()
+        return refused.value.error_dict["project"][0].code
+
+    def test_a_move_to_a_project_that_gives_no_manager_is_refused(self, make_manager):
+        project = ProjectFactory()
+        make_manager(project)
+        dataset = DatasetFactory(project=project)
+        dataset.project = ProjectFactory()
+
+        assert self.refusal_code(dataset) == "no_manager"
+
+    def test_a_move_to_a_project_with_a_manager_passes(self, make_manager):
+        project, other = ProjectFactory(), ProjectFactory()
+        make_manager(project)
+        make_manager(other)
+        dataset = DatasetFactory(project=project)
+        dataset.project = other
+
+        dataset.clean()
+
+    def test_a_move_keeps_a_manager_listed_on_the_dataset(self, make_manager):
+        project = ProjectFactory()
+        dataset = DatasetFactory(project=project)
+        make_manager(dataset)
+        dataset.project = ProjectFactory()
+
+        dataset.clean()
+
+    def test_a_move_out_of_a_project_is_refused(self, make_manager):
+        project = ProjectFactory()
+        make_manager(project)
+        dataset = DatasetFactory(project=project)
+        dataset.project = None
+
+        assert self.refusal_code(dataset) == "no_manager"
+
+    def test_a_dataset_that_had_no_manager_may_move_anywhere(self):
+        dataset = DatasetFactory(project=ProjectFactory())
+        dataset.project = ProjectFactory()
+
+        dataset.clean()
+
+    def test_a_new_dataset_is_never_refused(self):
+        dataset = Dataset(name="New", project=ProjectFactory())
+
+        dataset.clean()
+
+    def test_a_dataset_whose_project_did_not_change_passes(self, make_manager):
+        project = ProjectFactory()
+        make_manager(project)
+        dataset = DatasetFactory(project=project)
+        dataset.name = "Renamed"
+
+        dataset.clean()
+
+    def test_a_private_dataset_is_found_for_the_comparison(self, make_manager):
+        project = ProjectFactory()
+        make_manager(project)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        dataset.project = ProjectFactory()
+
+        assert self.refusal_code(dataset) == "no_manager"

@@ -118,13 +118,11 @@ improve performance. Use these patterns in your views and APIs:
    class DatasetListView(ListView):
        def get_queryset(self):
            if self.request.user.is_authenticated:
-               # Datasets this user holds rights over, private ones included
-               from guardian.shortcuts import get_objects_for_user
+               # Datasets this user may edit, private ones included
+               from fairdm.contrib.contributors.choices import ContributionLevel
 
-               qs = get_objects_for_user(
-                   self.request.user,
-                   "dataset.change_dataset",
-                   klass=Dataset.all_objects.all(),
+               qs = Dataset.all_objects.accessible_to(
+                   self.request.user, ContributionLevel.EDIT
                )
            else:
                qs = Dataset.objects.all()  # Privacy-first default

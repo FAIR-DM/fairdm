@@ -4,9 +4,9 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 
 from demo.factories import RockSampleFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import Sample
-from fairdm.core.utils import assign_perm
-from fairdm.factories import DatasetFactory, PersonFactory
+from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -53,15 +53,23 @@ class TestVisibleTo:
 
     def test_a_dataset_team_member_also_sees_that_datasets_samples(self, samples):
         user = PersonFactory(is_active=True)
-        assign_perm("view_dataset", user, samples["private"].dataset)
+        ContributionFactory(
+            content_object=samples["private"].dataset,
+            contributor=user,
+            level=ContributionLevel.VIEW,
+        )
 
         visible = Sample.objects.visible_to(user)
 
         assert set(visible) == {samples["released"], samples["private"]}
 
-    def test_a_user_who_may_change_a_dataset_sees_its_samples(self, samples):
+    def test_a_person_who_may_edit_a_dataset_sees_its_samples(self, samples):
         user = PersonFactory(is_active=True)
-        assign_perm("change_dataset", user, samples["unpublished"].dataset)
+        ContributionFactory(
+            content_object=samples["unpublished"].dataset,
+            contributor=user,
+            level=ContributionLevel.EDIT,
+        )
 
         visible = Sample.objects.visible_to(user)
 

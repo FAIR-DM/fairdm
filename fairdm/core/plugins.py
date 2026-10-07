@@ -17,6 +17,7 @@ from pyecharts.charts import Bar, Line
 
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
+from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.overview import format_authors, sentence_case
 from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
 
@@ -78,20 +79,30 @@ class RecordOverviewPlugin(OverviewPlugin):
     people_shown = 18
     resolvable_identifier_types = ("DOI", "IGSN")
 
-    def get_contributions(self) -> list[Contribution]:
-        """List the record's credits with each contributor as its own subtype, Person or Organization.
+    def get_context_data(self, **kwargs):
+        """Lead the People card to the record's Contributors tab."""
+        context = super().get_context_data(**kwargs)
+        context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
+        return context
 
-        ``select_related`` stops at the polymorphic base, which has neither a person's name parts
-        nor a way to tell the two apart, so the real instances are fetched in one extra query.
+    def get_contributions(self) -> list[Contribution]:
+        """List the record's credits, people first and then organizations, each in order.
+
+        Everything an overview or a citation names comes from this list, so they follow the
+        order the team set on the Contributors tab. ``select_related`` stops at the polymorphic
+        base, which has neither a person's name parts nor a way to tell the two apart, so the
+        real instances are fetched in one extra query.
 
         Returns:
             The record's contributions, each with its real contributor, roles prefetched.
         """
-        contributions = list(
-            self.base_object.contributors.select_related(
-                "affiliation"
-            ).prefetch_related("roles")
-        )
+        listed = self.base_object.contributors
+        contributions = [
+            *listed.people().select_related("affiliation").prefetch_related("roles"),
+            *listed.organizations()
+            .select_related("affiliation")
+            .prefetch_related("roles"),
+        ]
         real = Contributor.objects.in_bulk([c.contributor_id for c in contributions])
         for contribution in contributions:
             contribution.contributor = real[contribution.contributor_id]
@@ -126,28 +137,20 @@ class RecordOverviewPlugin(OverviewPlugin):
         """List everyone credited on the record.
 
         Each contributor is its own type (person or organisation). The affiliation is the one
-        recorded on the credit itself, falling back to the person's primary affiliation.
+        recorded on the credit itself, so a person credited with no organization has none.
 
         Returns:
             One ``{"contributor", "roles": {name: label}, "affiliation"}`` entry per credit, in
-            the record's own order.
+            the order of :meth:`get_contributions`.
         """
-        result = []
-        for credit in self.get_contributions():
-            affiliation = credit.affiliation
-            if affiliation is None and hasattr(
-                credit.contributor, "primary_affiliation"
-            ):
-                primary = credit.contributor.primary_affiliation()
-                affiliation = primary.organization if primary else None
-            result.append(
-                {
-                    "contributor": credit.contributor,
-                    "roles": {role.name: role.label for role in credit.roles.all()},
-                    "affiliation": affiliation,
-                }
-            )
-        return result
+        return [
+            {
+                "contributor": credit.contributor,
+                "roles": {role.name: role.label for role in credit.roles.all()},
+                "affiliation": credit.affiliation,
+            }
+            for credit in self.get_contributions()
+        ]
 
     def get_people(self, entries=None) -> dict[str, Any]:
         """Work out what the People card shows.
@@ -488,7 +491,8 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
     parent type's page until it provides its own.
 
     **The record follows its dataset.** It opens for everyone once its own dataset is public and
-    published, and otherwise only for that dataset's team (``visible_to``). Anyone else gets a
+    published, and otherwise only for people who hold a level on the record, or on its dataset or that dataset's
+    project (``visible_to``). Anyone else gets a
     404, so the address never confirms the record exists. ``PrivateRecordNotFoundMixin`` can't be
     reused here: it reads ``obj.visibility``, which samples and measurements don't have.
     """

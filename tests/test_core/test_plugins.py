@@ -3,8 +3,10 @@
 import pytest
 
 from fairdm.contrib.contributors.models import Organization, Person
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.factories import (
+    AffiliationFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
@@ -130,3 +132,74 @@ class TestRecordOverviewPluginCredits:
             c.pk for c in plugin.get_contributors_with_role(entries, "Creator")
         ] == [person.pk]
         assert plugin.get_contributors_with_role(entries, "Editor") == []
+
+
+@pytest.mark.django_db
+class TestRecordOverviewPluginOrder:
+    @pytest.fixture
+    def reordered(self):
+        """A project credited organization, person, organization, person, then reordered."""
+        project = ProjectFactory()
+        first_org, second_org = OrganizationFactory(), OrganizationFactory()
+        first_person, second_person = PersonFactory(), PersonFactory()
+        for contributor in (first_org, first_person, second_org, second_person):
+            project.add_contributor(contributor)
+        crediting = Crediting(project)
+        crediting.move(project.contributors.get(contributor=second_person), "up")
+        crediting.move(project.contributors.get(contributor=first_org), "down")
+        return project, [second_person, first_person], [second_org, first_org]
+
+    def test_people_come_first_in_order_then_organizations_in_order(self, reordered):
+        project, people, organizations = reordered
+
+        contributions = _plugin_for(project).get_contributions()
+
+        assert [c.contributor.pk for c in contributions] == [
+            contributor.pk for contributor in (*people, *organizations)
+        ]
+
+    def test_the_credits_follow_the_same_order(self, reordered):
+        project, people, organizations = reordered
+
+        entries = _plugin_for(project).get_credits()
+
+        assert [e["contributor"].pk for e in entries] == [
+            contributor.pk for contributor in (*people, *organizations)
+        ]
+
+    def test_the_people_card_follows_the_same_order(self, reordered):
+        project, people, organizations = reordered
+
+        shown = _plugin_for(project).get_people()["shown"]
+
+        assert [c.pk for c in shown] == [
+            contributor.pk for contributor in (*people, *organizations)
+        ]
+
+
+@pytest.mark.django_db
+class TestRecordOverviewPluginAffiliation:
+    @pytest.fixture
+    def person(self):
+        person = PersonFactory(is_active=True)
+        AffiliationFactory(person=person, is_primary=True)
+        return person
+
+    def test_a_person_credited_with_no_organization_is_shown_with_none(self, person):
+        project = ProjectFactory()
+        Crediting(project).add(person)
+
+        (entry,) = _plugin_for(project).get_credits()
+
+        assert entry["affiliation"] is None
+
+    def test_a_person_credited_from_an_organization_is_shown_with_it(self, person):
+        project = ProjectFactory()
+        organization = OrganizationFactory()
+        Crediting(project).add(person, organization=organization)
+
+        entries = _plugin_for(project).get_credits()
+
+        assert {e["contributor"].pk: e["affiliation"] for e in entries}[
+            person.pk
+        ] == organization

@@ -1,0 +1,88 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% comment %}
+  One contributor on one record: what they did (contribution roles) and, for a person, the
+  organization they are credited from here and what they may do (their level). All saved together. Roles are credit and change nothing about access.
+{% endcomment %}
+
+{% block page.content %}
+  <c-card.wrapper class="bg-base-100 max-w-3xl">
+    <form method="post" class="card-body gap-6" novalidate>
+      {% csrf_token %}
+      <c-contributor.item :contributor="entry.contributor" size="md" secondary="none" />
+
+      {% if errors %}
+        <c-alert variant="error" soft>
+          <div>
+            <p class="font-semibold">{% translate "Nothing was saved." %}</p>
+            <ul>
+              {% if errors.roles %}<li><a href="#roles" class="link">{{ errors.roles }}</a></li>{% endif %}
+              {% if errors.affiliation %}<li><a href="#affiliation" class="link">{{ errors.affiliation }}</a></li>{% endif %}
+              {% if errors.level %}<li><a href="#level" class="link">{{ errors.level }}</a></li>{% endif %}
+            </ul>
+          </div>
+        </c-alert>
+      {% endif %}
+
+      <fieldset id="roles" class="flex flex-col gap-2" {% if errors.roles %}aria-describedby="roles-hint roles-error"{% else %}aria-describedby="roles-hint"{% endif %}>
+        <legend class="font-semibold">{% blocktranslate %}What they did on this {{ kind }}{% endblocktranslate %}</legend>
+        <p id="roles-hint" class="text-sm text-base-content/70">
+          {% translate "Choose every role that applies, or none. Roles are credit: they do not change what anyone may do." %}
+        </p>
+        {% if errors.roles %}<p id="roles-error" class="text-sm text-error">{{ errors.roles }}</p>{% endif %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          {% for role in roles %}
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" name="roles" value="{{ role.concept.pk }}" class="checkbox checkbox-sm" {% if role.checked %}checked{% endif %} />
+              <span>{{ role.concept.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      {% if entry.is_person %}
+        <c-contribution.affiliation :choice="affiliation" kind="{{ kind }}" error="{{ errors.affiliation }}" />
+        <fieldset id="level" class="flex flex-col gap-2" {% if errors.level %}aria-describedby="level-hint level-error"{% else %}aria-describedby="level-hint"{% endif %}>
+          <legend class="font-semibold">{% blocktranslate %}What they may do on this {{ kind }}{% endblocktranslate %}</legend>
+          <p id="level-hint" class="text-sm text-base-content/70">
+            {% if entry.above %}
+              {% blocktranslate with level=levels.0.label kind=entry.source_kind %}Each choice includes the ones above it. They already hold access from the {{ kind }}, so nothing lower can be chosen here.{% endblocktranslate %}
+            {% else %}
+              {% translate "Each choice includes the ones above it." %}
+            {% endif %}
+            {% if not entry.has_account %}{% translate "This person has no account yet. What you choose takes effect when they have one." %}{% endif %}
+          </p>
+          {% if errors.level %}<p id="level-error" class="text-sm text-error">{{ errors.level }}</p>{% endif %}
+          <div class="flex flex-col gap-3">
+            {% for level in levels %}
+              <label class="flex items-start gap-3 {% if level.disabled %}opacity-60{% else %}cursor-pointer{% endif %}">
+                <input type="radio" name="level" value="{{ level.value }}" class="radio radio-sm mt-1"
+                       {% if level.value == chosen_level %}checked{% endif %} {% if level.disabled %}disabled{% endif %}
+                       aria-describedby="level-{{ level.value }}-hint" />
+                <span class="flex flex-col">
+                  <span>{{ level.label }}</span>
+                  <span id="level-{{ level.value }}-hint" class="text-sm text-base-content/70">{{ level.hint }}</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      {% else %}
+        <div class="flex flex-col gap-1">
+          <p class="font-semibold">{% blocktranslate %}What they may do on this {{ kind }}{% endblocktranslate %}</p>
+          <p class="text-sm text-base-content/70">
+            {% blocktranslate %}Nothing. An organization is credited and holds no access, and its members gain none from it. Add a person to give them access.{% endblocktranslate %}
+          </p>
+        </div>
+      {% endif %}
+
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+          <c-button href="{{ list_url }}" text="{% translate 'Cancel' %}" ghost />
+        </div>
+        <c-button href="{{ list_url }}{{ entry.contribution.pk }}/remove/" text="{% translate 'Remove from this record' %}" variant="error" outline size="sm" />
+      </div>
+    </form>
+  </c-card.wrapper>
+{% endblock page.content %}

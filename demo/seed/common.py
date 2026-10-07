@@ -1,16 +1,20 @@
 """What the development-data seeds share: the example accounts and the clean-up of earlier runs."""
 
 from allauth.account.models import EmailAddress
-from guardian.shortcuts import assign_perm
+from django.contrib.auth.models import Group
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Person
+from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.management.commands.create_dev_accounts import (
     DEV_ACCOUNT_PASSWORD,
+    DEV_ACCOUNTS,
     EXAMPLE_ACCOUNTS,
     PROFILE_ACCOUNTS,
 )
+from fairdm.portal_roles import PortalRoles
 
 
 def create_accounts(accounts) -> dict[str, Person]:
@@ -65,6 +69,26 @@ def profile_accounts() -> dict[str, Person]:
     return create_accounts(PROFILE_ACCOUNTS)
 
 
+def data_curator() -> Person:
+    """Return the development account that holds the Data Curator role, creating it if missing.
+
+    The account is the one ``create_dev_accounts`` makes, from the same entry of ``DEV_ACCOUNTS``.
+    Only this one is created: the others would add a second person called Regular User beside
+    ``regular.user@example.com``.
+
+    Returns:
+        ``data.curator@fairdm.org``, signed in with the shared development password.
+    """
+    entry = next(a for a in DEV_ACCOUNTS if a["role"] == PortalRoles.DATA_CURATOR.name)
+    curator = create_accounts(
+        [(entry["email"], entry["first_name"], entry["last_name"], False, False)]
+    )[entry["email"].split("@")[0]]
+    curator.is_claimed = True
+    curator.save(update_fields=["is_claimed"])
+    curator.groups.add(Group.objects.get(name=entry["role"]))
+    return curator
+
+
 def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
     """Delete the projects an earlier run created, and their datasets.
 
@@ -83,13 +107,21 @@ def remove_own_projects(names: list[str], users: dict[str, Person]) -> None:
 
 
 def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
-    """Give ``user`` the rights the team of each project or dataset holds.
+    """List ``user`` on each project or dataset at the manage level, as its team is.
+
+    A person already listed keeps their roles.
 
     Args:
         user: The account that joins the team.
-        *records: The projects and datasets to grant the rights on.
+        *records: The projects and datasets to join.
     """
     for record in records:
-        model = record._meta.model_name
-        for right in ("view", "change", "delete"):
-            assign_perm(f"{model}.{right}_{model}", user, record)
+        crediting = Crediting(record)
+        contribution = record.contributors.filter(
+            contributor=user
+        ).first() or crediting.add(user)
+        crediting.update(
+            contribution,
+            roles=list(contribution.roles.all()),
+            level=ContributionLevel.MANAGE,
+        )

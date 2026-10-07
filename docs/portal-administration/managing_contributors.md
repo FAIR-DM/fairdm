@@ -501,7 +501,8 @@ ghosts_without_data = Person.objects.ghost().filter(
 ### Merging Duplicate Persons
 
 The Person admin's **"Merge selected Person into another…"** action does this transactionally,
-including identifiers, allauth accounts and guardian permissions, and is the recommended route —
+including identifiers, allauth accounts and, where both people are listed on a record, the higher
+of their levels on it, and is the recommended route —
 see [Merging Two Person Records](managing-unclaimed-profiles.md#merging-two-person-records).
 Running it requires a superuser account: the action is absent from a non-superuser's changelist,
 and the confirmation page itself refuses a non-superuser with a 403 if reached directly. The
@@ -677,6 +678,7 @@ def export_person_data(person):
 
 ## Related Documentation
 
+- **Looking people up**: [Looking up contributors in ORCID and ROR](looking-up-contributors.md)
 - **Developer Guide**: [Contributors System Overview](../portal-development/contributors.md)
 - **User Permissions**: [Managing Users and Permissions](managing_users_and_permissions.md)
 - **Data Import**: Configure contributor attribution during data imports

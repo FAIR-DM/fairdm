@@ -1,0 +1,112 @@
+{
+  "story": "US6",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "RECEIPT: craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "RECEIPT: craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T026",
+      "status": "done",
+      "commits": [
+        "3c06c912",
+        "f99ae870"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestMove",
+          "tests/test_contrib/test_contributors/test_services/test_crediting.py::TestRecordLock (move added to the parametrisation, skipped on SQLite)",
+          "tests/test_contrib/test_contributors/test_managers.py::TestContributionKinds"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_services/test_crediting.py -q -n0",
+          "uv run pytest tests/test_contrib/test_contributors/test_managers.py -q -n0"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T027",
+      "status": "done",
+      "commits": [
+        "172d6000",
+        "6baf80ed"
+      ],
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_plugins/test_shared.py::TestMovePage",
+          "tests/test_core/test_plugins.py::TestRecordOverviewPluginOrder",
+          "tests/test_core/test_plugins.py::TestRecordOverviewPluginAffiliation",
+          "tests/test_core/test_project/test_plugins.py::TestOverviewCitation::test_creators_are_named_in_the_order_credited_people_before_organizations",
+          "tests/test_core/test_dataset/test_plugins.py::TestOverviewCitation::test_creators_are_named_in_the_order_credited_people_before_organizations"
+        ],
+        "criteria": [
+          "SC-011"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+          "uv run pytest tests/test_core tests/test_contrib/test_contributors/test_plugins/test_overview.py -q -n auto --dist loadscope"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T028",
+      "status": "done",
+      "commits": [
+        "3c06c912",
+        "f99ae870",
+        "172d6000",
+        "6baf80ed"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-011"
+        ],
+        "commands": [
+          "uv run pytest tests/test_contrib/test_contributors/test_plugins/test_shared.py -q -n auto --dist loadscope",
+          "uv run pre-commit run --all-files",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+        ],
+        "exit_code": 0
+      }
+    },
+    {
+      "id": "T029",
+      "status": "done",
+      "commits": [
+        "0d928ba0",
+        "213b0e17"
+      ],
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+        ],
+        "exit_code": 1
+      }
+    }
+  ],
+  "deviations": [],
+  "concerns": [
+    "Full gate (once, at the end): lint, typecheck, test (105s), build and conformance passed. The docs step exited 1 on exactly one name, ContributorSeed, which story 7 owns; ContributionMove is no longer reported. The exit code of the whole command was 1 for that reason alone. T029's own command is the docs step, whose only finding is ContributorSeed.",
+    "No pre-existing test asserted the fallback to the person's primary affiliation: none failed when the fallback was removed, so no existing test was changed or named in progress.md beyond saying so.",
+    "TestRecordLock is skipped on SQLite (the one skip tasks.md names), so move's lock-before-read order is by construction (it reads inside Crediting.locked()), not observed here. 'move' was added to its parametrisation, and the move fixture has two people so a real swap runs when it is not skipped on PostgreSQL.",
+    "ContributionMove answers a direction other than up or down with 400, and a contribution of another record with 404 (through get_contribution); the earlier page treated any direction but up as down. Recorded as D35 in decisions.md.",
+    "Commit 3c5725f0 was amended to 6baf80ed before anything else was built on it, to rename a local variable that ruff flagged (A001); it was never pushed.",
+    "`manage.py makemigrations --check` reports one migration, for the third-party app orbit, as the brief says. No migration of ours, no change to the dev database.",
+    "Templates under contributors/plugins/ and cotton/contribution/ are unchanged."
+  ],
+  "blocked": []
+}
