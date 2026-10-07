@@ -111,3 +111,10 @@ Did: DeleteRecord now drops the record's own base row from what goes with a samp
 Verified: uv run pytest tests/test_core/test_editing.py::TestDeleteRecord -q -n0 gave 32 passed; the four new tests failed before the change (the record listed, the hidden name on the page, no related_unlisted key); uv run pre-commit run --files on the changed files passed.
 Next: T015, tests only.
 Watch: related_unlisted is 0 on a protected page, which lists no related rows.
+
+## 2026-10-07T21:36:16Z · Implementer FIX1 · T015
+
+Did: Added tests to TestEditKeyDates (a row id of another record, posted with a new value and posted for removal, leaves that row unchanged and stores no row on this record), TestEditDetails (a manager posting dataset to a sample page, and dataset and sample to a measurement page, moves nothing; an editor posting project and visibility to a dataset page changes neither) and TestDeleteRecord (a dataset whose sample is measured in another dataset shows the protected state, counts the measurement it may not see and deletes nothing).
+Verified: uv run pytest tests/test_core/test_editing.py -q -n0 gave 428 passed. The new tests passed on first run, as the brief expects, and no code was changed for them. Probed two of them by mutation: removing the pop of dataset and sample from EditDetails.get_form made the measurement case fail, and emptying DatasetForm.manager_only_fields made the editor case fail; both restored.
+Next: T016, documentation.
+Watch: the sample case of the move test passes without the pop because the demo sample form carries no dataset field.
