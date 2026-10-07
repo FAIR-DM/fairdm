@@ -291,3 +291,12 @@ as dead code.
 **Revisit if:** a later tidy of that module is scheduled.
 
 **ADR:** none, a scope note
+
+## D18. Existing tests changed in story 2 were checked against the list in the progress log
+
+Five existing test modules were flagged. The row-set tests on the old details pages are replaced by
+the tests of the two new pages, and the tests of one save covering a form and its rows no longer
+have a page to describe, because a page is now either a form or rows. The list in `progress.md`
+under T005 names every class.
+
+**ADR:** none — a record of a check on this feature's tests
