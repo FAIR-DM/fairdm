@@ -268,18 +268,61 @@
       "tasks": [
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_contrib/test_generic/test_forms.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py tests/test_contrib/test_generic/test_forms.py -q -n0 (61 failed, 355 passed at 051327b2, all failures on the missing keywords page and the KeywordForm faults)"
+            ],
+            "code": [
+              "tests/test_core/test_editing.py:1249",
+              "tests/test_contrib/test_generic/test_forms.py:35"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py",
+              "tests/test_contrib/test_generic/test_forms.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n0 -k TestEditKeywords (20 passed)",
+              "uv run pytest tests/test_core tests/test_contrib/test_generic tests/test_contrib/test_plugins tests/test_templates -q -n auto --dist loadscope",
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "fairdm/core/editing.py:311",
+              "fairdm/contrib/generic/forms.py:151"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0)"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:112",
+              "CHANGELOG.md:12"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     }

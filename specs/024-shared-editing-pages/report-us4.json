@@ -1,0 +1,78 @@
+{
+ "story": "US4",
+ "skills_loaded": [
+  {"name": "craft-tdd", "receipt": "craft-tdd/2026-09-28/b19e4d07", "loaded_via": "path-read"},
+  {"name": "craft-increments", "receipt": "craft-increments/2026-09-28/3f7d8b12", "loaded_via": "path-read"}
+ ],
+ "tasks": [
+  {
+   "id": "T010",
+   "status": "done",
+   "evidence": {
+    "tests_added": ["tests/test_core/test_editing.py", "tests/test_contrib/test_generic/test_forms.py"],
+    "criteria": ["SC-001", "SC-004", "SC-006"],
+    "commands": [
+     "uv run pytest tests/test_core/test_editing.py tests/test_contrib/test_generic/test_forms.py -q -n0 (at 051327b2: 61 failed, 355 passed; the failures are the missing keywords page on project, dataset and measurement, the sample page's ImproperlyConfigured, and the form raising for FAIRDM_ROCKSAMPLE and sharing its _meta.model)"
+    ],
+    "exit_code": 0
+   },
+   "commits": ["051327b2"]
+  },
+  {
+   "id": "T011",
+   "status": "done",
+   "evidence": {
+    "tests_added": ["tests/test_core/test_editing.py", "tests/test_contrib/test_generic/test_forms.py"],
+    "criteria": ["SC-001", "SC-003", "SC-004", "SC-005", "SC-006"],
+    "commands": [
+     "uv run pytest tests/test_core/test_editing.py -q -n0 -k TestEditKeywords (20 passed)",
+     "uv run pytest tests/test_core tests/test_contrib/test_generic tests/test_contrib/test_plugins tests/test_templates -q -n auto --dist loadscope (2142 passed, 1 failed: the project readiness link-set test, which lacked the keywords address; fixed in the same commit and re-run: 115 passed in tests/test_core/test_project/test_plugins.py)",
+     "uv run pre-commit run --all-files",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0 on the second run; see concerns)"
+    ],
+    "exit_code": 0
+   },
+   "commits": ["7057041c", "2adff22b"]
+  },
+  {
+   "id": "T012",
+   "status": "done",
+   "evidence": {
+    "tests_added": [],
+    "criteria": [],
+    "commands": [
+     "uv run pre-commit run --all-files",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 0: conformance, docs, lint, typecheck, test and build all passed)"
+    ],
+    "exit_code": 0
+   },
+   "commits": ["0c536e98", "fa7dda84"]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "The shared helper reset was extracted from EditDetails.get_form into RecordEditingPage.without_form_tag, because EditDetails had it inline and the brief said to reuse a function, not write a second copy.",
+   "why": "One definition for two callers.",
+   "decision_ref": "decisions.md#d23-the-helper-reset-moves-onto-the-shared-page-base-so-the-keywords-page-reuses-it"
+  },
+  {
+   "what": "KeywordForm also shows recorded free-text tags as chosen and passes them to taggit as one list. Both were needed for the page to open and save: opening and saving cleared every tag, and any save with a tag raised TypeError on the installed taggit.",
+   "why": "FR-022 and FR-023; on a record type with no vocabulary the tag input is the whole page.",
+   "decision_ref": "decisions.md#d24-the-keywords-form-shows-and-saves-free-text-keywords-as-well-as-vocabulary-ones"
+  },
+  {
+   "what": "fairdm/contrib/generic/plugins.py was deleted whole, since it held KeywordsPlugin only.",
+   "why": "The plan removes code that only a removed page used.",
+   "decision_ref": "decisions.md#d25-the-module-that-held-the-sample-keywords-pages-base-class-goes-with-the-page"
+  }
+ ],
+ "concerns": [
+  "The first full verify run failed in tests/test_contrib/test_contributors/test_models.py::TestOrganizationMemberships::test_only_current_verified_members_are_listed with a UNIQUE constraint on contributors_affiliation (person_id, organization_id). The file is not touched by this story, the class passed three times alone, and the second full verify passed in every step. It looks like a factory collision that depends on test order or random data.",
+  "Existing tests changed or removed, all listed in progress.md under T011: tests/test_core/test_sample/test_plugins.py (EDITING_PLUGINS, TestSampleWritePluginsAreGated renamed TestSampleReadingSurfaceIsOpen with three tests removed, TestPermissionStillGatesEvenWithAnAlwaysTruePredicate removed, TestOverviewManageMenu.EDITING_PAGES reordered), tests/test_core/test_dataset/test_plugins.py (TestRetiredManagementPages lost two tests of the retired dataset:keywords address), tests/test_core/test_project/test_plugins.py (the readiness link set gains the keywords address).",
+  "The shipped defaults configure keyword vocabularies for projects only (FAIRDM_PROJECT offers the fairdm-roles vocabulary, which is a role list, not a subject vocabulary). Sample and measurement have no default setting, so their pages show the free keywords field alone until a portal configures one.",
+  "KeywordForm still builds the tag field with a hard-coded English label and help text, and does not mark them translatable. Outside this story's brief.",
+  "demo/plugins.py still names DeletePlugin and UpdatePlugin in its module docstring, and the user guide pages docs/user-guide/{project,dataset}/descriptions.md and sample/descriptions.md were not read for keyword mentions.",
+  "get_setting in fairdm/utils/utils.py still raises AttributeError when a FAIRDM_<NAME> setting is absent; KeywordForm no longer uses it, but fairdm/core/project/filters.py does."
+ ],
+ "blocked": []
+}
