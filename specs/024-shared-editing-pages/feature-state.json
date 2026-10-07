@@ -242,8 +242,20 @@
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [],
+            "commands": [
+              "uv run pre-commit run --all-files",
+              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+            ],
+            "code": [
+              "docs/portal-development/record-editing-pages.md:144",
+              "CHANGELOG.md:10"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

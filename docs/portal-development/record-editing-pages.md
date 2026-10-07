@@ -3,7 +3,7 @@
 A project, a dataset, a sample and a measurement are edited through the same pages. Each page is
 written once, in `fairdm/core/editing.py`, and registered on all four record types. A sample type
 or measurement type your portal registers receives every page below with no work beyond the
-registration itself.
+registration itself. The same registration gives each type a page that deletes the record.
 
 ## The pages
 
@@ -13,6 +13,7 @@ registration itself.
 | Descriptions | `EditDescriptions` | `<record address>/descriptions/` | change the record |
 | Key dates | `EditKeyDates` | `<record address>/key-dates/` | change the record |
 | Identifiers | `EditIdentifiers` | `<record address>/identifiers/` | change the record |
+| Delete | `DeleteRecord` | `<record address>/delete/` | delete the record |
 
 The record address is the record's permanent address with the `overview/` segment left off where
 the record has one. For a record `<uuid>` of each kind the pages are at:
@@ -25,8 +26,8 @@ the record has one. For a record `<uuid>` of each kind the pages are at:
 | Measurement | `/measurement/<uuid>/edit/` |
 
 The other pages follow the same pattern, with `descriptions/`, `key-dates/` or `identifiers/` in
-place of `edit/`. The URL names are `edit`, `descriptions`, `key-dates` and `identifiers` in the
-namespace of the record's kind, so `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})`
+place of `edit/`. The URL names are `edit`, `descriptions`, `key-dates`, `identifiers` and
+`delete` in the namespace of the record's kind, so `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})`
 gives a sample's key dates address, whatever type the sample is.
 
 None of the pages is a tab. They are registered with `menu=False`, so the tab strip beside the
@@ -37,12 +38,13 @@ overview never lists them.
 A record's overview page carries a **Manage** menu in its header. It lists the pages the
 signed-in person may use, in a fixed order, and is not drawn at all when there is nothing in it.
 The same entries appear on a project, a dataset, a sample and a measurement, in this order: edit
-details, descriptions, key dates, identifiers.
+details, descriptions, key dates, identifiers and, for someone who may delete the record, delete.
+Delete is drawn last, after a divider.
 
 Two pieces draw the menu:
 
-- `manage_menu(request, record)` returns the entries for a record: a `label`, an `icon` and a
-  `url` for each page the viewer may open. `RecordOverviewPlugin` adds the list to every overview's
+- `manage_menu(request, record)` returns the entries for a record: a `label`, an `icon`, a `url`
+  and a `destructive` flag, true only for delete, for each page the viewer may open. `RecordOverviewPlugin` adds the list to every overview's
   context as `manage_menu`.
 - `<c-actions.manage :entries="manage_menu">` draws it. The shared overview template puts it in the
   `overview.manage` block.
@@ -63,9 +65,11 @@ Put any button that belongs before the menu in the same block, ahead of the comp
 
 ## Who may open a page
 
-A page opens for whoever may change the record. That is the right the portal already checks for a
-record: the edit or manage level on the record or on a record above it, or a portal role that
-confers it. See [Contributors](contributors.md) for how levels are given.
+An editing page opens for whoever may change the record, and the delete page for whoever may delete
+it. These are the rights the portal already checks for a record: the edit level opens the editing
+pages, the manage level opens the delete page too, whether the level is held on the record or on a
+record above it, or comes from a portal role. See [Contributors](contributors.md) for how levels
+are given.
 
 Every request is answered in the same order, on a view and again on a save:
 
@@ -137,7 +141,37 @@ and `ProjectIdentifierInline`, `DatasetDatesInline` and `DatasetIdentifierInline
 `MeasurementIdentifierInline`. A sample type or measurement type you register uses the row sets of
 its base record, so it needs no declaration.
 
+## Delete
+
+The page removes the record and everything recorded beneath it. Nothing is deleted until the
+person confirms by typing the record's name. A measurement with no name is confirmed by its portal
+ID.
+
+What goes with the record is shown before the person confirms:
+
+- A project and a dataset show a count for each kind of record that goes with them, by concrete
+  type, because listing every row would run to thousands of lines. A project counts its datasets,
+  samples and measurements, and a dataset its samples and measurements. The counts come from
+  `DeleteRecord.related_objects_summary`.
+- A sample and a measurement list the rows that go with them, such as their descriptions, dates and
+  identifiers.
+
+A record that cannot be deleted says so, names what is in the way and offers no way to confirm:
+
+- A project with a public dataset lists those datasets.
+- A sample with measurements made on it, and a dataset whose samples another dataset measures,
+  list the measurements. A measurement can sit in a dataset the viewer holds no level on, so the
+  page names only the ones the viewer may see, by name or portal ID, and counts the rest.
+
+The protection is checked again when the deletion is confirmed. If a record became protected after
+the page was opened, nothing is deleted and the page is drawn again in its protected state.
+
+After a deletion a sample or a measurement leads to the dataset it belonged to, or to the dataset
+list when the person may not open that dataset. A dataset leads to the dataset list and a project to
+the project list. The page adds a message saying which record was deleted, and its Back control
+leads to the record's own page.
+
 ## After a save
 
-Every page returns to the record's own page and adds a message saying what was saved. A
+Every editing page returns to the record's own page and adds a message saying what was saved. A
 measurement with no name is called by its portal ID in that message.

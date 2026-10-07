@@ -68,9 +68,9 @@ Its template is `project/project_detail.html`.
 
 **Header.** The project's status, and a Private badge when it is private. The project's leaders
 are named, each linked to their page. Cite and Share are offered to everyone. The team also gets
-Add dataset and a Manage menu holding Edit details, Edit descriptions and, for a user who may
-delete the project, Delete. A user who may delete a project but not change it
-sees a Manage menu holding only Delete.
+Add dataset and a Manage menu holding the editing pages and, for a user who may delete the
+project, Delete, which is drawn last after a divider. A user who may change a project but not
+delete it sees the editing entries and no Delete.
 
 **Notices.** Someone who may change a private project is told the project is private. A project whose status
 is "Searching for collaborators" says so and names who to contact, the contact person or else the
@@ -142,8 +142,9 @@ template is `dataset/dataset_detail.html`.
 **Header.** Whether the dataset is published, public but unpublished, or private, and its licence,
 as badges. The creators are named, each linked to their page. The team also gets a Publish button,
 announced as not available yet while the dataset is unpublished, and a Manage menu holding Edit
-details, Edit descriptions and, for a user who may delete the dataset, Delete. A user who may
-delete a dataset but not change it sees a Manage menu holding only Delete.
+details, Edit descriptions and, for a user who may delete the dataset, Delete, which is drawn
+last after a divider. A user who may change a dataset but not delete it sees the editing entries
+and no Delete.
 
 **Notices.** A private dataset tells anyone who may change it that only people with access can
 open the page. A public dataset that is not published yet tells a visitor that its data is not
@@ -250,7 +251,7 @@ with no recorded status reads "Status unknown". A user who may change the sample
 Manage menu that links to the pages for editing its details, descriptions, key dates, identifiers
 and keywords. Those pages are not tabs. They are at `/samples/<uuid>/edit/`, `/descriptions/`,
 `/key-dates/`, `/identifiers/` and `/keywords/`, and a portal's own content tabs stay in the tab
-strip.
+strip. A user who may delete the sample also gets Delete, at `/samples/<uuid>/delete/`.
 
 **Notices.** A destroyed specimen says it no longer exists and that its record and measurements
 are kept. A sample whose dataset is not public and published says that only people with access to
@@ -309,8 +310,10 @@ browser title.
 description in a dialog, with the type's keywords, the authority that maintains its schema and how
 to cite it. A type the registry does not describe opens nothing. A measurement whose dataset is not
 public and published says that only people with access to the dataset can see it. A user who may
-change the measurement also gets a Manage menu that links to the pages for editing its details and
-descriptions, at `/measurement/<uuid>/edit/` and `/descriptions/`.
+change the measurement also gets a Manage menu that links to the pages for editing its details,
+descriptions, key dates and identifiers, at `/measurement/<uuid>/edit/`, `/descriptions/`,
+`/key-dates/` and `/identifiers/`. A user who may delete the measurement also gets Delete, at
+`/measurement/<uuid>/delete/`.
 
 **Figures.** The result. A type that declares a `value` (and optionally an `uncertainty`) gets it
 shown as "value ± uncertainty unit" with no template of its own. A type that records its result

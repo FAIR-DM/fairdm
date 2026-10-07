@@ -72,3 +72,10 @@ Tests changed or removed (old delete pages): tests/test_core/test_editing.py Tes
 Verified: `uv run pytest tests/test_core/test_editing.py -q -n0` gave 349 passed. `uv run pytest tests/test_core tests/test_contrib tests/test_templates -q -n auto --dist loadscope` gave 4276 passed, 13 skipped. `uv run pre-commit run --all-files` passed.
 Next: T009, the documentation.
 Watch: demo/plugins.py still names DeletePlugin and UpdatePlugin inside its module docstring.
+
+## 2026-10-07T20:48:15Z · Implementer US3 · T009
+
+Did: docs/portal-development/record-editing-pages.md now lists the delete page in the page table with its address and the delete right, the menu order with delete last after a divider, the `destructive` flag on menu entries, who may open the delete page, and a Delete section covering confirmation, what goes with a record, what stops a deletion, the check on confirming and where a person lands. docs/portal-development/overview-pages.md and create_a_plugin.md no longer describe the removed delete page or the removed visible_to_holder_of helper. The user guide pages for deleting a project and a dataset describe the shared page, and the sample and measurement delete pages, which said "Coming soon", are written. CHANGELOG.md has an Added entry for the delete page and a Removed entry naming the old Delete plugins, the `overview-delete` URL names, DeletePlugin, CRUDDirectoryMixin and the related overview attributes.
+Verified: `uv run pre-commit run --all-files` passed. The docs build runs in the full verify. No em dash was added to the changed docs and CHANGELOG, checked with grep.
+Next: full verify, then the completion report.
+Watch: docs/user-guide/project/about.md and docs/user-guide/dataset/about.md still say Edit details covers dates and identifiers, which story 2 moved to pages of their own.

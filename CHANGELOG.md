@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A delete page on projects, datasets, samples and measurements.** Each record type has the URL
+  name `delete`, at `<record address>/delete/`, reached from the last entry of the Manage menu. A
+  sample and a measurement can be deleted through the portal for the first time. The page asks for
+  the record's name, or a measurement's portal ID when it has no name, and says what goes with the
+  record before anything is deleted. A record that cannot be deleted, such as a project with a
+  public dataset or a sample with measurements, says what is in the way and offers no way to
+  confirm. Measurements the viewer may not see are counted and not named. Afterwards a sample or a
+  measurement leads to its dataset. `manage_menu` entries now carry a `destructive` flag. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
 - **Key dates and identifiers pages on projects, datasets, samples and measurements.** Each record
   type has the URL names `key-dates` and `identifiers`, at `<record address>/key-dates/` and
   `<record address>/identifiers/`, reached from the Manage menu after the descriptions entry. A
@@ -20,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The project and dataset delete pages are replaced by the shared one.** The project `Delete` and
+  dataset `Delete` plugins, the `overview-delete` URL names on both, `DeletePlugin`, the
+  `show_delete_action` method, the `directory` and `crud_views` attributes and the
+  `CRUDDirectoryMixin` base on both overview plugins, and the `urls.delete` entry of both overview
+  contexts are gone, along with `visible_to_holder_of` in the project and dataset plugin modules.
+  The address `<record address>/delete/` stays. A portal that reversed `overview-delete` reverses
+  `delete` in the record's namespace instead, and a portal that subclassed `DeletePlugin` for its
+  own page builds on `FairDMDeleteView` and `Plugin`.
 - **A project's and a dataset's dates and identifiers are no longer rows on the details page.**
   They are edited on the key dates and identifiers pages. A portal that posted `dates-` or
   `identifiers-` fields to the `edit` page now posts them to `key-dates` or `identifiers`.
