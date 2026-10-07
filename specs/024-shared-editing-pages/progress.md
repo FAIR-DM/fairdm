@@ -30,3 +30,11 @@ Did: wrote docs/portal-development/record-editing-pages.md (the two pages, their
 Verified: `forge verify --repo . --base origin/main --steps docs` passed after the five unrelated pages it flagged on name collisions (Update, Edit, Descriptions as ordinary words in examples) were looked at and each changed by one line or section. `forge check-adrs --repo . --feature 024-shared-editing-pages` green. A grep of docs/ for UpdatePlugin, DescriptionsPlugin, overview-update, overview-descriptions, basic-information and the project and dataset /update/ address finds none outside ADR 0008, which records them as history.
 Next: the full verify, then the report.
 Watch: the docs gate matches words, so a story that removes a class called Update or Edit touches pages that never mention it.
+
+## 2026-10-07T20:06:24Z · Implementer US2 · T004
+
+Did: wrote the tests for the key dates and identifiers pages in tests/test_core/test_editing.py: TestRegistration, TestAccess and TestManageMenu now run over four pages (edit, descriptions, key-dates, identifiers); new TestEditKeyDates and TestEditIdentifiers over project, dataset, a demo sample type and a demo measurement type; TestEditDetails gained the no-rows checks; TestOverviewPrompts gained the readiness addresses. tests/test_core/test_related_records.py gained the four new row sets in its cap cases.
+Existing tests changed: TestManageMenu.test_a_person_who_may_edit_is_offered_both_pages became ..._every_page_once_in_order; TestManageMenu.test_the_sample_key_dates_and_keywords_pages_stay_in_the_menu became test_the_sample_keywords_page_stays_in_the_menu (key dates now come from the shared menu). TestRegistration, TestAccess: PAGES now lists four pages. test_related_records.py ALL_FOUR_INLINE_CASES gained four cases.
+Verified: uv run pytest tests/test_core/test_editing.py -q -n0 -> 126 failed (no key-dates/identifiers URL names, details page still carries inlines, readiness lacks the new addresses); tests/test_core/test_related_records.py fails at import (the four row sets do not exist). uv run pre-commit run --all-files passes.
+Next: T005, the row sets, the two pages, removal of the sample KeyDates page, the readiness items.
+Watch: existing tests of the row sets on the old details page (project test_views, dataset test_plugins, sample test_plugins) are rewritten or removed in T005.

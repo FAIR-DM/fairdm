@@ -1,4 +1,4 @@
-"""Tests for the editing pages every record shares: edit details and descriptions.
+"""Tests for the editing pages every record shares: details, descriptions, key dates, identifiers.
 
 Each page is requested through the test client on a project, a dataset, and a sample and a
 measurement of the demo portal's registered types, so a registered type is what is tested.
@@ -13,25 +13,54 @@ from django.contrib.messages import SUCCESS, get_messages
 from django.shortcuts import resolve_url
 from django.test import Client
 from django.urls import NoReverseMatch, reverse
+from partial_date import PartialDate
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.core.dataset.models import Dataset, DatasetDescription
-from fairdm.core.measurement.models import Measurement, MeasurementDescription
-from fairdm.core.project.models import Project, ProjectDescription
-from fairdm.core.sample.models import Sample, SampleDescription
+from fairdm.core.dataset.models import (
+    Dataset,
+    DatasetDate,
+    DatasetDescription,
+    DatasetIdentifier,
+)
+from fairdm.core.measurement.models import (
+    Measurement,
+    MeasurementDate,
+    MeasurementDescription,
+    MeasurementIdentifier,
+)
+from fairdm.core.project.models import (
+    Project,
+    ProjectDate,
+    ProjectDescription,
+    ProjectIdentifier,
+)
+from fairdm.core.sample.models import (
+    Sample,
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+)
 from fairdm.factories import (
     ContributionFactory,
+    DatasetDateFactory,
     DatasetFactory,
+    DatasetIdentifierFactory,
+    MeasurementDateFactory,
+    MeasurementIdentifierFactory,
     PersonFactory,
+    ProjectDateFactory,
     ProjectFactory,
+    ProjectIdentifierFactory,
+    SampleDateFactory,
+    SampleIdentifierFactory,
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 KINDS = ("project", "dataset", "sample", "measurement")
-PAGES = ("edit", "descriptions")
+PAGES = ("edit", "descriptions", "key-dates", "identifiers")
 DESCRIPTION_MODELS = {
     "project": ProjectDescription,
     "dataset": DatasetDescription,
@@ -43,6 +72,21 @@ CORE_MODELS = {
     "dataset": Dataset,
     "sample": Sample,
     "measurement": Measurement,
+}
+# Per record type: the model of a date row, the factory that makes one, and two of its types.
+DATES = {
+    "project": (ProjectDate, ProjectDateFactory, "Start", "End"),
+    "dataset": (DatasetDate, DatasetDateFactory, "CollectionStart", "CollectionEnd"),
+    "sample": (SampleDate, SampleDateFactory, "Collected", "Prepared"),
+    "measurement": (MeasurementDate, MeasurementDateFactory, "Setup", "TearDown"),
+}
+# Per record type: the model of an identifier row and the factory that makes one. Every
+# vocabulary offers a DOI.
+IDENTIFIERS = {
+    "project": (ProjectIdentifier, ProjectIdentifierFactory),
+    "dataset": (DatasetIdentifier, DatasetIdentifierFactory),
+    "sample": (SampleIdentifier, SampleIdentifierFactory),
+    "measurement": (MeasurementIdentifier, MeasurementIdentifierFactory),
 }
 # The field a refused value is entered in, the value, and a second field whose value must survive.
 INVALID = {
@@ -164,6 +208,27 @@ def main_form(response):
     forms = soup_of(response).select_one("main").select("form")
     assert len(forms) == 1
     return forms[0]
+
+
+def rows_payload(prefix, rows, initial=0):
+    """Build what a browser submits for a row set: the management form and one entry per row."""
+    data = {
+        f"{prefix}-TOTAL_FORMS": str(len(rows)),
+        f"{prefix}-INITIAL_FORMS": str(initial),
+        f"{prefix}-MIN_NUM_FORMS": "0",
+        f"{prefix}-MAX_NUM_FORMS": "1000",
+    }
+    for index, row in enumerate(rows):
+        for name, value in row.items():
+            data[f"{prefix}-{index}-{name}"] = value
+    return data
+
+
+def only_row_set(response, prefix):
+    """Return the one row set the page draws, checking it is the one asked for."""
+    row_sets = response.context["inlines"]
+    assert [row_set.prefix for row_set in row_sets] == [prefix]
+    return row_sets[0]
 
 
 def manage_menu(response):
@@ -309,7 +374,7 @@ class TestAccess:
 @pytest.mark.django_db
 class TestManageMenu:
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_edit_is_offered_both_pages(
+    def test_a_person_who_may_edit_is_offered_every_page_once_in_order(
         self, make_case, person_at, kind
     ):
         case = make_case(kind)
@@ -320,9 +385,10 @@ class TestManageMenu:
         assert response.status_code == 200
         menu = manage_menu(response)
         assert menu is not None
-        assert {case.url("edit"), case.url("descriptions")} <= set(hrefs(menu))
-        offered = {entry["url"] for entry in response.context["manage_menu"]}
-        assert {case.url("edit"), case.url("descriptions")} <= offered
+        shared = [case.url(page) for page in PAGES]
+        assert [url for url in hrefs(menu) if url in shared] == shared
+        offered = [entry["url"] for entry in response.context["manage_menu"]]
+        assert [url for url in offered if url in shared] == shared
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_only_view_is_offered_no_menu(
@@ -368,19 +434,13 @@ class TestManageMenu:
         assert delete in hrefs(manage_menu(response))
         assert client.get(delete).status_code == 200
 
-    def test_the_sample_key_dates_and_keywords_pages_stay_in_the_menu(
-        self, make_case, person_at
-    ):
+    def test_the_sample_keywords_page_stays_in_the_menu(self, make_case, person_at):
         case = make_case("sample")
         editor = person_at(case, ContributionLevel.EDIT)
-        client = browser_as(editor)
 
-        response = client.get(case.own_url)
+        response = browser_as(editor).get(case.own_url)
 
-        assert {case.url("key-dates"), case.url("keywords")} <= set(
-            hrefs(manage_menu(response))
-        )
-        assert client.get(case.url("key-dates")).status_code == 200
+        assert case.url("keywords") in hrefs(manage_menu(response))
 
 
 @pytest.mark.django_db
@@ -507,6 +567,408 @@ class TestEditDetails:
         assert ("visibility" in response.context["form"].fields) is offered
 
 
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_carries_no_date_or_identifier_rows(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.url("edit"))
+
+        assert list(response.context["inlines"]) == []
+        names = [c.get("name", "") for c in main_form(response).select("[name]")]
+        assert not [n for n in names if n.startswith(("dates-", "identifiers-"))]
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_rows_submitted_to_the_page_are_not_stored(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        _model, _factory, date_type, _other = DATES[kind]
+        payload = form_payload(main_form(client.get(case.url("edit"))))
+        payload.update(
+            rows_payload("dates", [{"type": date_type, "value": "2020-01-01"}])
+        )
+        payload.update(
+            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/stray"}])
+        )
+
+        response = client.post(case.url("edit"), payload)
+
+        assert response.status_code == 302
+        assert not case.record.dates.exists()
+        assert not case.record.identifiers.exists()
+
+
+@pytest.mark.django_db
+class TestEditKeyDates:
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_offers_the_types_of_the_vocabulary_and_shows_the_dates_recorded(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        model, factory, recorded, _other = DATES[kind]
+        factory(related=case.record, type=recorded, value="2020-01-01")
+
+        response = browser_as(editor).get(case.url("key-dates"))
+
+        assert response.status_code == 200
+        row_set = only_row_set(response, "dates")
+        offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
+        assert [value for value in offered if value] == list(model.VOCABULARY.values)
+        assert row_set.initial_form_count() == 1
+        assert len(row_set.forms) == 1
+        assert row_set.forms[0]["type"].value() == recorded
+        assert str(row_set.forms[0]["value"].value()) == "2020-01-01"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_edits_rows_alone(self, make_case, person_at, kind):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.url("key-dates"))
+
+        names = [c["name"] for c in main_form(response).select("[name]")]
+        assert [n for n in names if not n.startswith("dates-")] == [
+            "csrfmiddlewaretoken"
+        ]
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_adding_a_date_stores_it_and_returns_to_the_record(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        model, _factory, added, _other = DATES[kind]
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload("dates", [{"type": added, "value": "2020-06-01"}]),
+        )
+
+        assert response.status_code == 302
+        assert response.url == case.own_url
+        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
+        stored = case.record.dates.get()
+        assert (stored.type, str(stored.value)) == (added, "2020-06-01")
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_changing_a_date_stores_the_new_value(self, make_case, person_at, kind):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory, recorded, _other = DATES[kind]
+        row = factory(related=case.record, type=recorded, value="2020-01-01")
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload(
+                "dates",
+                [{"id": row.pk, "type": recorded, "value": "2021-06-15"}],
+                initial=1,
+            ),
+        )
+
+        assert response.status_code == 302
+        row.refresh_from_db()
+        assert str(row.value) == "2021-06-15"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_removing_a_date_deletes_it(self, make_case, person_at, kind):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory, recorded, _other = DATES[kind]
+        row = factory(related=case.record, type=recorded, value="2020-01-01")
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload(
+                "dates",
+                [
+                    {
+                        "id": row.pk,
+                        "type": recorded,
+                        "value": "2020-01-01",
+                        "DELETE": "on",
+                    }
+                ],
+                initial=1,
+            ),
+        )
+
+        assert response.status_code == 302
+        assert not case.record.dates.exists()
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_an_end_before_the_start_stores_nothing_and_names_the_end(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, _factory, start, end = DATES[kind]
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload(
+                "dates",
+                [
+                    {"type": start, "value": "2020-06-01"},
+                    {"type": end, "value": "2010-01-01"},
+                ],
+            ),
+        )
+
+        assert response.status_code == 200
+        errors = " ".join(only_row_set(response, "dates").non_form_errors())
+        assert "2010-01-01" in errors
+        assert not case.record.dates.exists()
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_an_end_before_a_start_already_stored_stores_nothing(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory, start, end = DATES[kind]
+        stored = factory(related=case.record, type=start, value="2020-06-01")
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload(
+                "dates",
+                [
+                    {"id": stored.pk, "type": start, "value": "2020-06-01"},
+                    {"type": end, "value": "2010-01-01"},
+                ],
+                initial=1,
+            ),
+        )
+
+        assert response.status_code == 200
+        assert only_row_set(response, "dates").non_form_errors()
+        assert not case.record.dates.filter(type=end).exists()
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_a_start_with_no_end_is_stored(self, make_case, person_at, kind):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, _factory, start, _end = DATES[kind]
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload("dates", [{"type": start, "value": "2020-06-01"}]),
+        )
+
+        assert response.status_code == 302
+        assert case.record.dates.filter(type=start).exists()
+
+    def test_a_measurements_teardown_may_fall_before_its_setup(
+        self, make_case, person_at
+    ):
+        case = make_case("measurement")
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).post(
+            case.url("key-dates"),
+            rows_payload(
+                "dates",
+                [
+                    {"type": "Setup", "value": "2020-06-01"},
+                    {"type": "TearDown", "value": "2010-01-01"},
+                ],
+            ),
+        )
+
+        assert response.status_code == 302
+        assert case.record.dates.count() == 2
+
+    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize(
+        ("entered", "precision"),
+        [("2019", PartialDate.YEAR), ("2019-06", PartialDate.MONTH)],
+    )
+    def test_a_date_is_kept_and_read_back_as_precisely_as_it_was_entered(
+        self, make_case, person_at, kind, entered, precision
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        _model, _factory, added, _other = DATES[kind]
+
+        response = client.post(
+            case.url("key-dates"),
+            rows_payload("dates", [{"type": added, "value": entered}]),
+        )
+
+        assert response.status_code == 302
+        stored = case.record.dates.get()
+        assert stored.value.precision == precision
+        assert str(stored.value) == entered
+        shown = only_row_set(client.get(case.url("key-dates")), "dates")
+        assert str(shown.forms[0]["value"].value()) == entered
+
+
+@pytest.mark.django_db
+class TestEditIdentifiers:
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_page_offers_the_types_of_the_vocabulary_and_shows_the_identifiers_recorded(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        model, factory = IDENTIFIERS[kind]
+        factory(related=case.record, type="DOI", value="10.1/recorded")
+
+        response = browser_as(editor).get(case.url("identifiers"))
+
+        assert response.status_code == 200
+        row_set = only_row_set(response, "identifiers")
+        offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
+        assert [value for value in offered if value] == list(model.VOCABULARY.values)
+        assert row_set.initial_form_count() == 1
+        assert len(row_set.forms) == 1
+        assert row_set.forms[0]["type"].value() == "DOI"
+        assert row_set.forms[0]["value"].value() == "10.1/recorded"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_adding_an_identifier_stores_it_and_returns_to_the_record(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/added"}]),
+        )
+
+        assert response.status_code == 302
+        assert response.url == case.own_url
+        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
+        stored = case.record.identifiers.get()
+        assert (stored.type, stored.value) == ("DOI", "10.1/added")
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_changing_an_identifier_stores_the_new_value(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory = IDENTIFIERS[kind]
+        row = factory(related=case.record, type="DOI", value="10.1/original")
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload(
+                "identifiers",
+                [{"id": row.pk, "type": "DOI", "value": "10.1/changed"}],
+                initial=1,
+            ),
+        )
+
+        assert response.status_code == 302
+        row.refresh_from_db()
+        assert row.value == "10.1/changed"
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_removing_an_identifier_deletes_it(self, make_case, person_at, kind):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        _model, factory = IDENTIFIERS[kind]
+        row = factory(related=case.record, type="DOI", value="10.1/doomed")
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload(
+                "identifiers",
+                [
+                    {
+                        "id": row.pk,
+                        "type": "DOI",
+                        "value": "10.1/doomed",
+                        "DELETE": "on",
+                    }
+                ],
+                initial=1,
+            ),
+        )
+
+        assert response.status_code == 302
+        assert not case.record.identifiers.exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_value_held_by_another_record_is_refused_and_stores_nothing(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        other = make_case(kind)
+        _model, factory = IDENTIFIERS[kind]
+        factory(related=other.record, type="DOI", value="10.1/taken")
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/taken"}]),
+        )
+
+        assert response.status_code == 200
+        row_set = only_row_set(response, "identifiers")
+        assert "value" in row_set.forms[0].errors
+        assert not case.record.identifiers.exists()
+
+    def test_one_value_entered_twice_is_refused_and_stores_nothing(
+        self, make_case, person_at
+    ):
+        case = make_case("project")
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).post(
+            case.url("identifiers"),
+            rows_payload(
+                "identifiers",
+                [
+                    {"type": "DOI", "value": "10.1/twice"},
+                    {"type": "GRANT_NUMBER", "value": "10.1/twice"},
+                ],
+            ),
+        )
+
+        assert response.status_code == 200
+        assert only_row_set(response, "identifiers").non_form_errors()
+        assert not case.record.identifiers.exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_the_portal_id_is_not_among_the_rows_and_cannot_be_changed(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
+        _model, factory = IDENTIFIERS[kind]
+        factory(related=case.record, type="DOI", value="10.1/recorded")
+        portal_id = case.record.uuid
+
+        opened = client.get(case.url("identifiers"))
+
+        row_set = only_row_set(opened, "identifiers")
+        assert str(portal_id) not in [str(f["value"].value()) for f in row_set.forms]
+        assert "uuid" not in row_set.empty_form.fields
+        names = [c["name"] for c in main_form(opened).select("[name]")]
+        assert "uuid" not in names
+
+        payload = rows_payload(
+            "identifiers", [{"type": "DOI", "value": "10.1/another"}]
+        )
+        payload["uuid"] = "00000000-0000-4000-8000-000000000000"
+        client.post(case.url("identifiers"), payload)
+
+        case.record.refresh_from_db()
+        assert case.record.uuid == portal_id
+
+
 @pytest.mark.django_db
 class TestEditDescriptions:
     @pytest.mark.parametrize("kind", KINDS)
@@ -610,3 +1072,21 @@ class TestOverviewPrompts:
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert {case.url("edit"), case.url("descriptions")} <= addresses
         assert f"{case.root_url}update/" not in addresses
+
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_the_readiness_items_for_dates_and_identifiers_carry_their_pages(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        if kind == "dataset":
+            case.record.published = False
+            case.record.save()
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.own_url)
+
+        addresses = {item["url"] for item in response.context["readiness"]["items"]}
+        assert case.url("key-dates") in addresses
+        if kind == "project":
+            assert case.url("identifiers") in addresses
