@@ -196,7 +196,7 @@
       "id": "US3",
       "priority": "P2",
       "issue": 446,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -298,7 +298,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 34.42,
+      "used": 41.44,
       "max": 120
     }
   },
