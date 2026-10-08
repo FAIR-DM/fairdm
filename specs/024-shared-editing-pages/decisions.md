@@ -409,8 +409,8 @@ divider inside it.
 **Why:** the maintainer asked at the walkthrough for the heading and its line to go, since the
 page's title already names the rows. django-mvp 0.26 draws the divider above every row set with no
 way to turn it off from the template.
-**Revisit if:** django-mvp gains an option to draw a row set without its heading. The wrapper and
-the rule then go.
+**Revisit if:** django-mvp gains an option to draw a row set without its heading, which is asked
+for in django-mvp/django-mvp#511. The wrapper and the rule then go, which is #448 here.
 
 **ADR:** none — a layout choice on two pages
 

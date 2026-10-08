@@ -375,7 +375,9 @@
 }
 
 /* A page that is one row set alone: the page's title names the rows, so the heading django-mvp
-   draws above every row set, and the line it sits on, would only repeat it. */
+   draws above every row set, and the line it sits on, would only repeat it.
+   A stopgap until django-mvp can leave the divider out (django-mvp/django-mvp#511). Removing this
+   rule and the wrapper it styles is FAIR-DM/fairdm#448. */
 .editing-rows .divider {
   display: none;
 }
