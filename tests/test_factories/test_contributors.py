@@ -383,3 +383,20 @@ class TestContributorFactoryBatchUniqueness:
 
         assert len({p.pk for p in people}) == 5
         assert len({p.email for p in people}) == 5
+
+    def test_two_people_with_the_same_name_are_different_people(self):
+        first = PersonFactory(first_name="Robert", last_name="Brown")
+        second = PersonFactory(first_name="Robert", last_name="Brown")
+
+        assert first.pk != second.pk
+        assert first.email != second.email
+
+    def test_one_organization_takes_two_same_named_members(self):
+        organization = OrganizationFactory()
+        for _ in range(2):
+            AffiliationFactory(
+                organization=organization,
+                person=PersonFactory(first_name="Robert", last_name="Brown"),
+            )
+
+        assert organization.affiliations.count() == 2
