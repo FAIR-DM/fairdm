@@ -39,6 +39,6 @@ say the same thing twice.
 ## What isn't here
 
 Descriptions have a page of their own, **Edit descriptions** in the same menu. See
-[Descriptions](descriptions.md). Keywords are chosen on their own page, the **Keywords** entry of the Manage menu.
+[Descriptions](descriptions.md). Free keywords are entered on their own page, the **Keywords** entry of the Manage menu.
 Funding is not editable here either; it is being replaced by a proper
 funding record shared between projects and datasets.

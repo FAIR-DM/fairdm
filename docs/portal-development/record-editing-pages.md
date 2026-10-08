@@ -111,26 +111,15 @@ empty area removes it. The vocabularies are `ProjectDescription.VOCABULARY`,
 
 ## Keywords
 
-The page edits the record's keywords with `KeywordForm`. It offers one autocomplete field for each
-keyword vocabulary the portal configures for the record's kind, followed by a field for free-text
-keywords. The keywords the record carries are shown as chosen, and saving replaces them with
-what is chosen. Emptying every field removes every keyword.
+The page edits the record's free keywords with `KeywordForm`: one field of words a person types,
+with no vocabulary behind them. The free keywords the record carries are shown as chosen, and
+saving replaces them with what is in the field. Emptying the field removes them all.
 
-The vocabularies are named in a setting for each kind of record:
+The page offers nothing from a controlled vocabulary on any record type, whatever keyword
+vocabularies a portal's settings name. Keywords from a vocabulary that a record already carries
+are left as they are when the page is saved.
 
-| Record | Setting |
-| --- | --- |
-| Project | `FAIRDM_PROJECT["keywords"]` |
-| Dataset | `FAIRDM_DATASET["keyword_vocabularies"]` |
-| Sample | `FAIRDM_SAMPLE["keywords"]` |
-| Measurement | `FAIRDM_MEASUREMENT["keywords"]` |
-
-Each value is a list of dotted paths to vocabulary classes. A sample type or measurement type reads
-the setting of the kind it belongs to, so a `RockSample` reads `FAIRDM_SAMPLE`. A kind with no
-setting, or no key under it, gets the free-text field alone. The page opens and saves in that case
-and shows nothing that suggests a fault.
-
-The keywords page is to be replaced by the keyword editing that
+Choosing keywords from a controlled vocabulary is the keyword editing that
 [#298](https://github.com/FAIR-DM/fairdm/issues/298) describes. The registration, the Manage menu
 entry and the access rule stay as they are.
 

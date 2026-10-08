@@ -459,6 +459,23 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py::TestEditKeywords",
+              "tests/test_contrib/test_generic/test_forms.py::TestKeywordForm"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py::TestEditKeywords tests/test_contrib/test_generic/test_forms.py -q -n auto"
+            ],
+            "code": [
+              "fairdm/contrib/generic/forms.py:148"
+            ]
+          }
         }
       ]
     }

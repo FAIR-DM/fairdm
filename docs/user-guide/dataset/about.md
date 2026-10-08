@@ -20,7 +20,7 @@ to:
   visibility. Requires permission to change the dataset.
 - **Edit descriptions**: write the dataset's abstract and the other prose passages about it.
   Requires permission to change the dataset.
-- **Keywords**: choose the keywords the dataset is found under. Requires permission to change
+- **Keywords**: enter the free keywords the dataset is found under. Requires permission to change
   the dataset.
 - **Key dates**: record the dataset's collection period and other dates. Requires permission to
   change the dataset.

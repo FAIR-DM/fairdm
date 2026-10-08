@@ -112,10 +112,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **The keywords form builds for every record type.** `KeywordForm` read a setting named after the
   concrete model, such as `FAIRDM_ROCKSAMPLE`, which does not exist, so it raised for every sample
-  type. It now reads the setting of the record's core model with a default of none, so a record type
-  with no keyword vocabulary configured gets the free keywords field alone. It no longer rebinds
-  its own class to the model of the last record it was built for, shows a record's free keywords as
-  chosen, and saves them.
+  type. It now offers the free keywords field alone on every record type and reads no keyword
+  vocabulary from settings. It shows a record's free keywords as chosen, saves them, and leaves the
+  record's vocabulary keywords as they are. It no longer rebinds its own class to the model of the
+  last record it was built for.
 - **Signing in works in development without Redis.** With `DJANGO_ENV=development` and no
   `REDIS_URL`, every sign-in returned "429 Too Many Requests", because the rate limiter could not
   reach its cache. The development settings now hold every cache in memory when `REDIS_URL` is

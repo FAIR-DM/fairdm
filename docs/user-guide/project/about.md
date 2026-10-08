@@ -20,7 +20,7 @@ to:
   Requires permission to change the project.
 - **Edit descriptions**: write the project's abstract and the other prose passages about it.
   Requires permission to change the project.
-- **Keywords**: choose the keywords the project is found under. Requires permission to change
+- **Keywords**: enter the free keywords the project is found under. Requires permission to change
   the project.
 - **Key dates**: record the project's start, end and other dates. Requires permission to change the
   project.

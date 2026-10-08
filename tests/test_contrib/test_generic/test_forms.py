@@ -44,21 +44,14 @@ class TestKeywordForm:
         assert second._meta.model is Dataset
         assert KeywordForm._meta.model is None
 
-    def test_a_registered_sample_type_reads_the_vocabularies_of_the_sample_setting(
-        self, settings
-    ):
+    def test_a_configured_vocabulary_adds_no_field(self, settings):
         settings.FAIRDM_SAMPLE = {"keywords": ["fairdm.core.vocabularies.FairDMRoles"]}
 
         form = KeywordForm(instance=RockSampleFactory())
 
-        assert "FairDMRoles" in form.fields
+        assert list(form.fields) == ["tags"]
 
-    def test_a_record_type_with_no_setting_gets_the_free_text_field_alone(
-        self, settings
-    ):
-        if hasattr(settings, "FAIRDM_MEASUREMENT"):
-            del settings.FAIRDM_MEASUREMENT
-
+    def test_it_offers_the_free_keywords_alone(self):
         form = KeywordForm(
             instance=ExampleMeasurementFactory(sample=RockSampleFactory())
         )

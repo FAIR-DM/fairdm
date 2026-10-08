@@ -424,3 +424,17 @@ around it, so the refusal is drawn in this project's template.
 **Revisit if:** another kind of record comes to stop a deletion.
 
 **ADR:** none — wording on one page
+
+## D30. The keywords page offers free keywords alone
+
+**Decision:** `KeywordForm` has one field, the free keywords. It reads no keyword vocabulary from
+settings, and saving leaves the vocabulary keywords a record already carries as they are.
+**Why:** the maintainer ruled at the walkthrough that the page should carry nothing but free
+keywords, and that keyword editing against vocabularies is a feature of its own. The only
+vocabulary the shipped settings offered was the list of contributor roles, on projects, which makes
+no sense as keywords. This replaces D4 and D24 where they kept the vocabulary fields, and narrows
+FR-022 and FR-024 to free keywords. The earlier form cleared a record's vocabulary keywords on every
+save; this one never writes them.
+**Revisit if:** #298 is built, which replaces the page.
+
+**ADR:** none — the page is replaced by #298

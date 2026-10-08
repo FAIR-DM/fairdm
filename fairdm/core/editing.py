@@ -314,9 +314,10 @@ class EditDescriptions(RecordEditingPage, MetadataMixin, MVPFormView):
 
 @plugin_registry.register(Project, Dataset, Sample, Measurement, menu=False)
 class EditKeywords(RecordEditingPage, FairDMUpdateView):
-    """Edit the record's keywords: one field per vocabulary the portal configures for its kind.
+    """Edit the record's free keywords: words a person types, with no vocabulary behind them.
 
-    A record type with no vocabulary configured gets the free-text keywords alone.
+    Choosing keywords from a controlled vocabulary is a feature of its own (#298). Vocabulary
+    keywords already on a record are left as they are.
     """
 
     name = "keywords"

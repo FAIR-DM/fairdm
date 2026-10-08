@@ -1,19 +1,16 @@
 """Forms and formsets for the vocabulary-typed models (descriptions, dates, keywords)."""
 
 import copy
+from typing import ClassVar
 
 from crispy_forms.helper import FormHelper
 from django import forms
-from django.conf import settings
 from django.forms import BaseFormSet, BaseInlineFormSet
-from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from django_select2.forms import Select2TagWidget
 from extra_views import InlineFormSetFactory
 from markdownx.fields import MarkdownxFormField
 
-from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
-from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.sample.models import SampleDescription
 
@@ -136,12 +133,10 @@ class TypeVocabularyFormMixin(forms.ModelForm):
 
 
 class KeywordForm(forms.ModelForm):
-    """Manage an object's keywords with one autocomplete field per configured vocabulary.
+    """Edit a record's free keywords: words a person types, with no vocabulary behind them.
 
-    The vocabularies come from ``FAIRDM_DATASET["keyword_vocabularies"]`` for datasets and
-    ``FAIRDM_{MODEL}["keywords"]`` for the other core models, read for the record's core model, so
-    a registered sample type reads the sample setting. A record type with nothing configured gets
-    the free-text tags alone. Tags come last.
+    Keywords chosen from a controlled vocabulary are not offered here and are left as they are
+    when the form is saved.
 
     Args:
         *args: Passed to ``ModelForm``.
@@ -149,21 +144,7 @@ class KeywordForm(forms.ModelForm):
     """
 
     class Meta:
-        fields = ["keywords"]
-
-    @staticmethod
-    def configured_vocabularies(record):
-        """List the keyword vocabularies the portal configures for a record's core model.
-
-        Args:
-            record: A project, dataset, sample or measurement, of any registered type.
-
-        Returns:
-            The dotted paths of the vocabularies, empty when the setting or its key is absent.
-        """
-        name = RecordAccess(record).model._meta.model_name.upper()
-        key = "keyword_vocabularies" if name == "DATASET" else "keywords"
-        return (getattr(settings, f"FAIRDM_{name}", None) or {}).get(key) or []
+        fields: ClassVar[list[str]] = []
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get("instance")
@@ -174,34 +155,9 @@ class KeywordForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        vocabularies = self.configured_vocabularies(self.instance)
-
-        existing_keywords = []
-        if self.instance and self.instance.pk:
-            existing_keywords = list(self.instance.keywords.all())
-
-        for vocab_str in vocabularies:
-            vocab_class = import_string(vocab_str)
-            field_name = vocab_class.__name__
-
-            self.fields[field_name] = ConceptMultiSelect(
-                vocabulary=vocab_str, required=False
-            )
-
-            if existing_keywords:
-                vocab_name = vocab_class._meta.name
-                matching_keywords = [
-                    kw for kw in existing_keywords if kw.vocabulary.name == vocab_name
-                ]
-                if matching_keywords:
-                    self.initial[field_name] = matching_keywords
-
         self.fields["tags"] = forms.CharField(
             label=_("Free keywords"),
-            help_text=_(
-                "Additional keywords that are not available in the listed controlled "
-                "vocabularies."
-            ),
+            help_text=_("Words this record should be found under."),
             widget=TagWidget,
             required=False,
         )
@@ -216,32 +172,18 @@ class KeywordForm(forms.ModelForm):
         self.helper.form_id = "keyword-form"
 
     def save(self, commit=True):
-        """Save the vocabulary keywords and the free-text tags."""
+        """Save the free keywords, leaving the record's vocabulary keywords alone."""
         instance = super().save(commit=False)
 
         if commit:
             instance.save()
-
-            concepts = []
-            for field_name, field in self.fields.items():
-                if (
-                    isinstance(field, ConceptMultiSelect)
-                    and field_name in self.cleaned_data
-                ):
-                    concepts.extend(self.cleaned_data[field_name])
-
-            instance.keywords.set(concepts)
-
-            if hasattr(instance, "tags") and "tags" in self.cleaned_data:
-                tags_value = self.cleaned_data["tags"]
-                if tags_value:
-                    instance.tags.set(
-                        tags_value.split(",")
-                        if isinstance(tags_value, str)
-                        else tags_value
-                    )
-                else:
-                    instance.tags.clear()
+            tags_value = self.cleaned_data.get("tags")
+            if tags_value:
+                instance.tags.set(
+                    tags_value.split(",") if isinstance(tags_value, str) else tags_value
+                )
+            else:
+                instance.tags.clear()
 
         return instance
 

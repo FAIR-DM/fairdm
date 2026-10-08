@@ -192,3 +192,7 @@ Each task names the review finding it answers. The findings are in `review-findi
   set's own heading and the line drawn with it, because the page's title already names the rows.
   A record that cannot be deleted names what stops it as measurements or as public datasets, in
   place of "records".
+- [ ] T019 [US4] Asked for at the walkthrough. The keywords page offers the free keywords field
+  alone on every record type. `KeywordForm` reads no vocabulary from settings and leaves a record's
+  vocabulary keywords as they are when it saves. Choosing keywords from a controlled vocabulary is
+  #298.

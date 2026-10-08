@@ -1332,35 +1332,39 @@ class TestEditDescriptions:
 @pytest.mark.django_db
 class TestEditKeywords:
     @pytest.mark.parametrize("kind", KINDS)
-    def test_the_keywords_a_record_carries_are_shown_as_chosen(
-        self, make_case, person_at, with_vocabulary, kind
+    def test_the_free_keywords_a_record_carries_are_shown_as_chosen(
+        self, make_case, person_at, kind
     ):
-        with_vocabulary(kind)
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
-        first, second = roles()
-        case.record.keywords.add(first, second)
         case.record.tags.add("granite", "outcrop")
 
         response = browser_as(editor).get(case.url("keywords"))
 
-        form = main_form(response)
-        assert chosen(form, "FairDMRoles") == {str(first.pk), str(second.pk)}
-        assert chosen(form, "tags") == {"granite", "outcrop"}
+        assert chosen(main_form(response), "tags") == {"granite", "outcrop"}
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_adding_and_removing_keywords_is_stored_and_shown_on_the_record(
+    def test_the_page_offers_the_free_keywords_alone(
         self, make_case, person_at, with_vocabulary, kind
     ):
         with_vocabulary(kind)
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.url("keywords"))
+
+        assert list(response.context["form"].fields) == ["tags"]
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_adding_and_removing_keywords_is_stored_and_shown_on_the_record(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
-        kept, dropped = roles()
-        case.record.keywords.add(dropped)
-        case.record.tags.add("old")
+        case.record.tags.add("old", "kept")
         payload = form_payload(main_form(client.get(case.url("keywords"))))
-        payload.update({"FairDMRoles": [str(kept.pk)], "tags": ["new"]})
+        payload["tags"] = ["kept", "new"]
 
         response = client.post(case.url("keywords"), payload)
 
@@ -1368,27 +1372,37 @@ class TestEditKeywords:
         assert response.url == case.own_url
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         stored = type(case.record).objects.get(pk=case.record.pk)
-        assert list(stored.keywords.all()) == [kept]
-        assert sorted(stored.tags.names()) == ["new"]
-        shown = client.get(response.url)
-        assert list(shown.context["record"].keywords.all()) == [kept]
+        assert sorted(stored.tags.names()) == ["kept", "new"]
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_saving_with_nothing_chosen_removes_every_keyword(
+    def test_saving_with_nothing_chosen_removes_every_free_keyword(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+        case.record.tags.add("old")
+
+        response = browser_as(editor).post(case.url("keywords"), {})
+
+        assert response.status_code == 302
+        assert not case.record.tags.exists()
+
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_saving_leaves_the_vocabulary_keywords_as_they_were(
         self, make_case, person_at, with_vocabulary, kind
     ):
         with_vocabulary(kind)
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
-        client = browser_as(editor)
-        case.record.keywords.add(*roles())
-        case.record.tags.add("old")
+        first, second = roles()
+        case.record.keywords.add(first, second)
 
-        response = client.post(case.url("keywords"), {})
+        response = browser_as(editor).post(
+            case.url("keywords"), {"tags": ["new"], "FairDMRoles": [str(first.pk)]}
+        )
 
         assert response.status_code == 302
-        assert not case.record.keywords.exists()
-        assert not case.record.tags.exists()
+        assert set(case.record.keywords.all()) == {first, second}
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_page_opens_and_saves_where_no_vocabulary_is_configured(
@@ -1404,7 +1418,6 @@ class TestEditKeywords:
         assert opened.status_code == 200
         form = main_form(opened)
         assert chosen(form, "tags") == {"old"}
-        assert list(opened.context["form"].fields) == ["tags"]
         payload = form_payload(form)
         payload["tags"] = ["old", "added"]
         response = client.post(case.url("keywords"), payload)
@@ -1414,9 +1427,8 @@ class TestEditKeywords:
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_page_holds_one_form_with_its_submit_control_inside_it(
-        self, make_case, person_at, with_vocabulary, kind
+        self, make_case, person_at, kind
     ):
-        with_vocabulary(kind)
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
 
