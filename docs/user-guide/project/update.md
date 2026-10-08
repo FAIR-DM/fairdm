@@ -13,7 +13,9 @@ applies.
 
 ## What you can change
 
-- **Image** — a picture representing the project.
+- **Image** — a picture representing the project. It is shown as a banner across the top of the
+  project's page, three times as wide as it is tall, and an image of another shape is cropped to
+  that around its centre when you upload it.
 - **Project name** — a clear, descriptive title.
 - **Status** — the project's current phase: Concept, Planning, In progress, Complete, or
   Searching for collaborators.

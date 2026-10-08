@@ -37,7 +37,8 @@ fills blocks. The blocks carry the `overview.` prefix:
 | Block | What it holds |
 | --- | --- |
 | `overview.notices` | Alerts above the header, so they are read first. |
-| `overview.image` | Header: the record's image, or its icon. |
+| `overview.image` | Header: the record's image, as a banner across the top of the card. Drawn only when the record has an image. |
+| `overview.icon` | Header: the record's icon beside its name. Drawn only when the record has no image. |
 | `overview.badges` | Header: status badges. |
 | `overview.name` | Header: the name inside the heading. A contributor's page follows the name with a link to its ORCID record. |
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
@@ -60,6 +61,22 @@ fills blocks. The blocks carry the `overview.` prefix:
 
 The blocks that wrap other blocks (`overview.main`, `overview.side`, `overview.details`) keep their
 content when you add to them with `{{ block.super }}`, and replace it when you do not.
+
+## The image
+
+A record's image is the first thing a visitor sees on its page, so it is drawn large: a banner
+across the top of the header card, three times as wide as it is tall. A record without an image
+has no banner. Its header shows the record's icon beside the name instead.
+
+An image is stored in that 3:1 shape. When one is uploaded it is cut to 3:1 around its centre and
+then scaled down to fit within 2400×800 pixels. It is never enlarged. Cards and lists go on
+showing the same image at 3:2 through the `core_small` and `core_large` thumbnail aliases, and the
+banner uses `core_banner`. An image uploaded before this rule keeps the shape it has on disk, and
+the banner crops it to 3:1 when the page is drawn.
+
+The cut is made by `fairdm.core.image_utils.crop_to_ratio`, an easy-thumbnails processor that
+FairDM adds to `THUMBNAIL_PROCESSORS`. A portal that sets `THUMBNAIL_PROCESSORS` itself has to keep
+it in the list, before `scale_and_crop`, or uploads are stored uncropped.
 
 ## The project page
 

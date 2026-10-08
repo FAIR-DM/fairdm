@@ -86,10 +86,12 @@ THUMBNAIL_SUBDIR = "thumbs"
 THUMBNAIL_DEBUG = False
 
 THUMBNAIL_ALIASES = {
-    # 3:2 aliases shared by Project, Dataset, Sample and Measurement.
+    # Aliases shared by Project, Dataset, Sample and Measurement: 3:2 for cards and lists, and
+    # the 3:1 banner on the overview page, which is the shape an upload is stored in.
     "": {
         "core_small": {"size": (600, 400), "crop": "smart"},
         "core_large": {"size": (1200, 800), "crop": "smart"},
+        "core_banner": {"size": (1800, 600), "crop": True},
     },
     "contributors": {
         "thumb": {"size": (48, 48), "crop": False},
@@ -101,6 +103,7 @@ THUMBNAIL_ALIASES = {
 THUMBNAIL_PROCESSORS = [
     "easy_thumbnails.processors.colorspace",
     "easy_thumbnails.processors.autocrop",
+    "fairdm.core.image_utils.crop_to_ratio",
     "easy_thumbnails.processors.scale_and_crop",
     "easy_thumbnails.processors.filters",
 ]

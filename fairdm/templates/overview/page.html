@@ -13,7 +13,8 @@
   what is there. Blocks, in page order:
 
     overview.notices        alerts above the header, so they are read first
-    overview.image          header: the record's image, or its icon
+    overview.image          header: the record's image, a banner across the top of the card
+    overview.icon           header: the record's icon, beside the name when it has no image
     overview.badges         header: status badges
     overview.name           header: the name inside the heading
     overview.byline         header: the people behind the record (a project's leads, a
@@ -57,21 +58,26 @@
   {% block overview.notices %}{% endblock overview.notices %}
 
   <c-card.wrapper class="bg-base-100">
+    {% if record.image %}
+      {% block overview.image %}
+        <figure>
+          <img src="{{ record.image|thumbnail_url:'core_banner' }}" alt="" class="w-full aspect-[3/1] object-cover" />
+        </figure>
+      {% endblock overview.image %}
+    {% endif %}
     <div class="card-body gap-4">
       <div class="flex flex-col md:flex-row gap-4 md:items-start">
-        <div class="hidden md:block shrink-0">
-          {% block overview.image %}
-            {% if record.image %}
-              <img src="{{ record.image|thumbnail_url:'core_small' }}" alt="" class="w-24 rounded-box object-cover" />
-            {% else %}
+        {% if not record.image %}
+          <div class="hidden md:block shrink-0">
+            {% block overview.icon %}
               <div class="avatar avatar-placeholder">
                 <div class="w-24 rounded-box bg-base-200 text-base-content/60 text-4xl">
                   <c-icon name="{{ overview_icon }}" aria-hidden="true" />
                 </div>
               </div>
-            {% endif %}
-          {% endblock overview.image %}
-        </div>
+            {% endblock overview.icon %}
+          </div>
+        {% endif %}
 
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <div class="flex flex-wrap items-center gap-2">

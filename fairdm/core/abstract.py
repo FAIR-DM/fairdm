@@ -20,6 +20,7 @@ from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
 from fairdm.contrib.generic.models import TaggedItem
+from fairdm.core.image_utils import IMAGE_RATIO
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
@@ -35,7 +36,8 @@ class BaseModel(models.Model):
         blank=True,
         null=True,
         upload_to=default_image_path,
-        resize_source={"size": (2400, 1600), "crop": False},
+        # Cut to the banner's shape first, then scaled down to fit. An upload is never enlarged.
+        resize_source={"size": (2400, 800), "ratio": IMAGE_RATIO},
     )
     name = models.CharField(_("name"), max_length=300, db_index=True)
 

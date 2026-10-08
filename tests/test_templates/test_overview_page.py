@@ -158,6 +158,44 @@ class TestABlockThatWrapsOthersKeepsItsContent:
 
 @pytest.mark.django_db
 class TestHeader:
+    def test_a_record_with_an_image_shows_it_as_a_banner(
+        self, render_template, page_context
+    ):
+        page_context["record"] = ProjectFactory(with_image=True)
+
+        html = render_template("overview/page.html", page_context)
+
+        assert page_context["record"].image["core_banner"].url in html
+
+    def test_a_record_without_an_image_gets_its_icon_and_no_banner(
+        self, child_template, render_template, page_context
+    ):
+        name = child_template(
+            """{% extends "overview/page.html" %}
+            {% block overview.image %}<p>OWN-BANNER</p>{% endblock %}
+            {% block overview.icon %}<p>OWN-ICON</p>{% endblock %}"""
+        )
+
+        html = render_template(name, page_context)
+
+        assert "OWN-ICON" in html
+        assert "OWN-BANNER" not in html
+
+    def test_a_record_with_an_image_gets_the_banner_and_no_icon(
+        self, child_template, render_template, page_context
+    ):
+        page_context["record"] = ProjectFactory(with_image=True)
+        name = child_template(
+            """{% extends "overview/page.html" %}
+            {% block overview.image %}<p>OWN-BANNER</p>{% endblock %}
+            {% block overview.icon %}<p>OWN-ICON</p>{% endblock %}"""
+        )
+
+        html = render_template(name, page_context)
+
+        assert "OWN-BANNER" in html
+        assert "OWN-ICON" not in html
+
     def test_the_people_row_names_each_person_linked_to_their_page(
         self, render_template, page_context
     ):
