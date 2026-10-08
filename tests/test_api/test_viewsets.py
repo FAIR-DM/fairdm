@@ -1361,3 +1361,135 @@ class TestListAndRecordRoutes:
         response = api_client.get(f"/api/v1/measurements/rock-samples/{record.uuid}/")
 
         assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestFiltering:
+    @staticmethod
+    def listed(client, address, **query):
+        response = client.get(address, query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_a_declared_filter_narrows_a_sample_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import SoilSample
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        clay = make_record(SoilSample, dataset, soil_type="clay")
+        make_record(SoilSample, dataset, soil_type="sand")
+
+        found = self.listed(api_client, url_of(SoilSample, "list"), soil_type="clay")
+
+        assert found == {clay.uuid}
+
+    def test_a_declared_filter_narrows_a_measurement_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import XRFMeasurement
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        iron = make_record(XRFMeasurement, dataset, element="Fe")
+        make_record(XRFMeasurement, dataset, element="Si")
+
+        found = self.listed(api_client, url_of(XRFMeasurement, "list"), element="Fe")
+
+        assert found == {iron.uuid}
+
+    def test_a_filter_declared_by_overriding_the_accessor_narrows_a_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import WaterSample
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        river = make_record(WaterSample, dataset, water_source="river")
+        make_record(WaterSample, dataset, water_source="well")
+
+        found = self.listed(
+            api_client, url_of(WaterSample, "list"), water_source="river"
+        )
+
+        assert found == {river.uuid}
+
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_list_is_narrowed_by_the_short_identifier_of_its_dataset(
+        self, api_client, url_of, make_record, model
+    ):
+        wanted = DatasetFactory(visibility=Visibility.PUBLIC)
+        here = make_record(model, wanted)
+        make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+
+        found = self.listed(api_client, url_of(model, "list"), dataset=wanted.uuid)
+
+        assert found == {here.uuid}
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_measurement_list_is_narrowed_by_the_short_identifier_of_its_sample(
+        self, api_client, url_of, make_record, model
+    ):
+        from demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory(dataset=dataset)
+        here = make_record(model, dataset, sample=sample)
+        make_record(model, dataset, sample=RockSampleFactory(dataset=dataset))
+
+        found = self.listed(api_client, url_of(model, "list"), sample=sample.uuid)
+
+        assert found == {here.uuid}
+
+    def test_a_person_with_a_level_can_narrow_by_a_private_dataset(
+        self, url_of, make_record
+    ):
+        from demo.models import RockSample
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        viewer = person_at(private, ContributionLevel.VIEW)
+        here = make_record(RockSample, private)
+        make_record(RockSample, DatasetFactory(visibility=Visibility.PUBLIC))
+
+        found = self.listed(
+            signed_in_as(viewer), url_of(RockSample, "list"), dataset=private.uuid
+        )
+
+        assert found == {here.uuid}
+
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_database_number_is_refused_for_the_dataset(
+        self, api_client, url_of, make_record, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        make_record(model, dataset)
+
+        response = api_client.get(url_of(model, "list"), {"dataset": dataset.pk})
+
+        assert response.status_code == 400
+        assert "dataset" in response.json()
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_database_number_is_refused_for_the_sample(
+        self, api_client, url_of, make_record, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        measurement = make_record(model, dataset)
+
+        response = api_client.get(
+            url_of(model, "list"), {"sample": measurement.sample.pk}
+        )
+
+        assert response.status_code == 400
+        assert "sample" in response.json()

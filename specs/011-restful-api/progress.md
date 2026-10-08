@@ -63,3 +63,10 @@ Did: Added TestReadingASampleOrMeasurement in tests/test_api/test_permissions.py
 Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement` gives 9 passed, so the behaviour already holds. Probed by removing the mechanism: with only the object-permission check removed, or only the list filter removed, all 9 still pass because each stops the request on its own. With both removed the six 404 cases fail, so the tests detect the behaviour. The mutations were reverted (git shows no change under fairdm/).
 Next: T012.
 Watch: This task adds coverage and no code.
+
+## 2026-10-08T23:16:37Z · Implementer US1 · T012
+
+Did: Added TestFiltering in tests/test_api/test_viewsets.py. It checks that a filter a type declares narrows its list (soil type, XRF element, and the water source filter built by overriding the accessor), that every sample and measurement type's list is narrowed by `?dataset=<short identifier>` whether or not the type declares a dataset filter, that every measurement list is narrowed by `?sample=<short identifier>`, that someone with the view level can narrow by a private dataset, and that a database number in either parameter is answered 400 and names the parameter.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering` fails: measurement and WaterSample/Soil/Rock lists answer 400 to an identifier (the registered filter matches on database numbers), sample types that declare no dataset filter ignore the parameter and answer 200 to a database number, and sample rows have no `uuid` yet.
+Next: T013.
+Watch: Red until T014.
