@@ -194,7 +194,9 @@ The portal refuses to delete a record in two states, and the API refuses with it
 - A project with a public dataset. Make its datasets private or delete them first.
 - A sample with measurements made on it. Delete or move the measurements first.
 
-The reason names no other record, because the caller may not be allowed to see them.
+The reason names no other record, because the caller may not be allowed to see them. A viewset of
+your own that deletes a record the portal protects can raise `fairdm.api.viewsets.DeleteRefused`
+with a reason to answer the same way.
 
 ### Refused requests
 
