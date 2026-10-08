@@ -1,0 +1,155 @@
+{
+ "story": "US1",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 456,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/011-restful-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T001",
+  "T002",
+  "T003",
+  "T004",
+  "T005",
+  "T006",
+  "T009",
+  "T011",
+  "T012",
+  "T013",
+  "T014",
+  "T015"
+ ],
+ "context": {
+  "why": "The REST API in fairdm/api/ was built in April 2026 and an audit found that reading works only in outline: a project or dataset comes back as five or six fields, a measurement without its measured values, a sample without its dataset, records refer to each other by database number, and sorting a sample or measurement list fails with a server error. This story makes reading complete and lays the serializers every later story stands on. T007, T008 and T010 are already met by existing code and passing tests and are not yours. Do not make writing work beyond what falls out of the serializers (that is the next story), and keep the existing write tests in tests/test_api/test_viewsets.py passing untouched.",
+  "spec_sections": [
+   "User Story 1 (all 11 acceptance scenarios)",
+   "Clarifications: the first two questions (how a record names another, what the complete record contains)",
+   "FR-001 to FR-012",
+   "Edge Cases (unregistered type)",
+   "Key Entities"
+  ],
+  "plan_sections": [
+   "D1. Serializers",
+   "D2. One builder",
+   "D3. Viewsets (everything except perform_destroy and the catalogues)",
+   "Watch items"
+  ],
+  "prior_decisions": [
+   "decisions.md D3: records name each other by short identifier (`uuid`) and address. No database number appears anywhere in a response: no `id`, no `pk`, no integer relation, and not `polymorphic_ctype`.",
+   "decisions.md D4 and D5: every sample and measurement carries the fields common to its kind plus every field its registered type declares. Today build_model_serializer in fairdm/api/serializers.py writes a Meta whose fields replace the base's, and MeasurementConfig.serializer_fields in fairdm/core/measurement/config.py is a fixed list that hides every measured value. Remove that fixed list.",
+   "decisions.md D9: the registry's SerializerFactory (fairdm/registry/factories.py) becomes the one builder and the viewset takes `config.get_serializer_class()`. In THIS story the viewsets stop calling build_model_serializer, but the function itself STAYS: tests in tests/test_api/test_viewsets.py and tests/test_api/test_serializers.py still import it and the next story deletes both together. Tests in test_serializers.py that pin the old generated shape through generate_viewset (for example exact Meta.fields lists including polymorphic_ctype, or TestSerializerFieldsInAPIResponse's old five-field lists) describe behaviour this story replaces: update those in T014 and name each in progress.md. Leave tests that call build_model_serializer directly alone.",
+   "decisions.md D16: a reference never names a record the caller may not see. RecordReferenceField returns null on read when the requesting user may not see the referenced record, by the same rule FairDMVisibilityFilter applies (fairdm/api/filters.py; for the four record types that is manager.accessible_to(user, ContributionLevel.VIEW) or public). A public dataset can sit in a private project, and a measurement's sample can be in another, private dataset. The portal already does this: see get_project_info in fairdm/core/dataset/plugins.py.",
+   "decisions.md D16: every generated sample list accepts `?dataset=<short identifier>` and every measurement list also `?sample=<short identifier>`, whatever filters the type declares. Relation filters served by the API match on uuid and refuse a database number. The registry's generated filtersets (fairdm/registry/factories.py FilterFactory, fairdm/core/measurement/filters.py) match on pk today and are shared with the portal's pages, so do not change what the portal's pages accept: give the API its own handling of these two parameters.",
+   "The base-serializer check stays in generate_viewset (fairdm/api/viewsets.py), applied to whatever config.get_serializer_class() returns. Keep the existing behaviour and tests for a named serializer_class.",
+   "ContributorViewSet lists what the portal's people and organisation lists show: Person.objects.real() (fairdm/contrib/contributors/managers.py) leaves out superusers and the anonymous account. The serializer carries what a profile page shows a visitor and never email, password, is_staff, is_superuser, is_active, last_login or anything else about the account. Check the profile templates and overview plugins under fairdm/contrib/contributors/ field by field, and leave out anything not shown there.",
+   "The sorting failure (`?ordering=name` on any sample or measurement list raises AttributeError in polymorphic's primary key lookup) is believed to come from the generated viewset using a polymorphic queryset. Each generated endpoint serves one concrete type. Write the failing test first, confirm the cause, then fix it; if the cause is something else, say so in your report.",
+   "Prefetch what each serializer reads (parents with select_related, the five metadata relations with prefetch_related) so a list does not run a query per record. A later story adds the test that holds the query count level; do not write that test, but build the querysets so it will pass.",
+   "The metadata (descriptions, dates, identifiers, keywords, contributors) is read-only here. The nested contributors list must itself name only what a visitor to the record's page is shown.",
+   "T015 includes an architecture decision record: look at docs/adr/ for the format and take the next free number, for the decision that records refer to each other by short identifier and never by database number. In decisions.md change D3's ADR line to the path you created."
+  ],
+  "acceptance": [
+   {
+    "task": "T001",
+    "given_when_then": "Given a record that refers to another, when it is serialized and when a reference is sent back, then the reference is the short identifier and address, a bare identifier or that object is accepted, an unknown identifier and a database number are refused, and a referenced record the caller may not see is returned as null."
+   },
+   {
+    "task": "T002",
+    "given_when_then": "Given public records of each of the four kinds with metadata recorded, when their record routes are requested, then each carries its own fields, parent, descriptions, dates, identifiers, keywords and contributors, a dataset its licence, a project its owner, and the hidden-parent cases in tasks.md return null."
+   },
+   {
+    "task": "T003",
+    "given_when_then": "Given every registered demonstration sample and measurement type, when a record is requested, then it carries the common fields and every field the type declares, including measured values."
+   },
+   {
+    "task": "T004",
+    "given_when_then": "Given every list and record route, when the response is walked to any depth, then it contains no id or pk key and no integer relation."
+   },
+   {
+    "task": "T005",
+    "given_when_then": "Given a person and an organisation, when requested, then public profile fields are returned, no account detail is, and a superuser is not listed."
+   },
+   {
+    "task": "T006",
+    "given_when_then": "Given the router, when routes are requested, then every kind has a list and a record route found by short identifier, and unknown identifiers and unregistered types are answered 404."
+   },
+   {
+    "task": "T009",
+    "given_when_then": "Given samples and measurements in a private dataset, when their lists are requested on the real routes, then only someone with a level on the dataset receives them."
+   },
+   {
+    "task": "T011",
+    "given_when_then": "Given a sample and a measurement in a private dataset and a private dataset itself, when requested by a visitor, a signed-in person with no level and a viewer, then the first two get 404 and the viewer the record."
+   },
+   {
+    "task": "T012",
+    "given_when_then": "Given a type's declared filter and the dataset and sample parameters, when a list is requested with one, then only matching records return, and a database number is refused."
+   },
+   {
+    "task": "T013",
+    "given_when_then": "Given every list route, when requested in a named order ascending and descending, then the records come back in that order with no server error."
+   },
+   {
+    "task": "T014",
+    "given_when_then": "Given the failing tests from T001 to T013, when the implementation lands, then they pass, the existing API tests not named as replaced still pass, and the viewsets no longer call build_model_serializer."
+   },
+   {
+    "task": "T015",
+    "given_when_then": "Given docs/portal-development/restful-api.md and the docs for people using a portal, when read against the branch, then they describe reading as it now works, a new page is in a table of contents, and the decision record exists."
+   }
+  ],
+  "verified_base": {
+   "commit": "4bac9be929932ec4f2f3748794853e654549402d",
+   "verified_at": "2026-10-08T23:06:43Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at 4bac9be9: lint, typecheck, the whole test suite (about two minutes), build and conformance pass. The docs step was not run because it needs a base; run verify with `--base origin/main` at the end so it is. Anything red on arrival: report it, do not work around it."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Contributor",
+   "Registry"
+  ],
+  "environment": "Run everything from the worktree with `uv run`, e.g. `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering`. Tests use tests.settings and a real PostGIS database that is already running. The full verify is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api` (about two minutes, run it once at the end). A development server runs from this worktree on port 8000 and reloads itself; leave it running and do not start another. The registered types the tests use are the demonstration models in demo/ (RockSample, SoilSample, WaterSample, XRFMeasurement, ICP_MS_Measurement and others) with factories in demo/factories.py; core factories are in fairdm/factories.",
+  "conventions": "Follow docs/contributing/standards/testing.md and docs/contributing/standards/ for code and documentation. Line length 88. No leading-underscore names for new functions or classes. No compatibility aliases. Docstrings on every new public name, Google style, as the surrounding code. Tests call the real API routes through rest_framework.test.APIClient with reverse('api:...'), never a hand-built viewset, and never assert on wording. Group tests in the Test<Subject> classes tasks.md names. Commit as the identity already configured in this worktree; do not change git config. Everything written into the repository (code comments, docs, commit messages, progress.md, decisions.md) is public: plain words, no mention of agents, briefs, stages, reviewers or this process."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/011-restful-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/011-restful-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api/specs/011-restful-api/report-us1.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json beyond your own tasks' status, attempts and evidence (evidence keys: tests, commands, code as path:line, verified_by_ci).",
+  "Never push, merge, open or comment on anything on GitHub, and never mint or use a token.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never write a workaround for a defect in a dependency; report it in concerns.",
+  "Never add a model, a migration of FairDM's own, a settings object, a registry or a compatibility alias."
+ ]
+}
