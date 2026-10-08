@@ -148,3 +148,10 @@ Did: Added TestManageLevel in tests/test_api/test_permissions.py, on the real ro
 Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestManageLevel` gives 18 passed, 1 failed. The failure is a measurement re-sending its current sample: 403 "needs the manage level", the same cause recorded under T018. Probes, both reverted: emptying `manager_only_fields` fails seven cases; removing the stranding check fails the two stranding cases.
 Next: T024.
 Watch: Red until T025 for the measurement case.
+
+## 2026-10-08T23:50:19Z · Implementer US2 · T024
+
+Did: Added TestNoServerErrors in tests/test_api/test_viewsets.py. For every routed model (projects, datasets, contributors and every registered sample and measurement type), signed in as a superuser and as a person with no level on anything, it sends an empty body, a body of nested wrong types for every field, a list in place of an object and a valid body. These go to the list route as a create and to the record route as a replacement and as a partial change. A delete is sent to each record, and again to a project with a public dataset and to each sample with a measurement on it. Every answer must be below 500.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoServerErrors` gives 302 passed, 6 failed. The six are the deletes the portal refuses (a project with a public dataset, five sample types with a measurement): the protection error escapes the view. Every create and change answered below 500, valid bodies included, so no demonstration type's API fields leave out a required model field and demo/config.py needs no change.
+Next: T025.
+Watch: Red until T025 adds `perform_destroy`.

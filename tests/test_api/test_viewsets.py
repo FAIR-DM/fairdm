@@ -1788,3 +1788,121 @@ class TestValidation:
         assert response.status_code == 400
         assert not Project.objects.exists()
         assert not Dataset.all_objects.exists()
+
+
+@pytest.mark.django_db
+class TestNoServerErrors:
+    @pytest.fixture(params=["superuser", "stranger"])
+    def client(self, request, signed_in):
+        """A client signed in as a superuser, and as a person with no level on anything."""
+        from fairdm.factories import PersonFactory
+
+        if request.param == "superuser":
+            return signed_in(UserFactory(is_superuser=True, is_staff=True))
+        return signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+    @pytest.fixture
+    def a_record_of(self, make_record):
+        """Return a function building a public record of a routable model."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.factories import OrganizationFactory
+
+        def a_record_of(model):
+            if model is Project:
+                return ProjectFactory(visibility=Visibility.PUBLIC)
+            if model is Dataset:
+                return DatasetFactory(visibility=Visibility.PUBLIC)
+            if model is Contributor:
+                return OrganizationFactory()
+            return make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+
+        return a_record_of
+
+    @pytest.fixture
+    def address(self, url_of):
+        """Return a function giving a record's or a model's list address, contributors too."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        def address(subject, action="detail"):
+            if subject is Contributor or isinstance(subject, Contributor):
+                kwargs = None if isinstance(subject, type) else {"uuid": subject.uuid}
+                return reverse(f"api:contributor-{action}", kwargs=kwargs)
+            return url_of(subject, action)
+
+        return address
+
+    @pytest.fixture
+    def bodies(self, body_for):
+        """Return a function giving the bodies to send to the routes of a model, as a dict."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.core.models import Measurement
+        from fairdm.registry import registry
+
+        def bodies(model, record):
+            if model is Contributor:
+                valid = {"name": "Sent by a script"}
+                fields = ["name", "type"]
+            elif model in (Project, Dataset):
+                valid = {"name": "Sent by a script"}
+                fields = ["name", "status", "visibility", "project", "funding", "owner"]
+            else:
+                valid, _stored = body_for(model)
+                valid["dataset"] = record.dataset.uuid
+                if issubclass(model, Measurement):
+                    valid["sample"] = record.sample.uuid
+                fields = list(
+                    registry.get_for_model(model).get_serializer_class()().fields
+                )
+            return {
+                "empty": {},
+                "wrong types": {name: {"nested": [1, None]} for name in fields},
+                "a list": ["not", "an", "object"],
+                "valid": valid,
+            }
+
+        return bodies
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
+    def test_a_create_is_answered_below_500(
+        self, client, a_record_of, bodies, address, model, sent
+    ):
+        record = a_record_of(model)
+
+        response = client.post(
+            address(model, "list"), bodies(model, record)[sent], format="json"
+        )
+
+        assert response.status_code < 500
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("method", ["put", "patch"])
+    @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
+    def test_a_change_is_answered_below_500(
+        self, client, a_record_of, bodies, address, model, method, sent
+    ):
+        record = a_record_of(model)
+
+        response = getattr(client, method)(
+            address(record), bodies(model, record)[sent], format="json"
+        )
+
+        assert response.status_code < 500
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("held_by_others", [False, True])
+    def test_a_delete_is_answered_below_500(
+        self, client, a_record_of, address, make_record, model, held_by_others
+    ):
+        from demo.models import XRFMeasurement
+        from fairdm.core.models import Sample
+
+        record = a_record_of(model)
+        if held_by_others and model is Project:
+            DatasetFactory(project=record, visibility=Visibility.PUBLIC)
+        if held_by_others and issubclass(model, Sample):
+            make_record(XRFMeasurement, record.dataset, sample=record)
+
+        response = client.delete(address(record))
+
+        assert response.status_code < 500
