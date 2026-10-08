@@ -1,0 +1,142 @@
+{
+ "story": "US2",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 457,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/011-restful-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T016",
+  "T017",
+  "T018",
+  "T019",
+  "T020",
+  "T022",
+  "T023",
+  "T024",
+  "T025",
+  "T026"
+ ],
+ "context": {
+  "why": "Story 1 is accepted. fairdm/api/serializers.py now has RecordReferenceField (references by short identifier, null when the caller may not see the target), RecordSerializer with read-only metadata, ProjectSerializer, DatasetSerializer, BaseSampleSerializer and BaseMeasurementSerializer with common_fields, and ContributorSerializer; the registry's SerializerFactory builds every registered type's serializer from the common fields plus the type's own; generate_viewset uses config.get_serializer_class(). CreatorCreditMixin (same file) already credits the creator at the manage level, narrows the parents a caller may name to the ones they hold the edit level on, and holds back visibility and parent changes for the manage level. This story makes create, full replacement, partial change and delete work on the real routes for projects, datasets and every registered sample and measurement type, and proves the access rules there. T021 is already met by existing tests and is not yours. The tests that used to cover the write rules through a hand-built endpoint were removed at the end of story 1 (decisions.md D18): T017, T022 and T023 are their replacements and must cover the same rules on the real routes.",
+  "spec_sections": [
+   "User Story 2 (all 15 acceptance scenarios)",
+   "Clarifications: which fields can be written, who may create change and delete, what stops a delete, replacing versus changing part",
+   "FR-013 to FR-022",
+   "Edge Cases (two writes at once, unparseable body, a parent sent that the record already has)"
+  ],
+  "plan_sections": [
+   "D1. Serializers",
+   "D3. Viewsets (perform_destroy)",
+   "Watch items"
+  ],
+  "prior_decisions": [
+   "decisions.md D1: today, before your work, check what each write actually does on the real routes with a failing test first. Before story 1, creating a sample or measurement of any registered type failed with a database IntegrityError and creating a dataset discarded its project. Story 1's serializers may already have fixed part of this; prove each with a test either way.",
+   "decisions.md D2: a record's own fields, its visibility and its parent are writable. Descriptions, dates, identifiers, keywords and contributors are read-only here, and a value sent for one is ignored, not refused.",
+   "decisions.md D10: the write rules are FS-022's: the level a person holds on a record (fairdm/contrib/contributors/access.py RecordAccess, ContributionLevel VIEW/EDIT/MANAGE; give a level in tests with ContributionFactory(content_object=record, contributor=user, level=...)) decides it. Do not restate or change those rules; test them on the routes.",
+   "decisions.md D12: a delete the portal refuses is refused by the API. Foreign keys with PROTECT or RESTRICT raise from Model.delete() (a sample with measurements), and a pre_delete receiver raises PublicDatasetsProtect for a project with a public dataset (fairdm/core/project/models.py). perform_destroy answers 409 with a reason THE API WRITES for each of the two cases, one translatable sentence each, never str(error) and never the names or count of records the caller may not see. Tests assert the status, that a reason is present and that nothing was deleted, not the wording.",
+   "decisions.md D18 and plan D2: delete build_model_serializer and the cache around it from fairdm/api/serializers.py in T025, with the tests in tests/test_api/test_serializers.py that call it directly (TestBuildModelSerializer and any other that imports it). If that leaves djangorestframework-guardian with no import anywhere in fairdm/, remove it from pyproject.toml and the deptry maps and run `uv lock`. Name every removed test in progress.md.",
+   "An unknown parent and a parent the caller may not add to must get the same 400 answer on the parent field, so the API does not confirm that a private record exists.",
+   "created_by is set by the server from the request and a value sent by the caller is ignored. For a sample or measurement the creator is credited at the manage level by the serializer; a superuser is not credited (existing behaviour, keep it).",
+   "FairDMObjectPermissions (fairdm/api/permissions.py) answers 401 with no authentication, 403 on a record the caller can see and may not change, and 404 on one they cannot see. Keep that contract.",
+   "T024 walks every route the router serves (reuse the helper story 1 wrote for walking routes in tests/test_api/test_viewsets.py if it fits) and sends an empty body, a body of wrong types and a valid body; none may answer 500 or above. A registered type whose API fields omit a required model field would answer 500 on create: if any demonstration type in demo/ is in that state, fix its registration in demo/config.py and say so in the report (the start-up check that reports this to a developer is the next story's).",
+   "The API accepts both PUT and PATCH. The tests authenticate with APIClient.force_authenticate or the existing token fixture; the token mechanism changes in a later story, so do not build on rest_framework.authtoken beyond what tests/test_api/conftest.py already offers."
+  ],
+  "acceptance": [
+   {
+    "task": "T016",
+    "given_when_then": "Given someone at the edit level, when they create a sample of each demonstration type, a measurement of each type with its values, and a dataset in a project, and any signed-in person creates a project, then each response is the complete record and each record is stored under the parent sent."
+   },
+   {
+    "task": "T017",
+    "given_when_then": "Given a record created through the real routes, then its creator is listed at the manage level and a created_by sent by the caller is ignored."
+   },
+   {
+    "task": "T018",
+    "given_when_then": "Given a record the caller may change, when they send a partial change, a full replacement, and a value for a read-only field, then only what is writable and named changes."
+   },
+   {
+    "task": "T019",
+    "given_when_then": "Given a deletable record and the two refused cases, when deleted, then the first is gone and answered 404 afterwards, and the others are refused with 409 and a reason and still exist."
+   },
+   {
+    "task": "T020",
+    "given_when_then": "Given invalid requests, then 400 names each field at fault, nothing is saved, an unknown and a forbidden parent answer alike, and an unparseable body is 400."
+   },
+   {
+    "task": "T022",
+    "given_when_then": "Given a sample and a measurement on the real routes, then no authentication is 401, no level on a public one 403, on a private one 404, and the view level on a dataset cannot create in it."
+   },
+   {
+    "task": "T023",
+    "given_when_then": "Given the edit and manage levels on the real routes, then visibility changes and moves need manage, a stranding move is refused, and re-sending the current parent or visibility needs only edit."
+   },
+   {
+    "task": "T024",
+    "given_when_then": "Given every route, when sent an empty body, wrong types and a valid body, then every answer is below 500."
+   },
+   {
+    "task": "T025",
+    "given_when_then": "Given the failing tests from T016 to T024, when the implementation lands, then they pass and build_model_serializer is gone."
+   },
+   {
+    "task": "T026",
+    "given_when_then": "Given the two documentation pages story 1 wrote or revised, when read against the branch, then they describe creating, changing and deleting, what is read-only, who may do what and the refusals."
+   }
+  ],
+  "verified_base": {
+   "commit": "6b77966ae631fc632d544f4a3d3025e4c133cb47",
+   "verified_at": "2026-10-08T23:40:31Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at the commit named here: lint, typecheck, the documentation check against origin/main, the whole test suite, build and conformance pass. Run verify with `--base origin/main` at the end. Anything red on arrival: report it, do not work around it."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Contributor",
+   "Registry"
+  ],
+  "environment": "Run everything from the worktree with `uv run`, e.g. `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering`. Tests use tests.settings and a real PostGIS database that is already running. The full verify is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api` (about two minutes, run it once at the end). A development server runs from this worktree on port 8000 and reloads itself; leave it running and do not start another. The registered types the tests use are the demonstration models in demo/ (RockSample, SoilSample, WaterSample, XRFMeasurement, ICP_MS_Measurement and others) with factories in demo/factories.py; core factories are in fairdm/factories.",
+  "conventions": "Follow docs/contributing/standards/testing.md and docs/contributing/standards/ for code and documentation. Line length 88. No leading-underscore names for new functions or classes. No compatibility aliases. Docstrings on every new public name, Google style, as the surrounding code. Tests call the real API routes through rest_framework.test.APIClient with reverse('api:...'), never a hand-built viewset, and never assert on wording. Group tests in the Test<Subject> classes tasks.md names. Commit as the identity already configured in this worktree; do not change git config. Everything written into the repository (code comments, docs, commit messages, progress.md, decisions.md) is public: plain words, no mention of agents, briefs, stages, reviewers or this process."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/011-restful-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/011-restful-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api/specs/011-restful-api/report-us2.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json beyond your own tasks' status, attempts and evidence (evidence keys: tests, commands, code as path:line, verified_by_ci).",
+  "Never push, merge, open or comment on anything on GitHub, and never mint or use a token.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never write a workaround for a defect in a dependency; report it in concerns.",
+  "Never add a model, a migration of FairDM's own, a settings object, a registry or a compatibility alias."
+ ]
+}
