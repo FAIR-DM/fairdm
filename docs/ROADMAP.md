@@ -155,9 +155,9 @@ Serves G8 and G12. Out of scope: roles and their default permissions, which are 
 
 ### R15 — Portal roles ship with the framework
 
-*feature · advances G8*
+*delivered in [#338](https://github.com/FAIR-DM/fairdm/issues/338), [#345](https://github.com/FAIR-DM/fairdm/issues/345) · advances G8*
 
-Running a portal is currently a bespoke setup. No roles or default permissions ship, so an administrator has to invent them, and someone who creates a dataset through the portal is not granted anything over it and cannot edit it afterwards. The framework should arrive with the roles a research portal actually needs and grant them at the moments that matter.
+The framework arrives with the roles a research portal needs and grants rights at the moments that matter, so running a portal is no longer a bespoke setup. The portal's team holds a defined set of roles that administrators assign and revoke through the portal ([#338](https://github.com/FAIR-DM/fairdm/issues/338)). Someone who creates a record can manage it afterwards, and rights over a project or dataset carry to the records beneath it ([#345](https://github.com/FAIR-DM/fairdm/issues/345)).
 
 **Deliverables:**
 
@@ -219,9 +219,9 @@ Serves G3. Out of scope: removing the code that this defect left stranded, which
 
 ### R19 — Contributions can be managed on every core record
 
-*feature · advances G4*
+*delivered in [#402](https://github.com/FAIR-DM/fairdm/issues/402) · advances G4*
 
-A contribution can be recorded against any record in the core model, but the pages for adding, editing and removing contributions exist only on projects. Datasets, samples and measurements can be credited in principle and not in practice, and a dataset is the unit that gets cited, so this is the gap that matters most.
+Contributions are added, edited and removed on projects, datasets, samples and measurements alike. Before this the pages existed only on projects, which left the dataset, the unit that gets cited, creditable in principle and not in practice.
 
 **Deliverables:**
 
