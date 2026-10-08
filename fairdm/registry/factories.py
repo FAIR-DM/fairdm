@@ -856,60 +856,79 @@ class AdminFactory(ComponentFactory):
 class SerializerFactory(ComponentFactory):
     """Factory for generating DRF ModelSerializer classes.
 
-    Foreign keys are represented by their string form.
+    A sample or measurement type gets a serializer built on ``BaseSampleSerializer`` or
+    ``BaseMeasurementSerializer``, so it carries the fields common to its kind followed by
+    every field its registration declares. Any other relation is shown as its string form.
     """
 
     def generate(self) -> type:
         """Generate a DRF ModelSerializer class.
 
         Returns:
-            A ModelSerializer subclass that shows foreign keys as strings.
+            A ModelSerializer subclass named ``<Model>Serializer``.
         """
         from rest_framework import serializers
 
-        fields = self.get_fields()
-
-        nested_serializers = self._get_nested_serializers()
-
-        meta_attrs = {
-            "model": self.model,
-            "fields": list(fields),
-        }
-        Meta = type("Meta", (), meta_attrs)
-
-        serializer_attrs = {"Meta": Meta}
-        serializer_attrs.update(nested_serializers)
-
-        serializer_class_name = f"{self.model.__name__}Serializer"
-        serializer_class = type(
-            serializer_class_name,
-            (serializers.ModelSerializer,),
-            serializer_attrs,
+        from fairdm.api.serializers import (
+            BaseMeasurementSerializer,
+            BaseSampleSerializer,
         )
+        from fairdm.core.models import Measurement, Sample
 
-        return serializer_class
+        fields = list(self.get_fields())
+        base: type = serializers.ModelSerializer
+        if issubclass(self.model, Sample):
+            base = BaseSampleSerializer
+        elif issubclass(self.model, Measurement):
+            base = BaseMeasurementSerializer
 
-    def _get_nested_serializers(self) -> dict[str, Any]:
-        """Build a string-related field for each ForeignKey.
+        attrs: dict[str, Any] = {}
+        meta_bases: tuple[type, ...] = ()
+        if base is not serializers.ModelSerializer:
+            meta_bases = (base.Meta,)
+            declared = set(base._declared_fields)
+            common = list(base.common_fields)
+            fields = [
+                *common,
+                *(name for name in fields if name not in common),
+                *base.metadata_fields,
+            ]
+            fields = list(dict.fromkeys(fields))
+        else:
+            declared = set()
+
+        attrs.update(self._get_nested_serializers(fields, declared))
+        attrs["Meta"] = type(
+            "Meta", meta_bases, {"model": self.model, "fields": fields}
+        )
+        return type(f"{self.model.__name__}Serializer", (base,), attrs)
+
+    def _get_nested_serializers(
+        self, fields: list[str], declared: set[str]
+    ) -> dict[str, Any]:
+        """Show each relation the base does not declare as its string form.
+
+        Args:
+            fields: The serializer's field names.
+            declared: The names the base serializer already declares.
 
         Returns:
-            Dictionary mapping field names to nested serializer fields
+            Dictionary mapping field names to read-only string-related fields.
         """
         from rest_framework import serializers
 
         nested: dict[str, serializers.Field] = {}
-        fields = self.get_fields()
-
         for field_name in fields:
+            if field_name in declared:
+                continue
             try:
                 field = self.model._meta.get_field(field_name)
-
-                if isinstance(field, models.ForeignKey):
-                    nested[field_name] = serializers.StringRelatedField()
-
-            except Exception:  # noqa: S110
-                pass
-
+            except Exception:  # noqa: S112
+                continue
+            if isinstance(field, models.ManyToManyField):
+                nested[field_name] = serializers.StringRelatedField(many=True)
+            elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
+                nested[field_name] = serializers.StringRelatedField()
         return nested
 
 

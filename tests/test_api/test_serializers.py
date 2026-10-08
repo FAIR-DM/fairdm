@@ -175,7 +175,6 @@ class TestBaseSampleSerializer:
             "dataset",
             "added",
             "modified",
-            "polymorphic_ctype",
         ]
         for field in required:
             assert field in BaseSampleSerializer.Meta.fields, (
@@ -194,7 +193,11 @@ class TestBaseSampleSerializer:
             "dataset",
             "added",
             "modified",
-            "polymorphic_ctype",
+            "descriptions",
+            "dates",
+            "identifiers",
+            "keywords",
+            "contributors",
         }
         assert set(BaseSampleSerializer.Meta.fields) == expected
 
@@ -229,7 +232,6 @@ class TestBaseMeasurementSerializer:
             "dataset",
             "added",
             "modified",
-            "polymorphic_ctype",
         ]
         for field in required:
             assert field in BaseMeasurementSerializer.Meta.fields, (
@@ -247,7 +249,11 @@ class TestBaseMeasurementSerializer:
             "dataset",
             "added",
             "modified",
-            "polymorphic_ctype",
+            "descriptions",
+            "dates",
+            "identifiers",
+            "keywords",
+            "contributors",
         }
         assert set(BaseMeasurementSerializer.Meta.fields) == expected
 
@@ -424,9 +430,7 @@ class TestRecordReferenceField:
 
         class DatasetReference(serializers.Serializer):
             project = RecordReferenceField(
-                view_name="api:project-detail",
-                queryset=Project.objects.all(),
-                allow_null=True,
+                queryset=Project.objects.all(), allow_null=True
             )
 
         return DatasetReference
@@ -487,7 +491,7 @@ class TestRecordReferenceField:
         )
 
         assert not serializer.is_valid()
-        assert serializer.has_error("project", code="does_not_exist")
+        assert serializer.errors["project"][0].code == "does_not_exist"
 
     @pytest.mark.parametrize("as_text", [False, True])
     def test_a_database_number_is_refused(self, serializer_class, as_text):

@@ -5,10 +5,13 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.models import Dataset, Sample
 from fairdm.core.utils import get_objects_for_user
 
 if TYPE_CHECKING:
@@ -91,3 +94,93 @@ class FairDMVisibilityFilter(BaseFilterBackend):
             return (public_qs | permitted_qs).distinct()
 
         return queryset.filter(**public_filter)
+
+
+class DatasetFilterSet(django_filters.FilterSet):
+    """Narrows a list to the records of one dataset, named by its short identifier.
+
+    A database number names no dataset and is refused, as is an identifier of a dataset the
+    caller may not see.
+    """
+
+    dataset = django_filters.ModelChoiceFilter(
+        field_name="dataset",
+        to_field_name="uuid",
+        queryset=Dataset.all_objects.all(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Offer only the datasets the requesting user may see, and no content-type filter."""
+        super().__init__(*args, **kwargs)
+        self.filters["dataset"].queryset = self.visible(Dataset.all_objects.all())
+        # One endpoint serves one type, and the filter takes a database number.
+        self.filters.pop("polymorphic_ctype", None)
+
+    def visible(self, queryset):
+        """Limit a queryset of filter choices to what the requesting user may see.
+
+        Args:
+            queryset: The records the filter would otherwise offer.
+
+        Returns:
+            The records the list filter would let the requesting user see.
+        """
+        if hasattr(queryset, "non_polymorphic"):
+            queryset = queryset.non_polymorphic()
+        return FairDMVisibilityFilter().filter_queryset(self.request, queryset, None)
+
+
+class SampleFilterSet(DatasetFilterSet):
+    """Narrows a list to the records made on one sample, named by its short identifier."""
+
+    sample = django_filters.ModelChoiceFilter(
+        field_name="sample",
+        to_field_name="uuid",
+        queryset=Sample.objects.none(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        """Offer only the samples the requesting user may see."""
+        super().__init__(*args, **kwargs)
+        self.filters["sample"].queryset = self.visible(Sample.objects.all())
+
+
+class FairDMFilterBackend(DjangoFilterBackend):
+    """Django-filter backend that gives every list its dataset, and measurements their sample.
+
+    The filters a registered type declares match related records by database number, and are
+    shared with the portal's own pages. Here ``dataset`` and, for measurements, ``sample``
+    match by short identifier whatever the type declares, and a number is refused.
+    """
+
+    parent_filtersets: dict[tuple, type] = {}
+
+    def get_filterset_class(self, view, queryset=None):
+        """Build the type's filter set with the parent filters added.
+
+        Args:
+            view: The view being filtered.
+            queryset: The queryset being filtered.
+
+        Returns:
+            The filter set to use, or ``None`` when there is none.
+        """
+        filterset_class = super().get_filterset_class(view, queryset)
+        parent_filterset = getattr(view, "parent_filterset", None)
+        if parent_filterset is None:
+            return filterset_class
+        key = (filterset_class, parent_filterset)
+        if key not in self.parent_filtersets:
+            bases = (
+                (parent_filterset, filterset_class)
+                if filterset_class
+                else (parent_filterset,)
+            )
+            attrs = {}
+            if filterset_class is None:
+                attrs["Meta"] = type(
+                    "Meta", (), {"model": queryset.model, "fields": []}
+                )
+            name = f"{queryset.model.__name__}FilterSet"
+            self.parent_filtersets[key] = type(name, bases, attrs)
+        return self.parent_filtersets[key]

@@ -17,21 +17,31 @@ from __future__ import annotations
 import contextlib
 from typing import Any
 
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from fairdm.api.filters import (
+    DatasetFilterSet,
+    FairDMFilterBackend,
+    FairDMVisibilityFilter,
+    SampleFilterSet,
+)
 from fairdm.api.serializers import (
-    BaseMeasurementSerializer,
-    BaseSampleSerializer,
+    ContributorSerializer,
+    DatasetSerializer,
+    ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
-    build_model_serializer,
 )
-from fairdm.contrib.contributors.models import Contributor
+from fairdm.contrib.contributors.models import Contributor, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 
 
@@ -71,25 +81,12 @@ class ProjectViewSet(BaseViewSet):
     you have permission to access.
     """
 
-    @property
-    def queryset(self):
-        """Return all projects."""
-        return Project.objects.all()
+    serializer_class = ProjectSerializer
+    ordering_fields = ("name", "added", "modified", "status", "uuid")
 
     def get_queryset(self):
-        """Return all projects."""
-        return Project.objects.all()
-
-    def get_serializer_class(self):
-        """Build the project serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Project,
-            ["uuid", "name", "status", "visibility", "added", "modified"],
-            view_name="api:project-detail",
-        )
-        return self._serializer_class
+        """Return all projects, with what the serializer reads loaded."""
+        return ProjectSerializer.load_related(Project.objects.all())
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         """Save a new project, recording the request user as its creator."""
@@ -107,27 +104,14 @@ class DatasetViewSet(BaseViewSet):
     to query, add, and manage datasets you have permission to access.
     """
 
-    @property
-    def queryset(self):
-        """Return all datasets, including private ones the visibility filter admits."""
-        # `all_objects`, not `objects`: the default manager would hide a private
-        # dataset from a user who holds `view_dataset` before the filter can admit it.
-        return Dataset.all_objects.all()
+    serializer_class = DatasetSerializer
+    ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):
         """Return all datasets, including private ones the visibility filter admits."""
-        return Dataset.all_objects.all()
-
-    def get_serializer_class(self):
-        """Build the dataset serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Dataset,
-            ["uuid", "name", "visibility", "added", "modified"],
-            view_name="api:dataset-detail",
-        )
-        return self._serializer_class
+        # `all_objects`, not `objects`: the default manager would hide a private
+        # dataset from a user who holds `view_dataset` before the filter can admit it.
+        return DatasetSerializer.load_related(Dataset.all_objects.all())
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         """Save a new dataset, recording the request user as its creator."""
@@ -144,37 +128,50 @@ class ContributorViewSet(ReadOnlyModelViewSet):
     """
 
     lookup_field = "uuid"
-
-    @property
-    def queryset(self):
-        """Return all contributors."""
-        return Contributor.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = ContributorSerializer
+    ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):
-        """Return all contributors."""
-        return Contributor.objects.all()
+        """Return the people and organisations the portal's own lists show.
 
-    def get_serializer_class(self):
-        """Build the contributor serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Contributor,
-            ["uuid", "name"],
-            view_name="api:contributor-detail",
+        Leaves out superusers and the anonymous account, as ``Person.objects.real()`` does.
+        """
+        hidden = Person.objects.filter(
+            Q(is_superuser=True) | Q(email="AnonymousUser")
+        ).values("pk")
+        return Contributor.objects.exclude(pk__in=hidden).prefetch_related(
+            "identifiers"
         )
-        return self._serializer_class
+
+
+def sortable_fields(model, serializer_cls) -> list[str]:
+    """List the fields a list may be sorted on: the model's own columns the serializer returns.
+
+    Args:
+        model: The model the list serves.
+        serializer_cls: The serializer the list uses.
+
+    Returns:
+        The names of the stored, non-relational fields among the serializer's fields.
+    """
+    names = []
+    for name in serializer_cls.Meta.fields:
+        try:
+            field = model._meta.get_field(name)
+        except FieldDoesNotExist:
+            continue
+        if field.concrete and not field.is_relation:
+            names.append(name)
+    return names
 
 
 def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     """Generate a :class:`ModelViewSet` subclass from a registry config.
 
-    The serializer is resolved in this order:
-
-    1. ``config.serializer_class`` set → use it directly (custom serializer).
-    2. ``config.serializer_fields`` set → auto-generate serializer with those fields.
-    3. Only ``config.fields`` set → auto-generate serializer with those fields.
-    4. Nothing set → auto-generate from model field inspection.
+    The serializer is whatever ``config.get_serializer_class()`` returns: the class named in the
+    registration, or one the registry builds from the configured fields. A sample or measurement
+    serializer must build on the base serializer of its kind.
 
     Args:
         config: A :class:`~fairdm.registry.ModelConfiguration` instance from the
@@ -183,54 +180,30 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
     Returns:
         A ``ModelViewSet`` subclass configured for ``config.model``.
+
+    Raises:
+        ImproperlyConfigured: When the serializer of a sample or measurement type does not
+            build on the base serializer of its kind.
     """
     model = config.model
     model_name = model.__name__
 
-    if config.serializer_class is not None:
-        serializer_cls = config._get_class(config.serializer_class)
-        if issubclass(model, Sample):
-            _validate_sample_serializer(serializer_cls)
-        elif issubclass(model, Measurement):
-            _validate_measurement_serializer(serializer_cls)
-    else:
-        fields: list[str] = list(config.serializer_fields or config.fields or [])
-        if not fields:
-            # Same default-field rule every generated component uses.
-            from fairdm.utils.inspection import FieldInspector
-
-            fields = FieldInspector(model).get_default_fields()
-        else:
-            from fairdm.api.serializers import _flatten_fields
-
-            fields = _flatten_fields(fields)
-
-        slug = _model_to_slug(model)
-        if hasattr(model, "sample_ptr"):
-            view_name = f"api:samples-{slug}-detail"
-        elif hasattr(model, "measurement_ptr"):
-            view_name = f"api:measurements-{slug}-detail"
-        else:
-            view_name = f"api:{model._meta.model_name}-detail"
-
-        ser_base_class: type[serializers.ModelSerializer] | None
-        if issubclass(model, Sample):
-            ser_base_class = BaseSampleSerializer
-        elif issubclass(model, Measurement):
-            ser_base_class = BaseMeasurementSerializer
-        else:
-            ser_base_class = None
-
-        serializer_cls = build_model_serializer(
-            model, fields, view_name=view_name, base_class=ser_base_class
-        )
+    serializer_cls = config.get_serializer_class()
+    if issubclass(model, Sample):
+        _validate_sample_serializer(serializer_cls)
+    elif issubclass(model, Measurement):
+        _validate_measurement_serializer(serializer_cls)
 
     # Via the accessor so a configuration overriding get_filterset_class() is honoured.
     filterset_class = None
     with contextlib.suppress(Exception):
         filterset_class = config.get_filterset_class()
 
-    _model = model
+    queryset = model.objects.all()
+    if hasattr(queryset, "non_polymorphic"):
+        queryset = queryset.non_polymorphic()
+    if hasattr(serializer_cls, "load_related"):
+        queryset = serializer_cls.load_related(queryset)
 
     class _GeneratedViewSet(base_class):
         pass
@@ -238,7 +211,18 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     _GeneratedViewSet.__name__ = f"{model_name}ViewSet"
     _GeneratedViewSet.__qualname__ = f"{model_name}ViewSet"
     _GeneratedViewSet.serializer_class = serializer_cls
-    _GeneratedViewSet.queryset = _model.objects.all()
+    _GeneratedViewSet.queryset = queryset
+    _GeneratedViewSet.ordering_fields = sortable_fields(model, serializer_cls)
+
+    if issubclass(model, Sample):
+        _GeneratedViewSet.parent_filterset = DatasetFilterSet
+    elif issubclass(model, Measurement):
+        _GeneratedViewSet.parent_filterset = SampleFilterSet
+    _GeneratedViewSet.filter_backends = [
+        FairDMVisibilityFilter,
+        FairDMFilterBackend,
+        OrderingFilter,
+    ]
 
     if filterset_class is not None:
         _GeneratedViewSet.filterset_class = filterset_class

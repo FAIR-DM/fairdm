@@ -1494,6 +1494,26 @@ class TestFiltering:
         assert response.status_code == 400
         assert "sample" in response.json()
 
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_content_type_number_is_not_a_way_to_narrow_a_list(
+        self, api_client, url_of, make_record, model
+    ):
+        from django.contrib.contenttypes.models import ContentType
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        here = make_record(model, dataset)
+        other = ContentType.objects.get_for_model(ProjectFactory._meta.model)
+
+        found = self.listed(
+            api_client, url_of(model, "list"), polymorphic_ctype=other.pk
+        )
+
+        assert here.uuid in found
+
 
 @pytest.mark.django_db
 class TestOrdering:
