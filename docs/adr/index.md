@@ -33,4 +33,5 @@ do not restate earlier ones, only build past them.
 0024-the-right-to-edit-a-profile-is-asked-of-the-record
 0025-a-level-on-the-contribution-decides-rights-over-a-core-record
 0026-a-records-editing-pages-are-six-shared-pages
+0027-records-refer-to-each-other-by-short-identifier
 ```

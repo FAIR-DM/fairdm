@@ -727,7 +727,7 @@ class MyAppConfig(AppConfig):
 
 ## REST API Support
 
-**Current Status**: The FairDM registry auto-generates Django REST Framework serializers for registered models, but a full REST API with ViewSets and URL routing is not yet implemented.
+**Current Status**: The FairDM registry auto-generates Django REST Framework serializers for registered models, and the portal serves them under `/api/v1/` (see [RESTful API](restful-api.md)). The serializer of a sample or measurement type returns the address of each record, so it needs the request in its context.
 
 **What's Available Now:**
 
@@ -747,7 +747,9 @@ from rest_framework.response import Response
 class MyMeasurementAPIView(APIView):
     def get(self, request):
         measurements = MyMeasurement.objects.all()
-        serializer = serializer_class(measurements, many=True)
+        serializer = serializer_class(
+            measurements, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 ```
 

@@ -56,3 +56,11 @@ claiming-a-profile
 crediting-a-record
 
 ```
+
+```{toctree}
+:maxdepth: 1
+:caption: Using Data
+
+reading-records-with-a-script
+
+```

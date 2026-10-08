@@ -431,7 +431,7 @@ class ProjectSerializer(RecordSerializer):
 
     class Meta(RecordSerializer.Meta):
         model = Project
-        fields = (
+        fields = [
             "url",
             "uuid",
             "name",
@@ -443,8 +443,8 @@ class ProjectSerializer(RecordSerializer):
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
-        )
-        read_only_fields = ("image",)
+        ]
+        read_only_fields = ["image"]
 
 
 class DatasetSerializer(RecordSerializer):
@@ -459,7 +459,7 @@ class DatasetSerializer(RecordSerializer):
 
     class Meta(RecordSerializer.Meta):
         model = Dataset
-        fields = (
+        fields = [
             "url",
             "uuid",
             "name",
@@ -471,8 +471,8 @@ class DatasetSerializer(RecordSerializer):
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
-        )
-        read_only_fields = ("image", "published")
+        ]
+        read_only_fields = ["image", "published"]
 
 
 class BaseSampleSerializer(RecordSerializer):
@@ -503,7 +503,7 @@ class BaseSampleSerializer(RecordSerializer):
 
     class Meta(RecordSerializer.Meta):
         model = Sample
-        fields = (
+        fields = [
             "url",
             "uuid",
             "name",
@@ -513,7 +513,7 @@ class BaseSampleSerializer(RecordSerializer):
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
-        )
+        ]
 
 
 class BaseMeasurementSerializer(RecordSerializer):
@@ -537,7 +537,7 @@ class BaseMeasurementSerializer(RecordSerializer):
 
     class Meta(RecordSerializer.Meta):
         model = Measurement
-        fields = (
+        fields = [
             "url",
             "uuid",
             "name",
@@ -546,7 +546,7 @@ class BaseMeasurementSerializer(RecordSerializer):
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
-        )
+        ]
 
 
 class ContributorIdentifierSerializer(serializers.Serializer):

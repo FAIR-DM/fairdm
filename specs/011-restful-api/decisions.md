@@ -84,7 +84,7 @@ identifiers. Nothing has been released that carried the old form.
 
 **Ruled by.** The audit, approved by the maintainer.
 
-**ADR:** `docs/adr/` — to be written at the build, since every later API feature inherits it.
+**ADR:** [`docs/adr/0027-records-refer-to-each-other-by-short-identifier.md`](../../docs/adr/0027-records-refer-to-each-other-by-short-identifier.md)
 
 ## D4. Every sample and measurement carries the common fields
 
@@ -343,3 +343,35 @@ Two were found to rest on tests that miss one clause each, and the missing cases
 open tasks in the same test files.
 
 **ADR:** none — a record of review, the decisions it led to are in the plan.
+
+## D17. Choices made while building the first story
+
+**A reference works out its own address.** The plan gave `RecordReferenceField` a `view_name` for
+each use. A measurement's sample can be of any registered type, and each type has its own route, so
+one route name per field cannot be right. The field takes the route from the record it is given
+and has no `view_name` argument.
+*Revisit if:* the sample routes collapse into one.
+
+**A page of references is checked in one query.** `RecordListSerializer` hands the whole page to
+each reference field before any record is written out, so deciding what a caller may see costs one
+query per reference field and not one per record. A reference outside a list is checked on its own.
+*Revisit if:* a reference field is used inside a nested list, which is not primed.
+
+**The dataset and sample filters are the API's own.** The filter sets the registry generates match
+`dataset` and `sample` on database numbers and are shared with the portal's pages. The API builds a
+subclass of the type's filter set with those two filters matching `uuid`, offering only records the
+caller may see, and drops the content-type filter, which also takes a number and means nothing on
+an endpoint that serves one type. The portal's pages are untouched.
+*Revisit if:* the portal's pages move to identifiers, when the API's copies can go.
+
+**Sorting failed in the ordering filter, not in the queryset.** With no `ordering_fields`, Django
+REST Framework reads every property of the model class, and django-polymorphic's
+`polymorphic_primary_key_name` raises on a sample or measurement subclass. Each generated endpoint
+now names its sortable fields: the stored, non-relational fields its serializer returns.
+*Revisit if:* django-polymorphic stops raising.
+
+**A profile shows no account state.** A contributor is returned with what the profile page shows:
+name, image, biography, identifiers, links, languages, primary organization and location. The
+page also shows portal roles, whether the profile is claimed and when the person joined. Those
+describe the account, so the API leaves them out.
+*Revisit if:* the maintainer wants any of them public.
