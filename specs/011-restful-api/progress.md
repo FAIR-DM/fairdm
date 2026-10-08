@@ -35,3 +35,10 @@ Did: Added TestNoDatabaseNumbers in tests/test_api/test_viewsets.py. It builds a
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoDatabaseNumbers` fails. The first stop is that a contributor's record route answers 404 to a visitor today, because the object-level permission class has no rule for a model that is neither public nor private. That is a defect T006 also covers, and the fix goes in with the viewsets.
 Next: T005.
 Watch: The failure hides the number walk behind the contributor 404 until the permission fix lands in T014.
+
+## 2026-10-08T23:14:30Z · Implementer US1 · T005
+
+Did: Added TestContributor in tests/test_api/test_viewsets.py. A person with a biography, links, a language, an ORCID iD and a primary affiliation, and an organisation with a parent and a ROR ID, are each requested. The tests check the public profile fields come back, no response (list or record) carries an account key (email, password, staff, superuser, active, last login, joined date, groups, permissions, claim flag) or the person's address as text, and a superuser and the anonymous account are left out of the list and answered 404.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributor` gives 4 failed, 1 passed. The failures are the contributor record route answering 404 to a visitor. The passing case (superuser answered 404) passes only because every contributor record is 404 today; it is a guard for once that is fixed.
+Next: T006.
+Watch: Red until T014.

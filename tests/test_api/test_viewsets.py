@@ -1135,3 +1135,135 @@ class TestNoDatabaseNumbers:
             found += [f"{address}{where}" for where in self.walk(response.json())]
 
         assert found == []
+
+
+@pytest.mark.django_db
+class TestContributor:
+    ACCOUNT_KEYS = (
+        "email",
+        "password",
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "last_login",
+        "date_joined",
+        "groups",
+        "user_permissions",
+        "is_claimed",
+    )
+
+    @pytest.fixture
+    def person(self):
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory(
+            email="private.address@example.org",
+            is_claimed=True,
+            links=["https://example.org/me"],
+            lang=["en"],
+        )
+        ContributorIdentifierFactory(related=person, type="ORCID")
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        return person
+
+    @pytest.fixture
+    def organisation(self):
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        organisation = OrganizationFactory(parent=OrganizationFactory())
+        ContributorIdentifierFactory(
+            related=organisation, type="ROR", value="03yrm5c26"
+        )
+        return organisation
+
+    @staticmethod
+    def keys_of(value):
+        """Return every key that appears anywhere in a response."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                yield key
+                yield from TestContributor.keys_of(inner)
+        elif isinstance(value, list):
+            for inner in value:
+                yield from TestContributor.keys_of(inner)
+
+    def test_a_person_is_returned_with_what_their_profile_page_shows(
+        self, api_client, person
+    ):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["uuid"] == person.uuid
+        assert data["name"] == person.name
+        assert data["type"] == "person"
+        assert data["profile"] == person.profile
+        assert data["links"] == person.links
+        assert data["identifiers"][0]["value"] == person.identifiers.get().value
+        assert data["affiliation"]["uuid"] == person.primary_organization.uuid
+
+    def test_an_organisation_is_returned_with_what_its_profile_page_shows(
+        self, api_client, organisation
+    ):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": organisation.uuid})
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["uuid"] == organisation.uuid
+        assert data["type"] == "organization"
+        assert data["identifiers"][0]["value"] == "03yrm5c26"
+        assert data["affiliation"]["uuid"] == organisation.parent.uuid
+
+    def test_no_response_carries_an_account_detail(
+        self, api_client, person, organisation
+    ):
+        responses = [
+            api_client.get(reverse("api:contributor-list")),
+            api_client.get(
+                reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == 200
+            assert set(self.keys_of(response.json())).isdisjoint(self.ACCOUNT_KEYS)
+            assert person.email not in response.content.decode()
+
+    def test_a_superuser_and_the_anonymous_account_are_not_listed(
+        self, api_client, person
+    ):
+        from fairdm.factories import PersonFactory
+
+        administrator = PersonFactory(is_superuser=True, is_staff=True)
+        anonymous = PersonFactory(email="AnonymousUser")
+
+        listed = [
+            row["uuid"]
+            for row in api_client.get(reverse("api:contributor-list")).json()["results"]
+        ]
+
+        assert person.uuid in listed
+        assert administrator.uuid not in listed
+        assert anonymous.uuid not in listed
+
+    def test_a_superuser_is_answered_as_a_record_that_does_not_exist(self, api_client):
+        from fairdm.factories import PersonFactory
+
+        administrator = PersonFactory(is_superuser=True, is_staff=True)
+
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": administrator.uuid})
+        )
+
+        assert response.status_code == 404
