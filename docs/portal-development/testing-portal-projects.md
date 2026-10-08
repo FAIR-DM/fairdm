@@ -155,6 +155,10 @@ which declares what every contributor has — the preferred name, the profile im
 the free-text profile. Keyword arguments such as `name` above are accepted by either,
 because the declaration lives on the base.
 
+`PersonFactory` gives each person a sequence email, so every call builds a new person even
+when two of them share a name. Pass an `email` that is already in use and you get that
+person back rather than a second one.
+
 **Give a contributor an external identifier**:
 
 ```python

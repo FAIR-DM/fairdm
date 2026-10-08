@@ -110,6 +110,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`PersonFactory` builds a new person on every call.** Its email was made from the random first
+  and last name, and the factory returns the existing person when the email is already in use, so
+  two calls that drew the same name gave back one person. Tests that then affiliated "both" people
+  with one organization failed now and then on the unique person and organization rule. The email
+  is now a sequence, `person<n>@fakeuser.org`. Passing an `email` that is already in use still
+  returns that person.
+
 - **The keywords form builds for every record type.** `KeywordForm` read a setting named after the
   concrete model, such as `FAIRDM_ROCKSAMPLE`, which does not exist, so it raised for every sample
   type. It now offers the free keywords field alone on every record type and reads no keyword

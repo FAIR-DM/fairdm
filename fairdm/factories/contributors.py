@@ -13,7 +13,7 @@ arguments, and every factory re-exported from ``fairdm.factories``.
 import factory
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from factory.declarations import LazyAttribute, SubFactory
+from factory.declarations import SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker
 
@@ -87,13 +87,16 @@ class PersonFactory(ContributorFactory):
     added for attribution alone is the common case (Article I, issue #227). Pass
     `password=...` for a claimed-looking instance, or set `is_claimed`/`is_active`
     explicitly.
+
+    The email is a sequence, so every call builds a new person, whatever the
+    names. Pass an `email` that is already in use to get that person back.
     """
 
     class Meta:
         model = Person
         django_get_or_create = ["email"]
 
-    email = LazyAttribute(lambda o: f"{o.first_name}.{o.last_name}@fakeuser.org")
+    email = factory.Sequence(lambda n: f"person{n}@fakeuser.org")
     first_name = Faker("first_name")
     last_name = Faker("last_name")
     is_active = True
