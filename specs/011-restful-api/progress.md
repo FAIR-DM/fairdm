@@ -70,3 +70,11 @@ Did: Added TestFiltering in tests/test_api/test_viewsets.py. It checks that a fi
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering` fails: measurement and WaterSample/Soil/Rock lists answer 400 to an identifier (the registered filter matches on database numbers), sample types that declare no dataset filter ignore the parameter and answer 200 to a database number, and sample rows have no `uuid` yet.
 Next: T013.
 Watch: Red until T014.
+
+## 2026-10-08T23:17:31Z · Implementer US1 · T013
+
+Did: Added TestOrdering in tests/test_api/test_viewsets.py. For projects, datasets and every registered sample and measurement type it creates three records named out of order and requests the list ordered by name and by `-name`, and by `added` and `-added`.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering` gives 24 failed, 6 passed. Projects and datasets already sort. All 24 sample and measurement cases (8 types x 3 tests) raise `AttributeError: 'NoneType' object has no attribute 'attname'`.
+Cause found: the error does not come from a polymorphic queryset. With no `ordering_fields` on the view, DRF's ordering filter inspects every property on the model class, and reading django-polymorphic's `polymorphic_primary_key_name` on a sample or measurement subclass raises because the abstract polymorphic base has no primary key. Giving the generated viewset an explicit `ordering_fields` avoids the lookup.
+Next: T014.
+Watch: Recorded as a concern for the report, since it is a defect in a dependency's class property rather than a queryset problem.

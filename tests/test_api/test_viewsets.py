@@ -1493,3 +1493,51 @@ class TestFiltering:
 
         assert response.status_code == 400
         assert "sample" in response.json()
+
+
+@pytest.mark.django_db
+class TestOrdering:
+    NAMES = ("Charlie", "Alpha", "Bravo")
+
+    @pytest.fixture(
+        params=[Project, Dataset, *registered("sample"), *registered("measurement")],
+        ids=lambda model: model.__name__,
+    )
+    def model(self, request, make_record):
+        """A kind of record, with three public records named out of order."""
+        model = request.param
+        for name in self.NAMES:
+            if model is Project:
+                ProjectFactory(name=name, visibility=Visibility.PUBLIC)
+            elif model is Dataset:
+                DatasetFactory(name=name, visibility=Visibility.PUBLIC)
+            else:
+                dataset = Dataset.objects.filter(name="Holder").first() or (
+                    DatasetFactory(name="Holder", visibility=Visibility.PUBLIC)
+                )
+                make_record(model, dataset, name=name)
+        return model
+
+    def names_in(self, client, url_of, model, ordering):
+        response = client.get(url_of(model, "list"), {"ordering": ordering})
+        assert response.status_code == 200, response.content
+        return [row["name"] for row in response.json()["results"]]
+
+    def test_a_list_is_returned_in_ascending_order(self, api_client, url_of, model):
+        names = self.names_in(api_client, url_of, model, "name")
+
+        assert names == sorted(self.NAMES)
+
+    def test_a_list_is_returned_in_descending_order(self, api_client, url_of, model):
+        names = self.names_in(api_client, url_of, model, "-name")
+
+        assert names == sorted(self.NAMES, reverse=True)
+
+    def test_a_list_is_returned_in_the_order_records_were_added(
+        self, api_client, url_of, model
+    ):
+        oldest_first = self.names_in(api_client, url_of, model, "added")
+        newest_first = self.names_in(api_client, url_of, model, "-added")
+
+        assert oldest_first == list(self.NAMES)
+        assert newest_first == list(reversed(self.NAMES))
