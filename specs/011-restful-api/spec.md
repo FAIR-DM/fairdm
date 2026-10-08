@@ -521,8 +521,9 @@ confirm the portal follows them.
 
 - The registry, the four record types, contributors and the levels of FS-022 are as their own
   specifications describe them. This feature changes none of them.
-- django-mvp-accounts provides the token pages from version 0.2.0, using django-rest-knox, and the
-  portal moves to that version as part of this feature.
+- django-mvp-accounts provides the token pages from version 0.2.0, using django-rest-knox. The
+  portal is moved to that version, and to the django-mvp release it needs, in a change of its own
+  that lands before this feature is built.
 - A portal in production has the shared cache it is already required to have, which the request
   limits count in.
 - Nothing has been released that carries the API, so its output can change without a new version in
