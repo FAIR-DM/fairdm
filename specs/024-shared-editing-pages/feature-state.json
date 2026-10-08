@@ -3,7 +3,7 @@
   "feature": "024-shared-editing-pages",
   "branch": "024-shared-editing-pages",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-07T21:54:16Z",
       "note": "review closed with no open finding; walkthrough laid out on the pull request"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-08T14:44:54Z",
+      "note": "PR #410 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -54,8 +59,8 @@
       "at": "2026-10-07T19:20:15Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-08T14:35:39Z"
     },
     "design_review": {
       "approved_by": "design review, one reviewer",
@@ -81,8 +86,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-07T21:53:59Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-08T14:35:39Z",
       "self_resolved": []
     }
   },
@@ -494,13 +499,13 @@
       "max": 1
     },
     "tokens": {
-      "used": 50.41,
+      "used": 73.07,
       "max": 120
     }
   },
   "pr": {
     "number": 410,
-    "draft": true
+    "draft": false
   },
   "escalations": []
 }
