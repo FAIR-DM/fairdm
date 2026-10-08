@@ -462,7 +462,7 @@ class TestDatasetCreatePageUsesTheDeclaredForm:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         update_response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         create_label = create_response.context["form"].fields["name"].label
@@ -737,14 +737,14 @@ def _date_management_data(total=0, initial=0):
 class TestDatasetUpdateView:
     def test_anonymous_redirects_to_login(self, client):
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
         dataset = DatasetFactory()
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -752,7 +752,7 @@ class TestDatasetUpdateView:
         user = UserFactory()
         dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -760,7 +760,7 @@ class TestDatasetUpdateView:
         user = UserFactory()
         dataset = DatasetFactory()
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -771,14 +771,14 @@ class TestDatasetUpdateView:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
     def _post_changes(self, client, user, dataset, project):
         license_obj = dataset.license or License.objects.first()
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         return client.post(
             url,
             data={
@@ -828,7 +828,7 @@ class TestDatasetUpdateView:
         client.force_login(user)
 
         response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
 
         assert {"name", "license"} <= set(response.context["form"].fields)
@@ -883,7 +883,7 @@ class TestDatasetUpdateView:
         project.add_contributor(user)
         license_obj = dataset.license if dataset.license else License.objects.first()
 
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.post(
             url,
             data={
@@ -912,7 +912,7 @@ class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -922,59 +922,6 @@ class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
 
 @pytest.mark.django_db
 class TestDatasetDeleteView:
-    def test_anonymous_visitor_to_a_public_dataset_redirects_to_login(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
-
-    def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
-        dataset = DatasetFactory()
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 403
-
-    def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_with_permission_returns_200(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_wrong_name_shows_error(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory(name="My Dataset")
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.post(url, data={"confirmation": "Wrong Name"})
-        assert response.status_code == 200
-        assert "confirmation" in response.context["form"].errors
-        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
-
     def test_confirmation_ignores_surrounding_whitespace(self, client):
         user = UserFactory()
         dataset = DatasetFactory(name="Spaced Dataset")
@@ -983,7 +930,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={"confirmation": "  Spaced Dataset  "})
         assert response.status_code == 302
         assert response.url == reverse("dataset-list")
@@ -998,24 +945,10 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
         content = response.content.decode()
         assert content.count('id="id_confirmation"') == 1
-
-    def test_correct_name_redirects_to_list(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory(name="Delete Me Dataset")
-        pk = dataset.pk
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
-        response = client.post(url, data={"confirmation": "Delete Me Dataset"})
-        assert response.status_code == 302
-        assert response.url == reverse("dataset-list")
-        assert not Dataset.all_objects.filter(pk=pk).exists()
 
     def test_deleting_a_dataset_removes_its_samples(self, client):
         from demo.factories import RockSampleFactory
@@ -1028,7 +961,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.post(url, data={"confirmation": "Dataset With A Sample"})
 
@@ -1050,7 +983,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.post(url, data={"confirmation": "Dataset With Data"})
 
@@ -1073,7 +1006,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -1099,7 +1032,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.post(url, data={"confirmation": "Dataset With A Measurement"})
 
@@ -1118,7 +1051,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.post(url, data={"confirmation": "Public Dataset To Delete"})
 
@@ -1148,7 +1081,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
         content = response.content.decode()
@@ -1189,7 +1122,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
 
@@ -1211,7 +1144,7 @@ class TestDatasetDeleteView:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         response = client.get(url)
         sample_label = RockSampleFactory._meta.model._meta.verbose_name_plural.title()
@@ -1290,7 +1223,7 @@ class TestNonCollectionPagesIgnorePublished:
             content_object=dataset, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
 
         Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
         unpublished = client.get(url)
@@ -1312,7 +1245,7 @@ class TestNonCollectionPagesIgnorePublished:
             content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("dataset:overview-delete", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
 
         Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
         unpublished = client.get(url)

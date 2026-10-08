@@ -907,7 +907,7 @@ class TestProjectObjectPermissions:
         other_user = UserFactory(email="other@example.com")
         client.force_login(other_user)
 
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         # A 404, not a 403 or a sign-in redirect, which would confirm the project
@@ -936,7 +936,7 @@ class TestProjectObjectPermissions:
 
         client.force_login(editor)
 
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         assert response.status_code == 200

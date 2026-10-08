@@ -3,23 +3,34 @@
 import pytest
 from django.test import RequestFactory
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.abstract import AbstractDate
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.related_records import (
     DatasetDateInline,
     DatasetIdentifierInline,
+    MeasurementDateInline,
+    MeasurementIdentifierInline,
     ProjectDateInline,
     ProjectIdentifierInline,
     RelatedRecordInline,
+    SampleDateInline,
+    SampleIdentifierInline,
 )
+from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     DatasetDateFactory,
     DatasetFactory,
     DatasetIdentifierFactory,
+    MeasurementDateFactory,
+    MeasurementIdentifierFactory,
     ProjectDateFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
+    SampleDateFactory,
+    SampleIdentifierFactory,
 )
 
 ROW_SET_CASES = [
@@ -27,11 +38,26 @@ ROW_SET_CASES = [
     (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory, "CollectionStart"),
 ]
 
+def make_measurement():
+    """Make a measurement of a demo type on a sample in the same dataset."""
+    sample = RockSampleFactory()
+    return ExampleMeasurementFactory(sample=sample, dataset=sample.dataset)
+
+
 ALL_FOUR_INLINE_CASES = [
     (Project, ProjectDateInline, ProjectFactory, ProjectDateFactory),
     (Project, ProjectIdentifierInline, ProjectFactory, ProjectIdentifierFactory),
     (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory),
     (Dataset, DatasetIdentifierInline, DatasetFactory, DatasetIdentifierFactory),
+    (Sample, SampleDateInline, RockSampleFactory, SampleDateFactory),
+    (Sample, SampleIdentifierInline, RockSampleFactory, SampleIdentifierFactory),
+    (Measurement, MeasurementDateInline, make_measurement, MeasurementDateFactory),
+    (
+        Measurement,
+        MeasurementIdentifierInline,
+        make_measurement,
+        MeasurementIdentifierFactory,
+    ),
 ]
 
 

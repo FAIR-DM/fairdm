@@ -31,22 +31,6 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.actions %}
-  {{ block.super }}
-  {% if can_edit %}
-    <div data-menu="manage">
-      <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
-        <c-menu>
-          <c-menu.item label="{% translate 'Edit details' %}" icon="edit" href="{{ urls.update }}" />
-          <c-menu.item label="{% translate 'Edit descriptions' %}" icon="description" href="{{ urls.descriptions }}" />
-          <c-menu.item label="{% translate 'Edit keywords' %}" icon="keywords" href="{{ urls.keywords }}" />
-          <c-menu.item label="{% translate 'Edit key dates' %}" icon="date" href="{{ urls.key_dates }}" />
-        </c-menu>
-      </c-dropdown>
-    </div>
-  {% endif %}
-{% endblock overview.actions %}
-
 {% block overview.notices %}
   {% if status.value == "destroyed" %}
     <c-alert variant="warning" icon="warning" soft>

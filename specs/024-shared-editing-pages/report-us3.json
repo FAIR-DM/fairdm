@@ -1,0 +1,95 @@
+{
+ "story": "US3",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T007",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_core/test_editing.py"
+    ],
+    "criteria": [
+     "SC-002",
+     "SC-004",
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest tests/test_core/test_editing.py -q -n0 (at ffb7974f: every new delete test failed, NoReverseMatch for the delete page and missing manage_menu flag)",
+     "uv run pre-commit run --all-files"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "ffb7974f"
+   ]
+  },
+  {
+   "id": "T008",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_core/test_editing.py"
+    ],
+    "criteria": [
+     "SC-002",
+     "SC-004",
+     "SC-005",
+     "SC-006",
+     "SC-007"
+    ],
+    "commands": [
+     "uv run pytest tests/test_core/test_editing.py -q -n0 (349 passed)",
+     "uv run pytest tests/test_core tests/test_contrib tests/test_templates -q -n auto --dist loadscope (4276 passed, 13 skipped)",
+     "uv run pre-commit run --all-files"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "a105aae6"
+   ]
+  },
+  {
+   "id": "T009",
+   "status": "done",
+   "evidence": {
+    "tests_added": [],
+    "criteria": [],
+    "commands": [
+     "uv run pre-commit run --all-files",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main (exit 1: docs step matched the word Delete in a code comment in docs/portal-administration/managing_contributors.md; lint, typecheck, test, build and conformance passed)",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs (passed after the one-line comment reword)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "aee4eb7a",
+    "80cb044d"
+   ]
+  }
+ ],
+ "deviations": [],
+ "concerns": [
+  "The full verify ran once and exited 1 on the docs step alone: docs-stale-page matched the word Delete in a code comment in docs/portal-administration/managing_contributors.md, a page about merging people that has nothing to do with the removed Delete class. I reworded that one comment (80cb044d), as story 1 did for five pages, and re-ran `verify --steps docs`, which passed. lint, typecheck, test (107s), build and conformance passed in the full run before that edit; the full run was not repeated after it.",
+  "demo/plugins.py: its module docstring still shows examples built on the removed UpdatePlugin and DeletePlugin (ProjectDelete). It is a docstring outside docs/, left alone.",
+  "docs/user-guide/project/about.md and docs/user-guide/dataset/about.md still say Edit details covers dates and identifiers, which story 2 moved to pages of their own. Outside T009, which names the delete pages.",
+  "The sample's Edit keywords item is still passed through the Manage menu's slot, so until the keywords story it is drawn after the divider and Delete rather than before it (decisions.md D20).",
+  "A dataset whose samples another dataset measures is refused by the same RESTRICT relation as a sample with measurements, so its delete page also names only the measurements the viewer may see and counts the rest (decisions.md D19). The brief named only the sample case.",
+  "The new template fairdm/templates/editing/delete_record.html extends django-mvp's delete_view.html only to draw the count of measurements the viewer may not see, because that page has no hook inside its protected alert.",
+  "The first `uv run ruff check tests` I ran auto-fixed unrelated test files because the repo config enables fixes. I reverted every file outside the story, and restored one import it removed from tests/test_core/test_project/test_views.py.",
+  "Existing tests changed or removed are listed class by class in progress.md under T008. Behaviour that reverses on purpose: a signed-in person who may see a private project or dataset but may not delete it now gets 403 from the delete page where the old page gave 404, which the shared access rule and tests/test_contrib/test_contributors/test_plugins/test_shared.py now reflect.",
+  "Not touched, noticed: fairdm/contrib/plugins/mixins.py RecordOwnPageBackFallbackMixin is now used only by DeleteRecord, and PrivateRecordNotFoundMixin by the overviews and two project pages. Both stay in use."
+ ],
+ "blocked": []
+}

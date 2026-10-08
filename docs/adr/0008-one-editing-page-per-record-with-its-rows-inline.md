@@ -1,6 +1,6 @@
 # ADR 0008 — One editing page per record, with its related rows inline
 
-**Status:** accepted
+**Status:** superseded by [ADR 0026](0026-a-records-editing-pages-are-six-shared-pages.md)
 
 ## Decision
 

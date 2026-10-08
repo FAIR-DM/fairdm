@@ -1,4 +1,4 @@
-"""Reusable overview, update and delete plugins for the core record pages."""
+"""Reusable overview plugins for the core record pages."""
 
 from collections import OrderedDict
 from dataclasses import replace
@@ -8,7 +8,6 @@ from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
-from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +18,7 @@ from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.overview import format_authors, sentence_case
-from fairdm.views import FairDMDeleteView, FairDMTemplateView, FairDMUpdateView
+from fairdm.views import FairDMTemplateView
 
 
 class OverviewPlugin(Plugin, FairDMTemplateView):
@@ -80,9 +79,12 @@ class RecordOverviewPlugin(OverviewPlugin):
     resolvable_identifier_types = ("DOI", "IGSN")
 
     def get_context_data(self, **kwargs):
-        """Lead the People card to the record's Contributors tab."""
+        """Lead the People card to the record's Contributors tab and add the Manage menu."""
+        from fairdm.core.editing import manage_menu
+
         context = super().get_context_data(**kwargs)
         context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
+        context["manage_menu"] = manage_menu(self.request, self.base_object)
         return context
 
     def get_contributions(self) -> list[Contribution]:
@@ -565,94 +567,3 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
             "keywords": metadata.keywords,
         }
         return info if any(info.values()) else None
-
-
-class UpdatePlugin(Plugin, FairDMUpdateView):
-    """Reusable edit plugin for model forms.
-
-    This base class provides a standard edit view with form handling.
-    Portal developers can inherit from this and customize:
-    - form_class: Set the form class for editing
-    - menu: Configure tab label, icon, and order
-    - template_name: Override the template (or use hierarchical resolution)
-    - permission: Set required permission (defaults to change permission)
-
-    Attributes:
-        page_subtitle: The page subtitle.
-        page_icon: The icon shown beside the page title.
-
-    Example:
-        ```python
-        from fairdm import plugins
-        from fairdm.core.plugins import UpdatePlugin
-        from .forms import SampleForm
-
-
-        @plugins.register(Sample)
-        class SampleEdit(UpdatePlugin):
-            form_class = SampleForm
-            menu = {"label": "Edit", "icon": "pencil", "order": 10}
-            permission = "samples.change_sample"
-        ```
-    """
-
-    page_subtitle = _("Update")
-    page_icon = "edit"
-
-    def get_success_url(self):
-        """Return to the base object's detail page after a successful save."""
-        return self.base_object.get_absolute_url()
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        """Return the context from the parent view unchanged."""
-        return super().get_context_data(**kwargs)
-
-
-class DeletePlugin(Plugin, FairDMDeleteView):
-    """Reusable delete plugin with confirmation.
-
-    This base class provides a standard delete view with confirmation form.
-    Portal developers can inherit from this and customize:
-    - menu: Configure tab label, icon, and order
-    - template_name: Override the template (or use hierarchical resolution)
-    - get_success_url(): Customize redirect after deletion
-    - permission: Set required permission (defaults to delete permission)
-
-    The default behavior requires users to check a confirmation box before
-    deletion can proceed.
-
-    Attributes:
-        template_name: The confirmation template.
-
-    Example:
-        ```python
-        from fairdm import plugins
-        from fairdm.core.plugins import DeletePlugin
-
-
-        @plugins.register(Sample)
-        class SampleDelete(DeletePlugin):
-            menu = {"label": "Delete", "icon": "trash", "order": 1000}
-            permission = "samples.delete_sample"
-
-            def get_success_url(self):
-                # Redirect to the project after deleting a sample
-                return self.base_object.project.get_absolute_url()
-        ```
-    """
-
-    template_name = "plugins/delete.html"
-
-    def get_success_url(self):
-        """Redirect to the parent record, else the model's list view, after deletion."""
-        if hasattr(self.base_object, "project"):
-            return self.base_object.project.get_absolute_url()
-        if hasattr(self.base_object, "dataset"):
-            return self.base_object.dataset.get_absolute_url()
-
-        app_label = self.base_object._meta.app_label
-        model_name = self.base_object._meta.model_name
-        try:
-            return reverse(f"{app_label}:{model_name}-list")
-        except Exception:
-            return reverse("home")

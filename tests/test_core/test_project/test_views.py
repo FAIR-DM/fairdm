@@ -439,7 +439,7 @@ def _date_management_data(total=0, initial=0):
 class TestProjectUpdateView:
     def test_project_update_anonymous_redirects_to_login(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
@@ -448,7 +448,7 @@ class TestProjectUpdateView:
         project = ProjectFactory()
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -456,7 +456,7 @@ class TestProjectUpdateView:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         other_user = UserFactory()
         client.force_login(other_user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 403
 
@@ -464,7 +464,7 @@ class TestProjectUpdateView:
         self, client
     ):
         project = ProjectFactory()
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 404
 
@@ -475,7 +475,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
         assert response.status_code == 200
 
@@ -508,7 +508,7 @@ class TestProjectUpdateView:
                 content_object=project, contributor=user, level=ContributionLevel.MANAGE
             )
             client.force_login(user)
-            url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+            url = reverse("project:edit", kwargs={"uuid": project.uuid})
             data = {
                 **base_data,
                 field: new_value,
@@ -527,7 +527,7 @@ class TestProjectUpdateView:
 
     def _post_changes(self, client, user, project, owner):
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         return client.post(
             url,
             data={
@@ -570,7 +570,7 @@ class TestProjectUpdateView:
         client.force_login(editor)
 
         response = client.get(
-            reverse("project:overview-update", kwargs={"uuid": project.uuid})
+            reverse("project:edit", kwargs={"uuid": project.uuid})
         )
 
         assert {"name", "status"} <= set(response.context["form"].fields)
@@ -627,7 +627,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         base_data = {
             "name": project.name,
             "status": project.status,
@@ -660,7 +660,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -685,7 +685,7 @@ class TestProjectUpdateView:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.post(
             url,
             data={
@@ -713,401 +713,7 @@ def _project_field_data(project):
 
 
 @pytest.mark.django_db
-class TestAttributesIdentifierRowSet:
-    def test_existing_identifiers_are_presented_one_row_each_with_no_blank_row_beyond_them(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Identifier", owner=org)
-        ProjectIdentifierFactory(related=project, type="DOI", value="10.1/existing")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        identifier_formset = formsets["identifiers"]
-        assert identifier_formset.initial_form_count() == 1
-        assert len(identifier_formset.forms) == 1
-
-    def test_adding_an_identifier_of_a_chosen_type_records_it_against_the_project(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="No Identifiers Yet", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(total=1, initial=0),
-                **_date_management_data(),
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "10.1/new-identifier",
-            },
-        )
-
-        assert response.status_code == 302
-        assert project.identifiers.filter(
-            type="DOI", value="10.1/new-identifier"
-        ).exists()
-
-    def test_changing_an_existing_identifiers_value_persists(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Identifier", owner=org)
-        identifier = ProjectIdentifierFactory(
-            related=project, type="DOI", value="10.1/original"
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(total=1, initial=1),
-                **_date_management_data(),
-                "identifiers-0-id": identifier.pk,
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "10.1/changed",
-            },
-        )
-
-        assert response.status_code == 302
-        identifier.refresh_from_db()
-        assert identifier.value == "10.1/changed"
-
-    def test_removing_an_identifier_row_deletes_it_from_the_project(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Identifier", owner=org)
-        identifier = ProjectIdentifierFactory(
-            related=project, type="DOI", value="10.1/to-remove"
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(total=1, initial=1),
-                **_date_management_data(),
-                "identifiers-0-id": identifier.pk,
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "10.1/to-remove",
-                "identifiers-0-DELETE": "on",
-            },
-        )
-
-        assert response.status_code == 302
-        assert not project.identifiers.filter(pk=identifier.pk).exists()
-
-    def test_a_value_already_recorded_against_a_different_project_is_refused(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        other_project = ProjectFactory(name="Other Project", owner=org)
-        ProjectIdentifierFactory(related=other_project, type="DOI", value="10.1/taken")
-        project = ProjectFactory(name="Original Name", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                "name": "Renamed",
-                **_identifier_management_data(total=1, initial=0),
-                **_date_management_data(),
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "10.1/taken",
-            },
-        )
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        assert "value" in formsets["identifiers"].forms[0].errors
-        assert not project.identifiers.filter(value="10.1/taken").exists()
-        project.refresh_from_db()
-        assert project.name == "Original Name"
-
-    def test_the_same_value_submitted_twice_in_one_submission_reports_the_collision(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="No Identifiers Yet", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(total=2, initial=0),
-                **_date_management_data(),
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "10.1/duplicated",
-                "identifiers-1-type": "GRANT_NUMBER",
-                "identifiers-1-value": "10.1/duplicated",
-            },
-        )
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        assert formsets["identifiers"].non_form_errors()
-        assert not project.identifiers.filter(value="10.1/duplicated").exists()
-
-
-@pytest.mark.django_db
-class TestAttributesDateRowSet:
-    def test_existing_dates_are_presented_one_row_each_with_no_blank_row_beyond_them(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Date", owner=org)
-        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        date_formset = formsets["dates"]
-        assert date_formset.initial_form_count() == 1
-        assert len(date_formset.forms) == 1
-
-    def test_adding_a_date_of_a_chosen_type_records_it_against_the_project(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="No Dates Yet", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=1, initial=0),
-                "dates-0-type": "Start",
-                "dates-0-value": "2020-01-01",
-            },
-        )
-
-        assert response.status_code == 302
-        assert project.dates.filter(type="Start", value="2020-01-01").exists()
-
-    def test_changing_an_existing_dates_value_persists(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Date", owner=org)
-        date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=1, initial=1),
-                "dates-0-id": date.pk,
-                "dates-0-type": "Start",
-                "dates-0-value": "2021-06-15",
-            },
-        )
-
-        assert response.status_code == 302
-        date.refresh_from_db()
-        assert str(date.value) == "2021-06-15"
-
-    def test_removing_a_date_row_deletes_it_from_the_project(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Has Date", owner=org)
-        date = ProjectDateFactory(related=project, type="Start", value="2020-01-01")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=1, initial=1),
-                "dates-0-id": date.pk,
-                "dates-0-type": "Start",
-                "dates-0-value": "2020-01-01",
-                "dates-0-DELETE": "on",
-            },
-        )
-
-        assert response.status_code == 302
-        assert not project.dates.filter(pk=date.pk).exists()
-
-    def test_a_backwards_pair_both_newly_added_is_refused_and_saves_nothing(
-        self, client
-    ):
-        # A per-row check sees neither date, since each looks its sibling up in the
-        # database.
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Backwards Pair", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=2, initial=0),
-                "dates-0-type": "Start",
-                "dates-0-value": "2020-06-01",
-                "dates-1-type": "End",
-                "dates-1-value": "2010-01-01",
-            },
-        )
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        assert formsets["dates"].non_form_errors()
-        assert not project.dates.exists()
-
-    def test_a_backwards_pair_with_the_start_already_stored_is_refused_and_saves_nothing(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Backwards Pair", owner=org)
-        start = ProjectDateFactory(related=project, type="Start", value="2020-06-01")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=2, initial=1),
-                "dates-0-id": start.pk,
-                "dates-0-type": "Start",
-                "dates-0-value": "2020-06-01",
-                "dates-1-type": "End",
-                "dates-1-value": "2010-01-01",
-            },
-        )
-
-        assert response.status_code == 200
-        formsets = {formset.prefix: formset for formset in response.context["inlines"]}
-        assert not formsets["dates"].is_valid()
-        assert not project.dates.filter(type="End").exists()
-
-    def test_a_start_date_with_no_end_date_is_accepted(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Start Only", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                **_identifier_management_data(),
-                **_date_management_data(total=1, initial=0),
-                "dates-0-type": "Start",
-                "dates-0-value": "2020-06-01",
-            },
-        )
-
-        assert response.status_code == 302
-        assert project.dates.filter(type="Start", value="2020-06-01").exists()
-
-
-@pytest.mark.django_db
 class TestAttributesSaveIsOneAtomicSubmission:
-    def test_an_invalid_identifier_row_blocks_the_projects_own_field_changes_too(
-        self, client
-    ):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Original Name", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                "name": "Renamed",
-                **_identifier_management_data(total=1, initial=0),
-                **_date_management_data(),
-                "identifiers-0-type": "DOI",
-                "identifiers-0-value": "",
-            },
-        )
-
-        assert response.status_code == 200
-        assert project.identifiers.count() == 0
-        project.refresh_from_db()
-        assert project.name == "Original Name"
-
     def test_a_successful_submission_redirects_to_the_projects_own_page(self, client):
         org = Organization.objects.create(name="Test Org")
         project = ProjectFactory(name="Original Name", owner=org)
@@ -1116,7 +722,7 @@ class TestAttributesSaveIsOneAtomicSubmission:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
         client.force_login(user)
-        url = reverse("project:overview-update", kwargs={"uuid": project.uuid})
+        url = reverse("project:edit", kwargs={"uuid": project.uuid})
 
         response = client.post(
             url,
@@ -1136,13 +742,6 @@ class TestAttributesSaveIsOneAtomicSubmission:
 
 @pytest.mark.django_db
 class TestProjectDeleteView:
-    def test_project_delete_anonymous_redirects_to_login(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
-
     def test_project_delete_page_refuses_rather_than_raises_on_a_restricted_sample(
         self, client
     ):
@@ -1157,60 +756,12 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
 
         assert response.status_code == 200
         assert response.context["is_protected"] is True
-        assert Project.objects.filter(pk=project.pk).exists()
-
-    def test_project_delete_without_permission_on_a_private_project_404(self, client):
-        project = ProjectFactory()
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_delete_without_permission_on_a_public_project_403(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 403
-
-    def test_project_delete_without_permission_anonymous_on_a_private_project_404(
-        self, client
-    ):
-        project = ProjectFactory()
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_delete_with_permission_200(self, client):
-        project = ProjectFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_project_delete_wrong_name_shows_error(self, client):
-        project = ProjectFactory(name="My Project")
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Wrong Name"})
-        assert response.status_code == 200
-        assert "confirmation" in response.context["form"].errors
         assert Project.objects.filter(pk=project.pk).exists()
 
     def test_project_delete_confirmation_ignores_surrounding_whitespace(self, client):
@@ -1221,7 +772,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "  Spaced Project  "})
         assert response.status_code == 302
         assert response.url == reverse("project-list")
@@ -1237,7 +788,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
         assertContains(response, "Public Dataset")
@@ -1255,71 +806,12 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Dataset Project"})
         assert response.status_code == 200
         assert response.context["is_protected"] is True
         assertNotContains(response, 'id="id_confirmation"')
         assertNotContains(response, 'id="delete-submit-btn"')
-
-    def test_project_delete_get_shows_refusal_without_submitting(self, client):
-        project = ProjectFactory(name="Dataset Project")
-        Dataset.objects.create(
-            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-        assert response.context["is_protected"] is True
-        assertContains(response, "Public Dataset")
-        assertNotContains(response, 'id="id_confirmation"')
-
-    def test_project_delete_evaluates_visibility_at_submission_time(self, client):
-        project = ProjectFactory(name="Dataset Project")
-        dataset = Dataset.objects.create(
-            name="Soon Public Dataset", project=project, visibility=Visibility.PRIVATE
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-
-        get_response = client.get(url)
-        assert get_response.status_code == 200
-        assert get_response.context["is_protected"] is False
-
-        dataset.visibility = Visibility.PUBLIC
-        dataset.save()
-
-        response = client.post(url, data={"confirmation": "Dataset Project"})
-        assert response.status_code == 200
-        assert response.context["is_protected"] is True
-        assertContains(response, "Soon Public Dataset")
-        assert Project.objects.filter(pk=project.pk).exists()
-
-    def test_project_delete_allows_private_only_datasets(self, client):
-        project = ProjectFactory(name="Private Dataset Project")
-        Dataset.objects.create(
-            name="Private Dataset", project=project, visibility=Visibility.PRIVATE
-        )
-        pk = project.pk
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Private Dataset Project"})
-        assert response.status_code == 302
-        assert response.url == reverse("project-list")
-        assert not Project.objects.filter(pk=pk).exists()
 
     def test_project_delete_no_datasets_success(self, client):
         project = ProjectFactory(name="Empty Project")
@@ -1329,7 +821,7 @@ class TestProjectDeleteView:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
         response = client.post(url, data={"confirmation": "Empty Project"})
         assert response.status_code == 302
         assert response.url == reverse("project-list")
@@ -1533,7 +1025,7 @@ class TestDeletionPageBackControl:
             content_object=project, contributor=user, level=ContributionLevel.MANAGE
         )
         client.force_login(user)
-        url = reverse("project:overview-delete", kwargs={"uuid": project.uuid})
+        url = reverse("project:delete", kwargs={"uuid": project.uuid})
 
         response = client.get(url)
         content = response.content.decode()

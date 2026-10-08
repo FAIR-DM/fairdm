@@ -209,7 +209,7 @@ class TestRecordPagesServe:
         )
         client.force_login(user)
         response = client.get(
-            reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         )
         assert response.status_code == 200
 

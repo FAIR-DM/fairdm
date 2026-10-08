@@ -1,0 +1,122 @@
+{
+ "story": "US3",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 446,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T007",
+  "T008",
+  "T009"
+ ],
+ "context": {
+  "why": "Stories 1 and 2 are accepted. fairdm/core/editing.py holds RecordEditingPage (verdict, may_be_used_by, dispatch, get_object, record_name), EditDetails, EditDescriptions, EditKeyDates, EditIdentifiers and manage_menu, registered on Project, Dataset, Sample and Measurement with menu=False. <c-actions.manage> draws the menu on all four overviews. tests/test_core/test_editing.py holds the tests and fixtures for all of it. This story adds the delete page on all four record types, so a sample and a measurement can be deleted through the portal for the first time, and removes the Delete additional views on the project and dataset overviews with what only they used.",
+  "spec_sections": [
+   "Clarifications",
+   "User Story 3 (all 9 acceptance scenarios)",
+   "Edge Cases",
+   "FR-011 to FR-015",
+   "FR-030 to FR-033",
+   "FR-034"
+  ],
+  "plan_sections": [
+   "D1",
+   "D2",
+   "D3",
+   "D8",
+   "D9 (row US-3)",
+   "D11",
+   "Tests"
+  ],
+  "prior_decisions": [
+   "decisions.md planning decisions D8 to D17: read them, they describe the module as it stands. D13 says the Manage menu draws no divider and no flag for the delete entry yet: this story builds both (an entry flag marking delete, a divider before it in <c-actions.manage>), and removes the delete items the project and dataset templates pass through the component's slot.",
+   "access = 'delete' on DeleteRecord. The permission table is already in RecordEditingPage.PERMISSIONS. Deleting any of the four record types needs the manage level; an edit-level person gets 403 and sees the editing entries without the delete entry.",
+   "Build on FairDMDeleteView and django-mvp's delete_view.html (.venv/lib/python3.13/site-packages/mvp/views/edit.py MVPDeleteView, around lines 431-700). Read how the existing project and dataset Delete views use it (fairdm/core/project/plugins.py, fairdm/core/dataset/plugins.py) before removing them: require_confirmation, get_confirmation_value, is_protected, protected_objects, setting form to None when protected, and the dataset's related_objects_summary by concrete sample and measurement type.",
+   "Confirmation value is the record's name, or its portal ID (uuid) when it has no name. Use record_name for how a measurement is named on the page.",
+   "What goes with it: a project and a dataset show counts by record type from one method on the page (move the dataset's existing summary there and make it serve a project too). A sample and a measurement use django-mvp's related-objects preview.",
+   "Design review, security: a sample's delete page names only the measurements in Measurement.objects.visible_to(request.user), by name or portal ID, and gives a count for the rest, because a measurement can sit in a dataset the viewer holds no level on. Do not print str(measurement) for a measurement the viewer may not see.",
+   "Protection on POST: django-mvp's post() re-collects and refuses a restricted or protected record itself, so the sample case needs no code. PublicDatasetsProtect is raised from a pre_delete signal it does not see, so form_valid catches that one and draws the page again in its protected state, as the existing project Delete view does. Test both.",
+   "Landing: a sample or a measurement lands on its dataset's own page, or on the dataset list (dataset-list) when the person may not open that dataset. Read the dataset before deleting. A dataset lands on dataset-list and a project on project-list. Each sets a success message. The Back control leads to the record's own page.",
+   "Remove CRUDDirectoryMixin, the remaining crud_views entries and show_delete_action from the project and dataset overviews, and DeletePlugin from fairdm/core/plugins.py. Check nothing else reads `directory` in the overview templates before removing the mixin.",
+   "tests/test_contrib/test_contributors/test_plugins/test_shared.py has a refusal helper that still expects 404 from the old deletion page for a viewer who may see a private record; with the shared page that answer is 403."
+  ],
+  "acceptance": [
+   {
+    "task": "T007",
+    "given_when_then": "Given the test classes tasks.md T007 lists, when they are run before T008, then they fail because the shared delete page does not exist."
+   },
+   {
+    "task": "T008",
+    "given_when_then": "Given a project, a dataset, a demo sample type and a demo measurement type, when someone at each level requests, confirms and is refused the delete page, then every outcome in tasks.md T007 holds and the old delete pages and DeletePlugin are gone."
+   },
+   {
+    "task": "T009",
+    "given_when_then": "Given the documentation, when it is read, then record-editing-pages.md covers the delete page and the user guide pages for deleting a project and a dataset describe the shared page."
+   }
+  ],
+  "verified_base": {
+   "commit": "c39e61f174e552953c7accbe9fe68ea6be3e38da",
+   "verified_at": "2026-10-07T20:50:00Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance",
+    "docs"
+   ],
+   "note": "Verified independently at story 2's last commit (c39e61f1): lint, typecheck, the whole test suite, build, conformance and docs pass. Every commit since changes only files under specs/024-shared-editing-pages/."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Plugin",
+   "Registry",
+   "Visibility",
+   "Contribution"
+  ],
+  "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages on branch 024-shared-editing-pages; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. This feature adds no migration.",
+  "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. All of this feature's page tests go in tests/test_core/test_editing.py, parametrised over a project, a dataset, a demo sample type and a demo measurement type. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/ with its conftest.py (page tests through the test client on all four record types, levels given with ContributionFactory, people made with is_active=True), tests/test_core/test_project/test_plugins.py (a record's plugin pages). Access is tested by requesting the page through the client, never by calling a check function. Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG, docs/adr) is plain prose: no em dashes, sentence-case headings, reads as current state, never says how the feature was built, and never mentions an agent, a reviewer or a plan stage. Every user-facing string is translatable. Raise every ValidationError with a code. Templates: reusable pieces are Cotton components; use django-mvp components and DaisyUI utilities, no custom CSS."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks T007 to T009 in specs/024-shared-editing-pages/tasks.md, your tasks only, plus the paragraphs above Phase 1 of that file.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "Read the CONTEXT.md entries named in context.glossary_terms.",
+  "git log --oneline -10. Confirm only files under specs/024-shared-editing-pages/ differ between HEAD and context.verified_base.commit, unless context.verified_base.note says otherwise.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages/specs/024-shared-editing-pages/report-us3.json and commit it with your last commit. Your final message is a short summary and that path."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, with the exception tasks.md names: a pre-existing test that requests a page this feature removes, or reverses its old URL name, is rewritten against the shared page where it asserts something your new tests do not, and removed where they do. List every test class you changed or removed in progress.md, with one line each on why.",
+  "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+  "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+  "No compatibility aliases, no redirects from the old addresses, and no leading-underscore names for new functions or methods.",
+  "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence. evidence is an object with only tests, commands, code (path:line) and verified_by_ci.",
+  "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+  "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+  "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+  "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+  "Never touch .github/. No test reaches the network.",
+  "Do not change any permission backend, fairdm/contrib/contributors/access.py, visible_to, or who may change or delete a record (FR-012).",
+  "Do not tidy fairdm/contrib/generic/forms.py or any other module beyond what your tasks name. Dead code you notice goes in your report's concerns, not in a commit."
+ ]
+}

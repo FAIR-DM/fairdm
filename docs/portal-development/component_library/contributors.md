@@ -92,7 +92,7 @@ buttons at the end of the row.
   {% for credit in record.contributors.all %}
     <c-contributor.row :contributor="credit">
       <c-slot name="actions">
-        <button type="button" class="btn btn-ghost btn-sm">Edit</button>
+        <button type="button" class="btn btn-ghost btn-sm">Change</button>
       </c-slot>
     </c-contributor.row>
   {% endfor %}

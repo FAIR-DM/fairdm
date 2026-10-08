@@ -1,8 +1,4 @@
-"""Helpers for core records: documentation links, polymorphic-aware permissions and fieldsets."""
-
-from django.utils.translation import gettext as _
-
-from fairdm.utils.utils import user_guide
+"""Helpers for core records: polymorphic-aware permissions and fieldsets."""
 
 UUID_RE_PATTERN = r"^(?P<uuid>[pdsmea-zA-Z0-9_-]{22})/$"
 """A regex the matches the uuid of a core data object (project, sample, measurement, etc.) and captures it in a named group 'uuid'."""
@@ -12,22 +8,6 @@ CORE_PERMISSIONS = [
     ("modify_contributor", "Can modify contributors"),
     ("modify_metadata", "Can modify metadata"),
 ]
-
-
-def documentation_link(path):
-    """Return the link dictionary pointing at a page of the user guide.
-
-    Args:
-        path: The user guide path to link to.
-
-    Returns:
-        A dictionary with the ``text``, ``href`` and ``icon`` of the link.
-    """
-    return {
-        "text": _("Learn more"),
-        "href": user_guide(path),
-        "icon": "documentation",
-    }
 
 
 def get_non_polymorphic_instance(obj):

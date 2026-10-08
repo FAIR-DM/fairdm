@@ -150,26 +150,10 @@ def project_is_visible(request, obj):
     if obj.visibility == Visibility.PUBLIC:
         return True
     return has_perm(request, "project.view_project", obj)
-
-
-def visible_to_holder_of(permission):
-    """Like project_is_visible, except a private obj also stays visible to a
-    user holding `permission` on it specifically, at record level."""
-
-    def check(request, obj):
-        if project_is_visible(request, obj):
-            return True
-        if obj is None:
-            return False
-        return request.user.has_perm(permission, obj)
-
-    return check
 ```
 
-`Update` and `Delete` each set `check = staticmethod(visible_to_holder_of("project.change_project"))`
-(and `"project.delete_project"` respectively) rather than the bare `project_is_visible` their owner
-uses: their own `permission` is the change/delete right, not the view right, and a record-level grant
-of a page's own permission is already evidence of legitimate access.
+The pages that edit or delete a record are shared by all four record types and decide who may open
+them in `RecordEditingPage` instead, see [Record editing pages](record-editing-pages.md).
 
 `fairdm.core.dataset.plugins.dataset_is_visible` is the same rule for a dataset, reading
 `dataset.view_dataset`. Write one of these for every record type you register pages against, even

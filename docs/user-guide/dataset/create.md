@@ -31,7 +31,7 @@ Four fields:
    dataset, so prefer the full name over an internal abbreviation.
 
 2. **Project** (optional) — the project this dataset belongs to. The list offers only your own
-   projects. A dataset without a project can be attached to one later on its update page.
+   projects. A dataset without a project can be attached to one later with **Edit details** in the dataset's **Manage** menu.
 
 3. **Licence** — how others may use the dataset. The portal's default licence is pre-selected,
    and can be changed here or later.
@@ -50,5 +50,5 @@ the community what you are working on.
 ## Step 3: Save
 
 Click **Create**. You land on the new dataset's own page, from which you can add its image,
-data publication, dates, identifiers and descriptions — see [Update dataset](update.md) and
-[Descriptions](descriptions.md).
+data publication, dates, identifiers and descriptions. See [Update dataset](update.md), which says
+where each is edited, and [Descriptions](descriptions.md).

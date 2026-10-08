@@ -42,7 +42,8 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.name` | Header: the name inside the heading. A contributor's page follows the name with a link to its ORCID record. |
 | `overview.byline` | Header: the people behind the record (a project's leaders, a dataset's creators), each linked to their page. |
 | `overview.keywords` | Header: keywords. |
-| `overview.actions` | Header: buttons. Cite and Share by default. |
+| `overview.actions` | Header: buttons. Cite and Share by default, followed by the Manage menu. |
+| `overview.manage` | Inside the actions: the Manage menu, drawn by `<c-actions.manage>`. Fill it to add entries to the menu or a button before it. See [Record editing pages](record-editing-pages.md). |
 | `overview.figures` | The figures strip. |
 | `overview.main` | The wide column. Each record fills it with its own blocks. |
 | `overview.side` | The side column, which holds the blocks below. |
@@ -67,9 +68,9 @@ Its template is `project/project_detail.html`.
 
 **Header.** The project's status, and a Private badge when it is private. The project's leaders
 are named, each linked to their page. Cite and Share are offered to everyone. The team also gets
-Add dataset and a Manage menu holding Edit details, Edit descriptions, Manage contributors and,
-for a user who may delete the project, Delete. A user who may delete a project but not change it
-sees a Manage menu holding only Delete.
+Add dataset and a Manage menu holding the editing pages and, for a user who may delete the
+project, Delete, which is drawn last after a divider. A user who may change a project but not
+delete it sees the editing entries and no Delete.
 
 **Notices.** Someone who may change a private project is told the project is private. A project whose status
 is "Searching for collaborators" says so and names who to contact, the contact person or else the
@@ -141,8 +142,9 @@ template is `dataset/dataset_detail.html`.
 **Header.** Whether the dataset is published, public but unpublished, or private, and its licence,
 as badges. The creators are named, each linked to their page. The team also gets a Publish button,
 announced as not available yet while the dataset is unpublished, and a Manage menu holding Edit
-details, Edit descriptions and, for a user who may delete the dataset, Delete. A user who may
-delete a dataset but not change it sees a Manage menu holding only Delete.
+details, Edit descriptions and, for a user who may delete the dataset, Delete, which is drawn
+last after a divider. A user who may change a dataset but not delete it sees the editing entries
+and no Delete.
 
 **Notices.** A private dataset tells anyone who may change it that only people with access can
 open the page. A public dataset that is not published yet tells a visitor that its data is not
@@ -246,10 +248,10 @@ badge opens that description in a dialog, with the type's keywords, the authorit
 its schema and how to cite it. A type the registry does not describe opens nothing. The status
 badge is green for available, blue for in use, grey for stored and red for destroyed; a sample
 with no recorded status reads "Status unknown". A user who may change the sample also gets a
-Manage menu that links to the pages for editing its details, descriptions, keywords and key dates.
-Those pages are not tabs. They keep their addresses (`/samples/<uuid>/edit/`,
-`/basic-information/`, `/keywords/` and `/key-dates/`), and a portal's own content tabs stay in the
-tab strip.
+Manage menu that links to the pages for editing its details, descriptions, keywords, key dates
+and identifiers. Those pages are not tabs. They are at `/samples/<uuid>/edit/`, `/descriptions/`,
+`/keywords/`, `/key-dates/` and `/identifiers/`, and a portal's own content tabs stay in the tab
+strip. A user who may delete the sample also gets Delete, at `/samples/<uuid>/delete/`.
 
 **Notices.** A destroyed specimen says it no longer exists and that its record and measurements
 are kept. A sample whose dataset is not public and published says that only people with access to
@@ -307,7 +309,11 @@ browser title.
 **Header.** The type as a badge. Where the registry describes the type, the badge opens that
 description in a dialog, with the type's keywords, the authority that maintains its schema and how
 to cite it. A type the registry does not describe opens nothing. A measurement whose dataset is not
-public and published says that only people with access to the dataset can see it.
+public and published says that only people with access to the dataset can see it. A user who may
+change the measurement also gets a Manage menu that links to the pages for editing its details,
+descriptions, key dates and identifiers, at `/measurement/<uuid>/edit/`, `/descriptions/`,
+`/key-dates/` and `/identifiers/`. A user who may delete the measurement also gets Delete, at
+`/measurement/<uuid>/delete/`.
 
 **Figures.** The result. A type that declares a `value` (and optionally an `uncertainty`) gets it
 shown as "value ± uncertainty unit" with no template of its own. A type that records its result

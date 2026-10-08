@@ -7,8 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A keywords page on projects, datasets, samples and measurements.** Each record type has the URL
+  name `keywords`, at `<record address>/keywords/`, reached from the Manage menu after the
+  descriptions entry. The Manage menu now offers all six pages in one order on every record type: edit
+  details, descriptions, keywords, key dates, identifiers and delete. The readiness items for
+  keywords on a project's and a dataset's page lead to it. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
+- **A delete page on projects, datasets, samples and measurements.** Each record type has the URL
+  name `delete`, at `<record address>/delete/`, reached from the last entry of the Manage menu. A
+  sample and a measurement can be deleted through the portal for the first time. The page asks for
+  the record's name, or a measurement's portal ID when it has no name, and says what goes with the
+  record before anything is deleted. A record that cannot be deleted, such as a project with a
+  public dataset or a sample with measurements, says what is in the way and offers no way to
+  confirm. Measurements the viewer may not see are counted and not named. Afterwards a sample or a
+  measurement leads to its dataset. `manage_menu` entries now carry a `destructive` flag. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
+- **Key dates and identifiers pages on projects, datasets, samples and measurements.** Each record
+  type has the URL names `key-dates` and `identifiers`, at `<record address>/key-dates/` and
+  `<record address>/identifiers/`, reached from the Manage menu after the descriptions entry. A
+  measurement's dates and identifiers can be edited for the first time. A date is kept as
+  precisely as it was entered, and a project and a dataset still refuse an end that falls before
+  the start. New row sets `SampleDateInline`, `SampleIdentifierInline`, `MeasurementDateInline`
+  and `MeasurementIdentifierInline` are in `fairdm.core.related_records`. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
+
 ### Removed
 
+- **The project's Manage menu no longer has a contributors entry.** The Contributors tab is where
+  a project's contributors are managed, as on a dataset.
+- **The sample keywords page is replaced by the shared one.** The sample `Keywords` plugin,
+  `KeywordsPlugin` (the module `fairdm.contrib.generic.plugins`) and the `urls` and `can_edit`
+  entries of the sample overview context are gone, along with the Edit keywords item the sample
+  template passed through the Manage menu. The address and URL name `sample:keywords` stay, and now
+  serve the shared page. A portal that subclassed `KeywordsPlugin` for its own page builds on
+  `FairDMUpdateView` and `Plugin`.
+- **The project and dataset delete pages are replaced by the shared one.** The project `Delete` and
+  dataset `Delete` plugins, the `overview-delete` URL names on both, `DeletePlugin`, the
+  `show_delete_action` method, the `directory` and `crud_views` attributes and the
+  `CRUDDirectoryMixin` base on both overview plugins, and the `urls.delete` entry of both overview
+  contexts are gone, along with `visible_to_holder_of` in the project and dataset plugin modules.
+  The address `<record address>/delete/` stays. A portal that reversed `overview-delete` reverses
+  `delete` in the record's namespace instead, and a portal that subclassed `DeletePlugin` for its
+  own page builds on `FairDMDeleteView` and `Plugin`.
+- **A project's and a dataset's dates and identifiers are no longer rows on the details page.**
+  They are edited on the key dates and identifiers pages. A portal that posted `dates-` or
+  `identifiers-` fields to the `edit` page now posts them to `key-dates` or `identifiers`.
+- **The sample's key dates page is replaced by the shared one.** `KeyDatesPlugin`, the sample
+  `KeyDates` plugin and the `plugins/key-dates.html` template are gone. The sample's key dates
+  address and URL name `sample:key-dates` stay, and now serve the shared page.
+- **The project, dataset and sample editing pages are replaced by shared ones.** A project's
+  `Update` and `Descriptions` pages, a dataset's, and a sample's `Edit` and `Descriptions` pages are
+  gone, with the `overview-update` and `overview-descriptions` URL names on projects and datasets
+  and the `/update/` address of both, the sample's `basic-information` page and its address, and
+  `UpdatePlugin` and `DescriptionsPlugin` with the `plugins/descriptions.html` template. A project,
+  a dataset, a sample and a measurement now have the URL names `edit` and `descriptions`, at
+  `<record address>/edit/` and `<record address>/descriptions/`, reached from the Manage menu. The
+  old addresses are not redirected. A portal that linked to one reverses `edit` or `descriptions`
+  in the record's namespace instead, and a portal that subclassed `UpdatePlugin` for its own page
+  builds on `FairDMUpdateView` and `Plugin`. See
+  [Record editing pages](docs/portal-development/record-editing-pages.md).
 - `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
   `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
   dataset's stored permissions down to its samples and measurements. A level on a dataset now
@@ -51,6 +110,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The keywords form builds for every record type.** `KeywordForm` read a setting named after the
+  concrete model, such as `FAIRDM_ROCKSAMPLE`, which does not exist, so it raised for every sample
+  type. It now offers the free keywords field alone on every record type and reads no keyword
+  vocabulary from settings. It shows a record's free keywords as chosen, saves them, and leaves the
+  record's vocabulary keywords as they are. It no longer rebinds its own class to the model of the
+  last record it was built for.
 - **Signing in works in development without Redis.** With `DJANGO_ENV=development` and no
   `REDIS_URL`, every sign-in returned "429 Too Many Requests", because the rate limiter could not
   reach its cache. The development settings now hold every cache in memory when `REDIS_URL` is
@@ -229,6 +294,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A measurement can be edited through the portal.** Its overview page gains a Manage menu, and the
+  edit details and descriptions pages open at `/measurement/<uuid>/edit/` and `/descriptions/`.
+  Every registered sample and measurement type receives both pages with no work by the portal
+  developer.
+- `RecordEditingPage`, the class the shared editing pages inherit, which decides who may open a
+  page on every request. A visitor is sent to sign in, a signed-in person who may see the record and
+  may not use the page gets a 403, and someone who may not see the record gets a 404. A private
+  project's or dataset's edit page used to answer 404 to a signed-in person who could open the
+  project.
+- `<c-actions.manage>` and the `overview.manage` block, which draw the Manage menu on all four
+  overview pages. A record's template adds its own entries through the component's slot.
 - **Access to a project, dataset, sample or measurement is a level on a person's contribution**:
   view, edit or manage, each including the one before it. `RecordLevelBackend`
   (`fairdm.contrib.contributors.permissions`) answers every permission question about these

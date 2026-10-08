@@ -292,7 +292,7 @@ class TestRecordPageAccess:
 
     def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):
         dataset = DatasetFactory()
-        url = reverse("dataset:overview-descriptions", kwargs={"uuid": dataset.uuid})
+        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
 
         anonymous = client.get(url)
         assert anonymous.status_code == 404

@@ -1,0 +1,123 @@
+{
+ "story": "FIX1",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 404,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T014",
+  "T015",
+  "T016",
+  "T017"
+ ],
+ "context": {
+  "why": "All four stories are accepted and a code reviewer has read the whole feature once. This is the one fix cycle: four tasks, each answering findings in specs/024-shared-editing-pages/review-findings.json. Read the findings named in your tasks there: each gives file:line, the failing input, the consequence and the smallest fix. The high one is SEC-001: a sample's delete page lists the rows that go with the sample unfiltered, and a SampleRelation row prints both samples' names, so it names a related sample in a dataset the viewer has no rights over, which the sample's own page hides.",
+  "spec_sections": [
+   "FR-014",
+   "FR-017",
+   "FR-030",
+   "FR-031",
+   "Edge Cases"
+  ],
+  "plan_sections": [
+   "D2",
+   "D3",
+   "D4",
+   "D6",
+   "D8",
+   "D11",
+   "Tests"
+  ],
+  "prior_decisions": [
+   "review-findings.json: SEC-001, COR-001, TEST-001, DOC-001, DOC-002, DOC-003, PERF-001, SIMP-001. Its notes are not tasks.",
+   "decisions.md D19 (blocking measurements named only if visible) is the existing pattern to follow for SEC-001: DeleteRecord.split_protected and the protected_unlisted context entry, drawn by fairdm/templates/editing/delete_record.html. For rows that go with the record and are not listed, add a second count in the context and draw it in that template the same way; do not print anything about the hidden sample.",
+   "PERF-001: keep RecordEditingPage.verdict as the single rule. Let it take the visibility answer as an optional argument, or memoise the overview check on the request beside the permission memo in fairdm/contrib/plugins/access.py (has_perm). Do not change what verdict decides. The query-count test is the one exception to the no-query-count rule and is named in tasks.md.",
+   "DOC-001: follow the shape of the existing sections in docs/more/migration-guides.md (for example '022 - Access to a record is a level on its contribution'). The removed names are listed in the finding; check each against the diff `git diff origin/main...HEAD` before writing it down.",
+   "T015 is tests only. The reviewer probed each case and the code holds, so these tests are expected to pass on first run; say so in progress.md and do not change code to make them fail first."
+  ],
+  "acceptance": [
+   {
+    "task": "T014",
+    "given_when_then": "Given a sample related to a sample the viewer may not see, when the viewer opens its delete page, then the hidden sample's name and portal ID are absent and the page says how many rows it does not list; and a sample's or measurement's delete page does not list the record itself."
+   },
+   {
+    "task": "T015",
+    "given_when_then": "Given the four cases in tasks.md T015, when each request is posted, then nothing it should not change is changed."
+   },
+   {
+    "task": "T016",
+    "given_when_then": "Given the documentation, when an upgrading portal developer reads docs/more/migration-guides.md, then every removed name in this feature has a step saying what to use instead."
+   },
+   {
+    "task": "T017",
+    "given_when_then": "Given a sample's overview, when manage_menu is built, then the overview's visibility check runs once, and the two unused helpers are gone."
+   }
+  ],
+  "verified_base": {
+   "commit": "0489baf64fbef20550774761dbc8bf7c392811dc",
+   "verified_at": "2026-10-07T21:15:00Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance",
+    "docs"
+   ],
+   "note": "Verified independently at c8540522 before the review: lint, typecheck, the whole test suite, build, conformance and docs pass. Every commit since changes only files under specs/024-shared-editing-pages/."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Plugin",
+   "Registry",
+   "Visibility",
+   "Contribution"
+  ],
+  "environment": "Worktree /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages on branch 024-shared-editing-pages; you work directly on the feature branch, one story at a time, and no other agent is in it. The virtualenv is synced with uv. Run everything through uv: `uv run pytest <path>::<Class> -q -n0` for a narrow scope, `uv run pre-commit run --all-files` for the lint gate (raw ruff is not the gate; pre-commit skips untracked files, so `git add` new files first). The full gate is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main`; run it once, at your completion report. Commits are authored as the repository's bot already (git config is bound); do not change it. A development server runs from this worktree on port 8000 with config/devserver.py and db.sqlite3 (both untracked) and reloads on every save: leave it running, never start or stop it, and do not commit those files or media/. This feature adds no migration.",
+  "conventions": "Read docs/contributing/standards/testing.md before writing tests: tests mirror the source tree, grouped in Test<Subject> classes, one factory per model, fixtures wrap factories, no assertions on fixed wording or appearance. All of this feature's page tests go in tests/test_core/test_editing.py, parametrised over a project, a dataset, a demo sample type and a demo measurement type. Patterns to follow: tests/test_contrib/test_contributors/test_plugins/ with its conftest.py (page tests through the test client on all four record types, levels given with ContributionFactory, people made with is_active=True), tests/test_core/test_project/test_plugins.py (a record's plugin pages). Access is tested by requesting the page through the client, never by calling a check function. Line length 88. Docstrings follow the documentation standard under docs/contributing/standards/. Public markdown (docs, CONTEXT.md, CHANGELOG, docs/adr) is plain prose: no em dashes, sentence-case headings, reads as current state, never says how the feature was built, and never mentions an agent, a reviewer or a plan stage. Every user-facing string is translatable. Raise every ValidationError with a code. Templates: reusable pieces are Cotton components; use django-mvp components and DaisyUI utilities, no custom CSS."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks T014 to T017 under 'Phase 6' in specs/024-shared-editing-pages/tasks.md, and the findings they name in specs/024-shared-editing-pages/review-findings.json.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "Read the CONTEXT.md entries named in context.glossary_terms.",
+  "git log --oneline -10. Confirm only files under specs/024-shared-editing-pages/ differ between HEAD and context.verified_base.commit, unless context.verified_base.note says otherwise.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/024-shared-editing-pages/specs/024-shared-editing-pages/report-fix-1.json and commit it with your last commit. Your final message is a short summary and that path."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, with the exception tasks.md names: a pre-existing test that requests a page this feature removes, or reverses its old URL name, is rewritten against the shared page where it asserts something your new tests do not, and removed where they do. List every test class you changed or removed in progress.md, with one line each on why.",
+  "No test asserts fixed wording, layout, width or stacking. Find things by element, link target, form field name, id, data attribute or context value.",
+  "Reusable template pieces are Cotton components, never {% include %} partials. No new template tags. No custom CSS where a django-mvp or DaisyUI utility exists.",
+  "No compatibility aliases, no redirects from the old addresses, and no leading-underscore names for new functions or methods.",
+  "Never edit feature-state.json beyond flipping your own tasks' status, attempts and evidence. evidence is an object with only tests, commands, code (path:line) and verified_by_ci.",
+  "No git merge, no push, no gh, no token minting. Your story ends at a clean committed worktree and a report.",
+  "Never weaken an assertion, add a skip or an xfail, or special-case code to make a test pass.",
+  "Never write a decisions.md entry, progress note or commit message that asserts a check you did not personally run, or that speaks in the orchestrator's voice.",
+  "Use `git add <paths>`, never `git add -A`: config/devserver.py, db.sqlite3 and media/ must stay untracked.",
+  "Never touch .github/. No test reaches the network.",
+  "Do not change any permission backend, fairdm/contrib/contributors/access.py, visible_to, or who may change or delete a record (FR-012).",
+  "Do not tidy fairdm/contrib/generic/forms.py or any other module beyond what your tasks name. Dead code you notice goes in your report's concerns, not in a commit.",
+  "Running `uv run ruff check` with fixes enabled rewrites unrelated files: use `uv run pre-commit run --files <your files>`.",
+  "One unrelated test, TestOrganizationUpdate in tests/test_contrib/test_contributors, errors now and then on a uniqueness collision from random data. If it is the only failure in your full verify, run the test step once more and report both runs; do not touch it."
+ ]
+}

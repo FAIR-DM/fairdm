@@ -1,0 +1,8 @@
+{% extends "form_view.html" %}
+{# A page of rows that each pair a type with a value reads as a table, so the row set uses the `tabular` layout in place of the default stacked one. The page's title already names the rows, so the row set's own heading and the line drawn with it are hidden (`.editing-rows` in fairdm.css). The wrapper is a stopgap, removed by FAIR-DM/fairdm#448 once django-mvp can leave the divider out (django-mvp/django-mvp#511). #}
+{% block formset %}
+  <div class="editing-rows">
+    {% if formset %}<c-form.formset :formset="formset" />{% endif %}
+    {% for inline in inlines %}<c-form.formset :formset="inline" layout="tabular" />{% endfor %}
+  </div>
+{% endblock formset %}

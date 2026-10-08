@@ -343,30 +343,13 @@ def person_at(record, level, **fields):
 
 
 def changing_page(record):
-    """The address of a page that changes the record, or None when it has none."""
-    kind = RecordAccess(record).kind
-    if kind in ("project", "dataset"):
-        return reverse(record, "overview-update")
-    if kind == "sample":
-        return reverse(record, "edit")
-    return None
-
-
-def refusal(record):
-    """The status a signed-in person who may open the record gets from one of its editing pages.
-
-    A private project's or dataset's pages answer a refusal as a record that does not exist,
-    which is the rule those pages already had.
-    """
-    private = getattr(record, "visibility", None) == Visibility.PRIVATE
-    return 404 if private else 403
+    """The address of the page that changes the record."""
+    return reverse(record, "edit")
 
 
 def deletion_page(record):
-    """The address of the page that deletes the record, or None when it has none."""
-    if RecordAccess(record).kind in ("project", "dataset"):
-        return reverse(record, "overview-delete")
-    return None
+    """The address of the page that deletes the record."""
+    return reverse(record, "delete")
 
 
 def tab_pages(record, contribution):
@@ -407,10 +390,7 @@ class TestLevels:
             browser_as(newcomer).get(private_record.get_absolute_url()).status_code
             == 200
         )
-        if changing_page(private_record):
-            assert browser_as(newcomer).get(
-                changing_page(private_record)
-            ).status_code == refusal(private_record)
+        assert browser_as(newcomer).get(changing_page(private_record)).status_code == 403
         assert not newcomer.has_perm(
             f"{RecordAccess(private_record).kind}.change_{RecordAccess(private_record).kind}",
             private_record,
@@ -460,10 +440,7 @@ class TestLevels:
             assert (
                 browser_as(editor).get(changing_page(private_record)).status_code == 200
             )
-        if deletion_page(private_record):
-            assert browser_as(editor).get(
-                deletion_page(private_record)
-            ).status_code == refusal(private_record)
+        assert browser_as(editor).get(deletion_page(private_record)).status_code == 403
         for url in tab_pages(private_record, colleague)[1:]:
             assert browser_as(editor).get(url).status_code == 403, url
         assert browser_as(editor).get(tab(private_record)).status_code == 200
@@ -477,11 +454,7 @@ class TestLevels:
                 browser_as(manager).get(changing_page(private_record)).status_code
                 == 200
             )
-        if deletion_page(private_record):
-            assert (
-                browser_as(manager).get(deletion_page(private_record)).status_code
-                == 200
-            )
+        assert browser_as(manager).get(deletion_page(private_record)).status_code == 200
         for url in tab_pages(private_record, colleague):
             assert browser_as(manager).get(url).status_code == 200, url
 
@@ -503,10 +476,7 @@ class TestLevels:
         assert (
             browser_as(editor).get(private_record.get_absolute_url()).status_code == 200
         )
-        if changing_page(private_record):
-            assert browser_as(editor).get(
-                changing_page(private_record)
-            ).status_code == refusal(private_record)
+        assert browser_as(editor).get(changing_page(private_record)).status_code == 403
 
     def test_a_person_who_is_removed_is_refused_a_private_record(self, private_record):
         manager = person_at(private_record, MANAGE)

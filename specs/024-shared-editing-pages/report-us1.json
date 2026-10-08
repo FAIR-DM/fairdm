@@ -1,0 +1,112 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py"
+        ],
+        "criteria": [
+          "SC-003",
+          "SC-005",
+          "SC-006",
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py -q -n0 (at 5aff37f1 this was red by design, failing on the missing shared pages; at HEAD it passes, 133 passed)",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "5aff37f1"
+      ]
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_editing.py"
+        ],
+        "criteria": [
+          "SC-003",
+          "SC-005",
+          "SC-006",
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest tests/test_core/test_editing.py -q -n0",
+          "uv run pytest tests demo -q -n auto --dist loadscope",
+          "uv run pre-commit run --all-files"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "d78531a4"
+      ]
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "evidence": {
+        "criteria": [],
+        "commands": [
+          "forge verify --repo . --base origin/main --steps docs",
+          "forge check-adrs --repo . --feature 024-shared-editing-pages",
+          "forge verify --repo . --base origin/main (conformance, docs, lint, typecheck, test, build all passed)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "8dfb5f33"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "fairdm/core/editing.py is imported at the foot of fairdm/core/measurement/plugins.py, not fairdm/core/project/plugins.py",
+      "why": "Importing from the project module registers the six pages on Sample and Measurement before those models' overviews, and an existing test takes the first plugin registered on Sample to be the overview.",
+      "decision_ref": "decisions.md#d8-the-shared-pages-are-imported-from-the-last-of-the-four-record-plugin-modules"
+    },
+    {
+      "what": "EditDetails sets no template, so a project's and a dataset's identifier and date rows draw stacked, where the dataset's old page drew them as a table",
+      "why": "The shared page serves four record types and the rows leave it in US2, so a template for two record types would last one story.",
+      "decision_ref": "decisions.md#d9-dates-and-identifiers-on-the-details-page-draw-stacked-until-they-leave-it"
+    },
+    {
+      "what": "The empty-vocabulary state of the descriptions page is not built",
+      "why": "No core description vocabulary is empty and a test would have to patch library internals.",
+      "decision_ref": "decisions.md#d12-the-descriptions-page-does-not-handle-a-vocabulary-with-no-types"
+    },
+    {
+      "what": "The delete flag on a Manage menu entry and the divider before it are not built",
+      "why": "No delete page is registered in this story, so neither branch could be tested.",
+      "decision_ref": "decisions.md#d13-the-manage-menu-draws-no-divider-or-flag-for-the-delete-entry-yet"
+    }
+  ],
+  "concerns": [
+    "fairdm/core/sample/plugins.py: the sample Keywords page raises ImproperlyConfigured on the base commit (no model, queryset or get_queryset). The menu still links to it. US4 repairs it; the tests here assert the menu entry only.",
+    "fairdm/contrib/generic/forms.py: DescriptionForm, DescriptionInline, Description2Inline and BaseInlineFactory are dead after DescriptionsPlugin went. DescriptionForm is still imported by the two inlines and by tests/test_contrib/test_generic/test_forms.py, so they stay as the brief directs.",
+    "demo/plugins.py: its module docstring still shows examples that inherit the removed UpdatePlugin. It is a docstring only, outside docs/, and was left alone.",
+    "The docs gate matches words, so removing classes named Update, Edit and Descriptions flagged five pages that use those words in unrelated examples (docs/contributing/getting_started.md, docs/portal-development/component_library/cards.md, docs/portal-development/component_library/contributors.md, docs/portal-development/contributors.md, docs/portal-administration/managing-measurements.md). Each got a one-line edit.",
+    "tests/test_contrib/test_plugins/test_access.py::test_a_predicate_written_to_the_wrong_signature_hides_its_entry reads registered[0] as the sample overview. It passes only while the overview registers first on Sample, which decision D8 keeps true.",
+    "Existing tests changed or removed are listed class by class in progress.md under T002. Two behaviours reverse on purpose: a signed-in person who may see a private project or dataset and may not change it now gets 403 from the edit page, where the old page answered 404, and the edit page no longer draws a Delete button.",
+    "The Design review finding that a registry-built form draws a nested form element does not reproduce with this crispy-forms version, because an empty FormHelper is falsy and django-mvp skips it. The reset on the helper is kept and is tested through a form whose helper has a layout (decision D10)."
+  ],
+  "blocked": []
+}

@@ -199,7 +199,7 @@ uv run sphinx-build -W -b html docs docs/_build/html
 
    - Implement filter_by_type method on MeasurementQuerySet
    - Add tests for filtering by measurement subclass
-   - Update documentation with usage example
+   - Document the filter with a usage example
 
    Fixes #123"
    ```

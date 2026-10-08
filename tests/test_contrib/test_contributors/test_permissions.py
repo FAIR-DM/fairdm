@@ -4,7 +4,6 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.test import RequestFactory
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from partial_date import PartialDate
@@ -368,23 +367,22 @@ class TestDataCuratorPortalPages:
 
         client.force_login(curator)
         response = client.get(
-            reverse("dataset:overview-update", kwargs={"uuid": dataset.uuid})
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         )
         assert response.status_code == 200
 
-    def test_can_view_and_change_the_datasets_sample(self):
-        from fairdm.contrib.plugins.access import can_open
-        from fairdm.core.sample.plugins import Edit
+    def test_can_view_and_change_the_datasets_sample(self, client):
         from fairdm.portal_roles import PortalRoles
 
         _dataset, sample = self._private_dataset_with_sample()
         curator = _holder_of(
             PortalRoles.DATA_CURATOR.name, email="curator2@example.com"
         )
-        request = RequestFactory().get("/")
-        request.user = curator
 
-        assert can_open(Edit, request, sample) is True
+        client.force_login(curator)
+        response = client.get(reverse("sample:edit", kwargs={"uuid": sample.uuid}))
+
+        assert response.status_code == 200
 
     def test_the_record_carries_no_mark_saying_a_curator_changed_it(self):
         from fairdm.core.dataset.models import Dataset
