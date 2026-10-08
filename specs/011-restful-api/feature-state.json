@@ -1,0 +1,508 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "011-restful-api",
+  "branch": "011-restful-api",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PLAN",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-08T22:03:43Z",
+      "note": "specification approved on #455 at b35d1728; epic #454, stories #456-461"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-08T22:54:04Z",
+      "note": "branch rebased on origin/main at ffbfb69f after #464; started on the maintainer's instruction while #383 is open"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-08T22:03:43Z",
+      "self_resolved": [
+        "approved in the session at commit b35d1728",
+        "delete refusals, access from other origins, limits and page sizes were decided without asking and listed in the gate message"
+      ]
+    },
+    "plan": {
+      "approved_by": null,
+      "at": null
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 456,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T002",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T003",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T004",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T005",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T006",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_pagination.py::TestPagination"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_pagination.py::TestPagination"
+            ],
+            "code": [
+              "fairdm/api/pagination.py:6"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_filters.py::TestVisibilityFilterProjects",
+              "tests/test_api/test_filters.py::TestVisibilityFilterDatasets"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityFilterProjects tests/test_api/test_filters.py::TestVisibilityFilterDatasets"
+            ],
+            "code": [
+              "fairdm/api/filters.py:50"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T009",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_permissions.py::TestAnonymousAccess",
+              "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
+              "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission",
+              "tests/test_api/test_permissions.py::TestDatasetPermissions"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission tests/test_api/test_permissions.py::TestDatasetPermissions"
+            ],
+            "code": [
+              "fairdm/api/permissions.py:60"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T011",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T012",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T013",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T014",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T015",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 457,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T016",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T017",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T018",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T019",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T020",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_permissions.py::TestAnonymousAccess",
+              "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
+              "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
+            ],
+            "code": [
+              "fairdm/api/permissions.py:48",
+              "fairdm/api/permissions.py:60"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T022",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T023",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T024",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T025",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T026",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P2",
+      "issue": 458,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T027",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T028",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T029",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T030",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T031",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T032",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T033",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
+            ],
+            "code": [
+              "fairdm/api/urls.py:17",
+              "fairdm/conf/urls.py:25"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T034",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T036",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 459,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T037",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T038",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T039",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T040",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US5",
+      "priority": "P3",
+      "issue": 460,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T044",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_urls.py::TestSwaggerUI",
+              "tests/test_api/test_urls.py::TestOpenAPISchema"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_urls.py::TestSwaggerUI tests/test_api/test_urls.py::TestOpenAPISchema"
+            ],
+            "code": [
+              "fairdm/api/urls.py:30"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T045",
+          "status": "done",
+          "attempts": 0,
+          "evidence": {
+            "tests": [
+              "tests/test_menus/test_menus.py::TestAPIMenuItem"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_menus/test_menus.py::TestAPIMenuItem"
+            ],
+            "code": [
+              "fairdm/menus/menus.py:117"
+            ],
+            "verified_by_ci": false
+          }
+        },
+        {
+          "id": "T046",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T047",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T048",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T049",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T050",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T051",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T052",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "id": "US6",
+      "priority": "P3",
+      "issue": 461,
+      "status": "todo",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T053",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T054",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T055",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T056",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T057",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T058",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T059",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T060",
+          "status": "todo",
+          "attempts": 0
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 0,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 0,
+      "max": 1
+    },
+    "tokens": {
+      "used": 0,
+      "max": 120
+    },
+    "design_review_cycles": {
+      "used": 0,
+      "max": 1
+    }
+  },
+  "pr": {
+    "number": 455,
+    "draft": true
+  }
+}
