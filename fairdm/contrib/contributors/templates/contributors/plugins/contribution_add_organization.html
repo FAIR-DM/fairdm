@@ -7,7 +7,7 @@
 {% endcomment %}
 
 {% block page.content %}
-  <c-card.wrapper class="bg-base-100 max-w-3xl">
+  <c-mvp.card.wrapper class="bg-base-100 max-w-3xl">
     <div class="card-body gap-5">
       <p class="text-sm text-base-content/70">
         {% blocktranslate %}Use this for an organization credited on this {{ kind }} in its own right, such as a funder or a host institution. A person's affiliation is listed for you when the person is added.{% endblocktranslate %}
@@ -185,5 +185,5 @@
         <div><c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" size="sm" ghost /></div>
       </div>
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock page.content %}

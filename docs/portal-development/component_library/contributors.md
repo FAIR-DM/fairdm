@@ -196,7 +196,7 @@ as a whole.
 
 ## Avatar images
 
-Every `<c-avatar :for="...">` in the portal asks the function set as
+Every `<c-mvp.avatar :for="...">` in the portal asks the function set as
 `MVP_CONFIG["brand"]["avatar_resolver"]` for its image. FairDM sets it to
 `fairdm.contrib.contributors.utils.helpers.avatar_url`, which returns the thumbnail of a
 contributor's `image`: the 150×150 thumbnail for sizes up to `md`, and the 600×600 one for `lg`

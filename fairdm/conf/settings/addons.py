@@ -40,7 +40,7 @@ FLEX_MENUS = {
 }
 
 MVP_CONFIG = {
-    # `c-avatar :for="contributor"` draws the contributor's photo or logo.
+    # `c-mvp.avatar :for="contributor"` draws the contributor's photo or logo.
     "brand": {
         "avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url",
     },
@@ -51,9 +51,7 @@ MVP_CONFIG = {
         },
         # The sidebar drawer already carries the login and theme controls, so the default
         # navbar copies would double them.
-        "navbar": {
-            "desktop": {"end": []},
-        },
+        "navbar": {"end": []},
     },
 }
 

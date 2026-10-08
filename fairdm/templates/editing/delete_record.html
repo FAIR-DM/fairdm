@@ -6,7 +6,7 @@
     <c-alert variant="error">
       <div>
         <strong>{% translate "This record cannot be deleted." %}</strong>
-        <c-text>
+        <c-mvp.text>
           {% if protected_kind == "measurements" %}
             {% translate "It is referenced by the following measurements, which must be removed or updated first:" %}
           {% elif protected_kind == "datasets" %}
@@ -14,14 +14,14 @@
           {% else %}
             {% translate "It is referenced by the following records, which must be removed or updated first:" %}
           {% endif %}
-        </c-text>
+        </c-mvp.text>
         <ul class="list-disc ms-4">
           {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
         </ul>
         {% if protected_unlisted %}
-          <c-text>
+          <c-mvp.text>
             {% blocktranslate count counter=protected_unlisted %}One more measurement you do not have access to also stops this deletion.{% plural %}{{ counter }} more measurements you do not have access to also stop this deletion.{% endblocktranslate %}
-          </c-text>
+          </c-mvp.text>
         {% endif %}
       </div>
     </c-alert>

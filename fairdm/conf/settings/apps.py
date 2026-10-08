@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     # the first one it finds.
     "mvp_accounts",
     "mvp",
+    # Directly below mvp, which replaces some of its templates.
+    "daisy_cotton",
     "mvp_charts",
     "polymorphic",
     "parler",

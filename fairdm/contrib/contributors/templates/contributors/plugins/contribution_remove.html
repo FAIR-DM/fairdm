@@ -6,7 +6,7 @@
 {% endcomment %}
 
 {% block page.content %}
-  <c-card.wrapper class="bg-base-100 max-w-3xl">
+  <c-mvp.card.wrapper class="bg-base-100 max-w-3xl">
     <div class="card-body gap-4">
       <c-contributor.item :contributor="entry.contribution" size="md" secondary="{% if not entry.affiliation %}none{% endif %}" :link="False" />
 
@@ -62,5 +62,5 @@
         </form>
       {% endif %}
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock page.content %}

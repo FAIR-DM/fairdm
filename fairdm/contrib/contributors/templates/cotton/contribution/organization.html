@@ -5,7 +5,7 @@
 {# @prop movable:boolean | description:"Whether the move actions are offered." #}
 {% load i18n %}
 <c-vars entry list_url can_manage movable />
-<c-card.wrapper class="bg-base-100 h-full relative">
+<c-mvp.card.wrapper class="bg-base-100 h-full relative">
   <a href="{{ entry.contributor.get_absolute_url }}" class="card-body items-center text-center gap-3 p-4">
     <c-contributor.avatar :contributor="entry.contributor" size="xl" class="" />
     <span class="font-semibold text-sm leading-snug break-words max-w-full">{{ entry.contributor.name }}</span>
@@ -35,4 +35,4 @@
       </div>
     </details>
   {% endif %}
-</c-card.wrapper>
+</c-mvp.card.wrapper>

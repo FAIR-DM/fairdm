@@ -13,8 +13,8 @@
   {% endif %}
 {% endblock before_form %}
 {% block actions %}
-  <c-group breakpoint="md" wrap>
+  <c-mvp.group breakpoint="md" wrap>
     <c-button text="{% translate 'Save' %}" type="submit" variant="primary" />
     <c-button text="{% translate 'Cancel' %}" href="{{ cancel_url }}" outline />
-  </c-group>
+  </c-mvp.group>
 {% endblock actions %}

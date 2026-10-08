@@ -86,7 +86,7 @@
 
   {% block overview.data %}
     {% if not data_types %}
-      <c-card title="{% translate 'Data types' %}" class="bg-base-100">
+      <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100">
         {% if can_manage %}
           <div class="flex flex-col items-start gap-3">
             <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
@@ -97,7 +97,7 @@
         {% else %}
           <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
         {% endif %}
-      </c-card>
+      </c-mvp.card>
     {% endif %}
   {% endblock overview.data %}
 
@@ -105,24 +105,24 @@
     {% if composition_chart or growth_chart %}
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
         {% if composition_chart %}
-          <c-card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
+          <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
             <c-chart :chart="composition_chart.chart"
                      id="dataset-composition"
                      height="{{ composition_chart.height }}"
                      name="{% translate 'Records by type' %}"
                      caption="{% translate 'Records by sample and measurement type.' %}"
                      description="{{ composition_chart.description }}" />
-          </c-card>
+          </c-mvp.card>
         {% endif %}
         {% if growth_chart %}
-          <c-card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
+          <c-mvp.card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
             <c-chart :chart="growth_chart.chart"
                      id="dataset-growth"
                      aspect-ratio="16/9"
                      name="{% translate 'Samples and measurements added over time' %}"
                      caption="{% translate 'Running total, by month added to the portal.' %}"
                      description="{{ growth_chart.description }}" />
-          </c-card>
+          </c-mvp.card>
         {% endif %}
       </div>
     {% endif %}
@@ -142,7 +142,7 @@
 
 {% block overview.record_facts %}
   {% block overview.publications %}
-    <c-card title="{% translate 'Related publications' %}" class="bg-base-100" data-card="publications">
+    <c-mvp.card title="{% translate 'Related publications' %}" class="bg-base-100" data-card="publications">
       {% if literature.items %}
         <ul class="flex flex-col gap-3 text-sm">
           {% for entry in literature.items %}
@@ -160,7 +160,7 @@
       {% else %}
         <p class="text-sm text-base-content/70">{% if can_manage %}{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}{% else %}{% translate "No publications are linked to this dataset." %}{% endif %}</p>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.publications %}
 
 {% endblock overview.record_facts %}

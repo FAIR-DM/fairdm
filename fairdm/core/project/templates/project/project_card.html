@@ -59,7 +59,7 @@
           <div class="avatar-group -space-x-4">
             {# `for` is passed explicitly, or the component falls back to `request.user` and draws the visitor's avatar. #}
             {% for contribution in object.contributors.all|slice:":4" %}
-              <c-avatar :for="contribution.contributor"
+              <c-mvp.avatar :for="contribution.contributor"
                         src="{% if contribution.contributor.image %}{{ contribution.contributor.image|thumbnail_url:'thumb' }}{% endif %}"
                         alt="{{ contribution.contributor }}"
                         size="xs" />

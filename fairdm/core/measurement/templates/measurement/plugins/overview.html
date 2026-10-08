@@ -3,15 +3,15 @@
 
 {% block overview_main %}
   {{ block.super }}
-  <c-card title="{% trans 'Measurement Value' %}"
+  <c-mvp.card title="{% trans 'Measurement Value' %}"
           icon="speedometer2">
     <div class="p-4 bg-light rounded text-center">
       <div class="display-4 fw-bold text-primary mb-2">{{ measurement.get_value }}</div>
       <div class="text-muted">{{ measurement.get_polymorphic_type_name }}</div>
     </div>
-  </c-card>
+  </c-mvp.card>
   {% if measurement.sample %}
-    <c-card title="{% trans 'Sample' %}" icon="box-seam">
+    <c-mvp.card title="{% trans 'Sample' %}" icon="box-seam">
       <div class="d-flex align-items-center">
         {% if measurement.sample.image %}
           <img src="{{ measurement.sample.image.url }}"
@@ -36,9 +36,9 @@
           </p>
         </div>
       </div>
-    </c-card>
+    </c-mvp.card>
   {% endif %}
-  <c-card title="{% trans 'Dataset & Project' %}"
+  <c-mvp.card title="{% trans 'Dataset & Project' %}"
           icon="project">
     <div class="mb-3">
       <h6 class="text-muted small text-uppercase mb-2">{% trans "Dataset" %}</h6>
@@ -76,9 +76,9 @@
         </div>
       </div>
     {% endif %}
-  </c-card>
+  </c-mvp.card>
   {% if measurement.method or measurement.protocol %}
-    <c-card title="{% trans 'Method & Protocol' %}"
+    <c-mvp.card title="{% trans 'Method & Protocol' %}"
             icon="journal-text">
       {% if measurement.method %}
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Method" %}</h6>
@@ -88,7 +88,7 @@
         <h6 class="text-muted small text-uppercase mb-2">{% trans "Protocol" %}</h6>
         <p class="mb-0">{{ measurement.protocol }}</p>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endif %}
 {% endblock overview_main %}
 
@@ -110,7 +110,7 @@
 {% block overview_sidebar %}
   {{ block.super }}
   {% if measurement.uncertainty or measurement.unit or measurement.precision %}
-    <c-card title="{% trans 'Measurement Details' %}"
+    <c-mvp.card title="{% trans 'Measurement Details' %}"
             icon="analytics">
       <dl class="mb-0">
         {% if measurement.unit %}
@@ -130,6 +130,6 @@
           </dd>
         {% endif %}
       </dl>
-    </c-card>
+    </c-mvp.card>
   {% endif %}
 {% endblock overview_sidebar %}

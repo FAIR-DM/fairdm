@@ -69,7 +69,7 @@
 {% endblock overview.byline %}
 
 {% block overview.actions %}
-  <c-addons.share-dropdown size="sm" />
+  <c-mvp.addons.share-dropdown size="sm" />
   {% if api_url %}
     <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
   {% endif %}
@@ -97,7 +97,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card title="{% translate 'About' %}" class="bg-base-100" data-card="about">
+    <c-mvp.card title="{% translate 'About' %}" class="bg-base-100" data-card="about">
       {% if person.profile %}
         <div class="prose max-w-none">{{ person.profile|safe_markdown }}</div>
       {% elif is_self %}
@@ -108,7 +108,7 @@
       {% else %}
         <c-missing><span>{% translate "No biography has been added yet." %}</span></c-missing>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.about %}
 
   {% block overview.records %}
@@ -164,9 +164,9 @@
     {% if people.shown %}
       <c-card.people :people="people" title="{% translate 'Frequent collaborators' %}" />
     {% else %}
-      <c-card title="{% translate 'Frequent collaborators' %}" class="bg-base-100" data-card="people">
+      <c-mvp.card title="{% translate 'Frequent collaborators' %}" class="bg-base-100" data-card="people">
         <c-missing><span>{% translate "Nobody else is credited on the same records yet." %}</span></c-missing>
-      </c-card>
+      </c-mvp.card>
     {% endif %}
   {% endblock overview.people %}
 

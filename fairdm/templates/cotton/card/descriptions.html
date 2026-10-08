@@ -13,7 +13,7 @@
 {% endcomment %}
 <c-vars descriptions group class />
 {% if descriptions|length > 1 %}
-  <c-card.wrapper class="bg-base-100 {{ class }}">
+  <c-mvp.card.wrapper class="bg-base-100 {{ class }}">
     <div class="card-body">
       <c-tabs group="{{ group }}" class="tabs-header" label="{% translate 'Descriptions' %}">
         {% for description in descriptions %}
@@ -23,13 +23,13 @@
         {% endfor %}
       </c-tabs>
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% elif descriptions %}
-  <c-card title="{{ descriptions.0.label }}" class="bg-base-100 {{ class }}">
+  <c-mvp.card title="{{ descriptions.0.label }}" class="bg-base-100 {{ class }}">
     <div class="prose max-w-none">{{ descriptions.0.value|safe_markdown }}</div>
-  </c-card>
+  </c-mvp.card>
 {% else %}
-  <c-card title="{% translate 'About' %}" class="bg-base-100 {{ class }}">
+  <c-mvp.card title="{% translate 'About' %}" class="bg-base-100 {{ class }}">
     {{ slot }}
-  </c-card>
+  </c-mvp.card>
 {% endif %}

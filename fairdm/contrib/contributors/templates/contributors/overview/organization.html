@@ -52,18 +52,18 @@
 {% endblock overview.byline %}
 
 {% block overview.actions %}
-  <c-addons.share-dropdown size="sm" />
+  <c-mvp.addons.share-dropdown size="sm" />
   {% if api_url %}
     <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
   {% endif %}
   {% if can_manage %}
-    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
-      <c-menu>
-        <c-menu.item href="{{ update_url }}" icon="edit" label="{% translate 'Edit details' %}" />
+    <c-mvp.dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu class="w-full">
+        <c-menu.item href="{{ update_url }}" icon="edit" text="{% translate 'Edit details' %}" />
         <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="member" aria-hidden="true" />{% translate "Manage members" %}</span></li>
         <li class="menu-disabled" title="{% translate 'Coming soon' %}"><span><c-icon name="import" aria-hidden="true" />{% translate "Update from ROR" %}</span></li>
       </c-menu>
-    </c-dropdown>
+    </c-mvp.dropdown>
   {% elif can_edit %}
     <c-button href="{{ update_url }}" text="{% translate 'Edit details' %}" icon="edit" size="sm" />
   {% elif user.is_authenticated and not is_member %}
@@ -83,7 +83,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card title="{% translate 'About' %}" class="bg-base-100" data-card="about">
+    <c-mvp.card title="{% translate 'About' %}" class="bg-base-100" data-card="about">
       {% if organization.profile %}
         <div class="prose max-w-none">{{ organization.profile|safe_markdown }}</div>
       {% elif can_manage %}
@@ -94,11 +94,11 @@
       {% else %}
         <c-missing><span>{% translate "No description has been added yet." %}</span></c-missing>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.about %}
 
   {% block overview.members %}
-    <c-card title="{% translate 'Members' %}" class="bg-base-100" data-card="members">
+    <c-mvp.card title="{% translate 'Members' %}" class="bg-base-100" data-card="members">
       <c-slot name="badges">
         {% if members.total %}<span class="badge badge-ghost badge-sm">{{ members.total }}</span>{% endif %}
       </c-slot>
@@ -123,7 +123,7 @@
           {% if members.more %}
             {% comment %}Stands in for a link to the full member list, which has no page yet.{% endcomment %}
             <li class="flex items-center gap-3 min-w-0 text-base-content/70" title="{% translate 'The full member list is not available yet.' %}">
-              <c-avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
+              <c-mvp.avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
               <span>{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</span>
             </li>
           {% endif %}
@@ -131,7 +131,7 @@
       {% else %}
         <c-missing><span>{% translate "Nobody has listed this organization as an affiliation yet." %}</span></c-missing>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.members %}
 
   {% block overview.records %}

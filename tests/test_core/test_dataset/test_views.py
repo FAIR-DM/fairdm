@@ -157,6 +157,8 @@ class TestDatasetListingSearch:
         assert other not in entries
 
     def test_the_listing_offers_no_second_search_control(self, client):
+        # The shell draws no toolbar, and so no search box, over an empty listing.
+        DatasetFactory(visibility=Visibility.PUBLIC)
         response = client.get(reverse("dataset-list"))
         content = response.content.decode()
         assert content.count('name="q"') == 1

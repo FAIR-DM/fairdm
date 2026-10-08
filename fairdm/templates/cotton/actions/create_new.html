@@ -1,6 +1,6 @@
 {# @description A dropdown button that offers to create a project or a dataset. Renders only for authenticated users, reading `user` from the template context. #}
 {% if user.is_authenticated %}
-  <c-dropdown text="{% trans "Create new" %}"
+  <c-mvp.dropdown text="{% trans "Create new" %}"
               icon="plus"
               halign="end"
               gap="1"
@@ -8,13 +8,13 @@
               variant="primary"
               size="sm"
               class="show-btn-text">
-    <c-menu>
-      <c-menu.item label="{% trans "Project" %}"
+    <c-menu class="w-full">
+      <c-menu.item text="{% trans "Project" %}"
                    icon="project"
                    href="{% url "project-create" %}" />
-      <c-menu.item label="{% trans "Dataset" %}"
+      <c-menu.item text="{% trans "Dataset" %}"
                    icon="dataset"
                    href="{% url "dataset-create" %}" />
     </c-menu>
-  </c-dropdown>
+  </c-mvp.dropdown>
 {% endif %}

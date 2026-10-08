@@ -4,8 +4,8 @@
 {% load fairdm contributor_tags easy_icons %}
 
 {% with obj as contributor %}
-  <c-card class="overflow-hidden h-100">
-    <c-avatar :contributor="obj" only />
+  <c-mvp.card class="overflow-hidden h-100">
+    <c-mvp.avatar :contributor="obj" only />
     <c-card.body class="card-img-overlay">
       <a href="{{ obj.get_absolute_url }}"
          class="stretched-link"></a>
@@ -20,5 +20,5 @@
         {{ actions }}
       </c-card.footer>
     {% endif %}
-  </c-card>
+  </c-mvp.card>
 {% endwith %}

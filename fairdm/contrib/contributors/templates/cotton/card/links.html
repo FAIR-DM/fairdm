@@ -7,7 +7,7 @@
     class  – extra classes on the card
 {% endcomment %}
 <c-vars links class />
-<c-card title="{% translate 'Links' %}" class="bg-base-100 {{ class }}" data-card="links" only>
+<c-mvp.card title="{% translate 'Links' %}" class="bg-base-100 {{ class }}" data-card="links" only>
   {% if links %}
     <ul class="flex flex-col gap-2 text-sm">
       {% for link in links %}
@@ -20,4 +20,4 @@
   {% else %}
     <c-missing only><span>{% translate "No links have been added." %}</span></c-missing>
   {% endif %}
-</c-card>
+</c-mvp.card>

@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block page.hero %}
-  <c-section.hero height="75vh"
+  <c-mvp.section.hero height="75vh"
                   title="{{ hero_content.title }}"
                   subtitle="{{ hero_content.lead }}"
                   bg-image="{% static hero_content.image %}">
@@ -18,5 +18,5 @@
                 variant="light"
                 href="{% url "account_signup" %}" />
     </c-slot>
-  </c-section.hero>
+  </c-mvp.section.hero>
 {% endblock page.hero %}

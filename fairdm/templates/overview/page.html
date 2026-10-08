@@ -56,7 +56,7 @@
 {% block page.title %}
   {% block overview.notices %}{% endblock overview.notices %}
 
-  <c-card.wrapper class="bg-base-100">
+  <c-mvp.card.wrapper class="bg-base-100">
     <div class="card-body gap-4">
       <div class="flex flex-col md:flex-row gap-4 md:items-start">
         <div class="hidden md:block shrink-0">
@@ -86,7 +86,7 @@
                 {% for person in header_people %}
                   <li>
                     <a href="{{ person.get_absolute_url }}" class="flex items-center gap-2 link link-hover">
-                      <c-avatar :for="person" alt="" size="xs" />
+                      <c-mvp.avatar :for="person" alt="" size="xs" />
                       <span>{{ person }}</span>
                     </a>
                   </li>
@@ -111,7 +111,7 @@
         <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
           {% block overview.actions %}
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
-            <c-addons.share-dropdown size="sm" />
+            <c-mvp.addons.share-dropdown size="sm" />
             {% block overview.manage %}
               <c-actions.manage :entries="manage_menu" />
             {% endblock overview.manage %}
@@ -119,7 +119,7 @@
         </div>
       </div>
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock page.title %}
 
 {% block page.content %}

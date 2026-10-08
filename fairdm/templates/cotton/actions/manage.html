@@ -4,18 +4,18 @@
 <c-vars entries />
 {% if entries or slot|wordcount %}
   <div data-menu="manage">
-    <c-dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
-      <c-menu>
+    <c-mvp.dropdown halign="end" text="{% translate 'Manage' %}" icon="edit" size="sm" content_class="w-56">
+      <c-menu class="w-full">
         {% for entry in entries %}
           {% if entry.destructive %}
-            {% if not forloop.first %}<c-menu.divider />{% endif %}
-            <c-menu.item label="{{ entry.label }}" icon="{{ entry.icon }}" href="{{ entry.url }}" class="text-error" />
+            {% if not forloop.first %}<li></li>{% endif %}
+            <c-menu.item text="{{ entry.label }}" icon="{{ entry.icon }}" href="{{ entry.url }}" class="text-error" />
           {% else %}
-            <c-menu.item label="{{ entry.label }}" icon="{{ entry.icon }}" href="{{ entry.url }}" />
+            <c-menu.item text="{{ entry.label }}" icon="{{ entry.icon }}" href="{{ entry.url }}" />
           {% endif %}
         {% endfor %}
         {{ slot }}
       </c-menu>
-    </c-dropdown>
+    </c-mvp.dropdown>
   </div>
 {% endif %}

@@ -6,7 +6,7 @@
 {% with c=contributor|as_contributor fallback=contributor.get_real_instance.primary_organization %}
   {% if c %}
     {% with roles=contributor.roles.all affiliation=contributor.affiliation|default:fallback portal_roles=c.portal_roles location=c.get_location_display %}
-      <c-card.wrapper class="h-full py-5 {{ class }}">
+      <c-mvp.card.wrapper class="h-full py-5 {{ class }}">
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" class="" />
         </figure>
@@ -27,7 +27,7 @@
             </div>
           {% endif %}
         </div>
-      </c-card.wrapper>
+      </c-mvp.card.wrapper>
     {% endwith %}
   {% endif %}
 {% endwith %}

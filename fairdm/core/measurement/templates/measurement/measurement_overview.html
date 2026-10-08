@@ -14,7 +14,7 @@
 
     {% extends "measurement/measurement_overview.html" %}
     {% block overview.result %}…the type's own result…{% endblock %}
-    {% block overview.properties %}<c-card title="…">…</c-card>{% endblock %}
+    {% block overview.properties %}<c-mvp.card title="…">…</c-mvp.card>{% endblock %}
 
   Measurement blocks: overview.result (in the figures' place; shown when the type declares a
   `value`, otherwise the block a type fills first), then in the wide column overview.properties
@@ -39,12 +39,12 @@
 {% block overview.figures %}
   {% block overview.result %}
     {% if result %}
-      <c-card.wrapper class="bg-base-100">
+      <c-mvp.card.wrapper class="bg-base-100">
         <div class="card-body">
           <p class="text-xs uppercase font-semibold text-base-content/60">{% translate "Result" %}</p>
           <p class="text-4xl font-semibold tabular-nums break-words">{{ result.text }}</p>
         </div>
-      </c-card.wrapper>
+      </c-mvp.card.wrapper>
     {% endif %}
   {% endblock overview.result %}
 {% endblock overview.figures %}
@@ -63,14 +63,14 @@
 
   {% block overview.notes %}
     {% if notes %}
-      <c-card title="{% translate 'Notes' %}" class="bg-base-100">
+      <c-mvp.card title="{% translate 'Notes' %}" class="bg-base-100">
         <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
-      </c-card>
+      </c-mvp.card>
     {% endif %}
   {% endblock overview.notes %}
 
   {% block overview.sample %}
-    <c-card title="{% translate 'Measured on' %}" class="bg-base-100">
+    <c-mvp.card title="{% translate 'Measured on' %}" class="bg-base-100">
       {% if sample_visible %}
         <div class="flex gap-4 items-start min-w-0">
           <a href="{{ sample.get_absolute_url }}" class="shrink-0" tabindex="-1" aria-hidden="true">
@@ -111,12 +111,12 @@
           <span>{% translate "This measurement and its sample are recorded in different datasets. That's normal when one group measures specimens another group collected." %}</span>
         </c-alert>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.sample %}
 
   {% block overview.siblings %}
     {% if siblings.total %}
-      <c-card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100">
+      <c-mvp.card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100">
         <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
         <ul class="list">
           {% for row in siblings.rows %}
@@ -139,7 +139,7 @@
             <c-actions.pending label="{{ label }}" icon="data" reason="{{ reason }}" size="xs" />
           </div>
         {% endif %}
-      </c-card>
+      </c-mvp.card>
     {% endif %}
   {% endblock overview.siblings %}
 {% endblock overview.main %}

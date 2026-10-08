@@ -37,7 +37,7 @@
         </h2>
         {% if can_manage %}<c-button href="{{ list_url }}add-person/" text="{% translate 'Add person' %}" icon="plus" size="sm" />{% endif %}
       </div>
-      <c-card.wrapper class="bg-base-100">
+      <c-mvp.card.wrapper class="bg-base-100">
         {% if people.rows %}
           <c-list label="{% translate 'People, in the order this record names them' %}">
             {% for entry in people.rows %}
@@ -63,7 +63,7 @@
             {% endif %}
           </div>
         {% endif %}
-      </c-card.wrapper>
+      </c-mvp.card.wrapper>
 
       {% if can_manage and people.rows and not term %}
         <p class="text-sm text-base-content/70">
@@ -72,7 +72,7 @@
       {% endif %}
 
       {% if can_manage and parent and not term %}
-        <c-card title="{% blocktranslate with kind=parent_kind|lower %}Access from the {{ kind }}{% endblocktranslate %}" class="bg-base-100">
+        <c-mvp.card title="{% blocktranslate with kind=parent_kind|lower %}Access from the {{ kind }}{% endblocktranslate %}" class="bg-base-100">
           <c-slot name="actions">
             <c-button href="{{ parent_url }}" text="{% translate 'Manage there' %}" size="sm" />
           </c-slot>
@@ -96,7 +96,7 @@
               {% blocktranslate with kind=parent_kind|lower this=kind %}Nobody else holds access to this {{ this }} through its {{ kind }}.{% endblocktranslate %}
             </p>
           {% endif %}
-        </c-card>
+        </c-mvp.card>
       {% endif %}
     </div>
 
@@ -117,7 +117,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <c-card.wrapper class="bg-base-100">
+        <c-mvp.card.wrapper class="bg-base-100">
           <div class="card-body">
             {% if term %}
               <p>{% blocktranslate %}No organization on this {{ kind }} matches “{{ term }}”.{% endblocktranslate %}</p>
@@ -126,7 +126,7 @@
               {% if can_manage %}<p class="text-sm text-base-content/70">{% translate "A person's affiliation is listed here when they are added. An organization can also be credited on its own." %}</p>{% endif %}
             {% endif %}
           </div>
-        </c-card.wrapper>
+        </c-mvp.card.wrapper>
       {% endif %}
       {% if can_manage and organizations.rows and not term %}
         <p class="text-sm text-base-content/70">{% translate "Organizations are credited and hold no access. Their members gain none from it." %}</p>
