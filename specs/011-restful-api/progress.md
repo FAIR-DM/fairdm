@@ -42,3 +42,10 @@ Did: Added TestContributor in tests/test_api/test_viewsets.py. A person with a b
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributor` gives 4 failed, 1 passed. The failures are the contributor record route answering 404 to a visitor. The passing case (superuser answered 404) passes only because every contributor record is 404 today; it is a guard for once that is fixed.
 Next: T006.
 Watch: Red until T014.
+
+## 2026-10-08T23:14:57Z · Implementer US1 · T006
+
+Did: Added TestListAndRecordRoutes in tests/test_api/test_viewsets.py. For projects, datasets, contributors and every registered sample and measurement type it checks a list is served to a visitor with the record in it, a record is found by its short identifier, an unknown identifier is answered 404, and that unregistered types (under both prefixes) and a sample type under the measurement prefix are answered 404.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestListAndRecordRoutes` gives 11 failed, 27 passed. The failures are the five sample lists and records (no `uuid` in the response today) and the contributor record (404). The 404 cases for unknown identifiers and unregistered types already hold.
+Next: T009.
+Watch: Red until T014.

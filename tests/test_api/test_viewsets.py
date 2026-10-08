@@ -1267,3 +1267,97 @@ class TestContributor:
         )
 
         assert response.status_code == 404
+
+
+def routable_models():
+    """Every model with a list and record route: the core kinds and the registered types."""
+    from fairdm.contrib.contributors.models import Contributor
+
+    return [
+        Project,
+        Dataset,
+        Contributor,
+        *registered("sample"),
+        *registered("measurement"),
+    ]
+
+
+@pytest.mark.django_db
+class TestListAndRecordRoutes:
+    @pytest.fixture
+    def a_record_of(self, make_record):
+        """Return a function building a public record of a routable model."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.factories import OrganizationFactory
+
+        def a_record_of(model):
+            if model is Project:
+                return ProjectFactory(visibility=Visibility.PUBLIC)
+            if model is Dataset:
+                return DatasetFactory(visibility=Visibility.PUBLIC)
+            if model is Contributor:
+                return OrganizationFactory()
+            return make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+
+        return a_record_of
+
+    @staticmethod
+    def address(model, action, uuid=None):
+        from fairdm.contrib.contributors.models import Contributor
+        from tests.test_api.conftest import route_name
+
+        name = (
+            f"api:contributor-{action}"
+            if model is Contributor
+            else route_name(model, action)
+        )
+        return reverse(name, kwargs={"uuid": uuid} if uuid else None)
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_a_list_is_served_to_a_visitor(self, api_client, a_record_of, model):
+        record = a_record_of(model)
+
+        response = api_client.get(self.address(model, "list"))
+
+        assert response.status_code == 200
+        assert record.uuid in [row["uuid"] for row in response.json()["results"]]
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_a_record_is_found_by_its_short_identifier(
+        self, api_client, a_record_of, model
+    ):
+        record = a_record_of(model)
+
+        response = api_client.get(self.address(model, "detail", record.uuid))
+
+        assert response.status_code == 200
+        assert response.json()["uuid"] == record.uuid
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_an_unknown_identifier_is_answered_404(self, api_client, model):
+        response = api_client.get(self.address(model, "detail", "xNoSuchRecord"))
+
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/api/v1/samples/unregistered-types/",
+            "/api/v1/measurements/unregistered-types/",
+            "/api/v1/samples/unregistered-types/sNoSuchRecord/",
+            "/api/v1/measurements/unregistered-types/mNoSuchRecord/",
+        ],
+    )
+    def test_an_unregistered_type_is_answered_404(self, api_client, path):
+        assert api_client.get(path).status_code == 404
+
+    def test_a_sample_type_is_not_served_under_the_measurement_prefix(
+        self, api_client, a_record_of
+    ):
+        from demo.models import RockSample
+
+        record = a_record_of(RockSample)
+
+        response = api_client.get(f"/api/v1/measurements/rock-samples/{record.uuid}/")
+
+        assert response.status_code == 404
