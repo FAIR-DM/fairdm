@@ -3,7 +3,7 @@
   "feature": "002-fairdm-registry",
   "branch": "002-fairdm-registry",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -54,6 +54,11 @@
       "state": "PR_READY",
       "at": "2026-08-17T16:45:00Z",
       "note": "53 of 53 tasks done. Verify gate green: 1547 passed, ruff clean, mypy at per-file parity, wheel builds. The 12 remaining suite failures are pre-existing and routed out separately."
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-17T12:02:08Z",
+      "note": "PR #145 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -70,8 +75,8 @@
       "at": "2026-08-17T11:30:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-17T12:01:53Z"
     }
   },
   "stories": [
@@ -1014,6 +1019,6 @@
   },
   "pr": {
     "number": 145,
-    "draft": true
+    "draft": false
   }
 }

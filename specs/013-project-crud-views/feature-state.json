@@ -3,7 +3,7 @@
   "feature": "013-project-crud-views",
   "branch": "013-project-crud-views",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "INTAKE",
@@ -59,6 +59,11 @@
       "state": "IMPLEMENT",
       "at": "2026-08-24T10:31:19Z",
       "note": "plan confirmed by Sam; foundations first, then navigation track, then the attributes and descriptions pages"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-08-24T22:13:05Z",
+      "note": "PR #274 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -75,8 +80,8 @@
       "at": "2026-08-24T10:30:00Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-08-24T22:05:26Z"
     }
   },
   "stories": [
@@ -1836,5 +1841,9 @@
       "used": 0,
       "max": 4000000
     }
+  },
+  "pr": {
+    "number": 274,
+    "draft": false
   }
 }
