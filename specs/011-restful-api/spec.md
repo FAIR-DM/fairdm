@@ -1,227 +1,531 @@
-# Feature Specification: Auto-Generated RESTful API
+# Feature Specification: The REST API reads and writes complete records
 
 **Feature Branch**: `011-restful-api`
-**Created**: 2026-03-31
+
+**Created**: 2026-03-31. Rewritten 2026-10-08 after an audit of the specification against the code.
+
 **Status**: Draft
-**Prerequisites**: Feature 002 (FairDM Registry), Feature 003–006 (Core Models), Feature 009 (Contributors)
-**Input**: User description: "RESTful API that automatically populates itself based on the models registered by portal developers, without requiring manual endpoint configuration. Core endpoints for projects, datasets, sample types, measurement types, and contributors. Full CRUD via viewsets. Swagger/OpenAPI docs. Integration with existing auth and permissions. Public access rate-limited; account holders less restricted. Fast and performant."
+
+**Goals**: G10: data and metadata are reachable by machines through a documented API. G2:
+registering a model is enough to get a working portal surface. G12: private and public data sit side
+by side, controlled per object.
+
+**Roadmap**: R11, the machine-readable API.
+
+**Input**: Every record a portal holds should be reachable by a program, complete, with nothing for
+the portal developer to write. A script reads a whole project, dataset, sample, measurement or
+contributor. A person with the right level on a record creates it, changes it and deletes it through
+the API, under the same access rules as the portal's pages. A portal developer who registers a
+sample or measurement type gets its endpoints with no further work, and can say which fields they
+carry. A person reaches the API with a token they create and revoke on their own account pages. The
+API documents itself, and its limits suit a research group running one small server.
+
+## What exists, and what this specification changes
+
+The API has been in the code since April 2026 and the roadmap lists it as delivered and unverified.
+An audit on 2026-10-08 ran it against the demonstration portal. Reading a list or a single record
+works. Almost nothing else does what was specified:
+
+- Creating a sample or a measurement fails with a server error, for every registered type.
+- Creating a dataset succeeds and discards the project it was sent with.
+- A project or dataset is returned as five or six fields. Its descriptions, key dates, identifiers,
+  keywords, contributors, licence and owner are absent.
+- A measurement is returned without any of its measured values, and a sample without its dataset.
+- Sorting a list of samples or measurements fails with a server error.
+- Records refer to each other by internal database number, while their addresses use the short
+  identifier.
+- A token is obtained by posting an email address and a password to the API, which takes no account
+  of two-factor sign-in.
+
+This specification states what the API is for and requires the code to meet it. Each difference
+between the earlier specification and the code, what was decided about it and why, is recorded in
+[decisions.md](decisions.md).
+
+## Boundary
+
+- **Writing a record's descriptions, key dates, identifiers, keywords and contributors through the
+  API** is a separate feature. Here they are read with the record and changed in the portal. So is
+  creating a contributor through the API.
+- **Searching through the API** belongs to roadmap item R17, which delivers one search for the
+  portal and the API together.
+- **The pages on which a person creates and revokes a token** are django-mvp-accounts' own. This
+  feature turns them on and makes the API accept their tokens.
+- **A record's page showing its API address** is #432.
+- **Import and export of tabular data** is R21. **Dataset versions in the API** is R23.
+- **The location module's GeoJSON endpoints** are not part of this feature. That file imports code
+  that no longer exists and is never loaded, which makes it roadmap item R20's to remove or repair.
+
+## Clarifications
+
+### Session 2026-10-08
+
+These questions came out of the audit. Each was answered from the maintainer's reply to the audit's
+reading, from the roadmap and from the specifications this one sits beside, without putting it to
+the maintainer again. The reasoning is in [decisions.md](decisions.md).
+
+- Q: How does one record name another, such as a dataset naming its project? → A: By the short
+  identifier that is already in the record's address, together with the address itself. Internal
+  database numbers do not appear anywhere in the API, in what it returns or in what it accepts.
+- Q: What does "the complete record" contain? → A: Everything a visitor who may see the record is
+  shown on its overview page: its own fields, its parent, its descriptions, key dates, identifiers,
+  keywords, licence, owner and credited contributors. A sample or measurement also carries every
+  field its registered type declares for the API.
+- Q: Which of those can be written here? → A: The record's own fields, its visibility and its
+  parent. The rest are read-only in this feature and say so in the documentation.
+- Q: Who may create, change and delete? → A: Whoever may do the same thing in the portal. The level
+  a person holds on a record decides it, the creator is credited at the manage level, and changing
+  visibility or moving a record needs the manage level. These rules are FS-022's and are not
+  restated differently here.
+- Q: What stops a record being deleted? → A: What stops it in the portal. A project with a public
+  dataset is refused, and so is a sample with measurements made on it. The API refuses with a
+  reason and deletes nothing.
+- Q: Does the API accept replacing a whole record as well as changing part of one? → A: Both. A
+  partial change leaves every field it does not name as it was.
+- Q: How does a person get a token? → A: On their account pages, after signing in the way the
+  portal requires, two-factor included. The API has no endpoint that exchanges a password for a
+  token and none for resetting or changing a password.
+- Q: Can a browser session use the API? → A: Yes, for a person signed in to the portal, which is
+  what lets the documentation page try a request. A script uses a token.
+- Q: May a page on another website call the API? → A: Yes, to read, and to write with a token. A
+  portal's sign-in cookie is never accepted from another website.
+- Q: What are the limits on use? → A: Two for each kind of caller, one over a short window to stop
+  a burst and one over a day. A caller with a token is allowed several times what an anonymous
+  caller is. A page of results is large enough that walking a whole dataset takes few requests, and
+  a caller may ask for larger pages up to a stated ceiling. The figures are chosen at planning for a
+  single small server and every one of them is a setting.
+- Q: Does the changed output need a new version in the address? → A: No. No release has carried the
+  API, so `/api/v1/` is still the first version.
+- Q: The earlier specification asked for a group of three API links in the sidebar and a setting
+  for a documentation link. Are they kept? → A: No. The maintainer reduced the sidebar to one link
+  to the API documentation in August 2026, and that stands. The setting has nothing left to read it
+  and is removed.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Read-Only Browsing of Core Data via API (Priority: P1)
+### User Story 1 - A developer reads a complete record with a script (Priority: P1)
 
-As a researcher or application developer, I can browse projects, datasets, sample types, measurement types, and contributors through a RESTful API without configuring anything, so that I can programmatically discover and access data published on the portal.
+Someone writing an analysis script wants a dataset from a portal. They ask the API for the list of
+datasets, pick one, and receive it whole: its name, its project, its licence, its descriptions, key
+dates, identifiers and keywords, and the people credited on it. They follow the address of its
+samples, receive each sample with every field its type records, and follow on to the measurements
+with their measured values. They narrow a list to the rows they want and sort it. They never signed
+in, because the dataset is public.
 
-**Why this priority**: Read access is the foundational capability that all other API interactions depend on. It delivers immediate value by enabling programmatic data discovery based on FairDM's FAIR principles. Most API consumers will be read-heavy; listing and retrieving records is the highest-traffic use case.
+**Why this priority**: Reading is what almost every caller does, and G10 asks for data and metadata.
+A record returned as a name and two dates meets neither half.
 
-**Independent Test**: Start a portal with registered Sample and Measurement models, make unauthenticated GET requests to the projects, datasets, samples, measurements, and contributors list endpoints, verify JSON responses with correct data. Test passes when all list and detail endpoints return valid JSON responses containing the expected fields for each model.
+**Independent Test**: Load development data. Without signing in, request the list and one record of
+each of the five kinds, and compare what is returned with what the record's overview page shows.
+Filter and sort each list. Request a private record, and a record that does not exist.
 
 **Acceptance Scenarios**:
 
-1. **Given** a portal with registered Sample and Measurement types and published data, **When** a user sends a GET request to the projects list endpoint, **Then** a paginated JSON response is returned containing project records with the fields configured in the registry
-2. **Given** a portal with at least two registered Sample types (e.g., RockSample, SoilSample), **When** a user sends a GET request to the sample-types discovery endpoint, **Then** the response lists all registered Sample types with their names and endpoint URLs
-3. **Given** a specific Sample type is registered, **When** a user sends a GET request to that type's list endpoint, **Then** only samples of that type are returned with the fields defined in the registry configuration
-4. **Given** a project with a known identifier exists, **When** a user sends a GET request to the project detail endpoint using that identifier, **Then** the full project record is returned with all configured fields
-5. **Given** a dataset belongs to a project, **When** a user retrieves the dataset detail, **Then** the response includes a reference to the parent project
-6. **Given** the list endpoint returns many records, **When** a user requests the list without pagination parameters, **Then** the response is paginated with a configurable default page size and includes navigation links (next, previous, count)
+1. **Given** a public project, dataset, sample or measurement, **When** anyone requests it,
+   **Then** the response carries its own fields, its parent, its descriptions, key dates,
+   identifiers, keywords and credited contributors, and for a dataset its licence.
+2. **Given** a record that sits under another, **When** it is returned, **Then** it names its
+   parent by short identifier and by address, and requesting that address returns the parent.
+3. **Given** a sample or measurement of a registered type, **When** it is returned, **Then** it
+   carries every field that type declares for the API, together with the fields every sample or
+   every measurement has.
+4. **Given** any response from the API, **When** it is read, **Then** it contains no internal
+   database number, for the record or for anything it refers to.
+5. **Given** a contributor, **When** anyone requests them, **Then** the response carries what
+   their public profile page shows, and never an email address, a password or anything about their
+   account.
+6. **Given** a list of more records than one page holds, **When** it is requested, **Then** the
+   response says how many there are in all and gives the address of the next and previous pages.
+7. **Given** a registered type that declares filters, **When** its list is requested with one of
+   them, **Then** only matching records are returned.
+8. **Given** any list, **When** it is requested in a named order, ascending or descending,
+   **Then** the records come back in that order.
+9. **Given** a private record, **When** a visitor or a signed-in person with no level on it
+   requests it, **Then** it is in no list they receive, and requesting it directly is answered as a
+   record that does not exist is.
+10. **Given** a private record, **When** someone holding at least the view level on it requests
+    it, **Then** they receive it.
+11. **Given** samples and measurements in a private dataset, **When** someone with no level on the
+    dataset requests them, **Then** none is returned and none is counted.
 
 ---
 
-### User Story 2 - Interactive API Documentation (Priority: P2)
+### User Story 2 - A member of a record's team creates, changes and deletes records through the API (Priority: P1)
 
-As a developer integrating with a FairDM portal, I can visit an interactive API documentation page that displays all available endpoints, request/response schemas, and allows me to try out requests directly from the browser.
+A laboratory's instrument software holds a token belonging to a researcher on a dataset's team.
+After each run it creates a sample in that dataset, then a measurement on the sample with the
+measured values. When a value is corrected it changes that one field. When a run is thrown out it
+deletes the measurement. A colleague who is only a viewer of the dataset tries the same and is
+refused each time.
 
-**Why this priority**: API documentation is essential for developer adoption. Without it, developers cannot discover endpoints or understand schemas. An auto-generated documentation page removes the maintenance burden and ensures docs always match the actual API.
+**Why this priority**: This is the change the maintainer asked for. The endpoints accept these
+requests today and most of them fail, so the API is read-only in practice.
 
-**Independent Test**: Navigate to the API documentation URL in a browser, verify that all registered model endpoints are listed with their schemas, and that the "Try it out" functionality executes a real request and displays the response. Test passes when the documentation page renders without errors and accurately reflects all registered endpoints.
+**Independent Test**: With a token for someone at the edit level on a dataset, create a sample of a
+registered type in it, create a measurement on the sample, change one field of each, and delete
+both. Create a dataset in a project and a project. Repeat each step as a viewer, as someone with no
+level, and with no token.
 
 **Acceptance Scenarios**:
 
-1. **Given** a portal is running with registered models, **When** a developer navigates to the API documentation URL, **Then** an interactive documentation page is displayed listing all available endpoints grouped by resource type
-2. **Given** a Sample type is registered with specific fields, **When** a developer views that type's endpoint schema in the documentation, **Then** the schema accurately reflects the configured fields, their types, and whether they are required
-3. **Given** the documentation page is loaded, **When** a developer uses the "Try it out" feature on a GET endpoint, **Then** a real request is sent and the response is displayed inline
-4. **Given** the portal has multiple registered Sample and Measurement types, **When** the documentation page loads, **Then** each registered type appears as a separate endpoint group within the documentation
+1. **Given** someone at the edit level on a dataset, **When** they create a sample of a registered
+   type naming that dataset, **Then** the sample exists in that dataset with the values sent, and
+   the response is the complete new record.
+2. **Given** someone at the edit level on a sample, **When** they create a measurement of a
+   registered type on it with its measured values, **Then** the measurement exists with those
+   values.
+3. **Given** someone at the edit level on a project, **When** they create a dataset naming that
+   project, **Then** the dataset exists in that project.
+4. **Given** any signed-in person, **When** they create a project, **Then** it exists and they are
+   credited on it at the manage level.
+5. **Given** a record a person may change, **When** they send a change to one field, **Then** that
+   field changes and every other field is as it was.
+6. **Given** a record a person may change, **When** they send a full replacement, **Then** the
+   record's writable fields take the values sent.
+7. **Given** a record a person may delete, **When** they delete it, **Then** it is gone and a
+   later request for it is answered as a record that does not exist is.
+8. **Given** a request to create or change a record with a required field missing or a value the
+   field does not accept, **When** it is processed, **Then** nothing is saved and the response names
+   each field at fault and says why.
+9. **Given** a request that names a parent the person may not add to, or one that does not exist,
+   **When** it is processed, **Then** nothing is saved and the response says the parent is not one
+   they can choose, in the same way for both cases.
+10. **Given** a request that tries to set a field the API only reads, such as a description or
+    the date a record was added, **When** it is processed, **Then** that field is left as it was.
+11. **Given** someone at the edit level and not the manage level, **When** they try to change a
+    record's visibility or move it to another parent, **Then** they are refused and nothing changes.
+12. **Given** a record the portal refuses to delete, such as a project with a public dataset or a
+    sample with measurements, **When** someone who may otherwise delete it tries through the API,
+    **Then** it is refused with the reason and nothing is deleted.
+13. **Given** a request to create, change or delete with no token and no session, **When** it is
+    processed, **Then** it is refused as unauthenticated.
+14. **Given** a public record and a signed-in person with no level on it, **When** they try to
+    change or delete it, **Then** they are refused. **Given** a private record they cannot see,
+    **Then** they are answered as for a record that does not exist.
+15. **Given** any valid or invalid write request, **When** it is processed, **Then** the response
+    is never a server error.
 
 ---
 
-### User Story 3 - Authenticated CRUD Operations (Priority: P3)
+### User Story 3 - A portal developer gets an API for a registered type and decides what it carries (Priority: P2)
 
-As an authenticated portal user with appropriate permissions, I can create, update, and delete records through the API, so that I can manage data programmatically without using the web interface.
+A portal developer adds a new sample type and registers it. Without writing anything else, the type
+has a list address and a record address, it appears in the catalogue of types, and its records can
+be read and written. The developer then decides the API should carry two fields the tables do not,
+and says so in the registration. Later they need a computed field, so they write their own
+serializer and name it in the registration. A colleague adds a viewset of their own for something
+the registry does not cover.
 
-**Why this priority**: Write operations extend the API from a read-only data access tool to a full data management interface. This enables integrations, automated data pipelines, and programmatic workflows. It depends on the read endpoints from US1 to be meaningful.
+**Why this priority**: G2 is the framework's promise. It follows the two reading and writing
+stories because they define what a generated endpoint must do.
 
-**Independent Test**: Authenticate as a user with editor permissions on a dataset, create a new sample via POST, update it via PATCH, delete it via DELETE, verify each operation succeeds and the changes are reflected in subsequent GET requests. Test passes when the full CRUD lifecycle completes without errors and the data is persisted correctly.
+**Independent Test**: Register a new sample type with no API configuration and exercise its
+endpoints. Add an API field list and confirm the output follows it. Replace the serializer and
+confirm the output is the replacement's. Register a serializer that does not build on the base and
+start the portal. Add a custom viewset to the router.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is authenticated and has edit permission on a dataset, **When** they POST a valid sample payload to the samples endpoint, **Then** a new sample record is created and the response contains the created record with a 201 status
-2. **Given** an existing sample record owned by the user, **When** they send a PATCH request with updated field values, **Then** the record is updated and the response reflects the changes
-3. **Given** an existing sample record the user has permission to delete, **When** they send a DELETE request, **Then** the record is removed and subsequent GET requests return 404
-4. **Given** a user attempts a POST with invalid data (missing required fields), **When** the request is processed, **Then** a 400 response is returned with clear error messages indicating which fields are invalid
-5. **Given** a user provides a valid payload but references a non-existent parent (e.g., dataset ID that does not exist), **When** the request is processed, **Then** a 400 response is returned indicating the referenced resource was not found
+1. **Given** a sample or measurement type registered with no API configuration, **When** the portal
+   starts, **Then** the type has working list and record endpoints, reading and writing, with a
+   default set of fields.
+2. **Given** a registration that names the fields for the API, **When** a record is returned,
+   **Then** it carries those fields, together with the fields every sample or every measurement has.
+3. **Given** a registration that names only the type's general field list, **When** a record is
+   returned, **Then** the API uses that list.
+4. **Given** a registration that names a serializer of the developer's own, or a configuration that
+   overrides how the serializer is obtained, **When** a record is returned, **Then** the API uses
+   it.
+5. **Given** a developer's own serializer that does not build on the framework's base for samples
+   or for measurements, **When** the portal starts, **Then** it refuses to start and says which
+   base to build on.
+6. **Given** a type registered with a field list that leaves out a field the type requires,
+   **When** the portal starts, **Then** the developer is told, before any caller meets a failure.
+7. **Given** two registered types, **When** their endpoints are built, **Then** each has its own
+   address taken from the type's plural name, and a sample type and a measurement type with the
+   same plural name do not collide.
+8. **Given** a developer who registers a viewset of their own on the framework's router, **When**
+   the portal starts, **Then** it is served beside the generated endpoints and appears in the
+   documentation.
+9. **Given** a type that fails to register for the API, **When** the portal starts, **Then** the
+   failure is reported to the developer and is not swallowed.
 
 ---
 
-### User Story 4 - Permission-Enforced Access Control (Priority: P4)
+### User Story 4 - A person reaches the API with a token from their account pages (Priority: P2)
 
-As a portal administrator, I need the API to enforce the same object-level permissions as the web interface, so that private datasets remain inaccessible to unauthorized users and contributors can only modify data they have permission to edit.
+A researcher wants their script to add samples. They sign in to the portal as usual, with their
+second factor, open their account pages and create a token that lasts ninety days. They paste it
+into the script, which sends it with each request. When the laptop is lost they return to the same
+page and revoke the token, and the script's next request is refused.
 
-**Why this priority**: Security is a first-class requirement. Without permission enforcement, the API becomes a data leak vector. This story ensures the API respects the existing guardian-based permission model and visibility settings. It builds on US1 (read) and US3 (write) by adding authorization gates.
+**Why this priority**: Writing needs a caller the portal can identify. The earlier way of getting a
+token asked for a password over the API and ignored two-factor sign-in.
 
-**Independent Test**: Create a private dataset, make GET requests as an unauthenticated user (expect 404), as an unrelated authenticated user (expect 404), and as the dataset owner (expect 200). Attempt a PATCH as a non-editor (expect 403) and as an editor (expect 200). Test passes when every permission boundary is correctly enforced.
+**Independent Test**: Sign in, create a token on the account pages, and use it to create a record.
+Revoke it and repeat the request. Let a token expire and repeat. Post an email address and password
+to the address the earlier login endpoint had.
 
 **Acceptance Scenarios**:
 
-1. **Given** a dataset is marked as private, **When** an unauthenticated user requests it via the API, **Then** the dataset does not appear in list results and a detail request returns 404 (not 403, to avoid leaking existence)
-2. **Given** a dataset is marked as private, **When** an authenticated user without permission requests it, **Then** the dataset is not visible in list results and detail returns 404
-3. **Given** a dataset is marked as private, **When** the dataset owner requests it via the API, **Then** the full dataset record is returned
-4. **Given** a user has "viewer" role on a project, **When** they attempt to create a new dataset under that project via POST, **Then** a 403 response is returned
-5. **Given** a user has "editor" role on a project, **When** they create a new dataset under that project via POST, **Then** the dataset is created successfully with a 201 response
-6. **Given** a user has no permissions on a sample, **When** they attempt to PATCH or DELETE that sample, **Then** a 404 response is returned (consistent non-disclosure)
+1. **Given** a signed-in person, **When** they open their account pages, **Then** they can create
+   an API token, see the tokens they hold and revoke any of them.
+2. **Given** a request carrying a token that is current, **When** it is processed, **Then** it is
+   treated as coming from the person who holds the token, with that person's levels.
+3. **Given** a request carrying a token that has been revoked, has expired or was never issued,
+   **When** it is processed, **Then** it is refused as unauthenticated.
+4. **Given** the API, **When** its addresses are listed, **Then** none of them exchanges a
+   password for a token, and none resets or changes a password.
+5. **Given** a person signed in to the portal in a browser, **When** they use the documentation
+   page to try a request, **Then** it is made as them.
+6. **Given** a page on another website, **When** it calls the API, **Then** it can read public
+   records and can write with a token, and a portal sign-in cookie it carries is not accepted.
 
 ---
 
-### User Story 5 - Rate-Limited Public Access (Priority: P5)
+### User Story 5 - A developer finds out what the API offers and tries it in the browser (Priority: P3)
 
-As a portal operator, I can configure the API so that unauthenticated users have heavily rate-limited access while authenticated account holders receive higher rate limits, protecting the portal from abuse while keeping data accessible.
+A developer who has never seen the portal opens its API documentation from the sidebar. The page
+lists every endpoint the portal has, including the sample and measurement types this particular
+portal registered, with the fields each accepts and returns. They try a request from the page and
+read the response. Their script asks the catalogue which sample types exist and where each one's
+records are.
 
-**Why this priority**: Rate limiting is essential to prevent abuse and ensure fair resource usage. Public access without limits would expose the portal to scraping and denial-of-service. However, it is lower priority because the API can launch with basic throttling and be tuned later.
+**Why this priority**: Documentation that matches the running portal is what makes the API usable
+by someone outside the team. It is generated, so it follows the endpoints being right.
 
-**Independent Test**: Make rapid repeated requests as an unauthenticated user and verify that requests are rejected after exceeding the configured threshold. Repeat as an authenticated user and verify a higher limit applies. Test passes when both limits are enforced and appropriate error responses are returned.
+**Independent Test**: Open the documentation from the sidebar on a portal with several registered
+types. Check each type appears with its fields, and that read-only fields are marked. Try a request.
+Request the two catalogues signed out and signed in.
 
 **Acceptance Scenarios**:
 
-1. **Given** an unauthenticated user, **When** they exceed the anonymous rate limit, **Then** subsequent requests return 429 (Too Many Requests) with a Retry-After header
-2. **Given** an authenticated user, **When** they exceed the authenticated rate limit, **Then** subsequent requests return 429 with a Retry-After header, but the limit is higher than the anonymous limit
-3. **Given** rate limiting is active, **When** an unauthenticated user is throttled, **Then** the 429 response includes a clear message explaining rate limits and how to authenticate for higher limits
-4. **Given** the rate-limit configuration, **When** a portal operator reviews the settings, **Then** both anonymous and authenticated rate limits are configurable through portal settings
+1. **Given** a running portal, **When** anyone follows the sidebar's API link, **Then** they reach
+   a documentation page that lists every endpoint, grouped by kind of record.
+2. **Given** a registered type, **When** its entry in the documentation is read, **Then** it shows
+   the fields that type accepts and returns, which are required, and which are read-only.
+3. **Given** the documentation page, **When** a request is tried from it, **Then** a real request
+   is sent and its response shown.
+4. **Given** the documentation, **When** it describes how to authenticate and what the limits are,
+   **Then** what it says is what the portal does.
+5. **Given** a request for the catalogue of sample types or of measurement types, **When** it is
+   answered, **Then** each registered type is listed with its name, the address of its records, its
+   fields and the filters it offers.
+6. **Given** a catalogue entry, **When** it gives a count of records, **Then** the count is of the
+   records the caller may see.
+7. **Given** a portal with no registered sample or measurement types, **When** the catalogues are
+   requested, **Then** each answers with an empty list.
+8. **Given** the address of the API's root, **When** it is requested, **Then** the response links
+   to every list endpoint and to both catalogues.
 
 ---
 
-### User Story 6 - Declarative API Configuration for Developers (Priority: P6)
+### User Story 6 - A portal operator keeps the API within what one small server can carry (Priority: P3)
 
-As a portal developer, I can configure which fields are exposed in the API for my custom Sample and Measurement types using the same registry system I already use for tables and forms, and optionally provide a custom serializer for advanced needs.
+A research group runs its portal on one modest server. Out of the box, a crawler that hammers the
+API is slowed down within seconds and cut off for the day soon after, while a colleague's nightly
+harvest with a token runs to completion. When a partner institute needs to pull the whole portal
+weekly, the operator raises the limit for signed-in callers in the settings and restarts.
 
-**Why this priority**: Developer experience is critical for framework adoption, but this story is about customization of an already-working API (from US1). The auto-generated defaults should work well enough out of the box; this story enables fine-tuning.
+**Why this priority**: The defaults protect a portal nobody has tuned. It comes last because a
+portal can launch with the defaults and adjust later.
 
-**Independent Test**: Register a Sample type with explicit `serializer_fields`, verify the API only exposes those fields. Then register another type with a custom `serializer_class`, verify the API uses the custom serializer. Test passes when the registry configuration directly controls what the API exposes.
-
-**Acceptance Scenarios**:
-
-1. **Given** a model is registered with only `fields` set (no `serializer_fields`), **When** the API serializer is generated, **Then** it includes the fields from the `fields` configuration
-2. **Given** a model is registered with explicit `serializer_fields`, **When** the API serializer is generated, **Then** it includes only the fields listed in `serializer_fields`, overriding the default `fields`
-3. **Given** a model is registered with a custom `serializer_class`, **When** the API viewset is created, **Then** it uses the custom serializer class directly without auto-generating one
-4. **Given** a model is registered with no explicit field configuration, **When** the API serializer is generated, **Then** it uses sensible defaults by inspecting the model's fields (same behavior as other auto-generated components like tables and forms)
-5. **Given** a developer changes the `serializer_fields` or `serializer_class` in their registration, **When** the portal restarts, **Then** the API reflects the updated configuration without any additional steps
-
----
-
-### User Story 7 - API Menu Group in Portal Sidebar (Priority: P7)
-
-As any portal visitor, I can access the API and its documentation directly from the portal's sidebar navigation menu, so that I can quickly find the interactive API explorer, the browsable API root, and guidance on consuming the API without hunting through the site.
-
-**Why this priority**: Discoverability is valuable but lower priority than a working, secure, documented API. The menu group is pure navigation sugar layered on top of a fully functional API.
-
-**Independent Test**: Load the portal, check the sidebar renders an "API" menu group containing exactly three child links: one to `/api/v1/docs/` (Swagger UI, via `view_name="api:api-docs"`), one to `/api/v1/` (browsable API root, via `view_name="api:api-root"`), and one to the FairDM docs page for API consumption. Each link resolves to the correct URL.
+**Independent Test**: Exceed the anonymous limit and read the refusal. Exceed it again with a token
+and confirm the higher limit applies. Change each limit and the page sizes in the settings and
+confirm the portal follows them.
 
 **Acceptance Scenarios**:
 
-1. **Given** any portal page is loaded, **When** the sidebar is rendered, **Then** an "API" menu group is visible containing three child menu items
-2. **Given** the API menu group is expanded, **When** a user clicks "Interactive Docs", **Then** they are taken to the Swagger UI page at `/api/v1/docs/` (resolved via `view_name="api:api-docs"`)
-3. **Given** the API menu group is expanded, **When** a user clicks "Browse API", **Then** they are taken to the DRF browsable API root at `/api/v1/` (resolved via `view_name="api:api-root"`)
-4. **Given** the API menu group is expanded, **When** a user clicks "How to use the API", **Then** they are taken to the FairDM documentation page covering API consumption (external URL, configurable via setting)
-5. **Given** the sidebar is rendered, **Then** the API menu group appears after the Measurements entry, consistent with existing sidebar ordering
+1. **Given** an anonymous caller, **When** they exceed the short-window limit or the daily limit,
+   **Then** further requests are refused as too many, and the refusal says when to try again.
+2. **Given** a caller with a token, **When** they make the number of requests that would stop an
+   anonymous caller, **Then** they are not stopped, and they are stopped at a higher limit of their
+   own.
+3. **Given** a list requested with no page size, **When** it is answered, **Then** it holds the
+   default number of records. **Given** a larger size is asked for, **Then** it is honoured up to
+   the ceiling and no further.
+4. **Given** an operator who changes a limit, the default page size or the ceiling in the portal's
+   settings, **When** the portal restarts, **Then** the API follows the new value.
+5. **Given** a list of several hundred records with their descriptions, dates, identifiers and
+   contributors, **When** it is requested, **Then** the number of database queries does not grow
+   with the number of records on the page.
 
 ---
 
 ### Edge Cases
 
-- What happens when no Sample or Measurement types are registered? The API serves only the core model endpoints (projects, datasets, contributors) and the sample/measurement discovery endpoints return empty lists.
-- How does the system handle a request for a Sample type endpoint that does not exist? A 404 response with a message indicating the sample type is not registered.
-- What happens when a model is registered after the API URLs have been generated (e.g., during testing)? The API URL configuration is generated at startup during URL resolution and reflects whatever is registered at that time.
-- How does the API handle concurrent write requests to the same record? Standard database-level concurrency applies; the last write wins. Optimistic locking is out of scope for v1.
-- What if a registered model has very large text or binary fields? The API serializer respects the field configuration; if a developer excludes large fields via `serializer_fields`, they are omitted. Default behavior includes all configured fields.
-- How does the API respond when the database is unreachable? Standard 500 error responses; detailed error information is not exposed to the client.
+- A request for a sample or measurement type that is not registered is answered as an address that
+  does not exist.
+- A type's plural name changes between releases of a portal. Its address changes with it. The
+  documentation for portal developers says so and says how to keep the old address.
+- Two writes reach the same record at once. The later one wins. Detecting the conflict is out of
+  scope.
+- A record is deleted while a caller is paging through its list. The pages that follow are still
+  valid and may be one record short.
+- A person's level on a dataset is removed while their token is in use. The next request is judged
+  by the level they hold then.
+- A caller sends a body the API cannot parse. It is refused as a bad request and nothing is saved.
+- A caller sends a request to change a record's parent to the parent it already has. That is not a
+  move and needs only the edit level.
+- A portal's token feature is restricted to some people. A person who may not hold a token can still
+  read public records anonymously.
+- The API is asked for a format other than JSON. JSON, and the browsable pages for a person in a
+  browser, are the only formats.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST automatically generate API list and detail endpoints for each core model (Project, Dataset) and for the contributor model (Person, Organization) at startup
-- **FR-002**: System MUST automatically generate API list and detail endpoints for each Sample and Measurement subtype registered through the FairDM registry
-- **FR-003**: System MUST provide a discovery endpoint that lists all registered Sample types with their names and API endpoint URLs. This endpoint MUST appear in the DRF browsable API root (the index listing at `/api/v1/`) alongside all other registered endpoints.
-- **FR-004**: System MUST provide a discovery endpoint that lists all registered Measurement types with their names and API endpoint URLs. This endpoint MUST appear in the DRF browsable API root (the index listing at `/api/v1/`) alongside all other registered endpoints.
-- **FR-005**: System MUST support full CRUD operations (Create, Read, Update, Delete) on Project, Dataset, Sample, and Measurement endpoints. Contributor endpoints are read-only (GET only) — no create, update, or delete operations are supported for contributors via the API.
-- **FR-006**: System MUST auto-generate API data representations for registered models using the existing registry field configuration, respecting the three-tier resolution order (default fields → component-specific fields → custom class override). All auto-generated serializers for Sample subtypes MUST inherit from `BaseSampleSerializer`; all auto-generated serializers for Measurement subtypes MUST inherit from `BaseMeasurementSerializer`. Portal developers who provide a custom `serializer_class` MUST subclass the relevant base; the framework enforces this at registration time.
-- **FR-007**: System MUST serve an interactive API documentation page that auto-generates from the registered endpoints and their schemas
-- **FR-008**: System MUST enforce the existing object-level permission system on all API operations, including per-object permissions and cascading permission inheritance for samples and measurements
-- **FR-009**: System MUST enforce authentication requirements such that write operations (POST, PUT, PATCH, DELETE) require an authenticated user
-- **FR-010**: System MUST apply rate limiting with separate thresholds for anonymous and authenticated users
-- **FR-011**: System MUST paginate all list endpoints with configurable page sizes and include navigation metadata (next, previous, total count)
-- **FR-012**: System MUST return 404 (not 403) for resources the requesting user does not have permission to view, to avoid leaking existence of private data
-- **FR-013**: System MUST return structured error responses for validation failures (400) including field-level error details
-- **FR-014**: System MUST filter list results using a custom `FairDMVisibilityFilter` backend that returns objects where `is_public=True` OR the requesting user has an explicit guardian `view` permission. Objects matching neither condition are excluded silently from list results. Public objects are always visible regardless of authentication state; private objects require an explicit guardian permission grant.
-- **FR-015**: System MUST support filtering and ordering on list endpoints using the existing `FilterSet` configurations from the registry where available
-- **FR-016**: System MUST use content negotiation to support JSON as the primary response format
-- **FR-017**: System MUST register an "API" menu group in the portal's sidebar navigation (US7) containing exactly three child items: (1) "Interactive Docs" using `view_name="api:api-docs"` (resolves to `/api/v1/docs/`, Swagger UI), (2) "Browse API" using `view_name="api:api-root"` (resolves to `/api/v1/`, DRF browsable API root), and (3) "How to use the API" using a static external URL from a configurable Django setting `FAIRDM_API_DOCS_URL` (default: `"https://fairdm.org/api/"`). Internal links MUST use namespaced `view_name` for URL reversal — never hardcoded URL strings. The group MUST appear after the Measurements sidebar entry.
-- **FR-018**: System MUST isolate API route names from non-API route names by namespacing the API URLconf (namespace `api`). All internal API reversals MUST use namespaced names (e.g., `api:project-list`, `api:dataset-list`, `api:api-root`, `api:api-docs`). Existing portal web route names (e.g., `project-list`, `dataset-list`) MUST continue to resolve to server-rendered template views.
+**Reading**
+
+- **FR-001**: The API MUST serve a list and a single-record endpoint for projects, datasets and
+  contributors, and for every sample and measurement type in the registry, with no configuration by
+  the portal developer.
+- **FR-002**: A single record MUST be addressed by its short identifier.
+- **FR-003**: A project, dataset, sample or measurement MUST be returned with its own fields, its
+  parent, its descriptions, key dates, identifiers, keywords and credited contributors. A dataset
+  MUST also carry its licence, and a project its owner.
+- **FR-004**: A sample MUST always carry the fields common to every sample, and a measurement those
+  common to every measurement, whatever field list its type declares. Each MUST also carry every
+  field its type declares for the API.
+- **FR-005**: A record MUST refer to another record by that record's short identifier and its
+  address in the API. No response and no accepted request may contain an internal database number.
+- **FR-006**: A contributor MUST be returned with what their public profile shows. No endpoint may
+  return an email address, a credential or any other account detail of a person.
+- **FR-007**: Every list MUST be paged, and each page MUST carry the total number of records and
+  the addresses of the next and previous pages.
+- **FR-008**: A list MUST accept the filters its registered type declares, and every list MUST
+  accept a named ordering, ascending or descending, on that record type's sortable fields.
+- **FR-009**: JSON MUST be the API's format, with browsable pages for a person using a browser.
+
+**Access**
+
+- **FR-010**: Reading a public record MUST need no authentication.
+- **FR-011**: A list MUST contain only records the caller may see: public ones, and private ones
+  the caller holds at least the view level on. Samples and measurements take the visibility of
+  their dataset.
+- **FR-012**: A request for a single record the caller may not see MUST be answered exactly as a
+  request for a record that does not exist.
+- **FR-013**: Creating, changing or deleting MUST need an authenticated caller, and MUST be decided
+  by the same rule the portal's pages apply to that person and that record.
+- **FR-014**: A refused write on a record the caller can see MUST be answered as forbidden. On a
+  record the caller cannot see, it MUST be answered as for a record that does not exist.
+
+**Writing**
+
+- **FR-015**: Projects, datasets and every registered sample and measurement type MUST support
+  create, full replacement, partial change and delete. Contributors are read-only.
+- **FR-016**: A record's own fields, its visibility and its parent MUST be writable. Its
+  descriptions, key dates, identifiers, keywords and contributors MUST be read-only, and an attempt
+  to set one MUST leave it unchanged.
+- **FR-017**: Creating a record under a parent MUST need the level on that parent that the portal
+  requires for the same act, and the parents a caller may name MUST be the ones they may add to.
+- **FR-018**: The person who creates a record MUST be credited on it as its creator, as FS-022
+  requires, and the caller MUST NOT be able to name someone else as creator.
+- **FR-019**: Changing a record's visibility or moving it to another parent MUST need the manage
+  level, and a move that would leave the record with nobody able to manage it MUST be refused.
+- **FR-020**: A delete the portal refuses for the state the record is in MUST be refused by the API
+  with the reason.
+- **FR-021**: A request that fails validation MUST save nothing and MUST name each field at fault
+  with the reason.
+- **FR-022**: No request, valid or not, may be answered with a server error because of what the
+  caller sent.
+
+**For portal developers**
+
+- **FR-023**: The fields a generated endpoint carries MUST come from the registration: the API's
+  own field list where one is given, otherwise the type's general list, otherwise a default.
+- **FR-024**: A serializer the developer names in the registration, or supplies by overriding how
+  the configuration obtains it, MUST be the one the API uses. There MUST be one way the framework
+  builds a serializer for a registered type.
+- **FR-025**: A developer's own serializer for a sample or measurement type MUST build on the
+  framework's base for that kind, and the portal MUST refuse to start when it does not.
+- **FR-026**: A registration whose API fields cannot produce a record that can be created, or a
+  type that fails to get its endpoints, MUST be reported to the developer when the portal starts.
+- **FR-027**: A generated endpoint's address MUST come from the type's plural name, under a prefix
+  for samples or for measurements. API route names MUST stay separate from the names of the
+  portal's pages.
+- **FR-028**: The framework MUST expose its router so a developer can add a viewset of their own
+  beside the generated ones.
+
+**Tokens and sessions**
+
+- **FR-029**: The API MUST accept a token a person created on their account pages, and MUST refuse
+  one that is revoked, expired or unknown.
+- **FR-030**: The portal MUST turn on the account pages for creating, listing and revoking tokens
+  that django-mvp-accounts provides. This feature builds no such page of its own.
+- **FR-031**: The API MUST have no endpoint that exchanges a password for a token, and none that
+  resets or changes a password or edits an account.
+- **FR-032**: The API MUST accept the portal's own sign-in session from the portal's own pages.
+- **FR-033**: The API MUST be callable from pages on other websites, for reading and for writing
+  with a token, and MUST NOT accept a sign-in cookie sent from one.
+
+**Documentation and discovery**
+
+- **FR-034**: The portal MUST serve an interactive documentation page generated from the running
+  endpoints, showing for each the fields accepted and returned, which are required and which are
+  read-only, and allowing a request to be tried.
+- **FR-035**: What the generated documentation says about authentication, limits and paging MUST
+  match what the portal does.
+- **FR-036**: The API MUST serve a catalogue of registered sample types and one of registered
+  measurement types, each listing a type's name, the address of its records, its fields and its
+  filters. A count in a catalogue MUST be of the records the caller may see.
+- **FR-037**: The API's root MUST link to every list endpoint and both catalogues.
+- **FR-038**: The sidebar MUST carry one link to the API documentation.
+- **FR-039**: The documentation for portal developers MUST describe the registration options that
+  shape the API, the base serializers, the router, and every setting this feature reads. The
+  documentation for people using a portal MUST describe getting a token and calling the API.
+
+**Limits**
+
+- **FR-040**: The API MUST limit how many requests a caller makes over a short window and over a
+  day, with separate, higher limits for an authenticated caller than for an anonymous one.
+- **FR-041**: A refusal for too many requests MUST say when the caller may try again.
+- **FR-042**: Every limit, the default page size and the largest page size a caller may ask for
+  MUST be a setting, with defaults chosen for a portal on one small server.
+- **FR-043**: The number of database queries behind a list response MUST NOT grow with the number
+  of records on the page.
 
 ### Key Entities
 
-- **API Endpoint**: A URL path mapped to a viewset for a specific model. Generated automatically from the registry. Has a resource name, URL pattern, serializer, and permission configuration.
-- **Discovery Endpoint**: A meta-endpoint that lists all registered Sample or Measurement types and their corresponding API URLs. Enables clients to discover available data types dynamically.
-- **Serializer**: Defines the fields and representation of a model in API requests and responses. Auto-generated from registry configuration or provided as a custom class by the developer.
-- **BaseSampleSerializer**: Abstract DRF `ModelSerializer` base class (in `fairdm/api/serializers.py`) that all Sample subtype serializers MUST inherit from. Exposes the consistent set of fields present on every `Sample` record: `uuid`, `url`, `name`, `local_id`, `status`, `dataset`, `added`, `modified`, and `polymorphic_ctype`. Portal developers must subclass this when providing a custom serializer; auto-generated serializers inherit from it automatically.
-- **BaseMeasurementSerializer**: Abstract DRF `ModelSerializer` base class (in `fairdm/api/serializers.py`) that all Measurement subtype serializers MUST inherit from. Exposes the consistent set of fields present on every `Measurement` record: `uuid`, `url`, `name`, `sample`, `dataset`, `added`, `modified`, and `polymorphic_ctype`. Portal developers must subclass this when providing a custom serializer; auto-generated serializers inherit from it automatically.
-- **Rate Limit Tier**: A named throttling level (anonymous vs. authenticated) with a configured request count per time window. Applied per-user or per-IP.
+- **Record**: a project, dataset, sample or measurement. It has its own fields, a visibility of its
+  own or its dataset's, a parent except for a project, and metadata the API reads with it.
+- **Contributor**: a person or an organisation credited on records. Read-only in the API.
+- **Registered type**: a kind of sample or measurement a portal developer has added through the
+  registry. Its registration decides what its API endpoints carry.
+- **Catalogue**: the list of registered sample types, or of measurement types, that a portal has.
+- **Token**: a secret a person creates on their account pages and a script sends with each request.
+  It stands for that person until it expires or is revoked.
+- **Level**: what a person may do with a record: view, edit or manage. Defined by FS-022.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001** *(post-launch monitoring target)*: Authenticated users can complete a full CRUD cycle (create, read, update, delete a record) through the API in under 60 seconds using only the documentation page as reference
-- **SC-002** *(post-launch monitoring target)*: 95% of API read requests return responses in under 500 milliseconds under normal load
-- **SC-003**: All registered Sample and Measurement types are automatically discoverable through the API without any manual endpoint configuration by the portal developer
-- **SC-004**: The interactive documentation page accurately reflects 100% of available endpoints and their schemas
-- **SC-005**: No private data is accessible to unauthorized users through any API endpoint
-- **SC-006**: Rate limiting prevents a single anonymous client from making more than the configured threshold of requests per time window
-- **SC-007**: Portal developers can control their API field exposure using the same registry configuration patterns they already use for tables and forms, with no additional boilerplate
+- **SC-001**: On a portal with development data, a record of each of the five kinds read through
+  the API carries everything its overview page shows a visitor.
+- **SC-002**: A person with a token completes create, change and delete on a project, a dataset and
+  one record of every registered sample and measurement type, with no failure.
+- **SC-003**: A portal developer adds a sample type and a measurement type by registering them, and
+  both can be read and written through the API with no other code.
+- **SC-004**: No private record, and no count of private records, reaches a caller who may not see
+  it, on any endpoint.
+- **SC-005**: A person with two-factor sign-in turned on cannot obtain a token without passing it.
+- **SC-006**: Every endpoint the portal serves appears in the generated documentation with fields
+  that match what the endpoint accepts and returns.
+- **SC-007**: A caller walks a dataset of ten thousand samples in no more than a hundred requests,
+  and an anonymous caller doing so stays within the default limits.
+- **SC-008**: The automated tests send every kind of valid and invalid request this specification
+  describes, and none is answered with a server error.
 
 ## Assumptions
 
-- The existing FairDM registry system and its three-tier field resolution (`fields` → `serializer_fields` → `serializer_class`) will be used as-is for serializer generation; no changes to the registry architecture are needed
-- The existing `SerializerFactory` in the registry provides a working base for auto-generating serializers; it may need enhancement but not replacement
-- The existing object-level permission system (django-guardian + cascading backends for samples/measurements) is sufficient for API authorization; no new permission models are needed
-- JSON is the only required response format for v1; XML or other formats are out of scope
-- The API is mounted under a single URL prefix (e.g., `/api/v1/`) and versioned via URL path
-- FairDM exposes a shared `fairdm_api_router` instance that portal developers can import to register custom viewsets alongside the auto-generated endpoints; this is the documented extension point for custom API endpoints
-- Session-based authentication (for browser/Swagger UI) and DRF Token Authentication (`rest_framework.authtoken`) are both used; `dj-rest-auth` is configured with `REST_USE_JWT = False`. JWT is explicitly out of scope for v1.
-- WebSocket or real-time push notifications are out of scope
-- File upload/download via the API is out of scope for v1
-- The external `fairdm-rest-api` dev dependency package will be replaced by this built-in implementation
-- GraphQL or alternative query languages are out of scope; this feature is REST-only
-- The DRF router `basename` for auto-generated Sample and Measurement viewsets is derived from `model._meta.verbose_name_plural` (lowercased, spaces replaced with hyphens), NOT the Python class name. For example, a model named `RockSample` with `verbose_name_plural = "rock samples"` gets basename `rock-samples`, producing URL names `rock-samples-list` and `rock-samples-detail`.
-- `BaseSampleSerializer` and `BaseMeasurementSerializer` are defined in `fairdm/api/serializers.py`. They are concrete (non-abstract) DRF `ModelSerializer` subclasses tied to the `Sample` and `Measurement` base models respectively. All framework-generated serializers inherit from them; the framework validates `issubclass(custom_cls, BaseSampleSerializer)` (or `BaseMeasurementSerializer`) at registration time and raises `ImproperlyConfigured` if the check fails.
-- The configurable FairDM documentation link in the sidebar API menu group is controlled by the Django setting `FAIRDM_API_DOCS_URL` (defined in `fairdm/conf/settings/api.py`). Its default value is `"https://fairdm.org/api/"`. Portal developers can override it in their settings file to point to a custom API usage guide.
-- Bulk operations (batch create/update/delete) are out of scope for v1
-
-## Clarifications
-
-### Session 2026-03-31
-
-- Q: How should public objects remain visible to anonymous users given `ObjectPermissionsFilter` requires explicit guardian `view` permissions that public objects don't have? → A: Replace `ObjectPermissionsFilter` with a custom `FairDMVisibilityFilter` backend (in `fairdm/api/filters.py`) that returns `queryset.filter(is_public=True) | queryset.filter(<guardian_view_perm_exists>)`. Single endpoint, no client-side merging, public objects bypass guardian entirely. `ObjectPermissionsFilter` from `djangorestframework-guardian` is NOT used as a filter backend; the package is retained only for `ObjectPermissionsAssignmentMixin` (serializer-level permission assignment on create/update).
-- Q: Which token authentication strategy should `dj-rest-auth` use? → A: DRF Token Auth (`rest_framework.authtoken`). One opaque token per user, stored in DB, server-side revocable. `dj-rest-auth` default (`REST_USE_JWT = False`). JWT is out of scope for v1; `djangorestframework-simplejwt` is NOT added as a dependency.
-- Q: How should portal developers add custom API endpoints outside of the FairDM registry? → A: FairDM exposes a shared `fairdm_api_router` instance (a DRF `DefaultRouter`). Auto-generated endpoints are registered on this router. Portal developers import it and call `fairdm_api_router.register(...)` from their own `urls.py` or `api.py` to add custom viewsets alongside generated ones. This is the documented extension point. No separate URL prefix required.
-- Q: What is `django-parler-rest`'s role in this feature? → A: Removed from Feature 011. It will be introduced in the spec covering `fairdm.contrib.identity`, which owns the translatable models that require `TranslatedFieldsField`. No models in scope for this feature have translated fields. Final dependency count: **6** (dropped from 7).
-- Q: What lookup field should API detail URLs use? → A: The existing `uuid` field on all core models. This field is already a shortuuid (generated via `shortuuid`), so URLs are short and URL-safe (e.g., `/api/v1/projects/YK2yFz2gQsSQFXkGd7Eywd/`). `lookup_field = "uuid"` on all viewsets. No separate slug or full UUID field needed.
-
-### Session 2026-04-01
-
-- Q: Should the Sample-types and Measurement-types discovery endpoints appear in the DRF browsable API root index at `/api/v1/`? → A: Yes. Both discovery endpoints MUST appear in the browsable API root listing alongside all other registered endpoints. Implementation must register them via the router (as a ViewSet or custom `APIRoot`) rather than as standalone APIViews that bypass the router listing. FR-003 and FR-004 updated accordingly.
-- Q: What strategy should be used for the DRF router `basename` of auto-generated Sample and Measurement viewsets? → A: Use `model._meta.verbose_name_plural`, lowercased and hyphenated (not the Python class name). Example: `RockSample` with `verbose_name_plural = "rock samples"` → basename `rock-samples` → URL names `rock-samples-list`, `rock-samples-detail`. Assumptions section updated accordingly.
-- Q: What form should the sidebar API entry take — a single link or a menu group, and what should it link to? → A: A menu group with one heading ("API") and three child links: (1) "Interactive Docs" → `/api/v1/docs/` (Swagger UI, via `view_name="api:api-docs"`), (2) "Browse API" → `/api/v1/` (DRF browsable API root, via `view_name="api:api-root"`), (3) "How to use the API" → configurable FairDM docs URL (external, uses `url=`). Internal links MUST use namespaced `view_name` for Django URL reversal — hardcoded URL strings are forbidden for internal routes. US7 and FR-017 added accordingly.
-
-### Session 2026-04-13
-
-- **Bugfix**: 2026-04-13 — [BUG-001] Added FR-018 to require API URL namespace isolation (`namespace="api"`) and namespaced reverse lookups so API route names cannot collide with server-rendered portal view names.
-- Q: Should there be mandatory base serializer classes for Sample and Measurement subtypes, and what fields must they guarantee? → A: Yes. `BaseSampleSerializer` (fields: `uuid`, `url`, `name`, `local_id`, `status`, `dataset`, `added`, `modified`, `polymorphic_ctype`) and `BaseMeasurementSerializer` (fields: `uuid`, `url`, `name`, `sample`, `dataset`, `added`, `modified`, `polymorphic_ctype`) are defined in `fairdm/api/serializers.py`. Auto-generated serializers inherit from them. Portal developers MUST subclass the relevant base; the framework enforces this at registration time via `issubclass` check raising `ImproperlyConfigured` on violation. FR-006, Key Entities, and Assumptions updated accordingly.
+- The registry, the four record types, contributors and the levels of FS-022 are as their own
+  specifications describe them. This feature changes none of them.
+- django-mvp-accounts provides the token pages from version 0.2.0, using django-rest-knox, and the
+  portal moves to that version as part of this feature.
+- A portal in production has the shared cache it is already required to have, which the request
+  limits count in.
+- Nothing has been released that carries the API, so its output can change without a new version in
+  the address.
+- JSON is the only data format. File upload and download, bulk operations in one request, and
+  detecting conflicting writes are out of scope.
