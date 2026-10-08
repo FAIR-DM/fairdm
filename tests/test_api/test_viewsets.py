@@ -1311,3 +1311,128 @@ class TestCreating:
         assert project.name == "Sent by a script"
         detail = reverse("api:project-detail", kwargs={"uuid": project.uuid})
         assert response.json() == client.get(detail).json()
+
+
+def create_through_the_api(
+    kind, url_of, member_at, signed_in, body_for, person, **sent
+):
+    """Create a record of a kind through its route as a person, and return the response.
+
+    The person is given the level the kind needs on its parent first. Anything in ``sent`` is
+    added to the body.
+    """
+    from demo.factories import RockSampleFactory
+    from demo.models import RockSample, XRFMeasurement
+
+    client = signed_in(person)
+    if kind == "project":
+        return client.post(
+            reverse("api:project-list"), {"name": "Sent by a script", **sent}, "json"
+        )
+    if kind == "dataset":
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        member_at(project, ContributionLevel.EDIT, person)
+        body = {"name": "Sent by a script", "project": project.uuid, **sent}
+        return client.post(reverse("api:dataset-list"), body, format="json")
+    dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+    member_at(dataset, ContributionLevel.EDIT, person)
+    model = RockSample if kind == "sample" else XRFMeasurement
+    body, _stored = body_for(model)
+    body["dataset"] = dataset.uuid
+    if kind == "measurement":
+        body["sample"] = RockSampleFactory(dataset=dataset).uuid
+    return client.post(url_of(model, "list"), {**body, **sent}, format="json")
+
+
+def stored_record(kind, uuid):
+    """Return the stored project, dataset, sample or measurement with the identifier."""
+    from fairdm.core.models import Measurement, Sample
+
+    model = {
+        "project": Project,
+        "dataset": Dataset,
+        "sample": Sample,
+        "measurement": Measurement,
+    }[kind]
+    return getattr(model, "all_objects", model.objects).get(uuid=uuid)
+
+
+RECORD_KINDS = ["project", "dataset", "sample", "measurement"]
+
+
+@pytest.mark.django_db
+class TestCreatorIsCredited:
+    @pytest.mark.parametrize("kind", RECORD_KINDS)
+    def test_the_creator_is_listed_at_the_manage_level(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind, url_of, member_at, signed_in, body_for, creator
+        )
+
+        assert response.status_code == 201, response.content
+        record = stored_record(kind, response.json()["uuid"])
+        assert RecordAccess(record).own_level(creator) == ContributionLevel.MANAGE
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_a_created_by_sent_by_the_caller_is_ignored(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+        someone_else = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind,
+            url_of,
+            member_at,
+            signed_in,
+            body_for,
+            creator,
+            created_by=someone_else.pk,
+        )
+
+        assert response.status_code == 201, response.content
+        assert "created_by" not in response.json()
+        record = stored_record(kind, response.json()["uuid"])
+        assert record.created_by_id == creator.pk
+
+    @pytest.mark.parametrize("kind", RECORD_KINDS)
+    def test_a_person_named_as_created_by_is_not_credited(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+        someone_else = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind,
+            url_of,
+            member_at,
+            signed_in,
+            body_for,
+            creator,
+            created_by=someone_else.pk,
+        )
+
+        record = stored_record(kind, response.json()["uuid"])
+        assert RecordAccess(record).own_level(someone_else) is None
+
+    def test_a_superuser_creates_without_being_credited(self, signed_in):
+        admin = UserFactory(is_superuser=True, is_staff=True)
+
+        response = signed_in(admin).post(
+            reverse("api:project-list"), {"name": "Sent by an admin"}, format="json"
+        )
+
+        assert response.status_code == 201
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.contributors.count() == 0

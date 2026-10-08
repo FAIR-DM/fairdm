@@ -106,3 +106,10 @@ Did: Added TestCreating in tests/test_api/test_viewsets.py and four fixtures in 
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreating` gives 10 passed. They passed on the first run, which the first story's serializers explain: the sample and measurement base serializers now carry the dataset and sample, and the dataset serializer carries the project. To check the tests can fail, I made the dataset serializer's project read-only and the dataset test failed (project came back None); the change was reverted.
 Next: T017.
 Watch: A vocabulary concept (a sample's status) has no primary key and compares by identity, so the stored-value comparison reads it by name.
+
+## 2026-10-08T23:44:48Z · Implementer US2 · T017
+
+Did: Added TestCreatorIsCredited in tests/test_api/test_viewsets.py. For a project, a dataset, a sample and a measurement created through the real routes, the creator is listed on it at the manage level and a person named as `created_by` in the body is not credited. For a project and a dataset the stored `created_by` is the caller, not the person sent, and the response carries no `created_by`. A superuser creating a project is not credited. Samples and measurements have no `created_by` column, so that check covers the two models that do.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreatorIsCredited` gives 11 passed on the first run. Probe: replacing the credit call in `CreatorCreditMixin.create` with `pass` fails the four manage-level cases; reverted.
+Next: T018.
+Watch: The test helpers `create_through_the_api` and `stored_record` in the test module are used again by later tasks.
