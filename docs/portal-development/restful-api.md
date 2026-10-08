@@ -339,6 +339,30 @@ Passing a serializer that does not inherit from `BaseSampleSerializer` or `BaseM
     ImproperlyConfigured: RockSampleSerializer must subclass BaseSampleSerializer.
 ```
 
+## Serializer and Filter Classes
+
+The classes below are in `fairdm.api.serializers` and `fairdm.api.filters`. A serializer of your own
+can build on any of them.
+
+| Class | Use |
+|-------|-----|
+| `RecordSerializer` | Base of the four record serializers. Adds `url`, the five metadata fields and the creator credit |
+| `ProjectSerializer`, `DatasetSerializer` | Written out, not generated. A dataset carries its `project` and `license`, a project its `owner` |
+| `BaseSampleSerializer`, `BaseMeasurementSerializer` | Base of every generated sample and measurement serializer. `common_fields` lists the fields every record of the kind carries |
+| `RecordReferenceField` | A relation to a record, returned as `{"uuid", "url"}` or `null` |
+| `RecordURLField` | The address of a record, whatever its type |
+| `RecordListSerializer` | Checks every reference on a page of records in one query. `RecordSerializer` uses it for lists |
+| `DescriptionSerializer`, `DateSerializer`, `IdentifierSerializer`, `KeywordSerializer` | The read-only metadata rows of a record |
+| `ContributionSerializer`, `RoleSerializer` | A credit on a record and the roles in it |
+| `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
+| `ContributorSerializer`, `ContributorIdentifierSerializer` | A person or organization as their profile page shows them |
+| `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
+| `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
+
+`fairdm.api.viewsets.sortable_fields(model, serializer_class)` returns the names a list can be
+sorted on: the stored, non-relational fields the serializer returns. Set `ordering_fields` on a
+viewset of your own to the result, or name the fields yourself.
+
 ## URL Slugs and verbose_name_plural
 
 FairDM derives the `<model-slug>` component of every endpoint from the model's `verbose_name_plural` metadata (lowercased, spaces → hyphens). This gives you full control over URL structure without touching router configuration.
