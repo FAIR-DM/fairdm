@@ -1574,3 +1574,55 @@ class TestChanging:
         read_only = ("uuid", "url", "added", "descriptions", "dates", "identifiers")
         for name in (*read_only, "keywords", "contributors"):
             assert after[name] == before[name]
+
+
+@pytest.mark.django_db
+class TestDeleting:
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_deleted_record_is_gone_and_then_answered_404(
+        self, url_of, member_at, signed_in, a_private_record, model
+    ):
+        record = a_private_record(model)
+        client = signed_in(member_at(record, ContributionLevel.MANAGE))
+        address = url_of(record)
+
+        response = client.delete(address)
+
+        assert response.status_code == 204
+        assert client.get(address).status_code == 404
+        manager = getattr(model, "all_objects", model.objects)
+        assert not manager.filter(uuid=record.uuid).exists()
+
+    def test_a_project_with_a_public_dataset_is_refused_with_a_reason(
+        self, url_of, member_at, signed_in
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        client = signed_in(member_at(project, ContributionLevel.MANAGE))
+
+        response = client.delete(url_of(project))
+
+        assert response.status_code == 409
+        assert response.json()["detail"]
+        assert dataset.uuid not in response.content.decode()
+        assert Project.objects.filter(pk=project.pk).exists()
+        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
+
+    def test_a_sample_with_measurements_is_refused_with_a_reason(
+        self, url_of, member_at, signed_in
+    ):
+        from demo.factories import RockSampleFactory, XRFMeasurementFactory
+        from demo.models import RockSample, XRFMeasurement
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        measurement = XRFMeasurementFactory(dataset=dataset, sample=sample)
+        client = signed_in(member_at(dataset, ContributionLevel.MANAGE))
+
+        response = client.delete(url_of(sample))
+
+        assert response.status_code == 409
+        assert response.json()["detail"]
+        assert measurement.uuid not in response.content.decode()
+        assert RockSample.objects.filter(pk=sample.pk).exists()
+        assert XRFMeasurement.objects.filter(pk=measurement.pk).exists()

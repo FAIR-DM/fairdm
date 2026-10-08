@@ -120,3 +120,10 @@ Did: Added TestChanging in tests/test_api/test_viewsets.py, run for a project, a
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestChanging` gives 31 passed, 9 failed. All nine are the three measurement types, in the replacement test and in both read-only cases. Each answers 403 "Changing sample needs the manage level" when the request repeats the measurement's current sample. Cause: the sample field offers `Sample.objects.non_polymorphic()`, so the value sent is a base `Sample` while the stored sample is the type's own class, and `CreatorCreditMixin.update` compares them with `!=`, which Django answers unequal across the two classes. A parent repeated unchanged is read as a move.
 Next: T019.
 Watch: Red until T025, which compares parents by primary key. T023 adds the same case for the manage rule.
+
+## 2026-10-08T23:46:09Z · Implementer US2 · T019
+
+Did: Added TestDeleting in tests/test_api/test_viewsets.py. Someone at the manage level deletes a project, a dataset and a record of every registered sample and measurement type: the answer is 204, the record is gone from the database and a later request for it is answered 404. A project with a public dataset, and a sample with a measurement made on it, are each expected to be answered 409 with a non-empty `detail`, to leave both records stored, and not to name the other record's identifier in the answer.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestDeleting` gives 10 passed, 2 failed. The two refused cases fail because the error escapes the view: `PublicDatasetsProtect` for the project and `RestrictedError` for the sample reach the test client as exceptions, which the server would answer with a 500.
+Next: T020.
+Watch: Red until T025 adds `perform_destroy`.
