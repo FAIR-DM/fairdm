@@ -841,3 +841,142 @@ class TestParentChoicesThroughTheApi:
 
         assert "project" in errors_for(reader_of)
         assert "project" not in errors_for(editor_of)
+
+
+def build_record(kind, make_record, add_metadata):
+    """Build a public record of a kind, with metadata recorded, and its parents."""
+    from demo.models import ExampleMeasurement, RockSample
+
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+    if kind == "project":
+        record = project
+    elif kind == "dataset":
+        record = dataset
+    elif kind == "sample":
+        record = make_record(RockSample, dataset)
+    else:
+        record = make_record(ExampleMeasurement, dataset)
+    return add_metadata(record)
+
+
+@pytest.mark.django_db
+class TestCompleteRecord:
+    METADATA = ("descriptions", "dates", "identifiers", "keywords", "contributors")
+
+    @pytest.mark.parametrize("kind", ["project", "dataset", "sample", "measurement"])
+    def test_a_record_carries_its_own_fields_and_its_metadata(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
+
+        response = api_client.get(url_of(record))
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["uuid"] == record.uuid
+        assert data["name"] == record.name
+        for name in self.METADATA:
+            assert len(data[name]) == 1, name
+        description = record.descriptions.get()
+        assert data["descriptions"][0]["type"] == description.type
+        assert data["descriptions"][0]["value"] == description.value
+        assert data["dates"][0]["type"] == record.dates.get().type
+        assert data["identifiers"][0]["value"] == record.identifiers.get().value
+        assert data["keywords"][0]["name"] == record.keywords.get().name
+
+    @pytest.mark.parametrize("kind", ["project", "dataset", "sample", "measurement"])
+    def test_a_credited_contributor_is_named_with_roles_and_affiliation(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
+        credit = record.contributors.get()
+
+        credited = api_client.get(url_of(record)).json()["contributors"][0]
+
+        assert credited["contributor"]["uuid"] == credit.contributor.uuid
+        assert credited["affiliation"]["uuid"] == credit.affiliation.uuid
+        assert [role["name"] for role in credited["roles"]] == [
+            role.name for role in credit.roles.all()
+        ]
+
+    def test_a_dataset_carries_its_licence_and_a_project_its_owner(
+        self, api_client, url_of, make_record, add_metadata
+    ):
+        project = build_record("project", make_record, add_metadata)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+
+        project_data = api_client.get(url_of(project)).json()
+        dataset_data = api_client.get(url_of(dataset)).json()
+
+        assert project_data["owner"]["uuid"] == project.owner.uuid
+        assert dataset_data["license"]["name"] == dataset.license.name
+
+    @pytest.mark.parametrize("kind", ["dataset", "sample", "measurement"])
+    def test_the_address_of_a_parent_returns_the_parent(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
+        data = api_client.get(url_of(record)).json()
+        parent_name = "project" if kind == "dataset" else "dataset"
+
+        parent = api_client.get(data[parent_name]["url"])
+
+        assert parent.status_code == 200
+        assert parent.json()["uuid"] == data[parent_name]["uuid"]
+
+    def test_a_measurement_names_its_sample_and_the_sample_address_returns_it(
+        self, api_client, url_of, make_record, add_metadata
+    ):
+        measurement = build_record("measurement", make_record, add_metadata)
+        data = api_client.get(url_of(measurement)).json()
+
+        sample = api_client.get(data["sample"]["url"])
+
+        assert data["sample"]["uuid"] == measurement.sample.uuid
+        assert sample.status_code == 200
+        assert sample.json()["uuid"] == measurement.sample.uuid
+
+    def test_a_public_dataset_in_a_private_project_hides_the_project_from_a_visitor(
+        self, api_client, url_of
+    ):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        viewer = person_at(project, ContributionLevel.VIEW)
+
+        visitor_sees = api_client.get(url_of(dataset)).json()["project"]
+        viewer_sees = signed_in_as(viewer).get(url_of(dataset)).json()["project"]
+
+        assert visitor_sees is None
+        assert viewer_sees["uuid"] == project.uuid
+
+    def test_a_sample_in_a_private_dataset_is_hidden_from_a_measurement_that_names_it(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import ExampleMeasurement, RockSample
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = make_record(RockSample, elsewhere)
+        measurement = make_record(
+            ExampleMeasurement,
+            DatasetFactory(visibility=Visibility.PUBLIC),
+            sample=sample,
+        )
+        viewer = person_at(elsewhere, ContributionLevel.VIEW)
+
+        visitor_sees = api_client.get(url_of(measurement)).json()["sample"]
+        viewer_sees = signed_in_as(viewer).get(url_of(measurement)).json()["sample"]
+
+        assert visitor_sees is None
+        assert viewer_sees["uuid"] == sample.uuid
+
+    def test_a_list_hides_the_parent_it_would_otherwise_name(self, api_client, url_of):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+
+        results = api_client.get(url_of(Dataset, "list")).json()["results"]
+
+        assert [row["project"] for row in results] == [None]
