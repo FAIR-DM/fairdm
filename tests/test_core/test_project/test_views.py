@@ -1031,7 +1031,7 @@ class TestDeletionPageBackControl:
         content = response.content.decode()
 
         match = re.search(
-            r'<a[^>]*href="([^"]*)"[^>]*><i class="bi bi-arrow-left"', content
+            r'<a[^>]*href="([^"]*)"[^>]*>\s*<i class="bi bi-arrow-left"', content
         )
         assert match is not None, "the back control is not rendered as a link"
         back_href = match.group(1)

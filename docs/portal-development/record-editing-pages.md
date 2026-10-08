@@ -59,7 +59,7 @@ the person has none of the shared pages:
 ```django
 {% block overview.manage %}
   <c-actions.manage :entries="manage_menu">
-    <c-menu.item label="Import data" icon="upload" href="{{ import_url }}" />
+    <c-menu.item text="Import data" icon="upload" href="{{ import_url }}" />
   </c-actions.manage>
 {% endblock overview.manage %}
 ```

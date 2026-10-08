@@ -6,7 +6,7 @@
 {% endcomment %}
 
 {% block page.content %}
-  <c-card.wrapper class="bg-base-100 max-w-3xl">
+  <c-mvp.card.wrapper class="bg-base-100 max-w-3xl">
     <form method="post" class="card-body gap-6" novalidate>
       {% csrf_token %}
       <c-contributor.item :contributor="entry.contributor" size="md" secondary="none" />
@@ -84,5 +84,5 @@
         <c-button href="{{ list_url }}{{ entry.contribution.pk }}/remove/" text="{% translate 'Remove from this record' %}" variant="error" outline size="sm" />
       </div>
     </form>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock page.content %}

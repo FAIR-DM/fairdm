@@ -760,6 +760,19 @@ wheels = [
 ]
 
 [[package]]
+name = "daisy-cotton"
+version = "0.1.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-cotton" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/eb/7f90c338066c563d28032c6baddc17337c267cbe39105beec4d5093c823c/daisy_cotton-0.1.3.tar.gz", hash = "sha256:4682bac4ca55acf7ca102b115ed8a61fce990ff2196240b070352dcbf734d02b", size = 47319, upload-time = "2026-10-05T14:27:11.413Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/62/57/57cd924e6633f003bd400fc39b08e2735a3de7e1dbe78fb95f841842a790/daisy_cotton-0.1.3-py3-none-any.whl", hash = "sha256:d96dc78e9382dc7d84924e3a162275d15f46f8b83c6500dafea03b28a49048f6", size = 86353, upload-time = "2026-10-05T14:27:10.174Z" },
+]
+
+[[package]]
 name = "defusedxml"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1458,9 +1471,10 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.26.0"
+version = "0.28.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "daisy-cotton" },
     { name = "django" },
     { name = "django-cotton" },
     { name = "django-crispy-forms" },
@@ -1469,22 +1483,22 @@ dependencies = [
     { name = "django-mvp-forms" },
     { name = "mergedeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/52/258e8b0227705b0ee190f4b9c837fd13ada15e94f824a935028c70c2531c/django_mvp-0.26.0.tar.gz", hash = "sha256:ee7b795c5151d2ee05b99cfe8d156049bf673486ec2c5ea6341215686f27d3d7", size = 283524, upload-time = "2026-10-04T11:02:40.466Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/9c/5db64c3c7d0c631bcd30f92e0d8a6cf156ab4afe4f600fa229b6567bd8bc/django_mvp-0.28.0.tar.gz", hash = "sha256:5a0d0f8a0edd8f622d76c58c32d6a44611b77c509cffbcd660001ec8ef1e7abd", size = 293223, upload-time = "2026-10-08T20:00:36.094Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/af/b9eec5354126358c38a9c0edf8332a98e48e083af55804efddaf2750bf0a/django_mvp-0.26.0-py3-none-any.whl", hash = "sha256:cb15c21a8172e2b14c4019b7d965c86394d09a6826e15c969d95e4fa3a9a15ee", size = 337430, upload-time = "2026-10-04T11:02:38.864Z" },
+    { url = "https://files.pythonhosted.org/packages/61/48/6521a4e81e03ae81a2fea18fff8c2533b136d58c42180bc89e57eabb3d51/django_mvp-0.28.0-py3-none-any.whl", hash = "sha256:e455681368246af90f46546766d06f4608a68e7248bd46981731d73e66234e79", size = 344048, upload-time = "2026-10-08T20:00:34.491Z" },
 ]
 
 [[package]]
 name = "django-mvp-accounts"
-version = "0.1.0"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "django-mvp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/cd/9a727e3809bacf161f94bf0e898e82b122a8368ce8fa1869f78f17a2979e/django_mvp_accounts-0.1.0.tar.gz", hash = "sha256:3b81b424d0a0ca09c09cdfb8da80416437d4700338cd37e844657ad52a75a7a5", size = 17122, upload-time = "2026-09-29T14:33:57.83Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/32/cc/060a500847774e6b9e07b6b1f6dabbc9772d6cac68e8a332761abba5fa57/django_mvp_accounts-0.2.0.tar.gz", hash = "sha256:934c850ae2212b4e29cb24ac33f5ee12130070af5c348fe65bf381f89cd54658", size = 27374, upload-time = "2026-10-08T14:09:19.587Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e8/5d/a4e268346465b77f632dae9214e974911965af34993cd16b144e7cd70e36/django_mvp_accounts-0.1.0-py3-none-any.whl", hash = "sha256:a790ed07a49b5ad1683853ae9c94a426ca44e0094a6b3914233e7a823602ede4", size = 26479, upload-time = "2026-09-29T14:33:56.403Z" },
+    { url = "https://files.pythonhosted.org/packages/15/31/9c1ca199c82614087a586f7f6c52a73863a585d1ac61ffd025781285389c/django_mvp_accounts-0.2.0-py3-none-any.whl", hash = "sha256:9d7eee76e8ffb96f02860444f8ef954b7c80e35bfbccc60420913930945aa5bf", size = 40991, upload-time = "2026-10-08T14:09:18.251Z" },
 ]
 
 [[package]]
@@ -2173,10 +2187,10 @@ requires-dist = [
     { name = "django-markdownx", specifier = ">=4.0.11,<5.0.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
-    { name = "django-mvp", specifier = ">=0.26.0,<0.27.0" },
-    { name = "django-mvp-accounts", specifier = ">=0.1.0,<0.2.0" },
+    { name = "django-mvp", specifier = ">=0.28.0,<0.29.0" },
+    { name = "django-mvp-accounts", specifier = ">=0.2.0,<0.3.0" },
     { name = "django-mvp-charts", specifier = ">=0.2.0,<0.3.0" },
-    { name = "django-mvp-forms", specifier = ">=0.2,<1.0" },
+    { name = "django-mvp-forms", specifier = ">=0.2.1,<1.0" },
     { name = "django-orbit", extras = ["mcp"], specifier = ">=0.12.1,<0.13.0" },
     { name = "django-ordered-model", specifier = ">=3.7.4,<4.0.0" },
     { name = "django-parler", specifier = ">=2.3,<3.0" },

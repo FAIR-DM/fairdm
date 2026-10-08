@@ -25,16 +25,16 @@
 {% block content.left %}
   {{ block.super }}
   {% if project.funding %}
-    <c-card title="{% trans "Funding" %}" icon="funding">
+    <c-mvp.card title="{% trans "Funding" %}" icon="funding">
       <p class="card-text">{{ project.funding }}</p>
-    </c-card>
+    </c-mvp.card>
   {% endif %}
 {% endblock content.left %}
 
 {% block quick_info_items %}
-  <c-data-field label="{% trans "Status" %}"
+  <c-mvp.data-field label="{% trans "Status" %}"
                 value="{{ object.get_status_display }}" />
-  <c-data-field label="{% trans "Visibility" %}"
+  <c-mvp.data-field label="{% trans "Visibility" %}"
                 value="{{ object.get_visibility_display }}" />
 {% endblock quick_info_items %}
 

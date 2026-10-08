@@ -11,7 +11,7 @@
     class  – extra classes on the card
 {% endcomment %}
 <c-vars title steps empty class />
-<c-card title="{{ title }}" class="bg-base-100 {{ class }}" data-card="timeline" only>
+<c-mvp.card title="{{ title }}" class="bg-base-100 {{ class }}" data-card="timeline" only>
   {% if steps %}
     <ol class="timeline timeline-vertical timeline-compact timeline-snap-icon">
       {% for step in steps %}
@@ -42,4 +42,4 @@
   {% else %}
     <p class="text-sm text-base-content/70">{{ empty }}</p>
   {% endif %}
-</c-card>
+</c-mvp.card>

@@ -23,7 +23,7 @@ def get_contributor_avatar(contributor):
 def avatar_url(contributor, size=None):
     """Resolve a contributor's avatar for django-mvp's ``c-avatar``.
 
-    Wired as ``MVP_CONFIG["brand"]["avatar_resolver"]``, so ``<c-avatar :for="contributor">``
+    Wired as ``MVP_CONFIG["brand"]["avatar_resolver"]``, so ``<c-mvp.avatar :for="contributor">``
     draws the contributor's photo or logo anywhere it is used.
 
     Args:

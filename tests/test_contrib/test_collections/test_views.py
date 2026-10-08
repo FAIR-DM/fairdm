@@ -6,6 +6,7 @@ import importlib
 from pathlib import Path
 
 import pytest
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -294,10 +295,14 @@ class TestSearch:
         slug = registry.get_for_model(RockSample).get_slug()
         response = self._search(client, slug, "NoSuchWordAnywhereInThisSuite")
 
-        content = response.content.decode()
-        empty_state = response.context["empty_state"]
-        assert str(empty_state["heading"]) in content
-        assert str(empty_state["message"]) in content
+        # The shell draws its own state for a search that matched nothing, with a
+        # link that clears the search, in place of the listing's "none yet" text.
+        soup = BeautifulSoup(response.content, "html.parser")
+        empty_state = soup.select_one(".mvp-list-empty")
+        assert empty_state is not None
+        assert empty_state.select_one(
+            f'a[href="{response.context["clear_refinements_url"]}"]'
+        )
 
     def test_a_search_matching_an_unpublished_records_field_returns_nothing(
         self, client, unpublished_dataset

@@ -14,7 +14,7 @@
     class    – extra classes on the card
 {% endcomment %}
 <c-vars title icon message wide=False class />
-<c-card title="{{ title }}" class="bg-base-100 {{ class }}" only>
+<c-mvp.card title="{{ title }}" class="bg-base-100 {{ class }}" only>
   <c-slot name="badges"><span class="badge badge-soft badge-neutral badge-sm">{% translate "Coming soon" %}</span></c-slot>
-  <c-placeholder.card icon="{{ icon }}" message="{{ message }}" class="{% if wide %}aspect-video{% endif %}" only />
-</c-card>
+  <c-mvp.placeholder.card icon="{{ icon }}" message="{{ message }}" class="{% if wide %}aspect-video{% endif %}" only />
+</c-mvp.card>

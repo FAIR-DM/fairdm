@@ -13,7 +13,7 @@
     class    – extra classes on the card
 {% endcomment %}
 <c-vars title records kind variant all_url empty class />
-<c-card title="{{ title }}" class="bg-base-100 min-w-0 {{ class }}" data-card="{{ kind }}s" only>
+<c-mvp.card title="{{ title }}" class="bg-base-100 min-w-0 {{ class }}" data-card="{{ kind }}s" only>
   <c-slot name="badges">
     {% if records.total %}<span class="badge badge-ghost badge-sm">{{ records.total }}</span>{% endif %}
   </c-slot>
@@ -48,4 +48,4 @@
   {% else %}
     <c-missing only><span>{{ empty }}</span></c-missing>
   {% endif %}
-</c-card>
+</c-mvp.card>

@@ -8,7 +8,7 @@
     class         – extra classes on the card
 {% endcomment %}
 <c-vars affiliations class />
-<c-card title="{% translate 'Affiliations' %}" class="bg-base-100 {{ class }}" data-card="affiliations" only>
+<c-mvp.card title="{% translate 'Affiliations' %}" class="bg-base-100 {{ class }}" data-card="affiliations" only>
   {% if affiliations.current or affiliations.past %}
     {% if affiliations.current %}
       <ul class="flex flex-col gap-3 text-sm">
@@ -28,4 +28,4 @@
   {% else %}
     <c-missing only><span>{% translate "No affiliations have been recorded." %}</span></c-missing>
   {% endif %}
-</c-card>
+</c-mvp.card>

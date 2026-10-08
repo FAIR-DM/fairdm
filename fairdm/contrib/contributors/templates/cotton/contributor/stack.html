@@ -9,14 +9,14 @@
 <c-vars contributors max="5" total size="sm" more_url :link="True" />
 {% split_contributors contributors max total as group %}
 {% if group.shown %}
-  <c-avatar.group size="{{ size }}">
+  <c-avatar.group class="{% if size == 'xs' %}-space-x-2{% elif size == 'md' %}-space-x-6{% elif size == 'lg' %}-space-x-8{% else %}-space-x-4{% endif %}">
     {% for c in group.shown %}
       {% if link %}<c-contributor.avatar :contributor="c" size="{{ size }}" link />{% else %}<c-contributor.avatar :contributor="c" size="{{ size }}" />{% endif %}
     {% endfor %}
     {% if group.more %}
       {% blocktranslate count counter=group.more asvar more_label %}{{ counter }} more contributor{% plural %}{{ counter }} more contributors{% endblocktranslate %}
       {% if more_url and link %}<a href="{{ more_url }}" aria-label="{{ more_label }}" title="{{ more_label }}" class="inline-flex rounded-full">{% endif %}
-      <c-avatar placeholder="+{{ group.more }}" size="{{ size }}" variant="neutral" alt="" />
+      <c-mvp.avatar placeholder="+{{ group.more }}" size="{{ size }}" variant="neutral" alt="" />
       {% if more_url and link %}</a>{% endif %}
     {% endif %}
   </c-avatar.group>

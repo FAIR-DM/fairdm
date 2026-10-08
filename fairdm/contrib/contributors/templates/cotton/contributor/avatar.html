@@ -9,7 +9,7 @@
 {% with c=contributor|as_contributor %}
   {% if c %}
     {% if link %}<a href="{{ c.get_absolute_url }}" aria-label="{{ c.name }}" title="{{ c.name }}" class="inline-flex rounded-box">{% endif %}
-    <c-avatar :for="c"
+    <c-mvp.avatar :for="c"
               size="{{ size }}"
               alt="{% if label %}{{ c.name }}{% endif %}"
               placeholder="{{ c.get_initials }}"

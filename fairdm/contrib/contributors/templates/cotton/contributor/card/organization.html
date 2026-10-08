@@ -6,7 +6,7 @@
 {% with c=contributor|as_contributor %}
   {% if c %}
     {% with roles=contributor.roles.all location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
-      <c-card.wrapper class="h-full py-5 {{ class }}">
+      <c-mvp.card.wrapper class="h-full py-5 {{ class }}">
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" class="" />
         </figure>
@@ -31,7 +31,7 @@
             {% if not members and not counts %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
           </div>
         </div>
-      </c-card.wrapper>
+      </c-mvp.card.wrapper>
     {% endwith %}
   {% endif %}
 {% endwith %}

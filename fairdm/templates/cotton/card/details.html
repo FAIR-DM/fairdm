@@ -18,7 +18,7 @@
     (default)    – entries after the rows, e.g. a project's timeline and funding
 {% endcomment %}
 <c-vars rows api_url class />
-<c-card title="{% translate 'Details' %}" class="bg-base-100 {{ class }}" data-card="details" only>
+<c-mvp.card title="{% translate 'Details' %}" class="bg-base-100 {{ class }}" data-card="details" only>
   <dl class="flex flex-col gap-4">
     {% for row in rows %}
       <c-card.details.entry label="{{ row.label }}" icon="{{ row.icon }}">
@@ -52,4 +52,4 @@
       </span>
     </c-card.details.entry>
   </dl>
-</c-card>
+</c-mvp.card>

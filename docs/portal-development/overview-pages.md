@@ -110,9 +110,9 @@ side column and keeps every card FairDM draws there:
 
 {% block overview.side %}
   {{ block.super }}
-  <c-card title="Our funder's reporting" class="bg-base-100">
+  <c-mvp.card title="Our funder's reporting" class="bg-base-100">
     Reports are filed under grant {{ record.funding.0.awardNumber }}.
-  </c-card>
+  </c-mvp.card>
 {% endblock overview.side %}
 ```
 
@@ -225,9 +225,9 @@ replaces. This adds a card under the related publications and keeps everything e
 
 {% block overview.record_facts %}
   {{ block.super }}
-  <c-card title="Our repository" class="bg-base-100">
+  <c-mvp.card title="Our repository" class="bg-base-100">
     Deposited under {{ record.name }}.
-  </c-card>
+  </c-mvp.card>
 {% endblock overview.record_facts %}
 ```
 
@@ -448,9 +448,9 @@ end of the side column and keeps every card FairDM draws there:
 
 {% block overview.side %}
   {{ block.super }}
-  <c-card title="Our research group" class="bg-base-100">
+  <c-mvp.card title="Our research group" class="bg-base-100">
     {{ person.name }} is a member of the group.
-  </c-card>
+  </c-mvp.card>
 {% endblock overview.side %}
 ```
 
@@ -559,9 +559,9 @@ keeps every card FairDM draws there:
 
 {% block overview.side %}
   {{ block.super }}
-  <c-card title="Our partners" class="bg-base-100">
+  <c-mvp.card title="Our partners" class="bg-base-100">
     {{ organization.name }} works with several partners.
-  </c-card>
+  </c-mvp.card>
 {% endblock overview.side %}
 ```
 
@@ -599,18 +599,18 @@ template, `demo/xrfmeasurement_overview.html`, extends the shared page and fills
 
 {# The result, in place of the single value the shared page would show. #}
 {% block overview.result %}
-  <c-card.wrapper class="bg-base-100">
+  <c-mvp.card.wrapper class="bg-base-100">
     <div class="card-body gap-3">
       <p class="text-4xl font-semibold tabular-nums">{{ measurement.concentration_ppm|floatformat:"-2"|intcomma }}</p>
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock overview.result %}
 
 {# The block the shared page leaves empty for exactly this: the type's own fields. #}
 {% block overview.properties %}
-  <c-card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
-    <c-data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
-  </c-card>
+  <c-mvp.card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
+    <c-mvp.data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
+  </c-mvp.card>
 {% endblock overview.properties %}
 ```
 
@@ -638,10 +638,10 @@ The demo's rock sample is the worked example. `RockSample` is in the `demo` app,
 
 {# The block the shared page leaves empty for exactly this: the type's own fields. #}
 {% block overview.properties %}
-  <c-card title="{% translate 'Rock properties' %}" class="bg-base-100">
-    <c-data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
-    <c-data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
-  </c-card>
+  <c-mvp.card title="{% translate 'Rock properties' %}" class="bg-base-100">
+    <c-mvp.data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
+    <c-mvp.data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
+  </c-mvp.card>
 {% endblock overview.properties %}
 ```
 

@@ -1,6 +1,6 @@
 {% load literature fairdm easy_icons %}
 
-<c-card title="{{ obj.title }}"
+<c-mvp.card title="{{ obj.title }}"
         subtitle="{{ obj.item|csl_field:"container-title" }}, {{ obj.issued.date|date:"Y" }}"
         x-data="{{ obj.item }}">
   <div class="text-muted">
@@ -27,4 +27,4 @@
     {% endblock footer %}
 
   </c-slot>
-</c-card>
+</c-mvp.card>

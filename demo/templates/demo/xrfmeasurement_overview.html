@@ -14,7 +14,7 @@
 {% endblock overview.badges %}
 
 {% block overview.result %}
-  <c-card.wrapper class="bg-base-100">
+  <c-mvp.card.wrapper class="bg-base-100">
     <div class="card-body gap-3">
       <p class="text-xs uppercase font-semibold text-base-content/60">{% translate "Concentration" %}</p>
       <p class="flex flex-wrap items-baseline gap-x-3">
@@ -30,17 +30,17 @@
         </p>
       {% endif %}
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock overview.result %}
 
 {% block overview.properties %}
-  <c-card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
+  <c-mvp.card title="{% translate 'Analytical conditions' %}" class="bg-base-100">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-      <c-data-field label="{% translate 'Instrument' %}" value="{{ measurement.instrument_model }}" />
-      <c-data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
+      <c-mvp.data-field label="{% translate 'Instrument' %}" value="{{ measurement.instrument_model }}" />
+      <c-mvp.data-field label="{% translate 'Element' %}" value="{{ measurement.element }}" />
     </div>
     {% if measurement.measurement_conditions %}
-      <c-data-field label="{% translate 'Conditions' %}" value="{{ measurement.measurement_conditions }}" />
+      <c-mvp.data-field label="{% translate 'Conditions' %}" value="{{ measurement.measurement_conditions }}" />
     {% endif %}
-  </c-card>
+  </c-mvp.card>
 {% endblock overview.properties %}

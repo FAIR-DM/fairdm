@@ -1,34 +1,33 @@
 {% extends "table_view.html" %}
 {% load i18n %}
-{% comment %}Actions sit at the trailing edge of the title bar: django-mvp 0.21 draws the breadcrumbs in the app header, and `page.header` renders above the heading, not beside it.{% endcomment %}
+{% comment %}The switcher sits at the trailing edge of the toolbar's bar, which is where django-mvp draws `page.actions` on a table page.{% endcomment %}
 {% block page.actions %}
   {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
     {% if sample_count|add:measurement_count > 1 %}
       <div id="listing-switcher">
-        <c-dropdown text="{% trans "Switch" %}" size="sm">
-          <c-menu>
+        <c-mvp.dropdown text="{% trans "Switch" %}" size="sm">
+          <c-menu class="w-full">
             {% if sample_listings %}
-              <c-menu.group label="{% trans "Samples" %}">
-                {% for entry in sample_listings %}
-                  <c-menu.item label="{{ entry.name }}"
-                                href="{{ entry.url }}"
-                                :active="entry.is_current" />
-                {% endfor %}
-              </c-menu.group>
+              <li></li>
+              <c-menu.title text="{% trans "Samples" %}" class="uppercase" />
+              {% for entry in sample_listings %}
+                <c-menu.item text="{{ entry.name }}"
+                             href="{{ entry.url }}"
+                             :active="entry.is_current" />
+              {% endfor %}
             {% endif %}
             {% if measurement_listings %}
-              <c-menu.group label="{% trans "Measurements" %}">
-                {% for entry in measurement_listings %}
-                  <c-menu.item label="{{ entry.name }}"
-                                href="{{ entry.url }}"
-                                :active="entry.is_current" />
-                {% endfor %}
-              </c-menu.group>
+              <li></li>
+              <c-menu.title text="{% trans "Measurements" %}" class="uppercase" />
+              {% for entry in measurement_listings %}
+                <c-menu.item text="{{ entry.name }}"
+                             href="{{ entry.url }}"
+                             :active="entry.is_current" />
+              {% endfor %}
             {% endif %}
           </c-menu>
-        </c-dropdown>
+        </c-mvp.dropdown>
       </div>
     {% endif %}
   {% endwith %}
-  {{ block.super }}
 {% endblock page.actions %}

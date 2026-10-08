@@ -26,13 +26,10 @@
 {% block overview_main %}
   {{ block.super }}
   {% if sample.measurements.exists %}
-    <c-card icon="speedometer2">
+    <c-mvp.card icon="speedometer2">
       <c-slot name="title">
         {% trans "Measurements" %}
-        <c-badge variant="primary"
-                 rounded
-                 pill
-                 text="{{ sample.measurements.count }}" />
+        <c-badge variant="primary" text="{{ sample.measurements.count }}" />
       </c-slot>
       <div class="list-group list-group-flush">
         {% for measurement in sample.measurements.all|slice:":10" %}
@@ -54,14 +51,14 @@
           </a>
         </div>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endif %}
 {% endblock overview_main %}
 
 {% block overview_sidebar %}
   {{ block.super }}
   {% if sample.location %}
-    <c-card title="{% trans 'Location' %}" icon="location">
+    <c-mvp.card title="{% trans 'Location' %}" icon="location">
       <dl class="mb-0">
         <dt class="text-muted small text-uppercase mb-1">{% trans "Coordinates" %}</dt>
         <dd class="mb-2">
@@ -78,10 +75,10 @@
                       border-radius: 0.375rem"></div>
         </dd>
       </dl>
-    </c-card>
+    </c-mvp.card>
   {% endif %}
   {% if sample.collection_date or sample.collector %}
-    <c-card title="{% trans 'Collection' %}"
+    <c-mvp.card title="{% trans 'Collection' %}"
             icon="calendar-event">
       <dl class="mb-0">
         {% if sample.collection_date %}
@@ -95,6 +92,6 @@
           </dd>
         {% endif %}
       </dl>
-    </c-card>
+    </c-mvp.card>
   {% endif %}
 {% endblock overview_sidebar %}

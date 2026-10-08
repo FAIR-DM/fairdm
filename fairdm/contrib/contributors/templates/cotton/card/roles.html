@@ -8,7 +8,7 @@
     class  – extra classes on the card
 {% endcomment %}
 <c-vars roles class />
-<c-card title="{% translate 'Roles' %}" class="bg-base-100 {{ class }}" data-card="roles" only>
+<c-mvp.card title="{% translate 'Roles' %}" class="bg-base-100 {{ class }}" data-card="roles" only>
   {% if roles %}
     <dl class="flex flex-col gap-3 text-sm">
       {% for role in roles %}
@@ -24,4 +24,4 @@
   {% else %}
     <c-missing only><span>{% translate "No roles recorded yet. Roles appear here once a credit says how the work was done." %}</span></c-missing>
   {% endif %}
-</c-card>
+</c-mvp.card>

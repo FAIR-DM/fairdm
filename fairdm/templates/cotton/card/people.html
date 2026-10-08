@@ -12,7 +12,7 @@
     class    – extra classes on the card
 {% endcomment %}
 <c-vars people all_url title empty class />
-<c-card title="{{ title|default:_('People') }}" class="bg-base-100 {{ class }}" data-card="people" only>
+<c-mvp.card title="{{ title|default:_('People') }}" class="bg-base-100 {{ class }}" data-card="people" only>
   {% if all_url %}
     <c-slot name="actions"><c-button href="{{ all_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>
   {% endif %}
@@ -22,7 +22,7 @@
         {# The name opens towards the middle of the row, so a long one never runs off the page. #}
         <li class="tooltip {% if forloop.counter0|divisibleby:6 or forloop.counter|add:4|divisibleby:6 or forloop.counter|add:3|divisibleby:6 %}tooltip-right{% else %}tooltip-left{% endif %}" data-tip="{{ contributor }}">
           <a href="{{ contributor.get_absolute_url }}" class="block rounded-full" aria-label="{{ contributor }}">
-            <c-avatar :for="contributor" alt="" size="w-full" only />
+            <c-mvp.avatar :for="contributor" alt="" size="w-full" only />
           </a>
         </li>
       {% endfor %}
@@ -41,4 +41,4 @@
   {% else %}
     <p class="text-sm text-base-content/70">{{ empty|default:_("No one is credited yet.") }}</p>
   {% endif %}
-</c-card>
+</c-mvp.card>

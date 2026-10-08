@@ -8,7 +8,7 @@
 {% endcomment %}
 
 {% block page.content %}
-  <c-card.wrapper class="bg-base-100 max-w-3xl">
+  <c-mvp.card.wrapper class="bg-base-100 max-w-3xl">
     <div class="card-body gap-5">
       <p class="text-sm text-base-content/70">
         {% blocktranslate %}A person is added with the organization they were at for this {{ kind }}. That organization is listed under Organizations here too.{% endblocktranslate %}
@@ -197,5 +197,5 @@
         <div><c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" size="sm" ghost /></div>
       </div>
     </div>
-  </c-card.wrapper>
+  </c-mvp.card.wrapper>
 {% endblock page.content %}

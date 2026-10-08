@@ -1,8 +1,8 @@
 {# @description A horizontal card summarising a project, dataset, sample or measurement, with a thumbnail, date, title, subtitle, badge, description, tags, contributor, organization and a link to the record. Takes its inputs from the context as attributes: object_type, object, image, title, date, subtitle, badge_text, description, tags, contributor and organization. #}
-<c-card variant="{{ object_type }}" only>
+<c-mvp.card variant="{{ object_type }}" only>
   {% load thumbnail static %}
 
-  <c-grid cols=2>
+  <c-mvp.grid cols=2>
     <div class="col-md-4">
       <div class="card">
         {% if image %}
@@ -18,16 +18,16 @@
     </div>
     <div class="flex flex-col">
       <div>
-        <c-text small tight>
+        <c-mvp.text small tight>
           <c-icon name="date" class="me-1" />
           {{ date|date:"F j, Y" }}
-        </c-text>
+        </c-mvp.text>
         <div class="card-title mb-1">
           <h1 class="fs-3">{{ object.title }}</h1>
         </div>
-        <c-text muted small>
+        <c-mvp.text muted small>
           {{ subtitle }}
-        </c-text>
+        </c-mvp.text>
         <div class="d-flex justify-content-between align-items-start mb-2">
           {% if badge_text %}
             <span class="badge {% if object_type == 'sample' %}bg-primary{% elif object_type == 'dataset' %}bg-success{% elif object_type == 'measurement' %}bg-warning text-dark{% elif object_type == 'project' %}bg-info{% else %}bg-secondary{% endif %}">
@@ -57,12 +57,12 @@
           {% endif %}
         </small>
       </div>
-      <c-menu horizontal class="mt-auto shrink">
-        <c-menu.item label="{% trans "View Details" %}"
+      <c-menu horizontal class="w-full mt-auto shrink">
+        <c-menu.item text="{% trans "View Details" %}"
                      href="{{ object.get_absolute_url }}"
                      icon="overview"
                      subtle />
       </c-menu>
     </div>
-  </c-grid>
-</c-card>
+  </c-mvp.grid>
+</c-mvp.card>

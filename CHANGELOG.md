@@ -194,6 +194,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **django-mvp moves to 0.28 and django-mvp-accounts to 0.2.** django-mvp now takes its basic
+  components from daisy-cotton and puts the ones it keeps under an `mvp.` prefix. FairDM's own
+  settings install `daisy_cotton`, so a portal that writes no templates of its own has nothing
+  to do. A portal with its own templates checks them against django-mvp's upgrade notes for
+  [0.27.0](https://github.com/django-mvp/django-mvp/releases/tag/v0.27.0) and
+  [0.28.0](https://github.com/django-mvp/django-mvp/releases/tag/v0.28.0). The changes FairDM's
+  own templates needed were these:
+  - `<c-card>`, `<c-card.wrapper>`, `<c-avatar>`, `<c-dropdown>`, `<c-grid>`, `<c-group>`,
+    `<c-text>`, `<c-data-field>`, `<c-form.formset>`, `<c-placeholder.card>`, `<c-section.hero>`
+    and `<c-addons.share-dropdown>` are written with the prefix: `<c-mvp.card>`,
+    `<c-mvp.avatar>` and so on. An unprefixed `<c-card>`, `<c-avatar>` or `<c-dropdown>` raises
+    no error. It draws daisy-cotton's component of that name, which takes different attributes.
+    FairDM's own components, such as `<c-card.details>` and `<c-contributor.avatar>`, keep their
+    names.
+  - `<c-menu.item>` takes `text` where it took `label`. This includes an entry a record's
+    template adds to `<c-actions.manage>`.
+  - `<c-menu.group label="…">` is a `<c-menu.title text="…" />` followed by its entries, and
+    `<c-menu.divider />` is an empty `<li></li>`.
+  - `<c-menu>` no longer fills its parent. Pass `class="w-full"` where it should.
+  - `<c-avatar.group>` has no `size`. The overlap is a class, `-space-x-4` for what `sm` gave.
+  - The `app.header.widgets` block of `base.html` is `app.navbar.end`.
+  - `MVP_CONFIG["layout"]["navbar"]` has one widget list, `end`. `desktop.end` and `mobile.end`
+    are no longer read.
+  - On a table page the add button is in the `page.controls` block. `page.actions` is an empty
+    block at the end of the toolbar.
+- A listing with no records and no search or filter applied has no toolbar, so no search box. A
+  search or filter that matches nothing gets a message of its own and a link that clears it.
 - **A record names its people before its organizations.** Its overview and its citation take the
   people in the order set on the Contributors tab, then the organizations in theirs, so reordering
   a list reorders the citation. Which contributors are named, and how, is as before.

@@ -15,7 +15,7 @@
   {% endcomment %}
   <dialog id="{{ id }}" class="modal" aria-label="{{ about }}">
     <div class="modal-box bg-transparent p-0 shadow-none w-11/12 max-w-2xl">
-      <c-card title="{{ about }}" class="w-full h-full">
+      <c-mvp.card title="{{ about }}" class="w-full h-full">
         <div class="flex flex-col gap-4">
           {% if info.description %}<p class="text-sm">{{ info.description }}</p>{% endif %}
           {% if info.keywords %}
@@ -34,7 +34,7 @@
             </div>
           {% endif %}
         </div>
-      </c-card>
+      </c-mvp.card>
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute end-3 top-3" aria-label="{% translate 'Close' %}">✕</button>
       </form>

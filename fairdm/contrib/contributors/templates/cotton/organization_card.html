@@ -1,5 +1,5 @@
 {# @description A centred card for an organisation with its avatar, name, identifier icon and a link to its profile. Reads the context variable `contributor`, the organisation. #}
-<c-card class="shadow align-items-center text-center {{ contributor.type }}"
+<c-mvp.card class="shadow align-items-center text-center {{ contributor.type }}"
         body_class="vstack align-items-center">
   <span class="position-absolute top-0 end-0 me-2 mt-1 z-1">{% icon "settings" %}</span>
   {% if contributor.get_default_identifier %}
@@ -7,10 +7,10 @@
       <c-contributor.icon :contributor="contributor" />
     </span>
   {% endif %}
-  <c-avatar :contributor="contributor" class="w-100" only />
+  <c-mvp.avatar :contributor="contributor" class="w-100" only />
   <h5 class="card-title fs-6 mt-1 mb-3">{{ contributor }}</h5>
   <c-components.button class="btn btn-primary"
                        href="{{ contributor.get_absolute_url }}">
     {% trans "View profile" %}
   </c-components.button>
-</c-card>
+</c-mvp.card>

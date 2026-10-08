@@ -73,7 +73,7 @@
   {% endblock overview.about %}
 
   {% block overview.datasets %}
-    <c-card title="{% translate 'Datasets' %}" class="bg-base-100">
+    <c-mvp.card title="{% translate 'Datasets' %}" class="bg-base-100">
       <c-slot name="badges">
         {% if counts.datasets %}<span class="badge badge-ghost badge-sm">{{ counts.datasets }}</span>{% endif %}
       </c-slot>
@@ -128,31 +128,31 @@
           {% endif %}
         </div>
       {% endif %}
-    </c-card>
+    </c-mvp.card>
   {% endblock overview.datasets %}
 
   {% block overview.charts %}
     {% if composition_chart or growth_chart %}
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
         {% if composition_chart %}
-          <c-card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
+          <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
             <c-chart :chart="composition_chart.chart"
                      id="project-composition"
                      height="{{ composition_chart.height }}"
                      name="{% translate 'Records by type' %}"
                      caption="{% translate 'Records by sample and measurement type.' %}"
                      description="{{ composition_chart.description }}" />
-          </c-card>
+          </c-mvp.card>
         {% endif %}
         {% if growth_chart %}
-          <c-card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
+          <c-mvp.card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
             <c-chart :chart="growth_chart.chart"
                      id="project-growth"
                      aspect-ratio="16/9"
                      name="{% translate 'Samples and measurements added over time' %}"
                      caption="{% translate 'Running total, by month added to the portal.' %}"
                      description="{{ growth_chart.description }}" />
-          </c-card>
+          </c-mvp.card>
         {% endif %}
       </div>
     {% endif %}

@@ -10,7 +10,7 @@
     class         – extra classes on the card
 {% endcomment %}
 <c-vars organization hierarchy class />
-<c-card title="{% translate 'Organization hierarchy' %}" class="bg-base-100 {{ class }}" data-card="hierarchy" only>
+<c-mvp.card title="{% translate 'Organization hierarchy' %}" class="bg-base-100 {{ class }}" data-card="hierarchy" only>
   {% if hierarchy.parent or hierarchy.children %}
     <ul class="menu menu-sm w-full p-0">
       {% if hierarchy.parent %}
@@ -49,4 +49,4 @@
   {% else %}
     <c-missing only><span>{% translate "No parent organization and no institutes, departments or groups are recorded for this organization." %}</span></c-missing>
   {% endif %}
-</c-card>
+</c-mvp.card>
