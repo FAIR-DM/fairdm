@@ -290,6 +290,22 @@
               "fairdm/core/editing.py:342"
             ]
           }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_editing.py"
+            ],
+            "commands": [
+              "uv run pytest tests/test_core/test_editing.py -q -n auto"
+            ],
+            "code": [
+              "fairdm/core/editing.py:500"
+            ]
+          }
         }
       ]
     },

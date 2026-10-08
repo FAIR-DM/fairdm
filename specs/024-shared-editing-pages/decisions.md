@@ -401,3 +401,26 @@ same as the brief's description.
 **Revisit if:** a second kind of row that names another record needs the same treatment.
 
 **ADR:** none — the rule is the one D19 sets for blocking measurements
+
+## D28. The row pages hide the row set's heading with one stylesheet rule
+
+**Decision:** `editing/rows.html` wraps its row sets in `.editing-rows`, and `fairdm.css` hides the
+divider inside it.
+**Why:** the maintainer asked at the walkthrough for the heading and its line to go, since the
+page's title already names the rows. django-mvp 0.26 draws the divider above every row set with no
+way to turn it off from the template.
+**Revisit if:** django-mvp gains an option to draw a row set without its heading. The wrapper and
+the rule then go.
+
+**ADR:** none — a layout choice on two pages
+
+## D29. The delete page says what stops a deletion by its kind
+
+**Decision:** `DeleteRecord` passes `protected_kind`, and `editing/delete_record.html` draws the
+refusal itself, naming measurements or public datasets.
+**Why:** the maintainer asked at the walkthrough for "measurements" in place of "records", so the
+person knows what has to be removed. django-mvp's page has one sentence for every case and no block
+around it, so the refusal is drawn in this project's template.
+**Revisit if:** another kind of record comes to stop a deletion.
+
+**ADR:** none — wording on one page

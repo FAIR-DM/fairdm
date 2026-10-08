@@ -501,6 +501,9 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
         if context["protected_objects"]:
             context["is_protected"] = True
             context["form"] = None
+            context["protected_kind"] = self.protected_kind(
+                context["protected_objects"]
+            )
             listed, unlisted = self.split_protected(context["protected_objects"])
             context["protected_objects"] = listed
             context["protected_unlisted"] = unlisted
@@ -509,6 +512,21 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
             if model in {Project, Dataset}:
                 context["related_objects"] = self.related_objects_summary()
         return context
+
+    @staticmethod
+    def protected_kind(protected):
+        """Say what kind of record stops the deletion, so the page can name it.
+
+        Args:
+            protected: The objects that stop the deletion.
+
+        Returns:
+            ``"measurements"`` or ``"datasets"`` when every object is one, else ``"records"``.
+        """
+        for kind, model in (("measurements", Measurement), ("datasets", Dataset)):
+            if all(isinstance(item, model) for item in protected):
+                return kind
+        return "records"
 
     def split_protected(self, protected):
         """Separate what stops the deletion into what the viewer may see and a count of the rest.

@@ -1,18 +1,37 @@
 {% extends "delete_view.html" %}
 {% load i18n %}
 {% block before_form %}
-  {{ block.super }}
-  {% if protected_unlisted %}
+  {% if is_protected %}
+    {# Drawn here, not by the page this extends, so that what stops the deletion is named for what it is. #}
     <c-alert variant="error">
-      <span>
-        {% blocktrans count counter=protected_unlisted %}One more record you do not have access to also stops this deletion.{% plural %}{{ counter }} more records you do not have access to also stop this deletion.{% endblocktrans %}
-      </span>
+      <div>
+        <strong>{% translate "This record cannot be deleted." %}</strong>
+        <c-text>
+          {% if protected_kind == "measurements" %}
+            {% translate "It is referenced by the following measurements, which must be removed or updated first:" %}
+          {% elif protected_kind == "datasets" %}
+            {% translate "It holds the following public datasets, which must be removed or made private first:" %}
+          {% else %}
+            {% translate "It is referenced by the following records, which must be removed or updated first:" %}
+          {% endif %}
+        </c-text>
+        <ul class="list-disc ms-4">
+          {% for obj in protected_objects %}<li>{{ obj }}</li>{% endfor %}
+        </ul>
+        {% if protected_unlisted %}
+          <c-text>
+            {% blocktranslate count counter=protected_unlisted %}One more measurement you do not have access to also stops this deletion.{% plural %}{{ counter }} more measurements you do not have access to also stop this deletion.{% endblocktranslate %}
+          </c-text>
+        {% endif %}
+      </div>
     </c-alert>
+  {% else %}
+    {{ block.super }}
   {% endif %}
   {% if related_unlisted %}
     <c-alert variant="warning">
       <span>
-        {% blocktrans count counter=related_unlisted %}One more row you do not have access to also goes with this record.{% plural %}{{ counter }} more rows you do not have access to also go with this record.{% endblocktrans %}
+        {% blocktranslate count counter=related_unlisted %}One more row you do not have access to also goes with this record.{% plural %}{{ counter }} more rows you do not have access to also go with this record.{% endblocktranslate %}
       </span>
     </c-alert>
   {% endif %}

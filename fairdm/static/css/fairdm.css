@@ -373,3 +373,9 @@
   font-size: var(--cardtitle-fs, 1.125rem);
   font-weight: 600;
 }
+
+/* A page that is one row set alone: the page's title names the rows, so the heading django-mvp
+   draws above every row set, and the line it sits on, would only repeat it. */
+.editing-rows .divider {
+  display: none;
+}

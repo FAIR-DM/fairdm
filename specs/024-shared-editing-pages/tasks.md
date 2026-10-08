@@ -185,3 +185,10 @@ Each task names the review finding it answers. The findings are in `review-findi
   per record, not once per page, with a test that pins the number of queries it issues for a
   sample. Remove `documentation_link` from `fairdm/core/utils.py` and `DateForm` from
   `fairdm/contrib/generic/forms.py`, which lost their only callers in this feature.
+
+## Phase 7: After the walkthrough
+
+- [ ] T018 [US2] Asked for at the walkthrough. The key dates and identifiers pages hide the row
+  set's own heading and the line drawn with it, because the page's title already names the rows.
+  A record that cannot be deleted names what stops it as measurements or as public datasets, in
+  place of "records".
