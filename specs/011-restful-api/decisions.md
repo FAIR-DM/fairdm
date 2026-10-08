@@ -320,3 +320,26 @@ deleted in the same change. They described the April build and its 99 ticked tas
 task list are written again from this specification, and the history keeps the old ones.
 
 **ADR:** none — housekeeping.
+
+## D16. What the design review changed
+
+One reviewer read the plan, the task list and the code they name before anything was built, and
+reported 17 findings. The four that changed the design:
+
+- **A reference never names a record the caller may not see.** A public dataset can sit in a
+  private project, and a measurement's sample can be in another dataset. Such a reference is
+  returned as null (plan D1). The portal's own pages already leave a hidden project unnamed.
+- **Lists filter by the parent's short identifier.** With database numbers gone from the output,
+  the existing filters, which match on them, would have been unusable, and a type that declares
+  its own filters had no dataset filter at all (plan D3).
+- **The check that a developer's serializer builds on the base stays where the endpoint is
+  built.** Both ways of supplying a serializer bypass the factory, and the base is what carries
+  the access rules for writing (plan D3).
+- **The old serializer builder is deleted in the second story.** Tests for the write rules still
+  import it until their replacements on the real routes exist.
+
+The reviewer also checked each of the seven tasks marked as already done. None was overturned.
+Two were found to rest on tests that miss one clause each, and the missing cases were added to
+open tasks in the same test files.
+
+**ADR:** none — a record of review, the decisions it led to are in the plan.

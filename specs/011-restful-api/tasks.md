@@ -27,6 +27,9 @@ This story lays the serializers the others stand on.
   dataset, sample and measurement with metadata recorded, the record endpoint returns its own
   fields, its parent, descriptions, key dates, identifiers, keywords and credited contributors.
   A dataset returns its licence and a project its owner. The parent's address returns the parent.
+  A public dataset in a private project returns its project as null to a visitor and as the
+  reference to someone at the view level on the project, and the same for a measurement whose
+  sample is in a private dataset.
 - [ ] T003 [US1] `tests/test_api/test_viewsets.py`, `TestCommonFields`: a record of every
   registered demonstration sample type carries the fields common to all samples and every field
   its type declares. The same for every measurement type, including its measured values.
@@ -35,7 +38,7 @@ This story lays the serializers the others stand on.
   integer.
 - [ ] T005 [US1] `tests/test_api/test_viewsets.py`, `TestContributor`: a person and an
   organisation are returned with their public profile fields. No response carries an email
-  address, a password or an account flag.
+  address, a password or an account flag. A superuser account is not in the list.
 - [ ] T006 [US1] `tests/test_api/test_viewsets.py`, `TestListAndRecordRoutes`: projects, datasets,
   contributors and every registered type have a list and a record route. A record is found by its
   short identifier. An unknown identifier and an unregistered type are answered 404.
@@ -52,17 +55,23 @@ This story lays the serializers the others stand on.
   returned to a visitor. A private project or dataset is answered 404 to a visitor and to a
   signed-in person with no level, and returned to someone at the view level.
 - [ ] T011 [US1] `tests/test_api/test_permissions.py`, `TestReadingASampleOrMeasurement`: the same
-  three callers against a sample and a measurement in a private dataset, on the real routes.
+  three callers against a sample and a measurement in a private dataset, on the real routes. A
+  signed-in person with no level is also answered 404 on a private dataset's record route.
 - [ ] T012 [US1] `tests/test_api/test_viewsets.py`, `TestFiltering`: a registered type's declared
-  filter narrows its list to matching records.
+  filter narrows its list to matching records. A sample list and a measurement list narrowed by
+  their dataset's short identifier, and a measurement list by its sample's, return only that
+  parent's records, for a type that declares no such filter too. A database number in the same
+  parameter is refused.
 - [ ] T013 [US1] `tests/test_api/test_viewsets.py`, `TestOrdering`: projects, datasets and every
   registered sample and measurement type return their list in a named order, ascending and
   descending.
 - [ ] T014 [US1] Implement to make T001 to T013 pass (plan D1, D2, D3 without `perform_destroy`
-  and the catalogues). Remove `MeasurementConfig.serializer_fields`. Delete
-  `build_model_serializer`.
+  and the catalogues). Remove `MeasurementConfig.serializer_fields`. The viewsets
+  stop calling `build_model_serializer`. The function stays until T025, because the hand-built
+  write tests still import it.
 - [ ] T015 [US1] Documentation: the reading half of `docs/portal-development/restful-api.md`, and
-  a page for people using a portal on reading records with a script, in a table of contents.
+  a page for people using a portal on reading records with a script, in a table of contents. An
+  architecture decision record under `docs/adr/` for references by short identifier.
 
 ## Phase 2: US-2, a member of a record's team creates, changes and deletes records (P1)
 
@@ -96,7 +105,11 @@ This story lays the serializers the others stand on.
 - [ ] T024 [US2] `tests/test_api/test_viewsets.py`, `TestNoServerErrors`: for every route, an
   empty body, a body of wrong types and a valid body are each answered below 500.
 - [ ] T025 [US2] Implement to make T016 to T024 pass (plan D1 writable parents, D3
-  `perform_destroy`).
+  `perform_destroy`). Delete `build_model_serializer`, and in the same commit delete the
+  hand-built write tests that T016 to T023 replace (`TestCreatedRecordsListTheirCreator`,
+  `TestVisibilityNeedsManage`, `TestMovingARecordThroughTheApi`,
+  `TestCreatingARecordThroughTheApi`, `TestParentChoicesThroughTheApi` and their fixtures in
+  `tests/test_api/test_viewsets.py`).
 - [ ] T026 [US2] Documentation: creating, changing and deleting, what is read-only, who may do
   what, and the refusals, in both pages from T015.
 
@@ -109,9 +122,10 @@ This story lays the serializers the others stand on.
 - [ ] T028 [US3] `tests/test_api/test_viewsets.py`, `TestRegisteredSerializerIsUsed`: a route's
   serializer is the one the configuration returns, for a `serializer_class` named in the
   registration and for a configuration that overrides `get_serializer_class`.
-- [ ] T029 [US3] `tests/test_registry/test_factories.py`, `TestSerializerMustBuildOnBase`: a
-  developer's serializer for a sample or measurement type that does not build on the base is
-  refused with `ImproperlyConfigured` naming the base, and one that does is accepted.
+- [ ] T029 [US3] `tests/test_api/test_viewsets.py`, `TestSerializerMustBuildOnBase`: a
+  configuration that overrides `get_serializer_class` with a serializer that does not build on the
+  sample or measurement base is refused with `ImproperlyConfigured`, as a named
+  `serializer_class` already is.
 - [ ] T030 [US3] `tests/test_api/test_checks.py`, `TestRegistrationCheck`: a registered type whose
   API fields leave out a field the model requires produces a system check error naming the type
   and the field. A complete registration produces none.
@@ -124,31 +138,37 @@ This story lays the serializers the others stand on.
   names and the API's route names for projects and datasets resolve to different views.
 - [ ] T034 [US3] `tests/test_api/test_router.py`, `TestCustomViewset`: a viewset registered on
   `fairdm_api_router` is served and appears in the generated schema.
-- [ ] T035 [US3] Implement to make T027 to T034 pass (plan D2 serializer check, D4).
+- [ ] T035 [US3] Implement to make T027 to T034 pass (plan D3 serializer check, D4).
 - [ ] T036 [US3] Documentation: the registration options that shape the API, the base
   serializers, the start-up check, addresses and renaming, and the router, in
   `docs/portal-development/restful-api.md` and the registry pages that mention serializers.
 
 ## Phase 4: US-4, a person reaches the API with a token from their account pages (P2)
 
-- [ ] T037 [US4] `tests/test_api/test_authentication.py`, `TestTokens`: a request with a current
+- [ ] T037 [US4] `tests/test_api/test_settings.py`, `TestTokens`: a request with a current
   token from the account pages' token store acts as its holder. A revoked, an expired and an
   unknown token are each answered 401.
-- [ ] T038 [US4] `tests/test_api/test_authentication.py`, `TestTokenPages`: the pages that list,
+- [ ] T038 [US4] `tests/test_api/test_urls.py`, `TestTokenPages`: the pages that list,
   create and revoke tokens resolve, open for a signed-in person and send a visitor to sign in. A
-  token created through the create page authenticates an API request.
+  token created through the create page authenticates an API request. At the token limit the
+  create page creates nothing.
 - [ ] T039 [US4] `tests/test_api/test_urls.py`, `TestNoAccountEndpoints`: no route under the API
   accepts a password, issues a token, or changes a password or an account.
-- [ ] T040 [US4] `tests/test_api/test_authentication.py`, `TestSession`: a person signed in to the
+- [ ] T040 [US4] `tests/test_api/test_settings.py`, `TestSession`: a person signed in to the
   portal reads a private record of theirs through the API with their session, and a write with a
-  session and no CSRF token is refused.
-- [ ] T041 [US4] `tests/test_api/test_authentication.py`, `TestOtherOrigins`: a request from
+  session and no CSRF token is refused, with a client that enforces CSRF checks.
+- [ ] T041 [US4] `tests/test_api/test_settings.py`, `TestOtherOrigins`: a request from
   another origin is answered with permission for that origin to read the response, the
   `Authorization` header is allowed in a preflight, and no response permits credentials.
 - [ ] T042 [US4] Implement to make T037 to T041 pass (plan D5). Replace the token fixture in
-  `tests/test_api/conftest.py`.
+  `tests/test_api/conftest.py`. The `make_token_client` helpers in `test_filters.py`,
+  `test_permissions.py` and `test_urls.py` use it. `TestTokenLogin`, `TestTokenHeaderAccess` and
+  `TestTokenLogout` in `test_urls.py` are deleted with the endpoint. The expired and revoked cases
+  of T037 are seen to fail first against the installed package.
 - [ ] T043 [US4] Documentation: getting, using and revoking a token in the page for people using
-  a portal, and the knox and CORS settings in `docs/portal-development/restful-api.md`.
+  a portal, and the knox and CORS settings in `docs/portal-development/restful-api.md`, where the login and
+  logout sections are removed. An architecture decision record under `docs/adr/` for tokens from
+  the account pages.
 
 ## Phase 5: US-5, a developer finds out what the API offers (P3)
 
@@ -170,8 +190,9 @@ This story lays the serializers the others stand on.
   with a level on a private dataset.
 - [ ] T050 [US5] `tests/test_api/test_router.py`, `TestRoot`: the API's root links to every list
   route and both catalogues.
-- [ ] T051 [US5] Implement to make T044 to T050 pass (plan D3 catalogues, D7). Delete
-  `FAIRDM_API_DOCS_URL`.
+- [ ] T051 [US5] Implement to make T046 to T050 pass (plan D3 catalogues, D7). Delete
+  `FAIRDM_API_DOCS_URL` and `TestFairDMAPIDocsURLSetting`. The menu test counts the entries that
+  lead to the documentation page across the whole menu, without relying on position.
 - [ ] T052 [US5] Documentation: the documentation page, the schema address and the catalogues, in
   both pages.
 
@@ -184,13 +205,17 @@ This story lays the serializers the others stand on.
   the four rates in the settings changes where the caller is stopped.
 - [ ] T055 [US6] `tests/test_api/test_pagination.py`, `TestPageSizes`: a list holds the default
   number of records, honours a larger size up to the ceiling and no further, and follows a changed
-  default and a changed ceiling in the settings.
+  default and a changed ceiling in the settings. A middle page carries both a next and a previous
+  address. The envelope tests in `TestPagination` pass their page size explicitly.
 - [ ] T056 [US6] `tests/test_api/test_viewsets.py`, `TestQueryCount`: for projects, datasets and
   one sample and one measurement type with metadata recorded, a list of twelve records runs the
   same number of queries as a list of two.
-- [ ] T057 [US6] Implement to make T053 to T056 pass (plan D6, and the prefetching in D3).
+- [ ] T057 [US6] Implement to make T053 to T056 pass (plan D6, and the prefetching in D3). Retire
+  `TestRateLimiting`, which pins the old rate names.
 - [ ] T058 [US6] Documentation: the limits, the page sizes and the settings that change them, for
-  a portal administrator, in a table of contents.
+  a portal administrator, in a table of contents. It names `REST_FRAMEWORK["NUM_PROXIES"]` as the
+  setting for the number of proxies in front of the portal, and says the limits are per address
+  only once it is set.
 
 ## Phase 7: closing
 

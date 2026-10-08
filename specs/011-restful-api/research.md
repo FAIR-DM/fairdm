@@ -122,7 +122,7 @@ serializer inherits them.
 ### What stops a delete
 
 Two things, both below the view. Foreign keys with `PROTECT` or `RESTRICT` raise from
-`Model.delete()`, which covers a sample with measurements. `Project.delete()` raises
+`Model.delete()`, which covers a sample with measurements. A `pre_delete` receiver raises
 `PublicDatasetsProtect` for a project with a public dataset. The API catches both and answers 409
 with the reason. No rule is duplicated.
 

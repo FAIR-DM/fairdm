@@ -12,7 +12,7 @@ token mechanism, and to set limits. No model changes and no migration of FairDM'
 
 ## Technical context
 
-- Python 3.13, Django 5.2, Django REST Framework 3.17, drf-spectacular, django-filter.
+- Python 3.13, Django 5.2, Django REST Framework 3.18, drf-spectacular, django-filter.
 - New dependency: django-rest-knox 5, through `django-mvp-accounts[api]`.
 - Removed dependencies: dj-rest-auth, djangorestframework-guardian.
 - Tests: pytest, under `tests/test_api/` mirroring `fairdm/api/`, and `tests/test_registry/` for
@@ -36,7 +36,10 @@ token mechanism, and to set limits. No model changes and no migration of FairDM'
 ### D1. Serializers (`fairdm/api/serializers.py`)
 
 - `RecordReferenceField(SlugRelatedField)`: `slug_field="uuid"`. Returns
-  `{"uuid": …, "url": …}`. Accepts a bare identifier or that object. `view_name` is given per use.
+  `{"uuid": …, "url": …}`, or null when the caller may not see the record referred to, by the same
+  rule the list filter applies. A public dataset can sit in a private project, and a measurement's
+  sample can be in another dataset, so a reference must not name what the caller could not open.
+  Accepts a bare identifier or that object. `view_name` is given per use.
 - Read-only metadata serializers: `DescriptionSerializer`, `DateSerializer`,
   `IdentifierSerializer` (`type`, `value`), `KeywordSerializer`, `ContributionSerializer`
   (contributor reference, roles, affiliation reference).
@@ -46,7 +49,7 @@ token mechanism, and to set limits. No model changes and no migration of FairDM'
 - `ProjectSerializer`, `DatasetSerializer`: written out, not generated. Dataset carries `project`
   and `license`. Project carries `owner`.
 - `BaseSampleSerializer`, `BaseMeasurementSerializer`: subclasses of `RecordSerializer` with a
-  `common_fields` tuple each.
+  `common_fields` tuple each. `polymorphic_ctype` is a database number and is not among them.
 - `ContributorSerializer`: read-only, one class for people and organisations with a `type` field,
   carrying what the profile page shows. Never `email`.
 - `build_model_serializer` and the cache around it are deleted.
@@ -55,17 +58,25 @@ token mechanism, and to set limits. No model changes and no migration of FairDM'
 
 Builds `type(f"{Model}Serializer", (base,), …)` where `base` is the sample or measurement base and
 `Meta.fields` is `base.common_fields` followed by the resolved field list, without repeats. Parent
-fields are `RecordReferenceField`. `MeasurementConfig.serializer_fields` is removed. A custom
-`serializer_class` is checked against the base when the factory resolves it.
+fields are `RecordReferenceField`. `MeasurementConfig.serializer_fields` is removed.
 
 ### D3. Viewsets (`fairdm/api/viewsets.py`)
 
-- `generate_viewset(config)` sets `serializer_class = config.get_serializer_class()`, the concrete
+- `generate_viewset(config)` sets `serializer_class = config.get_serializer_class()` and checks
+  whatever that returns against the sample or measurement base, raising `ImproperlyConfigured`
+  when it does not build on it. The check stays here, as today, because a named `serializer_class`
+  and an overridden `get_serializer_class` both bypass the factory, and the base is what carries
+  the parent narrowing, the creator credit and the manage-level rules. It also sets the concrete
   type's plain queryset with parents selected and metadata prefetched, `filterset_class` from the
   configuration, and `ordering_fields`.
+- Every generated list accepts `dataset` by short identifier, and a measurement list also accepts
+  `sample`, whatever filters the type declares. Relation filters served by the API match on the
+  short identifier and never on a database number.
+- `ContributorViewSet` lists what the portal's people and organisation lists show
+  (`Person.objects.real()` leaves out superusers and the anonymous account).
 - `ProjectViewSet`, `DatasetViewSet` use the written serializers and matching querysets.
-- `perform_destroy` turns `ProtectedError`, `RestrictedError` and `PublicDatasetsProtect` into a
-  409 with the reason.
+- `perform_destroy` turns `ProtectedError`, `RestrictedError` and `PublicDatasetsProtect` (raised by a `pre_delete` receiver) into a
+  409 with a reason the API writes for each case, never the exception's own text.
 - The catalogues use `reverse()` for addresses, the flattened field list, and the visibility
   filter for counts.
 
@@ -121,5 +132,7 @@ the code is cited and a passing test covers it.
   setting describe behaviour this feature replaces. Each is updated in the task that changes the
   behaviour and named in `progress.md`.
 - The cause of the sorting failure is a reading. The failing test comes first.
+- `fairdm/conf/settings/api.py` imports the API settings by name. A new setting such as
+  `REST_KNOX` or `FAIRDM_API_MAX_PAGE_SIZE` reaches Django only when it is listed there.
 - `ContributorSerializer` must be checked field by field against what a profile page shows a
   visitor. Anything not shown there stays out.
