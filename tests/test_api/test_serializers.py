@@ -413,3 +413,127 @@ class TestSerializerFieldsInAPIResponse:
         result = resp.json()["results"][0]
         for field in ("uuid", "name", "visibility"):
             assert field in result, f"Expected '{field}' in dataset response"
+
+
+@pytest.mark.django_db
+class TestRecordReferenceField:
+    @pytest.fixture
+    def serializer_class(self):
+        from fairdm.api.serializers import RecordReferenceField
+        from fairdm.core.project.models import Project
+
+        class DatasetReference(serializers.Serializer):
+            project = RecordReferenceField(
+                view_name="api:project-detail",
+                queryset=Project.objects.all(),
+                allow_null=True,
+            )
+
+        return DatasetReference
+
+    @staticmethod
+    def context_for(user=None):
+        from django.contrib.auth.models import AnonymousUser
+        from rest_framework.test import APIRequestFactory
+
+        request = APIRequestFactory().get("/")
+        request.user = user or AnonymousUser()
+        return {"request": request}
+
+    def test_a_related_record_is_returned_as_its_identifier_and_address(
+        self, serializer_class
+    ):
+        from django.urls import reverse
+
+        from fairdm.factories import DatasetFactory, ProjectFactory
+        from fairdm.utils.choices import Visibility
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+
+        data = serializer_class(dataset, context=self.context_for()).data
+
+        assert data["project"]["uuid"] == project.uuid
+        assert data["project"]["url"].endswith(
+            reverse("api:project-detail", kwargs={"uuid": project.uuid})
+        )
+
+    def test_a_bare_identifier_is_accepted(self, serializer_class):
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        serializer = serializer_class(
+            data={"project": project.uuid}, context=self.context_for()
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        assert serializer.validated_data["project"] == project
+
+    def test_the_returned_object_is_accepted(self, serializer_class):
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        serializer = serializer_class(
+            data={"project": {"uuid": project.uuid, "url": "http://testserver/x/"}},
+            context=self.context_for(),
+        )
+
+        assert serializer.is_valid(), serializer.errors
+        assert serializer.validated_data["project"] == project
+
+    def test_an_unknown_identifier_is_refused(self, serializer_class):
+        serializer = serializer_class(
+            data={"project": "pNoSuchProject"}, context=self.context_for()
+        )
+
+        assert not serializer.is_valid()
+        assert serializer.has_error("project", code="does_not_exist")
+
+    @pytest.mark.parametrize("as_text", [False, True])
+    def test_a_database_number_is_refused(self, serializer_class, as_text):
+        from fairdm.factories import ProjectFactory
+
+        project = ProjectFactory()
+        number = str(project.pk) if as_text else project.pk
+        serializer = serializer_class(
+            data={"project": number}, context=self.context_for()
+        )
+
+        assert not serializer.is_valid()
+        assert "project" in serializer.errors
+
+    def test_a_record_the_caller_may_not_see_is_returned_as_null(
+        self, serializer_class
+    ):
+        from fairdm.factories import DatasetFactory, ProjectFactory
+        from fairdm.utils.choices import Visibility
+
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+
+        data = serializer_class(dataset, context=self.context_for()).data
+
+        assert data["project"] is None
+
+    def test_a_record_the_caller_holds_the_view_level_on_is_returned(
+        self, serializer_class
+    ):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+        from fairdm.factories import (
+            ContributionFactory,
+            DatasetFactory,
+            PersonFactory,
+            ProjectFactory,
+        )
+        from fairdm.utils.choices import Visibility
+
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        viewer = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=project, contributor=viewer, level=ContributionLevel.VIEW
+        )
+
+        data = serializer_class(dataset, context=self.context_for(viewer)).data
+
+        assert data["project"]["uuid"] == project.uuid
