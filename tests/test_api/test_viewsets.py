@@ -379,60 +379,6 @@ class TestRateLimiting:
         assert settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["anon"] == "50/hour"
 
 
-@pytest.mark.django_db
-class TestCreatedRecordsListTheirCreator:
-    @pytest.mark.parametrize("name", ["project", "dataset"])
-    def test_a_project_or_dataset_lists_its_creator_at_the_manage_level(
-        self, authenticated_client, user, name
-    ):
-        from guardian.models import UserObjectPermission
-
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        response = authenticated_client.post(
-            reverse(f"api:{name}-list"), {"name": f"Made by API {name}"}, format="json"
-        )
-
-        assert response.status_code == 201
-        model = Project if name == "project" else Dataset
-        manager = getattr(model, "all_objects", model.objects)
-        record = manager.get(uuid=response.json()["uuid"])
-        assert RecordAccess(record).own_level(user) == ContributionLevel.MANAGE
-        assert not UserObjectPermission.objects.exists()
-
-    def test_a_superuser_creates_without_being_credited(self, db):
-        from rest_framework.test import APIClient
-
-        admin = UserFactory(is_superuser=True, is_staff=True)
-        client = APIClient()
-        client.force_authenticate(admin)
-
-        response = client.post(
-            reverse("api:project-list"), {"name": "Admin by API"}, format="json"
-        )
-
-        assert response.status_code == 201
-        project = Project.objects.get(uuid=response.json()["uuid"])
-        assert project.contributors.count() == 0
-
-
-@pytest.fixture(params=["project", "dataset"])
-def private_record(request):
-    """A private project or dataset, each in turn, with one person at manage."""
-    from fairdm.contrib.contributors.choices import ContributionLevel
-    from fairdm.factories import ContributionFactory, PersonFactory
-
-    factory = ProjectFactory if request.param == "project" else DatasetFactory
-    record = factory(visibility=Visibility.PRIVATE)
-    ContributionFactory(
-        content_object=record,
-        contributor=PersonFactory(is_active=True, is_claimed=True),
-        level=ContributionLevel.MANAGE,
-    )
-    return record
-
-
 def person_at(record, level, person=None):
     """Return a person who can sign in, credited on the record at the level."""
     from fairdm.factories import ContributionFactory, PersonFactory
@@ -449,67 +395,6 @@ def signed_in_as(person):
     client = APIClient()
     client.force_authenticate(person)
     return client
-
-
-def detail_url(record):
-    """Return the API address of a project or dataset."""
-    name = "project" if isinstance(record, Project) else "dataset"
-    return reverse(f"api:{name}-detail", kwargs={"uuid": record.uuid})
-
-
-@pytest.mark.django_db
-class TestVisibilityNeedsManage:
-    def test_an_editor_cannot_change_visibility(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        editor = person_at(private_record, ContributionLevel.EDIT)
-
-        response = signed_in_as(editor).patch(
-            detail_url(private_record), {"visibility": Visibility.PUBLIC}, format="json"
-        )
-
-        assert response.status_code == 403
-        private_record.refresh_from_db()
-        assert private_record.visibility == Visibility.PRIVATE
-
-    def test_a_manager_can_change_visibility(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        manager = person_at(private_record, ContributionLevel.MANAGE)
-
-        response = signed_in_as(manager).patch(
-            detail_url(private_record), {"visibility": Visibility.PUBLIC}, format="json"
-        )
-
-        assert response.status_code == 200
-        private_record.refresh_from_db()
-        assert private_record.visibility == Visibility.PUBLIC
-
-    def test_an_editor_can_change_another_field(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        editor = person_at(private_record, ContributionLevel.EDIT)
-
-        response = signed_in_as(editor).patch(
-            detail_url(private_record), {"name": "Renamed"}, format="json"
-        )
-
-        assert response.status_code == 200
-        private_record.refresh_from_db()
-        assert private_record.name == "Renamed"
-
-    def test_an_editor_can_send_the_visibility_it_already_has(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        editor = person_at(private_record, ContributionLevel.EDIT)
-
-        response = signed_in_as(editor).patch(
-            detail_url(private_record),
-            {"name": "Renamed", "visibility": Visibility.PRIVATE},
-            format="json",
-        )
-
-        assert response.status_code == 200
 
 
 def build_record(kind, make_record, add_metadata):

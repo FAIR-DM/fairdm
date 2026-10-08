@@ -18,9 +18,10 @@ import contextlib
 from typing import Any
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Q
-from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
+from django.db.models import ProtectedError, Q, RestrictedError
+from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers, status
+from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -43,6 +44,15 @@ from fairdm.api.serializers import (
 )
 from fairdm.contrib.contributors.models import Contributor, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
+from fairdm.core.project.models import PublicDatasetsProtect
+
+
+class DeleteRefused(APIException):
+    """A delete the portal refuses for the state the record is in, answered 409 with a reason."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("This record cannot be deleted in its present state.")
+    default_code = "delete_refused"
 
 
 class BaseViewSet(ModelViewSet):
@@ -67,10 +77,28 @@ class BaseViewSet(ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance) -> None:
-        """Require an authenticated user before deleting."""
+        """Require an authenticated user before deleting, and refuse what the portal refuses.
+
+        Raises:
+            PermissionDenied: When the caller is not signed in.
+            DeleteRefused: When the record has public datasets or other records depend on it.
+                The reason is written here and names no other record, which the caller may not
+                be allowed to see.
+        """
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to delete objects.")
-        instance.delete()
+        try:
+            instance.delete()
+        except PublicDatasetsProtect as error:
+            raise DeleteRefused(
+                _(
+                    "This project has public datasets. Make them private or delete them first."
+                )
+            ) from error
+        except (ProtectedError, RestrictedError) as error:
+            raise DeleteRefused(
+                _("Other records depend on this one. Delete or move them first.")
+            ) from error
 
 
 class ProjectViewSet(BaseViewSet):

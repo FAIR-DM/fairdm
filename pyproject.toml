@@ -92,7 +92,6 @@ dependencies = [
     "drf-orjson-renderer (>=1.7.5,<2.0.0)",
     "dj-rest-auth (>=7.0.0,<8.0.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
-    "djangorestframework-guardian (>=0.3.0,<0.5.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
     "django-mvp (>=0.28.0,<0.29.0)",

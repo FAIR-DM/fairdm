@@ -1835,20 +1835,6 @@ wheels = [
 ]
 
 [[package]]
-name = "djangorestframework-guardian"
-version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-guardian" },
-    { name = "djangorestframework" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/c4/67df9963395e9dddd4e16cbf75098953798e5135f73fb8f4855895505e39/djangorestframework_guardian-0.4.0.tar.gz", hash = "sha256:a8113659e062f65b74cc31af6982420c382642e782d38581b3fdc748a179756c", size = 8239, upload-time = "2025-07-01T07:22:10.809Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/81/3d62f7ff71f7c45ec6664ebf03a4c736bf77f49481604361d40f8f4471e4/djangorestframework_guardian-0.4.0-py3-none-any.whl", hash = "sha256:30c2a349318c1cd603d6953d50d58159f9a0c833f5f8f5a811407d5984a39e14", size = 6064, upload-time = "2025-07-01T07:22:09.661Z" },
-]
-
-[[package]]
 name = "djangorestframework-stubs"
 version = "3.18.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2108,7 +2094,6 @@ dependencies = [
     { name = "django-waffle" },
     { name = "django-widget-tweaks" },
     { name = "djangorestframework" },
-    { name = "djangorestframework-guardian" },
     { name = "drf-orjson-renderer" },
     { name = "drf-spectacular", extra = ["sidecar"] },
     { name = "easy-thumbnails" },
@@ -2211,7 +2196,6 @@ requires-dist = [
     { name = "django-widget-tweaks", specifier = ">=1.5.0,<2.0.0" },
     { name = "djangorestframework", specifier = ">=3.17.2,<4.0.0" },
     { name = "djangorestframework-gis", marker = "extra == 'gis'", specifier = ">=1.3.0,<2.0.0" },
-    { name = "djangorestframework-guardian", specifier = ">=0.3.0,<0.5.0" },
     { name = "drf-orjson-renderer", specifier = ">=1.7.5,<2.0.0" },
     { name = "drf-spectacular", extras = ["sidecar"], specifier = ">=0.29.0,<0.31.0" },
     { name = "easy-thumbnails", specifier = ">=2.10,<3.0" },
