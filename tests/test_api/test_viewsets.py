@@ -1436,3 +1436,141 @@ class TestCreatorIsCredited:
         assert response.status_code == 201
         project = Project.objects.get(uuid=response.json()["uuid"])
         assert project.contributors.count() == 0
+
+
+def writable_models():
+    """Every model the API creates records of: the core kinds with a type and the registered types."""
+    return [Project, Dataset, *registered("sample"), *registered("measurement")]
+
+
+@pytest.fixture
+def a_private_record(make_record):
+    """Return a function building a private record of a writable model, with its parents."""
+
+    def a_private_record(model):
+        if model is Project:
+            return ProjectFactory(visibility=Visibility.PRIVATE)
+        if model is Dataset:
+            return DatasetFactory(
+                project=ProjectFactory(visibility=Visibility.PRIVATE),
+                visibility=Visibility.PRIVATE,
+            )
+        return make_record(model, DatasetFactory(visibility=Visibility.PRIVATE))
+
+    return a_private_record
+
+
+@pytest.fixture
+def replacement_for(body_for):
+    """Return a function giving a full body that replaces a record, naming the parents it has."""
+
+    def replacement_for(record):
+        model = type(record)
+        if model is Project:
+            other = next(
+                value
+                for value, _label in Project.STATUS_CHOICES.choices
+                if value != record.status
+            )
+            body = {"name": "Replaced by a script", "status": other}
+            return body, dict(body)
+        if model is Dataset:
+            body = {"name": "Replaced by a script", "project": record.project.uuid}
+            return body, {"name": "Replaced by a script"}
+        body, stored = body_for(model, name="Replaced by a script")
+        body["dataset"] = record.dataset.uuid
+        if "sample" in {field.name for field in model._meta.fields}:
+            body["sample"] = record.sample.uuid
+        return body, stored
+
+    return replacement_for
+
+
+@pytest.mark.django_db
+class TestChanging:
+    @staticmethod
+    def edited_by_an_editor(record, member_at, signed_in):
+        return signed_in(member_at(record, ContributionLevel.EDIT))
+
+    @staticmethod
+    def without(data, *names):
+        return {key: value for key, value in data.items() if key not in names}
+
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_partial_change_alters_the_named_field_and_nothing_else(
+        self, url_of, member_at, signed_in, a_private_record, model
+    ):
+        record = a_private_record(model)
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        before = client.get(url_of(record)).json()
+
+        response = client.patch(url_of(record), {"name": "Renamed"}, format="json")
+
+        assert response.status_code == 200, response.content
+        after = client.get(url_of(record)).json()
+        assert after["name"] == "Renamed"
+        assert self.without(after, "name", "modified") == self.without(
+            before, "name", "modified"
+        )
+        assert response.json() == after
+
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_full_replacement_sets_the_writable_fields(
+        self,
+        url_of,
+        member_at,
+        signed_in,
+        saved,
+        a_private_record,
+        replacement_for,
+        model,
+    ):
+        record = a_private_record(model)
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        body, stored = replacement_for(record)
+
+        response = client.put(url_of(record), body, format="json")
+
+        assert response.status_code == 200, response.content
+        manager = getattr(model, "all_objects", model.objects)
+        record = manager.get(uuid=record.uuid)
+        assert saved(record, stored) == stored
+
+    @pytest.mark.parametrize("method", ["patch", "put"])
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_value_for_a_read_only_field_changes_nothing(
+        self,
+        url_of,
+        member_at,
+        signed_in,
+        add_metadata,
+        a_private_record,
+        replacement_for,
+        model,
+        method,
+    ):
+        record = add_metadata(a_private_record(model))
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        before = client.get(url_of(record)).json()
+        body, _stored = replacement_for(record)
+        body.update(
+            {
+                "uuid": "xNotMyIdentifier",
+                "added": "2001-01-01T00:00:00Z",
+                "modified": "2001-01-01T00:00:00Z",
+                "url": "http://example.org/elsewhere/",
+                "descriptions": [{"type": "Abstract", "value": "Overwritten"}],
+                "dates": [{"type": "Created", "value": "2001-01-01"}],
+                "identifiers": [{"type": "DOI", "value": "10.1234/overwritten"}],
+                "keywords": [],
+                "contributors": [],
+            }
+        )
+
+        response = getattr(client, method)(url_of(record), body, format="json")
+
+        assert response.status_code == 200, response.content
+        after = client.get(url_of(record)).json()
+        read_only = ("uuid", "url", "added", "descriptions", "dates", "identifiers")
+        for name in (*read_only, "keywords", "contributors"):
+            assert after[name] == before[name]

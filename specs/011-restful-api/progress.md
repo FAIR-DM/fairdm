@@ -113,3 +113,10 @@ Did: Added TestCreatorIsCredited in tests/test_api/test_viewsets.py. For a proje
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreatorIsCredited` gives 11 passed on the first run. Probe: replacing the credit call in `CreatorCreditMixin.create` with `pass` fails the four manage-level cases; reverted.
 Next: T018.
 Watch: The test helpers `create_through_the_api` and `stored_record` in the test module are used again by later tasks.
+
+## 2026-10-08T23:45:48Z · Implementer US2 · T018
+
+Did: Added TestChanging in tests/test_api/test_viewsets.py, run for a project, a dataset and every registered sample and measurement type, with someone at the edit level. A partial change of the name alters the name and leaves every other field of the record as a read returns it. A full replacement sets the writable fields to the values sent, with the parents the record already has. A value for a read-only field (identifier, address, added and modified dates, descriptions, key dates, identifiers, keywords, contributors) sent with a partial change and with a replacement leaves the record as it was. New fixtures in the test module: `a_private_record`, `replacement_for`, and the helper `writable_models`.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestChanging` gives 31 passed, 9 failed. All nine are the three measurement types, in the replacement test and in both read-only cases. Each answers 403 "Changing sample needs the manage level" when the request repeats the measurement's current sample. Cause: the sample field offers `Sample.objects.non_polymorphic()`, so the value sent is a base `Sample` while the stored sample is the type's own class, and `CreatorCreditMixin.update` compares them with `!=`, which Django answers unequal across the two classes. A parent repeated unchanged is read as a move.
+Next: T019.
+Watch: Red until T025, which compares parents by primary key. T023 adds the same case for the manage rule.
