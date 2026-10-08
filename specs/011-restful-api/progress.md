@@ -134,3 +134,10 @@ Did: Added TestValidation in tests/test_api/test_viewsets.py. A create with requ
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestValidation` gives 10 passed on the first run. Probe: offering every parent instead of the ones the caller may edit fails the three parent cases; reverted.
 Next: T022.
 Watch: DRF's own "does not exist" message carries the value sent, which is why the comparison replaces it.
+
+## 2026-10-08T23:47:38Z · Implementer US2 · T022
+
+Did: Added TestWhoMayWriteSamplesAndMeasurements in tests/test_api/test_permissions.py, for a sample and a measurement on the real routes. A partial change, a replacement and a delete: no authentication is 401 on a public and a private record, a signed-in person with no level is 403 on a public one and 404 on a private one, and a viewer of the private dataset is 403. A refused change and delete leave the record as it was. A create with no authentication is 401. Someone at the view level on a dataset, and someone with no level, public dataset or private, cannot create in it: 400 on the dataset field and nothing stored.
+Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestWhoMayWriteSamplesAndMeasurements` gives 42 passed on the first run. Probes, both reverted: making the write check in `FairDMObjectPermissions` always allow fails 14 cases; offering every dataset as a choice fails 8.
+Next: T023.
+Watch: None.

@@ -236,3 +236,125 @@ class TestReadingASampleOrMeasurement:
         response = client.get(private.address)
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestWhoMayWriteSamplesAndMeasurements:
+    @pytest.fixture(params=["sample", "measurement"])
+    def kind(self, request):
+        return request.param
+
+    @pytest.fixture
+    def a_record_in(self, kind, make_record):
+        """Return a function building a sample or measurement in a dataset of a visibility."""
+        from demo.models import ExampleMeasurement, RockSample
+
+        def a_record_in(visibility):
+            dataset = DatasetFactory(visibility=visibility)
+            model = RockSample if kind == "sample" else ExampleMeasurement
+            return dataset, make_record(model, dataset)
+
+        return a_record_in
+
+    @pytest.fixture(params=["patch", "put", "delete"])
+    def send(self, request):
+        """Return a function sending a change or a delete to a record's address."""
+
+        def send(client, address):
+            body = (
+                {"name": "Changed by a script"} if request.param != "delete" else None
+            )
+            if request.param == "put":
+                return client.put(address, body, format="json")
+            if request.param == "patch":
+                return client.patch(address, body, format="json")
+            return client.delete(address)
+
+        return send
+
+    @pytest.mark.parametrize("visibility", [Visibility.PUBLIC, Visibility.PRIVATE])
+    def test_no_authentication_is_answered_401(
+        self, a_record_in, url_of, send, visibility
+    ):
+        _dataset, record = a_record_in(visibility)
+
+        assert send(APIClient(), url_of(record)).status_code == 401
+
+    def test_no_level_on_a_public_record_is_answered_403(
+        self, a_record_in, url_of, send, signed_in
+    ):
+        _dataset, record = a_record_in(Visibility.PUBLIC)
+
+        response = send(signed_in(UserFactory()), url_of(record))
+
+        assert response.status_code == 403
+
+    def test_no_level_on_a_private_record_is_answered_404(
+        self, a_record_in, url_of, send, signed_in
+    ):
+        _dataset, record = a_record_in(Visibility.PRIVATE)
+
+        response = send(signed_in(UserFactory()), url_of(record))
+
+        assert response.status_code == 404
+
+    def test_the_view_level_on_a_private_record_is_answered_403(
+        self, a_record_in, url_of, send, signed_in, member_at
+    ):
+        dataset, record = a_record_in(Visibility.PRIVATE)
+        viewer = member_at(dataset, ContributionLevel.VIEW)
+
+        response = send(signed_in(viewer), url_of(record))
+
+        assert response.status_code == 403
+
+    def test_a_refused_change_leaves_the_record_as_it_was(
+        self, a_record_in, url_of, signed_in, member_at, kind
+    ):
+        dataset, record = a_record_in(Visibility.PRIVATE)
+        viewer = member_at(dataset, ContributionLevel.VIEW)
+        name = record.name
+
+        signed_in(viewer).patch(url_of(record), {"name": "Hijack"}, format="json")
+        signed_in(viewer).delete(url_of(record))
+
+        stored = type(record).objects.get(pk=record.pk)
+        assert stored.name == name
+
+    def test_no_authentication_cannot_create(self, url_of, body_for, kind):
+        from demo.models import RockSample, XRFMeasurement
+
+        model = RockSample if kind == "sample" else XRFMeasurement
+        body, _stored = body_for(model)
+        body["dataset"] = DatasetFactory(visibility=Visibility.PUBLIC).uuid
+
+        response = APIClient().post(url_of(model, "list"), body, format="json")
+
+        assert response.status_code == 401
+        assert model.objects.count() == 1
+
+    @pytest.mark.parametrize("level", [ContributionLevel.VIEW, None])
+    @pytest.mark.parametrize("visibility", [Visibility.PUBLIC, Visibility.PRIVATE])
+    def test_without_the_edit_level_on_the_dataset_nothing_is_created_in_it(
+        self, url_of, body_for, signed_in, member_at, kind, level, visibility
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample, XRFMeasurement
+        from fairdm.factories import PersonFactory
+
+        model = RockSample if kind == "sample" else XRFMeasurement
+        dataset = DatasetFactory(visibility=visibility)
+        person = PersonFactory(is_active=True, is_claimed=True)
+        if level is not None:
+            member_at(dataset, level, person)
+        body, _stored = body_for(model)
+        stored_before = model.objects.count()
+        body["dataset"] = dataset.uuid
+        if kind == "measurement":
+            body["sample"] = RockSampleFactory(dataset=dataset).uuid
+
+        response = signed_in(person).post(url_of(model, "list"), body, format="json")
+
+        assert response.status_code == 400
+        assert "dataset" in response.json()
+        assert model.objects.count() == stored_before
