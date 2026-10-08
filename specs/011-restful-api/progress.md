@@ -99,3 +99,10 @@ Did: Documentation for reading. docs/portal-development/restful-api.md now has s
 Verified: the Python and curl addresses in the new page match the routes the tests call; the snippets in restful-api.md were checked against the serializers by reading them. The docs step of the full verify is run once at the end with --base origin/main.
 Next: full verify and the completion report.
 Watch: The authentication, writing, limits and sidebar sections of restful-api.md are for later stories and were not touched.
+
+## 2026-10-08T23:44:08Z · Implementer US2 · T016
+
+Did: Added TestCreating in tests/test_api/test_viewsets.py and four fixtures in tests/test_api/conftest.py (`member_at`, `signed_in`, `body_for`, `saved`). Someone at the edit level creates a sample of each of the five registered sample types in a dataset and a measurement of each of the three measurement types on a sample with its values. Someone at the edit level on a project creates a dataset in it, and any signed-in person creates a project. Each test checks the status is 201, that the record is stored under the parent sent with the values sent, and that the response equals what a read of the new record returns.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreating` gives 10 passed. They passed on the first run, which the first story's serializers explain: the sample and measurement base serializers now carry the dataset and sample, and the dataset serializer carries the project. To check the tests can fail, I made the dataset serializer's project read-only and the dataset test failed (project came back None); the change was reverted.
+Next: T017.
+Watch: A vocabulary concept (a sample's status) has no primary key and compares by identity, so the stored-value comparison reads it by name.

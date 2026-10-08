@@ -3,6 +3,7 @@
 import pytest
 from django.urls import reverse
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
@@ -1229,3 +1230,84 @@ class TestOrdering:
 
         assert oldest_first == list(self.NAMES)
         assert newest_first == list(reversed(self.NAMES))
+
+
+@pytest.mark.django_db
+class TestCreating:
+    @pytest.mark.parametrize("model", registered("sample"), ids=lambda m: m.__name__)
+    def test_someone_at_the_edit_level_creates_a_sample_in_a_dataset(
+        self, url_of, member_at, signed_in, body_for, saved, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        client = signed_in(member_at(dataset, ContributionLevel.EDIT))
+        body, stored = body_for(model)
+
+        response = client.post(
+            url_of(model, "list"), {**body, "dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 201, response.content
+        sample = model.objects.get(uuid=response.json()["uuid"])
+        assert sample.dataset == dataset
+        assert saved(sample, stored) == stored
+        assert response.json() == client.get(url_of(sample)).json()
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_someone_at_the_edit_level_creates_a_measurement_with_its_values(
+        self, url_of, member_at, signed_in, body_for, saved, model
+    ):
+        from demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        client = signed_in(member_at(dataset, ContributionLevel.EDIT))
+        body, stored = body_for(model)
+
+        response = client.post(
+            url_of(model, "list"),
+            {**body, "dataset": dataset.uuid, "sample": sample.uuid},
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        measurement = model.objects.get(uuid=response.json()["uuid"])
+        assert measurement.dataset == dataset
+        assert measurement.sample_id == sample.pk
+        assert saved(measurement, stored) == stored
+        assert response.json() == client.get(url_of(measurement)).json()
+
+    def test_someone_at_the_edit_level_creates_a_dataset_in_a_project(
+        self, member_at, signed_in
+    ):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        client = signed_in(member_at(project, ContributionLevel.EDIT))
+
+        response = client.post(
+            reverse("api:dataset-list"),
+            {"name": "Sent by a script", "project": project.uuid},
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        dataset = Dataset.all_objects.get(uuid=response.json()["uuid"])
+        assert dataset.project == project
+        assert dataset.name == "Sent by a script"
+        detail = reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        assert response.json() == client.get(detail).json()
+
+    def test_any_signed_in_person_creates_a_project(self, signed_in):
+        from fairdm.factories import PersonFactory
+
+        client = signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+        response = client.post(
+            reverse("api:project-list"), {"name": "Sent by a script"}, format="json"
+        )
+
+        assert response.status_code == 201, response.content
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.name == "Sent by a script"
+        detail = reverse("api:project-detail", kwargs={"uuid": project.uuid})
+        assert response.json() == client.get(detail).json()

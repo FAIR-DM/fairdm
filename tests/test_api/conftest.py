@@ -169,3 +169,78 @@ def add_metadata():
         return record
 
     return add_metadata
+
+
+def plain(value):
+    """Return a stored value as plain data: a vocabulary concept becomes its name."""
+    return getattr(value, "name", value)
+
+
+@pytest.fixture
+def member_at():
+    """Return a function crediting a person who can sign in on a record at a level."""
+    from fairdm.factories import ContributionFactory, PersonFactory
+
+    def member_at(record, level, person=None):
+        person = person or PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(content_object=record, contributor=person, level=level)
+        return person
+
+    return member_at
+
+
+@pytest.fixture
+def signed_in():
+    """Return a function giving an API client signed in as a person."""
+
+    def signed_in(person):
+        client = APIClient()
+        client.force_authenticate(person)
+        return client
+
+    return signed_in
+
+
+@pytest.fixture
+def body_for(make_record):
+    """Return a function giving a valid request body for a registered type, with its values.
+
+    The values come from a record the type's factory builds. The body holds what the type's
+    serializer lets a caller write, without the parents, and the second item holds the values
+    as the model stores them, to compare with what a create or a replacement saved. Compare
+    them through ``saved``.
+    """
+    from fairdm.core.models import Measurement
+
+    def body_for(model, name="Sent by a script"):
+        from fairdm.factories import DatasetFactory
+        from fairdm.registry import registry
+
+        template = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        template.refresh_from_db()
+        fields = registry.get_for_model(model).get_serializer_class()().fields
+        parents = (
+            {"dataset", "sample"} if issubclass(model, Measurement) else {"dataset"}
+        )
+        body = {}
+        for key, field in fields.items():
+            value = getattr(template, key, None)
+            if field.read_only or key in parents or value in (None, "", {}):
+                continue
+            body[key] = field.to_representation(value)
+        body["name"] = name
+        stored = {key: plain(getattr(template, key)) for key in body}
+        stored["name"] = name
+        return body, stored
+
+    return body_for
+
+
+@pytest.fixture
+def saved():
+    """Return a function reading the named fields of a stored record as plain data."""
+
+    def saved(record, fields):
+        return {key: plain(getattr(record, key)) for key in fields}
+
+    return saved
