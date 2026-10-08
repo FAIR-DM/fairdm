@@ -127,3 +127,10 @@ Did: Added TestDeleting in tests/test_api/test_viewsets.py. Someone at the manag
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestDeleting` gives 10 passed, 2 failed. The two refused cases fail because the error escapes the view: `PublicDatasetsProtect` for the project and `RestrictedError` for the sample reach the test client as exceptions, which the server would answer with a 500.
 Next: T020.
 Watch: Red until T025 adds `perform_destroy`.
+
+## 2026-10-08T23:46:54Z · Implementer US2 · T020
+
+Did: Added TestValidation in tests/test_api/test_viewsets.py. A create with required fields missing is answered 400 naming each of them for a rock sample (name, rock type, collection date), an XRF measurement (name, sample, element, concentration), a project and a dataset (name), and nothing is stored. A create with an unacceptable weight, an unreadable date and an over-long name is answered 400 naming exactly those three. A partial change with an unacceptable weight is 400 naming that field and the stored value is kept. A parent that does not exist, one the caller cannot see and one they can see but hold only the view level on get the same 400 on the parent field, with the sent value taken out of the messages before comparing, for the dataset of a sample, the sample of a measurement and the project of a dataset. A body that is not valid JSON is answered 400 for a project and a dataset.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestValidation` gives 10 passed on the first run. Probe: offering every parent instead of the ones the caller may edit fails the three parent cases; reverted.
+Next: T022.
+Watch: DRF's own "does not exist" message carries the value sent, which is why the comparison replaces it.

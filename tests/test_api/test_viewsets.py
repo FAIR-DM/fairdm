@@ -1626,3 +1626,165 @@ class TestDeleting:
         assert measurement.uuid not in response.content.decode()
         assert RockSample.objects.filter(pk=sample.pk).exists()
         assert XRFMeasurement.objects.filter(pk=measurement.pk).exists()
+
+
+@pytest.mark.django_db
+class TestValidation:
+    @pytest.fixture
+    def person(self):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(is_active=True, is_claimed=True)
+
+    @pytest.fixture
+    def dataset(self, person, member_at):
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        member_at(dataset, ContributionLevel.EDIT, person)
+        return dataset
+
+    def test_missing_required_fields_are_named_and_nothing_is_saved(
+        self, url_of, signed_in, person, dataset
+    ):
+        from demo.models import RockSample
+
+        response = signed_in(person).post(
+            url_of(RockSample, "list"), {"dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert {"name", "rock_type", "collection_date"} <= set(response.json())
+        assert not RockSample.objects.exists()
+
+    def test_missing_required_fields_of_a_measurement_are_named(
+        self, url_of, signed_in, person, dataset
+    ):
+        from demo.models import XRFMeasurement
+
+        response = signed_in(person).post(
+            url_of(XRFMeasurement, "list"), {"dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert {"name", "sample", "element", "concentration_ppm"} <= set(
+            response.json()
+        )
+        assert not XRFMeasurement.objects.exists()
+
+    def test_missing_required_fields_of_a_project_and_a_dataset_are_named(
+        self, signed_in, person
+    ):
+        client = signed_in(person)
+
+        project = client.post(reverse("api:project-list"), {}, format="json")
+        dataset = client.post(reverse("api:dataset-list"), {}, format="json")
+
+        assert project.status_code == dataset.status_code == 400
+        assert "name" in project.json()
+        assert "name" in dataset.json()
+        assert not Project.objects.exists()
+        assert not Dataset.all_objects.exists()
+
+    def test_an_unacceptable_value_is_named_with_every_other_one_at_fault(
+        self, url_of, signed_in, person, dataset, body_for
+    ):
+        from demo.models import RockSample
+
+        body, _stored = body_for(RockSample)
+        body.update(
+            dataset=dataset.uuid,
+            weight_grams="heavy",
+            collection_date="not a date",
+            name="x" * 1000,
+        )
+
+        response = signed_in(person).post(url_of(RockSample, "list"), body, "json")
+
+        assert response.status_code == 400
+        assert set(response.json()) == {"weight_grams", "collection_date", "name"}
+        assert not RockSample.objects.filter(dataset=dataset).exists()
+
+    def test_an_unacceptable_value_in_a_change_is_named_and_the_record_is_kept(
+        self, url_of, signed_in, person, dataset, make_record
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(RockSample, dataset)
+        before = sample.weight_grams
+
+        response = signed_in(person).patch(
+            url_of(sample), {"weight_grams": "heavy"}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert set(response.json()) == {"weight_grams"}
+        sample.refresh_from_db()
+        assert sample.weight_grams == before
+
+    @pytest.mark.parametrize(
+        ("kind", "parent"),
+        [("sample", "dataset"), ("measurement", "sample"), ("dataset", "project")],
+    )
+    def test_a_parent_that_does_not_exist_and_one_the_caller_may_not_add_to_are_answered_alike(
+        self, url_of, signed_in, member_at, body_for, person, dataset, kind, parent
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample, XRFMeasurement
+
+        own_project = ProjectFactory(visibility=Visibility.PRIVATE)
+        member_at(own_project, ContributionLevel.EDIT, person)
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE)
+        public = DatasetFactory(visibility=Visibility.PUBLIC)
+        member_at(public, ContributionLevel.VIEW, person)
+        make_parent = {
+            "dataset": lambda: DatasetFactory(visibility=Visibility.PRIVATE),
+            "sample": lambda: RockSampleFactory(dataset=elsewhere),
+            "project": lambda: ProjectFactory(visibility=Visibility.PRIVATE),
+        }[parent]
+        unseen = make_parent()
+        seen = make_parent()
+        if parent != "sample":
+            seen.visibility = Visibility.PUBLIC
+            seen.save()
+            member_at(seen, ContributionLevel.VIEW, person)
+        else:
+            member_at(elsewhere, ContributionLevel.VIEW, person)
+        if kind == "dataset":
+            model, body = Dataset, {"name": "Sent by a script"}
+            url = reverse("api:dataset-list")
+        else:
+            model = RockSample if kind == "sample" else XRFMeasurement
+            body, _stored = body_for(model)
+            body["dataset"] = dataset.uuid
+            if kind == "measurement":
+                body["sample"] = RockSampleFactory(dataset=dataset).uuid
+            url = url_of(model, "list")
+        manager = getattr(model, "all_objects", model.objects)
+        stored_before = manager.count()
+
+        answers = []
+        for sent in ("xNoSuchRecord", unseen.uuid, seen.uuid):
+            response = signed_in(person).post(
+                url, {**body, parent: sent}, format="json"
+            )
+            assert response.status_code == 400, response.content
+            assert set(response.json()) == {parent}
+            answers.append(
+                [message.replace(sent, "<sent>") for message in response.json()[parent]]
+            )
+
+        assert answers[0] == answers[1] == answers[2]
+        assert manager.count() == stored_before
+
+    @pytest.mark.parametrize("name", ["project", "dataset"])
+    def test_a_body_that_cannot_be_parsed_is_answered_400(
+        self, signed_in, person, name
+    ):
+        response = signed_in(person).post(
+            reverse(f"api:{name}-list"),
+            data=b'{"name": "unfinished',
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+        assert not Project.objects.exists()
+        assert not Dataset.all_objects.exists()
