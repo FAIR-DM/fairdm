@@ -56,3 +56,10 @@ Did: Added TestVisibilityOfSamplesAndMeasurements in tests/test_api/test_filters
 Verified: `uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements` gives 3 failed, 3 passed. The sample cases fail only on the missing `uuid` in a sample row today. The measurement cases already pass, so the filter behaviour exists; it is probed at the end.
 Next: T011.
 Watch: Red for samples until T014.
+
+## 2026-10-08T23:16:05Z · Implementer US1 · T011
+
+Did: Added TestReadingASampleOrMeasurement in tests/test_api/test_permissions.py. For a private dataset, a sample in it and a measurement in it, it requests the real record route as a visitor, a signed-in person with no level, and a person at the view level on the dataset.
+Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement` gives 9 passed, so the behaviour already holds. Probed by removing the mechanism: with only the object-permission check removed, or only the list filter removed, all 9 still pass because each stops the request on its own. With both removed the six 404 cases fail, so the tests detect the behaviour. The mutations were reverted (git shows no change under fairdm/).
+Next: T012.
+Watch: This task adds coverage and no code.

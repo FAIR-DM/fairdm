@@ -193,3 +193,46 @@ class TestDatasetPermissions:
         client = make_token_client(user)
         url = reverse("api:dataset-detail", kwargs={"uuid": ds.uuid})
         assert client.get(url).status_code == 200
+
+
+@pytest.mark.django_db
+class TestReadingASampleOrMeasurement:
+    @pytest.fixture(params=["dataset", "sample", "measurement"])
+    def private(self, request, make_record, url_of):
+        """A private dataset, or a sample or measurement in one, and its address."""
+        from types import SimpleNamespace
+
+        from demo.models import ExampleMeasurement, RockSample
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        record = {
+            "dataset": lambda: dataset,
+            "sample": lambda: make_record(RockSample, dataset),
+            "measurement": lambda: make_record(ExampleMeasurement, dataset),
+        }[request.param]()
+        return SimpleNamespace(dataset=dataset, address=url_of(record))
+
+    def test_a_visitor_is_answered_as_for_a_record_that_does_not_exist(self, private):
+        assert APIClient().get(private.address).status_code == 404
+
+    def test_a_signed_in_person_with_no_level_is_answered_the_same_way(self, private):
+        client = APIClient()
+        client.force_authenticate(UserFactory())
+
+        assert client.get(private.address).status_code == 404
+
+    def test_a_person_at_the_view_level_on_the_dataset_receives_the_record(
+        self, private
+    ):
+        viewer = UserFactory()
+        ContributionFactory(
+            content_object=private.dataset,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        client = APIClient()
+        client.force_authenticate(viewer)
+
+        response = client.get(private.address)
+
+        assert response.status_code == 200
