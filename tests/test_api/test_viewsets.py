@@ -980,3 +980,90 @@ class TestCompleteRecord:
         results = api_client.get(url_of(Dataset, "list")).json()["results"]
 
         assert [row["project"] for row in results] == [None]
+
+
+def registered(kind):
+    """Return the registered sample or measurement types, in a stable order."""
+    from fairdm.registry import registry
+
+    models = registry.samples if kind == "sample" else registry.measurements
+    return sorted(models, key=lambda model: model.__name__)
+
+
+COMMON_SAMPLE_FIELDS = (
+    "url",
+    "uuid",
+    "name",
+    "local_id",
+    "status",
+    "dataset",
+    "added",
+    "modified",
+)
+COMMON_MEASUREMENT_FIELDS = (
+    "url",
+    "uuid",
+    "name",
+    "sample",
+    "dataset",
+    "added",
+    "modified",
+)
+
+
+@pytest.mark.django_db
+class TestCommonFields:
+    @pytest.mark.parametrize("model", registered("sample"), ids=lambda m: m.__name__)
+    def test_a_sample_carries_the_common_fields_and_every_declared_field(
+        self, api_client, url_of, make_record, model
+    ):
+        from fairdm.registry import registry
+        from fairdm.registry.config import flatten_fields
+
+        sample = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        declared = flatten_fields(
+            registry.get_for_model(model).resolve_fields("serializer")
+        )
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert set(COMMON_SAMPLE_FIELDS) <= set(data)
+        assert set(declared) <= set(data)
+        assert data["dataset"]["uuid"] == sample.dataset.uuid
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_measurement_carries_the_common_fields_and_its_measured_values(
+        self, api_client, url_of, make_record, model
+    ):
+        from fairdm.registry import registry
+        from fairdm.registry.config import flatten_fields
+
+        measurement = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        declared = flatten_fields(
+            registry.get_for_model(model).resolve_fields("serializer")
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert set(COMMON_MEASUREMENT_FIELDS) <= set(data)
+        assert set(declared) <= set(data)
+        assert data["sample"]["uuid"] == measurement.sample.uuid
+
+    def test_a_measured_value_is_returned_as_recorded(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import XRFMeasurement
+
+        measurement = make_record(
+            XRFMeasurement,
+            DatasetFactory(visibility=Visibility.PUBLIC),
+            element="Fe",
+            concentration_ppm="123.45",
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert data["element"] == "Fe"
+        assert float(data["concentration_ppm"]) == 123.45

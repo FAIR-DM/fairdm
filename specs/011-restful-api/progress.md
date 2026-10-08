@@ -21,3 +21,10 @@ Did: Added TestCompleteRecord in tests/test_api/test_viewsets.py, and the fixtur
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCompleteRecord` gives 16 failed, each from a missing key (descriptions, contributors, project, owner, dataset) or an integer where a reference is expected.
 Next: T003.
 Watch: Red until T014.
+
+## 2026-10-08T23:13:30Z · Implementer US1 · T003
+
+Did: Added TestCommonFields in tests/test_api/test_viewsets.py. For every registered demonstration sample type (five) and measurement type (three) it checks the record carries the fields common to its kind and every field the registration declares for the serializer, with the parent named by identifier. A separate case checks an XRF measurement's measured values come back as recorded.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCommonFields` gives 9 failed, each a missing declared field (element, rock_type and the like) or a missing common field.
+Next: T004.
+Watch: Red until T014.
