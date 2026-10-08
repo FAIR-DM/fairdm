@@ -358,3 +358,174 @@ class TestWhoMayWriteSamplesAndMeasurements:
         assert response.status_code == 400
         assert "dataset" in response.json()
         assert model.objects.count() == stored_before
+
+
+@pytest.mark.django_db
+class TestManageLevel:
+    MOVES = ["dataset", "sample", "measurement"]
+
+    @staticmethod
+    def stored(record):
+        """Return the record as stored, whether or not the default manager hides it."""
+        model = type(record)
+        return getattr(model, "all_objects", model.objects).get(pk=record.pk)
+
+    @pytest.fixture
+    def scene(self, make_record):
+        """Return a function building a record with a parent to move it to."""
+        from types import SimpleNamespace
+
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement, RockSample
+
+        def scene(kind):
+            if kind == "dataset":
+                project = ProjectFactory(visibility=Visibility.PRIVATE)
+                record = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+                return SimpleNamespace(
+                    record=record,
+                    above=project,
+                    field="project",
+                    current=project,
+                    other=ProjectFactory(visibility=Visibility.PRIVATE),
+                )
+            dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+            if kind == "sample":
+                return SimpleNamespace(
+                    record=make_record(RockSample, dataset),
+                    above=dataset,
+                    field="dataset",
+                    current=dataset,
+                    other=DatasetFactory(visibility=Visibility.PRIVATE),
+                )
+            sample = RockSampleFactory(dataset=dataset)
+            return SimpleNamespace(
+                record=make_record(ExampleMeasurement, dataset, sample=sample),
+                above=dataset,
+                field="sample",
+                current=sample,
+                other=RockSampleFactory(dataset=dataset),
+            )
+
+        return scene
+
+    @pytest.fixture(params=["project", "dataset"])
+    def private_record(self, request):
+        """A private project or dataset, each in turn."""
+        factory = ProjectFactory if request.param == "project" else DatasetFactory
+        return factory(visibility=Visibility.PRIVATE)
+
+    def test_someone_at_the_edit_level_cannot_change_visibility(
+        self, private_record, url_of, member_at, signed_in
+    ):
+        editor = member_at(private_record, ContributionLevel.EDIT)
+
+        response = signed_in(editor).patch(
+            url_of(private_record), {"visibility": Visibility.PUBLIC}, format="json"
+        )
+
+        assert response.status_code == 403
+        private_record = self.stored(private_record)
+        assert private_record.visibility == Visibility.PRIVATE
+
+    def test_someone_at_the_manage_level_can_change_visibility(
+        self, private_record, url_of, member_at, signed_in
+    ):
+        manager = member_at(private_record, ContributionLevel.MANAGE)
+
+        response = signed_in(manager).patch(
+            url_of(private_record), {"visibility": Visibility.PUBLIC}, format="json"
+        )
+
+        assert response.status_code == 200
+        private_record = self.stored(private_record)
+        assert private_record.visibility == Visibility.PUBLIC
+
+    def test_someone_at_the_edit_level_can_change_another_field(
+        self, private_record, url_of, member_at, signed_in
+    ):
+        editor = member_at(private_record, ContributionLevel.EDIT)
+
+        response = signed_in(editor).patch(
+            url_of(private_record), {"name": "Renamed"}, format="json"
+        )
+
+        assert response.status_code == 200
+
+    def test_sending_the_visibility_a_record_has_needs_only_the_edit_level(
+        self, private_record, url_of, member_at, signed_in
+    ):
+        editor = member_at(private_record, ContributionLevel.EDIT)
+
+        response = signed_in(editor).patch(
+            url_of(private_record),
+            {"name": "Renamed", "visibility": Visibility.PRIVATE},
+            format="json",
+        )
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("kind", MOVES)
+    def test_someone_at_the_edit_level_cannot_move_a_record(
+        self, scene, kind, url_of, member_at, signed_in
+    ):
+        found = scene(kind)
+        editor = member_at(found.above, ContributionLevel.EDIT)
+        member_at(found.other, ContributionLevel.EDIT, editor)
+
+        response = signed_in(editor).patch(
+            url_of(found.record), {found.field: found.other.uuid}, format="json"
+        )
+
+        assert response.status_code == 403
+        stored = self.stored(found.record)
+        assert getattr(stored, f"{found.field}_id") == found.current.pk
+
+    @pytest.mark.parametrize("kind", MOVES)
+    def test_someone_at_the_manage_level_can_move_a_record(
+        self, scene, kind, url_of, member_at, signed_in
+    ):
+        found = scene(kind)
+        manager = member_at(found.record, ContributionLevel.MANAGE)
+        member_at(found.other, ContributionLevel.EDIT, manager)
+
+        response = signed_in(manager).patch(
+            url_of(found.record), {found.field: found.other.uuid}, format="json"
+        )
+
+        assert response.status_code == 200, response.content
+        stored = self.stored(found.record)
+        assert getattr(stored, f"{found.field}_id") == found.other.pk
+
+    @pytest.mark.parametrize("kind", ["dataset", "sample"])
+    def test_a_move_that_leaves_nobody_able_to_manage_the_record_is_refused(
+        self, scene, kind, url_of, member_at, signed_in
+    ):
+        found = scene(kind)
+        manager = member_at(found.above, ContributionLevel.MANAGE)
+        member_at(found.other, ContributionLevel.EDIT, manager)
+
+        response = signed_in(manager).patch(
+            url_of(found.record), {found.field: found.other.uuid}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert found.field in response.json()
+        stored = self.stored(found.record)
+        assert getattr(stored, f"{found.field}_id") == found.current.pk
+
+    @pytest.mark.parametrize("kind", MOVES)
+    def test_sending_the_parent_a_record_has_needs_only_the_edit_level(
+        self, scene, kind, url_of, member_at, signed_in
+    ):
+        found = scene(kind)
+        editor = member_at(found.above, ContributionLevel.EDIT)
+
+        response = signed_in(editor).patch(
+            url_of(found.record),
+            {"name": "Renamed", found.field: found.current.uuid},
+            format="json",
+        )
+
+        assert response.status_code == 200, response.content
+        assert response.json()["name"] == "Renamed"

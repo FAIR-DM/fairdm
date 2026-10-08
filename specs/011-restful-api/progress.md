@@ -141,3 +141,10 @@ Did: Added TestWhoMayWriteSamplesAndMeasurements in tests/test_api/test_permissi
 Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestWhoMayWriteSamplesAndMeasurements` gives 42 passed on the first run. Probes, both reverted: making the write check in `FairDMObjectPermissions` always allow fails 14 cases; offering every dataset as a choice fails 8.
 Next: T023.
 Watch: None.
+
+## 2026-10-08T23:49:09Z · Implementer US2 · T023
+
+Did: Added TestManageLevel in tests/test_api/test_permissions.py, on the real routes. For a private project and a private dataset: someone at the edit level cannot change visibility (403, unchanged), someone at the manage level can (200), an editor can change another field, and an editor sending the visibility the record already has is accepted. For a dataset (project), a sample (dataset) and a measurement (sample): an editor cannot move it (403, parent unchanged), a manager can, and an editor sending the parent the record already has is accepted. For a dataset and a sample, a manager who holds the manage level only on the old parent and the edit level on the new one is refused with a 400 on the parent field and the parent is unchanged.
+Verified: `uv run pytest -q -n0 tests/test_api/test_permissions.py::TestManageLevel` gives 18 passed, 1 failed. The failure is a measurement re-sending its current sample: 403 "needs the manage level", the same cause recorded under T018. Probes, both reverted: emptying `manager_only_fields` fails seven cases; removing the stranding check fails the two stranding cases.
+Next: T024.
+Watch: Red until T025 for the measurement case.
