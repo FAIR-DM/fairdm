@@ -49,3 +49,10 @@ Did: Added TestListAndRecordRoutes in tests/test_api/test_viewsets.py. For proje
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestListAndRecordRoutes` gives 11 failed, 27 passed. The failures are the five sample lists and records (no `uuid` in the response today) and the contributor record (404). The 404 cases for unknown identifiers and unregistered types already hold.
 Next: T009.
 Watch: Red until T014.
+
+## 2026-10-08T23:15:16Z · Implementer US1 · T009
+
+Did: Added TestVisibilityOfSamplesAndMeasurements in tests/test_api/test_filters.py. With a public and a private dataset each holding a record of the kind, it requests the real list route of a sample type and a measurement type as a person with the view level on the private dataset, a signed-in person with no level, and a visitor. It checks which records are listed and that the total counts only what the caller may see.
+Verified: `uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements` gives 3 failed, 3 passed. The sample cases fail only on the missing `uuid` in a sample row today. The measurement cases already pass, so the filter behaviour exists; it is probed at the end.
+Next: T011.
+Watch: Red for samples until T014.

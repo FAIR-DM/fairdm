@@ -138,3 +138,64 @@ class TestVisibilityFilterContributors:
     def test_contributor_list_returns_200_for_authenticated(self):
         resp = make_token_client(UserFactory()).get(reverse("api:contributor-list"))
         assert resp.status_code == 200
+
+
+@pytest.mark.django_db
+class TestVisibilityOfSamplesAndMeasurements:
+    @pytest.fixture(params=["sample", "measurement"])
+    def case(self, request, make_record, url_of):
+        """A public and a private record of a kind, with the address of their list."""
+        from types import SimpleNamespace
+
+        from demo.models import ExampleMeasurement, RockSample
+
+        model = RockSample if request.param == "sample" else ExampleMeasurement
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        public = DatasetFactory(visibility=Visibility.PUBLIC)
+        return SimpleNamespace(
+            private_dataset=private,
+            hidden=make_record(model, private),
+            shown=make_record(model, public),
+            address=url_of(model, "list"),
+        )
+
+    @staticmethod
+    def listed_by(client, address):
+        data = client.get(address).json()
+        return {row["uuid"] for row in data["results"]}, data["count"]
+
+    def test_a_person_with_a_level_on_the_dataset_receives_its_records(self, case):
+        from rest_framework.test import APIClient
+
+        viewer = UserFactory()
+        ContributionFactory(
+            content_object=case.private_dataset,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        client = APIClient()
+        client.force_authenticate(viewer)
+
+        listed, count = self.listed_by(client, case.address)
+
+        assert listed == {case.hidden.uuid, case.shown.uuid}
+        assert count == 2
+
+    def test_a_signed_in_person_with_no_level_receives_only_public_records(self, case):
+        from rest_framework.test import APIClient
+
+        client = APIClient()
+        client.force_authenticate(UserFactory())
+
+        listed, count = self.listed_by(client, case.address)
+
+        assert listed == {case.shown.uuid}
+        assert count == 1
+
+    def test_a_visitor_receives_only_public_records(self, case):
+        from rest_framework.test import APIClient
+
+        listed, count = self.listed_by(APIClient(), case.address)
+
+        assert listed == {case.shown.uuid}
+        assert count == 1
