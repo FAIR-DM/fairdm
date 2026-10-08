@@ -375,3 +375,16 @@ name, image, biography, identifiers, links, languages, primary organization and 
 page also shows portal roles, whether the profile is claimed and when the person joined. Those
 describe the account, so the API leaves them out.
 *Revisit if:* the maintainer wants any of them public.
+
+## D18. The hand-built write tests go with the first story
+
+Seventeen tests of the write rules built an endpoint by hand from a stand-in configuration and
+sent parents as database numbers. With references by short identifier and the registry as the one
+builder, they cannot pass, and making them pass would mean accepting database numbers again. They
+are deleted in the first story. The second story tests the same rules on the real routes, so the
+rules are untested for the span of one story on a branch that is not released.
+
+The plan had the deletion in the second story. This entry was made by the maintainer's side of
+the build and not by the story's implementer, who reported the conflict and stopped.
+
+**ADR:** none — a sequencing choice inside this feature.

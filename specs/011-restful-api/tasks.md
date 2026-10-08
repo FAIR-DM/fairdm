@@ -65,7 +65,7 @@ This story lays the serializers the others stand on.
 - [ ] T013 [US1] `tests/test_api/test_viewsets.py`, `TestOrdering`: projects, datasets and every
   registered sample and measurement type return their list in a named order, ascending and
   descending.
-- [ ] T014 [US1] Implement to make T001 to T013 pass (plan D1, D2, D3 without `perform_destroy`
+- [x] T014 [US1] Implement to make T001 to T013 pass (plan D1, D2, D3 without `perform_destroy`
   and the catalogues). Remove `MeasurementConfig.serializer_fields`. The viewsets
   stop calling `build_model_serializer`. The function stays until T025, because the hand-built
   write tests still import it.
