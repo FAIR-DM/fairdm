@@ -2,7 +2,7 @@
 
 import copy
 from types import SimpleNamespace
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -11,6 +11,7 @@ from django.db.models import Model, Prefetch, Q
 from django.db.models.manager import BaseManager
 from django.urls import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from research_vocabs.models import Concept
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -29,6 +30,10 @@ from fairdm.contrib.contributors.models import (
 )
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.models import Dataset, Measurement, Project, Sample
+
+if TYPE_CHECKING:
+    from rest_framework.request import Request
+    from rest_framework.views import APIView
 
 # One class per input, or drf-spectacular warns about components with identical names.
 _SERIALIZER_CACHE: dict[tuple, type] = {}
@@ -134,6 +139,16 @@ class CreatorCreditMixin:
         return super().update(instance, validated_data)
 
 
+@extend_schema_field(
+    {
+        "type": "object",
+        "nullable": True,
+        "properties": {
+            "uuid": {"type": "string"},
+            "url": {"type": "string", "format": "uri", "nullable": True},
+        },
+    }
+)
 class RecordReferenceField(serializers.SlugRelatedField):
     """Refer to a record by its short identifier and its address in the API.
 
@@ -197,7 +212,9 @@ class RecordReferenceField(serializers.SlugRelatedField):
         if hasattr(queryset, "non_polymorphic"):
             queryset = queryset.non_polymorphic()
         request = self.context.get("request") or SimpleNamespace(user=AnonymousUser())
-        visible = FairDMVisibilityFilter().filter_queryset(request, queryset, None)
+        visible = FairDMVisibilityFilter().filter_queryset(
+            cast("Request", request), queryset, cast("APIView", None)
+        )
         return set(visible.values_list("pk", flat=True))
 
     def prime(self, records) -> None:
@@ -321,7 +338,7 @@ class KeywordSerializer(serializers.Serializer):
     """A controlled keyword of a record and the vocabulary it comes from."""
 
     name = serializers.CharField(read_only=True)
-    label = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True)  # type: ignore[assignment]
     uri = serializers.CharField(read_only=True)
     vocabulary = serializers.CharField(source="vocabulary.name", read_only=True)
 
@@ -330,7 +347,7 @@ class RoleSerializer(serializers.Serializer):
     """A role a contributor holds on a record."""
 
     name = serializers.CharField(read_only=True)
-    label = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True)  # type: ignore[assignment]
 
 
 class ContributionSerializer(serializers.Serializer):
@@ -604,7 +621,8 @@ class ContributorSerializer(serializers.ModelSerializer):
             return None
         field = RecordReferenceField(read_only=True)
         field.bind(field_name="affiliation", parent=self)
-        return field.to_representation(organisation)
+        reference: dict | None = field.to_representation(organisation)
+        return reference
 
     def get_location(self, contributor) -> str | None:
         """Give the city and country the profile page shows."""

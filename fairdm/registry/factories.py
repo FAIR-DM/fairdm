@@ -876,7 +876,7 @@ class SerializerFactory(ComponentFactory):
         from fairdm.core.models import Measurement, Sample
 
         fields = list(self.get_fields())
-        base: type = serializers.ModelSerializer
+        base: Any = serializers.ModelSerializer
         if issubclass(self.model, Sample):
             base = BaseSampleSerializer
         elif issubclass(self.model, Measurement):

@@ -155,8 +155,11 @@ def sortable_fields(model, serializer_cls) -> list[str]:
     Returns:
         The names of the stored, non-relational fields among the serializer's fields.
     """
+    declared = serializer_cls.Meta.fields
+    if declared == "__all__":
+        declared = [field.name for field in model._meta.concrete_fields]
     names = []
-    for name in serializer_cls.Meta.fields:
+    for name in declared:
         try:
             field = model._meta.get_field(name)
         except FieldDoesNotExist:
