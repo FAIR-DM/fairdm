@@ -9,9 +9,10 @@ When you register a Sample or Measurement model, FairDM creates the following en
 ```
 GET  /api/v1/samples/<model-slug>/          — list all publicly visible records
 GET  /api/v1/samples/<model-slug>/{uuid}/   — detail for a specific record
-POST /api/v1/samples/<model-slug>/          — create (authenticated users only)
-PATCH /api/v1/samples/<model-slug>/{uuid}/  — partial update (authorized users only)
-DELETE /api/v1/samples/<model-slug>/{uuid}/ — delete (authorized users only)
+POST /api/v1/samples/<model-slug>/          — create (signed-in users with the edit level on the dataset)
+PUT /api/v1/samples/<model-slug>/{uuid}/    — replace (edit level)
+PATCH /api/v1/samples/<model-slug>/{uuid}/  — partial update (edit level)
+DELETE /api/v1/samples/<model-slug>/{uuid}/ — delete (manage level)
 ```
 
 The `<model-slug>` is derived from your model's `verbose_name_plural` (lowercased, spaces replaced with hyphens). For example, a model with `verbose_name_plural = "rock samples"` becomes `rock-samples`. See [URL Slugs and verbose_name_plural](#url-slugs-and-verbose-name-plural) for details.
@@ -21,9 +22,9 @@ Core model endpoints are also available:
 | Endpoint | Methods |
 |----------|---------|
 | `/api/v1/projects/` | GET, POST |
-| `/api/v1/projects/{uuid}/` | GET, PATCH, DELETE |
+| `/api/v1/projects/{uuid}/` | GET, PUT, PATCH, DELETE |
 | `/api/v1/datasets/` | GET, POST |
-| `/api/v1/datasets/{uuid}/` | GET, PATCH, DELETE |
+| `/api/v1/datasets/{uuid}/` | GET, PUT, PATCH, DELETE |
 | `/api/v1/contributors/` | GET |
 | `/api/v1/contributors/{uuid}/` | GET |
 | `/api/v1/samples/` | GET (discovery catalog) |
@@ -115,6 +116,99 @@ class RockSampleSerializer(BaseSampleSerializer):
 
 A relation you leave to Django REST Framework's defaults is returned as a database number. Declare
 every relation you add as a `RecordReferenceField` or a `StringRelatedField`.
+
+## Creating, Changing and Deleting Records
+
+Projects, datasets and every registered sample and measurement type accept `POST`, `PUT`, `PATCH`
+and `DELETE` on the same routes they are read from. A request is judged by the level the caller
+holds on the record, exactly as the portal's own pages judge it (see
+[Permission Model](#permission-model)).
+
+### What can be written
+
+A record's own fields, its visibility and its parent are writable. Everything else is read-only.
+
+| Kind | Writable | Read-only |
+|------|----------|-----------|
+| Project | `name`, `status`, `visibility`, `funding`, `owner` | `image`, `url`, `uuid`, `added`, `modified` and the metadata |
+| Dataset | `name`, `visibility`, `project` | `image`, `published`, `license`, `url`, `uuid`, `added`, `modified` and the metadata |
+| Sample | `name`, `local_id`, `status`, `dataset` and every field its type declares | `url`, `uuid`, `added`, `modified` and the metadata |
+| Measurement | `name`, `sample`, `dataset` and every field its type declares, measured values included | `url`, `uuid`, `added`, `modified` and the metadata |
+
+The metadata (`descriptions`, `dates`, `identifiers`, `keywords` and `contributors`) is edited in the
+portal. A value sent for a read-only field is ignored, not refused: the request succeeds and the
+field keeps the value it had. `created_by` is not a field of the API, so a value sent for it is
+ignored in the same way, and the record's creator is always the person who sent the request.
+
+A parent is named by its short identifier, as a bare string or as the `{"uuid", "url"}` object a
+response carries. A database number is refused.
+
+### Creating
+
+```http
+POST /api/v1/samples/rock-samples/
+Content-Type: application/json
+
+{
+  "name": "RS-14",
+  "dataset": "dV4DYUk6ohGJdizhxJotoZ8",
+  "rock_type": "igneous",
+  "collection_date": "2024-05-02"
+}
+```
+
+The answer is `201` and the complete new record, as a `GET` of its address returns it. A measurement
+names its `sample` and its `dataset` and carries its measured values the same way. A dataset names
+its `project`. Any signed-in person may create a project.
+
+A project or dataset created through the API is private unless the body sets `visibility`. The
+person who created a record is listed on it at the manage level, which makes them its creator. A superuser who
+creates one is not listed.
+
+### Replacing and changing part of a record
+
+`PATCH` sends only the fields to change and leaves every other field as it was. `PUT` replaces the
+record: it carries every required field, and an optional field it leaves out keeps its stored value.
+
+```http
+PATCH /api/v1/samples/rock-samples/sxXGUGgXRVStFw3jbpBWQeM/
+Content-Type: application/json
+
+{"weight_grams": 12.5}
+```
+
+The answer is `200` and the record as it now stands. Repeating the parent a record already has is
+not a move, and neither is repeating its current visibility.
+
+### Deleting
+
+```http
+DELETE /api/v1/samples/rock-samples/sxXGUGgXRVStFw3jbpBWQeM/
+```
+
+The answer is `204`, and a later request for the record is answered `404`.
+
+The portal refuses to delete a record in two states, and the API refuses with it. Both are answered
+`409 Conflict` with a `detail` that gives the reason, and nothing is deleted:
+
+- A project with a public dataset. Make its datasets private or delete them first.
+- A sample with measurements made on it. Delete or move the measurements first.
+
+The reason names no other record, because the caller may not be allowed to see them.
+
+### Refused requests
+
+| Answer | When |
+|--------|------|
+| `400` | The body cannot be parsed, a required field is missing, or a value is not acceptable. The answer names each field at fault and says why, and nothing is saved. |
+| `400` on a parent field | The parent does not exist, or the caller may not add to it. Both are answered alike, so the API does not confirm that a private record exists. A move that would leave nobody able to manage the record carries the code `no_manager`. |
+| `401` | No token and no session. |
+| `403` | The caller can see the record and holds too low a level to do this. |
+| `404` | The caller cannot see the record. |
+| `409` | A delete the portal refuses, described above. |
+
+No request is answered with a server error because of what it contains. Two writes that reach the
+same record at once are applied in turn and the later one wins.
 
 ## Contributors
 
@@ -225,17 +319,30 @@ Authorization: Token abc123def456...
 
 ## Permission Model
 
-FairDM's API enforces the same object-level permission model as the web interface:
+FairDM's API enforces the same permissions as the web interface. For a project, dataset, sample or
+measurement, the level a person holds on the record, or on a record above it, decides what they may
+do:
+
+| Level | May |
+|-------|-----|
+| View | Read a private record |
+| Edit | Change the record and create records inside it. The edit level on a dataset creates its samples and measurements, and the edit level on a project creates its datasets |
+| Manage | Everything the edit level may, and delete the record, change its visibility and move it |
+
+Any signed-in person may create a project. The result for a caller who holds no level, or too low
+a level, depends on whether they can see the record:
 
 | Scenario | Result |
 |----------|--------|
 | Anonymous GET on public object | 200 OK |
 | Anonymous GET on private object | 404 Not Found (non-disclosure) |
-| Anonymous POST/PATCH/DELETE | 401 Unauthorized |
-| Authenticated GET on private object without view perm | 404 Not Found |
-| Authenticated PATCH on public object without change perm | 403 Forbidden |
-| Authenticated PATCH on private object without any perm | 404 Not Found |
-| Creator, or anyone at the manage level, on any operation | 200/201/204 OK |
+| Anonymous POST/PUT/PATCH/DELETE | 401 Unauthorized |
+| Authenticated GET on private object without the view level | 404 Not Found |
+| Authenticated change or delete on a public object without the level it needs | 403 Forbidden |
+| Authenticated change or delete on a private object at the view level | 403 Forbidden |
+| Authenticated change or delete on a private object without any level | 404 Not Found |
+| Edit level: change, create inside | 200/201 |
+| Manage level: delete, change visibility, move | 200/204 |
 
 Non-disclosure (404 instead of 403) is used for unauthorized access to detail endpoints to avoid leaking whether a private object exists.
 
@@ -243,8 +350,8 @@ Three rules about what a request may change apply to projects, datasets, samples
 and they are the ones the update forms apply:
 
 - **Visibility and the record a record sits under need the manage level.** A `PUT` or `PATCH` that
-  sets `visibility`, or a `project`, `dataset` or `sample` field, to a value different from the
-  stored one answers 403 and stores nothing unless the requester can manage the record. Sending the
+  sets `visibility`, `owner`, or a `project`, `dataset` or `sample` field, to a value different from
+  the stored one answers 403 and stores nothing unless the requester can manage the record. Sending the
   value already stored is not a change.
 - **A move that would leave the record with nobody to manage it answers 400.** The error is on the
   parent field and carries the code `no_manager`.
@@ -258,16 +365,6 @@ and they are the ones the update forms apply:
 When you create a project, dataset, sample or measurement via the API, the requesting user is
 listed on it at the manage level, which makes them its creator. A superuser who creates one is not
 listed, because a superuser cannot be a contributor. No django-guardian permission is stored.
-
-```{note}
-For any other model, the serializer still assigns stored guardian permissions (`view_*`,
-`change_*`, `delete_*`) to the requesting user. If you are writing portal code outside the API that
-grants or checks one of those on a contributor or organization programmatically, use the
-`fairdm.core.utils` helpers described in
-[Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
-rather than calling `django-guardian` directly: those records are polymorphic, and a raw guardian
-call files or looks for the grant under the wrong content type.
-```
 
 ## Customizing Serializer Fields
 

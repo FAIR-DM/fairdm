@@ -1,8 +1,9 @@
-# Reading records with a script
+# Reading and writing records with a script
 
 Every portal serves its public projects, datasets, samples and measurements to scripts as well as
-to people. This page shows how to read them with Python or `curl`. You do not need an account to
-read public records.
+to people. This page shows how to read them with Python or `curl`, and how to create, change and
+delete the records your team holds. You do not need an account to read public records. Writing
+needs a token that belongs to your account.
 
 The portal's address is written below as `https://portal.example.org`. Use your portal's own.
 
@@ -105,6 +106,90 @@ an email address or anything about an account.
 A private record is in no list you receive, and asking for it directly is answered `404`, exactly as
 for a record that does not exist. The same is true of the samples and measurements in a private
 dataset: none is returned and none is counted.
+
+## Create a record
+
+Send the record as JSON with your token. `$TOKEN` stands for yours:
+
+```bash
+curl -X POST https://portal.example.org/api/v1/samples/rock-samples/ \
+  -H "Authorization: Token $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "RS-14", "dataset": "dV4DYUk6ohGJdizhxJotoZ8", "rock_type": "igneous", "collection_date": "2024-05-02"}'
+```
+
+The answer is `201` and the new record, complete, with its `uuid` and `url`. In Python:
+
+```python
+import requests
+
+headers = {"Authorization": f"Token {token}"}
+body = {
+    "name": "RS-14",
+    "dataset": "dV4DYUk6ohGJdizhxJotoZ8",
+    "rock_type": "igneous",
+    "collection_date": "2024-05-02",
+}
+reply = requests.post(
+    "https://portal.example.org/api/v1/samples/rock-samples/",
+    json=body,
+    headers=headers,
+    timeout=30,
+)
+reply.raise_for_status()
+sample = reply.json()
+```
+
+A record is created inside a parent, named by its short identifier: a sample or a measurement names
+its `dataset`, a measurement also names its `sample`, and a dataset names its `project`. You need
+the edit level on that parent. Any signed-in person can create a project. A project or dataset you
+create is private until you set `visibility` to `1`, and you are listed on every record you create
+at the manage level.
+
+## Change a record
+
+`PATCH` changes only the fields you send. Every other field stays as it was:
+
+```bash
+curl -X PATCH "https://portal.example.org/api/v1/samples/rock-samples/sxXGUGgXRVStFw3jbpBWQeM/" \
+  -H "Authorization: Token $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"weight_grams": 12.5}'
+```
+
+`PUT` replaces the record and needs every required field. Both answer `200` with the record as it
+now stands. You need the edit level on the record. Changing a record's `visibility`, or moving it by
+sending a different `dataset`, `sample` or `project`, needs the manage level. Sending the parent or
+visibility a record already has is not a change.
+
+## What you cannot write
+
+Descriptions, key dates, identifiers, keywords and the credited people are read-only. So are a
+record's `uuid`, `url`, `added` and `modified`, a project's or dataset's `image`, and a dataset's
+`published` and `license`. Send them and the request still succeeds, and they keep the values they
+had. Edit those on the record's page in the portal.
+
+## Delete a record
+
+```bash
+curl -X DELETE "https://portal.example.org/api/v1/samples/rock-samples/sxXGUGgXRVStFw3jbpBWQeM/" \
+  -H "Authorization: Token $TOKEN"
+```
+
+The answer is `204`. Deleting needs the manage level on the record. The portal refuses to delete a
+project that has a public dataset, and a sample that has measurements made on it, and so does the
+API: the answer is `409` with a `detail` that gives the reason, and nothing is deleted. Make the
+datasets private, or delete the measurements, and try again.
+
+## When a request is refused
+
+| Answer | Meaning |
+|--------|---------|
+| `400` | The body is not valid JSON, a field is missing or a value is not acceptable. The answer lists each field at fault and says why. Nothing was saved. A parent that does not exist and one you may not add to are answered the same way. |
+| `401` | The request carried no token. |
+| `403` | You can see the record but your level on it is too low for this request. |
+| `404` | The record does not exist, or it is private and you may not see it. |
+| `409` | The portal does not allow this delete, as above. |
 
 ## Try it in the browser
 

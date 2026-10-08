@@ -167,3 +167,10 @@ Tests removed from tests/test_api/test_viewsets.py, replaced by T017, T022 and T
 Verified: `uv run pytest -q -n0 tests/test_registry tests/test_api` gives 1028 passed. `uv run pytest -q -n0 tests/test_contrib/test_location/test_api.py` passes. `uv run mypy fairdm/api` and `ruff` are clean.
 Next: T026.
 Watch: None.
+
+## 2026-10-08T23:55:16Z · Implementer US2 · T026
+
+Did: Documented creating, changing and deleting in both pages. docs/portal-development/restful-api.md has a new section on what can be written for each kind, creating, replacing and changing part of a record, deleting and the two refused deletes (409 with a reason), and a table of refused requests. The endpoint list and the core-model table show PUT. The permission section is rewritten around the three levels (view, edit, manage) and the answers for each caller, and names `owner` among the fields that need the manage level. The note about stored guardian permissions for other models is removed, as that behaviour went with the old serializer builder. docs/user-guide/reading-records-with-a-script.md is retitled "Reading and writing records with a script" and gains sections on creating (curl and Python), changing, what cannot be written, deleting, and the meaning of each refusal.
+Verified: Ran each documented request against the branch through the test client: creating a rock sample answers 201, a partial change of `weight_grams` answers 200 and keeps the other fields, a replacement that leaves out an optional field keeps its value, a replacement that leaves out required fields answers 400 naming them, a project created with `visibility` 1 comes back public, a dataset created without it comes back private, and the delete answers 204. The docs step runs in the full verify.
+Next: full verify and the completion report.
+Watch: The pages do not say how to get a token. The authentication section is for a later story.
