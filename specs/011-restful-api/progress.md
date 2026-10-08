@@ -28,3 +28,10 @@ Did: Added TestCommonFields in tests/test_api/test_viewsets.py. For every regist
 Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCommonFields` gives 9 failed, each a missing declared field (element, rock_type and the like) or a missing common field.
 Next: T004.
 Watch: Red until T014.
+
+## 2026-10-08T23:14:08Z · Implementer US1 · T004
+
+Did: Added TestNoDatabaseNumbers in tests/test_api/test_viewsets.py. It builds a public project, dataset, one record of every registered sample and measurement type with metadata, and a person and organisation, requests the list and record routes of each, and walks every response to any depth for an `id` or `pk` key and for an integer under any relation key.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoDatabaseNumbers` fails. The first stop is that a contributor's record route answers 404 to a visitor today, because the object-level permission class has no rule for a model that is neither public nor private. That is a defect T006 also covers, and the fix goes in with the viewsets.
+Next: T005.
+Watch: The failure hides the number walk behind the contributor 404 until the permission fix lands in T014.

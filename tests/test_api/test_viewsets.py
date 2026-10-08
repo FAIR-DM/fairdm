@@ -1067,3 +1067,71 @@ class TestCommonFields:
 
         assert data["element"] == "Fe"
         assert float(data["concentration_ppm"]) == 123.45
+
+
+@pytest.mark.django_db
+class TestNoDatabaseNumbers:
+    RELATIONS = (
+        "project",
+        "dataset",
+        "sample",
+        "owner",
+        "license",
+        "contributor",
+        "affiliation",
+        "location",
+        "polymorphic_ctype",
+        "created_by",
+    )
+
+    @staticmethod
+    def walk(value, path=""):
+        """Yield the path of every key that is a database number or holds one."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                where = f"{path}.{key}"
+                if key in ("id", "pk") or (
+                    key in TestNoDatabaseNumbers.RELATIONS and isinstance(inner, int)
+                ):
+                    yield where
+                yield from TestNoDatabaseNumbers.walk(inner, where)
+        elif isinstance(value, list):
+            for position, inner in enumerate(value):
+                yield from TestNoDatabaseNumbers.walk(inner, f"{path}[{position}]")
+
+    @pytest.fixture
+    def every_address(self, url_of, make_record, add_metadata):
+        """The list and record address of every kind of record and registered type."""
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        project = add_metadata(ProjectFactory(visibility=Visibility.PUBLIC))
+        dataset = add_metadata(
+            DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        )
+        records = [project, dataset]
+        records += [
+            add_metadata(make_record(model, dataset))
+            for model in registered("sample") + registered("measurement")
+        ]
+        addresses = [
+            address
+            for record in records
+            for address in (url_of(type(record), "list"), url_of(record))
+        ]
+        addresses.append(reverse("api:contributor-list"))
+        for contributor in (PersonFactory(), OrganizationFactory()):
+            addresses.append(
+                reverse("api:contributor-detail", kwargs={"uuid": contributor.uuid})
+            )
+        return addresses
+
+    def test_no_list_or_record_response_carries_a_database_number(
+        self, api_client, every_address
+    ):
+        found = []
+        for address in every_address:
+            response = api_client.get(address)
+            assert response.status_code == 200, address
+            found += [f"{address}{where}" for where in self.walk(response.json())]
+
+        assert found == []
