@@ -198,27 +198,27 @@ This story lays the serializers the others stand on.
 
 ## Phase 6: US-6, a portal operator keeps the API within what one small server can carry (P3)
 
-- [ ] T053 [US6] `tests/test_api/test_throttling.py`, `TestLimits`: an anonymous caller past the
+- [x] T053 [US6] `tests/test_api/test_throttling.py`, `TestLimits`: an anonymous caller past the
   per-minute rate, and past the daily rate, is answered 429 with a `Retry-After` header. A caller
   with a token is not stopped at the anonymous rate and is stopped at their own.
-- [ ] T054 [US6] `tests/test_api/test_throttling.py`, `TestLimitsAreSettings`: changing each of
+- [x] T054 [US6] `tests/test_api/test_throttling.py`, `TestLimitsAreSettings`: changing each of
   the four rates in the settings changes where the caller is stopped.
-- [ ] T055 [US6] `tests/test_api/test_pagination.py`, `TestPageSizes`: a list holds the default
+- [x] T055 [US6] `tests/test_api/test_pagination.py`, `TestPageSizes`: a list holds the default
   number of records, honours a larger size up to the ceiling and no further, and follows a changed
   default and a changed ceiling in the settings. A middle page carries both a next and a previous
   address. The envelope tests in `TestPagination` pass their page size explicitly.
-- [ ] T056 [US6] `tests/test_api/test_viewsets.py`, `TestQueryCount`: for projects, datasets and
+- [x] T056 [US6] `tests/test_api/test_viewsets.py`, `TestQueryCount`: for projects, datasets and
   one sample and one measurement type with metadata recorded, a list of twelve records runs the
   same number of queries as a list of two.
-- [ ] T057 [US6] Implement to make T053 to T056 pass (plan D6, and the prefetching in D3). Retire
+- [x] T057 [US6] Implement to make T053 to T056 pass (plan D6, and the prefetching in D3). Retire
   `TestRateLimiting`, which pins the old rate names.
-- [ ] T058 [US6] Documentation: the limits, the page sizes and the settings that change them, for
+- [x] T058 [US6] Documentation: the limits, the page sizes and the settings that change them, for
   a portal administrator, in a table of contents. It names `REST_FRAMEWORK["NUM_PROXIES"]` as the
   setting for the number of proxies in front of the portal, and says the limits are per address
   only once it is set.
 
 ## Phase 7: closing
 
-- [ ] T059 [US6] An entry in `CHANGELOG.md` saying what a portal with API clients or its own serializers
+- [x] T059 [US6] An entry in `CHANGELOG.md` saying what a portal with API clients or its own serializers
   has to change.
-- [ ] T060 [US6] Remove `needs verification` from R11 in `docs/ROADMAP.md`.
+- [x] T060 [US6] Remove `needs verification` from R11 in `docs/ROADMAP.md`.
