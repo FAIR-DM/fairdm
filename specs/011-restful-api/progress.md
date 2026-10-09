@@ -424,3 +424,11 @@ Did: Added TestEveryListedFilter, which reads each catalogue entry's filter name
 Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestEveryListedFilter tests/test_core/test_sample/test_filters.py tests/test_core/test_measurement/test_filters.py: 36 passed, 4 skipped.
 Next: T061.
 Watch: ruff check run without --no-fix rewrites unrelated files in this repo; use --no-fix on the files touched.
+
+## 2026-10-09T02:06:02Z · Implementer fix-1 · T061
+
+Did: Added TestUnpublishedDataset (tests/test_api/test_filters.py): for a sample and a measurement in a public, unpublished dataset, a visitor and a person with no level get an empty list, a 404 on the record and a catalogue count of 0, the person with no level gets 404 on a change and a delete, a person with the view level reads the record, the dataset's own record stays readable, and a measurement's reference to such a sample reads null. Seen failing first (16 of 22 red; the level, dataset and 404-on-write-by-level cases already held). The public rule for records that follow a dataset is now "public and published": _get_public_filter adds dataset__published=True, and FairDMObjectPermissions asks the dataset's data_is_public in both the read branch and the write branch (403 against 404). RecordReferenceField and the catalogue count share the filter and follow. Updated the filter docstring and the API page.
+Existing tests changed (authorised): DatasetFactory builds datasets with published=False, so every fixture in tests/test_api that built a public dataset to hold samples or measurements now also sets published=True (conftest public_dataset, and the single-line DatasetFactory(... visibility=PUBLIC) calls in test_filters, test_serializers, test_viewsets, plus the a_record_in fixture in test_permissions). Their assertions are unchanged. A visitor's write is answered 401, not 404, because a write needs a signed-in person; the new write test uses the person with no level.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1197 passed (after the fixture change); before it 106 failed from the fixtures alone.
+Next: T063.
+Watch: other test directories that build a public dataset for API reads, if any, show up in the final verify.
