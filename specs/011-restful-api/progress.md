@@ -359,3 +359,10 @@ Did: Added TestLimits in tests/test_api/test_throttling.py. The tests give the t
 Verified: uv run pytest -q -n0 tests/test_api/test_throttling.py: 9 fail because the four rates do not exist yet and 1 passes already (a token caller is not stopped at the anonymous rate).
 Next: T054.
 Watch: DRF reads the rate dict once, when rest_framework.throttling is first imported, so the tests change entries in the dict the settings hold rather than assigning a new REST_FRAMEWORK.
+
+## 2026-10-09T01:08:55Z · Implementer US6 · T054
+
+Did: Added TestLimitsAreSettings in tests/test_api/test_throttling.py. Each of the four throttles has the scope named in the settings and takes its rate from the dict the settings hold. The API applies exactly those four throttles and the settings hold exactly those four rates. For each rate, a caller (anonymous for the two anonymous rates, a token caller for the two signed-in ones) is stopped on the request after the changed figure.
+Verified: uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimitsAreSettings with a throw-away module holding the four plain subclasses: the applied-throttles test and the four stopped-at-the-figure cases fail because the API still applies the old two throttles; the rest pass. The module was removed again, so until T057 the file fails at import.
+Next: T055.
+Watch: none.
