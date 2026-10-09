@@ -308,3 +308,19 @@ Each test task is written first and seen to fail.
 - [x] T074 [US5] `tests/test_api/test_schema.py`, `TestMetadataDescriptionComesFirst`: a type whose
   registration metadata has a description is described by it, and not by the description its base
   configuration carries for every type of its kind. Then read the metadata's description first.
+
+## Phase 11: the documentation's grouping, as the maintainer asked
+
+- [ ] T075 [US5] `tests/test_api/test_schema.py`, replacing `TestTypesInTheDocumentation`: in the
+  schema the interactive documentation page reads, every sample type's operations carry the one
+  tag for samples and every measurement type's the one for measurements, and no tag is a single
+  type's name. Each operation of a registered type has a summary that starts with the type's
+  plural name. A type's list operation's description carries the registration's description and,
+  where given, its authority, citation, keywords and repository link, and never a maintainer's
+  name or email address. The record's title and description stay the type's own. Then regroup.
+- [ ] T076 [US5] `tests/test_api/test_urls.py` and `test_schema.py`: the second documentation page
+  reads a schema of its own in which each registered type has a tag named with its plural name,
+  carrying the same description and details, and the tags are gathered into a group for samples
+  and a group for measurements, with projects, datasets and contributors in a group of their own.
+  The two schemas describe the same paths and components. Then serve that schema to the second
+  page.

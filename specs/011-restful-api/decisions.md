@@ -682,3 +682,23 @@ schema, so they would share a section. Also revisit if a serializer is shared by
 one component then carries one type's words.
 
 **ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
+## D29. Sample types and measurement types stay under two headings
+
+D26 gave each registered type a heading of its own on the documentation page. The maintainer had
+not asked for the two existing headings to go and wanted them back, with everything a
+registration says about a type kept.
+
+The interactive page cannot nest headings. So every sample type's operations are again under one
+heading and every measurement type's under another, each operation's title begins with its type's
+plural name, and the type's description, authority, citation, keywords and repository link are on
+its list operation.
+
+The second documentation page can nest headings. It is given a schema of its own, built by one
+more step when the schema is generated, in which each type has a heading inside the group for its
+kind. Both schemas describe the same addresses and records.
+
+**Ruled by.** The maintainer, at review.
+
+**ADR:** none — how this feature's generated documentation is laid out.
+

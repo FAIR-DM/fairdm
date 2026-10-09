@@ -287,8 +287,8 @@ to the address the earlier login endpoint had.
 A developer who has never seen the portal opens its API documentation from the sidebar. The page
 lists every endpoint the portal has, including the sample and measurement types this particular
 portal registered, with the fields each accepts and returns. They try a request from the page and
-read the response. Each registered type has its own section, under the name the portal gives it
-and with the description its developer wrote. Their script asks the API's root which lists exist
+read the response. Sample types are together under one heading and measurement types under another, each
+operation named for its type and described in its developer's words. Their script asks the API's root which lists exist
 and where each one is.
 
 **Why this priority**: Documentation that matches the running portal is what makes the API usable
@@ -308,10 +308,12 @@ Request the API's root.
    is sent and its response shown.
 4. **Given** the documentation, **When** it describes how to authenticate and what the limits are,
    **Then** what it says is what the portal does.
-5. **Given** a registered type, **When** its section of the documentation is read, **Then** it is
-   headed by the type's own plural name and carries the description from its registration, and
-   where the registration gives them, the authority behind the type, how to cite it, its keywords
-   and a link to its repository.
+5. **Given** registered sample and measurement types, **When** the documentation page is read,
+   **Then** every sample type's operations are under one heading for samples and every measurement
+   type's under one for measurements, each operation is titled with its type's own plural name, and
+   a type's list operation carries the description from its registration and, where the
+   registration gives them, the authority behind the type, how to cite it, its keywords and a link
+   to its repository.
 6. **Given** a registered type, **When** the description of its records in the documentation is
    read, **Then** it is the type's own description, and never text written for the framework's
    developers.
@@ -474,10 +476,13 @@ confirm the portal follows them.
   MUST NOT show the name of the package that provides tokens.
 - **FR-035**: What the generated documentation says about authentication, limits and paging MUST
   match what the portal does.
-- **FR-036**: The generated documentation MUST present each registered sample and measurement type
-  under that type's own plural name, with the description its registration gives, and with the
-  authority, citation, keywords and repository link where the registration gives them. It MUST NOT
-  show a maintainer's name or email address. The API serves no separate catalogue of types.
+- **FR-036**: The generated documentation MUST group every registered sample type under one
+  heading and every measurement type under another. Each operation MUST be titled with its type's
+  own plural name, and a type's list operation MUST carry the description its registration gives,
+  with the authority, citation, keywords and repository link where the registration gives them. It
+  MUST NOT show a maintainer's name or email address. The second documentation page, which can
+  nest headings, MUST show each type under the heading for its kind. The API serves no separate
+  catalogue of types.
 - **FR-037**: The API's root MUST link to every list endpoint.
 - **FR-038**: The sidebar MUST carry one link to the API documentation.
 - **FR-039**: The documentation for portal developers MUST describe the registration options that
