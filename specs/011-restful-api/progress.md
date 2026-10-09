@@ -195,3 +195,10 @@ Did: Added TestSerializerMustBuildOnBase in tests/test_api/test_viewsets.py: gen
 Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase: 4 passed on first run, as the check already applies to whatever the accessor returns. Probe: removing the two validate calls from generate_viewset turned all four red.
 Next: T030.
 Watch: none.
+
+## 2026-10-09T00:10:53Z · Implementer US3 · T030
+
+Did: Added TestRegistrationCheck in tests/test_api/test_checks.py. It calls the new start-up check on the shipped registrations (no errors), on a sample and a measurement type whose API fields leave out a required model field, on a type with several missing fields, on a developer's own serializer that omits a required field, and on one that only reads it; it asserts on the error id and that it names the type and the field.
+Verified: uv run pytest -q -n0 tests/test_api/test_checks.py: 7 tests fail with ModuleNotFoundError for fairdm.api.checks, as expected before the check exists.
+Next: T031.
+Watch: the check is written and registered in T035.
