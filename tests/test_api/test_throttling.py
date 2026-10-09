@@ -3,8 +3,16 @@
 import pytest
 from django.core.cache.backends.locmem import LocMemCache
 from django.urls import reverse
+from fairdm.api.throttling import (
+    AnonBurstThrottle,
+    AnonDailyThrottle,
+    UserBurstThrottle,
+    UserDailyThrottle,
+)
 from rest_framework.test import APIClient
 from rest_framework.throttling import SimpleRateThrottle
+
+SCOPES = ("anon_burst", "anon_day", "user_burst", "user_day")
 
 #: A rate nothing in these tests reaches, so a case can set only the rate it is about.
 OUT_OF_REACH = {
@@ -146,3 +154,72 @@ class TestLimits:
         answers = passes(other_client, url, 3)
 
         assert answers == [200, 200, 429]
+
+
+@pytest.mark.django_db
+class TestLimitsAreSettings:
+    @pytest.mark.parametrize("scope", SCOPES)
+    def test_each_throttle_takes_its_rate_from_the_settings(
+        self, settings, set_rates, scope
+    ):
+        throttle = {
+            "anon_burst": AnonBurstThrottle,
+            "anon_day": AnonDailyThrottle,
+            "user_burst": UserBurstThrottle,
+            "user_day": UserDailyThrottle,
+        }[scope]
+        set_rates(**{scope: "7/hour"})
+
+        assert throttle.scope == scope
+        assert throttle().rate == "7/hour"
+        assert (
+            settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] == throttle().rate
+        )
+
+    def test_the_four_throttles_are_the_ones_the_api_applies(self, settings):
+        from rest_framework.settings import api_settings
+
+        applied = {cls.__name__ for cls in api_settings.DEFAULT_THROTTLE_CLASSES}
+
+        assert applied == {
+            "AnonBurstThrottle",
+            "AnonDailyThrottle",
+            "UserBurstThrottle",
+            "UserDailyThrottle",
+        }
+        assert set(settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]) == set(SCOPES)
+
+    @pytest.mark.parametrize(
+        ("scope", "rate", "caller", "allowed"),
+        [
+            ("anon_burst", "4/minute", "anonymous", 4),
+            ("anon_day", "5/day", "anonymous", 5),
+            ("user_burst", "6/minute", "token", 6),
+            ("user_day", "7/day", "token", 7),
+        ],
+    )
+    def test_a_caller_is_stopped_at_the_changed_figure(
+        self,
+        api_client,
+        authenticated_client,
+        url,
+        set_rates,
+        scope,
+        rate,
+        caller,
+        allowed,
+    ):
+        client = api_client if caller == "anonymous" else authenticated_client
+        set_rates(**{scope: rate})
+
+        answers = passes(client, url, allowed + 2)
+
+        assert answers == [200] * allowed + [429]
+
+    def test_the_settings_the_throttles_read_are_the_portals_own(self, settings):
+        # The throttles read their rates from the dict the portal's settings hold, so a portal
+        # that assigns REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] in its settings changes them.
+        assert (
+            SimpleRateThrottle.THROTTLE_RATES
+            is settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
+        )
