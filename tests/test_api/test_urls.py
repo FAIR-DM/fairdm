@@ -1,7 +1,9 @@
 """Tests for FairDM API URL routing (``fairdm/api/urls.py``)."""
 
 import pytest
+from django.test import Client
 from django.urls import reverse
+from knox.models import AuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
@@ -196,3 +198,76 @@ class TestOpenAPISchema:
     def test_schema_accessible_without_auth(self, api_client):
         response = api_client.get("/api/v1/schema/")
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestTokenPages:
+    @pytest.fixture
+    def person(self):
+        return UserFactory()
+
+    @pytest.fixture
+    def signed_in_client(self, person):
+        client = Client()
+        client.force_login(person)
+        return client
+
+    @pytest.fixture
+    def pages(self, make_token, person):
+        """The addresses of the three pages, with a token of the person's to revoke."""
+        record, _value = make_token(person)
+        return {
+            "list": reverse("account_api_tokens"),
+            "create": reverse("account_api_token_create"),
+            "revoke": reverse("account_api_token_revoke", args=[record.token_key]),
+        }
+
+    def test_the_pages_open_for_a_signed_in_person(self, signed_in_client, pages):
+        for address in pages.values():
+            assert signed_in_client.get(address).status_code == 200, address
+
+    def test_the_pages_send_a_visitor_to_sign_in(self, pages, settings):
+        for address in pages.values():
+            response = Client().get(address)
+
+            assert response.status_code == 302, address
+            assert response["Location"].startswith(settings.LOGIN_URL), address
+
+    def test_a_token_created_on_the_create_page_authenticates_a_request(
+        self, signed_in_client, person
+    ):
+        created = signed_in_client.post(
+            reverse("account_api_token_create"), {"lifetime": "30d"}
+        )
+        assert created.status_code == 302
+        listing = signed_in_client.get(created["Location"])
+        value = listing.context["new_token"]["value"]
+
+        api = APIClient()
+        api.credentials(HTTP_AUTHORIZATION=f"Token {value}")
+        response = api.get(reverse("api:project-list"))
+
+        assert response.status_code == 200
+
+    def test_a_revoked_token_stops_working(self, signed_in_client, make_token, person):
+        record, value = make_token(person)
+        api = APIClient()
+        api.credentials(HTTP_AUTHORIZATION=f"Token {value}")
+        assert api.get(reverse("api:project-list")).status_code == 200
+
+        signed_in_client.post(
+            reverse("account_api_token_revoke", args=[record.token_key])
+        )
+
+        assert api.get(reverse("api:project-list")).status_code == 401
+
+    def test_at_the_token_limit_the_create_page_creates_nothing(
+        self, signed_in_client, make_token, person, settings
+    ):
+        settings.REST_KNOX = {"TOKEN_LIMIT_PER_USER": 2}
+        make_token(person)
+        make_token(person)
+
+        signed_in_client.post(reverse("account_api_token_create"), {"lifetime": "30d"})
+
+        assert AuthToken.objects.filter(user=person).count() == 2
