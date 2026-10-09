@@ -177,8 +177,7 @@ issued the old way stop working.
 **Ruled by.** The audit proposed removing the login endpoint. The maintainer approved and named the
 package.
 
-**ADR:** `docs/adr/` — to be written at the build: how a caller authenticates is inherited by
-everything that touches the API.
+**ADR:** `docs/adr/0028-api-tokens-are-created-on-the-account-pages.md`
 
 ## D9. One way to build a serializer
 

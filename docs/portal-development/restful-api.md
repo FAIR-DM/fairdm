@@ -292,40 +292,75 @@ FairDM ships a Swagger UI and ReDoc interface powered by [drf-spectacular](https
 
 ## Authentication
 
-### Obtaining a Token
+The API knows who is calling in two ways. A script sends a token, and a person using the portal in
+a browser sends their sign-in session. No address of the API exchanges a password for a token,
+signs a caller out, resets or changes a password, or edits an account.
 
-```http
-POST /api/v1/auth/login/
-Content-Type: application/json
+### Tokens
 
-{"email": "user@example.com", "password": "secret"}
-```
+A person creates a token on their account pages, after signing in the usual way with their second
+factor if they use one. The pages are provided by django-mvp-accounts, which keeps the tokens with
+[django-rest-knox](https://jazzband.co/projects/django-rest-knox). FairDM turns them on for every
+portal, at `/account/tokens/`, and the Account Center links to them.
 
-Response:
+The create page asks how long the token should last: 7 days, 30 days, 90 days, 1 year or never.
+The token is shown once, on the page the person returns to, and only a digest of it is stored. A
+person who loses a token revokes it and creates another. Each token can be revoked on its own, and
+a revoked, expired or unknown token is answered `401`.
 
-```json
-{"key": "abc123def456..."}
-```
-
-### Using the Token
-
-Include the token in the `Authorization` header of every authenticated request:
+The script sends the token in the `Authorization` header of every request:
 
 ```http
 GET /api/v1/projects/
 Authorization: Token abc123def456...
 ```
 
-### Session Authentication
+A request with a current token is treated as coming from the person who holds it, with the levels
+they hold when the request is made. Removing a person's level on a record takes effect on their
+next request, and the token keeps working.
 
-Browser-based session authentication is also supported (used automatically by the Swagger UI "Authorize" button).
+Two settings shape the tokens. Both are in `REST_KNOX`, which FairDM sets to:
 
-### Logging Out
-
-```http
-POST /api/v1/auth/logout/
-Authorization: Token abc123def456...
+```python
+REST_KNOX = {"TOKEN_LIMIT_PER_USER": 10, "AUTO_REFRESH": False}
 ```
+
+`TOKEN_LIMIT_PER_USER` is how many working tokens a person may hold. At the limit the create page
+creates nothing and says so. `AUTO_REFRESH` stays off so that a token expires on the day the person
+chose, however often it is used. Override either one in your portal's settings after
+`fairdm.setup()` returns:
+
+```python
+REST_KNOX["TOKEN_LIMIT_PER_USER"] = 5
+```
+
+### Who may hold tokens
+
+Every signed-in person may. To give tokens to some people only, name a function that takes the
+person and says whether they may:
+
+```python
+# In your portal's settings.py
+MVP_ACCOUNTS_API_TOKEN_ACCESS = "myportal.access.staff_only"
+```
+
+```python
+# myportal/access.py
+def staff_only(user):
+    return user.is_staff
+```
+
+A person it says no to gets `403` from the three token pages and sees no link to them. They can
+still read public records without a token. The function decides who may reach the pages. It does
+not revoke tokens a person already holds, and it is not asked when a token is used, so delete the
+tokens of someone you remove from the group.
+
+### Sessions
+
+A person signed in to the portal in a browser is known to the API by their session. The Swagger UI
+page makes its requests this way, as the person. A write made with a session must carry Django's
+CSRF token, as any form post does, and is refused with `403` without it. A script that sends a token
+does not need one.
 
 ## Permission Model
 
@@ -628,10 +663,22 @@ Throttled requests receive a `429 Too Many Requests` response with a `Retry-Afte
 
 ## CORS
 
-The API restricts cross-origin access by default. To allow specific origins (e.g., for a JavaScript frontend):
+Pages on other websites may call the API, to read and to write with a token. FairDM answers any
+origin under `/api/`, and no other address:
 
 ```python
-# In your portal's settings.py
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_URLS_REGEX = r"^/api/.*$"
+```
+
+A preflight that asks to send the `Authorization` header is allowed. Credentials are not allowed
+(`CORS_ALLOW_CREDENTIALS` is left unset), so a browser does not send the portal's sign-in cookie
+from another site and the API would not accept it. A page on another site must send a token.
+
+To answer only some sites, override both settings in your portal's settings after
+`fairdm.setup()` returns:
+
+```python
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://my-portal-frontend.example.com",

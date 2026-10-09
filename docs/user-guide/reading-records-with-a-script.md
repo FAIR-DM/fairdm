@@ -107,6 +107,32 @@ A private record is in no list you receive, and asking for it directly is answer
 for a record that does not exist. The same is true of the samples and measurements in a private
 dataset: none is returned and none is counted.
 
+## Get a token
+
+A token proves to the portal that a request comes from you. You make one yourself, after signing
+in as usual with your second factor if you use one:
+
+1. Open your account pages and choose **API tokens**, or go to `/account/tokens/` on your portal.
+2. Choose to create a token and pick how long it should last, from 7 days to a year, or never.
+3. Copy the token from the page you return to. It is shown once and the portal keeps no copy you
+   could read later. Keep it somewhere private, as you would a password.
+
+If you lose a token, revoke it and make another. You can hold up to ten at a time, so a laptop and
+a server can each have their own.
+
+Your portal may give tokens to some people only. If the page is closed to you, you can still read
+public records without one.
+
+Send the token in the `Authorization` header of each request, as shown below. The portal
+treats the request as coming from you, with the access you have. A script cannot ask for a token
+with an email address and password; the API has no such address.
+
+## Revoke a token
+
+When a laptop is lost or a script is retired, open **API tokens** again, choose the token in the
+list and confirm. The next request that carries it is refused with `401`. Your other tokens keep
+working. A token that has reached its end date stops working on its own.
+
 ## Create a record
 
 Send the record as JSON with your token. `$TOKEN` stands for yours:
@@ -186,7 +212,7 @@ datasets private, or delete the measurements, and try again.
 | Answer | Meaning |
 |--------|---------|
 | `400` | The body is not valid JSON, a field is missing or a value is not acceptable. The answer lists each field at fault and says why. Nothing was saved. A parent that does not exist and one you may not add to are answered the same way. |
-| `401` | The request carried no token. |
+| `401` | The request carried no token, or a token that was revoked, has expired or was never made. |
 | `403` | You can see the record but your level on it is too low for this request. |
 | `404` | The record does not exist, or it is private and you may not see it. |
 | `409` | The portal does not allow this delete, as above. |
