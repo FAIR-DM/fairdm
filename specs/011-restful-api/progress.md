@@ -432,3 +432,11 @@ Existing tests changed (authorised): DatasetFactory builds datasets with publish
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1197 passed (after the fixture change); before it 106 failed from the fixtures alone.
 Next: T063.
 Watch: other test directories that build a public dataset for API reads, if any, show up in the final verify.
+
+## 2026-10-09T02:09:29Z · Implementer fix-1 · T063
+
+Did: Added TestReferencesFollowTheLists (tests/test_api/test_viewsets.py): a credit to a superuser and to the anonymous account reads null while their contributor addresses answer 404, a credit to a listed person stays a reference, and a registered rock sample type that lists its relation to other samples returns a reference for a sample the caller may see and null for one in a private dataset. Seen failing first (3 of 6 red; the other three state the premise). The exclusion now lives in FairDMVisibilityFilter.hidden_contributors, which ContributorViewSet.get_queryset and RecordReferenceField.visible_pks both call; the field reads it once per request and keeps the result on the serializer context, so references to contributors in a list add one query, not one per credit (the query-count tests caught the first version, which asked per credit). The serializer factory now gives RecordReferenceField(read_only=True, many=True for a many-to-many) to a relation to a project, dataset, sample or measurement, and keeps StringRelatedField for the rest. Updated the API page.
+Not tested: a project owner that is a superuser. Project.owner must be an organisation, and organisations are never left out, so the case cannot arise.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1203 passed.
+Next: T066.
+Watch: a many-to-many to a record type is checked per related record, not per page; T066 decides whether that needs priming.
