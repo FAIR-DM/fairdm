@@ -1,0 +1,105 @@
+{
+ "story": "US5",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 460,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/011-restful-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T068",
+  "T069",
+  "T070"
+ ],
+ "context": {
+  "why": "This feature is built, reviewed and open for the maintainer's review. He read the running API and asked for three changes, recorded in specs/011-restful-api/decisions.md D25 and as tasks T068 to T070 in tasks.md Phase 9. The specification is already changed to match (FR-003, FR-036, FR-044, User Story 5 scenario 5). Make exactly these three changes.",
+  "spec_sections": [
+   "FR-003",
+   "FR-036",
+   "FR-044",
+   "User Story 5 scenario 5"
+  ],
+  "plan_sections": [
+   "D1. Serializers",
+   "D3. Viewsets (the catalogues)",
+   "D7. Generated documentation"
+  ],
+  "prior_decisions": [
+   "decisions.md D25 is the whole instruction; read it.",
+   "T068: the scheme name `knoxApiToken` comes from drf-spectacular's built-in extension for knox (see .venv/lib/python3.13/site-packages/drf_spectacular/contrib/knox_auth_token.py or wherever the installed package defines it). Give the schema the name `tokenAuth` with a description that says in plain words that a token from the account pages is sent as `Authorization: Token <token>`, by subclassing that extension in fairdm/api/schema.py with a higher priority (drf-spectacular's documented way to override a built-in extension), and make sure the module is imported when the API app loads. Check the scheme name used under each operation's `security` changes with it. The word knox must not appear in any scheme name or description in the schema. Existing tests in tests/test_api/test_schema.py or test_settings.py that pin `knoxApiToken` describe what this replaces: update them and name them in progress.md.",
+   "T069: add a read-only `html_url` field: the absolute address of the record's own page on the portal, from the model's get_absolute_url() made absolute with request.build_absolute_uri. Declare it once on RecordSerializer (fairdm/api/serializers.py) beside `url`, placed directly after `url` in the output, so projects, datasets and every registered sample and measurement type carry it, including a developer's serializer that builds on the bases; add it to common_fields where those are listed, and to ContributorSerializer for people and organisations. Without a request in the serializer context return the path alone. It must add no database query per record: check TestQueryCount still passes, and if get_absolute_url of any of these models reads a relation, load it on the queryset. The start-up check that compares writable fields, and the schema tests that compare components with serializers, must still pass. References to other records ({uuid, url}) do not change.",
+   "T069's test requests the returned address with the Django test client as someone who may see the record and expects the page (status 200), for each of the six kinds.",
+   "T070: in fairdm/api/viewsets.py the two catalogue views build entries with name, verbose_name, verbose_name_plural, app_label, endpoint, fields, filters and count. Remove fields, filters and app_label from the entries and from the entry serializer that describes the response in the schema. Keep the count's rule (only what the caller may see). tests/test_api/test_router.py has tests for the removed keys from an earlier story: delete or change those and name them in progress.md. tests/test_api/test_viewsets.py::TestEveryListedFilter reads each type's filter names from the catalogue: change it to read them from the API's filter set for that type (the same class FairDMFilterBackend builds, fairdm/api/filters.py), keeping what it proves, that no listed filter answers 500. These edits to existing tests are authorised.",
+   "Documentation: docs/portal-development/restful-api.md and the page for people using a portal describe the catalogue entries and the authentication scheme; make them true, add `html_url` where a record's fields are described, and add a line for each of the three changes to this feature's entry in CHANGELOG.md (the entry there still says catalogue entries have `filters` in place of `filterable_fields`: correct it to say what an entry now holds).",
+   "Update feature-state.json for T068, T069 and T070 (status, attempts, evidence with tests, commands, code as path:line, verified_by_ci) and tick them in tasks.md.",
+   "Write your completion report to specs/011-restful-api/report-fix-2.json. Do not run `ruff check` with fixing over the whole tree: it rewrites unrelated test files. Lint only the files you touch."
+  ],
+  "acceptance": [
+   {
+    "task": "T068",
+    "given_when_then": "Given the generated schema, then its security schemes are named tokenAuth and cookieAuth, nothing in them names the package, and operations refer to the new name."
+   },
+   {
+    "task": "T069",
+    "given_when_then": "Given each of the six kinds of record, then list and record responses carry html_url, the absolute address of its portal page, which returns the page when requested, and a value sent for it is ignored."
+   },
+   {
+    "task": "T070",
+    "given_when_then": "Given the catalogues, then an entry holds name, verbose_name, verbose_name_plural, endpoint and count only, and the every-filter test still covers every filter of every type."
+   }
+  ],
+  "verified_base": {
+   "commit": "5b7f1cf3506e319b218ec5f346d78043d1db793d",
+   "verified_at": "2026-10-09T08:58:58Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at the commit the code review's fixes ended on: lint, typecheck, the documentation check against origin/main, the whole test suite, build and conformance pass, and CI passed; commits since change only files under specs/011-restful-api/. Run verify with `--base origin/main` at the end."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Contributor",
+   "Registry"
+  ],
+  "environment": "Run everything from the worktree with `uv run`, e.g. `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering`. Tests use tests.settings and a real PostGIS database that is already running. The full verify is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api` (about two minutes, run it once at the end). A development server runs from this worktree on port 8000 and reloads itself; leave it running and do not start another. The registered types the tests use are the demonstration models in demo/ (RockSample, SoilSample, WaterSample, XRFMeasurement, ICP_MS_Measurement and others) with factories in demo/factories.py; core factories are in fairdm/factories.",
+  "conventions": "Follow docs/contributing/standards/testing.md and docs/contributing/standards/ for code and documentation. Line length 88. No leading-underscore names for new functions or classes. No compatibility aliases. Docstrings on every new public name, Google style, as the surrounding code. Tests call the real API routes through rest_framework.test.APIClient with reverse('api:...'), never a hand-built viewset, and never assert on wording. Group tests in the Test<Subject> classes tasks.md names. Commit as the identity already configured in this worktree; do not change git config. Everything written into the repository (code comments, docs, commit messages, progress.md, decisions.md) is public: plain words, no mention of agents, briefs, stages, reviewers or this process."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/011-restful-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/011-restful-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api/specs/011-restful-api/report-fix-2.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json beyond your own tasks' status, attempts and evidence (evidence keys: tests, commands, code as path:line, verified_by_ci).",
+  "Never push, merge, open or comment on anything on GitHub, and never mint or use a token.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never write a workaround for a defect in a dependency; report it in concerns.",
+  "Never add a model, a migration of FairDM's own, a settings object, a registry or a compatibility alias."
+ ]
+}
