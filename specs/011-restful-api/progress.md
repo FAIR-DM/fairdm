@@ -301,3 +301,17 @@ Did: Changed one existing assertion outside the tests the brief names. tests/tes
 Verified: uv run pytest -q -n0 tests/test_conf/test_settings/test_api.py: passes.
 Next: the full verify again, then the completion report.
 Watch: this edit to an existing test is outside the list in the task brief and is repeated in the report.
+
+## 2026-10-09T00:49:59Z · Implementer US5 · T046
+
+Did: Added TestSchemaMatchesRoutes in tests/test_api/test_schema.py. Every route the router registers has a list path and a record path in the schema. Each registered type has a component whose properties are its serializer's readable fields, with readOnly set exactly on the read-only fields and the writable fields the caller must send listed as required. No list offers a parameter the filter set drops when it is built for a request, and none offers the content-type filter.
+Verified: uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaMatchesRoutes: the two filter tests fail on polymorphic_ctype (CustomSample's list); the route, component, read-only and required tests pass already and guard against a later change.
+Next: T047.
+Watch: none.
+
+## 2026-10-09T00:49:59Z · Implementer US5 · T047
+
+Did: Added TestSchemaDescribesThePortal in tests/test_api/test_schema.py. The security schemes are exactly the Authorization header and the session cookie. The description carries every configured throttle rate and the default and largest page size, and follows rates set through REST_FRAMEWORK and page sizes set on the pagination class. A description a portal sets in SPECTACULAR_SETTINGS keeps its own text first.
+Verified: uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaDescribesThePortal: the three description tests fail because the numbers are not in the text; the scheme test and the own-text test pass already.
+Next: T048.
+Watch: drf-spectacular does not reload its settings when Django's change in a test, so the own-text test patches spectacular_settings directly.
