@@ -287,3 +287,10 @@ Existing tests changed, as the brief allows: TestTokenLogin, TestTokenHeaderAcce
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api: 825 passed. makemigrations --check: no changes. manage.py check: no issues. Probes: with an authenticator drf-spectacular does not know, the schema-warning test fails; with a basic authenticator in place of knox's, the schema header test and the token tests fail.
 Next: T043.
 Watch: the dependency lock changed (dj-rest-auth out, django-rest-knox 5.1.0 in).
+
+## 2026-10-09T00:38:35Z · Implementer US4 · T043
+
+Did: docs/user-guide/reading-records-with-a-script.md gains "Get a token" and "Revoke a token" and a fuller 401 row. docs/portal-development/restful-api.md loses the login and logout sections and gains tokens (the pages, the lifetime choices, the header, the REST_KNOX settings), who may hold tokens (MVP_ACCOUNTS_API_TOKEN_ACCESS and its limits), sessions and CSRF, and a rewritten CORS section. docs/adr/0028-api-tokens-are-created-on-the-account-pages.md records the decision and is in docs/adr/index.md; D8's ADR line in decisions.md now points to it.
+Verified: rendered the Account Center for a signed-in person and found the link to /account/tokens/; fetched the Swagger page and found the CSRF handling. No page under docs/ mentions the removed login or logout addresses (grep for login, logout, auth/login, dj-rest-auth).
+Next: full verify and the completion report.
+Watch: CHANGELOG.md has no entry for this feature yet.
