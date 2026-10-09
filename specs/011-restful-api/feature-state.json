@@ -3,7 +3,7 @@
   "feature": "011-restful-api",
   "branch": "011-restful-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-08T23:03:35Z",
       "note": "design review applied; plan gate open; story 1 next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-09T01:29:27Z",
+      "note": "six stories accepted; full verification green"
     }
   ],
   "gates": {
@@ -1038,7 +1043,7 @@
       "id": "US6",
       "priority": "P3",
       "issue": 461,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -1191,7 +1196,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
@@ -1199,7 +1204,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 56.14,
+      "used": 70.81,
       "max": 120
     },
     "design_review_cycles": {

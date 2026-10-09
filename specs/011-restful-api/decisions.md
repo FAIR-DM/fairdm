@@ -310,7 +310,7 @@ Each is a requirement of the rewritten specification:
   create a record (FR-026).
 - The contributor endpoint returned an identifier and a name, empty for some people (FR-006).
 
-**ADR:** none — defects.
+**ADR:** none — defects put right, no decision for anything downstream to inherit.
 
 ## Removed from the specification directory
 
@@ -375,6 +375,8 @@ page also shows portal roles, whether the profile is claimed and when the person
 describe the account, so the API leaves them out.
 *Revisit if:* the maintainer wants any of them public.
 
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
 ## D18. The hand-built write tests go with the first story
 
 Seventeen tests of the write rules built an endpoint by hand from a stand-in configuration and
@@ -412,6 +414,8 @@ mechanism it covers.
 once `build_model_serializer` is gone, so it is removed from `pyproject.toml` and the lock file.
 *Revisit if:* a portal needs stored object permissions on a model served by the API.
 
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
 ## D20. Choices made while building the third story
 
 **The API's defaults are the shared defaults minus two names.** A type with no field list takes
@@ -446,6 +450,8 @@ only once the module is loaded again. The tests do exactly that, and the module'
 where to register.
 *Revisit if:* the URL configuration reads the router on every request.
 
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
 ## D21. Choices made while building the fourth story
 
 **No schema extension of our own.** The plan called for a small drf-spectacular extension so the
@@ -464,6 +470,8 @@ it) are what the Account Center's menu entry and card reverse, so they do not de
 **Tests build tokens through knox's manager.** `AuthToken.objects.create` returns the record and the
 secret together, so the tests need no endpoint to get a token. Revoking is deleting the record and
 expiring is moving its expiry into the past, the same two things the pages and knox do.
+
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
 
 ## D22. Choices made while building the fifth story
 
@@ -492,6 +500,8 @@ whichever rates are configured under whatever names they carry, and reads the de
 page size and the size parameter's name from an instance of the configured pagination class, so
 the story that renames the rates and moves the page sizes into settings needs no change here.
 *Revisit if:* a rate needs words of its own beside its number.
+
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
 
 ## D23. Choices made while building the sixth story
 
@@ -530,3 +540,5 @@ itself only when the affiliations were not prefetched; its result is unchanged.
 serializers are given to the schema generator with `extend_schema`. A test compares the keys the
 schema lists with the keys a catalogue answers, so the two cannot drift apart unnoticed.
 *Revisit if:* the catalogue view becomes a generic view.
+
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.

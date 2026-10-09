@@ -20,26 +20,26 @@ afterwards. They use the demonstration types in `demo/`. Wording and layout get 
 
 This story lays the serializers the others stand on.
 
-- [ ] T001 [US1] `tests/test_api/test_serializers.py`, `TestRecordReferenceField`: a related
+- [x] T001 [US1] `tests/test_api/test_serializers.py`, `TestRecordReferenceField`: a related
   record is returned as its short identifier and its address. A bare identifier is accepted, and
   so is the returned object. An unknown identifier is refused. A database number is refused.
-- [ ] T002 [US1] `tests/test_api/test_viewsets.py`, `TestCompleteRecord`: for a public project,
+- [x] T002 [US1] `tests/test_api/test_viewsets.py`, `TestCompleteRecord`: for a public project,
   dataset, sample and measurement with metadata recorded, the record endpoint returns its own
   fields, its parent, descriptions, key dates, identifiers, keywords and credited contributors.
   A dataset returns its licence and a project its owner. The parent's address returns the parent.
   A public dataset in a private project returns its project as null to a visitor and as the
   reference to someone at the view level on the project, and the same for a measurement whose
   sample is in a private dataset.
-- [ ] T003 [US1] `tests/test_api/test_viewsets.py`, `TestCommonFields`: a record of every
+- [x] T003 [US1] `tests/test_api/test_viewsets.py`, `TestCommonFields`: a record of every
   registered demonstration sample type carries the fields common to all samples and every field
   its type declares. The same for every measurement type, including its measured values.
-- [ ] T004 [US1] `tests/test_api/test_viewsets.py`, `TestNoDatabaseNumbers`: the list and record
+- [x] T004 [US1] `tests/test_api/test_viewsets.py`, `TestNoDatabaseNumbers`: the list and record
   responses of every endpoint contain no `id` or `pk` key at any depth, and no relation is an
   integer.
-- [ ] T005 [US1] `tests/test_api/test_viewsets.py`, `TestContributor`: a person and an
+- [x] T005 [US1] `tests/test_api/test_viewsets.py`, `TestContributor`: a person and an
   organisation are returned with their public profile fields. No response carries an email
   address, a password or an account flag. A superuser account is not in the list.
-- [ ] T006 [US1] `tests/test_api/test_viewsets.py`, `TestListAndRecordRoutes`: projects, datasets,
+- [x] T006 [US1] `tests/test_api/test_viewsets.py`, `TestListAndRecordRoutes`: projects, datasets,
   contributors and every registered type have a list and a record route. A record is found by its
   short identifier. An unknown identifier and an unregistered type are answered 404.
 - [x] T007 [US1] `tests/test_api/test_pagination.py`, `TestPageEnvelope`: a list carries the
@@ -48,28 +48,28 @@ This story lays the serializers the others stand on.
 - [x] T008 [US1] `tests/test_api/test_filters.py`, `TestVisibilityOfProjectsAndDatasets`: a
   private project or dataset is listed for someone holding the view level, directly or from the
   project above, and for nobody else. Public ones are listed for everyone, once.
-- [ ] T009 [US1] `tests/test_api/test_filters.py`, `TestVisibilityOfSamplesAndMeasurements`: on
+- [x] T009 [US1] `tests/test_api/test_filters.py`, `TestVisibilityOfSamplesAndMeasurements`: on
   the real routes, samples and measurements in a private dataset are listed for someone with a
   level on the dataset and for nobody else.
 - [x] T010 [US1] `tests/test_api/test_permissions.py`, `TestReadingARecord`: a public record is
   returned to a visitor. A private project or dataset is answered 404 to a visitor and to a
   signed-in person with no level, and returned to someone at the view level.
-- [ ] T011 [US1] `tests/test_api/test_permissions.py`, `TestReadingASampleOrMeasurement`: the same
+- [x] T011 [US1] `tests/test_api/test_permissions.py`, `TestReadingASampleOrMeasurement`: the same
   three callers against a sample and a measurement in a private dataset, on the real routes. A
   signed-in person with no level is also answered 404 on a private dataset's record route.
-- [ ] T012 [US1] `tests/test_api/test_viewsets.py`, `TestFiltering`: a registered type's declared
+- [x] T012 [US1] `tests/test_api/test_viewsets.py`, `TestFiltering`: a registered type's declared
   filter narrows its list to matching records. A sample list and a measurement list narrowed by
   their dataset's short identifier, and a measurement list by its sample's, return only that
   parent's records, for a type that declares no such filter too. A database number in the same
   parameter is refused.
-- [ ] T013 [US1] `tests/test_api/test_viewsets.py`, `TestOrdering`: projects, datasets and every
+- [x] T013 [US1] `tests/test_api/test_viewsets.py`, `TestOrdering`: projects, datasets and every
   registered sample and measurement type return their list in a named order, ascending and
   descending.
 - [x] T014 [US1] Implement to make T001 to T013 pass (plan D1, D2, D3 without `perform_destroy`
   and the catalogues). Remove `MeasurementConfig.serializer_fields`. The viewsets
   stop calling `build_model_serializer`. The function stays until T025, because the hand-built
   write tests still import it.
-- [ ] T015 [US1] Documentation: the reading half of `docs/portal-development/restful-api.md`, and
+- [x] T015 [US1] Documentation: the reading half of `docs/portal-development/restful-api.md`, and
   a page for people using a portal on reading records with a script, in a table of contents. An
   architecture decision record under `docs/adr/` for references by short identifier.
 
