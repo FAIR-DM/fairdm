@@ -145,27 +145,27 @@ This story lays the serializers the others stand on.
 
 ## Phase 4: US-4, a person reaches the API with a token from their account pages (P2)
 
-- [ ] T037 [US4] `tests/test_api/test_settings.py`, `TestTokens`: a request with a current
+- [x] T037 [US4] `tests/test_api/test_settings.py`, `TestTokens`: a request with a current
   token from the account pages' token store acts as its holder. A revoked, an expired and an
   unknown token are each answered 401.
-- [ ] T038 [US4] `tests/test_api/test_urls.py`, `TestTokenPages`: the pages that list,
+- [x] T038 [US4] `tests/test_api/test_urls.py`, `TestTokenPages`: the pages that list,
   create and revoke tokens resolve, open for a signed-in person and send a visitor to sign in. A
   token created through the create page authenticates an API request. At the token limit the
   create page creates nothing.
-- [ ] T039 [US4] `tests/test_api/test_urls.py`, `TestNoAccountEndpoints`: no route under the API
+- [x] T039 [US4] `tests/test_api/test_urls.py`, `TestNoAccountEndpoints`: no route under the API
   accepts a password, issues a token, or changes a password or an account.
-- [ ] T040 [US4] `tests/test_api/test_settings.py`, `TestSession`: a person signed in to the
+- [x] T040 [US4] `tests/test_api/test_settings.py`, `TestSession`: a person signed in to the
   portal reads a private record of theirs through the API with their session, and a write with a
   session and no CSRF token is refused, with a client that enforces CSRF checks.
-- [ ] T041 [US4] `tests/test_api/test_settings.py`, `TestOtherOrigins`: a request from
+- [x] T041 [US4] `tests/test_api/test_settings.py`, `TestOtherOrigins`: a request from
   another origin is answered with permission for that origin to read the response, the
   `Authorization` header is allowed in a preflight, and no response permits credentials.
-- [ ] T042 [US4] Implement to make T037 to T041 pass (plan D5). Replace the token fixture in
+- [x] T042 [US4] Implement to make T037 to T041 pass (plan D5). Replace the token fixture in
   `tests/test_api/conftest.py`. The `make_token_client` helpers in `test_filters.py`,
   `test_permissions.py` and `test_urls.py` use it. `TestTokenLogin`, `TestTokenHeaderAccess` and
   `TestTokenLogout` in `test_urls.py` are deleted with the endpoint. The expired and revoked cases
   of T037 are seen to fail first against the installed package.
-- [ ] T043 [US4] Documentation: getting, using and revoking a token in the page for people using
+- [x] T043 [US4] Documentation: getting, using and revoking a token in the page for people using
   a portal, and the knox and CORS settings in `docs/portal-development/restful-api.md`, where the login and
   logout sections are removed. An architecture decision record under `docs/adr/` for tokens from
   the account pages.
