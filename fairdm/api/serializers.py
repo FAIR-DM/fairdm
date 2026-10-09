@@ -721,22 +721,6 @@ class ContributorSerializer(serializers.ModelSerializer):
         return str(contributor.get_type_display())
 
 
-class CatalogueEntrySerializer(serializers.Serializer):
-    """One registered sample or measurement type, as a catalogue lists it."""
-
-    name = serializers.CharField(read_only=True)
-    verbose_name = serializers.CharField(read_only=True)
-    verbose_name_plural = serializers.CharField(read_only=True)
-    endpoint = serializers.URLField(read_only=True)
-    count = serializers.IntegerField(read_only=True)
-
-
-class CatalogueSerializer(serializers.Serializer):
-    """The registered types of one kind, as a catalogue lists them."""
-
-    types = CatalogueEntrySerializer(many=True, read_only=True)
-
-
 def _validate_sample_serializer(cls: type) -> None:
     """Require a custom Sample serializer to subclass :class:`BaseSampleSerializer`.
 

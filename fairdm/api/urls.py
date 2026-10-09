@@ -12,19 +12,11 @@ from drf_spectacular.views import (
 )
 
 from fairdm.api.router import fairdm_api_router
-from fairdm.api.viewsets import MeasurementDiscoveryView, SampleDiscoveryView
 
 # Namespaced so API route names cannot collide with portal routes like ``project-list``.
 app_name = "api"
 
 urlpatterns = [
-    # Before the router include so they win over its '' pattern (the API root redirect).
-    path("v1/samples/", SampleDiscoveryView.as_view(), name="api-sample-discovery"),
-    path(
-        "v1/measurements/",
-        MeasurementDiscoveryView.as_view(),
-        name="api-measurement-discovery",
-    ),
     path("v1/", include(fairdm_api_router.urls)),
     path("v1/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(

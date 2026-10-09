@@ -214,7 +214,6 @@ class TestUnpublishedDataset:
             record=record,
             list_address=url_of(model, "list"),
             address=url_of(record),
-            catalogue=reverse(f"api:api-{request.param}-discovery"),
             model=model,
         )
 
@@ -235,12 +234,6 @@ class TestUnpublishedDataset:
 
     def test_the_record_is_not_found(self, client, case):
         assert client.get(case.address).status_code == 404
-
-    def test_the_catalogue_count_leaves_the_record_out(self, client, case):
-        types = client.get(case.catalogue).json()["types"]
-
-        entry = next(row for row in types if row["name"] == case.model.__name__)
-        assert entry["count"] == 0
 
     def test_a_write_by_a_signed_in_person_with_no_level_is_not_found(
         self, signed_in, case

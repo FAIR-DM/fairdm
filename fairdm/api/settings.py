@@ -39,14 +39,10 @@ Interoperable, and Reusable.
 | **Projects** | `/api/v1/projects/` | Top-level research projects |
 | **Datasets** | `/api/v1/datasets/` | Collections of samples within a project |
 | **Contributors** | `/api/v1/contributors/` | People and organisations contributing data |
-| **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data (see discovery endpoint) |
-| **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements (see discovery endpoint) |
+| **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data |
+| **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements |
 
-Use the discovery endpoints to list all registered sample and measurement types:
-
-- `GET /api/v1/samples/` — catalogue of all sample types: each type's address, fields,
-  filters and the number of records you may see
-- `GET /api/v1/measurements/` — the same for measurement types
+`/api/v1/` links to every list the portal serves, and each type has its own section below.
 
 ### Filtering & Ordering
 

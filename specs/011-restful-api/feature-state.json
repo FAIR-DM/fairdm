@@ -1225,8 +1225,22 @@
         },
         {
           "id": "T071",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_router.py::TestRoot",
+              "tests/test_api/test_router.py::TestKindOfRecordHasNoList"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api demo/tests/test_api_smoke.py"
+            ],
+            "code": [
+              "fairdm/api/urls.py:20",
+              "fairdm/api/router.py:29"
+            ],
+            "verified_by_ci": false
+          }
         },
         {
           "id": "T073",

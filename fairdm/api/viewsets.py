@@ -1,4 +1,4 @@
-"""API viewsets and discovery views.
+"""API viewsets.
 
 This module provides:
 
@@ -8,33 +8,25 @@ This module provides:
 - :class:`ContributorViewSet` — read-only viewset for contributor profiles.
 - :func:`generate_viewset` — factory that creates a ``ModelViewSet`` subclass
   from a registry :class:`~fairdm.registry.ModelConfiguration`.
-- :class:`SampleDiscoveryView`, :class:`MeasurementDiscoveryView` — catalog
-  views that list all registered Sample/Measurement types.
 """
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import (
     ForeignKey,
     ManyToManyField,
-    Model,
     ProtectedError,
     RestrictedError,
     prefetch_related_objects,
 )
-from django.urls import resolve, reverse
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny
-from rest_framework.request import Request
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from fairdm.api.filters import (
@@ -44,7 +36,6 @@ from fairdm.api.filters import (
     SampleFilterSet,
 )
 from fairdm.api.serializers import (
-    CatalogueSerializer,
     ContributorSerializer,
     DatasetSerializer,
     ProjectSerializer,
@@ -355,68 +346,3 @@ def _model_to_slug(model) -> str:
         ``"rock-samples"`` for ``verbose_name_plural="rock samples"``.
     """
     return str(model._meta.verbose_name_plural).lower().replace(" ", "-")
-
-
-class _BaseDiscoveryView(APIView):
-    """Shared base for sample/measurement discovery catalog views."""
-
-    permission_classes: list = []
-    registry_attr: str = ""
-    url_prefix: str = ""
-
-    # No docstring: drf-spectacular would show it instead of each subclass's own.
-    @extend_schema(responses=CatalogueSerializer)
-    def get(self, request: Request) -> Response:
-        from fairdm.registry import registry
-
-        types = [
-            self.describe(request, model)
-            for model in getattr(registry, self.registry_attr)
-        ]
-        return Response({"types": types})
-
-    def describe(self, request: Request, model: type[Model]) -> dict[str, Any]:
-        """Describe one registered type for the caller.
-
-        Args:
-            request: The request being answered.
-            model: A registered sample or measurement type.
-
-        Returns:
-            The type's names, the address of its list and how many of its records the
-            caller may see.
-        """
-        route = reverse(f"api:{self.url_prefix}-{_model_to_slug(model)}-list")
-        viewset = cast("Any", resolve(route).func).cls
-        visible = FairDMVisibilityFilter().filter_queryset(
-            request, viewset.queryset.all(), self
-        )
-        return {
-            "name": model.__name__,
-            "verbose_name": model._meta.verbose_name,
-            "verbose_name_plural": model._meta.verbose_name_plural,
-            "endpoint": request.build_absolute_uri(route),
-            "count": visible.count(),
-        }
-
-
-class SampleDiscoveryView(_BaseDiscoveryView):
-    """Catalog of all registered Sample types.
-
-    ``GET /api/v1/samples/`` returns a JSON object with a ``types`` list,
-    each entry describing a registered Sample subtype.
-    """
-
-    registry_attr = "samples"
-    url_prefix = "samples"
-
-
-class MeasurementDiscoveryView(_BaseDiscoveryView):
-    """Catalog of all registered Measurement types.
-
-    ``GET /api/v1/measurements/`` returns a JSON object with a ``types`` list,
-    each entry describing a registered Measurement subtype.
-    """
-
-    registry_attr = "measurements"
-    url_prefix = "measurements"

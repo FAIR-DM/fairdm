@@ -500,3 +500,14 @@ Also changed: demo/tests/test_api_smoke.py, TestDemoSampleDiscovery.test_catalog
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry demo: 1,291 passed after that change (one failure before it, the test above).
 Next: the full verify and the report.
 Watch: none.
+
+## 2026-10-09T09:46:38Z · Implementer US5 · T071
+
+Did: Removed the two catalogue endpoints (`SampleDiscoveryView`, `MeasurementDiscoveryView` and their shared base), the catalogue serializers, the two paths in `fairdm/api/urls.py` and the two links the router added to the root. The router keeps its class for `register_types`; the root is DRF's own and links every registered list. Removed every mention in `FAIRDM_API_DESCRIPTION`, `docs/portal-development/restful-api.md` (the catalogue section, the endpoint table rows, the serializer table row, the description example), `docs/user-guide/reading-records-with-a-script.md` (the section now points at the root) and the changelog entry. New tests: `TestRoot.test_the_root_links_to_nothing_that_is_not_a_list_route` and `TestKindOfRecordHasNoList` (both addresses answer 404); seen failing first (3 failed, the root still linked both catalogues and both addresses answered 200).
+
+Tests deleted, as the task authorised: in `tests/test_api/test_router.py` `TestSampleDiscoveryEndpoint`, `TestMeasurementDiscoveryEndpoint`, `TestAPIRootContainsDiscoveryLinks` (its test that the router is a `FairDMAPIRouter` moved into `TestRoot` unchanged in substance), `TestCatalogues`, `TestCatalogueCounts`, the `CATALOGUES` table and the `registered` helper, and `TestRoot.test_the_root_links_to_both_catalogues`; in `tests/test_api/test_schema.py` `TestSchemaDescribesCatalogues` and `TestSchemaMatchesRoutes.test_both_catalogues_have_a_path`; in `tests/test_api/test_filters.py` `TestUnpublishedDataset.test_the_catalogue_count_leaves_the_record_out` and the `catalogue` address in its fixture; in `demo/tests/test_api_smoke.py` `TestDemoSampleDiscovery`, `TestDemoMeasurementDiscovery` and `TestDemoSampleListEndpoints.test_sample_count_in_discovery_reflects_public_records`.
+
+Verified: `uv run pytest -q -n0 tests/test_api demo/tests/test_api_smoke.py` 933 passed; ruff check and format clean on the files touched. A grep of the repository for discovery, catalogue, catalog, sample-types and measurement-types leaves only unrelated uses (autodiscovery, translation catalogues, plugin and addon discovery, the roadmap's section on discovery services).
+
+Next: T072, the changed-since filters.
+Watch: the root's `test_each_link_answers` still covers that every link answers.

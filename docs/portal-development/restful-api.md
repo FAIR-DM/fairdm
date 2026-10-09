@@ -17,8 +17,8 @@ DELETE /api/v1/samples/<model-slug>/{uuid}/ — delete (manage level)
 
 The `<model-slug>` is derived from your model's `verbose_name_plural` (lowercased, spaces replaced with hyphens). For example, a model with `verbose_name_plural = "rock samples"` becomes `rock-samples`. See [URL Slugs and verbose_name_plural](#url-slugs-and-verbose-name-plural) for details.
 
-Registering the type is all it takes. The list and record routes exist, the type is in the
-[catalogue](#the-catalogues), and its records can be read and written, with the fields
+Registering the type is all it takes. The list and record routes exist, the root at `/api/v1/`
+links to the list, and its records can be read and written, with the fields
 described under [Customizing Serializer Fields](#customizing-serializer-fields).
 
 Core model endpoints are also available:
@@ -31,8 +31,6 @@ Core model endpoints are also available:
 | `/api/v1/datasets/{uuid}/` | GET, PUT, PATCH, DELETE |
 | `/api/v1/contributors/` | GET |
 | `/api/v1/contributors/{uuid}/` | GET |
-| `/api/v1/samples/` | GET (catalogue of sample types) |
-| `/api/v1/measurements/` | GET (catalogue of measurement types) |
 
 ## What a Record Contains
 
@@ -268,42 +266,6 @@ filters unchanged.
 `?ordering=name` sorts ascending and `?ordering=-name` descending. A list sorts on the stored
 fields it returns, such as `name`, `added` and `modified`, and on the fields the type declares.
 Relations and metadata cannot be sorted on.
-
-## The Catalogues
-
-`GET /api/v1/samples/` and `GET /api/v1/measurements/` each answer with the registered types of
-their kind, so a script can ask what a portal holds and where each type's records are. A portal
-with no registered sample types answers `{"types": []}` for the first, and likewise for
-measurements.
-
-```json
-{
-  "types": [
-    {
-      "name": "SoilSample",
-      "verbose_name": "Soil Sample",
-      "verbose_name_plural": "Soil Samples",
-      "endpoint": "https://portal.example.org/api/v1/samples/soil-samples/",
-      "count": 42
-    }
-  ]
-}
-```
-
-| Key | Holds |
-|-----|-------|
-| `name` | The model's class name. |
-| `verbose_name`, `verbose_name_plural` | The names the model declares. |
-| `endpoint` | The absolute address of the type's list, found by reversing its route. It follows the model's `verbose_name_plural` and the way the portal is mounted. |
-| `count` | The number of the type's records the caller may see. |
-
-An entry does not list the type's fields or filters. The interactive documentation below gives
-both for every type, and the schema it is drawn from describes them in a form tools can read.
-
-The `count` is the one the type's list reports for the same caller. A visitor and a signed-in
-person with no level on a dataset count the records in datasets that are public and published. A
-person with a level on a dataset counts its records as well, whatever its visibility or whether
-it is published.
 
 ## Interactive Documentation
 
@@ -598,7 +560,6 @@ can build on any of them.
 | `ContributionSerializer`, `RoleSerializer` | A credit on a record and the roles in it |
 | `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
 | `ContributorSerializer`, `ContributorIdentifierSerializer` | A person or organization as their profile page shows them |
-| `CatalogueSerializer`, `CatalogueEntrySerializer` | Describe a catalogue's response to the generated documentation. The catalogue views do not use them to render the response |
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
 
@@ -792,7 +753,7 @@ Programmatic access to all published palaeo-climate data in this portal.
 
 - `/api/v1/projects/` — Research projects
 - `/api/v1/datasets/` — Sampled datasets
-- `/api/v1/samples/` — Discover all sample types
+- `/api/v1/samples/{type}/` — Sample types
 
 See the [Developer Guide](https://my-portal.example.com/docs/api/) for full details.
 """

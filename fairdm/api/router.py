@@ -15,8 +15,6 @@ The router instance is the public ``fairdm_api_router`` symbol.  All registered
 viewsets are served under ``/api/v1/`` and appear in the OpenAPI schema.
 """
 
-from collections import OrderedDict
-
 from rest_framework.routers import DefaultRouter
 
 from fairdm.api.viewsets import (
@@ -29,23 +27,7 @@ from fairdm.api.viewsets import (
 
 
 class FairDMAPIRouter(DefaultRouter):
-    """DefaultRouter subclass that includes discovery endpoint links in the API root.
-
-    Overrides :meth:`get_api_root_view` to inject the ``sample-types`` and
-    ``measurement-types`` links so that :class:`~fairdm.api.viewsets.SampleDiscoveryView`
-    and :class:`~fairdm.api.viewsets.MeasurementDiscoveryView` appear in the DRF
-    browsable API root listing.
-    """
-
-    def get_api_root_view(self, api_urls=None):
-        """Add the discovery endpoint links to the API root view."""
-        api_root_dict = OrderedDict()
-        list_name = self.routes[0].name
-        for prefix, _viewset, basename in self.registry:
-            api_root_dict[prefix] = list_name.format(basename=basename)
-        api_root_dict["sample-types"] = "api-sample-discovery"
-        api_root_dict["measurement-types"] = "api-measurement-discovery"
-        return self.APIRootView.as_view(api_root_dict=api_root_dict)
+    """DefaultRouter that can register the portal's sample and measurement types."""
 
     def register_types(self) -> None:
         """Register the list and record routes of every registered sample and measurement type.

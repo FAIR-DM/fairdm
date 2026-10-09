@@ -289,7 +289,7 @@ Each test task is written first and seen to fail.
 
 ## Phase 10: further changes the maintainer asked for at review
 
-- [ ] T071 [US5] The two catalogues of registered types give nothing the API's root, the lists and
+- [x] T071 [US5] The two catalogues of registered types give nothing the API's root, the lists and
   the generated documentation do not. Remove both endpoints, their links from the root, their
   serializer and their tests, and every mention in the documentation. `tests/test_api/test_router.py`:
   the two addresses answer 404, and the root links to every list and to nothing that is not one.

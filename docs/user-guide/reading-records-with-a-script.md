@@ -255,37 +255,16 @@ datasets private, or delete the measurements, and try again.
 
 ## Find out what a portal offers
 
-Two addresses list the sample types and the measurement types a portal has registered:
+`/api/v1/` answers with a link to every list the portal serves, one for each of projects, datasets
+and contributors, and one for each sample type and measurement type:
 
 ```bash
-curl https://portal.example.org/api/v1/samples/
-curl https://portal.example.org/api/v1/measurements/
+curl https://portal.example.org/api/v1/
 ```
 
-Each answers with a `types` list. An entry gives the type's `name`, its display names, the
-`endpoint` where its records are and a `count` of the records you may see. A portal with no types of
-that kind answers an empty list. The fields and filters of each type are on the API documentation
-page described below.
-
-```json
-{
-  "types": [
-    {
-      "name": "RockSample",
-      "verbose_name": "Rock Sample",
-      "verbose_name_plural": "Rock Samples",
-      "endpoint": "https://portal.example.org/api/v1/samples/rock-samples/",
-      "count": 42
-    }
-  ]
-}
-```
-
-The `count` is of the records you may see, so it is smaller for a visitor than for a person with
-access to private datasets. To read every record of a type, request its
-`endpoint`.
-
-`/api/v1/` itself links to every list the portal serves and to both of these addresses.
+Each list reports in `count` how many records you may see, so it is smaller for a visitor than for
+a person with access to private datasets. The fields and filters of each type are on the API
+documentation page described below.
 
 ## Try it in the browser
 

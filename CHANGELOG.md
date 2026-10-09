@@ -232,10 +232,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `get_serializer_class`). Otherwise the portal refuses to load its API routes with
     `ImproperlyConfigured`. The check `fairdm.E600` reports at start-up, and in
     `manage.py check`, a registration whose API fields leave out a field the model requires.
-  - **A catalogue entry holds a type's names, the address of its records and a count.** The entry at
-    `GET /api/v1/samples/` or `/api/v1/measurements/` has `name`, `verbose_name`,
-    `verbose_name_plural`, `endpoint` and `count`. The fields and filters of each type are in the
-    generated API documentation.
+  - **The two lists of registered types are removed.** `GET /api/v1/samples/` and
+    `GET /api/v1/measurements/` answer `404`. `/api/v1/` links to every list, a list reports how
+    many records the caller may see in `count`, and the generated API documentation describes each
+    type.
   - **`FAIRDM_API_DOCS_URL` is removed.** Nothing read it. The API documentation is at
     `/api/v1/docs/`, and the sidebar has a single API entry that leads to it.
   - **New limits and page sizes, each a setting.** The rates `anon` and `user` (100 and 1,000

@@ -1,9 +1,7 @@
-"""Tests for FairDM API router auto-registration and discovery endpoints (Feature 011 US1)."""
+"""Tests for FairDM API router auto-registration and the API root (Feature 011 US1)."""
 
 import pytest
 from django.urls import resolve, reverse
-
-from fairdm.utils.choices import Visibility
 
 
 @pytest.mark.django_db
@@ -24,91 +22,6 @@ class TestCoreRoutesRegistered:
     def test_contributor_list_url_resolves(self):
         url = reverse("api:contributor-list")
         assert "/api/v1/contributors/" in url
-
-
-@pytest.mark.django_db
-class TestSampleDiscoveryEndpoint:
-    def test_returns_200(self, api_client):
-        response = api_client.get(reverse("api:api-sample-discovery"))
-        assert response.status_code == 200
-
-    def test_response_has_types_key(self, api_client):
-        data = api_client.get(reverse("api:api-sample-discovery")).json()
-        assert "types" in data
-        assert isinstance(data["types"], list)
-
-    def test_each_type_has_required_keys(self, api_client):
-        data = api_client.get(reverse("api:api-sample-discovery")).json()
-        required = {"name", "verbose_name", "verbose_name_plural", "endpoint", "count"}
-        for entry in data["types"]:
-            for key in required:
-                assert key in entry, f"Missing key '{key}' in discovery entry: {entry}"
-
-    def test_demo_sample_types_appear(self, api_client):
-        from fairdm.registry import registry
-
-        expected_names = {m.__name__ for m in registry.samples}
-        data = api_client.get(reverse("api:api-sample-discovery")).json()
-        returned_names = {entry["name"] for entry in data["types"]}
-        for name in expected_names:
-            assert name in returned_names, (
-                f"Expected '{name}' in discovery catalog, got {returned_names}"
-            )
-
-    def test_count_is_zero_when_no_records(self, api_client):
-        data = api_client.get(reverse("api:api-sample-discovery")).json()
-        for entry in data["types"]:
-            assert entry["count"] >= 0
-
-    def test_anon_count_only_shows_public(self, api_client, public_dataset, db):
-        from demo.factories import CustomParentSampleFactory
-
-        public_sample = CustomParentSampleFactory(dataset=public_dataset)
-        private_dataset_factory = __import__(
-            "fairdm.factories", fromlist=["DatasetFactory"]
-        ).DatasetFactory
-        from fairdm.factories import DatasetFactory
-
-        private_ds = DatasetFactory(
-            project=public_dataset.project, visibility=Visibility.PRIVATE
-        )
-        private_sample = CustomParentSampleFactory(dataset=private_ds)
-
-        data = api_client.get(reverse("api:api-sample-discovery")).json()
-        entry = next(
-            (e for e in data["types"] if e["name"] == "CustomParentSample"), None
-        )
-        assert entry is not None
-        # Anonymous user should only count public samples (those in a PUBLIC dataset)
-        assert entry["count"] == 1
-
-
-@pytest.mark.django_db
-class TestMeasurementDiscoveryEndpoint:
-    def test_returns_200(self, api_client):
-        response = api_client.get(reverse("api:api-measurement-discovery"))
-        assert response.status_code == 200
-
-    def test_response_has_types_key(self, api_client):
-        data = api_client.get(reverse("api:api-measurement-discovery")).json()
-        assert "types" in data
-        assert isinstance(data["types"], list)
-
-    def test_demo_measurement_types_appear(self, api_client):
-        from fairdm.registry import registry
-
-        expected_names = {m.__name__ for m in registry.measurements}
-        data = api_client.get(reverse("api:api-measurement-discovery")).json()
-        returned_names = {entry["name"] for entry in data["types"]}
-        for name in expected_names:
-            assert name in returned_names
-
-    def test_each_type_has_required_keys(self, api_client):
-        data = api_client.get(reverse("api:api-measurement-discovery")).json()
-        required = {"name", "verbose_name", "endpoint", "count"}
-        for entry in data["types"]:
-            for key in required:
-                assert key in entry
 
 
 @pytest.mark.django_db
@@ -137,49 +50,6 @@ class TestRegistryGeneratedEndpoints:
         data = api_client.get(f"/api/v1/samples/{slug}/").json()
         for key in ("count", "results"):
             assert key in data
-
-
-@pytest.mark.django_db
-class TestAPIRootContainsDiscoveryLinks:
-    def test_api_root_contains_sample_types_key(self, api_client):
-        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
-        assert response.status_code == 200
-        data = response.json()
-        assert "sample-types" in data, (
-            f"'sample-types' missing from API root keys: {list(data.keys())}"
-        )
-
-    def test_api_root_contains_measurement_types_key(self, api_client):
-        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
-        assert response.status_code == 200
-        data = response.json()
-        assert "measurement-types" in data, (
-            f"'measurement-types' missing from API root keys: {list(data.keys())}"
-        )
-
-    def test_sample_types_url_points_to_discovery_endpoint(self, api_client):
-        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
-        data = response.json()
-        url = data.get("sample-types", "")
-        assert url.endswith("/api/v1/samples/") or "/api/v1/samples/" in url, (
-            f"Unexpected sample-types URL: {url!r}"
-        )
-
-    def test_measurement_types_url_points_to_discovery_endpoint(self, api_client):
-        response = api_client.get("/api/v1/", HTTP_ACCEPT="application/json")
-        data = response.json()
-        url = data.get("measurement-types", "")
-        assert (
-            url.endswith("/api/v1/measurements/") or "/api/v1/measurements/" in url
-        ), f"Unexpected measurement-types URL: {url!r}"
-
-    def test_fairdm_api_router_is_fairdm_router_subclass(self):
-        from rest_framework.routers import DefaultRouter
-
-        from fairdm.api.router import FairDMAPIRouter, fairdm_api_router
-
-        assert isinstance(fairdm_api_router, FairDMAPIRouter)
-        assert isinstance(fairdm_api_router, DefaultRouter)
 
 
 class TestAPIURLNamespaceIsolation:
@@ -420,171 +290,6 @@ class TestAddresses:
         assert "samples-rock-samples" not in named
 
 
-CATALOGUES = {
-    "samples": "api:api-sample-discovery",
-    "measurements": "api:api-measurement-discovery",
-}
-
-
-def registered(kind):
-    """Return the registered sample or measurement types."""
-    from fairdm.registry import registry
-
-    return getattr(registry, kind)
-
-
-@pytest.mark.django_db
-class TestCatalogues:
-    @pytest.fixture
-    def catalogue(self, api_client):
-        """Return a function giving the entries of a catalogue, by the name of its type."""
-
-        def catalogue(kind, client=api_client):
-            response = client.get(reverse(CATALOGUES[kind]))
-            assert response.status_code == 200
-            return {entry["name"]: entry for entry in response.json()["types"]}
-
-        return catalogue
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_a_catalogue_lists_every_registered_type(self, catalogue, kind):
-        assert set(catalogue(kind)) == {model.__name__ for model in registered(kind)}
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entry_names_its_type(self, catalogue, kind):
-        entries = catalogue(kind)
-
-        for model in registered(kind):
-            entry = entries[model.__name__]
-            assert entry["verbose_name"] == str(model._meta.verbose_name)
-            assert entry["verbose_name_plural"] == str(model._meta.verbose_name_plural)
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entry_holds_a_name_a_count_and_an_address_and_nothing_else(
-        self, catalogue, kind
-    ):
-        entries = catalogue(kind)
-
-        assert entries
-        for entry in entries.values():
-            assert set(entry) == {
-                "name",
-                "verbose_name",
-                "verbose_name_plural",
-                "endpoint",
-                "count",
-            }
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entrys_address_is_its_list_route(self, catalogue, url_of, kind):
-        entries = catalogue(kind)
-
-        for model in registered(kind):
-            assert entries[model.__name__]["endpoint"] == (
-                f"http://testserver{url_of(model, 'list')}"
-            )
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entrys_address_answers_with_the_types_records(
-        self, api_client, catalogue, kind
-    ):
-        for entry in catalogue(kind).values():
-            response = api_client.get(entry["endpoint"])
-
-            assert response.status_code == 200
-            assert "results" in response.json()
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_with_no_registered_types_a_catalogue_is_an_empty_list(
-        self, api_client, monkeypatch, kind
-    ):
-        from fairdm.registry import registry
-
-        monkeypatch.setattr(type(registry), kind, property(lambda self: []))
-
-        response = api_client.get(reverse(CATALOGUES[kind]))
-
-        assert response.status_code == 200
-        assert response.json() == {"types": []}
-
-
-@pytest.mark.django_db
-class TestCatalogueCounts:
-    @pytest.fixture
-    def records(self, public_dataset, private_dataset, make_record):
-        """Make a sample and a measurement made on it in a public dataset and a private one."""
-        from demo.models import RockSample, XRFMeasurement
-
-        for dataset in (public_dataset, private_dataset):
-            sample = make_record(RockSample, dataset)
-            make_record(XRFMeasurement, dataset, sample=sample)
-        return (RockSample, XRFMeasurement)
-
-    @pytest.fixture
-    def counted(self, records):
-        """Return a function giving what a client's catalogues count for each type."""
-
-        def counted(client):
-            return {
-                entry["name"]: entry["count"]
-                for kind in CATALOGUES
-                for entry in client.get(reverse(CATALOGUES[kind])).json()["types"]
-            }
-
-        return counted
-
-    @pytest.fixture
-    def person_with_level(self, private_dataset, member_at):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        return member_at(private_dataset, ContributionLevel.VIEW)
-
-    def test_a_visitor_counts_the_records_in_public_datasets(self, api_client, counted):
-        counts = counted(api_client)
-
-        assert counts["RockSample"] == 1
-        assert counts["XRFMeasurement"] == 1
-
-    def test_a_signed_in_person_with_no_level_counts_what_a_visitor_does(
-        self, counted, signed_in, user
-    ):
-        counts = counted(signed_in(user))
-
-        assert counts["RockSample"] == 1
-        assert counts["XRFMeasurement"] == 1
-
-    def test_a_person_with_a_level_on_the_private_dataset_counts_its_records_too(
-        self, counted, signed_in, person_with_level
-    ):
-        counts = counted(signed_in(person_with_level))
-
-        assert counts["RockSample"] == 2
-        assert counts["XRFMeasurement"] == 2
-
-    @pytest.mark.parametrize("who", ["visitor", "no_level", "with_level"])
-    def test_a_count_is_the_count_the_types_list_gives_the_same_caller(
-        self,
-        who,
-        api_client,
-        counted,
-        signed_in,
-        user,
-        person_with_level,
-        url_of,
-        records,
-    ):
-        client = {
-            "visitor": api_client,
-            "no_level": signed_in(user),
-            "with_level": signed_in(person_with_level),
-        }[who]
-        counts = counted(client)
-
-        for model in records:
-            listed = client.get(url_of(model, "list")).json()["count"]
-            assert counts[model.__name__] == listed
-
-
 @pytest.mark.django_db
 class TestRoot:
     @pytest.fixture
@@ -603,12 +308,31 @@ class TestRoot:
         for _prefix, _viewset, basename in fairdm_api_router.registry:
             assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
 
-    def test_the_root_links_to_both_catalogues(self, links):
-        linked = set(links.values())
+    def test_the_root_links_to_nothing_that_is_not_a_list_route(self, links):
+        from fairdm.api.router import fairdm_api_router
 
-        for name in CATALOGUES.values():
-            assert f"http://testserver{reverse(name)}" in linked
+        lists = {
+            f"http://testserver{reverse(f'api:{basename}-list')}"
+            for _prefix, _viewset, basename in fairdm_api_router.registry
+        }
+
+        assert set(links.values()) == lists
+
+    def test_the_router_is_the_one_the_portal_serves(self):
+        from rest_framework.routers import DefaultRouter
+
+        from fairdm.api.router import FairDMAPIRouter, fairdm_api_router
+
+        assert isinstance(fairdm_api_router, FairDMAPIRouter)
+        assert isinstance(fairdm_api_router, DefaultRouter)
 
     def test_each_link_answers(self, api_client, links):
         for link in links.values():
             assert api_client.get(link).status_code == 200
+
+
+@pytest.mark.django_db
+class TestKindOfRecordHasNoList:
+    @pytest.mark.parametrize("address", ["/api/v1/samples/", "/api/v1/measurements/"])
+    def test_a_kind_of_record_has_no_list_of_its_types(self, api_client, address):
+        assert api_client.get(address).status_code == 404
