@@ -149,3 +149,70 @@ class TestSchemaMatchesRoutes:
         from django.urls import resolve
 
         return resolve(address).func.cls
+
+
+@pytest.mark.django_db
+class TestSchemaDescribesThePortal:
+    def test_the_security_schemes_are_the_token_header_and_the_session(self, schema):
+        schemes = list(schema["components"]["securitySchemes"].values())
+
+        header = [s for s in schemes if s["in"] == "header"]
+        cookie = [s for s in schemes if s["in"] == "cookie"]
+        assert [s["name"] for s in header] == ["Authorization"]
+        assert len(cookie) == 1
+        assert len(schemes) == 2
+
+    def test_the_description_carries_each_configured_limit(self, schema, settings):
+        rates = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].values()
+
+        assert rates
+        for rate in rates:
+            assert rate in schema["info"]["description"]
+
+    def test_the_description_follows_a_changed_limit(self, settings):
+        before = list(settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].values())
+        settings.REST_FRAMEWORK = {
+            **settings.REST_FRAMEWORK,
+            "DEFAULT_THROTTLE_RATES": {"spare": "7919/week", "other": "6841/minute"},
+        }
+
+        description = self.described()
+
+        assert "7919/week" in description
+        assert "6841/minute" in description
+        assert not any(rate in description for rate in before)
+
+    def test_the_description_carries_the_page_sizes(self, schema):
+        from fairdm.api.pagination import FairDMPagination
+
+        pagination = FairDMPagination()
+
+        assert str(pagination.page_size) in schema["info"]["description"]
+        assert str(pagination.max_page_size) in schema["info"]["description"]
+
+    def test_the_description_follows_changed_page_sizes(self, monkeypatch):
+        from fairdm.api.pagination import FairDMPagination
+
+        monkeypatch.setattr(FairDMPagination, "page_size", 7927)
+        monkeypatch.setattr(FairDMPagination, "max_page_size", 8209)
+
+        description = self.described()
+
+        assert "7927" in description
+        assert "8209" in description
+
+    def test_the_description_keeps_the_portals_own_text(self, monkeypatch):
+        from drf_spectacular.settings import spectacular_settings
+
+        monkeypatch.setattr(
+            spectacular_settings, "DESCRIPTION", "A portal's own introduction."
+        )
+
+        assert self.described().startswith("A portal's own introduction.")
+
+    @staticmethod
+    def described():
+        """Return the description of a schema generated now."""
+        response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
+        assert response.status_code == 200
+        return response.json()["info"]["description"]
