@@ -325,6 +325,8 @@ there is nothing to keep in step.
 
 A list in the schema offers the filters the API applies, so it does not offer a filter the API
 refuses, such as a content-type filter or a relation filter that takes a database number.
+`fairdm.api.schema.FairDMFilterExtension`, a drf-spectacular extension that asks the filter set
+which filters it drops, does this; it is loaded when the API app starts.
 
 ## Authentication
 
@@ -757,7 +759,7 @@ See the [Developer Guide](https://my-portal.example.com/docs/api/) for full deta
 
 FairDM merges these settings into `SPECTACULAR_SETTINGS` automatically at startup. You can also override `SPECTACULAR_SETTINGS['VERSION']` directly if you need to change the API version string.
 
-Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). Do not write those numbers into your own text. If you replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
+Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. Do not write those numbers into your own text. If you replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
 
 ## Schema Naming Conventions
 
