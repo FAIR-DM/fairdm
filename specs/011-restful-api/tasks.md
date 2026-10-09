@@ -324,3 +324,7 @@ Each test task is written first and seen to fail.
   and a group for measurements, with projects, datasets and contributors in a group of their own.
   The two schemas describe the same paths and components. Then serve that schema to the second
   page.
+- [x] T077 [US5] One documentation page. `tests/test_api/test_urls.py`,
+  `TestOneDocumentationPage`: the second documentation page and its schema answer 404. Remove
+  ReDoc, the nested schema, the hook that built it and their tests, and every mention in the
+  documentation and the changelog.

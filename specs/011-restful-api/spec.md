@@ -480,9 +480,8 @@ confirm the portal follows them.
   heading and every measurement type under another. Each operation MUST be titled with its type's
   own plural name, and a type's list operation MUST carry the description its registration gives,
   with the authority, citation, keywords and repository link where the registration gives them. It
-  MUST NOT show a maintainer's name or email address. The second documentation page, which can
-  nest headings, MUST show each type under the heading for its kind. The API serves no separate
-  catalogue of types.
+  MUST NOT show a maintainer's name or email address. The portal serves one documentation page.
+  The API serves no separate catalogue of types.
 - **FR-037**: The API's root MUST link to every list endpoint.
 - **FR-038**: The sidebar MUST carry one link to the API documentation.
 - **FR-039**: The documentation for portal developers MUST describe the registration options that

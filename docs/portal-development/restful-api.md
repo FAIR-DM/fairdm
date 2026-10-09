@@ -300,9 +300,7 @@ has one link to it, **API**, in the **Documentation** group.
 | Address | Route name | Description |
 |---------|------------|-------------|
 | `/api/v1/docs/` | `api:api-docs` | Swagger UI, where every address, field and filter is listed, a field is marked required or read-only, and a request can be tried and its response read. It reads `/api/v1/schema/` |
-| `/api/v1/redoc/` | `api:api-redoc` | ReDoc, the same reference to read, with each sample and measurement type nested under its kind. It reads `/api/v1/schema/nested/` |
-| `/api/v1/schema/` | `api:api-schema` | The OpenAPI 3 schema the Swagger page is drawn from, as YAML, or as JSON with `?format=json` |
-| `/api/v1/schema/nested/` | `api:api-schema-nested` | The same schema with the types nested for ReDoc: same paths, components and security schemes |
+| `/api/v1/schema/` | `api:api-schema` | The OpenAPI 3 schema the page is drawn from, as YAML, or as JSON with `?format=json` |
 
 The schema describes the two ways of authenticating as `tokenAuth`, the `Authorization` header
 that carries a token, and `cookieAuth`, the session cookie. To try a request that needs a token,
@@ -758,7 +756,7 @@ SPECTACULAR_SETTINGS["VERSION"] = "2.0.0"
 ```
 
 Assign items, as above, and never a new dictionary. `SPECTACULAR_SETTINGS` also holds the bundled
-Swagger and ReDoc assets, the path prefix and the hook that writes the limits into the description,
+Swagger assets, the path prefix and the hook that writes the limits into the description,
 and a new dictionary drops all of them.
 
 ## Customizing the API Description
@@ -785,7 +783,7 @@ See the [Developer Guide](https://my-portal.example.com/docs/api/) for full deta
 
 Setting `FAIRDM_API_TITLE` or `FAIRDM_API_DESCRIPTION` in your settings changes nothing. They are the defaults `SPECTACULAR_SETTINGS` is built from when FairDM loads, before your settings run. You can change `SPECTACULAR_SETTINGS["VERSION"]` the same way if you need another API version string.
 
-Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. The same hook builds the schema's headings and the description of each type's record (see [Model Descriptions in the API Docs](#model-descriptions-in-the-api-docs)). Do not write those numbers into your own text. If you do replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them. The nested schema runs the same list and then `fairdm.api.schema.nest_types`, so it follows the list as it stands when the URL configuration loads.
+Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. The same hook builds the schema's headings and the description of each type's record (see [Model Descriptions in the API Docs](#model-descriptions-in-the-api-docs)). Do not write those numbers into your own text. If you do replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
 
 ## Schema Naming Conventions
 
@@ -811,35 +809,28 @@ schema component names have changed — `RockSampleAPI` → `RockSample`, `Patch
 
 ## Model Descriptions in the API Docs
 
-The two documentation pages group the registered types differently, because Swagger UI cannot
-nest one heading inside another and ReDoc can.
-
-**Swagger UI** (`/api/v1/schema/`) has five headings: `Projects`, `Datasets`, `Contributors`,
-`Samples` and `Measurements`. Every sample type's operations are under `Samples` and every
-measurement type's under `Measurements`. Each operation is titled with the type's plural name,
+The documentation page has five headings: `Projects`, `Datasets`, `Contributors`, `Samples` and
+`Measurements`. Every sample type's operations are under `Samples` and every measurement type's
+under `Measurements`. Each operation is titled with the type's plural name,
 `str(model._meta.verbose_name_plural)`, and what it does: `Rock Samples: list`,
 `Rock Samples: read`, `Rock Samples: create`, `Rock Samples: replace`, `Rock Samples: change`,
 `Rock Samples: delete`. The operations of one type sit together and the types follow the order of
 the registry. The two headings for types carry one short sentence saying what they hold. Projects,
 datasets and contributors are described by the docstring of their viewsets.
 
-**ReDoc** (`/api/v1/schema/nested/`) has a heading for every type, named with its plural name and
-described with the type's description, authority, citation, keywords and a link to its repository.
-The headings sit in three groups: the core lists, `Samples` and `Measurements`. The operations are
-titled by what they do, since the heading already names the type. A sample type and a measurement
-type with the same plural name would share a heading, so both are named with their kind added:
-`Cores (samples)` and `Cores (measurements)`.
+FairDM serves one documentation page, Swagger UI, because it is the one a request can be tried
+from.
 
 What the registration gives appears in these places:
 
 | Registration | Appears in |
 |--------------|------------|
-| `ModelConfiguration.metadata.description`, else `ModelConfiguration.description`, else the model's docstring, else a sentence naming the type | The description of every operation of the type, the description of the type's record component, and the type's ReDoc heading |
-| `metadata.authority` (`name`, `short_name`, `website`) | The description of the type's list operation, and the type's ReDoc heading, as the authority |
-| `metadata.citation` (`text`, `doi`) | The same two places, as the citation |
-| `metadata.keywords` | The same two places, as the keywords |
-| `metadata.repository_url` | The `externalDocs` link of the type's list operation, and of its ReDoc heading |
-| The model's `verbose_name_plural` | The title of each operation, and the name of the type's ReDoc heading |
+| `ModelConfiguration.metadata.description`, else `ModelConfiguration.description`, else the model's docstring, else a sentence naming the type | The description of every operation of the type, and the description of the type's record component |
+| `metadata.authority` (`name`, `short_name`, `website`) | The description of the type's list operation, as the authority |
+| `metadata.citation` (`text`, `doi`) | The same place, as the citation |
+| `metadata.keywords` | The same place, as the keywords |
+| `metadata.repository_url` | The `externalDocs` link of the type's list operation |
+| The model's `verbose_name_plural` | The title of each operation |
 | The model's `verbose_name` | The `title` of the type's record component |
 
 `metadata.maintainer` and `metadata.maintainer_email` are never published, since the documentation
@@ -864,12 +855,10 @@ class RockSampleConfig(ModelConfiguration):
 ```
 
 `fairdm.api.schema.TypeDescription` reads the registration. `fairdm.api.schema.TypeDocumentation`
-lists the headings, one for each core list and one for each kind of type, sets the description of
-each type's record, and builds the nested headings. `fairdm.api.schema.describe_api` puts the
-headings and the records into the schema when it is generated, and `fairdm.api.schema.nest_types`
-rewrites the nested schema. The nested schema is the same view with one more postprocessing hook,
-set through drf-spectacular's `custom_settings`. Text written as a lazy translation string is
-turned into text at that moment.
+lists the headings, one for each core list and one for each kind of type, and sets the description
+of each type's record. `fairdm.api.schema.describe_api` puts the headings and the records into the
+schema when it is generated. Text written as a lazy translation string is turned into text at that
+moment.
 
 A viewset of your own that you add to the router can be placed under a heading of your choice
 with the class decorator `fairdm.api.viewsets.under_heading`, which is how the projects, datasets

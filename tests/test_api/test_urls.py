@@ -31,31 +31,17 @@ class TestSwaggerUI:
         response = api_client.get("/api/v1/docs/")
         assert response.status_code == 200
 
-    def test_swagger_reads_the_first_schema(self, api_client):
+    def test_swagger_reads_the_schema(self, api_client):
         content = api_client.get("/api/v1/docs/").content.decode()
 
         assert reverse("api:api-schema") in content
-        assert reverse("api:api-schema-nested") not in content
 
 
 @pytest.mark.django_db
-class TestReDoc:
-    def test_redoc_returns_200(self, api_client):
-        response = api_client.get("/api/v1/redoc/")
-        assert response.status_code == 200
-
-    def test_redoc_returns_html(self, api_client):
-        response = api_client.get("/api/v1/redoc/")
-        assert "text/html" in response["Content-Type"]
-
-    def test_redoc_accessible_without_auth(self, api_client):
-        response = api_client.get("/api/v1/redoc/")
-        assert response.status_code == 200
-
-    def test_redoc_reads_the_second_schema(self, api_client):
-        content = api_client.get("/api/v1/redoc/").content.decode()
-
-        assert reverse("api:api-schema-nested") in content
+class TestOneDocumentationPage:
+    def test_no_second_documentation_page_or_schema_is_served(self, api_client):
+        assert api_client.get("/api/v1/redoc/").status_code == 404
+        assert api_client.get("/api/v1/schema/nested/").status_code == 404
 
 
 @pytest.mark.django_db
@@ -114,17 +100,6 @@ class TestOpenAPISchema:
     def test_schema_accessible_without_auth(self, api_client):
         response = api_client.get("/api/v1/schema/")
         assert response.status_code == 200
-
-    def test_the_second_schema_is_served_under_the_first_and_without_auth(
-        self, api_client
-    ):
-        address = reverse("api:api-schema-nested")
-        response = api_client.get(address, {"format": "json"})
-
-        assert address.startswith(reverse("api:api-schema"))
-        assert address != reverse("api:api-schema")
-        assert response.status_code == 200
-        assert "openapi" in response.json()
 
 
 @pytest.mark.django_db

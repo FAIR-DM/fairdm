@@ -242,14 +242,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     both appear in the generated API documentation. They are added to every list by
     `FairDMFilterBackend`, which now stands in `REST_FRAMEWORK["DEFAULT_FILTER_BACKENDS"]` in place
     of django-filter's own backend.
-  - **The API documentation describes each registered type.** On the Swagger page the operations
+  - **The API documentation describes each registered type.** On the documentation page the operations
     of every sample type are under `Samples` and those of every measurement type under
     `Measurements`, and each operation is titled with the type's plural name and what it does.
     A type's list operation carries the description from its registration, with the authority,
     the citation, the keywords and a link to the repository. A maintainer's name and email address
-    are left out. Projects, datasets and contributors keep a heading each. The ReDoc page reads a
-    second schema, at `/api/v1/schema/nested/`, in which every type has a heading of its own with
-    the same details, inside a group for its kind. The description of each type's record, and its
+    are left out. Projects, datasets and contributors keep a heading each. The description of each type's record, and its
     `Patched` variant, is the type's own and its `title` is the type's `verbose_name`, where it
     was the base serializer's docstring. The schema gains a top-level `tags` list. The headings
     are built by `fairdm.api.schema.describe_api`, so a portal that replaces

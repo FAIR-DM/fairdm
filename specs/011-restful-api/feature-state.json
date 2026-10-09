@@ -1337,6 +1337,22 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T077",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_urls.py::TestOneDocumentationPage"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api/test_urls.py tests/test_api/test_schema.py"
+            ],
+            "code": [
+              "fairdm/api/urls.py:14"
+            ]
+          }
         }
       ]
     },

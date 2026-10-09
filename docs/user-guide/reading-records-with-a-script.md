@@ -288,11 +288,9 @@ response. Open it from **API** in the portal's sidebar, or go to `/api/v1/docs/`
 that needs a token, choose **Authorize** and enter `Token <your-token>`.
 
 The page is drawn from a machine-readable description at `/api/v1/schema/` (add `?format=json` for
-JSON), which tools that generate API clients can read. A second view of the same description is at
-`/api/v1/redoc/`.
+JSON), which tools that generate API clients can read.
 
-On the first page the sample types are listed under **Samples** and the measurement types under
+On that page the sample types are listed under **Samples** and the measurement types under
 **Measurements**, and each operation is titled with the type's plural name. The list operation of a
 type carries the description the portal gives the type and, where it has them, the authority behind
-it, how to cite it, its keywords and a link to its repository. On the second page each type has a
-heading of its own, inside a group for samples or for measurements, with the same details.
+it, how to cite it, its keywords and a link to its repository.

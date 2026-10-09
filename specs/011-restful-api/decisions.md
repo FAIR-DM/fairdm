@@ -724,3 +724,17 @@ one line long and the two names recognisable.
 configuration loads; the nested schema keeps the list it saw at load.
 
 **ADR:** none — how this feature's generated documentation is laid out.
+
+## D31. One documentation page
+
+The portal served two documentation pages, Swagger UI and ReDoc, and D29 gave ReDoc a schema of
+its own so that it could nest each type under its kind. The maintainer saw both and chose one.
+FairDM is an opinionated framework and offers one way: Swagger UI, because it is the page a request
+can be tried from with the caller's own token, which ReDoc cannot do.
+
+ReDoc, the second schema address and the step that built it are removed. T076 is undone by T077.
+
+**Ruled by.** The maintainer, at review.
+
+**ADR:** none — the removal of something this feature added and never released.
+

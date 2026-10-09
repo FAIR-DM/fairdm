@@ -107,7 +107,6 @@ SPECTACULAR_SETTINGS = {
     # Bundled assets, so the docs work in air-gapped environments.
     "SWAGGER_UI_DIST": "SIDECAR",
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
-    "REDOC_DIST": "SIDECAR",
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
     "SORT_OPERATIONS": False,
     "POSTPROCESSING_HOOKS": [
