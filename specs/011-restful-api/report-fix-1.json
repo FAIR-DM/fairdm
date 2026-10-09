@@ -1,0 +1,212 @@
+{
+ "story": "US1",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T061",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_filters.py::TestUnpublishedDataset"
+    ],
+    "criteria": [
+     "SC-004"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_filters.py::TestUnpublishedDataset",
+     "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "05383bea",
+    "a85e5d36",
+    "6c79984d",
+    "5ef3e4a3"
+   ]
+  },
+  {
+   "id": "T062",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestEveryListedFilter"
+    ],
+    "criteria": [
+     "SC-008"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestEveryListedFilter tests/test_core/test_sample/test_filters.py tests/test_core/test_measurement/test_filters.py",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "0ef8727e",
+    "b5830963"
+   ]
+  },
+  {
+   "id": "T063",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+    ],
+    "criteria": [
+     "SC-004"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestReferencesFollowTheLists",
+     "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "66f02d01",
+    "0420cc1a",
+    "77584970"
+   ]
+  },
+  {
+   "id": "T064",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestFiltering"
+    ],
+    "criteria": [
+     "SC-004"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "3ab7020c",
+    "fcb2f300"
+   ]
+  },
+  {
+   "id": "T065",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_router.py::TestRegistrationFailureIsReported",
+     "tests/test_api/test_settings.py::TestAPIDescriptionSettings"
+    ],
+    "criteria": [
+     "SC-008"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported tests/test_api/test_settings.py::TestAPIDescriptionSettings",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "bf202fbb",
+    "0d7722c6"
+   ]
+  },
+  {
+   "id": "T066",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestQueryCount",
+     "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+    ],
+    "criteria": [
+     "SC-007"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount tests/test_api/test_viewsets.py::TestReferencesFollowTheLists",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "d3758521",
+    "93829a9b",
+    "bfea09d9"
+   ]
+  },
+  {
+   "id": "T067",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_conf/test_checks.py::TestApiProxyCountCheck"
+    ],
+    "criteria": [],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_conf/test_checks.py::TestApiProxyCountCheck",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "78cf367c",
+    "9dce3e55"
+   ]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "Existing tests that read samples or measurements of a public dataset now build it with published=True: the fixtures in tests/test_api (conftest public_dataset and the single-line DatasetFactory calls in test_filters, test_serializers and test_viewsets, and the a_record_in fixture in test_permissions) and two tests in demo/tests/test_api_smoke.py. Assertions are unchanged.",
+   "why": "The dataset factory leaves published unset, and samples and measurements of a public, unpublished dataset are no longer public. It is named in progress.md under T061.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "test_fairdm_api_title_is_overrideable and test_fairdm_api_description_is_overrideable in tests/test_api/test_settings.py are replaced by test_the_title_is_changed_through_spectacular_settings and test_the_description_is_changed_through_spectacular_settings, which read the generated schema.",
+   "why": "The old pair set a setting and read it back. The new pair patch drf-spectacular's loaded settings, because replacing SPECTACULAR_SETTINGS through the settings fixture does not reach the schema.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "T063's visibility check for a many-to-many to a record type is primed for the whole page (RecordReferenceField.prime takes the relation's name, and RecordListSerializer calls it), which the task text does not list.",
+   "why": "Without it a list of samples with a declared many-to-many to samples read one query per related record, which T066 exists to prevent. A count test in TestReferencesFollowTheLists failed at 24 queries against 15 before it.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "The contributors a list leaves out are read once per request and kept on the serializer context, and the shared rule is FairDMVisibilityFilter.hidden_contributors.",
+   "why": "Checking each credit separately made lists of datasets, projects, samples and contributors run a query per credit; the query-count tests caught it.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "The sample description and date filters use PartialDateFilter, imported from the measurement filter set, rather than only changing the field names.",
+   "why": "SampleDate.value is a partial date, and a plain DateFilter's date value is refused against it; changing only the names still answered 500 for date_after.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "T061's visitor case for a write is answered 401, not 404; the write test uses a signed-in person with no level.",
+   "why": "A write by a visitor needs a sign-in first, so it cannot reach the 404.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  },
+  {
+   "what": "No test for a project whose owner is a superuser.",
+   "why": "Project.owner must be an organisation and organisations are never left out of the contributor list, so the case cannot arise.",
+   "decision_ref": "decisions.md#d24-choices-made-while-fixing-the-findings-of-the-code-review"
+  }
+ ],
+ "concerns": [
+  "ruff check run without --no-fix rewrites unrelated test files in this repository (eleven files changed in one run, reverted before committing). It is easy to commit unrelated edits by accident.",
+  "A many-to-many to a record type read from a custom serializer that is not built by the registry is primed only when its field is a RecordReferenceField(many=True) on a RecordListSerializer; a custom viewset must apply fairdm.api.viewsets.load_relations to its own queryset (documented on the API page)."
+ ],
+ "blocked": []
+}
