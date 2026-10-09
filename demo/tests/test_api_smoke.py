@@ -75,7 +75,9 @@ class TestDemoSampleListEndpoints:
         from fairdm.factories import DatasetFactory, ProjectFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
         sample = CustomParentSampleFactory(dataset=dataset)
 
         resp = api_client.get(reverse("api:samples-custom-parent-samples-list"))
@@ -88,7 +90,9 @@ class TestDemoSampleListEndpoints:
         from fairdm.factories import DatasetFactory, ProjectFactory
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
         CustomParentSampleFactory.create_batch(3, dataset=dataset)
 
         resp = api_client.get(reverse("api:api-sample-discovery"))
