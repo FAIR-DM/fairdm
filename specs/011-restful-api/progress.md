@@ -352,3 +352,10 @@ Did: docs/portal-development/restful-api.md: "Discovery Catalog" is now "The Cat
 Verified: grep for FAIRDM_API_DOCS_URL over fairdm, tests, demo and docs finds nothing. The example catalogue entry is a trimmed copy of the entry the endpoint answers for SoilSample on this branch; the description text and the content type of /api/v1/schema/ were read from a response.
 Next: the full verify, then the completion report.
 Watch: the Rate Limiting section of the developer page still lists the current rate names; the next story rewrites it.
+
+## 2026-10-09T01:08:35Z · Implementer US6 · T053
+
+Did: Added TestLimits in tests/test_api/test_throttling.py. The tests give the throttles a cache that stores counts and set small rates in the settings' rate dict, so no case sends more than a few requests. An anonymous caller past the short rate and past the daily rate gets 429, and the refusal carries Retry-After. A token caller is not stopped at the anonymous rate and is stopped at their own short and daily rates. An anonymous caller is counted only by the anonymous rates (the signed-in rate is set below the anonymous one, so counting by address would stop the caller early), a signed-in caller is not counted by the anonymous rates, and one token caller's requests do not count against another's.
+Verified: uv run pytest -q -n0 tests/test_api/test_throttling.py: 9 fail because the four rates do not exist yet and 1 passes already (a token caller is not stopped at the anonymous rate).
+Next: T054.
+Watch: DRF reads the rate dict once, when rest_framework.throttling is first imported, so the tests change entries in the dict the settings hold rather than assigning a new REST_FRAMEWORK.
