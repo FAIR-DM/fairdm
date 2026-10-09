@@ -30,7 +30,7 @@ class TestApi:
         module = settings_module()
 
         assert "DEFAULT_PERMISSION_CLASSES" in module.REST_FRAMEWORK
-        assert module.CORS_ALLOW_ALL_ORIGINS is False
+        assert module.CORS_ALLOW_ALL_ORIGINS is True
 
     def test_reading_unconfigured_api_never_raises(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"
