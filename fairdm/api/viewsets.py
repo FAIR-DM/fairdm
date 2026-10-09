@@ -18,9 +18,16 @@ import contextlib
 from typing import Any, cast
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Model, ProtectedError, Q, RestrictedError
+from django.db.models import (
+    Model,
+    ProtectedError,
+    Q,
+    RestrictedError,
+    prefetch_related_objects,
+)
 from django.urls import resolve, reverse
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.filters import OrderingFilter
@@ -37,13 +44,14 @@ from fairdm.api.filters import (
     SampleFilterSet,
 )
 from fairdm.api.serializers import (
+    CatalogueSerializer,
     ContributorSerializer,
     DatasetSerializer,
     ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
 )
-from fairdm.contrib.contributors.models import Contributor, Person
+from fairdm.contrib.contributors.models import Contributor, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import PublicDatasetsProtect
 
@@ -172,6 +180,33 @@ class ContributorViewSet(ReadOnlyModelViewSet):
         return Contributor.objects.exclude(pk__in=hidden).prefetch_related(
             "identifiers"
         )
+
+    def get_serializer(self, instance=None, *args, **kwargs):
+        """Load the affiliations and parents of the contributors about to be described.
+
+        A queryset over the base type cannot prefetch what only a person or only an
+        organisation has, so this loads them once the real types are known.
+
+        Args:
+            instance: The contributor, or the contributors of a list, to describe.
+            *args: Passed on to the serializer.
+            **kwargs: Passed on to the serializer, including ``many``.
+
+        Returns:
+            The serializer, holding contributors that read no further queries.
+        """
+        if instance is not None:
+            records = list(instance) if kwargs.get("many") else [instance]
+            prefetch_related_objects(
+                [record for record in records if isinstance(record, Person)],
+                "affiliations__organization",
+            )
+            prefetch_related_objects(
+                [record for record in records if isinstance(record, Organization)],
+                "parent",
+            )
+            instance = records if kwargs.get("many") else instance
+        return super().get_serializer(instance, *args, **kwargs)
 
 
 def sortable_fields(model, serializer_cls) -> list[str]:
@@ -302,6 +337,7 @@ class _BaseDiscoveryView(APIView):
     url_prefix: str = ""
 
     # No docstring: drf-spectacular would show it instead of each subclass's own.
+    @extend_schema(responses=CatalogueSerializer)
     def get(self, request: Request) -> Response:
         from fairdm.registry import registry
 

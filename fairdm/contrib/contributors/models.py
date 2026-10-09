@@ -935,15 +935,19 @@ class Person(AbstractUser, Contributor):
     def get_affiliation_history(self):
         """Split the person's verified affiliations into current and past.
 
+        Reads ``affiliations.all()``, so a listing that prefetches
+        ``affiliations__organization`` costs no query per person.
+
         Returns:
             ``current``, the primary affiliation first and the rest by organization name, and
             ``past``, most recently ended first. Each affiliation has its organization loaded.
         """
-        affiliations = list(
-            self.affiliations.select_related("organization").filter(
-                type__gte=Affiliation.MembershipType.MEMBER
-            )
-        )
+        stored = self.affiliations.all()
+        if "affiliations" not in getattr(self, "_prefetched_objects_cache", {}):
+            stored = stored.select_related("organization")
+        affiliations = [
+            a for a in stored if a.type >= Affiliation.MembershipType.MEMBER
+        ]
         current = sorted(
             (a for a in affiliations if a.end_date is None),
             key=lambda a: (not a.is_primary, a.organization.name),

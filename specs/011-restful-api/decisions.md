@@ -492,3 +492,41 @@ whichever rates are configured under whatever names they carry, and reads the de
 page size and the size parameter's name from an instance of the configured pagination class, so
 the story that renames the rates and moves the page sizes into settings needs no change here.
 *Revisit if:* a rate needs words of its own beside its number.
+
+## D23. Choices made while building the sixth story
+
+**The two signed-in throttles count only signed-in callers.** Django REST framework's
+`UserRateThrottle` also counts an anonymous caller, by address. With it unchanged, every
+anonymous request would also count against the signed-in rates, and an operator who set a signed-in
+rate below the anonymous one would stop anonymous callers early. `fairdm.api.throttling` has a
+small shared parent, `SignedInThrottle`, whose only change is to return no key for a caller who is
+not signed in, so the two anonymous throttles are the only ones that count anonymous callers. This is
+three more lines than the two-line subclasses D14 describes.
+*Revisit if:* Django REST framework adds an option to count only signed-in callers.
+
+**The rates are read from the dict the settings hold.** Django REST framework reads
+`DEFAULT_THROTTLE_RATES` once, when its throttling module is first imported, and keeps that dict.
+A portal changes a rate by assigning into that dict (`REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["user_day"] = ...`)
+in its settings, which is read before the module is imported. The tests change entries in the same
+dict, and one test proves the two are the same object.
+*Revisit if:* a rate needs to change while the portal runs.
+
+**The page sizes are properties read from the settings.** `FairDMPagination.page_size` returns
+`REST_FRAMEWORK["PAGE_SIZE"]` and `max_page_size` returns `FAIRDM_API_MAX_PAGE_SIZE` each time they
+are read, so a changed setting is followed with no restart of the class. The schema's description
+reads the same two properties from an instance.
+*Revisit if:* none.
+
+**Contributors load their affiliations and parents once the real types are known.** The list is a
+queryset over the base contributor type, which cannot prefetch what only a person (affiliations) or
+only an organisation (parent) has. `ContributorViewSet.get_serializer` prefetches those two for
+the records about to be described, with Django's `prefetch_related_objects`, in a list, a detail
+and an unpaged list alike. To make the prefetch count, `Person.get_affiliation_history` reads
+`affiliations.all()` like the model's other affiliation readers do and selects the organisation
+itself only when the affiliations were not prefetched; its result is unchanged.
+*Revisit if:* django-polymorphic can prefetch a relation of a subtype from the base queryset.
+
+**The catalogues' response serializers describe the response and do not render it.** The two
+serializers are given to the schema generator with `extend_schema`. A test compares the keys the
+schema lists with the keys a catalogue answers, so the two cannot drift apart unnoticed.
+*Revisit if:* the catalogue view becomes a generic view.

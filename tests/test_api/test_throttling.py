@@ -3,14 +3,15 @@
 import pytest
 from django.core.cache.backends.locmem import LocMemCache
 from django.urls import reverse
+from rest_framework.test import APIClient
+from rest_framework.throttling import SimpleRateThrottle
+
 from fairdm.api.throttling import (
     AnonBurstThrottle,
     AnonDailyThrottle,
     UserBurstThrottle,
     UserDailyThrottle,
 )
-from rest_framework.test import APIClient
-from rest_framework.throttling import SimpleRateThrottle
 
 SCOPES = ("anon_burst", "anon_day", "user_burst", "user_day")
 
