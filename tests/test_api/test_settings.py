@@ -364,3 +364,40 @@ class TestSession:
         assert response.status_code == 403
         project.refresh_from_db()
         assert project.name == "Changed"
+
+
+@pytest.mark.django_db
+class TestOtherOrigins:
+    ORIGIN = "https://another-site.example"
+
+    def test_a_response_to_another_origin_may_be_read_by_it(self):
+        response = APIClient().get(reverse("api:project-list"), HTTP_ORIGIN=self.ORIGIN)
+
+        assert response["Access-Control-Allow-Origin"] in ("*", self.ORIGIN)
+
+    def test_the_authorization_header_is_allowed_in_a_preflight(self):
+        response = APIClient().options(
+            reverse("api:project-list"),
+            HTTP_ORIGIN=self.ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="authorization",
+        )
+
+        allowed = response["Access-Control-Allow-Headers"].lower().split(", ")
+        assert response.status_code == 200
+        assert "authorization" in allowed
+
+    @pytest.mark.parametrize("method", ["get", "options"])
+    def test_no_response_permits_credentials(self, method):
+        response = getattr(APIClient(), method)(
+            reverse("api:project-list"),
+            HTTP_ORIGIN=self.ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+
+        assert "Access-Control-Allow-Credentials" not in response
+
+    def test_a_page_outside_the_api_gets_no_cors_header(self):
+        response = APIClient().get(reverse("home"), HTTP_ORIGIN=self.ORIGIN)
+
+        assert "Access-Control-Allow-Origin" not in response
