@@ -454,3 +454,10 @@ Did: Added two cases to TestFiltering: a visitor narrowing a sample list by a pr
 Verified: no production change, so the cases pass on the unchanged code. Probed instead: with DatasetFilterSet.visible made to return its queryset unfiltered, both cases fail (200 where 400 is expected); restored, then uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering: 36 passed.
 Next: T065.
 Watch: none.
+
+## 2026-10-09T02:14:14Z · Implementer fix-1 · T065
+
+Did: (a) Added a registration test beside the others in TestRegistrationFailureIsReported: a configuration whose get_filterset_class raises stops register_types with that error. Seen failing (did not raise), then removed the contextlib.suppress around config.get_filterset_class() in generate_viewset; no registered type in the suite had a broken filter set. (b) The docstring of fairdm/api/settings.py and the API page (OpenAPI Schema Customisation, Customizing the API Description, and the paragraph on the description at the top of the interactive page) now say the title and description are changed by assigning items of SPECTACULAR_SETTINGS, that FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION are only the defaults it is built from, and that every example assigns items and never a new dictionary. (c) Replaced test_fairdm_api_title_is_overrideable and test_fairdm_api_description_is_overrideable (they set a setting and read it back) with two that change drf-spectacular's TITLE and DESCRIPTION and read info.title and info.description from the generated schema. Replacing SPECTACULAR_SETTINGS through pytest-django's settings fixture did not reach the schema (drf-spectacular reads it once), so they patch the loaded settings as the existing description test does.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api: all passed.
+Next: T067.
+Watch: none.
