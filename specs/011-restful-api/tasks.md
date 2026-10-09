@@ -298,7 +298,7 @@ Each test task is written first and seen to fail.
   only records changed after the moment given and `modified_before` only those changed before it,
   a moment that cannot be read is refused with a 400, and both appear among the list's parameters
   in the generated documentation. Then add the two filters to every list.
-- [ ] T073 [US5] `tests/test_api/test_schema.py`, `TestTypesInTheDocumentation`: each registered
+- [x] T073 [US5] `tests/test_api/test_schema.py`, `TestTypesInTheDocumentation`: each registered
   type's operations are grouped under a section named with the type's plural name. The section's
   description carries the registration's description and, where given, its authority, citation,
   keywords and repository link, and never a maintainer's name or email address. The description of

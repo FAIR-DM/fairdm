@@ -784,7 +784,7 @@ See the [Developer Guide](https://my-portal.example.com/docs/api/) for full deta
 
 Setting `FAIRDM_API_TITLE` or `FAIRDM_API_DESCRIPTION` in your settings changes nothing. They are the defaults `SPECTACULAR_SETTINGS` is built from when FairDM loads, before your settings run. You can change `SPECTACULAR_SETTINGS["VERSION"]` the same way if you need another API version string.
 
-Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. Do not write those numbers into your own text. If you do replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
+Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. The same hook builds the schema's sections and the description of each type's record (see [Model Descriptions in the API Docs](#model-descriptions-in-the-api-docs)). Do not write those numbers into your own text. If you do replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
 
 ## Schema Naming Conventions
 
@@ -810,15 +810,26 @@ schema component names have changed — `RockSampleAPI` → `RockSample`, `Patch
 
 ## Model Descriptions in the API Docs
 
-Swagger UI shows a description for each endpoint group. For auto-generated viewsets, FairDM
-resolves the description from the registry configuration using the following priority order:
+The documentation page groups the operations of each registered type under a section named with
+the type's plural name, `str(model._meta.verbose_name_plural)`: `Rock Samples`, `XRF Measurements`.
+Projects, datasets and contributors have a section too, described by the docstring of their
+viewsets. The schema lists the sections in its top-level `tags`, so every section an operation
+uses is described.
 
-1. `ModelConfiguration.description` (top-level attribute)
-2. `ModelConfiguration.metadata.description` (from `ModelMetadata`)
-3. Model class docstring
-4. Fallback: `"Endpoints for managing {verbose_name_plural}."`
+What the registration gives appears in three places:
 
-To provide a meaningful description visible in Swagger, add it to your registry config:
+| Registration | Appears in |
+|--------------|------------|
+| `ModelConfiguration.description`, else `ModelConfiguration.metadata.description`, else the model's docstring, else a sentence naming the type | The type's section, the description of every operation of the type, and the description of the type's record component |
+| `metadata.authority` (`name`, `short_name`, `website`) | The type's section, as the authority |
+| `metadata.citation` (`text`, `doi`) | The type's section, as the citation |
+| `metadata.keywords` | The type's section, as the keywords |
+| `metadata.repository_url` | The type's section, as a link to the repository |
+| The model's `verbose_name` | The `title` of the type's record component |
+
+`metadata.maintainer` and `metadata.maintainer_email` are never published, since the documentation
+is public and those are a person's details. The description of a type's record, and of its
+`Patched` variant, is the type's own description, not the docstring of the base serializer.
 
 ```python
 @fairdm.register
@@ -829,12 +840,17 @@ class RockSampleConfig(ModelConfiguration):
             "Geological rock samples collected from field sites. Each sample records "
             "lithology, collection date, weight, and mineralogical observations."
         ),
-        # ... other metadata ...
+        authority=Authority(name="Institute of Geology", short_name="IoG"),
+        citation=Citation(text="Institute of Geology (2026). Rock sample protocol.", doi="10.1234/rocks"),
+        keywords=["geology", "rocks"],
+        repository_url="https://github.com/example/rocks",
     )
     fields = [...]
 ```
 
-The description is displayed in Swagger UI when users expand the endpoint group for `RockSample`.
+`fairdm.api.schema.TypeDescription` reads the registration, and `fairdm.api.schema.describe_api`
+puts the sections and the record descriptions into the schema when it is generated. Text written
+as a lazy translation string is turned into text at that moment.
 
 ## API Navigation Sidebar
 

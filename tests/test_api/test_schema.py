@@ -252,3 +252,184 @@ class TestSchemaDescribesThePortal:
         response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
         assert response.status_code == 200
         return response.json()["info"]["description"]
+
+
+def registration_text(config):
+    """Return the description a registration gives its type, or an empty string."""
+    if config.description:
+        return str(config.description)
+    return str(config.metadata.description) if config.metadata else ""
+
+
+def every_description(node):
+    """Yield each ``description`` text found anywhere in a part of the schema."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "description" and isinstance(value, str):
+                yield value
+            else:
+                yield from every_description(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from every_description(value)
+
+
+@pytest.mark.django_db
+class TestTypesInTheDocumentation:
+    @pytest.fixture
+    def tags(self, schema):
+        """Return the schema's top-level tags by name."""
+        return {tag["name"]: tag for tag in schema.get("tags", [])}
+
+    @staticmethod
+    def plural(model):
+        return str(model._meta.verbose_name_plural)
+
+    def test_each_types_operations_are_grouped_under_its_plural_name(
+        self, schema, registered_types
+    ):
+        for model, _config in registered_types:
+            basename = TestSchemaMatchesRoutes.basename(model)
+            paths = (reverse(f"api:{basename}-list"), detail_path(basename))
+
+            for path in paths:
+                for method, operation in schema["paths"][path].items():
+                    assert operation["tags"] == [self.plural(model)], (path, method)
+
+    def test_the_schema_lists_a_section_for_each_registered_type(
+        self, tags, registered_types
+    ):
+        for model, _config in registered_types:
+            assert self.plural(model) in tags
+
+    def test_every_tag_an_operation_uses_has_a_described_section(self, schema, tags):
+        used = {
+            tag
+            for item in schema["paths"].values()
+            for operation in item.values()
+            for tag in operation["tags"]
+        }
+
+        assert used
+        for name in used:
+            assert tags[name].get("description"), name
+
+    def test_projects_datasets_and_contributors_are_described_with_their_viewsets_words(
+        self, tags
+    ):
+        import inspect
+
+        from fairdm.api.viewsets import (
+            ContributorViewSet,
+            DatasetViewSet,
+            ProjectViewSet,
+        )
+
+        for name, viewset in (
+            ("projects", ProjectViewSet),
+            ("datasets", DatasetViewSet),
+            ("contributors", ContributorViewSet),
+        ):
+            assert tags[name]["description"] == inspect.getdoc(viewset)
+
+    def test_a_section_carries_what_the_registration_gives(
+        self, tags, registered_types
+    ):
+        given = set()
+        for model, config in registered_types:
+            metadata = config.metadata
+            description = tags[self.plural(model)]["description"]
+            texts = [registration_text(config)]
+            if metadata and metadata.authority:
+                authority = metadata.authority
+                texts += [authority.name, authority.short_name, authority.website]
+                given.add("authority")
+            if metadata and metadata.citation:
+                texts += [metadata.citation.text, metadata.citation.doi]
+                given.add("citation")
+            if metadata:
+                texts += metadata.keywords
+                given.add("keywords") if metadata.keywords else None
+
+            for text in filter(None, texts):
+                assert str(text) in description, (model.__name__, text)
+
+        assert given == {"authority", "citation", "keywords"}
+
+    def test_a_section_links_to_the_repository_where_the_registration_gives_one(
+        self, tags, registered_types
+    ):
+        linked = 0
+        for model, config in registered_types:
+            tag = tags[self.plural(model)]
+            url = config.metadata.repository_url if config.metadata else ""
+            if url:
+                assert tag["externalDocs"]["url"] == url
+                linked += 1
+            else:
+                assert "externalDocs" not in tag
+
+        assert linked
+
+    def test_a_maintainers_details_are_never_published(
+        self, api_client, monkeypatch, registered_types
+    ):
+        import dataclasses
+
+        config = next(
+            c for _model, c in registered_types if c.metadata and c.metadata.authority
+        )
+        monkeypatch.setattr(
+            config,
+            "metadata",
+            dataclasses.replace(
+                config.metadata,
+                maintainer="Maintainer Person",
+                maintainer_email="maintainer@example.org",
+            ),
+        )
+
+        body = api_client.get(reverse("api:api-schema"), {"format": "json"}).text
+
+        assert "Maintainer Person" not in body
+        assert "maintainer@example.org" not in body
+
+    def test_a_types_record_is_described_in_the_types_words_and_titled_with_its_name(
+        self, schema, registered_types
+    ):
+        checked = 0
+        for model, config in registered_types:
+            for name in (model.__name__, f"Patched{model.__name__}"):
+                component = schema["components"]["schemas"][name]
+
+                assert component["title"] == str(model._meta.verbose_name)
+                if registration_text(config):
+                    assert component["description"] == registration_text(config)
+                    checked += 1
+
+        assert checked
+
+    def test_no_description_is_a_docstring_of_a_base_class(self, schema):
+        import inspect
+
+        from fairdm.api.serializers import (
+            BaseMeasurementSerializer,
+            BaseSampleSerializer,
+            RecordSerializer,
+        )
+        from fairdm.api.viewsets import BaseViewSet
+
+        first_lines = [
+            inspect.getdoc(base).splitlines()[0]
+            for base in (
+                BaseSampleSerializer,
+                BaseMeasurementSerializer,
+                RecordSerializer,
+                BaseViewSet,
+            )
+        ]
+
+        for text in every_description(schema):
+            assert ":class:" not in text
+            for line in first_lines:
+                assert line not in text

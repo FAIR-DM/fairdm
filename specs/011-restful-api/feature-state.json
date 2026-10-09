@@ -1258,8 +1258,23 @@
         },
         {
           "id": "T073",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_schema.py::TestTypesInTheDocumentation"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry demo"
+            ],
+            "code": [
+              "fairdm/api/schema.py:87",
+              "fairdm/api/schema.py:186",
+              "fairdm/api/schema.py:227",
+              "fairdm/api/viewsets.py:326"
+            ],
+            "verified_by_ci": false
+          }
         }
       ]
     },

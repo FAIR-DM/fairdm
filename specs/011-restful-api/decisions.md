@@ -655,3 +655,23 @@ does not name the backend; that list then lacks the filters.
 **`modified` and indexes.** Every served model has a `modified` field. Only the contributor's has
 `db_index=True`. Project, dataset, sample and measurement have none, and no migration is added
 for it in this change.
+
+## D28. How each type's own words reach the generated documentation
+
+**Decision.** `fairdm.api.schema.TypeDescription` reads a registration once and answers for the
+three places the documentation names the type: `summary()` (the registration's description, else
+the one in its metadata, else the model's docstring, else a plain sentence) for the operations and
+the type's record, and `tag()` for the section, which adds the authority, citation, keywords and a
+repository link and never the maintainer's name or address. `generate_viewset` sets the operation
+description and tags the six actions with `extend_schema_view`. The top-level `tags` and the
+record descriptions are written by the existing `describe_api` postprocessing hook, so a portal
+that keeps that hook keeps them. A record's component is found from its serializer's `Meta.ref_name`
+or class name, the way drf-spectacular names it. The operation tag is the lazy plural name and is
+turned into text by drf-spectacular when the schema is built.
+
+**Why.** One function answers for the description, so the operations, the section and the record
+cannot disagree, and no new setting or hook is needed.
+
+**Revisit if.** Two registered types share one plural name: a tag name must be unique in the
+schema, so they would share a section. Also revisit if a serializer is shared by two types, since
+one component then carries one type's words.

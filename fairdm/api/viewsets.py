@@ -23,6 +23,7 @@ from django.db.models import (
     prefetch_related_objects,
 )
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.filters import OrderingFilter
@@ -35,6 +36,7 @@ from fairdm.api.filters import (
     FairDMVisibilityFilter,
     SampleFilterSet,
 )
+from fairdm.api.schema import TypeDescription
 from fairdm.api.serializers import (
     ContributorSerializer,
     DatasetSerializer,
@@ -45,6 +47,9 @@ from fairdm.api.serializers import (
 from fairdm.contrib.contributors.models import Contributor, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import PublicDatasetsProtect
+
+#: The actions of a generated viewset, each of which is grouped under its type's section.
+ACTIONS = ("list", "retrieve", "create", "update", "partial_update", "destroy")
 
 
 class DeleteRefused(APIException):
@@ -313,20 +318,17 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     if filterset_class is not None:
         _GeneratedViewSet.filterset_class = filterset_class
 
+    description = TypeDescription(config)
+    _GeneratedViewSet.registration = config
     # drf-spectacular reads this as the operation description, so it is not
     # BaseViewSet's docstring.
-    description: str = ""
-    if getattr(config, "description", None):
-        description = config.description
-    elif getattr(config, "metadata", None) and getattr(
-        config.metadata, "description", None
-    ):
-        description = config.metadata.description
-    elif model.__doc__:
-        description = model.__doc__
-    if not description:
-        description = f"Endpoints for managing {model._meta.verbose_name_plural}."
-    _GeneratedViewSet.__doc__ = description
+    _GeneratedViewSet.__doc__ = description.summary()
+    extend_schema_view(
+        **{
+            action: extend_schema(tags=[model._meta.verbose_name_plural])
+            for action in ACTIONS
+        }
+    )(_GeneratedViewSet)
 
     return _GeneratedViewSet
 

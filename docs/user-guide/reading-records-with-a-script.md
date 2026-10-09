@@ -290,3 +290,7 @@ that needs a token, choose **Authorize** and enter `Token <your-token>`.
 The page is drawn from a machine-readable description at `/api/v1/schema/` (add `?format=json` for
 JSON), which tools that generate API clients can read. A second view of the same description is at
 `/api/v1/redoc/`.
+
+Each sample type and measurement type has a section of its own, named with its plural name. The
+section carries the description the portal gives the type and, where it has them, the authority
+behind it, how to cite it, its keywords and a link to its repository.
