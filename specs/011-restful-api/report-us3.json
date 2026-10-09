@@ -1,0 +1,209 @@
+{
+ "story": "US3",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T027",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_registry/test_factories.py::TestSerializerFactory"
+    ],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "b05082b6"
+   ]
+  },
+  {
+   "id": "T028",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed",
+     "tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+    ],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "8522a213",
+    "e11365f3"
+   ]
+  },
+  {
+   "id": "T029",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+    ],
+    "criteria": [],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "797cf880"
+   ]
+  },
+  {
+   "id": "T030",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_checks.py::TestRegistrationCheck"
+    ],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_checks.py"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "8f1a620c"
+   ]
+  },
+  {
+   "id": "T031",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+    ],
+    "criteria": [],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "a03fa339"
+   ]
+  },
+  {
+   "id": "T032",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_router.py::TestAddresses"
+    ],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "40bb64d9"
+   ]
+  },
+  {
+   "id": "T034",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_router.py::TestCustomViewset"
+    ],
+    "criteria": [
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "8a02d577"
+   ]
+  },
+  {
+   "id": "T035",
+   "status": "done",
+   "evidence": {
+    "tests_added": [],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api (810 passed)",
+     "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (conformance, docs, lint, typecheck, test, build all passed)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "17fd6a1b",
+    "4c9276e2",
+    "30f7d9c5"
+   ]
+  },
+  {
+   "id": "T036",
+   "status": "done",
+   "evidence": {
+    "tests_added": [],
+    "criteria": [],
+    "commands": [
+     "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (docs step passed)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "926a38cb"
+   ]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "T035's implementation of the options/tags default sits in the T027 commit (Component.default_exclude in fairdm/registry/config.py), and the relation-filter tests are in a second T028 commit, so T035 holds the filter, router and check changes.",
+   "why": "Each task's tests and the code that makes them pass were committed together where a test failed for the right reason before the change.",
+   "decision_ref": "decisions.md#d20-choices-made-while-building-the-third-story"
+  },
+  {
+   "what": "The API's copy of a type's filter set removes a filter on a relation with no uuid when the filter set is built for a request, not on the class.",
+   "why": "The sample filter mixin reads polymorphic_ctype while it is built, so removing it from the class breaks the mixin. The generated schema therefore still lists that filter, which a request ignores.",
+   "decision_ref": "decisions.md#d20-choices-made-while-building-the-third-story"
+  },
+  {
+   "what": "Tests T028 and T034 register a viewset on the router by reloading fairdm.api.urls and fairdm.conf.urls (new fixture on_the_router in tests/test_api/conftest.py).",
+   "why": "The router's addresses are read once when fairdm.api.urls first loads, so a registration made during a test is served only after the modules load again. The fixture undoes both at the end.",
+   "decision_ref": "decisions.md#d20-choices-made-while-building-the-third-story"
+  }
+ ],
+ "concerns": [
+  "The first full verify run failed on three type-annotation errors in fairdm/api/filters.py and fairdm/api/checks.py. They were fixed in 30f7d9c5 and verify was run again with every step passing.",
+  "CHANGELOG.md has no entry for FS-011 on this branch; none was added in this story.",
+  "The generated OpenAPI schema still lists the content-type (polymorphic_ctype) filter on sample and measurement lists, although a request ignores it (fairdm/api/filters.py, fairdm/core/sample/filters.py:140 reads it while the filter set is built).",
+  "The router reads its addresses once, when fairdm.api.urls is first imported, so a viewset registered after that is served only when the module is loaded again. The module docstring and docs/portal-development/restful-api.md now say where to register.",
+  "feature-state.json and the tasks.md checkboxes for T027 to T036 were not changed in this story.",
+  "The check fairdm.E600 is tagged models, not production-critical, so a registration mistake stops runserver, migrate and manage.py check but not a production boot that skips those commands."
+ ],
+ "blocked": []
+}
