@@ -36,7 +36,7 @@ from fairdm.api.filters import (
     FairDMVisibilityFilter,
     SampleFilterSet,
 )
-from fairdm.api.schema import TypeDescription
+from fairdm.api.schema import CORE_HEADINGS, TypeDescription
 from fairdm.api.serializers import (
     ContributorSerializer,
     DatasetSerializer,
@@ -48,8 +48,23 @@ from fairdm.contrib.contributors.models import Contributor, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import PublicDatasetsProtect
 
-#: The actions of a generated viewset, each of which is grouped under its type's section.
+#: The actions of a generated viewset, each of which is titled with its type's name.
 ACTIONS = ("list", "retrieve", "create", "update", "partial_update", "destroy")
+
+
+def under_heading(heading: str, actions: tuple[str, ...] = ACTIONS):
+    """Group a viewset's operations under one heading of the generated documentation.
+
+    Args:
+        heading: The tag every operation carries.
+        actions: The actions the viewset serves.
+
+    Returns:
+        A class decorator.
+    """
+    return extend_schema_view(
+        **{action: extend_schema(tags=[heading]) for action in actions}
+    )
 
 
 class DeleteRefused(APIException):
@@ -106,6 +121,7 @@ class BaseViewSet(ModelViewSet):
             ) from error
 
 
+@under_heading(CORE_HEADINGS["projects"])
 class ProjectViewSet(BaseViewSet):
     """Research projects registered in the portal.
 
@@ -130,6 +146,7 @@ class ProjectViewSet(BaseViewSet):
         serializer.save(created_by=self.request.user)
 
 
+@under_heading(CORE_HEADINGS["datasets"])
 class DatasetViewSet(BaseViewSet):
     """Datasets within research projects.
 
@@ -153,6 +170,7 @@ class DatasetViewSet(BaseViewSet):
         serializer.save(created_by=self.request.user)
 
 
+@under_heading(CORE_HEADINGS["contributors"], ("list", "retrieve"))
 class ContributorViewSet(ReadOnlyModelViewSet):
     """People and organizations that contribute to research projects.
 
@@ -325,7 +343,18 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     _GeneratedViewSet.__doc__ = description.summary()
     extend_schema_view(
         **{
-            action: extend_schema(tags=[model._meta.verbose_name_plural])
+            action: extend_schema(
+                tags=[description.heading],
+                summary=description.action_title(action),
+                **(
+                    {
+                        "description": description.list_description(),
+                        "external_docs": description.repository(),
+                    }
+                    if action == "list"
+                    else {}
+                ),
+            )
             for action in ACTIONS
         }
     )(_GeneratedViewSet)

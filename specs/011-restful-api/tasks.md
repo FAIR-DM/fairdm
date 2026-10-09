@@ -311,7 +311,7 @@ Each test task is written first and seen to fail.
 
 ## Phase 11: the documentation's grouping, as the maintainer asked
 
-- [ ] T075 [US5] `tests/test_api/test_schema.py`, replacing `TestTypesInTheDocumentation`: in the
+- [x] T075 [US5] `tests/test_api/test_schema.py`, replacing `TestTypesInTheDocumentation`: in the
   schema the interactive documentation page reads, every sample type's operations carry the one
   tag for samples and every measurement type's the one for measurements, and no tag is a single
   type's name. Each operation of a registered type has a summary that starts with the type's

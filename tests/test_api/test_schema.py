@@ -276,6 +276,9 @@ def every_description(node):
 
 @pytest.mark.django_db
 class TestTypesInTheDocumentation:
+    #: The headings of the first schema, which the interactive page reads.
+    HEADINGS = ("Projects", "Datasets", "Contributors", "Samples", "Measurements")
+
     @pytest.fixture
     def tags(self, schema):
         """Return the schema's top-level tags by name."""
@@ -285,24 +288,33 @@ class TestTypesInTheDocumentation:
     def plural(model):
         return str(model._meta.verbose_name_plural)
 
-    def test_each_types_operations_are_grouped_under_its_plural_name(
+    @staticmethod
+    def heading(model):
+        from fairdm.core.models import Sample
+
+        return "Samples" if issubclass(model, Sample) else "Measurements"
+
+    @staticmethod
+    def operations(schema, model):
+        """Return ``(path, method, operation)`` for each operation of a registered type."""
+        basename = TestSchemaMatchesRoutes.basename(model)
+        for path in (reverse(f"api:{basename}-list"), detail_path(basename)):
+            for method, operation in schema["paths"][path].items():
+                yield path, method, operation
+
+    @staticmethod
+    def list_operation(schema, model):
+        basename = TestSchemaMatchesRoutes.basename(model)
+        return schema["paths"][reverse(f"api:{basename}-list")]["get"]
+
+    def test_sample_types_share_one_heading_and_measurement_types_another(
         self, schema, registered_types
     ):
         for model, _config in registered_types:
-            basename = TestSchemaMatchesRoutes.basename(model)
-            paths = (reverse(f"api:{basename}-list"), detail_path(basename))
+            for path, method, operation in self.operations(schema, model):
+                assert operation["tags"] == [self.heading(model)], (path, method)
 
-            for path in paths:
-                for method, operation in schema["paths"][path].items():
-                    assert operation["tags"] == [self.plural(model)], (path, method)
-
-    def test_the_schema_lists_a_section_for_each_registered_type(
-        self, tags, registered_types
-    ):
-        for model, _config in registered_types:
-            assert self.plural(model) in tags
-
-    def test_every_tag_an_operation_uses_has_a_described_section(self, schema, tags):
+    def test_no_heading_is_one_types_name(self, schema, tags, registered_types):
         used = {
             tag
             for item in schema["paths"].values()
@@ -310,8 +322,13 @@ class TestTypesInTheDocumentation:
             for tag in operation["tags"]
         }
 
-        assert used
-        for name in used:
+        assert used == set(self.HEADINGS)
+        for model, _config in registered_types:
+            assert self.plural(model) not in tags
+
+    def test_the_headings_are_described_and_nothing_else_is(self, schema, tags):
+        assert [tag["name"] for tag in schema["tags"]] == list(self.HEADINGS)
+        for name in self.HEADINGS:
             assert tags[name].get("description"), name
 
     def test_projects_datasets_and_contributors_are_described_with_their_viewsets_words(
@@ -326,19 +343,69 @@ class TestTypesInTheDocumentation:
         )
 
         for name, viewset in (
-            ("projects", ProjectViewSet),
-            ("datasets", DatasetViewSet),
-            ("contributors", ContributorViewSet),
+            ("Projects", ProjectViewSet),
+            ("Datasets", DatasetViewSet),
+            ("Contributors", ContributorViewSet),
         ):
             assert tags[name]["description"] == inspect.getdoc(viewset)
 
-    def test_a_section_carries_what_the_registration_gives(
-        self, tags, registered_types
+    def test_each_operation_is_titled_with_its_types_plural_name(
+        self, schema, registered_types
+    ):
+        for model, _config in registered_types:
+            titles = []
+            for path, method, operation in self.operations(schema, model):
+                prefix, separator, action = operation["summary"].partition(": ")
+                assert prefix == self.plural(model), (path, method)
+                assert separator
+                assert action, (path, method)
+                titles.append(operation["summary"])
+
+            assert len(titles) == 6
+            assert len(set(titles)) == 6
+
+    def test_a_types_operations_sit_together_and_types_follow_the_registry(
+        self, schema, registered_types
+    ):
+        runs = {"Samples": [], "Measurements": []}
+        for item in schema["paths"].values():
+            for operation in item.values():
+                heading = operation["tags"][0]
+                if heading not in runs:
+                    continue
+                plural = operation["summary"].split(": ")[0]
+                if not runs[heading] or runs[heading][-1] != plural:
+                    runs[heading].append(plural)
+
+        for heading in ("Samples", "Measurements"):
+            registered = [
+                self.plural(model)
+                for model, _config in registered_types
+                if self.heading(model) == heading
+            ]
+            assert runs[heading] == registered, heading
+
+    def test_every_operation_of_a_type_keeps_the_types_description(
+        self, schema, registered_types
+    ):
+        checked = 0
+        for model, config in registered_types:
+            text = registration_text(config)
+            if not text:
+                continue
+            for path, method, operation in self.operations(schema, model):
+                assert operation["description"].startswith(text), (path, method)
+                checked += 1
+
+        assert checked
+
+    def test_a_list_operation_carries_what_the_registration_gives(
+        self, schema, registered_types
     ):
         given = set()
         for model, config in registered_types:
             metadata = config.metadata
-            description = tags[self.plural(model)]["description"]
+            description = self.list_operation(schema, model)["description"]
             texts = [registration_text(config)]
             if metadata and metadata.authority:
                 authority = metadata.authority
@@ -356,18 +423,35 @@ class TestTypesInTheDocumentation:
 
         assert given == {"authority", "citation", "keywords"}
 
-    def test_a_section_links_to_the_repository_where_the_registration_gives_one(
-        self, tags, registered_types
+    def test_only_a_list_operation_carries_the_details(self, schema, registered_types):
+        checked = 0
+        for model, config in registered_types:
+            metadata = config.metadata
+            if not (metadata and metadata.authority):
+                continue
+            for path, method, operation in self.operations(schema, model):
+                if (path, method) == (
+                    reverse(f"api:{TestSchemaMatchesRoutes.basename(model)}-list"),
+                    "get",
+                ):
+                    continue
+                assert str(metadata.authority.name) not in operation["description"]
+                checked += 1
+
+        assert checked
+
+    def test_a_list_operation_links_to_the_repository_where_the_registration_gives_one(
+        self, schema, registered_types
     ):
         linked = 0
         for model, config in registered_types:
-            tag = tags[self.plural(model)]
+            operation = self.list_operation(schema, model)
             url = config.metadata.repository_url if config.metadata else ""
             if url:
-                assert tag["externalDocs"]["url"] == url
+                assert operation["externalDocs"]["url"] == url
                 linked += 1
             else:
-                assert "externalDocs" not in tag
+                assert "externalDocs" not in operation
 
         assert linked
 
@@ -446,8 +530,8 @@ class TestMetadataDescriptionComesFirst:
         assert own
         assert own != str(config.description)
 
-        response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
-        tags = {tag["name"]: tag for tag in response.json()["tags"]}
-        section = tags[str(XRFMeasurement._meta.verbose_name_plural)]
+        schema = APIClient().get(reverse("api:api-schema"), {"format": "json"}).json()
+        basename = TestSchemaMatchesRoutes.basename(XRFMeasurement)
+        operation = schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
-        assert section["description"].startswith(own)
+        assert operation["description"].startswith(own)

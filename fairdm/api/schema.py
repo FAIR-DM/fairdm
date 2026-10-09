@@ -13,9 +13,46 @@ from __future__ import annotations
 import inspect
 from typing import Any, cast
 
+from django.utils.functional import Promise
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.contrib.django_filters import DjangoFilterExtension
 from drf_spectacular.contrib.knox_auth_token import KnoxTokenScheme
 from rest_framework.settings import api_settings
+
+#: The headings of the core lists in the generated documentation, by the prefix the router
+#: serves them at.
+CORE_HEADINGS = {
+    "projects": "Projects",
+    "datasets": "Datasets",
+    "contributors": "Contributors",
+}
+
+#: The heading every sample type's operations are under in the generated documentation.
+SAMPLES_HEADING = "Samples"
+
+#: The heading every measurement type's operations are under in the generated documentation.
+MEASUREMENTS_HEADING = "Measurements"
+
+#: What each of the two headings for registered types holds, by heading.
+KIND_DESCRIPTIONS = {
+    SAMPLES_HEADING: _(
+        "The sample types this portal holds, each with its own endpoints."
+    ),
+    MEASUREMENTS_HEADING: _(
+        "The measurement types this portal holds, each with its own endpoints."
+    ),
+}
+
+#: What an action of a list or record is called in an operation's title, by action name.
+ACTION_TITLES = {
+    "list": _("list"),
+    "retrieve": _("read"),
+    "create": _("create"),
+    "update": _("replace"),
+    "partial_update": _("change"),
+    "destroy": _("delete"),
+}
 
 
 class ApiDescription:
@@ -110,6 +147,48 @@ class TypeDescription:
         """The type's singular display name."""
         return str(self.model._meta.verbose_name)
 
+    @property
+    def heading(self) -> str:
+        """The heading the type's operations are under: samples or measurements."""
+        from fairdm.registry import registry
+
+        return (
+            SAMPLES_HEADING if self.model in registry.samples else MEASUREMENTS_HEADING
+        )
+
+    def action_title(self, action: str) -> Promise:
+        """Title one action of the type's list or record so it can be told from the others.
+
+        Args:
+            action: The viewset action, a key of :data:`ACTION_TITLES`.
+
+        Returns:
+            The type's plural name, then what the action does, translated when shown.
+        """
+        return format_lazy(
+            "{}: {}", self.model._meta.verbose_name_plural, ACTION_TITLES[action]
+        )
+
+    def list_description(self) -> str:
+        """Describe the type's list with everything the registration says about it.
+
+        Returns:
+            What the type is, then its authority, citation and keywords.
+        """
+        return "\n\n".join(filter(None, (self.summary(), self.details())))
+
+    def repository(self) -> dict[str, str] | None:
+        """Point at the repository the registration names.
+
+        Returns:
+            An OpenAPI external documentation object, or ``None`` when the registration names
+            no repository.
+        """
+        metadata = self.config.metadata
+        if metadata and metadata.repository_url:
+            return {"url": metadata.repository_url, "description": "Repository"}
+        return None
+
     def summary(self) -> str:
         """Say what the type is.
 
@@ -161,14 +240,13 @@ class TypeDescription:
         Returns:
             An OpenAPI tag object, linking to the repository where the registration gives one.
         """
-        description = "\n\n".join(filter(None, (self.summary(), self.details())))
-        tag: dict[str, Any] = {"name": self.name, "description": description}
-        metadata = self.config.metadata
-        if metadata and metadata.repository_url:
-            tag["externalDocs"] = {
-                "url": metadata.repository_url,
-                "description": "Repository",
-            }
+        tag: dict[str, Any] = {
+            "name": self.name,
+            "description": self.list_description(),
+        }
+        repository = self.repository()
+        if repository:
+            tag["externalDocs"] = repository
         return tag
 
     def component_names(self) -> tuple[str, str]:
@@ -186,14 +264,16 @@ class TypeDescription:
 
 
 class TypeDocumentation:
-    """The sections of the generated documentation, one for each list the portal serves."""
+    """The headings of the generated documentation, and the records the types describe."""
 
     def tags(self) -> list[dict[str, Any]]:
-        """List a section for each core list, custom viewset and registered type.
+        """List a heading for each core list and custom viewset, and one for each kind of type.
 
         Returns:
-            OpenAPI tag objects. A viewset on the router that is not generated from a
-            registration is described by its own docstring.
+            OpenAPI tag objects, in the order the router serves the lists. A viewset on the
+            router that is not generated from a registration is described by its own docstring.
+            Sample types share one heading and measurement types another, which says what the
+            heading holds and leaves each type's own words to its list operation.
         """
         from fairdm.api.router import fairdm_api_router
 
@@ -201,9 +281,11 @@ class TypeDocumentation:
         for prefix, viewset, _basename in fairdm_api_router.registry:
             registration = getattr(viewset, "registration", None)
             if registration is not None:
-                tag = TypeDescription(registration).tag()
+                heading = TypeDescription(registration).heading
+                tag = {"name": heading, "description": KIND_DESCRIPTIONS[heading]}
             else:
-                tag = {"name": prefix.split("/")[0]}
+                name = prefix.split("/")[0]
+                tag = {"name": CORE_HEADINGS.get(name, name)}
                 own = viewset.__dict__.get("__doc__")
                 if own:
                     tag["description"] = inspect.cleandoc(own)
