@@ -258,3 +258,10 @@ Did: Added TestTokenPages in tests/test_api/test_urls.py. The list, create and r
 Verified: uv run pytest -q -n0 tests/test_api/test_urls.py::TestTokenPages: 3 fail and 2 error with NoReverseMatch, as the pages' routes are not included yet.
 Next: T039.
 Watch: none.
+
+## 2026-10-09T00:33:41Z · Implementer US4 · T039
+
+Did: Added TestNoAccountEndpoints in tests/test_api/test_urls.py. It walks the resolver under the api namespace, collecting each route's name and full path, and asserts none contains login, logout, password, registration or auth/user. A separate case posts an email and password to the old login address and expects 404.
+Verified: uv run pytest -q -n0 tests/test_api/test_urls.py::TestNoAccountEndpoints: the two behaviour cases fail (the old endpoints are routed and the login answers 200); the guard that the walk finds routes passes.
+Next: T040.
+Watch: none.
