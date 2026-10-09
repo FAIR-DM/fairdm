@@ -2054,3 +2054,78 @@ class TestSerializerMustBuildOnBase:
             generate_viewset(
                 ModelConfiguration(model=model, serializer_class=off_the_base(model))
             )
+
+
+@pytest.mark.django_db
+class TestQueryCount:
+    KINDS = ("project", "dataset", "contributor", "sample", "measurement")
+
+    @staticmethod
+    def add_person(add_metadata):
+        """Add a person with an identifier and a primary affiliation to the contributors."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory(is_active=True, is_claimed=True)
+        ContributorIdentifierFactory(related=person, type="ORCID")
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        return person
+
+    @pytest.fixture
+    def grow(self, make_record, add_metadata):
+        """Return a function adding records of a kind, each with its metadata recorded."""
+
+        def grow(kind, number):
+            for _ in range(number):
+                if kind == "contributor":
+                    self.add_person(add_metadata)
+                else:
+                    build_record(kind, make_record, add_metadata)
+
+        return grow
+
+    @staticmethod
+    def address(kind, url_of):
+        from demo.models import ExampleMeasurement, RockSample
+
+        return {
+            "project": lambda: reverse("api:project-list"),
+            "dataset": lambda: reverse("api:dataset-list"),
+            "contributor": lambda: reverse("api:contributor-list"),
+            "sample": lambda: url_of(RockSample, "list"),
+            "measurement": lambda: url_of(ExampleMeasurement, "list"),
+        }[kind]()
+
+    @staticmethod
+    def queries_for(client, address):
+        """Return the number of queries behind a list, and the number of records it holds."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            response = client.get(address, {"page_size": 100})
+        assert response.status_code == 200
+        return len(captured), len(response.json()["results"])
+
+    @pytest.mark.parametrize("caller", ["anonymous", "token"])
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+        self, api_client, authenticated_client, url_of, grow, kind, caller
+    ):
+        client = api_client if caller == "anonymous" else authenticated_client
+        address = self.address(kind, url_of)
+        grow(kind, 2)
+        self.queries_for(client, address)
+        few, held_few = self.queries_for(client, address)
+
+        grow(kind, 10)
+        many, held_many = self.queries_for(client, address)
+
+        assert held_many >= held_few + 10
+        assert many == few
