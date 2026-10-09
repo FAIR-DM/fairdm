@@ -595,3 +595,32 @@ class TestCatalogueCounts:
         for model in records:
             listed = client.get(url_of(model, "list")).json()["count"]
             assert counts[model.__name__] == listed
+
+
+@pytest.mark.django_db
+class TestRoot:
+    @pytest.fixture
+    def links(self, api_client):
+        response = api_client.get(
+            reverse("api:api-root"), HTTP_ACCEPT="application/json"
+        )
+        assert response.status_code == 200
+        return response.json()
+
+    def test_the_root_links_to_every_list_route(self, links):
+        from fairdm.api.router import fairdm_api_router
+
+        linked = set(links.values())
+
+        for _prefix, _viewset, basename in fairdm_api_router.registry:
+            assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
+
+    def test_the_root_links_to_both_catalogues(self, links):
+        linked = set(links.values())
+
+        for name in CATALOGUES.values():
+            assert f"http://testserver{reverse(name)}" in linked
+
+    def test_each_link_answers(self, api_client, links):
+        for link in links.values():
+            assert api_client.get(link).status_code == 200
