@@ -403,3 +403,10 @@ Did: One entry under Unreleased > Changed in CHANGELOG.md, with a bullet for eac
 Verified: each fact was read against the branch: the dependency and INSTALLED_APPS changes in git diff origin/main, the removed login route in fairdm/api/urls.py, the old and new CORS value in fairdm/api/settings.py, and the token, serializer and catalogue behaviour in docs/portal-development/restful-api.md and decisions.md.
 Next: T060.
 Watch: none.
+
+## 2026-10-09T01:17:46Z · Implementer US6 · T060
+
+Did: In docs/ROADMAP.md, R11's status line reads `*Delivered · advances G10*`. Nothing else in the file changed.
+Verified: git diff shows the one line changed.
+Next: the full verify, then the completion report.
+Watch: none.
