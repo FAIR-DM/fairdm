@@ -1,7 +1,5 @@
 """Tests for the generated OpenAPI schema (Feature 011 US5)."""
 
-import json
-
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
@@ -164,12 +162,6 @@ class TestSchemaDescribesThePortal:
         assert len(cookie) == 1
         assert len(schemes) == 2
 
-    def test_the_security_schemes_are_named_in_plain_words(self, schema):
-        schemes = schema["components"]["securitySchemes"]
-
-        assert set(schemes) == {"tokenAuth", "cookieAuth"}
-        assert "knox" not in json.dumps(schemes).lower()
-
     def test_every_operation_refers_to_a_scheme_the_schema_defines(self, schema):
         defined = set(schema["components"]["securitySchemes"])
         referred = set()
@@ -307,30 +299,6 @@ class TestTypesInTheDocumentation:
         basename = TestSchemaMatchesRoutes.basename(model)
         return schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
-    def test_sample_types_share_one_heading_and_measurement_types_another(
-        self, schema, registered_types
-    ):
-        for model, _config in registered_types:
-            for path, method, operation in self.operations(schema, model):
-                assert operation["tags"] == [self.heading(model)], (path, method)
-
-    def test_no_heading_is_one_types_name(self, schema, tags, registered_types):
-        used = {
-            tag
-            for item in schema["paths"].values()
-            for operation in item.values()
-            for tag in operation["tags"]
-        }
-
-        assert used == set(self.HEADINGS)
-        for model, _config in registered_types:
-            assert self.plural(model) not in tags
-
-    def test_the_headings_are_described_and_nothing_else_is(self, schema, tags):
-        assert [tag["name"] for tag in schema["tags"]] == list(self.HEADINGS)
-        for name in self.HEADINGS:
-            assert tags[name].get("description"), name
-
     def test_projects_datasets_and_contributors_are_described_with_their_viewsets_words(
         self, tags
     ):
@@ -348,42 +316,6 @@ class TestTypesInTheDocumentation:
             ("Contributors", ContributorViewSet),
         ):
             assert tags[name]["description"] == inspect.getdoc(viewset)
-
-    def test_each_operation_is_titled_with_its_types_plural_name(
-        self, schema, registered_types
-    ):
-        for model, _config in registered_types:
-            titles = []
-            for path, method, operation in self.operations(schema, model):
-                prefix, separator, action = operation["summary"].partition(": ")
-                assert prefix == self.plural(model), (path, method)
-                assert separator
-                assert action, (path, method)
-                titles.append(operation["summary"])
-
-            assert len(titles) == 6
-            assert len(set(titles)) == 6
-
-    def test_a_types_operations_sit_together_and_types_follow_the_registry(
-        self, schema, registered_types
-    ):
-        runs = {"Samples": [], "Measurements": []}
-        for item in schema["paths"].values():
-            for operation in item.values():
-                heading = operation["tags"][0]
-                if heading not in runs:
-                    continue
-                plural = operation["summary"].split(": ")[0]
-                if not runs[heading] or runs[heading][-1] != plural:
-                    runs[heading].append(plural)
-
-        for heading in ("Samples", "Measurements"):
-            registered = [
-                self.plural(model)
-                for model, _config in registered_types
-                if self.heading(model) == heading
-            ]
-            assert runs[heading] == registered, heading
 
     def test_every_operation_of_a_type_keeps_the_types_description(
         self, schema, registered_types
@@ -422,23 +354,6 @@ class TestTypesInTheDocumentation:
                 assert str(text) in description, (model.__name__, text)
 
         assert given == {"authority", "citation", "keywords"}
-
-    def test_only_a_list_operation_carries_the_details(self, schema, registered_types):
-        checked = 0
-        for model, config in registered_types:
-            metadata = config.metadata
-            if not (metadata and metadata.authority):
-                continue
-            for path, method, operation in self.operations(schema, model):
-                if (path, method) == (
-                    reverse(f"api:{TestSchemaMatchesRoutes.basename(model)}-list"),
-                    "get",
-                ):
-                    continue
-                assert str(metadata.authority.name) not in operation["description"]
-                checked += 1
-
-        assert checked
 
     def test_a_list_operation_links_to_the_repository_where_the_registration_gives_one(
         self, schema, registered_types

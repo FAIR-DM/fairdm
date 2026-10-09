@@ -308,16 +308,6 @@ class TestRoot:
         for _prefix, _viewset, basename in fairdm_api_router.registry:
             assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
 
-    def test_the_root_links_to_nothing_that_is_not_a_list_route(self, links):
-        from fairdm.api.router import fairdm_api_router
-
-        lists = {
-            f"http://testserver{reverse(f'api:{basename}-list')}"
-            for _prefix, _viewset, basename in fairdm_api_router.registry
-        }
-
-        assert set(links.values()) == lists
-
     def test_the_router_is_the_one_the_portal_serves(self):
         from rest_framework.routers import DefaultRouter
 
@@ -329,10 +319,3 @@ class TestRoot:
     def test_each_link_answers(self, api_client, links):
         for link in links.values():
             assert api_client.get(link).status_code == 200
-
-
-@pytest.mark.django_db
-class TestKindOfRecordHasNoList:
-    @pytest.mark.parametrize("address", ["/api/v1/samples/", "/api/v1/measurements/"])
-    def test_a_kind_of_record_has_no_list_of_its_types(self, api_client, address):
-        assert api_client.get(address).status_code == 404

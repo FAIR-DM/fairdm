@@ -31,18 +31,6 @@ class TestSwaggerUI:
         response = api_client.get("/api/v1/docs/")
         assert response.status_code == 200
 
-    def test_swagger_reads_the_schema(self, api_client):
-        content = api_client.get("/api/v1/docs/").content.decode()
-
-        assert reverse("api:api-schema") in content
-
-
-@pytest.mark.django_db
-class TestOneDocumentationPage:
-    def test_no_second_documentation_page_or_schema_is_served(self, api_client):
-        assert api_client.get("/api/v1/redoc/").status_code == 404
-        assert api_client.get("/api/v1/schema/nested/").status_code == 404
-
 
 @pytest.mark.django_db
 class TestOpenAPISchema:

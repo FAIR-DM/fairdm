@@ -738,3 +738,19 @@ ReDoc, the second schema address and the step that built it are removed. T076 is
 
 **ADR:** none — the removal of something this feature added and never released.
 
+## D32. Tests that only recorded a decision are removed
+
+Twelve tests added during the review asserted that something removed stays removed, that
+something is unchanged, or how the documentation page is laid out: which heading an operation is
+under, how it is titled, which operation carries a type's details, what a scheme is called. By
+section 1 of the testing standards none of them is a test. Each could fail only when someone
+deliberately changes the thing it asserts, and how the documentation page is arranged is judged by
+a person looking at it.
+
+They are deleted. The tasks that asked for them (T068, T071, T075, T077) keep their code changes
+and the tests that check behaviour: that a type's description, authority, citation and keywords
+come from its registration, that a maintainer's details are never published, and that no
+description is a docstring of a base class.
+
+**ADR:** none — a correction to this feature's own tests.
+

@@ -679,15 +679,6 @@ class TestPageOnThePortal:
             f"http://testserver{record.get_absolute_url()}"
         )
 
-    def test_a_reference_to_another_record_is_unchanged(
-        self, api_client, url_of, make_record
-    ):
-        record = self.build("sample", make_record)
-
-        dataset = api_client.get(url_of(record)).json()["dataset"]
-
-        assert set(dataset) == {"uuid", "url"}
-
 
 @pytest.mark.django_db
 class TestNoDatabaseNumbers:
