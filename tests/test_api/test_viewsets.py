@@ -1791,3 +1791,105 @@ class TestNoServerErrors:
         response = client.delete(address(record))
 
         assert response.status_code < 500
+
+
+def marked_serializer(base, model, marker):
+    """Return a serializer on ``base`` that carries one extra field holding ``marker``."""
+    from rest_framework import serializers
+
+    class MarkedSerializer(base):
+        marked_by = serializers.SerializerMethodField()
+
+        def get_marked_by(self, obj):
+            return marker
+
+        class Meta(base.Meta):
+            fields = [*base.Meta.fields, "marked_by"]
+
+    MarkedSerializer.Meta.model = model
+    return MarkedSerializer
+
+
+@pytest.mark.django_db
+class TestRegisteredSerializerIsUsed:
+    @pytest.fixture
+    def rock(self):
+        from demo.factories import RockSampleFactory
+
+        return RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+
+    def test_a_serializer_named_in_the_registration_is_the_routes_serializer(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.models import RockSample
+        from fairdm.api.serializers import BaseSampleSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(
+            model=RockSample,
+            serializer_class=marked_serializer(
+                BaseSampleSerializer, RockSample, "the named class"
+            ),
+        )
+        on_the_router(
+            "samples/named-serializer", generate_viewset(config), "samples-named"
+        )
+
+        results = api_client.get(reverse("api:samples-named-list")).json()["results"]
+
+        assert [row["marked_by"] for row in results] == ["the named class"]
+
+    def test_a_serializer_from_an_overridden_accessor_is_the_routes_serializer(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.models import RockSample
+        from fairdm.api.serializers import BaseSampleSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        serializer_class = marked_serializer(
+            BaseSampleSerializer, RockSample, "the accessor"
+        )
+
+        class OverridingConfig(ModelConfiguration):
+            def get_serializer_class(self):
+                return serializer_class
+
+        on_the_router(
+            "samples/accessor-serializer",
+            generate_viewset(OverridingConfig(model=RockSample)),
+            "samples-accessor",
+        )
+
+        results = api_client.get(reverse("api:samples-accessor-list")).json()["results"]
+
+        assert [row["marked_by"] for row in results] == ["the accessor"]
+
+    def test_a_measurement_route_uses_the_serializer_its_configuration_returns(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.factories import XRFMeasurementFactory
+        from demo.models import XRFMeasurement
+        from fairdm.api.serializers import BaseMeasurementSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
+        config = ModelConfiguration(
+            model=XRFMeasurement,
+            serializer_class=marked_serializer(
+                BaseMeasurementSerializer, XRFMeasurement, "the measurement class"
+            ),
+        )
+        on_the_router(
+            "measurements/named-serializer",
+            generate_viewset(config),
+            "measurements-named",
+        )
+
+        results = api_client.get(reverse("api:measurements-named-list")).json()[
+            "results"
+        ]
+
+        assert [row["marked_by"] for row in results] == ["the measurement class"]

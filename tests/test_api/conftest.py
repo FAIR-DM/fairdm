@@ -244,3 +244,41 @@ def saved():
         return {key: plain(getattr(record, key)) for key in fields}
 
     return saved
+
+
+@pytest.fixture
+def on_the_router():
+    """Return a function that registers a viewset on the API router for one test.
+
+    The router's addresses are read once, when the URL modules are imported, so the
+    modules are loaded again after every change. Both the registration and the reload
+    are undone at the end of the test.
+    """
+    import importlib
+
+    from django.urls import clear_url_caches
+
+    import fairdm.api.urls
+    import fairdm.conf.urls
+    from fairdm.api.router import fairdm_api_router
+
+    added = []
+
+    def reload_urls():
+        if hasattr(fairdm_api_router, "_urls"):
+            del fairdm_api_router._urls
+        importlib.reload(fairdm.api.urls)
+        importlib.reload(fairdm.conf.urls)
+        clear_url_caches()
+
+    def register(prefix, viewset, basename):
+        fairdm_api_router.register(prefix, viewset, basename=basename)
+        added.append((prefix, viewset, basename))
+        reload_urls()
+
+    yield register
+
+    if added:
+        for entry in added:
+            fairdm_api_router.registry.remove(entry)
+        reload_urls()
