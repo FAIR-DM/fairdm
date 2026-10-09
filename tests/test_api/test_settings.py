@@ -320,3 +320,47 @@ class TestTokens:
 
         assert knox_settings.TOKEN_LIMIT_PER_USER == 10
         assert knox_settings.AUTO_REFRESH is False
+
+
+@pytest.mark.django_db
+class TestSession:
+    @pytest.fixture
+    def project(self):
+        return ProjectFactory(visibility=Visibility.PRIVATE)
+
+    @pytest.fixture
+    def editor(self, project):
+        person = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=person, level=ContributionLevel.EDIT
+        )
+        return person
+
+    @staticmethod
+    def signed_in_by_session(person, **kwargs):
+        client = APIClient(**kwargs)
+        client.force_login(person)
+        return client
+
+    def test_a_person_reads_their_private_record_with_their_session(
+        self, project, editor
+    ):
+        client = self.signed_in_by_session(editor, enforce_csrf_checks=True)
+
+        response = client.get(reverse("api:project-detail", args=[project.uuid]))
+
+        assert response.status_code == 200
+
+    def test_a_write_with_a_session_and_no_csrf_token_is_refused(self, project, editor):
+        address = reverse("api:project-detail", args=[project.uuid])
+        allowed = self.signed_in_by_session(editor).patch(
+            address, {"name": "Changed"}, format="json"
+        )
+        assert allowed.status_code == 200
+
+        client = self.signed_in_by_session(editor, enforce_csrf_checks=True)
+        response = client.patch(address, {"name": "Changed again"}, format="json")
+
+        assert response.status_code == 403
+        project.refresh_from_db()
+        assert project.name == "Changed"
