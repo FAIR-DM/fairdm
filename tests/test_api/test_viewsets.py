@@ -2061,8 +2061,8 @@ class TestQueryCount:
     KINDS = ("project", "dataset", "contributor", "sample", "measurement")
 
     @staticmethod
-    def add_person(add_metadata):
-        """Add a person with an identifier and a primary affiliation to the contributors."""
+    def add_contributors():
+        """Add a person with an identifier and an affiliation, and an organisation with a parent."""
         from fairdm.factories import (
             AffiliationFactory,
             ContributorIdentifierFactory,
@@ -2075,7 +2075,9 @@ class TestQueryCount:
         AffiliationFactory(
             person=person, organization=OrganizationFactory(), is_primary=True
         )
-        return person
+        AffiliationFactory(person=person, organization=OrganizationFactory())
+        organisation = OrganizationFactory(parent=OrganizationFactory())
+        ContributorIdentifierFactory(related=organisation, type="ROR")
 
     @pytest.fixture
     def grow(self, make_record, add_metadata):
@@ -2084,7 +2086,7 @@ class TestQueryCount:
         def grow(kind, number):
             for _ in range(number):
                 if kind == "contributor":
-                    self.add_person(add_metadata)
+                    self.add_contributors()
                 else:
                     build_record(kind, make_record, add_metadata)
 
