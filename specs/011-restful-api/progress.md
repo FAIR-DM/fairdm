@@ -366,3 +366,11 @@ Did: Added TestLimitsAreSettings in tests/test_api/test_throttling.py. Each of t
 Verified: uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimitsAreSettings with a throw-away module holding the four plain subclasses: the applied-throttles test and the four stopped-at-the-figure cases fail because the API still applies the old two throttles; the rest pass. The module was removed again, so until T057 the file fails at import.
 Next: T055.
 Watch: none.
+
+## 2026-10-09T01:09:21Z · Implementer US6 · T055
+
+Did: Added TestPageSizes in tests/test_api/test_pagination.py: a list holds the default number of records, honours a larger size up to the ceiling and no further, follows a changed default and a changed ceiling (both changed through the settings), the ceiling is a Django setting, a middle page has both a next and a previous address, and following next walks every record once.
+Existing tests changed (authorised by the story): in TestPagination, test_default_page_size_is_25 and test_page_size_capped_at_100 are deleted, replaced by the TestPageSizes cases. test_next_link_present_on_first_page, test_previous_link_none_on_first_page and test_second_page_has_previous_link now pass page_size=25 so they no longer depend on the default.
+Verified: uv run pytest -q -n0 tests/test_api/test_pagination.py: 4 fail (the ceiling is not a setting, a size above the ceiling is not cut to it, a changed default and a changed ceiling are not followed) and the other 11 pass.
+Next: T056.
+Watch: none.
