@@ -337,3 +337,68 @@ class TestRegistrationFailureIsReported:
 
         with pytest.raises(RuntimeError, match="cannot be built"):
             FairDMAPIRouter().register_types()
+
+
+class TestAddresses:
+    @pytest.fixture
+    def routes(self):
+        """Return the router's prefixes and names after it registers the registered types."""
+        from fairdm.api.router import FairDMAPIRouter
+
+        def routes():
+            router = FairDMAPIRouter()
+            router.register_types()
+            return {basename: prefix for prefix, _viewset, basename in router.registry}
+
+        return routes
+
+    def test_a_samples_address_is_its_plural_name_under_samples(self, routes):
+        assert routes()["samples-rock-samples"] == "samples/rock-samples"
+
+    def test_a_measurements_address_is_its_plural_name_under_measurements(self, routes):
+        assert routes()["measurements-xrf-measurements"] == (
+            "measurements/xrf-measurements"
+        )
+
+    @pytest.mark.django_db
+    def test_the_generated_routes_are_served_at_those_addresses(self):
+        assert (
+            reverse("api:samples-rock-samples-list") == "/api/v1/samples/rock-samples/"
+        )
+        assert reverse("api:measurements-xrf-measurements-list") == (
+            "/api/v1/measurements/xrf-measurements/"
+        )
+
+    def test_every_registered_type_has_a_route(self, routes):
+        from fairdm.registry import registry
+
+        assert len(routes()) == len(registry.samples) + len(registry.measurements)
+
+    def test_a_sample_type_and_a_measurement_type_with_one_plural_name_get_different_names(
+        self, monkeypatch
+    ):
+        from demo.models import RockSample, XRFMeasurement
+        from fairdm.api.router import FairDMAPIRouter
+
+        monkeypatch.setattr(RockSample._meta, "verbose_name_plural", "readings")
+        monkeypatch.setattr(XRFMeasurement._meta, "verbose_name_plural", "readings")
+        router = FairDMAPIRouter()
+
+        router.register_types()
+
+        named = {basename: prefix for prefix, _viewset, basename in router.registry}
+        assert named["samples-readings"] == "samples/readings"
+        assert named["measurements-readings"] == "measurements/readings"
+
+    def test_renaming_a_types_plural_name_moves_its_address(self, monkeypatch):
+        from demo.models import RockSample
+        from fairdm.api.router import FairDMAPIRouter
+
+        monkeypatch.setattr(RockSample._meta, "verbose_name_plural", "Hand Specimens")
+        router = FairDMAPIRouter()
+
+        router.register_types()
+
+        named = {basename: prefix for prefix, _viewset, basename in router.registry}
+        assert named["samples-hand-specimens"] == "samples/hand-specimens"
+        assert "samples-rock-samples" not in named

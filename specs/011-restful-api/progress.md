@@ -216,3 +216,10 @@ Did: Added TestRegistrationFailureIsReported in tests/test_api/test_router.py. I
 Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported: 3 fail with AttributeError, because the registration is still two module-level loops that log a warning, so there is nothing to call. T035 turns the loops into FairDMAPIRouter.register_types and removes the swallowing.
 Next: T032.
 Watch: none.
+
+## 2026-10-09T00:12:33Z · Implementer US3 · T032
+
+Did: Added TestAddresses in tests/test_api/test_router.py: a sample type's address is its plural name under samples/ and a measurement type's is under measurements/; the generated routes are served at those addresses; a sample type and a measurement type given the same plural name get different route names; renaming a type's plural name moves its address.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses: the five tests that build a router fail with AttributeError (register_types does not exist yet); the one that reads the served routes passes, as the addresses already follow the plural name.
+Next: T035.
+Watch: none.
