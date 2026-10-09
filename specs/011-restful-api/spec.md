@@ -209,7 +209,7 @@ level, and with no token.
 ### User Story 3 - A portal developer gets an API for a registered type and decides what it carries (Priority: P2)
 
 A portal developer adds a new sample type and registers it. Without writing anything else, the type
-has a list address and a record address, it appears in the catalogue of types, and its records can
+has a list address and a record address, it appears in the API's root and its generated documentation, and its records can
 be read and written. The developer then decides the API should carry two fields the tables do not,
 and says so in the registration. Later they need a computed field, so they write their own
 serializer and name it in the registration. A colleague adds a viewset of their own for something
@@ -287,15 +287,16 @@ to the address the earlier login endpoint had.
 A developer who has never seen the portal opens its API documentation from the sidebar. The page
 lists every endpoint the portal has, including the sample and measurement types this particular
 portal registered, with the fields each accepts and returns. They try a request from the page and
-read the response. Their script asks the catalogue which sample types exist and where each one's
-records are.
+read the response. Each registered type has its own section, under the name the portal gives it
+and with the description its developer wrote. Their script asks the API's root which lists exist
+and where each one is.
 
 **Why this priority**: Documentation that matches the running portal is what makes the API usable
 by someone outside the team. It is generated, so it follows the endpoints being right.
 
 **Independent Test**: Open the documentation from the sidebar on a portal with several registered
 types. Check each type appears with its fields, and that read-only fields are marked. Try a request.
-Request the two catalogues signed out and signed in.
+Request the API's root.
 
 **Acceptance Scenarios**:
 
@@ -307,16 +308,15 @@ Request the two catalogues signed out and signed in.
    is sent and its response shown.
 4. **Given** the documentation, **When** it describes how to authenticate and what the limits are,
    **Then** what it says is what the portal does.
-5. **Given** a request for the catalogue of sample types or of measurement types, **When** it is
-   answered, **Then** each registered type is listed with its name, the address of its records and a
-   count. The fields and filters of a type are in the generated documentation and are not repeated
-   in the catalogue.
-6. **Given** a catalogue entry, **When** it gives a count of records, **Then** the count is of the
-   records the caller may see.
-7. **Given** a portal with no registered sample or measurement types, **When** the catalogues are
-   requested, **Then** each answers with an empty list.
-8. **Given** the address of the API's root, **When** it is requested, **Then** the response links
-   to every list endpoint and to both catalogues.
+5. **Given** a registered type, **When** its section of the documentation is read, **Then** it is
+   headed by the type's own plural name and carries the description from its registration, and
+   where the registration gives them, the authority behind the type, how to cite it, its keywords
+   and a link to its repository.
+6. **Given** a registered type, **When** the description of its records in the documentation is
+   read, **Then** it is the type's own description, and never text written for the framework's
+   developers.
+7. **Given** the address of the API's root, **When** it is requested, **Then** the response links
+   to every list endpoint.
 
 ---
 
@@ -398,6 +398,9 @@ confirm the portal follows them.
   the addresses of the next and previous pages.
 - **FR-008**: A list MUST accept the filters its registered type declares, and every list MUST
   accept a named ordering, ascending or descending, on that record type's sortable fields.
+- **FR-045**: Every list MUST be able to be narrowed to the records changed after a given moment
+  and to those changed before one, so that a caller who has read the list once can ask only for
+  what is new.
 - **FR-009**: JSON MUST be the API's format, with browsable pages for a person using a browser.
 
 **Access**
@@ -471,11 +474,11 @@ confirm the portal follows them.
   MUST NOT show the name of the package that provides tokens.
 - **FR-035**: What the generated documentation says about authentication, limits and paging MUST
   match what the portal does.
-- **FR-036**: The API MUST serve a catalogue of registered sample types and one of registered
-  measurement types, each listing a type's name, the address of its records and a count of the records
-  the caller may see. A type's fields and filters are described once, in the generated
-  documentation.
-- **FR-037**: The API's root MUST link to every list endpoint and both catalogues.
+- **FR-036**: The generated documentation MUST present each registered sample and measurement type
+  under that type's own plural name, with the description its registration gives, and with the
+  authority, citation, keywords and repository link where the registration gives them. It MUST NOT
+  show a maintainer's name or email address. The API serves no separate catalogue of types.
+- **FR-037**: The API's root MUST link to every list endpoint.
 - **FR-038**: The sidebar MUST carry one link to the API documentation.
 - **FR-039**: The documentation for portal developers MUST describe the registration options that
   shape the API, the base serializers, the router, and every setting this feature reads. The
@@ -498,7 +501,6 @@ confirm the portal follows them.
 - **Contributor**: a person or an organisation credited on records. Read-only in the API.
 - **Registered type**: a kind of sample or measurement a portal developer has added through the
   registry. Its registration decides what its API endpoints carry.
-- **Catalogue**: the list of registered sample types, or of measurement types, that a portal has.
 - **Token**: a secret a person creates on their account pages and a script sends with each request.
   It stands for that person until it expires or is revoked.
 - **Level**: what a person may do with a record: view, edit or manage. Defined by FS-022.

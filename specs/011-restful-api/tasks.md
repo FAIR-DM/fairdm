@@ -286,3 +286,22 @@ Each test task is written first and seen to fail.
   and `app_label` from the entries, their response serializer and the documentation.
   `TestEveryListedFilter` takes each type's filter names from the API's filter set for that type
   in place of the catalogue.
+
+## Phase 10: further changes the maintainer asked for at review
+
+- [ ] T071 [US5] The two catalogues of registered types give nothing the API's root, the lists and
+  the generated documentation do not. Remove both endpoints, their links from the root, their
+  serializer and their tests, and every mention in the documentation. `tests/test_api/test_router.py`:
+  the two addresses answer 404, and the root links to every list and to nothing that is not one.
+- [ ] T072 [US1] `tests/test_api/test_viewsets.py`, `TestChangedSince`: on the lists of projects,
+  datasets, contributors and every registered sample and measurement type, `modified_after` returns
+  only records changed after the moment given and `modified_before` only those changed before it,
+  a moment that cannot be read is refused with a 400, and both appear among the list's parameters
+  in the generated documentation. Then add the two filters to every list.
+- [ ] T073 [US5] `tests/test_api/test_schema.py`, `TestTypesInTheDocumentation`: each registered
+  type's operations are grouped under a section named with the type's plural name. The section's
+  description carries the registration's description and, where given, its authority, citation,
+  keywords and repository link, and never a maintainer's name or email address. The description of
+  each type's record is the type's own, and no description in the generated documentation is a
+  docstring of the framework's base classes. Then build the sections from the registry when the
+  documentation is generated.

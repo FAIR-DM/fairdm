@@ -602,3 +602,34 @@ here.
 
 **ADR:** none — small changes to this feature's own output, made before any release.
 
+## D26. The catalogues go, lists can be asked for what changed, and the documentation carries each type's own words
+
+Decided with the maintainer at review, after the catalogues had been trimmed (D25).
+
+**The two catalogues of registered types are removed.** Once their fields and filters were gone an
+entry held a name, an address and a count. The API's root already links every list, and every
+list's first page already carries its count. What is left did not justify two endpoints to keep
+true.
+
+**Every list takes `modified_after` and `modified_before`.** The case for a catalogue was telling a
+harvester whether anything is new. APIs answer that on the list: the caller remembers when it last
+read and asks for what changed since. Sorting by `modified` already worked. The filters did not
+exist, and an unknown parameter was silently ignored.
+
+**The generated documentation uses each type's own name and description.** All sample types were
+grouped under one heading, a type's display name appeared nowhere, and the description shown for a
+type's record was a docstring written for the framework's developers. Each registered type now has
+a section under its plural name, with the description, authority, citation, keywords and
+repository link from its registration. A maintainer's name and email address are left out, since
+the documentation is public and those are a person's details.
+
+Left for later, each as work of its own: figures about a type over time, an `ETag` or
+`Last-Modified` on responses, and a record of what was deleted.
+
+The specification is changed to match: the fifth story's narrative and scenarios, FR-036, FR-037,
+a new FR-045, and the catalogue is no longer among the key entities.
+
+**Ruled by.** The maintainer, at review, on a recommendation made there.
+
+**ADR:** none — changes to this feature's own output, made before any release.
+
