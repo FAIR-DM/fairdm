@@ -336,3 +336,12 @@ Did: Added TestRoot in tests/test_api/test_router.py. The API root links to the 
 Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestRoot: passes already. Probed: with the measurement catalogue link removed from the root the catalogue test fails.
 Next: T051.
 Watch: none.
+
+## 2026-10-09T00:53:58Z · Implementer US5 · T051
+
+Did: Added fairdm/api/schema.py with a postprocessing hook (listed after drf-spectacular's own in SPECTACULAR_SETTINGS) that appends authentication, the configured limits and the default and largest page size to the description, and with an extension that leaves out the filters the API drops per request (DatasetFilterSet.drops, which the request-time removal now also uses). The static description lost its login steps and numbers. The catalogues now take each entry from the type's list route: the address is that route made absolute, `fields` is the serializer's flat list, `filters` is the filter set built for the request, `count` runs the queryset through the visibility filter. FAIRDM_API_DOCS_URL is gone from fairdm/api/settings.py and fairdm/conf/settings/api.py.
+Existing tests changed: TestFairDMAPIDocsURLSetting in tests/test_api/test_settings.py is deleted with the setting. In tests/test_menus/test_menus.py the API menu test now counts the entries leading to api:api-docs across the whole menu and expects one, and the hard-coded-URL test finds the entry by its view name instead of by position. No test pinned the old catalogue shape or the old static text.
+Catalogue keys: `filterable_fields` is replaced by `filters`; `fields` is now the serializer's flat list; every other key is kept.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_menus tests/test_conf demo/tests: 1150 passed, 1 skipped (the skip was already there). ruff check and ruff format --check clean.
+Next: T052, then the full verify.
+Watch: the documentation still names FAIRDM_API_DOCS_URL and the old catalogue entry; T052 fixes both.
