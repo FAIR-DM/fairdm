@@ -447,3 +447,10 @@ Did: Added the thin-section type with a location on every record to TestQueryCou
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1206 passed.
 Next: T064.
 Watch: none.
+
+## 2026-10-09T02:12:01Z · Implementer fix-1 · T064
+
+Did: Added two cases to TestFiltering: a visitor narrowing a sample list by a private dataset's identifier, and a measurement list by the identifier of a sample in a private dataset, each get 400 and the same body as an unknown identifier (the sent value compared as a placeholder, since the message repeats it).
+Verified: no production change, so the cases pass on the unchanged code. Probed instead: with DatasetFilterSet.visible made to return its queryset unfiltered, both cases fail (200 where 400 is expected); restored, then uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering: 36 passed.
+Next: T065.
+Watch: none.
