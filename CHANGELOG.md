@@ -214,10 +214,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     type, is not offered. Every sample list takes `?dataset=` and every measurement list also takes
     `?sample=`.
   - **Every sample and measurement carries the common fields**, whatever its registration lists:
-    `url`, `html_url`, `uuid`, `name`, `dataset`, `added` and `modified`, and `local_id` and `status` for a
-    sample and `sample` for a measurement, then the metadata (`descriptions`, `dates`,
-    `identifiers`, `keywords`, `contributors`). The fields a type declares come after them, and a
-    measurement's measured values are included.
+    `url`, `html_url`, `uuid`, `name`, `dataset`, `added` and `modified`, and `local_id` and
+    `status` for a sample and `sample` for a measurement, then the metadata (`descriptions`,
+    `dates`, `identifiers`, `keywords`, `contributors`). The fields a type declares come after
+    them, and a measurement's measured values are included.
   - **Tokens come from the account pages, and the password login is gone.** A person creates a
     token at `/account/tokens/`, shown once and revocable, and a script sends it as
     `Authorization: Token <token>`. The addresses under `/api/v1/auth/`, which exchanged a

@@ -274,7 +274,7 @@ Each test task is written first and seen to fail.
   `tests/test_api/test_schema.py`: the schema's security schemes are named `tokenAuth` and
   `cookieAuth`, no scheme name or description contains the package's name, and every operation's
   security refers to the new name. Then rename it where the schema is generated.
-- [ ] T069 [US1] `tests/test_api/test_viewsets.py`, `TestPageOnThePortal`: a project, dataset,
+- [x] T069 [US1] `tests/test_api/test_viewsets.py`, `TestPageOnThePortal`: a project, dataset,
   sample, measurement, person and organisation each carry `html_url`, the absolute address of the
   record's own page on the portal, in list and record responses, and requesting that address as
   someone who may see the record returns the page. It is read-only and a value sent for it is

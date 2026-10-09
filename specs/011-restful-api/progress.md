@@ -482,3 +482,11 @@ Did: Added two cases to TestSchemaDescribesThePortal: the security schemes are n
 Verified: uv run pytest -q -n0 tests/test_api/test_schema.py tests/test_api/test_settings.py: 52 passed. No existing test named the old scheme, so none changed.
 Next: T069.
 Watch: none.
+
+## 2026-10-09T09:03:22Z · Implementer fix-2 · T069
+
+Did: Added TestPageOnThePortal (tests/test_api/test_viewsets.py): for a project, dataset, sample, measurement, person and organisation, the record and the list row carry html_url equal to the absolute address of the record's page, it sits directly after url, requesting that address with the Django test client returns 200, and a value sent for it in a PATCH of a project, dataset and sample is ignored; a reference to another record still holds uuid and url only. Seen failing (no html_url in any response). Added PortalPageField in fairdm/api/serializers.py (read-only, built from get_absolute_url and request.build_absolute_uri, the path alone without a request), declared once on RecordSerializer beside url and on ContributorSerializer, and listed it after url in the four Meta.fields lists and both common_fields tuples. None of the models' get_absolute_url reads a relation, so no queryset change was needed. Documented on the API page, the user guide page and the changelog.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPageOnThePortal: 28 passed; uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: all passed after the change below, including TestQueryCount, the schema tests and the start-up check tests.
+Existing tests changed: tests/test_api/test_serializers.py, test_meta_fields_exact in TestBaseSampleSerializer and TestBaseMeasurementSerializer, which pin the exact field list; each now lists html_url after url (the only edit).
+Next: T070.
+Watch: none.
