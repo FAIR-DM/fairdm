@@ -84,7 +84,7 @@ identifiers. Nothing has been released that carried the old form.
 
 **Ruled by.** The audit, approved by the maintainer.
 
-**ADR:** [`docs/adr/0027-records-refer-to-each-other-by-short-identifier.md`](../../docs/adr/0027-records-refer-to-each-other-by-short-identifier.md)
+**ADR:** `docs/adr/0027-records-refer-to-each-other-by-short-identifier.md`
 
 ## D4. Every sample and measurement carries the common fields
 
@@ -117,7 +117,7 @@ type returns the values it exists to record.
 
 **Ruled by.** The audit, approved by the maintainer.
 
-**ADR:** none — a defect.
+**ADR:** none — a defect put right, no decision for anything downstream to inherit.
 
 ## D6. Sorting works, and searching waits for R17
 
