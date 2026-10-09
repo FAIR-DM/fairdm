@@ -222,3 +222,47 @@ This story lays the serializers the others stand on.
 - [x] T059 [US6] An entry in `CHANGELOG.md` saying what a portal with API clients or its own serializers
   has to change.
 - [x] T060 [US6] Remove `needs verification` from R11 in `docs/ROADMAP.md`.
+
+## Phase 8: fixes from the code review
+
+Each test task is written first and seen to fail.
+
+- [ ] T061 [US1] Samples and measurements of a public dataset that is not published are data the
+  portal does not show, and the API showed them. `tests/test_api/test_filters.py`,
+  `TestUnpublishedDataset`: for a sample and a measurement in a public, unpublished dataset, a
+  visitor and a signed-in person with no level get nothing in the list, 404 on the record, a
+  catalogue count that leaves them out, and 404 on a write. Someone with a level on the dataset
+  still reads them. The dataset's own record stays readable. Then make the public rule for
+  records that follow a dataset the portal's own: public and published, in
+  `fairdm/api/filters.py` and `fairdm/api/permissions.py`.
+- [ ] T062 [US1] Three filters every sample list offers answered with a server error.
+  `tests/test_api/test_viewsets.py`, `TestEveryListedFilter`: for every registered type, a
+  request with each filter name its catalogue entry lists is answered below 500. Then point the
+  sample filter set's description and date filters at the fields that exist, as the measurement
+  filter set has them (`fairdm/core/sample/filters.py`).
+- [ ] T063 [US1] A reference could name a record its own address then refused, or a record the
+  caller may not see. `tests/test_api/test_viewsets.py`, `TestReferencesFollowTheLists`: a
+  contributor the contributor list leaves out is returned as null where a record credits them,
+  and a relation a registered type declares to a project, dataset, sample or measurement is
+  returned as a reference that is null when the caller may not see it. Then apply the contributor
+  list's own rule in `RecordReferenceField`, and have the serializer factory use
+  `RecordReferenceField` for relations to the four record types.
+- [ ] T064 [US1] `tests/test_api/test_viewsets.py`, beside the existing parent-filter tests: a
+  visitor narrowing a sample list by a private dataset's identifier, and a measurement list by
+  the identifier of a sample in a private dataset, is answered exactly as for an identifier that
+  does not exist.
+- [ ] T065 [US3] An error in a developer's filter set was swallowed when its endpoint was built.
+  `tests/test_api/test_router.py`: a configuration whose filter set cannot be built stops
+  registration with the error. Then remove the suppression in `generate_viewset`. Correct the
+  documentation and the docstring of `fairdm/api/settings.py`: the API title and description are
+  changed by assigning items of `SPECTACULAR_SETTINGS`, and the examples assign items and never
+  replace the dictionary. Replace the two tests in `tests/test_api/test_settings.py` that set a
+  setting and read the same setting back with ones that read the generated schema.
+- [ ] T066 [US6] A list ran one query per record for a relation a registered type declares.
+  `tests/test_api/test_viewsets.py`, `TestQueryCount`: add a sample type with a relation of its
+  own on every record (the thin-section type with a location). Then have `generate_viewset`
+  select or prefetch each relation among the serializer's fields that the parents do not cover.
+- [ ] T067 [US6] `tests/test_conf/` beside the existing deployment checks: `manage.py check
+  --deploy` warns when `REST_FRAMEWORK` has no `NUM_PROXIES`, and is silent when it is set. Then
+  add the warning in `fairdm/conf/checks.py`, pointing at the administrator page's section on
+  proxies. No default number is chosen.

@@ -346,6 +346,26 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T061",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T062",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T063",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T064",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -727,6 +747,11 @@
               "docs/portal-development/restful-api.md:1"
             ]
           }
+        },
+        {
+          "id": "T065",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -1195,6 +1220,16 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T066",
+          "status": "todo",
+          "attempts": 0
+        },
+        {
+          "id": "T067",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     }
