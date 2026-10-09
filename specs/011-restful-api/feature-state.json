@@ -1,1355 +1,1369 @@
 {
-  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
-  "feature": "011-restful-api",
-  "branch": "011-restful-api",
-  "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
-  "state_history": [
-    {
-      "state": "QUEUED",
-      "at": "2026-10-08T22:03:43Z",
-      "note": "specification approved on #455 at b35d1728; epic #454, stories #456-461"
-    },
-    {
-      "state": "PLAN",
-      "at": "2026-10-08T22:54:04Z",
-      "note": "branch rebased on origin/main at ffbfb69f after #464; started on the maintainer's instruction while #383 is open"
-    },
-    {
-      "state": "DESIGN_REVIEW",
-      "at": "2026-10-08T22:54:19Z",
-      "note": "plan and tasks written and reconciled: 60 tasks, 7 done, 53 open; one reviewer, four lenses"
-    },
-    {
-      "state": "IMPLEMENT",
-      "at": "2026-10-08T23:03:35Z",
-      "note": "design review applied; plan gate open; story 1 next"
-    },
-    {
-      "state": "CONVERGE",
-      "at": "2026-10-09T01:29:27Z",
-      "note": "six stories accepted; full verification green"
-    },
-    {
-      "state": "REVIEW",
-      "at": "2026-10-09T01:33:26Z",
-      "note": "converged and green; one reviewer with the security lens, since authentication changed"
-    }
-  ],
-  "gates": {
-    "spec": {
-      "approved_by": "Sam",
-      "at": "2026-10-08T22:03:43Z",
-      "self_resolved": [
-        "approved in the session at commit b35d1728",
-        "delete refusals, access from other origins, limits and page sizes were decided without asking and listed in the gate message"
-      ]
-    },
-    "plan": {
-      "approved_by": "open",
-      "at": "2026-10-08T23:03:00Z"
-    },
-    "merge": {
-      "approved_by": null,
-      "at": null
-    },
-    "design_review": {
-      "approved_by": "design-reviewer",
-      "at": "2026-10-08T23:03:00Z",
-      "self_resolved": [
-        "17 findings: 4 high, 3 medium, 10 low; verdict request changes; every high applied as plan and task edits",
-        "high SEC-001 applied: the base-serializer check stays in generate_viewset and covers an overridden get_serializer_class (plan D3, T029)",
-        "high SEC-002 applied: a reference to a record the caller may not see is returned as null (plan D1, T002)",
-        "high SPEC-001 applied: lists filter by parent short identifier, never a database number (plan D3, T012)",
-        "high SPEC-002 applied: build_model_serializer and the hand-built write tests are deleted in US-2, not US-1 (T014, T025)",
-        "reconciliation lens: no ticked task overturned; RECON-001 and RECON-002 found a clause each not covered by the cited tests and the missing cases were added to open tasks T011 and T055; RECON-004 evidence added to T008; RECON-003 carried to T051",
-        "medium SEC-003 applied as documentation in T058 (NUM_PROXIES); lows applied as task wording or carried to story briefs"
-      ]
-    }
+ "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+ "feature": "011-restful-api",
+ "branch": "011-restful-api",
+ "repo": "FAIR-DM/fairdm",
+ "state": "REVIEW",
+ "state_history": [
+  {
+   "state": "QUEUED",
+   "at": "2026-10-08T22:03:43Z",
+   "note": "specification approved on #455 at b35d1728; epic #454, stories #456-461"
   },
-  "stories": [
-    {
-      "id": "US1",
-      "priority": "P1",
-      "issue": 456,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T001",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_serializers.py::TestRecordReferenceField"
-            ],
-            "tests": [
-              "tests/test_api/test_serializers.py::TestRecordReferenceField"
-            ],
-            "code": [
-              "fairdm/api/serializers.py:152"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T002",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCompleteRecord"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestCompleteRecord"
-            ],
-            "code": [
-              "fairdm/api/serializers.py:371",
-              "fairdm/api/serializers.py:423",
-              "fairdm/api/serializers.py:450"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T003",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCommonFields"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestCommonFields"
-            ],
-            "code": [
-              "fairdm/registry/factories.py:856",
-              "fairdm/api/serializers.py:478",
-              "fairdm/api/serializers.py:519"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T004",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
-            ],
-            "code": [
-              "fairdm/api/serializers.py:152",
-              "fairdm/api/serializers.py:560"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T005",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributor"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestContributor"
-            ],
-            "code": [
-              "fairdm/api/serializers.py:560",
-              "fairdm/api/viewsets.py:123"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T006",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:123",
-              "fairdm/api/viewsets.py:172"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T007",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_pagination.py::TestPagination"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_pagination.py::TestPagination"
-            ],
-            "code": [
-              "fairdm/api/pagination.py:6"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T008",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_filters.py::TestVisibilityFilterProjects",
-              "tests/test_api/test_filters.py::TestVisibilityFilterDatasets",
-              "tests/test_api/test_viewsets.py::TestDatasetListEndpoint::test_private_dataset_hidden_from_anonymous"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityFilterProjects tests/test_api/test_filters.py::TestVisibilityFilterDatasets tests/test_api/test_viewsets.py::TestDatasetListEndpoint::test_private_dataset_hidden_from_anonymous"
-            ],
-            "code": [
-              "fairdm/api/filters.py:50"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T009",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
-            ],
-            "tests": [
-              "tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
-            ],
-            "code": [
-              "fairdm/api/filters.py:76"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T010",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_permissions.py::TestAnonymousAccess",
-              "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
-              "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission",
-              "tests/test_api/test_permissions.py::TestDatasetPermissions"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission tests/test_api/test_permissions.py::TestDatasetPermissions"
-            ],
-            "code": [
-              "fairdm/api/permissions.py:60"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T011",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
-            ],
-            "tests": [
-              "tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
-            ],
-            "code": [
-              "fairdm/api/permissions.py:60",
-              "fairdm/api/filters.py:76"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T012",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestFiltering"
-            ],
-            "code": [
-              "fairdm/api/filters.py:99",
-              "fairdm/api/filters.py:133",
-              "fairdm/api/filters.py:148"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T013",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestOrdering"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:148",
-              "fairdm/api/viewsets.py:172"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T014",
-          "status": "done",
-          "attempts": 3,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_serializers.py tests/test_api/test_viewsets.py"
-            ],
-            "tests": [
-              "tests/test_api/test_serializers.py",
-              "tests/test_api/test_viewsets.py"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:172",
-              "fairdm/api/serializers.py:371"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T015",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
-            ],
-            "code": [
-              "docs/portal-development/restful-api.md:1",
-              "docs/user-guide/reading-records-with-a-script.md:1",
-              "docs/adr/0027-records-refer-to-each-other-by-short-identifier.md:1"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T061",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestUnpublishedDataset",
-              "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry"
-            ],
-            "tests": [
-              "tests/test_api/test_filters.py::TestUnpublishedDataset"
-            ],
-            "code": [
-              "fairdm/api/filters.py:54",
-              "fairdm/api/permissions.py:69",
-              "fairdm/api/permissions.py:87"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T062",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestEveryListedFilter tests/test_core/test_sample/test_filters.py tests/test_core/test_measurement/test_filters.py"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestEveryListedFilter"
-            ],
-            "code": [
-              "fairdm/core/sample/filters.py:120",
-              "fairdm/core/sample/filters.py:125"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T063",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestReferencesFollowTheLists",
-              "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
-            ],
-            "code": [
-              "fairdm/api/filters.py:84",
-              "fairdm/api/viewsets.py:178",
-              "fairdm/api/serializers.py:225",
-              "fairdm/registry/factories.py:941"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T064",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestFiltering"
-            ],
-            "code": [
-              "fairdm/api/filters.py:157"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    },
-    {
-      "id": "US2",
-      "priority": "P1",
-      "issue": 457,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T016",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestCreating"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1121"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T017",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestCreatorIsCredited"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1249"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T018",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestChanging"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1375",
-              "fairdm/api/serializers.py:83"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T019",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestDeleting"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1465",
-              "fairdm/api/viewsets.py:79"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T020",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestValidation"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1517"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T021",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_permissions.py::TestAnonymousAccess",
-              "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
-              "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
-            ],
-            "code": [
-              "fairdm/api/permissions.py:48",
-              "fairdm/api/permissions.py:60"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T022",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_permissions.py::TestWhoMayWriteSamplesAndMeasurements"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_permissions.py:242"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T023",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_permissions.py::TestManageLevel"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_permissions.py:364",
-              "fairdm/api/serializers.py:83"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T024",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestNoServerErrors"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api"
-            ],
-            "code": [
-              "tests/test_api/test_viewsets.py:1679",
-              "fairdm/api/viewsets.py:79"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T025",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "tests": [
-              "tests/test_api",
-              "tests/test_registry"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_registry tests/test_api"
-            ],
-            "code": [
-              "fairdm/api/serializers.py:83",
-              "fairdm/api/viewsets.py:50",
-              "fairdm/api/viewsets.py:79"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T026",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --base origin/main (docs step)"
-            ],
-            "code": [
-              "docs/portal-development/restful-api.md:120",
-              "docs/user-guide/reading-records-with-a-script.md:110"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    },
-    {
-      "id": "US3",
-      "priority": "P2",
-      "issue": 458,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T027",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_registry/test_factories.py::TestSerializerFactory"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py"
-            ],
-            "code": [
-              "fairdm/registry/config.py:100"
-            ]
-          }
-        },
-        {
-          "id": "T028",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed",
-              "tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:172",
-              "fairdm/api/filters.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T029",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:172"
-            ]
-          }
-        },
-        {
-          "id": "T030",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_checks.py::TestRegistrationCheck"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_checks.py"
-            ],
-            "code": [
-              "fairdm/api/checks.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T031",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestRegistrationFailureIsReported"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported"
-            ],
-            "code": [
-              "fairdm/api/router.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T032",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestAddresses"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses"
-            ],
-            "code": [
-              "fairdm/api/router.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T033",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
-            ],
-            "code": [
-              "fairdm/api/urls.py:17",
-              "fairdm/conf/urls.py:25"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T034",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestCustomViewset"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset"
-            ],
-            "code": [
-              "fairdm/api/router.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T035",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api (810 passed)",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (conformance, docs, lint, typecheck, test, build all passed)"
-            ],
-            "code": [
-              "fairdm/api/checks.py:1",
-              "fairdm/api/filters.py:1",
-              "fairdm/api/router.py:1"
-            ]
-          }
-        },
-        {
-          "id": "T036",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api"
-            ],
-            "commands": [
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (docs step passed)"
-            ],
-            "code": [
-              "docs/portal-development/restful-api.md:1"
-            ]
-          }
-        },
-        {
-          "id": "T065",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported tests/test_api/test_settings.py::TestAPIDescriptionSettings"
-            ],
-            "tests": [
-              "tests/test_api/test_router.py::TestRegistrationFailureIsReported",
-              "tests/test_api/test_settings.py::TestAPIDescriptionSettings"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:295",
-              "fairdm/api/settings.py:1"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    },
-    {
-      "id": "US4",
-      "priority": "P2",
-      "issue": 459,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T037",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_settings.py::TestTokens"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_settings.py::TestTokens",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/api/settings.py:80",
-              "fairdm/api/settings.py:135"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T038",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_urls.py::TestTokenPages"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_urls.py::TestTokenPages",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/conf/urls.py:26",
-              "fairdm/conf/settings/apps.py:102"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T039",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_urls.py::TestNoAccountEndpoints"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_urls.py::TestNoAccountEndpoints",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/api/urls.py:1"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T040",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_settings.py::TestSession"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_settings.py::TestSession",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/api/settings.py:80"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T041",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_settings.py::TestOtherOrigins"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_settings.py::TestOtherOrigins",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/api/settings.py:129"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T042",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "tests": [
-              "tests/test_api"
-            ],
-            "commands": [
-              "uv run pytest -q -n auto --dist loadscope tests/test_api",
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
-            ],
-            "code": [
-              "fairdm/api/settings.py:80",
-              "fairdm/api/settings.py:129",
-              "fairdm/api/settings.py:135",
-              "fairdm/conf/urls.py:26"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T043",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed) (docs step passed)"
-            ],
-            "code": [
-              "docs/portal-development/restful-api.md:293",
-              "docs/user-guide/reading-records-with-a-script.md:110",
-              "docs/adr/0028-api-tokens-are-created-on-the-account-pages.md:1"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    },
-    {
-      "id": "US5",
-      "priority": "P3",
-      "issue": 460,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T044",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_urls.py::TestSwaggerUI",
-              "tests/test_api/test_urls.py::TestOpenAPISchema"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_urls.py::TestSwaggerUI tests/test_api/test_urls.py::TestOpenAPISchema"
-            ],
-            "code": [
-              "fairdm/api/urls.py:30"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T045",
-          "status": "done",
-          "attempts": 0,
-          "evidence": {
-            "tests": [
-              "tests/test_menus/test_menus.py::TestAPIMenuItem"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_menus/test_menus.py::TestAPIMenuItem"
-            ],
-            "code": [
-              "fairdm/menus/menus.py:117"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T046",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
-            ],
-            "code": [
-              "fairdm/api/schema.py:101",
-              "fairdm/api/filters.py:129"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T047",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
-            ],
-            "code": [
-              "fairdm/api/schema.py:17",
-              "fairdm/api/schema.py:83",
-              "fairdm/api/settings.py:97"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T048",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestCatalogues"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogues"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:314",
-              "fairdm/api/viewsets.py:340"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T049",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestCatalogueCounts"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogueCounts"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:314"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T050",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_router.py::TestRoot"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_router.py::TestRoot"
-            ],
-            "code": [
-              "fairdm/api/router.py:40"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T051",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_schema.py",
-              "tests/test_api/test_router.py",
-              "tests/test_menus/test_menus.py::TestAPIMenuItem",
-              "tests/test_api/test_settings.py"
-            ],
-            "commands": [
-              "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_menus tests/test_conf demo/tests",
-              "forge verify --base origin/main"
-            ],
-            "code": [
-              "fairdm/api/schema.py:17",
-              "fairdm/api/viewsets.py:297",
-              "fairdm/api/settings.py:97",
-              "fairdm/conf/settings/api.py:19"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T052",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --base origin/main"
-            ],
-            "code": [
-              "docs/portal-development/restful-api.md:262",
-              "docs/portal-development/restful-api.md:302",
-              "docs/portal-development/restful-api.md:814",
-              "docs/user-guide/reading-records-with-a-script.md:221"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    },
-    {
-      "id": "US6",
-      "priority": "P3",
-      "issue": 461,
-      "status": "done",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T053",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_throttling.py::TestLimits"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimits"
-            ],
-            "code": [
-              "fairdm/api/throttling.py:11",
-              "fairdm/api/throttling.py:23"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T054",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_throttling.py::TestLimitsAreSettings"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimitsAreSettings"
-            ],
-            "code": [
-              "fairdm/api/settings.py:79"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T055",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_pagination.py::TestPageSizes",
-              "tests/test_api/test_pagination.py::TestPagination"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_pagination.py"
-            ],
-            "code": [
-              "fairdm/api/pagination.py:32",
-              "fairdm/api/pagination.py:37",
-              "fairdm/conf/settings/api.py:26"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T056",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestQueryCount"
-            ],
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:184",
-              "fairdm/contrib/contributors/models.py:935"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T057",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [
-              "tests/test_api/test_throttling.py",
-              "tests/test_api/test_pagination.py",
-              "tests/test_api/test_viewsets.py::TestQueryCount",
-              "tests/test_api/test_schema.py::TestSchemaDescribesCatalogues",
-              "tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
-            ],
-            "commands": [
-              "uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests tests/test_conf tests/test_menus"
-            ],
-            "code": [
-              "fairdm/api/throttling.py:11",
-              "fairdm/api/pagination.py:32",
-              "fairdm/api/serializers.py:666",
-              "fairdm/api/viewsets.py:340",
-              "fairdm/api/settings.py:53"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T058",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --base origin/main"
-            ],
-            "code": [
-              "docs/portal-administration/api-limits.md:1",
-              "docs/portal-development/restful-api.md:683",
-              "docs/user-guide/reading-records-with-a-script.md:99"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T059",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --base origin/main"
-            ],
-            "code": [
-              "CHANGELOG.md:197"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T060",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "tests": [],
-            "commands": [
-              "forge verify --base origin/main"
-            ],
-            "code": [
-              "docs/ROADMAP.md:112"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T066",
-          "status": "done",
-          "attempts": 2,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
-            ],
-            "tests": [
-              "tests/test_api/test_viewsets.py::TestQueryCount",
-              "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
-            ],
-            "code": [
-              "fairdm/api/viewsets.py:233",
-              "fairdm/api/serializers.py:244"
-            ],
-            "verified_by_ci": false
-          }
-        },
-        {
-          "id": "T067",
-          "status": "done",
-          "attempts": 1,
-          "evidence": {
-            "commands": [
-              "uv run pytest -q -n0 tests/test_conf/test_checks.py::TestApiProxyCountCheck"
-            ],
-            "tests": [
-              "tests/test_conf/test_checks.py::TestApiProxyCountCheck"
-            ],
-            "code": [
-              "fairdm/conf/checks.py:270"
-            ],
-            "verified_by_ci": false
-          }
-        }
-      ]
-    }
-  ],
-  "budgets": {
-    "converge_cycles": {
-      "used": 1,
-      "max": 2
-    },
-    "review_cycles": {
-      "used": 1,
-      "max": 1
-    },
-    "tokens": {
-      "used": 70.81,
-      "max": 120
-    },
-    "design_review_cycles": {
-      "used": 1,
-      "max": 1
-    }
+  {
+   "state": "PLAN",
+   "at": "2026-10-08T22:54:04Z",
+   "note": "branch rebased on origin/main at ffbfb69f after #464; started on the maintainer's instruction while #383 is open"
   },
-  "pr": {
-    "number": 455,
-    "draft": true
+  {
+   "state": "DESIGN_REVIEW",
+   "at": "2026-10-08T22:54:19Z",
+   "note": "plan and tasks written and reconciled: 60 tasks, 7 done, 53 open; one reviewer, four lenses"
+  },
+  {
+   "state": "IMPLEMENT",
+   "at": "2026-10-08T23:03:35Z",
+   "note": "design review applied; plan gate open; story 1 next"
+  },
+  {
+   "state": "CONVERGE",
+   "at": "2026-10-09T01:29:27Z",
+   "note": "six stories accepted; full verification green"
+  },
+  {
+   "state": "REVIEW",
+   "at": "2026-10-09T01:33:26Z",
+   "note": "converged and green; one reviewer with the security lens, since authentication changed"
   }
+ ],
+ "gates": {
+  "spec": {
+   "approved_by": "Sam",
+   "at": "2026-10-08T22:03:43Z",
+   "self_resolved": [
+    "approved in the session at commit b35d1728",
+    "delete refusals, access from other origins, limits and page sizes were decided without asking and listed in the gate message"
+   ]
+  },
+  "plan": {
+   "approved_by": "open",
+   "at": "2026-10-08T23:03:00Z"
+  },
+  "merge": {
+   "approved_by": null,
+   "at": null
+  },
+  "design_review": {
+   "approved_by": "design-reviewer",
+   "at": "2026-10-08T23:03:00Z",
+   "self_resolved": [
+    "17 findings: 4 high, 3 medium, 10 low; verdict request changes; every high applied as plan and task edits",
+    "high SEC-001 applied: the base-serializer check stays in generate_viewset and covers an overridden get_serializer_class (plan D3, T029)",
+    "high SEC-002 applied: a reference to a record the caller may not see is returned as null (plan D1, T002)",
+    "high SPEC-001 applied: lists filter by parent short identifier, never a database number (plan D3, T012)",
+    "high SPEC-002 applied: build_model_serializer and the hand-built write tests are deleted in US-2, not US-1 (T014, T025)",
+    "reconciliation lens: no ticked task overturned; RECON-001 and RECON-002 found a clause each not covered by the cited tests and the missing cases were added to open tasks T011 and T055; RECON-004 evidence added to T008; RECON-003 carried to T051",
+    "medium SEC-003 applied as documentation in T058 (NUM_PROXIES); lows applied as task wording or carried to story briefs"
+   ]
+  },
+  "review": {
+   "approved_by": "code-reviewers",
+   "at": "2026-10-09T02:25:50Z",
+   "self_resolved": [
+    "two reviewers, correctness and security; 11 findings: 3 high, 3 medium, 5 low; both verdicts request changes",
+    "high SEC-001 remedied: data of a public, unpublished dataset is not public (T061)",
+    "high COR-002 remedied: sample description and date filters read existing fields (T062)",
+    "high COR-001 remedied: lists load every relation the serializer returns (T066)",
+    "medium COR-003 and low SEC-003 remedied: references follow the lists (T063)",
+    "medium COR-004 and lows COR-006, COR-007 remedied (T065); low COR-005 test added (T064)",
+    "medium SEC-002 remedied: deployment warning for NUM_PROXIES (T067)",
+    "low SEC-004 declined: unknown tokens are refused before throttling; belongs at the reverse proxy"
+   ]
+  }
+ },
+ "stories": [
+  {
+   "id": "US1",
+   "priority": "P1",
+   "issue": 456,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T001",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_serializers.py::TestRecordReferenceField"
+      ],
+      "tests": [
+       "tests/test_api/test_serializers.py::TestRecordReferenceField"
+      ],
+      "code": [
+       "fairdm/api/serializers.py:152"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T002",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCompleteRecord"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestCompleteRecord"
+      ],
+      "code": [
+       "fairdm/api/serializers.py:371",
+       "fairdm/api/serializers.py:423",
+       "fairdm/api/serializers.py:450"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T003",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCommonFields"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestCommonFields"
+      ],
+      "code": [
+       "fairdm/registry/factories.py:856",
+       "fairdm/api/serializers.py:478",
+       "fairdm/api/serializers.py:519"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T004",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
+      ],
+      "code": [
+       "fairdm/api/serializers.py:152",
+       "fairdm/api/serializers.py:560"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T005",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributor"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestContributor"
+      ],
+      "code": [
+       "fairdm/api/serializers.py:560",
+       "fairdm/api/viewsets.py:123"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T006",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:123",
+       "fairdm/api/viewsets.py:172"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T007",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_pagination.py::TestPagination"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_pagination.py::TestPagination"
+      ],
+      "code": [
+       "fairdm/api/pagination.py:6"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T008",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_filters.py::TestVisibilityFilterProjects",
+       "tests/test_api/test_filters.py::TestVisibilityFilterDatasets",
+       "tests/test_api/test_viewsets.py::TestDatasetListEndpoint::test_private_dataset_hidden_from_anonymous"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityFilterProjects tests/test_api/test_filters.py::TestVisibilityFilterDatasets tests/test_api/test_viewsets.py::TestDatasetListEndpoint::test_private_dataset_hidden_from_anonymous"
+      ],
+      "code": [
+       "fairdm/api/filters.py:50"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T009",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
+      ],
+      "tests": [
+       "tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
+      ],
+      "code": [
+       "fairdm/api/filters.py:76"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T010",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_permissions.py::TestAnonymousAccess",
+       "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
+       "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission",
+       "tests/test_api/test_permissions.py::TestDatasetPermissions"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission tests/test_api/test_permissions.py::TestDatasetPermissions"
+      ],
+      "code": [
+       "fairdm/api/permissions.py:60"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T011",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
+      ],
+      "tests": [
+       "tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
+      ],
+      "code": [
+       "fairdm/api/permissions.py:60",
+       "fairdm/api/filters.py:76"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T012",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestFiltering"
+      ],
+      "code": [
+       "fairdm/api/filters.py:99",
+       "fairdm/api/filters.py:133",
+       "fairdm/api/filters.py:148"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T013",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestOrdering"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:148",
+       "fairdm/api/viewsets.py:172"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T014",
+     "status": "done",
+     "attempts": 3,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_serializers.py tests/test_api/test_viewsets.py"
+      ],
+      "tests": [
+       "tests/test_api/test_serializers.py",
+       "tests/test_api/test_viewsets.py"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:172",
+       "fairdm/api/serializers.py:371"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T015",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+      ],
+      "code": [
+       "docs/portal-development/restful-api.md:1",
+       "docs/user-guide/reading-records-with-a-script.md:1",
+       "docs/adr/0027-records-refer-to-each-other-by-short-identifier.md:1"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T061",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_filters.py::TestUnpublishedDataset",
+       "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry"
+      ],
+      "tests": [
+       "tests/test_api/test_filters.py::TestUnpublishedDataset"
+      ],
+      "code": [
+       "fairdm/api/filters.py:54",
+       "fairdm/api/permissions.py:69",
+       "fairdm/api/permissions.py:87"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T062",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestEveryListedFilter tests/test_core/test_sample/test_filters.py tests/test_core/test_measurement/test_filters.py"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestEveryListedFilter"
+      ],
+      "code": [
+       "fairdm/core/sample/filters.py:120",
+       "fairdm/core/sample/filters.py:125"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T063",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestReferencesFollowTheLists",
+       "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+      ],
+      "code": [
+       "fairdm/api/filters.py:84",
+       "fairdm/api/viewsets.py:178",
+       "fairdm/api/serializers.py:225",
+       "fairdm/registry/factories.py:941"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T064",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestFiltering"
+      ],
+      "code": [
+       "fairdm/api/filters.py:157"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "US2",
+   "priority": "P1",
+   "issue": 457,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T016",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestCreating"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1121"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T017",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestCreatorIsCredited"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1249"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T018",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestChanging"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1375",
+       "fairdm/api/serializers.py:83"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T019",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestDeleting"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1465",
+       "fairdm/api/viewsets.py:79"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T020",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestValidation"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1517"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T021",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_permissions.py::TestAnonymousAccess",
+       "tests/test_api/test_permissions.py::TestAuthenticatedNoPermission",
+       "tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestAnonymousAccess tests/test_api/test_permissions.py::TestAuthenticatedNoPermission tests/test_api/test_permissions.py::TestAuthenticatedWithPermission::test_viewer_cannot_patch_private_project"
+      ],
+      "code": [
+       "fairdm/api/permissions.py:48",
+       "fairdm/api/permissions.py:60"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T022",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_permissions.py::TestWhoMayWriteSamplesAndMeasurements"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_permissions.py:242"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T023",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_permissions.py::TestManageLevel"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_permissions.py:364",
+       "fairdm/api/serializers.py:83"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T024",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestNoServerErrors"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api"
+      ],
+      "code": [
+       "tests/test_api/test_viewsets.py:1679",
+       "fairdm/api/viewsets.py:79"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T025",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "tests": [
+       "tests/test_api",
+       "tests/test_registry"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_registry tests/test_api"
+      ],
+      "code": [
+       "fairdm/api/serializers.py:83",
+       "fairdm/api/viewsets.py:50",
+       "fairdm/api/viewsets.py:79"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T026",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --base origin/main (docs step)"
+      ],
+      "code": [
+       "docs/portal-development/restful-api.md:120",
+       "docs/user-guide/reading-records-with-a-script.md:110"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "US3",
+   "priority": "P2",
+   "issue": 458,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T027",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_registry/test_factories.py::TestSerializerFactory"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py"
+      ],
+      "code": [
+       "fairdm/registry/config.py:100"
+      ]
+     }
+    },
+    {
+     "id": "T028",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed",
+       "tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:172",
+       "fairdm/api/filters.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T029",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:172"
+      ]
+     }
+    },
+    {
+     "id": "T030",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_checks.py::TestRegistrationCheck"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_checks.py"
+      ],
+      "code": [
+       "fairdm/api/checks.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T031",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+      ],
+      "code": [
+       "fairdm/api/router.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T032",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestAddresses"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses"
+      ],
+      "code": [
+       "fairdm/api/router.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T033",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestAPIURLNamespaceIsolation"
+      ],
+      "code": [
+       "fairdm/api/urls.py:17",
+       "fairdm/conf/urls.py:25"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T034",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestCustomViewset"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset"
+      ],
+      "code": [
+       "fairdm/api/router.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T035",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api (810 passed)",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (conformance, docs, lint, typecheck, test, build all passed)"
+      ],
+      "code": [
+       "fairdm/api/checks.py:1",
+       "fairdm/api/filters.py:1",
+       "fairdm/api/router.py:1"
+      ]
+     }
+    },
+    {
+     "id": "T036",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api"
+      ],
+      "commands": [
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (docs step passed)"
+      ],
+      "code": [
+       "docs/portal-development/restful-api.md:1"
+      ]
+     }
+    },
+    {
+     "id": "T065",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported tests/test_api/test_settings.py::TestAPIDescriptionSettings"
+      ],
+      "tests": [
+       "tests/test_api/test_router.py::TestRegistrationFailureIsReported",
+       "tests/test_api/test_settings.py::TestAPIDescriptionSettings"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:295",
+       "fairdm/api/settings.py:1"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "US4",
+   "priority": "P2",
+   "issue": 459,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T037",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_settings.py::TestTokens"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_settings.py::TestTokens",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/api/settings.py:80",
+       "fairdm/api/settings.py:135"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T038",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_urls.py::TestTokenPages"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_urls.py::TestTokenPages",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/conf/urls.py:26",
+       "fairdm/conf/settings/apps.py:102"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T039",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_urls.py::TestNoAccountEndpoints"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_urls.py::TestNoAccountEndpoints",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/api/urls.py:1"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T040",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_settings.py::TestSession"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_settings.py::TestSession",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/api/settings.py:80"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T041",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_settings.py::TestOtherOrigins"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_settings.py::TestOtherOrigins",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/api/settings.py:129"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T042",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "tests": [
+       "tests/test_api"
+      ],
+      "commands": [
+       "uv run pytest -q -n auto --dist loadscope tests/test_api",
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed)"
+      ],
+      "code": [
+       "fairdm/api/settings.py:80",
+       "fairdm/api/settings.py:129",
+       "fairdm/api/settings.py:135",
+       "fairdm/conf/urls.py:26"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T043",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (all steps passed) (docs step passed)"
+      ],
+      "code": [
+       "docs/portal-development/restful-api.md:293",
+       "docs/user-guide/reading-records-with-a-script.md:110",
+       "docs/adr/0028-api-tokens-are-created-on-the-account-pages.md:1"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "US5",
+   "priority": "P3",
+   "issue": 460,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T044",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_urls.py::TestSwaggerUI",
+       "tests/test_api/test_urls.py::TestOpenAPISchema"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_urls.py::TestSwaggerUI tests/test_api/test_urls.py::TestOpenAPISchema"
+      ],
+      "code": [
+       "fairdm/api/urls.py:30"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T045",
+     "status": "done",
+     "attempts": 0,
+     "evidence": {
+      "tests": [
+       "tests/test_menus/test_menus.py::TestAPIMenuItem"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_menus/test_menus.py::TestAPIMenuItem"
+      ],
+      "code": [
+       "fairdm/menus/menus.py:117"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T046",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
+      ],
+      "code": [
+       "fairdm/api/schema.py:101",
+       "fairdm/api/filters.py:129"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T047",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
+      ],
+      "code": [
+       "fairdm/api/schema.py:17",
+       "fairdm/api/schema.py:83",
+       "fairdm/api/settings.py:97"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T048",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestCatalogues"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogues"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:314",
+       "fairdm/api/viewsets.py:340"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T049",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestCatalogueCounts"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogueCounts"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:314"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T050",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_router.py::TestRoot"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_router.py::TestRoot"
+      ],
+      "code": [
+       "fairdm/api/router.py:40"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T051",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_schema.py",
+       "tests/test_api/test_router.py",
+       "tests/test_menus/test_menus.py::TestAPIMenuItem",
+       "tests/test_api/test_settings.py"
+      ],
+      "commands": [
+       "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_menus tests/test_conf demo/tests",
+       "forge verify --base origin/main"
+      ],
+      "code": [
+       "fairdm/api/schema.py:17",
+       "fairdm/api/viewsets.py:297",
+       "fairdm/api/settings.py:97",
+       "fairdm/conf/settings/api.py:19"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T052",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --base origin/main"
+      ],
+      "code": [
+       "docs/portal-development/restful-api.md:262",
+       "docs/portal-development/restful-api.md:302",
+       "docs/portal-development/restful-api.md:814",
+       "docs/user-guide/reading-records-with-a-script.md:221"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "US6",
+   "priority": "P3",
+   "issue": 461,
+   "status": "done",
+   "replans": 0,
+   "tasks": [
+    {
+     "id": "T053",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_throttling.py::TestLimits"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimits"
+      ],
+      "code": [
+       "fairdm/api/throttling.py:11",
+       "fairdm/api/throttling.py:23"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T054",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_throttling.py::TestLimitsAreSettings"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimitsAreSettings"
+      ],
+      "code": [
+       "fairdm/api/settings.py:79"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T055",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_pagination.py::TestPageSizes",
+       "tests/test_api/test_pagination.py::TestPagination"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_pagination.py"
+      ],
+      "code": [
+       "fairdm/api/pagination.py:32",
+       "fairdm/api/pagination.py:37",
+       "fairdm/conf/settings/api.py:26"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T056",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestQueryCount"
+      ],
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:184",
+       "fairdm/contrib/contributors/models.py:935"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T057",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [
+       "tests/test_api/test_throttling.py",
+       "tests/test_api/test_pagination.py",
+       "tests/test_api/test_viewsets.py::TestQueryCount",
+       "tests/test_api/test_schema.py::TestSchemaDescribesCatalogues",
+       "tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
+      ],
+      "commands": [
+       "uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests tests/test_conf tests/test_menus"
+      ],
+      "code": [
+       "fairdm/api/throttling.py:11",
+       "fairdm/api/pagination.py:32",
+       "fairdm/api/serializers.py:666",
+       "fairdm/api/viewsets.py:340",
+       "fairdm/api/settings.py:53"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T058",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --base origin/main"
+      ],
+      "code": [
+       "docs/portal-administration/api-limits.md:1",
+       "docs/portal-development/restful-api.md:683",
+       "docs/user-guide/reading-records-with-a-script.md:99"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T059",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --base origin/main"
+      ],
+      "code": [
+       "CHANGELOG.md:197"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T060",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "tests": [],
+      "commands": [
+       "forge verify --base origin/main"
+      ],
+      "code": [
+       "docs/ROADMAP.md:112"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T066",
+     "status": "done",
+     "attempts": 2,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+      ],
+      "tests": [
+       "tests/test_api/test_viewsets.py::TestQueryCount",
+       "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+      ],
+      "code": [
+       "fairdm/api/viewsets.py:233",
+       "fairdm/api/serializers.py:244"
+      ],
+      "verified_by_ci": false
+     }
+    },
+    {
+     "id": "T067",
+     "status": "done",
+     "attempts": 1,
+     "evidence": {
+      "commands": [
+       "uv run pytest -q -n0 tests/test_conf/test_checks.py::TestApiProxyCountCheck"
+      ],
+      "tests": [
+       "tests/test_conf/test_checks.py::TestApiProxyCountCheck"
+      ],
+      "code": [
+       "fairdm/conf/checks.py:270"
+      ],
+      "verified_by_ci": false
+     }
+    }
+   ]
+  }
+ ],
+ "budgets": {
+  "converge_cycles": {
+   "used": 1,
+   "max": 2
+  },
+  "review_cycles": {
+   "used": 1,
+   "max": 1
+  },
+  "tokens": {
+   "used": 70.81,
+   "max": 120
+  },
+  "design_review_cycles": {
+   "used": 1,
+   "max": 1
+  }
+ },
+ "pr": {
+  "number": 455,
+  "draft": true
+ }
 }
