@@ -230,3 +230,10 @@ Did: Added TestRelationFiltersUseIdentifiers beside T028's class in tests/test_a
 Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers: 4 fail for the right reason, the filters still match on database numbers (an identifier answers 400, a number answers 200, and the content-type number narrows the list).
 Next: T035.
 Watch: none.
+
+## 2026-10-09T00:19:49Z · Implementer US3 · T035
+
+Did: fairdm/api/checks.py with check_registered_types (fairdm.E600), registered under the models tag from the API app's ready(). FairDMAPIRouter.register_types replaces the two module-level loops and their try/except blocks. The API's copy of a type's filter set matches every relation filter on uuid and drops the filters on relations that have none (fairdm/api/filters.py). The module docstring of the router now says where a developer registers a viewset. Decisions in decisions.md D20. Added a test that Django's check command reports E600 to TestRegistrationCheck.
+Verified: uv run pytest -q -n0 tests/test_api: 810 passed. Probes: letting the check count read-only fields turned the read-only test red, removing its registration turned the registration test red, and restoring a try/except in register_types turned all three failure tests red. manage.py check: no issues.
+Next: T036.
+Watch: the generated schema still lists the content-type filter of the sample mixin, which a request ignores.
