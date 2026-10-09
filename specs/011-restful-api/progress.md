@@ -244,3 +244,10 @@ Did: Documented what a registration decides for the API. docs/portal-development
 Verified: the E600 text, the refusal text, the route names and registering on the router before the URL configuration loads were each run against this branch and the pages match.
 Next: full verify and the completion report.
 Watch: CHANGELOG.md has no entry for this feature yet.
+
+## 2026-10-09T00:33:02Z · Implementer US4 · T037
+
+Did: Added TestTokens in tests/test_api/test_settings.py: a current token acts as its holder and shows a private project the holder may view, a visitor does not see it, a revoked, an expired and an unknown token are each answered 401, and the portal's token limit setting is live. The revoked and expired cases first send the token and expect 200, then delete it or move its expiry into the past, so they fail first instead of passing because the old authenticator rejects every token. Added a token fixture and a shared make_token_client helper to tests/test_api/conftest.py beside the old ones. Added the knox app to INSTALLED_APPS and the api extra of django-mvp-accounts to pyproject.toml, since the tests need knox's token table.
+Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestTokens: 4 fail for the right reason (the current token and the revoked and expired set-up requests get 401 from the old authenticator, the limit is unset), 3 pass because the old authenticator also answers 401 to a token it does not know.
+Next: T038.
+Watch: the old token mechanism stays installed until T042.
