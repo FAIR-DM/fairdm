@@ -417,3 +417,10 @@ Did: Full verify found three problems, all fixed. The type checker rejected the 
 Verified: forge verify --repo <worktree> --base origin/main: exit 0; conformance, docs, lint, typecheck, test (116 s) and build all passed. uv run pytest -q -n auto --dist loadscope tests/test_api: 899 passed.
 Next: the completion report.
 Watch: the unrelated collections navigation test did not fail in this run.
+
+## 2026-10-09T02:03:34Z · Implementer fix-1 · T062
+
+Did: Added TestEveryListedFilter, which reads each catalogue entry's filter names from GET /api/v1/samples/ and /api/v1/measurements/ and sends a value of four kinds for each. Seen failing: thin-sections description, date_after and date_before answered 500. Pointed the sample filter set's description at descriptions__value and its two date filters at dates__value through the measurement set's PartialDateFilter, because SampleDate.value is a partial date that a plain DateFilter's date value cannot be compared with.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestEveryListedFilter tests/test_core/test_sample/test_filters.py tests/test_core/test_measurement/test_filters.py: 36 passed, 4 skipped.
+Next: T061.
+Watch: ruff check run without --no-fix rewrites unrelated files in this repo; use --no-fix on the files touched.
