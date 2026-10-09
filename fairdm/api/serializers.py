@@ -241,16 +241,25 @@ class RecordReferenceField(serializers.SlugRelatedField):
         )
         return set(visible.values_list("pk", flat=True))
 
-    def prime(self, records) -> None:
+    def prime(self, records, many: str | None = None) -> None:
         """Check the records this field refers to in a page of records, in one query.
 
         Args:
             records: The page of records about to be serialized.
+            many: The name of the many-to-many relation this field is the child of, if it is.
         """
-        if len(self.source_attrs) != 1 or not records:
+        if many:
+            name = many
+            pks = {
+                related.pk
+                for record in records
+                for related in getattr(record, name).all()
+            }
+        elif len(self.source_attrs) == 1 and records:
+            name = self.source_attrs[0]
+            pks = {getattr(record, f"{name}_id", None) for record in records} - {None}
+        else:
             return
-        name = self.source_attrs[0]
-        pks = {getattr(record, f"{name}_id", None) for record in records} - {None}
         if not pks:
             return
         self.checked = frozenset(pks)
@@ -331,9 +340,13 @@ class RecordListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         """Prime each reference field with the whole page, then serialize each record."""
         records = list(data.all() if isinstance(data, BaseManager) else data)
-        for field in self.child.fields.values():
+        for name, field in self.child.fields.items():
             if isinstance(field, RecordReferenceField):
                 field.prime(records)
+            elif isinstance(field, serializers.ManyRelatedField) and isinstance(
+                field.child_relation, RecordReferenceField
+            ):
+                field.child_relation.prime(records, many=name)
         return [self.child.to_representation(record) for record in records]
 
 

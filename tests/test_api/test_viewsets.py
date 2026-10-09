@@ -331,6 +331,11 @@ def build_record(kind, make_record, add_metadata):
         record = dataset
     elif kind == "sample":
         record = make_record(RockSample, dataset)
+    elif kind == "located sample":
+        from demo.models import CustomSample
+        from fairdm.factories import PointFactory
+
+        record = make_record(CustomSample, dataset, location=PointFactory())
     else:
         record = make_record(ExampleMeasurement, dataset)
     return add_metadata(record)
@@ -2004,7 +2009,14 @@ class TestSerializerMustBuildOnBase:
 
 @pytest.mark.django_db
 class TestQueryCount:
-    KINDS = ("project", "dataset", "contributor", "sample", "measurement")
+    KINDS = (
+        "project",
+        "dataset",
+        "contributor",
+        "sample",
+        "located sample",
+        "measurement",
+    )
 
     @staticmethod
     def add_contributors():
@@ -2040,13 +2052,14 @@ class TestQueryCount:
 
     @staticmethod
     def address(kind, url_of):
-        from demo.models import ExampleMeasurement, RockSample
+        from demo.models import CustomSample, ExampleMeasurement, RockSample
 
         return {
             "project": lambda: reverse("api:project-list"),
             "dataset": lambda: reverse("api:dataset-list"),
             "contributor": lambda: reverse("api:contributor-list"),
             "sample": lambda: url_of(RockSample, "list"),
+            "located sample": lambda: url_of(CustomSample, "list"),
             "measurement": lambda: url_of(ExampleMeasurement, "list"),
         }[kind]()
 
@@ -2202,3 +2215,38 @@ class TestReferencesFollowTheLists:
         assert len(related) == 2
         assert None in related
         assert [row["uuid"] for row in related if row] == [shown.uuid]
+
+    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+        self, api_client, related_samples
+    ):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import SampleRelation
+
+        source, _shown = related_samples
+        address = reverse("api:samples-related-list")
+
+        def relate(number):
+            for _ in range(number):
+                SampleRelation.objects.create(
+                    source=RockSampleFactory(dataset=source.dataset),
+                    target=RockSampleFactory(
+                        dataset=DatasetFactory(visibility=Visibility.PRIVATE)
+                    ),
+                    type="child_of",
+                )
+
+        def queries():
+            from django.db import connection
+            from django.test.utils import CaptureQueriesContext
+
+            with CaptureQueriesContext(connection) as captured:
+                response = api_client.get(address, {"page_size": 100})
+            assert response.status_code == 200
+            return len(captured)
+
+        relate(2)
+        queries()
+        few = queries()
+        relate(10)
+
+        assert queries() == few

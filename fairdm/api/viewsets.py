@@ -19,6 +19,8 @@ from typing import Any, cast
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import (
+    ForeignKey,
+    ManyToManyField,
     Model,
     ProtectedError,
     RestrictedError,
@@ -229,6 +231,39 @@ def sortable_fields(model, serializer_cls) -> list[str]:
     return names
 
 
+def load_relations(queryset, serializer_cls):
+    """Load the relations a serializer returns, so a list reads no query per record.
+
+    Args:
+        queryset: The records about to be serialized, with the serializer's parents loaded.
+        serializer_cls: The serializer the list uses.
+
+    Returns:
+        The queryset with each foreign key and one-to-one among the serializer's fields
+        selected and each many-to-many prefetched, apart from the parents it already loads.
+    """
+    model = queryset.model
+    declared = serializer_cls.Meta.fields
+    if declared == "__all__":
+        declared = [
+            field.name
+            for field in (*model._meta.concrete_fields, *model._meta.many_to_many)
+        ]
+    selected, prefetched = [], []
+    for name in declared:
+        if name in getattr(serializer_cls, "parents", ()):
+            continue
+        try:
+            field = model._meta.get_field(name)
+        except FieldDoesNotExist:
+            continue
+        if isinstance(field, ManyToManyField):
+            prefetched.append(name)
+        elif isinstance(field, ForeignKey):
+            selected.append(name)
+    return queryset.select_related(*selected).prefetch_related(*prefetched)
+
+
 def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     """Generate a :class:`ModelViewSet` subclass from a registry config.
 
@@ -266,7 +301,7 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     if hasattr(queryset, "non_polymorphic"):
         queryset = queryset.non_polymorphic()
     if hasattr(serializer_cls, "load_related"):
-        queryset = serializer_cls.load_related(queryset)
+        queryset = load_relations(serializer_cls.load_related(queryset), serializer_cls)
 
     class _GeneratedViewSet(base_class):
         pass
