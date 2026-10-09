@@ -659,6 +659,8 @@ does not name the backend; that list then lacks the filters.
 `db_index=True`. Project, dataset, sample and measurement have none, and no migration is added
 for it in this change.
 
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
 ## D28. How each type's own words reach the generated documentation
 
 **Decision.** `fairdm.api.schema.TypeDescription` reads a registration once and answers for the
@@ -678,3 +680,5 @@ cannot disagree, and no new setting or hook is needed.
 **Revisit if.** Two registered types share one plural name: a tag name must be unique in the
 schema, so they would share a section. Also revisit if a serializer is shared by two types, since
 one component then carries one type's words.
+
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
