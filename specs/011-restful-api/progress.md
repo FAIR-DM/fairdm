@@ -237,3 +237,10 @@ Did: fairdm/api/checks.py with check_registered_types (fairdm.E600), registered 
 Verified: uv run pytest -q -n0 tests/test_api: 810 passed. Probes: letting the check count read-only fields turned the read-only test red, removing its registration turned the registration test red, and restoring a try/except in register_types turned all three failure tests red. manage.py check: no issues.
 Next: T036.
 Watch: the generated schema still lists the content-type filter of the sample mixin, which a request ignores.
+
+## 2026-10-09T00:21:39Z · Implementer US3 · T036
+
+Did: Documented what a registration decides for the API. docs/portal-development/restful-api.md: the order of the field lists and the defaults without options and tags, the base serializers and the refusal that applies to a named class and to an overridden get_serializer_class, the start-up check, route names and addresses, renaming a type, relation filters by short identifier, and where to register on the router and why. docs/portal-administration/configuration-checks.md gets fairdm.E600. docs/portal-development/model_configuration.md and using_the_registry.md no longer describe a plain serializer as accepted or the API as planned.
+Verified: the E600 text, the refusal text, the route names and registering on the router before the URL configuration loads were each run against this branch and the pages match.
+Next: full verify and the completion report.
+Watch: CHANGELOG.md has no entry for this feature yet.

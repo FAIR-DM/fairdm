@@ -17,6 +17,10 @@ DELETE /api/v1/samples/<model-slug>/{uuid}/ — delete (manage level)
 
 The `<model-slug>` is derived from your model's `verbose_name_plural` (lowercased, spaces replaced with hyphens). For example, a model with `verbose_name_plural = "rock samples"` becomes `rock-samples`. See [URL Slugs and verbose_name_plural](#url-slugs-and-verbose-name-plural) for details.
 
+Registering the type is all it takes. The list and record routes exist, the type is in the
+[discovery catalog](#discovery-catalog), and its records can be read and written, with the fields
+described under [Customizing Serializer Fields](#customizing-serializer-fields).
+
 Core model endpoints are also available:
 
 | Endpoint | Methods |
@@ -245,7 +249,11 @@ GET /api/v1/measurements/xrf-measurements/?sample=sd573eit27hDfnZD98NsqsW
 ```
 
 A type's own filters, the ones its registration declares, apply as well, for example
-`?rock_type=igneous`. These match what the portal's list pages accept.
+`?rock_type=igneous`. These match what the portal's list pages accept, with one difference:
+a filter on a relation, such as a project or a contributor, takes the related record's short
+identifier here and refuses a database number. A filter on a relation whose model has no short
+identifier, such as a content type, is not offered by the API. The portal's pages keep their own
+filters unchanged.
 
 `?ordering=name` sorts ascending and `?ordering=-name` descending. A list sorts on the stored
 fields it returns, such as `name`, `added` and `modified`, and on the fields the type declares.
@@ -372,8 +380,17 @@ listed, because a superuser cannot be a contributor. No django-guardian permissi
 
 A sample or measurement type always carries the fields common to its kind (see
 [What a Record Contains](#what-a-record-contains)) and its metadata. The fields you declare are
-added to them, and a field you name that is already common appears once. FairDM resolves the list
-you declare in three tiers.
+added to them, and a field you name that is already common appears once. FairDM picks the list in
+this order, and the first one that applies is used.
+
+1. `serializer_fields`, the list for the API alone.
+2. `fields`, the list every component of the type shares.
+3. The framework's defaults, when the registration names neither.
+
+The defaults are the type's editable fields, the ones the forms, tables and filters start from,
+with `options` and `tags` left out. `options` is an internal field and `tags` is not returned as a
+list of tags, so neither is useful to a caller. Name either in `serializer_fields` or `fields` to
+have the API carry it.
 
 ### Tier 1 — `fields` (default)
 
@@ -411,9 +428,12 @@ class RockSampleConfig(BaseSampleConfiguration):
     serializer_fields = ["rock_type", "collection_date"]               # added to the common fields
 ```
 
+Every field the model requires must be in the list that applies, or a record cannot be created
+through the API. [The start-up check](#the-start-up-check) tells you when one is missing.
+
 ### Tier 3 — `serializer_class` (full custom override)
 
-For complete control, provide your own serializer class. **Custom serializers must subclass `BaseSampleSerializer` (or `BaseMeasurementSerializer` for Measurement models)** — omitting this will raise a `django.core.exceptions.ImproperlyConfigured` error at startup.
+For complete control, provide your own serializer class. **Custom serializers must subclass `BaseSampleSerializer` (or `BaseMeasurementSerializer` for Measurement models).** The portal refuses to load its API routes otherwise, with a `django.core.exceptions.ImproperlyConfigured` error that names the serializer and the base to build on.
 
 ```python
 from fairdm.api.serializers import BaseSampleSerializer
@@ -430,13 +450,49 @@ class RockSampleConfig(ModelConfiguration):
     serializer_class = RockSampleSerializer
 ```
 
+If the serializer has to be worked out in code, override `get_serializer_class` on the
+configuration instead. The API uses whatever it returns, and the same rule applies to it:
+
+```python
+@fairdm.register
+class RockSampleConfig(ModelConfiguration):
+    model = RockSample
+
+    def get_serializer_class(self):
+        return RockSampleSerializer
+```
+
+The base serializers carry what keeps the API safe: the narrowing of the parent a caller may choose,
+the credit given to the person who creates a record, and the manage-level rule for changing a
+record's visibility or parent. That is why a serializer built on a plain `ModelSerializer` is
+refused whichever way it is supplied.
+
 Extending `Meta` from the base class keeps the common fields (`url`, `uuid`, `name`, `dataset`, `added`, `modified`, and `local_id` and `status` for a sample, `sample` for a measurement) and the metadata that FairDM depends on. You can add, reorder, or override fields, but you cannot remove the common ones without risking broken API clients.
 
 ```{warning}
 Passing a serializer that does not inherit from `BaseSampleSerializer` or `BaseMeasurementSerializer` raises:
 
-    ImproperlyConfigured: RockSampleSerializer must subclass BaseSampleSerializer.
+    ImproperlyConfigured: Custom serializer_class 'RockSampleSerializer' for a Sample type must
+    subclass 'fairdm.api.serializers.BaseSampleSerializer'.
 ```
+
+### The start-up check
+
+A registration whose API fields leave out a field the model requires cannot create a record. The
+check `fairdm.E600` reports it when the portal starts, and in `manage.py check`, before any caller
+meets the failure. It names the type and the field:
+
+```text
+demo.RockSample: (fairdm.E600) The API serializer for demo.RockSample does not accept the
+required field 'rock_type', so no record of this type can be created through the API.
+    HINT: Add 'rock_type' to serializer_fields (or fields) in the type's registration, or to the
+    serializer it names.
+```
+
+A required field is one that is editable, has no default, and may be neither blank nor null. It
+needs a writable field in the type's serializer, so a field the serializer returns as read-only is
+reported too. The check looks at the serializer the API will
+use, whether FairDM builds it or you supply it. See [Configuration Checks](../portal-administration/configuration-checks.md).
 
 ## Serializer and Filter Classes
 
@@ -466,6 +522,13 @@ viewset of your own to the result, or name the fields yourself.
 
 FairDM derives the `<model-slug>` component of every endpoint from the model's `verbose_name_plural` metadata (lowercased, spaces → hyphens). This gives you full control over URL structure without touching router configuration.
 
+A sample type is served under `samples/` and a measurement type under `measurements/`, and the
+route names carry the same prefix, so `reverse("api:samples-rock-samples-list")` gives
+`/api/v1/samples/rock-samples/` and `reverse("api:measurements-xrf-measurements-list")` gives
+`/api/v1/measurements/xrf-measurements/`. Because of the prefix, a sample type and a measurement
+type with the same plural name do not collide. The names also live in the `api` namespace, so
+they never clash with the portal's own page names such as `project-list`.
+
 ### Default derivation
 
 The `verbose_name_plural` is set automatically by Django using the `Meta.verbose_name` (or the class name if not specified):
@@ -489,6 +552,12 @@ class ThinSection(Sample):
         verbose_name_plural = "thin sections"  # → endpoint: /api/v1/samples/thin-sections/
 ```
 
+### Renaming a type
+
+Changing `verbose_name_plural` moves the type's endpoints and renames its routes. The old address
+stops answering and nothing redirects from it, so tell the people who use the API before you
+rename a type that has been published.
+
 ### Migration note for existing portals
 
 If you are upgrading from a FairDM version that used CamelCase-decomposed slugs, your URL names and endpoint paths have changed. The table below shows the old and new slugs for common patterns:
@@ -505,7 +574,9 @@ Update any hardcoded API clients, `{% url %}` references, or OpenAPI schema snap
 
 ## Extending the Router with Custom Viewsets
 
-If you need a custom viewset for a specific model, you can extend the FairDM router in your portal's `urls.py`:
+The router is public as `fairdm_api_router`. A viewset registered on it is served at
+`/api/v1/<prefix>/` beside the generated endpoints and appears in the
+[interactive documentation](#interactive-documentation) and the schema at `/api/v1/schema/`.
 
 ```python
 from fairdm.api.router import fairdm_api_router
@@ -517,8 +588,22 @@ class SpecialSampleViewSet(BaseViewSet):
     queryset = SpecialSample.objects.all()
     serializer_class = SpecialSampleSerializer
 
-fairdm_api_router.register(r"samples/special-sample", SpecialSampleViewSet, basename="special-sample")
+fairdm_api_router.register(r"special-samples", SpecialSampleViewSet, basename="special-samples")
 ```
+
+The router reads its routes once, when `fairdm.api.urls` is first loaded. Register from your app's
+`ready()` method, or from any module that is imported before the URL configuration is used, and
+the route is there from the first request. A viewset registered later is not served until that
+module is loaded again.
+
+`BaseViewSet` finds a record by its short identifier (`lookup_field = "uuid"`) and requires a
+signed-in person to write. Its permissions and filters come from the API's settings, so a viewset
+of your own is held to the same visibility rules as the generated ones. The route name is
+`<basename>-list` and `<basename>-detail` in the `api` namespace.
+
+A type registered with the registry does not need this. Its endpoints are generated, and
+registration stops the portal with the real error when they cannot be built, so a mistake in a
+type's configuration is not hidden behind a missing route.
 
 ## Rate Limiting
 

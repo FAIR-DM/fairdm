@@ -224,6 +224,28 @@ In development nothing is blocked, and `check --deploy` reports the same thing o
 Deleting or renaming one of these four through the administration interface is refused outright, so
 reaching this check at all means a role was removed by some other route.
 
+### API checks (fairdm.E600-E699)
+
+#### E600: a registered type's API cannot create a record
+
+**Error:** the serializer the API uses for a sample or measurement type has no writable field for a
+field the model requires, so a request to create a record of that type can never succeed.
+
+**Fix:** add the field to `serializer_fields` (or `fields`) in the type's registration, or to the
+serializer the registration names. A field the serializer marks read-only counts as left out.
+
+```python
+@fairdm.register
+class RockSampleConfig(BaseSampleConfiguration):
+    model = RockSample
+    serializer_fields = ["rock_type", "collection_date"]
+```
+
+The check runs with the other checks of the `models` tag, in `manage.py check`, `runserver` and
+`migrate`. It is not part of the production-critical subset, because it reports a mistake in the
+code of the portal, which shows up in development. See
+[Customizing Serializer Fields](../portal-development/restful-api.md#customizing-serializer-fields).
+
 ## Integration with CI/CD
 
 Add the check command to your deployment pipeline:

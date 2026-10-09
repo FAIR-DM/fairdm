@@ -727,98 +727,52 @@ class MyAppConfig(AppConfig):
 
 ## REST API Support
 
-**Current Status**: The FairDM registry auto-generates Django REST Framework serializers for registered models, and the portal serves them under `/api/v1/` (see [RESTful API](restful-api.md)). The serializer of a sample or measurement type returns the address of each record, so it needs the request in its context.
+The registry builds a Django REST Framework serializer for every registered sample and measurement type, and the portal serves it under `/api/v1/` with no further code (see [RESTful API](restful-api.md)). The serializer of a type returns the address of each record, so it needs the request in its context.
 
-**What's Available Now:**
-
-The registry creates serializers for each registered model:
+The registry gives you the serializer the API uses:
 
 ```python
 from fairdm.registry import registry
 
-# Access auto-generated serializer
 config = registry.get_for_model(MyMeasurement)
 serializer_class = config.get_serializer_class()
 
-# Use in your own views
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-class MyMeasurementAPIView(APIView):
-    def get(self, request):
-        measurements = MyMeasurement.objects.all()
-        serializer = serializer_class(
-            measurements, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
+serializer = serializer_class(measurements, many=True, context={"request": request})
 ```
 
-**Custom Serializers:**
+**Choosing what the API carries:**
 
-You can provide custom serializers in your configuration:
+`serializer_fields` lists the fields the API adds to those every sample or measurement has. Without it the API uses `fields`, and without that the framework's defaults, which leave out `options` and `tags`:
 
 ```python
-from rest_framework import serializers
+@register
+class MyMeasurementConfig(ModelConfiguration):
+    model = MyMeasurement
+    serializer_fields = ["element", "concentration_ppm"]
+```
+
+**Custom serializers:**
+
+Name a serializer of your own with `serializer_class`, or return one from `get_serializer_class`. It must build on `BaseSampleSerializer` or `BaseMeasurementSerializer`, whichever way it is supplied, and the portal refuses to load its API routes when it does not:
+
+```python
+from fairdm.api.serializers import BaseMeasurementSerializer
 from fairdm.registry import register
 from fairdm.registry.config import ModelConfiguration
 
-class MyMeasurementSerializer(serializers.ModelSerializer):
-    class Meta:
+class MyMeasurementSerializer(BaseMeasurementSerializer):
+    class Meta(BaseMeasurementSerializer.Meta):
         model = MyMeasurement
-        fields = ["id", "name", "sample", "dataset", "element", "concentration_ppm"]
-        read_only_fields = ["id"]
+        fields = [*BaseMeasurementSerializer.Meta.fields, "element", "concentration_ppm"]
 
 @register
 class MyMeasurementConfig(ModelConfiguration):
     model = MyMeasurement
-    serializer_class = MyMeasurementSerializer  # Use custom serializer
+    serializer_class = MyMeasurementSerializer
 ```
 
-**Planned Features:**
+When the fields the API carries leave out a field the model requires, the start-up check `fairdm.E600` reports it before anyone meets the failure (see [Configuration Checks](../portal-administration/configuration-checks.md)).
 
-A full REST API module is planned for a future release, which will include:
-
-- Auto-generated ModelViewSets for all registered models
-- Automatic URL routing configuration
-- Polymorphic API endpoints (measurements by type)
-- Filtering, searching, and pagination support
-- Nested serializers for relationships (sample → measurements, dataset → samples)
-- Permission integration with object-level access control
-- API documentation generation
-
-For more information, see the [project roadmap](../ROADMAP.md).
-
-**Current Workaround:**
-
-If you need a REST API now, you can create ViewSets manually:
-
-```python
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
-class MyMeasurementViewSet(viewsets.ModelViewSet):
-    """API endpoint for MyMeasurement."""
-    queryset = MyMeasurement.objects.with_related()
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_serializer_class(self):
-        # Use registry-generated serializer
-        config = registry.get_for_model(MyMeasurement)
-        return config.get_serializer_class()
-```
-
-Then add to your URLs:
-
-```python
-from rest_framework.routers import DefaultRouter
-from myapp.api import MyMeasurementViewSet
-
-router = DefaultRouter()
-router.register(r'measurements/xrf', MyMeasurementViewSet, basename='xrf-measurement')
-
-urlpatterns = [
-    path('api/', include(router.urls)),
-]
-```
+A viewset of your own goes on the API router, which is public as `fairdm_api_router`: see [Extending the Router with Custom Viewsets](restful-api.md#extending-the-router-with-custom-viewsets).
 
 The registry system provides a powerful foundation for building data-driven applications that can adapt to your evolving data models. Use these patterns to create flexible, maintainable code that works with any combination of registered Sample and Measurement models.
