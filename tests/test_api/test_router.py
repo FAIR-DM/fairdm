@@ -518,3 +518,80 @@ class TestCatalogues:
 
         assert response.status_code == 200
         assert response.json() == {"types": []}
+
+
+@pytest.mark.django_db
+class TestCatalogueCounts:
+    @pytest.fixture
+    def records(self, public_dataset, private_dataset, make_record):
+        """Make a sample and a measurement made on it in a public dataset and a private one."""
+        from demo.models import RockSample, XRFMeasurement
+
+        for dataset in (public_dataset, private_dataset):
+            sample = make_record(RockSample, dataset)
+            make_record(XRFMeasurement, dataset, sample=sample)
+        return (RockSample, XRFMeasurement)
+
+    @pytest.fixture
+    def counted(self, records):
+        """Return a function giving what a client's catalogues count for each type."""
+
+        def counted(client):
+            return {
+                entry["name"]: entry["count"]
+                for kind in CATALOGUES
+                for entry in client.get(reverse(CATALOGUES[kind])).json()["types"]
+            }
+
+        return counted
+
+    @pytest.fixture
+    def person_with_level(self, private_dataset, member_at):
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        return member_at(private_dataset, ContributionLevel.VIEW)
+
+    def test_a_visitor_counts_the_records_in_public_datasets(self, api_client, counted):
+        counts = counted(api_client)
+
+        assert counts["RockSample"] == 1
+        assert counts["XRFMeasurement"] == 1
+
+    def test_a_signed_in_person_with_no_level_counts_what_a_visitor_does(
+        self, counted, signed_in, user
+    ):
+        counts = counted(signed_in(user))
+
+        assert counts["RockSample"] == 1
+        assert counts["XRFMeasurement"] == 1
+
+    def test_a_person_with_a_level_on_the_private_dataset_counts_its_records_too(
+        self, counted, signed_in, person_with_level
+    ):
+        counts = counted(signed_in(person_with_level))
+
+        assert counts["RockSample"] == 2
+        assert counts["XRFMeasurement"] == 2
+
+    @pytest.mark.parametrize("who", ["visitor", "no_level", "with_level"])
+    def test_a_count_is_the_count_the_types_list_gives_the_same_caller(
+        self,
+        who,
+        api_client,
+        counted,
+        signed_in,
+        user,
+        person_with_level,
+        url_of,
+        records,
+    ):
+        client = {
+            "visitor": api_client,
+            "no_level": signed_in(user),
+            "with_level": signed_in(person_with_level),
+        }[who]
+        counts = counted(client)
+
+        for model in records:
+            listed = client.get(url_of(model, "list")).json()["count"]
+            assert counts[model.__name__] == listed
