@@ -586,6 +586,7 @@ can build on any of them.
 | `ContributionSerializer`, `RoleSerializer` | A credit on a record and the roles in it |
 | `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
 | `ContributorSerializer`, `ContributorIdentifierSerializer` | A person or organization as their profile page shows them |
+| `CatalogueSerializer`, `CatalogueEntrySerializer` | Describe a catalogue's response to the generated documentation. The catalogue views do not use them to render the response |
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
 
@@ -694,7 +695,9 @@ in `fairdm.api.throttling` and the rates are entries of `REST_FRAMEWORK["DEFAULT
 | `UserDailyThrottle` | `user_day` | 20000/day |
 
 An anonymous caller is counted by the two anonymous throttles only, by address. A signed-in caller
-is counted by the two others only, as the person. Change a rate in your portal's settings after
+is counted by the two others only, as the person. The two signed-in throttles share the parent
+`SignedInThrottle`, which skips an anonymous caller. Django REST framework's own `UserRateThrottle`
+would count one by address as well. Change a rate in your portal's settings after
 `fairdm.setup()` returns, and restart:
 
 ```python

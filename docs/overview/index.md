@@ -21,7 +21,8 @@ Key principles include:
 ## Where FairDM is headed
 
 [GOALS.md](https://github.com/FAIR-DM/fairdm/blob/main/GOALS.md) lists the standing directions the
-framework works toward, and how important each one is.
+framework works toward, and how important each one is. The [roadmap](../ROADMAP.md) orders the work
+that serves them, one brief for each step, and says which steps are delivered.
 
 ```{toctree}
 :maxdepth: 2
