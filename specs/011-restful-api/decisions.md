@@ -576,3 +576,29 @@ cannot stop a portal from starting. Any value in `REST_FRAMEWORK["NUM_PROXIES"]`
 *Revisit if:* a default number of proxies can be chosen safely, which depends on the deployment.
 
 **ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
+## D25. Three changes the maintainer asked for when he read the finished work
+
+**The token scheme has a plain name.** The documentation page's authorisation dialog showed
+`knoxApiToken`, the name drf-spectacular gives django-rest-knox's scheme. It is `tokenAuth` now.
+
+**Every record links to its page on the portal.** A record and a contributor carry `html_url`
+beside `url`. Someone who harvests records and shows them on another website then has a link back
+to the portal, which makes the portal's page the canonical one. The name follows the convention
+of APIs that return both an API address and a web address. References to other records stay as
+they are, an identifier and an API address.
+
+**The catalogues are short.** An entry had the type's fields and filters, which the generated
+documentation already gives for every type, in a form tools can read. Keeping them in two places
+means two things to keep true. An entry is now the type's name, its display names, the address of
+its records and a count. `app_label` goes too, since it is a name from the portal's code and tells
+a caller nothing.
+
+The specification is changed to match: FR-003, FR-036, a new FR-044 and the fifth scenario of the
+fifth story.
+
+**Ruled by.** The maintainer, at review. The field name and what stays in an entry were chosen
+here.
+
+**ADR:** none — small changes to this feature's own output, made before any release.
+

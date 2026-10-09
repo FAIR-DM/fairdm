@@ -266,3 +266,23 @@ Each test task is written first and seen to fail.
   --deploy` warns when `REST_FRAMEWORK` has no `NUM_PROXIES`, and is silent when it is set. Then
   add the warning in `fairdm/conf/checks.py`, pointing at the administrator page's section on
   proxies. No default number is chosen.
+
+## Phase 9: changes the maintainer asked for at review
+
+- [ ] T068 [US5] The documentation page's authorisation dialog names the token scheme
+  `knoxApiToken`, which means nothing to someone who does not know the package.
+  `tests/test_api/test_schema.py`: the schema's security schemes are named `tokenAuth` and
+  `cookieAuth`, no scheme name or description contains the package's name, and every operation's
+  security refers to the new name. Then rename it where the schema is generated.
+- [ ] T069 [US1] `tests/test_api/test_viewsets.py`, `TestPageOnThePortal`: a project, dataset,
+  sample, measurement, person and organisation each carry `html_url`, the absolute address of the
+  record's own page on the portal, in list and record responses, and requesting that address as
+  someone who may see the record returns the page. It is read-only and a value sent for it is
+  ignored. Then add the field to the record serializers and the contributor serializer. Document
+  it on both API pages and in the changelog entry.
+- [ ] T070 [US5] The catalogues repeat what the generated documentation already says about each
+  type. `tests/test_api/test_router.py`: an entry carries `name`, `verbose_name`,
+  `verbose_name_plural`, `endpoint` and `count` and nothing else. Then remove `fields`, `filters`
+  and `app_label` from the entries, their response serializer and the documentation.
+  `TestEveryListedFilter` takes each type's filter names from the API's filter set for that type
+  in place of the catalogue.

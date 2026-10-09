@@ -308,8 +308,9 @@ Request the two catalogues signed out and signed in.
 4. **Given** the documentation, **When** it describes how to authenticate and what the limits are,
    **Then** what it says is what the portal does.
 5. **Given** a request for the catalogue of sample types or of measurement types, **When** it is
-   answered, **Then** each registered type is listed with its name, the address of its records, its
-   fields and the filters it offers.
+   answered, **Then** each registered type is listed with its name, the address of its records and a
+   count. The fields and filters of a type are in the generated documentation and are not repeated
+   in the catalogue.
 6. **Given** a catalogue entry, **When** it gives a count of records, **Then** the count is of the
    records the caller may see.
 7. **Given** a portal with no registered sample or measurement types, **When** the catalogues are
@@ -383,7 +384,9 @@ confirm the portal follows them.
 - **FR-002**: A single record MUST be addressed by its short identifier.
 - **FR-003**: A project, dataset, sample or measurement MUST be returned with its own fields, its
   parent, its descriptions, key dates, identifiers, keywords and credited contributors. A dataset
-  MUST also carry its licence, and a project its owner.
+  MUST also carry its licence, and a project its owner. Each record, and each contributor, MUST
+  carry the address of its own page on the portal's website beside its address in the API, so
+  that anyone who republishes the record can link back to the portal.
 - **FR-004**: A sample MUST always carry the fields common to every sample, and a measurement those
   common to every measurement, whatever field list its type declares. Each MUST also carry every
   field its type declares for the API.
@@ -464,11 +467,14 @@ confirm the portal follows them.
 - **FR-034**: The portal MUST serve an interactive documentation page generated from the running
   endpoints, showing for each the fields accepted and returned, which are required and which are
   read-only, and allowing a request to be tried.
+- **FR-044**: The generated documentation MUST name the ways of authenticating in plain words. It
+  MUST NOT show the name of the package that provides tokens.
 - **FR-035**: What the generated documentation says about authentication, limits and paging MUST
   match what the portal does.
 - **FR-036**: The API MUST serve a catalogue of registered sample types and one of registered
-  measurement types, each listing a type's name, the address of its records, its fields and its
-  filters. A count in a catalogue MUST be of the records the caller may see.
+  measurement types, each listing a type's name, the address of its records and a count of the records
+  the caller may see. A type's fields and filters are described once, in the generated
+  documentation.
 - **FR-037**: The API's root MUST link to every list endpoint and both catalogues.
 - **FR-038**: The sidebar MUST carry one link to the API documentation.
 - **FR-039**: The documentation for portal developers MUST describe the registration options that
