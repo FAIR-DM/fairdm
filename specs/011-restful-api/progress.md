@@ -345,3 +345,10 @@ Catalogue keys: `filterable_fields` is replaced by `filters`; `fields` is now th
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_menus tests/test_conf demo/tests: 1150 passed, 1 skipped (the skip was already there). ruff check and ruff format --check clean.
 Next: T052, then the full verify.
 Watch: the documentation still names FAIRDM_API_DOCS_URL and the old catalogue entry; T052 fixes both.
+
+## 2026-10-09T00:55:02Z · Implementer US5 · T052
+
+Did: docs/portal-development/restful-api.md: "Discovery Catalog" is now "The Catalogues", with a real entry, a table of what each key holds, the empty-list case and how the count is decided. "Interactive Documentation" names the three addresses and route names, the two security schemes, and that the description's authentication, limits and page sizes are read from the settings when the schema is generated. The customising section says to keep the description hook if SPECTACULAR_SETTINGS is replaced. The sidebar section now describes the one API entry, and FAIRDM_API_DOCS_URL is gone from docs/. docs/user-guide/reading-records-with-a-script.md gains "Find out what a portal offers" and a fuller "Try it in the browser".
+Verified: grep for FAIRDM_API_DOCS_URL over fairdm, tests, demo and docs finds nothing. The example catalogue entry is a trimmed copy of the entry the endpoint answers for SoilSample on this branch; the description text and the content type of /api/v1/schema/ were read from a response.
+Next: the full verify, then the completion report.
+Watch: the Rate Limiting section of the developer page still lists the current rate names; the next story rewrites it.
