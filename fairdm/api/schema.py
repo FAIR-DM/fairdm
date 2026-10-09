@@ -283,7 +283,10 @@ class TypeDocumentation:
             registration = getattr(viewset, "registration", None)
             if registration is not None:
                 heading = TypeDescription(registration).heading
-                tag = {"name": heading, "description": KIND_DESCRIPTIONS[heading]}
+                tag: dict[str, str] = {
+                    "name": heading,
+                    "description": str(KIND_DESCRIPTIONS[heading]),
+                }
             else:
                 name = prefix.split("/")[0]
                 tag = {"name": CORE_HEADINGS.get(name, name)}

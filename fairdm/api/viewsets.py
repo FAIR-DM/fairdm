@@ -341,23 +341,21 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     # drf-spectacular reads this as the operation description, so it is not
     # BaseViewSet's docstring.
     _GeneratedViewSet.__doc__ = description.summary()
-    extend_schema_view(
-        **{
-            action: extend_schema(
+    operations = {}
+    for action in ACTIONS:
+        if action == "list":
+            operations[action] = extend_schema(
                 tags=[description.heading],
                 summary=description.action_title(action),
-                **(
-                    {
-                        "description": description.list_description(),
-                        "external_docs": description.repository(),
-                    }
-                    if action == "list"
-                    else {}
-                ),
+                description=description.list_description(),
+                external_docs=description.repository(),
             )
-            for action in ACTIONS
-        }
-    )(_GeneratedViewSet)
+        else:
+            operations[action] = extend_schema(
+                tags=[description.heading],
+                summary=description.action_title(action),
+            )
+    extend_schema_view(**operations)(_GeneratedViewSet)
 
     return _GeneratedViewSet
 
