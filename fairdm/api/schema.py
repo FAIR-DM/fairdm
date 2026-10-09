@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from drf_spectacular.contrib.django_filters import DjangoFilterExtension
+from drf_spectacular.contrib.knox_auth_token import KnoxTokenScheme
 from rest_framework.settings import api_settings
 
 
@@ -119,3 +120,27 @@ class FairDMFilterExtension(DjangoFilterExtension):
         return super().resolve_filter_field(
             auto_schema, model, filterset_class, field_name, filter_field
         )
+
+
+class TokenSchemeExtension(KnoxTokenScheme):
+    """Describe the token header under a name a reader of the documentation understands."""
+
+    # Ahead of the extension drf-spectacular ships for the same class.
+    priority = 1
+    name = "tokenAuth"
+
+    def get_security_definition(self, auto_schema):
+        """Add a plain description to the header scheme drf-spectacular builds.
+
+        Args:
+            auto_schema: The schema generator's view of the operation.
+
+        Returns:
+            The scheme as an OpenAPI security scheme object.
+        """
+        definition = super().get_security_definition(auto_schema)
+        definition["description"] = (
+            "A token created on your account pages, sent with every request as "
+            "`Authorization: Token <token>`."
+        )
+        return definition

@@ -1,5 +1,7 @@
 """Tests for the generated OpenAPI schema (Feature 011 US5)."""
 
+import json
+
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
@@ -165,6 +167,23 @@ class TestSchemaDescribesThePortal:
         assert [s["name"] for s in header] == ["Authorization"]
         assert len(cookie) == 1
         assert len(schemes) == 2
+
+    def test_the_security_schemes_are_named_in_plain_words(self, schema):
+        schemes = schema["components"]["securitySchemes"]
+
+        assert set(schemes) == {"tokenAuth", "cookieAuth"}
+        assert "knox" not in json.dumps(schemes).lower()
+
+    def test_every_operation_refers_to_a_scheme_the_schema_defines(self, schema):
+        defined = set(schema["components"]["securitySchemes"])
+        referred = set()
+        for path in schema["paths"].values():
+            for operation in path.values():
+                for requirement in operation.get("security", []):
+                    referred |= set(requirement)
+
+        assert "tokenAuth" in referred
+        assert referred <= defined
 
     def test_the_description_carries_each_configured_limit(self, schema, settings):
         rates = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].values()

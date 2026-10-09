@@ -318,8 +318,8 @@ has one link to it, **API**, in the **Documentation** group.
 | `/api/v1/redoc/` | `api:api-redoc` | ReDoc, the same reference to read |
 | `/api/v1/schema/` | `api:api-schema` | The OpenAPI 3 schema both pages are drawn from, as YAML, or as JSON with `?format=json` |
 
-The schema describes the two ways of authenticating: the `Authorization` header that carries a
-token, and the session cookie. To try a request that needs a token, choose **Authorize** on the
+The schema describes the two ways of authenticating as `tokenAuth`, the `Authorization` header
+that carries a token, and `cookieAuth`, the session cookie. To try a request that needs a token, choose **Authorize** on the
 documentation page and enter `Token <your-token>`, or sign in to the portal first and the page
 sends your session.
 
