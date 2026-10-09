@@ -621,7 +621,10 @@ grouped under one heading, a type's display name appeared nowhere, and the descr
 type's record was a docstring written for the framework's developers. Each registered type now has
 a section under its plural name, with the description, authority, citation, keywords and
 repository link from its registration. A maintainer's name and email address are left out, since
-the documentation is public and those are a person's details.
+the documentation is public and those are a person's details. The description in a registration's
+metadata is used before the registration's own `description`, because the base configuration for
+measurements carries a `description` that stands for every measurement type and would otherwise
+hide what each type says about itself.
 
 Left for later, each as work of its own: figures about a type over time, an `ETag` or
 `Last-Modified` on responses, and a record of what was deleted.

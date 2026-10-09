@@ -114,14 +114,16 @@ class TypeDescription:
         """Say what the type is.
 
         Returns:
-            The registration's description, else the one in its metadata, else the model's
-            docstring, else a plain sentence naming the type.
+            The description in the registration's metadata, else the registration's own
+            description, else the model's docstring, else a plain sentence naming the type.
+            The metadata comes first because a base configuration can carry a description
+            that stands for every type built on it.
         """
         metadata = self.config.metadata
-        if self.config.description:
-            return str(self.config.description)
         if metadata and metadata.description:
             return str(metadata.description)
+        if self.config.description:
+            return str(self.config.description)
         return self.model.__doc__ or f"Endpoints for managing {self.name}."
 
     def details(self) -> str:

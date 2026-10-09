@@ -256,9 +256,9 @@ class TestSchemaDescribesThePortal:
 
 def registration_text(config):
     """Return the description a registration gives its type, or an empty string."""
-    if config.description:
-        return str(config.description)
-    return str(config.metadata.description) if config.metadata else ""
+    if config.metadata and config.metadata.description:
+        return str(config.metadata.description)
+    return str(config.description or "")
 
 
 def every_description(node):
@@ -433,3 +433,21 @@ class TestTypesInTheDocumentation:
             assert ":class:" not in text
             for line in first_lines:
                 assert line not in text
+
+
+@pytest.mark.django_db
+class TestMetadataDescriptionComesFirst:
+    def test_a_type_with_its_own_metadata_description_is_not_given_its_base_s(self):
+        from demo.models import XRFMeasurement
+        from fairdm.registry import registry
+
+        config = registry.get_for_model(XRFMeasurement)
+        own = str(config.metadata.description)
+        assert own
+        assert own != str(config.description)
+
+        response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
+        tags = {tag["name"]: tag for tag in response.json()["tags"]}
+        section = tags[str(XRFMeasurement._meta.verbose_name_plural)]
+
+        assert section["description"].startswith(own)

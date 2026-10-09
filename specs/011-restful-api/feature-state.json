@@ -1275,6 +1275,22 @@
             ],
             "verified_by_ci": false
           }
+        },
+        {
+          "id": "T074",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_schema.py::TestMetadataDescriptionComesFirst"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api/test_schema.py tests/test_api/test_settings.py"
+            ],
+            "code": [
+              "fairdm/api/schema.py:113"
+            ]
+          }
         }
       ]
     },

@@ -820,7 +820,7 @@ What the registration gives appears in three places:
 
 | Registration | Appears in |
 |--------------|------------|
-| `ModelConfiguration.description`, else `ModelConfiguration.metadata.description`, else the model's docstring, else a sentence naming the type | The type's section, the description of every operation of the type, and the description of the type's record component |
+| `ModelConfiguration.metadata.description`, else `ModelConfiguration.description`, else the model's docstring, else a sentence naming the type | The type's section, the description of every operation of the type, and the description of the type's record component |
 | `metadata.authority` (`name`, `short_name`, `website`) | The type's section, as the authority |
 | `metadata.citation` (`text`, `doi`) | The type's section, as the citation |
 | `metadata.keywords` | The type's section, as the keywords |

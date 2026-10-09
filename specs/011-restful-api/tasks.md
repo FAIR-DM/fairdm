@@ -305,3 +305,6 @@ Each test task is written first and seen to fail.
   each type's record is the type's own, and no description in the generated documentation is a
   docstring of the framework's base classes. Then build the sections from the registry when the
   documentation is generated.
+- [x] T074 [US5] `tests/test_api/test_schema.py`, `TestMetadataDescriptionComesFirst`: a type whose
+  registration metadata has a description is described by it, and not by the description its base
+  configuration carries for every type of its kind. Then read the metadata's description first.
