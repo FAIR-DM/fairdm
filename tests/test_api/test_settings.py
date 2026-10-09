@@ -1,7 +1,15 @@
 """Tests for FairDM API settings (``fairdm/api/settings.py``)."""
 
+from datetime import timedelta
+
 import pytest
+from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
+
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import ContributionFactory, ProjectFactory, UserFactory
+from fairdm.utils.choices import Visibility
 
 
 @pytest.fixture
@@ -237,3 +245,78 @@ class TestAPIDescriptionSettings:
             django_settings.FAIRDM_API_DESCRIPTION
             == "A custom portal for my research domain."
         )
+
+
+@pytest.mark.django_db
+class TestTokens:
+    @pytest.fixture
+    def private_project(self):
+        """A private project and a person who holds the view level on it."""
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        holder = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=holder, level=ContributionLevel.VIEW
+        )
+        return project, holder
+
+    @staticmethod
+    def send(value):
+        """Request the list of projects with a token's value in the header."""
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {value}")
+        return client.get(reverse("api:project-list"))
+
+    @staticmethod
+    def uuids(response):
+        return {item["uuid"] for item in response.json()["results"]}
+
+    def test_a_current_token_acts_as_its_holder(self, make_token, private_project):
+        project, holder = private_project
+        _record, value = make_token(holder)
+
+        response = self.send(value)
+
+        assert response.status_code == 200
+        assert str(project.uuid) in self.uuids(response)
+
+    def test_a_visitor_does_not_see_what_the_holder_sees(self, private_project):
+        project, _holder = private_project
+
+        response = APIClient().get(reverse("api:project-list"))
+
+        assert str(project.uuid) not in self.uuids(response)
+
+    def test_a_revoked_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        record, value = make_token(holder)
+        assert self.send(value).status_code == 200
+
+        record.delete()
+
+        assert self.send(value).status_code == 401
+
+    def test_an_expired_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        record, value = make_token(holder, expiry=timedelta(days=1))
+        assert self.send(value).status_code == 200
+
+        record.__class__.objects.filter(pk=record.pk).update(
+            expiry=timezone.now() - timedelta(seconds=1)
+        )
+
+        assert self.send(value).status_code == 401
+
+    def test_an_unknown_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        _record, value = make_token(holder)
+
+        assert self.send(value[::-1]).status_code == 401
+
+    def test_a_token_that_is_not_in_the_store_is_answered_401(self):
+        assert self.send("0123456789abcdef" * 8).status_code == 401
+
+    def test_the_token_limit_is_the_one_the_portal_sets(self, settings):
+        from knox.settings import knox_settings
+
+        assert knox_settings.TOKEN_LIMIT_PER_USER == 10
+        assert knox_settings.AUTO_REFRESH is False

@@ -110,6 +110,7 @@ class TestRegistrationCheck:
 
     def test_the_check_is_registered_with_django(self):
         from django.core.checks.registry import registry as checks
+
         from fairdm.api.checks import check_registered_types
 
         assert check_registered_types in checks.registered_checks

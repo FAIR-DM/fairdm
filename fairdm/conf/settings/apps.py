@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     "fairdm.api",
     "rest_framework",
     "rest_framework.authtoken",
+    "knox",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "corsheaders",

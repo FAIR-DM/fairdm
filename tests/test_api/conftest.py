@@ -23,6 +23,30 @@ def other_user(db):
     return UserFactory()
 
 
+def make_token_client(user, **kwargs) -> APIClient:
+    """Return an APIClient that sends a new token of the person's in each request."""
+    from knox.models import AuthToken
+
+    _record, value = AuthToken.objects.create(user=user, **kwargs)
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Token {value}")
+    return client
+
+
+@pytest.fixture
+def make_token():
+    """Return a function creating a token for a person, giving the record and its value.
+
+    The value is the secret a script sends. Only the record's digest is stored.
+    """
+    from knox.models import AuthToken
+
+    def make_token(user, **kwargs):
+        return AuthToken.objects.create(user=user, **kwargs)
+
+    return make_token
+
+
 @pytest.fixture
 def token(user):
     token, _ = Token.objects.get_or_create(user=user)
