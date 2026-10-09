@@ -957,6 +957,42 @@ class TestFiltering:
 
         assert found == {here.uuid}
 
+    @staticmethod
+    def answer_to(client, address, name, sent):
+        """Return the status and the body of a refused filter, without the value sent."""
+        response = client.get(address, {name: sent})
+        return response.status_code, str(response.json()).replace(sent, "<sent>")
+
+    def test_a_visitor_narrowing_by_a_private_dataset_is_answered_as_for_an_unknown_one(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import RockSample
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        make_record(RockSample, private)
+        address = url_of(RockSample, "list")
+
+        answer = self.answer_to(api_client, address, "dataset", private.uuid)
+
+        assert answer[0] == 400
+        assert answer == self.answer_to(api_client, address, "dataset", "u" * 23)
+
+    def test_a_visitor_narrowing_by_a_sample_of_a_private_dataset_is_answered_as_for_an_unknown_one(
+        self, api_client, url_of, make_record
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=private)
+        make_record(ExampleMeasurement, private, sample=sample)
+        address = url_of(ExampleMeasurement, "list")
+
+        answer = self.answer_to(api_client, address, "sample", sample.uuid)
+
+        assert answer[0] == 400
+        assert answer == self.answer_to(api_client, address, "sample", "u" * 23)
+
     @pytest.mark.parametrize(
         "model",
         registered("sample") + registered("measurement"),
