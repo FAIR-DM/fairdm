@@ -315,3 +315,24 @@ Did: Added TestSchemaDescribesThePortal in tests/test_api/test_schema.py. The se
 Verified: uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaDescribesThePortal: the three description tests fail because the numbers are not in the text; the scheme test and the own-text test pass already.
 Next: T048.
 Watch: drf-spectacular does not reload its settings when Django's change in a test, so the own-text test patches spectacular_settings directly.
+
+## 2026-10-09T00:51:16Z · Implementer US5 · T048
+
+Did: Added TestCatalogues in tests/test_api/test_router.py. Each catalogue lists every registered type by name, with its verbose names and app label. An entry's address equals its list route made absolute, and answers with the type's records. Its fields are the serializer's fields as a flat list. Its filters are names the type's list accepts (each matches a parameter in the schema), include the dataset (and the sample for a measurement) and leave out the content-type filter. With no registered types a catalogue answers an empty list.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogues: fields, filters and the content-type test fail (the entry has no `filters` key and lists the registration's nested groups); the name, address, answers and empty-list tests pass already.
+Next: T049.
+Watch: the entry's `filterable_fields` key is replaced by `filters` in the implementation (T051).
+
+## 2026-10-09T00:51:16Z · Implementer US5 · T049
+
+Did: Added TestCatalogueCounts in tests/test_api/test_router.py. A private and a public dataset each hold a rock sample and an XRF measurement made on it. A visitor and a signed-in person with no level count the public records. A person with the view level on the private dataset counts both. For each of the three, the catalogue's count equals the count the type's own list gives that caller.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogueCounts: the no-level cases fail (the catalogue counts every record for any signed-in person: 2 against 1); the visitor and with-level cases pass already.
+Next: T050.
+Watch: none.
+
+## 2026-10-09T00:51:16Z · Implementer US5 · T050
+
+Did: Added TestRoot in tests/test_api/test_router.py. The API root links to the list route of every registered route (core and per type) and to both catalogues, as absolute addresses built from reverse(), and every link answers 200.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestRoot: passes already. Probed: with the measurement catalogue link removed from the root the catalogue test fails.
+Next: T051.
+Watch: none.
