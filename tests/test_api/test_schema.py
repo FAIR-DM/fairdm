@@ -205,6 +205,15 @@ class TestSchemaDescribesThePortal:
         assert "7927" in description
         assert "8209" in description
 
+    def test_the_description_carries_the_page_sizes_the_settings_hold(self, settings):
+        settings.REST_FRAMEWORK = {**settings.REST_FRAMEWORK, "PAGE_SIZE": 7927}
+        settings.FAIRDM_API_MAX_PAGE_SIZE = 8209
+
+        description = self.described()
+
+        assert "7927" in description
+        assert "8209" in description
+
     def test_a_portal_without_paging_still_gets_a_description(self, settings):
         settings.REST_FRAMEWORK = {
             **settings.REST_FRAMEWORK,
@@ -228,3 +237,36 @@ class TestSchemaDescribesThePortal:
         response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
         assert response.status_code == 200
         return response.json()["info"]["description"]
+
+
+@pytest.mark.django_db
+class TestSchemaDescribesCatalogues:
+    CATALOGUES = ("api:api-sample-discovery", "api:api-measurement-discovery")
+
+    @staticmethod
+    def resolved(schema, node):
+        """Follow a reference to the component it names."""
+        while "$ref" in node:
+            node = schema["components"]["schemas"][node["$ref"].rsplit("/", 1)[-1]]
+        return node
+
+    @pytest.mark.parametrize("route", CATALOGUES)
+    def test_a_catalogue_response_is_described(self, schema, route):
+        path = reverse(route)
+
+        response = schema["paths"][path]["get"]["responses"]["200"]
+        body = self.resolved(schema, response["content"]["application/json"]["schema"])
+        entry = self.resolved(schema, body["properties"]["types"]["items"])
+
+        assert body["properties"]["types"]["type"] == "array"
+        assert set(entry["properties"]) == set(APIClient().get(path).json()["types"][0])
+
+    def test_generating_the_schema_reports_no_error_about_the_catalogues(self):
+        from drf_spectacular.drainage import GENERATOR_STATS
+        from drf_spectacular.generators import SchemaGenerator
+
+        GENERATOR_STATS.reset()
+        SchemaGenerator().get_schema(request=None, public=True)
+
+        reported = [*GENERATOR_STATS._error_cache, *GENERATOR_STATS._warn_cache]
+        assert [message for message in reported if "DiscoveryView" in message] == []
