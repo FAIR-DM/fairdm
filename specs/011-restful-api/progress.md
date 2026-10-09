@@ -272,3 +272,10 @@ Did: Added TestSession in tests/test_api/test_settings.py. A person with the edi
 Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestSession: both pass on first run, as the API already accepted the session. Probe: removing SessionAuthentication from fairdm/api/settings.py made both fail; the file was restored.
 Next: T041.
 Watch: none.
+
+## 2026-10-09T00:34:16Z · Implementer US4 · T041
+
+Did: Added TestOtherOrigins in tests/test_api/test_settings.py. A read of the project list with an Origin header carries Access-Control-Allow-Origin. A preflight asking for the authorization header is allowed it. Neither a read nor a preflight carries Access-Control-Allow-Credentials. The home page, which is outside the API, gets no CORS header.
+Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestOtherOrigins: the read and the preflight fail with the header missing; the credentials and non-API cases pass already and guard against a later change.
+Next: T042.
+Watch: none.
