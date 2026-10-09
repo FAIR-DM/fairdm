@@ -440,3 +440,10 @@ Not tested: a project owner that is a superuser. Project.owner must be an organi
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1203 passed.
 Next: T066.
 Watch: a many-to-many to a record type is checked per related record, not per page; T066 decides whether that needs priming.
+
+## 2026-10-09T02:11:30Z · Implementer fix-1 · T066
+
+Did: Added the thin-section type with a location on every record to TestQueryCount (a "located sample" kind, anonymous and token). Seen failing first: a list of twelve ran 10 more queries than a list of two. generate_viewset now calls load_relations after load_related: select_related for each foreign key and one-to-one, prefetch_related for each many-to-many, among the serializer's fields, apart from the parents. Because T063 made a many-to-many to a record type a RecordReferenceField, the list serializer now primes that field for the whole page too (RecordReferenceField.prime takes the relation's name), so its visibility check stays one query per page; TestReferencesFollowTheLists has a count test for it (24 against 15 queries before the priming).
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry: 1206 passed.
+Next: T064.
+Watch: none.
