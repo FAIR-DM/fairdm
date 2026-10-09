@@ -338,6 +338,22 @@ class TestRegistrationFailureIsReported:
         with pytest.raises(RuntimeError, match="cannot be built"):
             FairDMAPIRouter().register_types()
 
+    def test_a_filter_set_that_cannot_be_built_stops_the_registration(
+        self, monkeypatch
+    ):
+        from demo.models import RockSample
+        from fairdm.api.router import FairDMAPIRouter
+        from fairdm.registry import ModelConfiguration, registry
+
+        class Failing(ModelConfiguration):
+            def get_filterset_class(self):
+                raise RuntimeError("the filter set cannot be built")
+
+        monkeypatch.setitem(registry._registry, RockSample, Failing(model=RockSample))
+
+        with pytest.raises(RuntimeError, match="cannot be built"):
+            FairDMAPIRouter().register_types()
+
 
 class TestAddresses:
     @pytest.fixture

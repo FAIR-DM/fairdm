@@ -324,7 +324,7 @@ documentation page and enter `Token <your-token>`, or sign in to the portal firs
 sends your session.
 
 The description at the top of the page is written when the schema is generated. After the text you
-set in `FAIRDM_API_DESCRIPTION` it adds how to authenticate, the rates in
+set in `SPECTACULAR_SETTINGS["DESCRIPTION"]` it adds how to authenticate, the rates in
 `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` (each one that is configured, under its own name) and
 the default and largest page size of the pagination class. Change a setting and the page says so;
 there is nothing to keep in step.
@@ -755,24 +755,27 @@ CORS_ALLOWED_ORIGINS = [
 
 ## OpenAPI Schema Customisation
 
-Override the API title, description, and version in your portal settings:
+Change the API title, description and version in your portal settings, after `fairdm.setup()`
+returns, by assigning items of `SPECTACULAR_SETTINGS`:
 
 ```python
-SPECTACULAR_SETTINGS = {
-    "TITLE": "My Research Portal API",
-    "DESCRIPTION": "RESTful API for the My Research Portal research data portal.",
-    "VERSION": "2.0.0",
-}
+SPECTACULAR_SETTINGS["TITLE"] = "My Research Portal API"
+SPECTACULAR_SETTINGS["DESCRIPTION"] = "RESTful API for the My Research Portal research data portal."
+SPECTACULAR_SETTINGS["VERSION"] = "2.0.0"
 ```
+
+Assign items, as above, and never a new dictionary. `SPECTACULAR_SETTINGS` also holds the bundled
+Swagger and ReDoc assets, the path prefix and the hook that writes the limits into the description,
+and a new dictionary drops all of them.
 
 ## Customizing the API Description
 
-FairDM ships with a rich default API description and title that appear in Swagger UI and the raw OpenAPI schema. You can override them without modifying the framework:
+FairDM ships with a rich default API description and title that appear in Swagger UI and the raw OpenAPI schema. Assign your own to `SPECTACULAR_SETTINGS` in your portal's settings, after `fairdm.setup()` returns:
 
 ```python
 # In your portal's settings.py
-FAIRDM_API_TITLE = "Palaeo-Climate Data Portal API"
-FAIRDM_API_DESCRIPTION = """\
+SPECTACULAR_SETTINGS["TITLE"] = "Palaeo-Climate Data Portal API"
+SPECTACULAR_SETTINGS["DESCRIPTION"] = """\
 ## Palaeo-Climate Data Portal API
 
 Programmatic access to all published palaeo-climate data in this portal.
@@ -787,9 +790,9 @@ See the [Developer Guide](https://my-portal.example.com/docs/api/) for full deta
 """
 ```
 
-FairDM merges these settings into `SPECTACULAR_SETTINGS` automatically at startup. You can also override `SPECTACULAR_SETTINGS['VERSION']` directly if you need to change the API version string.
+Setting `FAIRDM_API_TITLE` or `FAIRDM_API_DESCRIPTION` in your settings changes nothing. They are the defaults `SPECTACULAR_SETTINGS` is built from when FairDM loads, before your settings run. You can change `SPECTACULAR_SETTINGS["VERSION"]` the same way if you need another API version string.
 
-Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. Do not write those numbers into your own text. If you replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
+Whatever you write, the schema's description ends with FairDM's own sections on authentication, limits and paging, read from your settings when the schema is generated (see [Interactive Documentation](#interactive-documentation)). The `fairdm.api.schema.ApiDescription` class writes them, and `fairdm.api.schema.describe_api` appends them. Do not write those numbers into your own text. If you do replace `SPECTACULAR_SETTINGS` altogether, keep `fairdm.api.schema.describe_api` in its `POSTPROCESSING_HOOKS` list, after `drf_spectacular.hooks.postprocess_schema_enums`, to keep them.
 
 ## Schema Naming Conventions
 

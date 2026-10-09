@@ -14,7 +14,6 @@ This module provides:
 
 from __future__ import annotations
 
-import contextlib
 from typing import Any, cast
 
 from django.core.exceptions import FieldDoesNotExist
@@ -293,9 +292,7 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
         _validate_measurement_serializer(serializer_cls)
 
     # Via the accessor so a configuration overriding get_filterset_class() is honoured.
-    filterset_class = None
-    with contextlib.suppress(Exception):
-        filterset_class = config.get_filterset_class()
+    filterset_class = config.get_filterset_class()
 
     queryset = model.objects.all()
     if hasattr(queryset, "non_polymorphic"):

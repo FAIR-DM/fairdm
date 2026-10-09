@@ -218,20 +218,36 @@ class TestAPIDescriptionSettings:
             "SPECTACULAR_SETTINGS['DESCRIPTION'] does not match FAIRDM_API_DESCRIPTION"
         )
 
-    def test_fairdm_api_title_is_overrideable(self, settings):
-        settings.FAIRDM_API_TITLE = "My Custom Portal API"
-        from django.conf import settings as django_settings
+    @staticmethod
+    def schema_info(client):
+        """Return the ``info`` object of the schema generated now."""
+        response = client.get(reverse("api:api-schema"), {"format": "json"})
+        assert response.status_code == 200
+        return response.json()["info"]
 
-        assert django_settings.FAIRDM_API_TITLE == "My Custom Portal API"
+    def test_the_title_is_changed_through_spectacular_settings(
+        self, monkeypatch, schema_client
+    ):
+        from drf_spectacular.settings import spectacular_settings
 
-    def test_fairdm_api_description_is_overrideable(self, settings):
-        settings.FAIRDM_API_DESCRIPTION = "A custom portal for my research domain."
-        from django.conf import settings as django_settings
+        monkeypatch.setattr(spectacular_settings, "TITLE", "My Custom Portal API")
 
-        assert (
-            django_settings.FAIRDM_API_DESCRIPTION
-            == "A custom portal for my research domain."
+        assert self.schema_info(schema_client)["title"] == "My Custom Portal API"
+
+    def test_the_description_is_changed_through_spectacular_settings(
+        self, monkeypatch, schema_client
+    ):
+        from drf_spectacular.settings import spectacular_settings
+
+        monkeypatch.setattr(
+            spectacular_settings,
+            "DESCRIPTION",
+            "A custom portal for my research domain.",
         )
+
+        description = self.schema_info(schema_client)["description"]
+
+        assert description.startswith("A custom portal for my research domain.")
 
 
 @pytest.mark.django_db

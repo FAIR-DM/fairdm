@@ -9,16 +9,22 @@ Portal developers can override any of these in their own settings:
     REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["user_day"] = "50000/day"
     REST_FRAMEWORK["PAGE_SIZE"] = 50
     FAIRDM_API_MAX_PAGE_SIZE = 500
-    FAIRDM_API_TITLE = "My Research Portal API"
-    FAIRDM_API_DESCRIPTION = "A specialised API for geochemical data."
+    SPECTACULAR_SETTINGS["TITLE"] = "My Research Portal API"
+    SPECTACULAR_SETTINGS["DESCRIPTION"] = "A specialised API for geochemical data."
+
+``FAIRDM_API_TITLE`` and ``FAIRDM_API_DESCRIPTION`` below are the defaults that
+``SPECTACULAR_SETTINGS`` is built from once, when this module is imported. A portal changes the
+title and description by assigning items of ``SPECTACULAR_SETTINGS``, after ``fairdm.setup()``
+returns. It assigns items and never a new dictionary: replacing the dictionary drops the hook
+that writes the limits into the description.
 """
 
-#: Title displayed in Swagger UI and OpenAPI schema ``info.title``.
-#: Override in your portal settings: ``FAIRDM_API_TITLE = "My Portal API"``
+#: Default title, ``info.title`` of the OpenAPI schema. A portal sets
+#: ``SPECTACULAR_SETTINGS["TITLE"]`` instead of this name.
 FAIRDM_API_TITLE = "FairDM Portal API"
 
-#: Rich Markdown description shown in Swagger UI and OpenAPI schema ``info.description``.
-#: Override in your portal settings: ``FAIRDM_API_DESCRIPTION = "..."``
+#: Default Markdown description, ``info.description`` of the OpenAPI schema. A portal sets
+#: ``SPECTACULAR_SETTINGS["DESCRIPTION"]`` instead of this name.
 FAIRDM_API_DESCRIPTION = """\
 ## FairDM Research Data Portal API
 
