@@ -110,6 +110,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The description and date filters of the sample lists answer instead of failing.** On the
+  portal's sample pages and in the API, filtering by description, "date after" or "date before"
+  raised a server error, because the filters read fields the sample models do not have. They now
+  read the description text and the key dates.
+
 - **`PersonFactory` builds a new person on every call.** Its email was made from the random first
   and last name, and the factory returns the existing person when the email is already in use, so
   two calls that drew the same name gave back one person. Tests that then affiliated "both" people
@@ -239,7 +244,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     with a missing-rate error. A page holds 100 records instead of 25 (`REST_FRAMEWORK["PAGE_SIZE"]`)
     and a caller may ask for up to 1,000 instead of 100 (the new `FAIRDM_API_MAX_PAGE_SIZE`). A
     refused caller receives `429` with a `Retry-After` header. Behind a proxy, set
-    `REST_FRAMEWORK["NUM_PROXIES"]`, since the limits count per address only once it is set.
+    `REST_FRAMEWORK["NUM_PROXIES"]`, since the limits count per address only once it is set;
+    `manage.py check --deploy` warns (`fairdm.W601`) until it is.
+  - **The samples and measurements of a dataset that is public but not published are not public
+    through the API**, as on the portal's pages. They are listed, counted and returned only to a
+    person with a level on them. The dataset's own record stays readable.
   - **Any origin may call the API.** `CORS_ALLOW_ALL_ORIGINS` is now `True` for the addresses under
     `/api/`, to read and, with a token, to write. A portal's sign-in cookie is never accepted from
     another site. A portal that wants the old behaviour sets `CORS_ALLOW_ALL_ORIGINS = False` and
