@@ -2,7 +2,7 @@
 
 import pytest
 from django.test import Client
-from django.urls import reverse
+from django.urls import get_resolver, reverse
 from knox.models import AuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -271,3 +271,49 @@ class TestTokenPages:
         signed_in_client.post(reverse("account_api_token_create"), {"lifetime": "30d"})
 
         assert AuthToken.objects.filter(user=person).count() == 2
+
+
+@pytest.mark.django_db
+class TestNoAccountEndpoints:
+    FORBIDDEN = ("login", "logout", "password", "registration", "auth/user")
+
+    @staticmethod
+    def walk(resolver, prefix=""):
+        """Yield the name and full path of every route under a resolver."""
+        for entry in resolver.url_patterns:
+            path = prefix + str(entry.pattern)
+            if hasattr(entry, "url_patterns"):
+                yield from TestNoAccountEndpoints.walk(entry, path)
+            else:
+                yield entry.name or "", path
+
+    @pytest.fixture
+    def routes(self):
+        prefix, resolver = get_resolver().namespace_dict["api"]
+        return list(self.walk(resolver, prefix))
+
+    def test_the_api_has_routes_to_walk(self, routes):
+        assert len(routes) > 10
+
+    def test_no_route_name_or_path_belongs_to_an_account(self, routes):
+        found = [
+            (name, path)
+            for name, path in routes
+            for word in self.FORBIDDEN
+            if word in name.lower() or word in path.lower()
+        ]
+
+        assert found == []
+
+    def test_an_email_and_password_posted_to_the_old_login_address_find_nothing(
+        self, api_client, db
+    ):
+        user = UserFactory(password="SecurePass123!")
+
+        response = api_client.post(
+            "/api/v1/auth/login/",
+            {"email": user.email, "password": "SecurePass123!"},
+            format="json",
+        )
+
+        assert response.status_code == 404
