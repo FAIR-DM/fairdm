@@ -410,3 +410,10 @@ Did: In docs/ROADMAP.md, R11's status line reads `*Delivered · advances G10*`. 
 Verified: git diff shows the one line changed.
 Next: the full verify, then the completion report.
 Watch: none.
+
+## 2026-10-09T01:26:08Z · Implementer US6 · T057
+
+Did: Full verify found three problems, all fixed. The type checker rejected the page-size properties and the catalogue entry's `fields` (a name the base serializer also uses), so both carry a targeted ignore. The documentation check wanted `CatalogueSerializer`, `CatalogueEntrySerializer` and `SignedInThrottle` on a page, so the API page names them. It also found docs/ROADMAP.md, which T060 changed, reachable from no page, so docs/overview/index.md now links to it.
+Verified: forge verify --repo <worktree> --base origin/main: exit 0; conformance, docs, lint, typecheck, test (116 s) and build all passed. uv run pytest -q -n auto --dist loadscope tests/test_api: 899 passed.
+Next: the completion report.
+Watch: the unrelated collections navigation test did not fail in this run.
