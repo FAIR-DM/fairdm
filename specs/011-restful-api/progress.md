@@ -396,3 +396,10 @@ Did: New docs/portal-administration/api-limits.md for a portal administrator: th
 Verified: no page under docs/ names the old `anon` or `user` rates or the old 25 and 100 page sizes (grep). Two claims on the new pages were run against this branch in a throw-away test, then removed: a rate set to None removes that limit, and with NUM_PROXIES = 1 a caller who changes the start of X-Forwarded-For is still counted as one address, while without it each value is a new caller.
 Next: T059.
 Watch: none.
+
+## 2026-10-09T01:17:41Z · Implementer US6 · T059
+
+Did: One entry under Unreleased > Changed in CHANGELOG.md, with a bullet for each change a portal meets: references by short identifier and no database numbers, relation filters by identifier, the common fields on every sample and measurement, tokens from the account pages with the password login gone and dj-rest-auth and djangorestframework-guardian removed (and the settings entries a portal drops), a serializer of its own building on the base with the start-up check, `filters` in place of `filterable_fields`, FAIRDM_API_DOCS_URL removed, the four new limits and the page sizes with their settings and NUM_PROXIES, and any origin may call the API.
+Verified: each fact was read against the branch: the dependency and INSTALLED_APPS changes in git diff origin/main, the removed login route in fairdm/api/urls.py, the old and new CORS value in fairdm/api/settings.py, and the token, serializer and catalogue behaviour in docs/portal-development/restful-api.md and decisions.md.
+Next: T060.
+Watch: none.
