@@ -220,6 +220,15 @@ class RecordReferenceField(serializers.SlugRelatedField):
             The primary keys the user may see.
         """
         core = getattr(model, "type_of", None) or model
+        if issubclass(core, Contributor):
+            # Asked once per request: the accounts it holds are few, the references many.
+            if "hidden_contributors" not in self.context:
+                hidden = FairDMVisibilityFilter.hidden_contributors()
+                self.context["hidden_contributors"] = set(
+                    hidden.values_list("pk", flat=True)
+                )
+            hidden = self.context["hidden_contributors"]
+            return set(pks) - hidden
         if not _get_public_filter(core):
             return set(pks)
         manager = getattr(core, "all_objects", core._default_manager)

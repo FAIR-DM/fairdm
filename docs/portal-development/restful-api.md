@@ -101,7 +101,8 @@ Requesting the `url` returns the record it names. A reference is `null` when the
 see the record it would name. A public dataset can sit in a private project, and a measurement's
 sample can be in another, private dataset. Both references read `null` for a visitor and name the
 record for someone who holds at least the view level on it, so a response never reveals a record
-the caller could not open.
+the caller could not open. A contributor the contributor list leaves out, such as a superuser, reads
+`null` wherever a record credits them.
 
 `fairdm.api.serializers.RecordReferenceField` is the field that does this. Use it in a serializer
 of your own for a relation to a project, dataset, sample, measurement or contributor:
@@ -119,7 +120,9 @@ class RockSampleSerializer(BaseSampleSerializer):
 ```
 
 A relation you leave to Django REST Framework's defaults is returned as a database number. Declare
-every relation you add as a `RecordReferenceField` or a `StringRelatedField`.
+every relation you add as a `RecordReferenceField` or a `StringRelatedField`. A serializer FairDM
+builds for you does this itself: a relation to a project, dataset, sample or measurement is a
+`RecordReferenceField`, and any other relation is its string form.
 
 ## Creating, Changing and Deleting Records
 

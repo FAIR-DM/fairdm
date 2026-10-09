@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import django_filters
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Model
+from django.db.models import Model, Q
 from django.db.models.constants import LOOKUP_SEP
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,6 +16,7 @@ from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.models import Person
 from fairdm.core.models import Dataset, Sample
 from fairdm.core.utils import get_objects_for_user
 
@@ -78,6 +79,18 @@ class FairDMVisibilityFilter(BaseFilterBackend):
     which requires explicit guardian entries for *all* objects and so hides
     publicly-visible records that have no guardian permission rows.
     """
+
+    @staticmethod
+    def hidden_contributors():
+        """Select the contributors the contributor list leaves out.
+
+        Returns:
+            The primary keys of superusers and of the anonymous account, as
+            ``Person.objects.real()`` leaves them out of the portal's own lists.
+        """
+        return Person.objects.filter(
+            Q(is_superuser=True) | Q(email="AnonymousUser")
+        ).values("pk")
 
     def filter_queryset(self, request: Request, queryset, view: APIView):
         """Limit the queryset to public records plus those the user may view."""

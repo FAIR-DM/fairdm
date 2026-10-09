@@ -2115,3 +2115,90 @@ class TestEveryListedFilter:
                 response = client.get(address, {name: self.VALUES[value]})
 
                 assert response.status_code < 500, (address, name)
+
+
+@pytest.mark.django_db
+class TestReferencesFollowTheLists:
+    @pytest.fixture(params=["superuser", "anonymous account"])
+    def unlisted(self, request):
+        """A contributor the contributor list leaves out."""
+        from fairdm.factories import PersonFactory
+
+        if request.param == "superuser":
+            return PersonFactory(is_active=True, is_superuser=True)
+        return PersonFactory(email="AnonymousUser")
+
+    def test_the_contributor_list_leaves_the_account_out(self, api_client, unlisted):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": unlisted.uuid})
+        )
+
+        assert response.status_code == 404
+
+    def test_a_credit_to_that_contributor_reads_null(self, api_client, unlisted):
+        from fairdm.factories import ContributionFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        ContributionFactory(content_object=dataset, contributor=unlisted)
+
+        response = api_client.get(
+            reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 200
+        referred = [row["contributor"] for row in response.json()["contributors"]]
+        assert referred == [None]
+
+    def test_a_credit_to_a_listed_contributor_is_a_reference(self, api_client):
+        from fairdm.factories import ContributionFactory, PersonFactory
+
+        person = PersonFactory(is_active=True)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        ContributionFactory(content_object=dataset, contributor=person)
+
+        response = api_client.get(
+            reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        )
+
+        referred = [row["contributor"] for row in response.json()["contributors"]]
+        assert {"uuid": person.uuid, "url": referred[0]["url"]} in referred
+
+    @pytest.fixture
+    def related_samples(self, on_the_router):
+        """Register a rock sample type listing its relation to other samples; return it."""
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.core.sample.models import SampleRelation
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(
+            model=RockSample, serializer_fields=["name", "related"]
+        )
+        on_the_router(
+            "samples/with-relations", generate_viewset(config), "samples-related"
+        )
+        public = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        shown = RockSampleFactory(dataset=public)
+        hidden = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PRIVATE)
+        )
+        source = RockSampleFactory(dataset=public)
+        for target in (shown, hidden):
+            SampleRelation.objects.create(source=source, target=target, type="child_of")
+        return source, shown
+
+    def test_a_declared_relation_to_a_sample_is_a_reference_null_when_hidden(
+        self, api_client, related_samples
+    ):
+        source, shown = related_samples
+
+        response = api_client.get(
+            reverse("api:samples-related-detail", kwargs={"uuid": source.uuid})
+        )
+
+        assert response.status_code == 200
+        related = response.json()["related"]
+        assert len(related) == 2
+        assert None in related
+        assert [row["uuid"] for row in related if row] == [shown.uuid]

@@ -21,7 +21,6 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import (
     Model,
     ProtectedError,
-    Q,
     RestrictedError,
     prefetch_related_objects,
 )
@@ -174,12 +173,9 @@ class ContributorViewSet(ReadOnlyModelViewSet):
 
         Leaves out superusers and the anonymous account, as ``Person.objects.real()`` does.
         """
-        hidden = Person.objects.filter(
-            Q(is_superuser=True) | Q(email="AnonymousUser")
-        ).values("pk")
-        return Contributor.objects.exclude(pk__in=hidden).prefetch_related(
-            "identifiers"
-        )
+        return Contributor.objects.exclude(
+            pk__in=FairDMVisibilityFilter.hidden_contributors()
+        ).prefetch_related("identifiers")
 
     def get_serializer(self, instance=None, *args, **kwargs):
         """Load the affiliations and parents of the contributors about to be described.

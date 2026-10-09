@@ -858,7 +858,8 @@ class SerializerFactory(ComponentFactory):
 
     A sample or measurement type gets a serializer built on ``BaseSampleSerializer`` or
     ``BaseMeasurementSerializer``, so it carries the fields common to its kind followed by
-    every field its registration declares. Any other relation is shown as its string form.
+    every field its registration declares. A relation to a project, dataset, sample or
+    measurement is shown as a reference, any other relation as its string form.
     """
 
     def generate(self) -> type:
@@ -906,16 +907,22 @@ class SerializerFactory(ComponentFactory):
     def _get_nested_serializers(
         self, fields: list[str], declared: set[str]
     ) -> dict[str, Any]:
-        """Show each relation the base does not declare as its string form.
+        """Show each relation the base does not declare as a reference or its string form.
+
+        A relation to a project, dataset, sample or measurement is a reference, which reads
+        null when the caller may not see the record. Any other relation is its string form.
 
         Args:
             fields: The serializer's field names.
             declared: The names the base serializer already declares.
 
         Returns:
-            Dictionary mapping field names to read-only string-related fields.
+            Dictionary mapping field names to read-only related fields.
         """
         from rest_framework import serializers
+
+        from fairdm.api.serializers import RecordReferenceField
+        from fairdm.core.models import Dataset, Measurement, Project, Sample
 
         nested: dict[str, serializers.Field] = {}
         for field_name in fields:
@@ -925,10 +932,15 @@ class SerializerFactory(ComponentFactory):
                 field = self.model._meta.get_field(field_name)
             except Exception:  # noqa: S112
                 continue
-            if isinstance(field, models.ManyToManyField):
-                nested[field_name] = serializers.StringRelatedField(many=True)
-            elif isinstance(field, (models.ForeignKey, models.OneToOneField)):
-                nested[field_name] = serializers.StringRelatedField()
+            is_many = isinstance(field, models.ManyToManyField)
+            if not (
+                is_many or isinstance(field, (models.ForeignKey, models.OneToOneField))
+            ):
+                continue
+            if issubclass(field.related_model, (Project, Dataset, Sample, Measurement)):
+                nested[field_name] = RecordReferenceField(read_only=True, many=is_many)
+            else:
+                nested[field_name] = serializers.StringRelatedField(many=is_many)
         return nested
 
 
