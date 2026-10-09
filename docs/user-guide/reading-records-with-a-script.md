@@ -96,6 +96,38 @@ print(f"{len(samples)} samples")
 
 Pass `params` on the first request only. The address in `next` already carries them.
 
+## How much you can ask for
+
+A page holds 100 records. Ask for more with `page_size`, up to 1,000 a page, which reads ten
+thousand records in ten requests instead of a hundred:
+
+```bash
+curl "https://portal.example.org/api/v1/samples/rock-samples/?page_size=1000"
+```
+
+Asking for more than 1,000 gives you 1,000. The portal's administrator may have changed these
+figures, and the limits below. The API documentation page at `/api/v1/docs/` lists the ones your
+portal uses.
+
+A portal also limits how often a caller may send requests, so one script cannot slow it for
+everyone. Without a token you may send 30 requests a minute and 2,000 a day. With a token you may
+send 120 a minute and 20,000 a day. A request past a limit is answered `429` and a `Retry-After`
+header gives the number of seconds to wait. A script that reads many pages should wait as told:
+
+```python
+import time
+
+import requests
+
+response = requests.get(url, params=params, timeout=30)
+if response.status_code == 429:
+    time.sleep(int(response.headers["Retry-After"]))
+    response = requests.get(url, params=params, timeout=30)
+```
+
+For a harvest that needs more than the anonymous limits allow, [get a token](#get-a-token) and send
+it with every request.
+
 ## People and organizations
 
 `/api/v1/contributors/` lists the people and organizations credited on records. Each carries what
@@ -217,6 +249,7 @@ datasets private, or delete the measurements, and try again.
 | `403` | You can see the record but your level on it is too low for this request. |
 | `404` | The record does not exist, or it is private and you may not see it. |
 | `409` | The portal does not allow this delete, as above. |
+| `429` | You sent more requests than the portal allows. Wait for the seconds in the `Retry-After` header. |
 
 ## Find out what a portal offers
 

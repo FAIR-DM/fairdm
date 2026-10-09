@@ -237,7 +237,9 @@ sign-in date. Contributors are read-only.
 ## Filtering, Ordering and Paging
 
 Every list is paged. The response carries `count`, the total number of records the caller may see,
-and `next` and `previous`, the addresses of the pages either side.
+and `next` and `previous`, the addresses of the pages either side. A page holds 100 records unless
+`?page_size=` asks for another number, and no page holds more than 1,000 whatever the caller asks.
+Both figures are settings, described under [Limits on Use](#limits-on-use).
 
 A sample list takes `?dataset=<short identifier>`, and a measurement list takes that and
 `?sample=<short identifier>`, whatever filters the type declares. A database number, an unknown
@@ -678,26 +680,42 @@ A type registered with the registry does not need this. Its endpoints are genera
 registration stops the portal with the real error when they cannot be built, so a mistake in a
 type's configuration is not hidden behind a missing route.
 
-## Rate Limiting
+## Limits on Use
 
-The API enforces the following default throttle rates:
+Each kind of caller has two limits, one over a minute to stop a burst and one over a day. A caller
+with a token or a session is allowed several times what an anonymous caller is. The throttles are
+in `fairdm.api.throttling` and the rates are entries of `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]`:
 
-| User type | Default rate |
-|-----------|-------------|
-| Anonymous | 100 requests/hour |
-| Authenticated | 1000 requests/hour |
+| Throttle | Rate name | Default |
+|----------|-----------|---------|
+| `AnonBurstThrottle` | `anon_burst` | 30/minute |
+| `AnonDailyThrottle` | `anon_day` | 2000/day |
+| `UserBurstThrottle` | `user_burst` | 120/minute |
+| `UserDailyThrottle` | `user_day` | 20000/day |
 
-Portal operators can override these in their settings:
+An anonymous caller is counted by the two anonymous throttles only, by address. A signed-in caller
+is counted by the two others only, as the person. Change a rate in your portal's settings after
+`fairdm.setup()` returns, and restart:
 
 ```python
-# In your portal's settings.py
-REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
-    "anon": "50/hour",
-    "user": "500/hour",
-}
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["user_day"] = "100000/day"
 ```
 
-Throttled requests receive a `429 Too Many Requests` response with a `Retry-After` header indicating when the quota resets.
+A rate is a number, a slash and `second`, `minute`, `hour` or `day`. `None` removes a limit. A
+replaced dictionary must hold all four names. Django REST framework reads the dictionary once, when
+its throttling module is first imported, so the change belongs in the settings file, not in code
+that runs later.
+
+A caller past a limit receives `429 Too Many Requests` with a `Retry-After` header giving the
+seconds to wait. Counts are kept in Django's default cache, so a production portal needs the shared
+cache it already requires, and the limits count per address only once
+`REST_FRAMEWORK["NUM_PROXIES"]` holds the number of proxies in front of the portal. Without it, the
+address comes from a header the caller controls. The portal administration guide gives the same
+settings for an administrator: see [Limits on the API](../portal-administration/api-limits.md).
+
+The page size follows the same pattern. A list holds `REST_FRAMEWORK["PAGE_SIZE"]` records (100)
+unless `?page_size=` asks for another number, up to `FAIRDM_API_MAX_PAGE_SIZE` (1000).
+`FairDMPagination` reads both when it answers, so a changed setting changes the API.
 
 ## CORS
 
