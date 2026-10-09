@@ -242,7 +242,7 @@ class TestWhoMayWriteSamplesAndMeasurements:
         from demo.models import ExampleMeasurement, RockSample
 
         def a_record_in(visibility):
-            dataset = DatasetFactory(visibility=visibility)
+            dataset = DatasetFactory(visibility=visibility, published=True)
             model = RockSample if kind == "sample" else ExampleMeasurement
             return dataset, make_record(model, dataset)
 
@@ -318,7 +318,9 @@ class TestWhoMayWriteSamplesAndMeasurements:
 
         model = RockSample if kind == "sample" else XRFMeasurement
         body, _stored = body_for(model)
-        body["dataset"] = DatasetFactory(visibility=Visibility.PUBLIC).uuid
+        body["dataset"] = DatasetFactory(
+            visibility=Visibility.PUBLIC, published=True
+        ).uuid
 
         response = APIClient().post(url_of(model, "list"), body, format="json")
 

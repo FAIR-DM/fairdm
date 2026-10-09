@@ -68,7 +68,9 @@ def private_project(db):
 
 @pytest.fixture
 def public_dataset(db, public_project):
-    return DatasetFactory(project=public_project, visibility=Visibility.PUBLIC)
+    return DatasetFactory(
+        project=public_project, visibility=Visibility.PUBLIC, published=True
+    )
 
 
 @pytest.fixture
@@ -231,7 +233,9 @@ def body_for(make_record):
         from fairdm.factories import DatasetFactory
         from fairdm.registry import registry
 
-        template = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        template = make_record(
+            model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         template.refresh_from_db()
         fields = registry.get_for_model(model).get_serializer_class()().fields
         parents = (

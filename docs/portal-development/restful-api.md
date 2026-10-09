@@ -7,7 +7,7 @@ FairDM automatically generates a fully documented RESTful API for every model yo
 When you register a Sample or Measurement model, FairDM creates the following endpoints automatically:
 
 ```
-GET  /api/v1/samples/<model-slug>/          — list all publicly visible records
+GET  /api/v1/samples/<model-slug>/          — list the records the caller may see
 GET  /api/v1/samples/<model-slug>/{uuid}/   — detail for a specific record
 POST /api/v1/samples/<model-slug>/          — create (signed-in users with the edit level on the dataset)
 PUT /api/v1/samples/<model-slug>/{uuid}/    — replace (edit level)
@@ -298,8 +298,9 @@ measurements.
 | `count` | The number of the type's records the caller may see. |
 
 The `count` is the one the type's list reports for the same caller. A visitor and a signed-in
-person with no level on a private dataset count the records in public datasets. A person with a
-level on a private dataset counts its records as well.
+person with no level on a dataset count the records in datasets that are public and published. A
+person with a level on a dataset counts its records as well, whatever its visibility or whether
+it is published.
 
 ## Interactive Documentation
 
@@ -428,6 +429,11 @@ a level, depends on whether they can see the record:
 | Authenticated change or delete on a private object without any level | 404 Not Found |
 | Edit level: change, create inside | 200/201 |
 | Manage level: delete, change visibility, move | 200/204 |
+
+A sample or measurement is public when its dataset is public and published, as on the portal's
+own pages. A dataset that is public but not yet published answers to everyone for its own record,
+and keeps its samples and measurements back: they are listed, counted and returned only to a
+person with a level on them, and everyone else gets a 404.
 
 Non-disclosure (404 instead of 403) is used for unauthorized access to detail endpoints to avoid leaking whether a private object exists.
 

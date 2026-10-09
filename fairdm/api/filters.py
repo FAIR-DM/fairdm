@@ -27,8 +27,8 @@ if TYPE_CHECKING:
 def _get_public_filter(model) -> dict:
     """Return a queryset filter dict that selects publicly-visible records.
 
-    Project and Dataset carry an integer ``visibility`` field. Sample and
-    Measurement have none, so their visibility cascades from the parent Dataset.
+    Project and Dataset carry an integer ``visibility`` field. Sample and Measurement have
+    none: they are public when their dataset is public and published, as the portal has it.
 
     Args:
         model: The model class to build the filter for.
@@ -50,7 +50,7 @@ def _get_public_filter(model) -> dict:
         model._meta.get_field("dataset")
         from fairdm.utils.choices import Visibility
 
-        return {"dataset__visibility": Visibility.PUBLIC}
+        return {"dataset__visibility": Visibility.PUBLIC, "dataset__published": True}
 
     return {}
 
@@ -60,8 +60,9 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     Restricts list querysets to objects the requesting user can see:
 
-    - Records that are publicly visible (via ``visibility=PUBLIC`` or cascaded
-      through ``dataset__visibility=PUBLIC``) are always included.
+    - Projects and datasets with ``visibility=PUBLIC`` are always included. Samples and
+      measurements are included when their dataset is public and published: a public dataset
+      that is not published shows its own record and keeps its data back.
     - Records the user holds at least the view level on, directly or from the dataset or
       project above, are also included. Rows that django-guardian stores for a project, dataset,
       sample or measurement grant nothing.

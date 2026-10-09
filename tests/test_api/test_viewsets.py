@@ -322,7 +322,9 @@ def build_record(kind, make_record, add_metadata):
     from demo.models import ExampleMeasurement, RockSample
 
     project = ProjectFactory(visibility=Visibility.PUBLIC)
-    dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+    dataset = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
     if kind == "project":
         record = project
     elif kind == "dataset":
@@ -378,7 +380,9 @@ class TestCompleteRecord:
         self, api_client, url_of, make_record, add_metadata
     ):
         project = build_record("project", make_record, add_metadata)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
 
         project_data = api_client.get(url_of(project)).json()
         dataset_data = api_client.get(url_of(dataset)).json()
@@ -417,7 +421,9 @@ class TestCompleteRecord:
         from fairdm.contrib.contributors.choices import ContributionLevel
 
         project = ProjectFactory(visibility=Visibility.PRIVATE)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
         viewer = person_at(project, ContributionLevel.VIEW)
 
         visitor_sees = api_client.get(url_of(dataset)).json()["project"]
@@ -436,7 +442,7 @@ class TestCompleteRecord:
         sample = make_record(RockSample, elsewhere)
         measurement = make_record(
             ExampleMeasurement,
-            DatasetFactory(visibility=Visibility.PUBLIC),
+            DatasetFactory(visibility=Visibility.PUBLIC, published=True),
             sample=sample,
         )
         viewer = person_at(elsewhere, ContributionLevel.VIEW)
@@ -449,7 +455,7 @@ class TestCompleteRecord:
 
     def test_a_list_hides_the_parent_it_would_otherwise_name(self, api_client, url_of):
         project = ProjectFactory(visibility=Visibility.PRIVATE)
-        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC, published=True)
 
         results = api_client.get(url_of(Dataset, "list")).json()["results"]
 
@@ -494,7 +500,9 @@ class TestCommonFields:
         from fairdm.registry import registry
         from fairdm.registry.config import flatten_fields
 
-        sample = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        sample = make_record(
+            model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         declared = flatten_fields(
             registry.get_for_model(model).resolve_fields("serializer")
         )
@@ -514,7 +522,9 @@ class TestCommonFields:
         from fairdm.registry import registry
         from fairdm.registry.config import flatten_fields
 
-        measurement = make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        measurement = make_record(
+            model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
         declared = flatten_fields(
             registry.get_for_model(model).resolve_fields("serializer")
         )
@@ -532,7 +542,7 @@ class TestCommonFields:
 
         measurement = make_record(
             XRFMeasurement,
-            DatasetFactory(visibility=Visibility.PUBLIC),
+            DatasetFactory(visibility=Visibility.PUBLIC, published=True),
             element="Fe",
             concentration_ppm="123.45",
         )
@@ -580,7 +590,9 @@ class TestNoDatabaseNumbers:
 
         project = add_metadata(ProjectFactory(visibility=Visibility.PUBLIC))
         dataset = add_metadata(
-            DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+            DatasetFactory(
+                project=project, visibility=Visibility.PUBLIC, published=True
+            )
         )
         records = [project, dataset]
         records += [
@@ -768,10 +780,12 @@ class TestListAndRecordRoutes:
             if model is Project:
                 return ProjectFactory(visibility=Visibility.PUBLIC)
             if model is Dataset:
-                return DatasetFactory(visibility=Visibility.PUBLIC)
+                return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
             if model is Contributor:
                 return OrganizationFactory()
-            return make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+            return make_record(
+                model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            )
 
         return a_record_of
 
@@ -850,7 +864,7 @@ class TestFiltering:
     ):
         from demo.models import SoilSample
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         clay = make_record(SoilSample, dataset, soil_type="clay")
         make_record(SoilSample, dataset, soil_type="sand")
 
@@ -863,7 +877,7 @@ class TestFiltering:
     ):
         from demo.models import XRFMeasurement
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         iron = make_record(XRFMeasurement, dataset, element="Fe")
         make_record(XRFMeasurement, dataset, element="Si")
 
@@ -876,7 +890,7 @@ class TestFiltering:
     ):
         from demo.models import WaterSample
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         river = make_record(WaterSample, dataset, water_source="river")
         make_record(WaterSample, dataset, water_source="well")
 
@@ -894,9 +908,9 @@ class TestFiltering:
     def test_a_list_is_narrowed_by_the_short_identifier_of_its_dataset(
         self, api_client, url_of, make_record, model
     ):
-        wanted = DatasetFactory(visibility=Visibility.PUBLIC)
+        wanted = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         here = make_record(model, wanted)
-        make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+        make_record(model, DatasetFactory(visibility=Visibility.PUBLIC, published=True))
 
         found = self.listed(api_client, url_of(model, "list"), dataset=wanted.uuid)
 
@@ -910,7 +924,7 @@ class TestFiltering:
     ):
         from demo.factories import RockSampleFactory
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         sample = RockSampleFactory(dataset=dataset)
         here = make_record(model, dataset, sample=sample)
         make_record(model, dataset, sample=RockSampleFactory(dataset=dataset))
@@ -928,7 +942,9 @@ class TestFiltering:
         private = DatasetFactory(visibility=Visibility.PRIVATE)
         viewer = person_at(private, ContributionLevel.VIEW)
         here = make_record(RockSample, private)
-        make_record(RockSample, DatasetFactory(visibility=Visibility.PUBLIC))
+        make_record(
+            RockSample, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
 
         found = self.listed(
             signed_in_as(viewer), url_of(RockSample, "list"), dataset=private.uuid
@@ -944,7 +960,7 @@ class TestFiltering:
     def test_a_database_number_is_refused_for_the_dataset(
         self, api_client, url_of, make_record, model
     ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         make_record(model, dataset)
 
         response = api_client.get(url_of(model, "list"), {"dataset": dataset.pk})
@@ -958,7 +974,7 @@ class TestFiltering:
     def test_a_database_number_is_refused_for_the_sample(
         self, api_client, url_of, make_record, model
     ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         measurement = make_record(model, dataset)
 
         response = api_client.get(
@@ -978,7 +994,7 @@ class TestFiltering:
     ):
         from django.contrib.contenttypes.models import ContentType
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         here = make_record(model, dataset)
         other = ContentType.objects.get_for_model(ProjectFactory._meta.model)
 
@@ -1004,10 +1020,12 @@ class TestOrdering:
             if model is Project:
                 ProjectFactory(name=name, visibility=Visibility.PUBLIC)
             elif model is Dataset:
-                DatasetFactory(name=name, visibility=Visibility.PUBLIC)
+                DatasetFactory(name=name, visibility=Visibility.PUBLIC, published=True)
             else:
                 dataset = Dataset.objects.filter(name="Holder").first() or (
-                    DatasetFactory(name="Holder", visibility=Visibility.PUBLIC)
+                    DatasetFactory(
+                        name="Holder", visibility=Visibility.PUBLIC, published=True
+                    )
                 )
                 make_record(model, dataset, name=name)
         return model
@@ -1402,7 +1420,9 @@ class TestDeleting:
         self, url_of, member_at, signed_in
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
         client = signed_in(member_at(project, ContributionLevel.MANAGE))
 
         response = client.delete(url_of(project))
@@ -1538,7 +1558,7 @@ class TestValidation:
         own_project = ProjectFactory(visibility=Visibility.PRIVATE)
         member_at(own_project, ContributionLevel.EDIT, person)
         elsewhere = DatasetFactory(visibility=Visibility.PRIVATE)
-        public = DatasetFactory(visibility=Visibility.PUBLIC)
+        public = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         member_at(public, ContributionLevel.VIEW, person)
         make_parent = {
             "dataset": lambda: DatasetFactory(visibility=Visibility.PRIVATE),
@@ -1616,10 +1636,12 @@ class TestNoServerErrors:
             if model is Project:
                 return ProjectFactory(visibility=Visibility.PUBLIC)
             if model is Dataset:
-                return DatasetFactory(visibility=Visibility.PUBLIC)
+                return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
             if model is Contributor:
                 return OrganizationFactory()
-            return make_record(model, DatasetFactory(visibility=Visibility.PUBLIC))
+            return make_record(
+                model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            )
 
         return a_record_of
 
@@ -1704,7 +1726,7 @@ class TestNoServerErrors:
 
         record = a_record_of(model)
         if held_by_others and model is Project:
-            DatasetFactory(project=record, visibility=Visibility.PUBLIC)
+            DatasetFactory(project=record, visibility=Visibility.PUBLIC, published=True)
         if held_by_others and issubclass(model, Sample):
             make_record(XRFMeasurement, record.dataset, sample=record)
 
@@ -1736,7 +1758,9 @@ class TestRegisteredSerializerIsUsed:
     def rock(self):
         from demo.factories import RockSampleFactory
 
-        return RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        return RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
 
     def test_a_serializer_named_in_the_registration_is_the_routes_serializer(
         self, api_client, on_the_router, rock
@@ -1865,7 +1889,9 @@ class TestRelationFiltersUseIdentifiers:
         return {
             project: make_record(
                 RockSample,
-                DatasetFactory(project=project, visibility=Visibility.PUBLIC),
+                DatasetFactory(
+                    project=project, visibility=Visibility.PUBLIC, published=True
+                ),
             )
             for project in (first, second)
         }

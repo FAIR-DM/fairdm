@@ -87,7 +87,9 @@ class TestVisibilityFilterProjects:
 class TestVisibilityFilterDatasets:
     def test_public_dataset_visible_to_anonymous(self):
         pub_proj = ProjectFactory(visibility=Visibility.PUBLIC)
-        ds = DatasetFactory(project=pub_proj, visibility=Visibility.PUBLIC)
+        ds = DatasetFactory(
+            project=pub_proj, visibility=Visibility.PUBLIC, published=True
+        )
         resp = APIClient().get(reverse("api:dataset-list"))
         uuids = [d["uuid"] for d in resp.json()["results"]]
         assert str(ds.uuid) in uuids
@@ -144,7 +146,7 @@ class TestVisibilityOfSamplesAndMeasurements:
 
         model = RockSample if request.param == "sample" else ExampleMeasurement
         private = DatasetFactory(visibility=Visibility.PRIVATE)
-        public = DatasetFactory(visibility=Visibility.PUBLIC)
+        public = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         return SimpleNamespace(
             private_dataset=private,
             hidden=make_record(model, private),
@@ -192,3 +194,105 @@ class TestVisibilityOfSamplesAndMeasurements:
 
         assert listed == {case.shown.uuid}
         assert count == 1
+
+
+@pytest.mark.django_db
+class TestUnpublishedDataset:
+    @pytest.fixture(params=["sample", "measurement"])
+    def case(self, request, make_record, url_of):
+        """A record of a kind in a public dataset that is not published, with its addresses."""
+        from types import SimpleNamespace
+
+        from demo.models import ExampleMeasurement, RockSample
+
+        model = RockSample if request.param == "sample" else ExampleMeasurement
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        record = make_record(model, dataset)
+        return SimpleNamespace(
+            kind=request.param,
+            dataset=dataset,
+            record=record,
+            list_address=url_of(model, "list"),
+            address=url_of(record),
+            catalogue=reverse(f"api:api-{request.param}-discovery"),
+            model=model,
+        )
+
+    @pytest.fixture(params=["visitor", "outsider"])
+    def client(self, request, signed_in):
+        """A visitor, and a signed-in person with no level on anything."""
+        from fairdm.factories import PersonFactory
+
+        if request.param == "visitor":
+            return APIClient()
+        return signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+    def test_the_list_leaves_the_record_out(self, client, case):
+        data = client.get(case.list_address).json()
+
+        assert data["results"] == []
+        assert data["count"] == 0
+
+    def test_the_record_is_not_found(self, client, case):
+        assert client.get(case.address).status_code == 404
+
+    def test_the_catalogue_count_leaves_the_record_out(self, client, case):
+        types = client.get(case.catalogue).json()["types"]
+
+        entry = next(row for row in types if row["name"] == case.model.__name__)
+        assert entry["count"] == 0
+
+    def test_a_write_by_a_signed_in_person_with_no_level_is_not_found(
+        self, signed_in, case
+    ):
+        from fairdm.factories import PersonFactory
+
+        client = signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+        assert (
+            client.patch(case.address, {"name": "x"}, format="json").status_code == 404
+        )
+        assert client.delete(case.address).status_code == 404
+
+    def test_a_person_with_a_level_on_the_dataset_reads_the_record(
+        self, signed_in, member_at, case
+    ):
+        client = signed_in(member_at(case.dataset, ContributionLevel.VIEW))
+
+        listed = client.get(case.list_address).json()
+        found = client.get(case.address)
+
+        assert [row["uuid"] for row in listed["results"]] == [str(case.record.uuid)]
+        assert found.status_code == 200
+
+    def test_the_dataset_itself_stays_readable(self, client, case):
+        response = client.get(
+            reverse("api:dataset-detail", kwargs={"uuid": case.dataset.uuid})
+        )
+
+        assert response.status_code == 200
+
+    def test_a_reference_to_a_sample_of_the_dataset_reads_null(
+        self, client, make_record
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement
+
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        )
+        measurement = make_record(
+            ExampleMeasurement,
+            DatasetFactory(visibility=Visibility.PUBLIC, published=True),
+            sample=sample,
+        )
+
+        response = client.get(
+            reverse(
+                "api:measurements-example-measurements-detail",
+                kwargs={"uuid": measurement.uuid},
+            )
+        )
+
+        assert response.status_code == 200
+        assert response.json()["sample"] is None

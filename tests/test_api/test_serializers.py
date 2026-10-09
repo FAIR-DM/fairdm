@@ -315,7 +315,7 @@ class TestSerializerFieldsInAPIResponse:
         from fairdm.factories import DatasetFactory
         from fairdm.utils.choices import Visibility
 
-        DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         resp = api_client.get(reverse("api:dataset-list"))
         assert resp.status_code == 200
         result = resp.json()["results"][0]
@@ -355,7 +355,9 @@ class TestRecordReferenceField:
         from fairdm.utils.choices import Visibility
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
 
         data = serializer_class(dataset, context=self.context_for()).data
 
@@ -415,7 +417,9 @@ class TestRecordReferenceField:
         from fairdm.utils.choices import Visibility
 
         project = ProjectFactory(visibility=Visibility.PRIVATE)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
 
         data = serializer_class(dataset, context=self.context_for()).data
 
@@ -434,7 +438,9 @@ class TestRecordReferenceField:
         from fairdm.utils.choices import Visibility
 
         project = ProjectFactory(visibility=Visibility.PRIVATE)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
         viewer = PersonFactory(is_active=True, is_claimed=True)
         ContributionFactory(
             content_object=project, contributor=viewer, level=ContributionLevel.VIEW
