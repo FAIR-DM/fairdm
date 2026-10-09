@@ -490,3 +490,13 @@ Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPageOnThePor
 Existing tests changed: tests/test_api/test_serializers.py, test_meta_fields_exact in TestBaseSampleSerializer and TestBaseMeasurementSerializer, which pin the exact field list; each now lists html_url after url (the only edit).
 Next: T070.
 Watch: none.
+
+## 2026-10-09T09:05:03Z · Implementer fix-2 · T070
+
+Did: Replaced the catalogue test that named app_label so it checks the display names only, and added one in TestCatalogues (tests/test_api/test_router.py) that an entry holds name, verbose_name, verbose_name_plural, endpoint and count and nothing else. Seen failing (entries also carried app_label, fields and filters). Removed app_label, fields and filters from the entries in fairdm/api/viewsets.py, along with the method that listed the filters, and from CatalogueEntrySerializer, so the schema describes the same five keys (the schema test that compares the two still passes). The count is unchanged.
+Existing tests changed: in tests/test_api/test_router.py, TestCatalogues.test_an_entry_names_its_type lost its app_label assertion, and four tests of the removed keys are deleted (the fields being the serializer's flat list, the filters being those the list accepts, a sample's filters including its dataset and a measurement's its sample, and no entry offering a content-type filter). The last of these is still covered for the lists themselves by test_no_list_offers_a_content_type_filter in tests/test_api/test_schema.py, and the dataset and sample filters by TestRelationFiltersUseIdentifiers. TestEveryListedFilter in tests/test_api/test_viewsets.py now reads each type's filter names from the filter set the API builds for that type's list (FairDMFilterBackend) in place of the catalogue, and still asserts that no listed filter is answered with a 500.
+Documented on the API page, the user guide page and the changelog, whose entry now says what a catalogue entry holds.
+Also changed: demo/tests/test_api_smoke.py, TestDemoSampleDiscovery.test_catalog_entries_have_required_keys, which required the removed fields key; it now requires name, endpoint and count.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry demo: 1,291 passed after that change (one failure before it, the test above).
+Next: the full verify and the report.
+Watch: none.

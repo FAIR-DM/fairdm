@@ -34,7 +34,7 @@ class TestDemoSampleDiscovery:
     def test_catalog_entries_have_required_keys(self, api_client):
         resp = api_client.get(reverse("api:api-sample-discovery"))
         for entry in resp.json().get("types", []):
-            for key in ("name", "endpoint", "fields", "count"):
+            for key in ("name", "endpoint", "count"):
                 assert key in entry, f"Missing key '{key}' in catalog entry: {entry}"
 
 

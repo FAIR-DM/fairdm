@@ -280,7 +280,7 @@ Each test task is written first and seen to fail.
   someone who may see the record returns the page. It is read-only and a value sent for it is
   ignored. Then add the field to the record serializers and the contributor serializer. Document
   it on both API pages and in the changelog entry.
-- [ ] T070 [US5] The catalogues repeat what the generated documentation already says about each
+- [x] T070 [US5] The catalogues repeat what the generated documentation already says about each
   type. `tests/test_api/test_router.py`: an entry carries `name`, `verbose_name`,
   `verbose_name_plural`, `endpoint` and `count` and nothing else. Then remove `fields`, `filters`
   and `app_label` from the entries, their response serializer and the documentation.
