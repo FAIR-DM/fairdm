@@ -31,6 +31,12 @@ class TestSwaggerUI:
         response = api_client.get("/api/v1/docs/")
         assert response.status_code == 200
 
+    def test_swagger_reads_the_first_schema(self, api_client):
+        content = api_client.get("/api/v1/docs/").content.decode()
+
+        assert reverse("api:api-schema") in content
+        assert reverse("api:api-schema-nested") not in content
+
 
 @pytest.mark.django_db
 class TestReDoc:
@@ -45,6 +51,11 @@ class TestReDoc:
     def test_redoc_accessible_without_auth(self, api_client):
         response = api_client.get("/api/v1/redoc/")
         assert response.status_code == 200
+
+    def test_redoc_reads_the_second_schema(self, api_client):
+        content = api_client.get("/api/v1/redoc/").content.decode()
+
+        assert reverse("api:api-schema-nested") in content
 
 
 @pytest.mark.django_db
@@ -103,6 +114,17 @@ class TestOpenAPISchema:
     def test_schema_accessible_without_auth(self, api_client):
         response = api_client.get("/api/v1/schema/")
         assert response.status_code == 200
+
+    def test_the_second_schema_is_served_under_the_first_and_without_auth(
+        self, api_client
+    ):
+        address = reverse("api:api-schema-nested")
+        response = api_client.get(address, {"format": "json"})
+
+        assert address.startswith(reverse("api:api-schema"))
+        assert address != reverse("api:api-schema")
+        assert response.status_code == 200
+        assert "openapi" in response.json()
 
 
 @pytest.mark.django_db

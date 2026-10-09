@@ -11,6 +11,7 @@ registered type's record the description its registration holds.
 from __future__ import annotations
 
 import inspect
+from collections import Counter
 from typing import Any, cast
 
 from django.utils.functional import Promise
@@ -292,6 +293,49 @@ class TypeDocumentation:
             tags.setdefault(tag["name"], tag)
         return list(tags.values())
 
+    def nest(self, result: dict[str, Any]) -> None:
+        """Give each registered type a heading of its own, inside a group for its kind.
+
+        Args:
+            result: The generated schema, changed in place. Only its tags, its operations'
+                tags and summaries, and the ``x-tagGroups`` extension change.
+        """
+        from fairdm.api.router import fairdm_api_router
+
+        types = []
+        for prefix, viewset, _basename in fairdm_api_router.registry:
+            registration = getattr(viewset, "registration", None)
+            if registration is not None:
+                types.append((prefix, TypeDescription(registration)))
+        names = Counter(description.name for _prefix, description in types)
+
+        grouped: dict[str, list[str]] = {SAMPLES_HEADING: [], MEASUREMENTS_HEADING: []}
+        for prefix, description in types:
+            name = description.name
+            if names[name] > 1:
+                name = f"{name} ({description.heading.lower()})"
+            for path, item in result["paths"].items():
+                if f"/{prefix}/" not in path:
+                    continue
+                for operation in item.values():
+                    operation["tags"] = [name]
+                    operation["summary"] = operation["summary"].removeprefix(
+                        f"{description.name}: "
+                    )
+            tag = description.tag()
+            tag["name"] = name
+            result["tags"].append(tag)
+            grouped[description.heading].append(name)
+
+        core = [
+            tag["name"]
+            for tag in self.tags()
+            if tag["name"] not in (SAMPLES_HEADING, MEASUREMENTS_HEADING)
+        ]
+        groups = [{"name": str(_("Core records")), "tags": core}]
+        groups += [{"name": heading, "tags": tags} for heading, tags in grouped.items()]
+        result["x-tagGroups"] = [group for group in groups if group["tags"]]
+
     def describe_records(self, components: dict[str, Any]) -> None:
         """Replace each registered type's record description with the type's own.
 
@@ -327,6 +371,25 @@ def describe_api(result: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     documentation = TypeDocumentation()
     result["tags"] = documentation.tags()
     documentation.describe_records(result.get("components", {}).get("schemas", {}))
+    return result
+
+
+def nest_types(result: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+    """Nest each registered type's heading inside the group for its kind.
+
+    Named in the postprocessing hooks of the schema the second documentation page reads, after
+    :func:`describe_api`.
+
+    Args:
+        result: The generated schema.
+        **kwargs: The generator, request and ``public`` flag drf-spectacular passes to a hook.
+
+    Returns:
+        The schema, with each type's operations tagged with its plural name, a tag for each
+        type, and ``x-tagGroups`` listing the core lists, the sample types and the
+        measurement types.
+    """
+    TypeDocumentation().nest(result)
     return result
 
 

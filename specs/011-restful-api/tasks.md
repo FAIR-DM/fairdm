@@ -318,7 +318,7 @@ Each test task is written first and seen to fail.
   plural name. A type's list operation's description carries the registration's description and,
   where given, its authority, citation, keywords and repository link, and never a maintainer's
   name or email address. The record's title and description stay the type's own. Then regroup.
-- [ ] T076 [US5] `tests/test_api/test_urls.py` and `test_schema.py`: the second documentation page
+- [x] T076 [US5] `tests/test_api/test_urls.py` and `test_schema.py`: the second documentation page
   reads a schema of its own in which each registered type has a tag named with its plural name,
   carrying the same description and details, and the tags are gathered into a group for samples
   and a group for measurements, with projects, datasets and contributors in a group of their own.

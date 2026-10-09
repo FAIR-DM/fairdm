@@ -702,3 +702,25 @@ kind. Both schemas describe the same addresses and records.
 
 **ADR:** none — how this feature's generated documentation is laid out.
 
+
+## D30. How the second documentation page's schema is built
+
+**Decision.** `/api/v1/schema/nested/` is the same `SpectacularAPIView` with one more
+postprocessing hook, `fairdm.api.schema.nest_types`, added after the hooks named in
+`SPECTACULAR_SETTINGS` through the view's `custom_settings`. The list is read from the settings when
+the URL configuration loads. The hook finds a type's operations by the router prefix in the path
+(`/samples/rock-samples/`), retags them with the type's plural name, drops the plural name from
+their summary, appends the type's tag, and writes `x-tagGroups` with the core lists, `Samples` and
+`Measurements`, leaving out a group that holds nothing. The group of core lists is named
+"Core records". The first schema's two kind tags stay in the second schema's `tags`; no operation
+uses them and ReDoc shows only the tags a group lists. A sample type and a measurement type with the
+same plural name both get their kind in brackets after it (`Cores (samples)`). Two types of one kind
+cannot share a plural name, since their addresses would collide.
+
+**Why.** The tag collision can only come from two kinds, so adding the kind to both keeps the rule
+one line long and the two names recognisable.
+
+**Revisit if.** A portal changes `SPECTACULAR_SETTINGS["POSTPROCESSING_HOOKS"]` after the URL
+configuration loads; the nested schema keeps the list it saw at load.
+
+**ADR:** none — how this feature's generated documentation is laid out.

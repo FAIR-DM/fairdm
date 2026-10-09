@@ -42,7 +42,7 @@ Interoperable, and Reusable.
 | **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data |
 | **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements |
 
-`/api/v1/` links to every list the portal serves, and each type has its own section below.
+`/api/v1/` links to every list the portal serves, and each type's description is on its list below.
 
 ### Filtering & Ordering
 
