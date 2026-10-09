@@ -1893,3 +1893,53 @@ class TestRegisteredSerializerIsUsed:
         ]
 
         assert [row["marked_by"] for row in results] == ["the measurement class"]
+
+
+class TestSerializerMustBuildOnBase:
+    @pytest.fixture
+    def off_the_base(self):
+        from rest_framework import serializers
+
+        def build(model):
+            class OffTheBase(serializers.ModelSerializer):
+                class Meta:
+                    pass
+
+            OffTheBase.Meta.model = model
+            OffTheBase.Meta.fields = ["name"]
+            return OffTheBase
+
+        return build
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_an_overridden_accessor_returning_a_serializer_off_the_base_is_refused(
+        self, off_the_base, kind
+    ):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        model = registered(kind)[0]
+        serializer_class = off_the_base(model)
+
+        class OverridingConfig(ModelConfiguration):
+            def get_serializer_class(self):
+                return serializer_class
+
+        with pytest.raises(ImproperlyConfigured):
+            generate_viewset(OverridingConfig(model=model))
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_named_serializer_off_the_base_is_refused(self, off_the_base, kind):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        model = registered(kind)[0]
+
+        with pytest.raises(ImproperlyConfigured):
+            generate_viewset(
+                ModelConfiguration(model=model, serializer_class=off_the_base(model))
+            )
