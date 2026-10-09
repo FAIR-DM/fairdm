@@ -265,3 +265,10 @@ Did: Added TestNoAccountEndpoints in tests/test_api/test_urls.py. It walks the r
 Verified: uv run pytest -q -n0 tests/test_api/test_urls.py::TestNoAccountEndpoints: the two behaviour cases fail (the old endpoints are routed and the login answers 200); the guard that the walk finds routes passes.
 Next: T040.
 Watch: none.
+
+## 2026-10-09T00:34:02Z · Implementer US4 · T040
+
+Did: Added TestSession in tests/test_api/test_settings.py. A person with the edit level on a private project, signed in by session, reads the project through the API with a client that enforces CSRF checks. The same person's patch succeeds with a client that does not enforce them, and is refused with 403 and leaves the name unchanged with one that does.
+Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestSession: both pass on first run, as the API already accepted the session. Probe: removing SessionAuthentication from fairdm/api/settings.py made both fail; the file was restored.
+Next: T041.
+Watch: none.
