@@ -848,8 +848,9 @@ class RockSampleConfig(ModelConfiguration):
     fields = [...]
 ```
 
-`fairdm.api.schema.TypeDescription` reads the registration, and `fairdm.api.schema.describe_api`
-puts the sections and the record descriptions into the schema when it is generated. Text written
+`fairdm.api.schema.TypeDescription` reads the registration. `fairdm.api.schema.TypeDocumentation`
+lists the sections, one for each list on the router, and sets the description of each type's
+record. `fairdm.api.schema.describe_api` puts both into the schema when it is generated. Text written
 as a lazy translation string is turned into text at that moment.
 
 ## API Navigation Sidebar
