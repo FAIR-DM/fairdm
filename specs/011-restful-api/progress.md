@@ -181,3 +181,17 @@ Did: Added TestSerializerFactory (sample and measurement variants) in tests/test
 Verified: uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py: 181 passed. The options/tags test failed first for the right reason; the others passed on first run and were probed (serializer built on the plain base, and the shared list taking precedence over serializer_fields each turned tests red).
 Next: T028.
 Watch: none.
+
+## 2026-10-09T00:09:25Z · Implementer US3 · T028
+
+Did: Added TestRegisteredSerializerIsUsed in tests/test_api/test_viewsets.py. A route built from a configuration that names a serializer_class, and one built from a configuration overriding get_serializer_class, each answer with the fields of the serializer the configuration returns, for a sample and a measurement type. A new fixture in tests/test_api/conftest.py registers a viewset on the API router for one test, reloads the URL modules so the route is served, and undoes both at the end.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed: 3 passed on first run, as the viewset already used the configuration's accessor. Probe: making generate_viewset build from the registry's own serializer instead of the accessor turned the accessor test red.
+Next: T029.
+Watch: none.
+
+## 2026-10-09T00:09:25Z · Implementer US3 · T029
+
+Did: Added TestSerializerMustBuildOnBase in tests/test_api/test_viewsets.py: generate_viewset refuses with ImproperlyConfigured a serializer off the base for a sample and for a measurement type, whether named in the registration or returned by an overridden get_serializer_class.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase: 4 passed on first run, as the check already applies to whatever the accessor returns. Probe: removing the two validate calls from generate_viewset turned all four red.
+Next: T030.
+Watch: none.
