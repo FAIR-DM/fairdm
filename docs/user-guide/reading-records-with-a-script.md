@@ -53,7 +53,8 @@ name is private and you may not see it.
 ## Follow a dataset to its samples and measurements
 
 Samples and measurements are served by type. The type is the plural name the portal gives it, such
-as `rock-samples`. The portal's API documentation page lists the types it has.
+as `rock-samples`. Ask the portal which types it has, as described in
+[Find out what a portal offers](#find-out-what-a-portal-offers).
 
 Narrow a list to one dataset with `dataset`, and a list of measurements to one sample with
 `sample`. Both take the short identifier:
@@ -217,7 +218,48 @@ datasets private, or delete the measurements, and try again.
 | `404` | The record does not exist, or it is private and you may not see it. |
 | `409` | The portal does not allow this delete, as above. |
 
+## Find out what a portal offers
+
+Two addresses list the sample types and the measurement types a portal has registered:
+
+```bash
+curl https://portal.example.org/api/v1/samples/
+curl https://portal.example.org/api/v1/measurements/
+```
+
+Each answers with a `types` list. An entry gives the type's `name`, the `endpoint` where its
+records are, the `fields` a record of that type carries, the `filters` its list accepts and a
+`count` of the records you may see. A portal with no types of that kind answers an empty list.
+
+```json
+{
+  "types": [
+    {
+      "name": "RockSample",
+      "verbose_name": "Rock Sample",
+      "endpoint": "https://portal.example.org/api/v1/samples/rock-samples/",
+      "fields": ["url", "uuid", "name", "dataset", "rock_type", "collection_date"],
+      "filters": ["dataset", "rock_type", "collection_date"],
+      "count": 42
+    }
+  ]
+}
+```
+
+(The entry is shortened here. It also carries the other names the type declares, and its `fields`
+and `filters` are longer.) The `count` is of the records you may see, so it is smaller for a visitor
+than for a person with access to private datasets. To read every record of a type, request its
+`endpoint`.
+
+`/api/v1/` itself links to every list the portal serves and to both of these addresses.
+
 ## Try it in the browser
 
-The portal's API documentation page lists every address, field and filter, and lets you try a
-request. It is linked from the portal's sidebar.
+The portal's API documentation page lists every address, field and filter, marks the fields a
+request must carry and the ones that are read-only, and lets you try a request and read the
+response. Open it from **API** in the portal's sidebar, or go to `/api/v1/docs/`. To try a request
+that needs a token, choose **Authorize** and enter `Token <your-token>`.
+
+The page is drawn from a machine-readable description at `/api/v1/schema/` (add `?format=json` for
+JSON), which tools that generate API clients can read. A second view of the same description is at
+`/api/v1/redoc/`.
