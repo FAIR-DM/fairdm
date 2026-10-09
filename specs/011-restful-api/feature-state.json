@@ -548,38 +548,106 @@
       "id": "US3",
       "priority": "P2",
       "issue": 458,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_registry/test_factories.py::TestSerializerFactory"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py"
+            ],
+            "code": [
+              "fairdm/registry/config.py:100"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed",
+              "tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRegisteredSerializerIsUsed tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers"
+            ],
+            "code": [
+              "fairdm/api/viewsets.py:172",
+              "fairdm/api/filters.py:1"
+            ]
+          }
         },
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestSerializerMustBuildOnBase"
+            ],
+            "code": [
+              "fairdm/api/viewsets.py:172"
+            ]
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_checks.py::TestRegistrationCheck"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_checks.py"
+            ],
+            "code": [
+              "fairdm/api/checks.py:1"
+            ]
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported"
+            ],
+            "code": [
+              "fairdm/api/router.py:1"
+            ]
+          }
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_router.py::TestAddresses"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses"
+            ],
+            "code": [
+              "fairdm/api/router.py:1"
+            ]
+          }
         },
         {
           "id": "T033",
@@ -601,18 +669,54 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_router.py::TestCustomViewset"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset"
+            ],
+            "code": [
+              "fairdm/api/router.py:1"
+            ]
+          }
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api (810 passed)",
+              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (conformance, docs, lint, typecheck, test, build all passed)"
+            ],
+            "code": [
+              "fairdm/api/checks.py:1",
+              "fairdm/api/filters.py:1",
+              "fairdm/api/router.py:1"
+            ]
+          }
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api"
+            ],
+            "commands": [
+              "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (docs step passed)"
+            ],
+            "code": [
+              "docs/portal-development/restful-api.md:1"
+            ]
+          }
         }
       ]
     },
@@ -799,7 +903,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 32.75,
+      "used": 51.23,
       "max": 120
     },
     "design_review_cycles": {

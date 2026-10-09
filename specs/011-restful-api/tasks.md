@@ -115,31 +115,31 @@ This story lays the serializers the others stand on.
 
 ## Phase 3: US-3, a portal developer gets an API for a registered type (P2)
 
-- [ ] T027 [US3] `tests/test_registry/test_factories.py`, `TestSerializerFactory`: with no API
+- [x] T027 [US3] `tests/test_registry/test_factories.py`, `TestSerializerFactory`: with no API
   configuration the serializer carries the common fields and the default fields. With
   `serializer_fields` it carries those. With only `fields` it carries those. It builds on the
   sample or measurement base.
-- [ ] T028 [US3] `tests/test_api/test_viewsets.py`, `TestRegisteredSerializerIsUsed`: a route's
+- [x] T028 [US3] `tests/test_api/test_viewsets.py`, `TestRegisteredSerializerIsUsed`: a route's
   serializer is the one the configuration returns, for a `serializer_class` named in the
   registration and for a configuration that overrides `get_serializer_class`.
-- [ ] T029 [US3] `tests/test_api/test_viewsets.py`, `TestSerializerMustBuildOnBase`: a
+- [x] T029 [US3] `tests/test_api/test_viewsets.py`, `TestSerializerMustBuildOnBase`: a
   configuration that overrides `get_serializer_class` with a serializer that does not build on the
   sample or measurement base is refused with `ImproperlyConfigured`, as a named
   `serializer_class` already is.
-- [ ] T030 [US3] `tests/test_api/test_checks.py`, `TestRegistrationCheck`: a registered type whose
+- [x] T030 [US3] `tests/test_api/test_checks.py`, `TestRegistrationCheck`: a registered type whose
   API fields leave out a field the model requires produces a system check error naming the type
   and the field. A complete registration produces none.
-- [ ] T031 [US3] `tests/test_api/test_router.py`, `TestRegistrationFailureIsReported`: a type
+- [x] T031 [US3] `tests/test_api/test_router.py`, `TestRegistrationFailureIsReported`: a type
   whose endpoints cannot be built raises when the router is built and is not skipped.
-- [ ] T032 [US3] `tests/test_api/test_router.py`, `TestAddresses`: a generated route's address is
+- [x] T032 [US3] `tests/test_api/test_router.py`, `TestAddresses`: a generated route's address is
   the type's plural name under `samples/` or `measurements/`, and a sample type and a measurement
   type with the same plural name get different route names.
 - [x] T033 [US3] `tests/test_api/test_router.py`, `TestRouteNamesAreSeparate`: the portal's page
   names and the API's route names for projects and datasets resolve to different views.
-- [ ] T034 [US3] `tests/test_api/test_router.py`, `TestCustomViewset`: a viewset registered on
+- [x] T034 [US3] `tests/test_api/test_router.py`, `TestCustomViewset`: a viewset registered on
   `fairdm_api_router` is served and appears in the generated schema.
-- [ ] T035 [US3] Implement to make T027 to T034 pass (plan D3 serializer check, D4).
-- [ ] T036 [US3] Documentation: the registration options that shape the API, the base
+- [x] T035 [US3] Implement to make T027 to T034 pass (plan D3 serializer check, D4).
+- [x] T036 [US3] Documentation: the registration options that shape the API, the base
   serializers, the start-up check, addresses and renaming, and the router, in
   `docs/portal-development/restful-api.md` and the registry pages that mention serializers.
 
