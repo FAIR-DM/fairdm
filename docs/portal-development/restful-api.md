@@ -871,6 +871,19 @@ rewrites the nested schema. The nested schema is the same view with one more pos
 set through drf-spectacular's `custom_settings`. Text written as a lazy translation string is
 turned into text at that moment.
 
+A viewset of your own that you add to the router can be placed under a heading of your choice
+with the class decorator `fairdm.api.viewsets.under_heading`, which is how the projects, datasets
+and contributors viewsets get theirs:
+
+```python
+from fairdm.api.viewsets import BaseViewSet, under_heading
+
+
+@under_heading("Boreholes")
+class BoreholeViewSet(BaseViewSet):
+    ...
+```
+
 ## API Navigation Sidebar
 
 FairDM adds one **API** entry to the **Documentation** group of the portal sidebar. It leads to the
