@@ -176,24 +176,24 @@ This story lays the serializers the others stand on.
   and the schema are served to a visitor, and the schema is an OpenAPI document with paths.
 - [x] T045 [US5] `tests/test_api/test_urls.py`, `TestSidebarLink`: the portal's sidebar carries
   one entry that resolves to the API documentation page.
-- [ ] T046 [US5] `tests/test_api/test_schema.py`, `TestSchemaMatchesRoutes`: every route the
+- [x] T046 [US5] `tests/test_api/test_schema.py`, `TestSchemaMatchesRoutes`: every route the
   router serves has a path in the schema, and each registered type's component lists its fields
   with the required and read-only ones marked as the serializer has them.
-- [ ] T047 [US5] `tests/test_api/test_schema.py`, `TestSchemaDescribesThePortal`: the schema's
+- [x] T047 [US5] `tests/test_api/test_schema.py`, `TestSchemaDescribesThePortal`: the schema's
   security schemes are the token header and the session, and its description carries the limits
   and page sizes the settings hold, following a changed setting.
-- [ ] T048 [US5] `tests/test_api/test_router.py`, `TestCatalogues`: each catalogue lists every
+- [x] T048 [US5] `tests/test_api/test_router.py`, `TestCatalogues`: each catalogue lists every
   registered type with its name, an address equal to its list route, a flat list of fields and
   its filters. With no registered types it is an empty list.
-- [ ] T049 [US5] `tests/test_api/test_router.py`, `TestCatalogueCounts`: a catalogue's count is
+- [x] T049 [US5] `tests/test_api/test_router.py`, `TestCatalogueCounts`: a catalogue's count is
   of the records the caller may see, for a visitor, a signed-in person with no level and someone
   with a level on a private dataset.
-- [ ] T050 [US5] `tests/test_api/test_router.py`, `TestRoot`: the API's root links to every list
+- [x] T050 [US5] `tests/test_api/test_router.py`, `TestRoot`: the API's root links to every list
   route and both catalogues.
-- [ ] T051 [US5] Implement to make T046 to T050 pass (plan D3 catalogues, D7). Delete
+- [x] T051 [US5] Implement to make T046 to T050 pass (plan D3 catalogues, D7). Delete
   `FAIRDM_API_DOCS_URL` and `TestFairDMAPIDocsURLSetting`. The menu test counts the entries that
   lead to the documentation page across the whole menu, without relying on position.
-- [ ] T052 [US5] Documentation: the documentation page, the schema address and the catalogues, in
+- [x] T052 [US5] Documentation: the documentation page, the schema address and the catalogues, in
   both pages.
 
 ## Phase 6: US-6, a portal operator keeps the API within what one small server can carry (P3)
