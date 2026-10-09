@@ -658,7 +658,8 @@ class CatalogueEntrySerializer(serializers.Serializer):
     verbose_name_plural = serializers.CharField(read_only=True)
     app_label = serializers.CharField(read_only=True)
     endpoint = serializers.URLField(read_only=True)
-    fields = serializers.ListField(child=serializers.CharField(), read_only=True)
+    # The key must be "fields", which the base class also uses for its bound fields.
+    fields = serializers.ListField(child=serializers.CharField(), read_only=True)  # type: ignore[assignment]
     filters = serializers.ListField(child=serializers.CharField(), read_only=True)
     count = serializers.IntegerField(read_only=True)
 

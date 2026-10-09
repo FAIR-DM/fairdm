@@ -28,12 +28,13 @@ class FairDMPagination(PageNumberPagination):
 
     page_size_query_param = "page_size"
 
+    # Properties, not class attributes, so each is read from the settings when used.
     @property
-    def page_size(self) -> int:
+    def page_size(self) -> int | None:  # type: ignore[override]
         """The number of records in a page when the caller does not ask for another."""
         return api_settings.PAGE_SIZE
 
     @property
-    def max_page_size(self) -> int:
+    def max_page_size(self) -> int | None:  # type: ignore[override]
         """The most records a caller may ask for in one page."""
-        return settings.FAIRDM_API_MAX_PAGE_SIZE
+        return settings.FAIRDM_API_MAX_PAGE_SIZE  # type: ignore[misc,no-any-return]
