@@ -402,3 +402,119 @@ class TestAddresses:
         named = {basename: prefix for prefix, _viewset, basename in router.registry}
         assert named["samples-hand-specimens"] == "samples/hand-specimens"
         assert "samples-rock-samples" not in named
+
+
+CATALOGUES = {
+    "samples": "api:api-sample-discovery",
+    "measurements": "api:api-measurement-discovery",
+}
+
+
+def registered(kind):
+    """Return the registered sample or measurement types."""
+    from fairdm.registry import registry
+
+    return getattr(registry, kind)
+
+
+@pytest.mark.django_db
+class TestCatalogues:
+    @pytest.fixture
+    def catalogue(self, api_client):
+        """Return a function giving the entries of a catalogue, by the name of its type."""
+
+        def catalogue(kind, client=api_client):
+            response = client.get(reverse(CATALOGUES[kind]))
+            assert response.status_code == 200
+            return {entry["name"]: entry for entry in response.json()["types"]}
+
+        return catalogue
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_a_catalogue_lists_every_registered_type(self, catalogue, kind):
+        assert set(catalogue(kind)) == {model.__name__ for model in registered(kind)}
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entry_names_its_type(self, catalogue, kind):
+        entries = catalogue(kind)
+
+        for model in registered(kind):
+            entry = entries[model.__name__]
+            assert entry["verbose_name"] == str(model._meta.verbose_name)
+            assert entry["verbose_name_plural"] == str(model._meta.verbose_name_plural)
+            assert entry["app_label"] == model._meta.app_label
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entrys_address_is_its_list_route(self, catalogue, url_of, kind):
+        entries = catalogue(kind)
+
+        for model in registered(kind):
+            assert entries[model.__name__]["endpoint"] == (
+                f"http://testserver{url_of(model, 'list')}"
+            )
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entrys_address_answers_with_the_types_records(
+        self, api_client, catalogue, kind
+    ):
+        for entry in catalogue(kind).values():
+            response = api_client.get(entry["endpoint"])
+
+            assert response.status_code == 200
+            assert "results" in response.json()
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entrys_fields_are_the_flat_list_its_serializer_carries(
+        self, catalogue, kind
+    ):
+        from fairdm.registry import registry
+
+        entries = catalogue(kind)
+
+        for model in registered(kind):
+            serializer = registry.get_for_model(model).get_serializer_class()
+            assert entries[model.__name__]["fields"] == list(serializer().fields)
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entrys_filters_are_those_its_list_accepts(
+        self, api_client, catalogue, url_of, kind
+    ):
+        entries = catalogue(kind)
+        schema = api_client.get(reverse("api:api-schema"), {"format": "json"}).json()
+
+        for model in registered(kind):
+            filters = entries[model.__name__]["filters"]
+            parameters = {
+                parameter["name"]
+                for parameter in schema["paths"][url_of(model, "list")]["get"][
+                    "parameters"
+                ]
+            }
+            assert filters
+            for name in filters:
+                assert any(p == name or p.startswith(f"{name}_") for p in parameters)
+
+    def test_a_samples_filters_include_its_dataset_and_a_measurements_its_sample(
+        self, catalogue
+    ):
+        assert "dataset" in catalogue("samples")["RockSample"]["filters"]
+        measurement = catalogue("measurements")["XRFMeasurement"]["filters"]
+        assert {"dataset", "sample"} <= set(measurement)
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_no_entry_offers_a_content_type_filter(self, catalogue, kind):
+        for entry in catalogue(kind).values():
+            assert "polymorphic_ctype" not in entry["filters"]
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_with_no_registered_types_a_catalogue_is_an_empty_list(
+        self, api_client, monkeypatch, kind
+    ):
+        from fairdm.registry import registry
+
+        monkeypatch.setattr(type(registry), kind, property(lambda self: []))
+
+        response = api_client.get(reverse(CATALOGUES[kind]))
+
+        assert response.status_code == 200
+        assert response.json() == {"types": []}
