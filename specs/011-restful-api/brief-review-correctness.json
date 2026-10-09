@@ -1,0 +1,18 @@
+{
+ "role": "reviewer",
+ "stage": "S6",
+ "feature": "011-restful-api",
+ "repo": "FAIR-DM/fairdm",
+ "required_skills": [
+  {
+   "name": "craft-review",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-review/SKILL.md",
+   "receipt": "craft-review/2026-09-28/e60c2a95"
+  },
+  {
+   "name": "craft-simplify",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-simplify/SKILL.md",
+   "receipt": "craft-simplify/2026-08-04/69038ce1"
+  }
+ ]
+}

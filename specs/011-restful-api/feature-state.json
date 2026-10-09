@@ -3,7 +3,7 @@
   "feature": "011-restful-api",
   "branch": "011-restful-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -29,6 +29,11 @@
       "state": "CONVERGE",
       "at": "2026-10-09T01:29:27Z",
       "note": "six stories accepted; full verification green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-09T01:33:26Z",
+      "note": "converged and green; one reviewer with the security lens, since authentication changed"
     }
   ],
   "gates": {
@@ -1200,7 +1205,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

@@ -1,0 +1,13 @@
+{
+ "role": "reviewer_security",
+ "stage": "S6",
+ "feature": "011-restful-api",
+ "repo": "FAIR-DM/fairdm",
+ "required_skills": [
+  {
+   "name": "craft-security",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-security/SKILL.md",
+   "receipt": "craft-security/2026-08-04/ea3d6742"
+  }
+ ]
+}
