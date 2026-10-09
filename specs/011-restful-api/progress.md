@@ -251,3 +251,10 @@ Did: Added TestTokens in tests/test_api/test_settings.py: a current token acts a
 Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestTokens: 4 fail for the right reason (the current token and the revoked and expired set-up requests get 401 from the old authenticator, the limit is unset), 3 pass because the old authenticator also answers 401 to a token it does not know.
 Next: T038.
 Watch: the old token mechanism stays installed until T042.
+
+## 2026-10-09T00:33:26Z · Implementer US4 · T038
+
+Did: Added TestTokenPages in tests/test_api/test_urls.py. The list, create and revoke pages open for a signed-in person and send a visitor to sign in. A token made through the create page is read from the next page's context and authenticates a request to the project list. A token revoked through the revoke page is answered 401 afterwards. With the limit set to two through the REST_KNOX setting, a post to the create page leaves the person's token count at two.
+Verified: uv run pytest -q -n0 tests/test_api/test_urls.py::TestTokenPages: 3 fail and 2 error with NoReverseMatch, as the pages' routes are not included yet.
+Next: T039.
+Watch: none.
