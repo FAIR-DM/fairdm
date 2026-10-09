@@ -75,42 +75,42 @@ This story lays the serializers the others stand on.
 
 ## Phase 2: US-2, a member of a record's team creates, changes and deletes records (P1)
 
-- [ ] T016 [US2] `tests/test_api/test_viewsets.py`, `TestCreating`: on the real routes, someone at
+- [x] T016 [US2] `tests/test_api/test_viewsets.py`, `TestCreating`: on the real routes, someone at
   the edit level creates a sample of each demonstration type in a dataset, a measurement of each
   type on a sample with its values, and a dataset in a project. Any signed-in person creates a
   project. Each response is the complete record and each record is stored where it was sent.
-- [ ] T017 [US2] `tests/test_api/test_viewsets.py`, `TestCreatorIsCredited`: the person who
+- [x] T017 [US2] `tests/test_api/test_viewsets.py`, `TestCreatorIsCredited`: the person who
   creates a record through the real routes is listed on it at the manage level, and a `created_by`
   sent by the caller is ignored.
-- [ ] T018 [US2] `tests/test_api/test_viewsets.py`, `TestChanging`: a partial change alters the
+- [x] T018 [US2] `tests/test_api/test_viewsets.py`, `TestChanging`: a partial change alters the
   named field and nothing else. A full replacement sets the writable fields. A value sent for a
   read-only field, such as a description or the added date, changes nothing.
-- [ ] T019 [US2] `tests/test_api/test_viewsets.py`, `TestDeleting`: a deleted record is gone and
+- [x] T019 [US2] `tests/test_api/test_viewsets.py`, `TestDeleting`: a deleted record is gone and
   then answered 404. A project with a public dataset, and a sample with measurements, are refused
   with a reason and nothing is deleted.
-- [ ] T020 [US2] `tests/test_api/test_viewsets.py`, `TestValidation`: a missing required field
+- [x] T020 [US2] `tests/test_api/test_viewsets.py`, `TestValidation`: a missing required field
   and an unacceptable value are answered 400 naming each field, with nothing saved. A parent that
   does not exist and one the caller may not add to get the same answer. An unparseable body is
   answered 400.
 - [x] T021 [US2] `tests/test_api/test_permissions.py`, `TestWhoMayWrite`: on project routes, a
   write with no authentication is answered 401, by a signed-in person with no level on a public
   project 403 and on a private one 404, and by a viewer of a private project 403.
-- [ ] T022 [US2] `tests/test_api/test_permissions.py`, `TestWhoMayWriteSamplesAndMeasurements`:
+- [x] T022 [US2] `tests/test_api/test_permissions.py`, `TestWhoMayWriteSamplesAndMeasurements`:
   the same callers against a sample and a measurement on the real routes, and someone at the view
   level on a dataset cannot create in it.
-- [ ] T023 [US2] `tests/test_api/test_permissions.py`, `TestManageLevel`: on the real routes,
+- [x] T023 [US2] `tests/test_api/test_permissions.py`, `TestManageLevel`: on the real routes,
   someone at the edit level cannot change a record's visibility or move it, someone at the manage
   level can, a move that leaves nobody able to manage the record is refused, and sending the
   parent or visibility a record already has needs only the edit level.
-- [ ] T024 [US2] `tests/test_api/test_viewsets.py`, `TestNoServerErrors`: for every route, an
+- [x] T024 [US2] `tests/test_api/test_viewsets.py`, `TestNoServerErrors`: for every route, an
   empty body, a body of wrong types and a valid body are each answered below 500.
-- [ ] T025 [US2] Implement to make T016 to T024 pass (plan D1 writable parents, D3
+- [x] T025 [US2] Implement to make T016 to T024 pass (plan D1 writable parents, D3
   `perform_destroy`). Delete `build_model_serializer`, and in the same commit delete the
   hand-built write tests that T016 to T023 replace (`TestCreatedRecordsListTheirCreator`,
   `TestVisibilityNeedsManage`, `TestMovingARecordThroughTheApi`,
   `TestCreatingARecordThroughTheApi`, `TestParentChoicesThroughTheApi` and their fixtures in
   `tests/test_api/test_viewsets.py`).
-- [ ] T026 [US2] Documentation: creating, changing and deleting, what is read-only, who may do
+- [x] T026 [US2] Documentation: creating, changing and deleting, what is read-only, who may do
   what, and the refusals, in both pages from T015.
 
 ## Phase 3: US-3, a portal developer gets an API for a registered type (P2)

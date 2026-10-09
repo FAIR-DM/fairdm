@@ -1,0 +1,228 @@
+{
+  "story": "US2",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T016",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-002"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestCreating"
+        ]
+      },
+      "commits": [
+        "49e3d379"
+      ]
+    },
+    {
+      "id": "T017",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestCreatorIsCredited"
+        ]
+      },
+      "commits": [
+        "ff32f6d5"
+      ]
+    },
+    {
+      "id": "T018",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-002"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestChanging"
+        ]
+      },
+      "commits": [
+        "9c21541a"
+      ]
+    },
+    {
+      "id": "T019",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-002"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestDeleting"
+        ]
+      },
+      "commits": [
+        "4c8e3f41"
+      ]
+    },
+    {
+      "id": "T020",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-008"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestValidation"
+        ]
+      },
+      "commits": [
+        "6d3446d8"
+      ]
+    },
+    {
+      "id": "T022",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-004"
+        ],
+        "tests_added": [
+          "tests/test_api/test_permissions.py::TestWhoMayWriteSamplesAndMeasurements"
+        ]
+      },
+      "commits": [
+        "d98c9ca7"
+      ]
+    },
+    {
+      "id": "T023",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_permissions.py::TestManageLevel"
+        ]
+      },
+      "commits": [
+        "4ee431ed"
+      ]
+    },
+    {
+      "id": "T024",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-008"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestNoServerErrors"
+        ]
+      },
+      "commits": [
+        "72c5c90d"
+      ]
+    },
+    {
+      "id": "T025",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_registry tests/test_api",
+          "uv run pytest -q -n0 tests/test_contrib/test_location/test_api.py",
+          "uv run mypy fairdm/api"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": []
+      },
+      "commits": [
+        "02494a8d"
+      ]
+    },
+    {
+      "id": "T026",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": []
+      },
+      "commits": [
+        "8020e306",
+        "9747220c"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The tests for creating (T016), crediting the creator (T017), validation (T020) and who may write samples and measurements (T022) passed when first run, so they were not seen failing. Each was checked by breaking the mechanism it covers and watching it fail, then reverting.",
+      "why": "The first story's serializers already carry the parents and the creator credit, so creating worked before this story began.",
+      "decision_ref": "D19"
+    },
+    {
+      "what": "The tests of T018, T019, T023 and T024 are committed red, ahead of the commit that makes them pass (T025), as the task list orders them.",
+      "why": "They fail for the defects T025 fixes: a repeated measurement sample read as a move, and the two refused deletes escaping as server errors.",
+      "decision_ref": "D19"
+    },
+    {
+      "what": "The helpers person_at and signed_in_as in tests/test_api/test_viewsets.py were kept when the hand-built write tests and their fixtures were deleted.",
+      "why": "TestCompleteRecord and TestFiltering, written in the first story, still use them, and changing those tests is outside this story. They duplicate the new member_at and signed_in fixtures in conftest.py.",
+      "decision_ref": "D19"
+    },
+    {
+      "what": "djangorestframework-guardian is removed from pyproject.toml and uv.lock.",
+      "why": "Nothing under fairdm/ imports it once build_model_serializer is gone, as the brief directs.",
+      "decision_ref": "D19"
+    }
+  ],
+  "concerns": [
+    "The first run of the full verify failed on tests/test_contrib/test_collections/test_apps.py::TestNavigationDoesNotDependOnThisApp::test_the_core_headings_are_present ('Home' absent, 'Dokumentation' present, so the German language was active on that worker). The test passes alone, after each of my test files in one process, and on the second full verify, which passed everything. It looks like an order-dependent language leak from a test that activates a language and does not reset it (candidates: tests/test_contrib/test_contributors/test_profiles.py, tests/test_templates/test_cards.py, tests/test_apps.py, tests/test_core/test_project/test_plugins.py). Not touched.",
+    "The commits of T018, T019, T023 and T024 leave the tree red until T025, as the task list orders it. A bisect between T018 and T024 lands on failing test classes by design.",
+    "No demonstration type needed a registration change: every create with a valid body, for all five sample types and three measurement types, answered below 500, so demo/config.py is unchanged.",
+    "The pages do not say how a person gets a token. The authentication section of docs/portal-development/restful-api.md still describes the login endpoint and belongs to a later story.",
+    "fairdm/api/filters.py:71 mentions djangorestframework-guardian's ObjectPermissionsFilter in a docstring as history. The package is no longer a dependency; the sentence is still true as history and was left."
+  ],
+  "blocked": []
+}

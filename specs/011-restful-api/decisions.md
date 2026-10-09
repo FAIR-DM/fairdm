@@ -388,3 +388,27 @@ The plan had the deletion in the second story. This entry was made by the mainta
 the build and not by the story's implementer, who reported the conflict and stopped.
 
 **ADR:** none — a sequencing choice inside this feature.
+
+## D19. Choices made while building the second story
+
+**A parent is compared by primary key.** The sample field of a measurement offers the base `Sample`
+class, and the stored sample is the type's own class. Django does not call a model instance equal
+to one of its subclass's, so a request that repeated the current sample was read as a move and
+needed the manage level. `CreatorCreditMixin.differs` compares a related record by primary key.
+*Revisit if:* the field offers the sample as its own type.
+
+**A refused delete is a 409 with a sentence the API writes.** `perform_destroy` turns
+`PublicDatasetsProtect` into one sentence and `ProtectedError` and `RestrictedError` into another,
+raised as `DeleteRefused`. The sentences name no record, because the caller may not be allowed to
+see the ones that block the delete, and the exceptions' own text counts them.
+*Revisit if:* the portal gives each refusal a user-facing reason of its own to reuse.
+
+**Creating needed no new code.** The create tests (T016, T017, T020, T022) passed when first run.
+The first story's serializers carry the parents and the creator credit. They stay as the proof
+that every registered type can be created through its route, and each was checked by breaking the
+mechanism it covers.
+*Revisit if:* the way a type's serializer is built changes.
+
+**A dependency goes with the builder.** Nothing under `fairdm/` imports `djangorestframework-guardian`
+once `build_model_serializer` is gone, so it is removed from `pyproject.toml` and the lock file.
+*Revisit if:* a portal needs stored object permissions on a model served by the API.
