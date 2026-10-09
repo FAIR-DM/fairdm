@@ -461,3 +461,10 @@ Did: (a) Added a registration test beside the others in TestRegistrationFailureI
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api: all passed.
 Next: T067.
 Watch: none.
+
+## 2026-10-09T02:15:11Z · Implementer fix-1 · T067
+
+Did: Added TestApiProxyCountCheck (tests/test_conf/test_checks.py): without NUM_PROXIES the check returns one Warning with id fairdm.W601, with it set to 0, 1, 2 or None it returns nothing, and it is a deployment check that is not in the production-critical subset. Seen failing (the check did not exist). Added check_api_proxy_count to fairdm/conf/checks.py, tagged security and deploy like the others; its hint names the setting and docs/portal-administration/api-limits.md. No default is chosen. The id uses the API range (6xx) with a W for the severity. Documented it in the configuration-checks page and mentioned it on the limits page. Tests assert on the id, not the wording.
+Verified: uv run pytest -q -n0 tests/test_conf/test_checks.py: 82 passed.
+Next: feature-state, tasks.md ticks, CHANGELOG, the full verify and the report.
+Watch: none.
