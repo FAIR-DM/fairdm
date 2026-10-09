@@ -2051,3 +2051,41 @@ class TestQueryCount:
 
         assert held_many >= held_few + 10
         assert many == few
+
+
+@pytest.mark.django_db
+class TestEveryListedFilter:
+    CATALOGUES = {
+        "samples": "api:api-sample-discovery",
+        "measurements": "api:api-measurement-discovery",
+    }
+    VALUES = {
+        "text": "abc",
+        "number": "1",
+        "date": "2020-01-01",
+        "identifier": "00000000-0000-0000-0000-000000000000",
+    }
+
+    @pytest.fixture
+    def client(self):
+        from rest_framework.test import APIClient
+
+        return APIClient(raise_request_exception=False)
+
+    def listed(self, client, kind):
+        """Return each type's list address and the filter names its catalogue entry lists."""
+        response = client.get(reverse(self.CATALOGUES[kind]))
+        assert response.status_code == 200
+        return [(row["endpoint"], row["filters"]) for row in response.json()["types"]]
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    @pytest.mark.parametrize("value", sorted(VALUES))
+    def test_a_listed_filter_is_answered_below_500(self, client, kind, value):
+        types = self.listed(client, kind)
+        assert any(names for _address, names in types)
+
+        for address, names in types:
+            for name in names:
+                response = client.get(address, {name: self.VALUES[value]})
+
+                assert response.status_code < 500, (address, name)
