@@ -633,3 +633,25 @@ a new FR-045, and the catalogue is no longer among the key entities.
 
 **ADR:** none — changes to this feature's own output, made before any release.
 
+
+## D27. How the changed-since filters reach every list
+
+**Decision.** `modified_after` and `modified_before` are declared once, on
+`ChangedSinceFilterSet`, and `FairDMFilterBackend` mixes that class into the filter set it builds
+for every list. The backend takes the place of django-filter's own in
+`REST_FRAMEWORK["DEFAULT_FILTER_BACKENDS"]`, so projects, datasets and contributors, which have no
+filter set of their own, get it too. The generated sample and measurement lists already name the
+backend. The cache of built filter sets is keyed by the model as well, since a list with no filter
+set of its own and no parent filter would otherwise share one class with every other such list.
+A viewset that has its own filter set and no parent filter keeps matching relations by database
+number, as before; only the two new filters are added to it.
+
+**Why.** One declaration, one place the lists go through, and the filter sets the portal's pages use
+are not touched, because the backend builds a new class.
+
+**Revisit if.** A portal replaces `DEFAULT_FILTER_BACKENDS` and lists a viewset of its own that
+does not name the backend; that list then lacks the filters.
+
+**`modified` and indexes.** Every served model has a `modified` field. Only the contributor's has
+`db_index=True`. Project, dataset, sample and measurement have none, and no migration is added
+for it in this change.

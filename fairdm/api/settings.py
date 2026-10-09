@@ -47,6 +47,8 @@ Interoperable, and Reusable.
 ### Filtering & Ordering
 
 - `?<field>=<value>` — filter by exact field value (available fields vary by resource)
+- `?modified_after=<date or date-time>` / `?modified_before=<date or date-time>` — only
+  records changed after, or before, a moment (ISO 8601), on every list
 - `?ordering=<field>` / `?ordering=-<field>` — ascending/descending ordering
 """
 
@@ -92,7 +94,7 @@ REST_FRAMEWORK = {
     },
     "DEFAULT_FILTER_BACKENDS": [
         "fairdm.api.filters.FairDMVisibilityFilter",
-        "django_filters.rest_framework.DjangoFilterBackend",
+        "fairdm.api.filters.FairDMFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
 }

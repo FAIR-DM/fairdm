@@ -77,6 +77,20 @@ put a minus sign before the name to sort the other way:
 curl "https://portal.example.org/api/v1/samples/rock-samples/?ordering=-added"
 ```
 
+## Read only what is new
+
+Every list takes `modified_after` and `modified_before`, each an ISO 8601 date or date-time. They
+keep the records last changed at or after, and at or before, that moment. To keep a copy up to
+date, remember when you started your last read and ask for what changed after it:
+
+```bash
+curl "https://portal.example.org/api/v1/samples/rock-samples/?modified_after=2026-10-01T08:00:00Z"
+```
+
+Write down the time you began this read for the next one. A date alone means the start of that
+day, and a value the portal cannot read as a moment is answered with a `400`. A record that was
+deleted does not appear in any list, so this finds new and changed records only.
+
 ## Read every page in Python
 
 ```python

@@ -236,6 +236,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `GET /api/v1/measurements/` answer `404`. `/api/v1/` links to every list, a list reports how
     many records the caller may see in `count`, and the generated API documentation describes each
     type.
+  - **Every list takes `modified_after` and `modified_before`.** Each is an ISO 8601 date or
+    date-time, compared with the record's `modified` time, so a harvester can ask for what changed
+    since it last read. A value that cannot be read is answered `400`, naming the parameter, and
+    both appear in the generated API documentation. They are added to every list by
+    `FairDMFilterBackend`, which now stands in `REST_FRAMEWORK["DEFAULT_FILTER_BACKENDS"]` in place
+    of django-filter's own backend.
   - **`FAIRDM_API_DOCS_URL` is removed.** Nothing read it. The API documentation is at
     `/api/v1/docs/`, and the sidebar has a single API entry that leads to it.
   - **New limits and page sizes, each a setting.** The rates `anon` and `user` (100 and 1,000

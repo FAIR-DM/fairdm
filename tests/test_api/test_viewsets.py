@@ -1,12 +1,21 @@
 """Tests for FairDM API viewsets (Feature 011 â€” US1)."""
 
+from datetime import UTC, datetime
+from types import SimpleNamespace
+
 import pytest
 from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.models import Contributor
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -2421,3 +2430,128 @@ class TestReferencesFollowTheLists:
         relate(10)
 
         assert queries() == few
+
+
+@pytest.mark.django_db
+class TestChangedSince:
+    MOMENTS = (
+        datetime(2024, 1, 15, 12, tzinfo=UTC),
+        datetime(2025, 1, 15, 12, tzinfo=UTC),
+        datetime(2026, 1, 15, 12, tzinfo=UTC),
+    )
+
+    @pytest.fixture(
+        params=[
+            Project,
+            Dataset,
+            Contributor,
+            *registered("sample"),
+            *registered("measurement"),
+        ],
+        ids=lambda model: model.__name__,
+    )
+    def records(self, request, make_record, public_dataset):
+        """Three public records of a kind, last changed in 2024, 2025 and 2026 in that order."""
+        model = request.param
+        made = []
+        for _ in range(3):
+            if model is Project:
+                made.append(ProjectFactory(visibility=Visibility.PUBLIC))
+            elif model is Dataset:
+                made.append(
+                    DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+                )
+            elif model is Contributor:
+                made.append(PersonFactory(is_active=True, is_claimed=True))
+            else:
+                made.append(make_record(model, public_dataset))
+        for record, moment in zip(made, self.MOMENTS, strict=True):
+            type(record).objects.filter(pk=record.pk).update(modified=moment)
+        return SimpleNamespace(model=model, made=made)
+
+    def listed(self, client, url_of, records, **query):
+        response = client.get(url_of(records.model, "list"), query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def uuids(self, records, *positions):
+        return {records.made[position].uuid for position in positions}
+
+    def test_modified_after_returns_what_changed_after_the_moment(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client, url_of, records, modified_after="2024-06-01T00:00:00Z"
+        )
+
+        assert listed >= self.uuids(records, 1, 2)
+        assert not listed & self.uuids(records, 0)
+
+    def test_modified_before_returns_what_changed_before_the_moment(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client, url_of, records, modified_before="2025-06-01T00:00:00Z"
+        )
+
+        assert listed >= self.uuids(records, 0, 1)
+        assert not listed & self.uuids(records, 2)
+
+    def test_the_two_together_return_what_changed_between_them(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client,
+            url_of,
+            records,
+            modified_after="2024-06-01T00:00:00Z",
+            modified_before="2025-06-01T00:00:00Z",
+        )
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 1)
+
+    def test_a_record_changed_at_the_moment_given_is_returned_by_both(
+        self, api_client, url_of, records
+    ):
+        moment = self.MOMENTS[1].isoformat()
+
+        after = self.listed(api_client, url_of, records, modified_after=moment)
+        before = self.listed(api_client, url_of, records, modified_before=moment)
+
+        assert after & self.uuids(records, 0, 1, 2) == self.uuids(records, 1, 2)
+        assert before & self.uuids(records, 0, 1, 2) == self.uuids(records, 0, 1)
+
+    def test_a_date_alone_is_a_moment(self, api_client, url_of, records):
+        listed = self.listed(api_client, url_of, records, modified_after="2025-06-01")
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 2)
+
+    def test_a_moment_with_an_offset_is_read_in_that_offset(
+        self, api_client, url_of, records
+    ):
+        # 14:00 at +03:00 is 11:00 UTC, an hour before the middle record changed.
+        listed = self.listed(
+            api_client, url_of, records, modified_after="2025-01-15T14:00:00+03:00"
+        )
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 1, 2)
+
+    @pytest.mark.parametrize("name", ["modified_after", "modified_before"])
+    @pytest.mark.parametrize("value", ["yesterday", "2025-13-45", "12"])
+    def test_a_moment_that_cannot_be_read_is_refused_naming_the_parameter(
+        self, api_client, url_of, records, name, value
+    ):
+        response = api_client.get(url_of(records.model, "list"), {name: value})
+
+        assert response.status_code == 400
+        assert name in response.json()
+
+    def test_both_are_among_the_list_parameters_of_the_documentation(
+        self, api_client, url_of, records
+    ):
+        schema = api_client.get(reverse("api:api-schema"), {"format": "json"}).json()
+
+        parameters = schema["paths"][url_of(records.model, "list")]["get"]["parameters"]
+
+        offered = {parameter["name"] for parameter in parameters}
+        assert {"modified_after", "modified_before"} <= offered

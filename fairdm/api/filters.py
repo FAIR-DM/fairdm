@@ -10,6 +10,7 @@ import django_filters
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Model, Q
 from django.db.models.constants import LOOKUP_SEP
+from django.utils.translation import gettext_lazy as _
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
@@ -228,36 +229,59 @@ class SampleFilterSet(DatasetFilterSet):
         self.filters["sample"].queryset = self.visible(Sample.objects.all())
 
 
+class ChangedSinceFilterSet(django_filters.FilterSet):
+    """Narrows a list to the records changed after, and before, a moment.
+
+    Each value is an ISO 8601 date or date-time, compared with the record's ``modified`` time
+    as given. A date alone means the start of that day, and a time without an offset is read
+    in the portal's time zone. A value that cannot be read is refused with a 400 naming the
+    parameter.
+    """
+
+    modified_after = django_filters.IsoDateTimeFilter(
+        field_name="modified",
+        lookup_expr="gte",
+        help_text=_("Only records changed at or after this ISO 8601 moment."),
+    )
+    modified_before = django_filters.IsoDateTimeFilter(
+        field_name="modified",
+        lookup_expr="lte",
+        help_text=_("Only records changed at or before this ISO 8601 moment."),
+    )
+
+
 class FairDMFilterBackend(DjangoFilterBackend):
-    """Django-filter backend that gives every list its dataset, and measurements their sample.
+    """Django-filter backend that gives every list its changed-since filters and its parents.
+
+    Every list takes ``modified_after`` and ``modified_before``. A sample list also takes its
+    dataset, and a measurement list its dataset and sample.
 
     The filters a registered type declares match related records by database number, and are
     shared with the portal's own pages. Here every relation filter matches by short identifier,
     a number is refused, and a filter on a relation with no identifier is left out.
     """
 
-    parent_filtersets: dict[tuple, type] = {}
+    generated_filtersets: dict[tuple, type] = {}
 
     def get_filterset_class(self, view, queryset=None):
-        """Build the type's filter set with the parent filters added.
+        """Build the list's filter set: the type's own, the parent filters and changed-since.
 
         Args:
             view: The view being filtered.
             queryset: The queryset being filtered.
 
         Returns:
-            The filter set to use, or ``None`` when there is none.
+            The filter set to use. The portal's own filter set for the type is left as it is;
+            the filters are added to a class built here.
         """
         filterset_class = super().get_filterset_class(view, queryset)
         parent_filterset = getattr(view, "parent_filterset", None)
-        if parent_filterset is None:
-            return filterset_class
-        key = (filterset_class, parent_filterset)
-        if key not in self.parent_filtersets:
-            bases = (
-                (parent_filterset, filterset_class)
-                if filterset_class
-                else (parent_filterset,)
+        key = (filterset_class, parent_filterset, queryset.model)
+        if key not in self.generated_filtersets:
+            bases = tuple(
+                base
+                for base in (parent_filterset, filterset_class, ChangedSinceFilterSet)
+                if base
             )
             attrs = {}
             if filterset_class is None:
@@ -266,6 +290,7 @@ class FairDMFilterBackend(DjangoFilterBackend):
                 )
             name = f"{queryset.model.__name__}FilterSet"
             generated = type(name, bases, attrs)
-            generated.match_relations_on_uuid()
-            self.parent_filtersets[key] = generated
-        return self.parent_filtersets[key]
+            if parent_filterset is not None:
+                generated.match_relations_on_uuid()
+            self.generated_filtersets[key] = generated
+        return self.generated_filtersets[key]

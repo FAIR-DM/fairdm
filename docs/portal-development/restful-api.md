@@ -263,6 +263,29 @@ identifier here and refuses a database number. A filter on a relation whose mode
 identifier, such as a content type, is not offered by the API. The portal's pages keep their own
 filters unchanged.
 
+### Reading only what changed
+
+Every list, of projects, datasets, contributors and each sample and measurement type, takes
+`?modified_after=` and `?modified_before=`. Each is an ISO 8601 date or date-time and is compared
+with the record's `modified` time: `modified_after` keeps the records last changed at or after
+the moment and `modified_before` those changed at or before it. A date alone means the start of
+that day, and a time without an offset is read in the portal's time zone. A value that cannot be
+read as a moment is answered `400`, naming the parameter.
+
+```http
+GET /api/v1/datasets/?modified_after=2026-10-01T08:00:00Z
+GET /api/v1/samples/rock-samples/?modified_after=2026-10-01&modified_before=2026-11-01
+```
+
+A harvester keeps the time it started its last read and asks for what changed after it: read the
+list with `modified_after` set to that time, then store the time the new read began. A record
+changed while the read was running is returned by the next one. A record that was deleted is
+not listed at all, so a deletion cannot be found this way.
+
+The filters are added in `fairdm.api.filters.ChangedSinceFilterSet`, which
+`FairDMFilterBackend` mixes into every list's filter set. The portal's own filter sets are not
+changed.
+
 `?ordering=name` sorts ascending and `?ordering=-name` descending. A list sorts on the stored
 fields it returns, such as `name`, `added` and `modified`, and on the fields the type declares.
 Relations and metadata cannot be sorted on.

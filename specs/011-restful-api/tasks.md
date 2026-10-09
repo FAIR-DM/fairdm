@@ -293,7 +293,7 @@ Each test task is written first and seen to fail.
   the generated documentation do not. Remove both endpoints, their links from the root, their
   serializer and their tests, and every mention in the documentation. `tests/test_api/test_router.py`:
   the two addresses answer 404, and the root links to every list and to nothing that is not one.
-- [ ] T072 [US1] `tests/test_api/test_viewsets.py`, `TestChangedSince`: on the lists of projects,
+- [x] T072 [US1] `tests/test_api/test_viewsets.py`, `TestChangedSince`: on the lists of projects,
   datasets, contributors and every registered sample and measurement type, `modified_after` returns
   only records changed after the moment given and `modified_before` only those changed before it,
   a moment that cannot be read is refused with a 400, and both appear among the list's parameters

@@ -511,3 +511,10 @@ Verified: `uv run pytest -q -n0 tests/test_api demo/tests/test_api_smoke.py` 933
 
 Next: T072, the changed-since filters.
 Watch: the root's `test_each_link_answers` still covers that every link answers.
+
+## 2026-10-09T09:51:04Z · Implementer US5 · T072
+
+Did: Added `ChangedSinceFilterSet` (`modified_after` is `gte`, `modified_before` is `lte` on `modified`, both ISO 8601 date or date-time) and made `FairDMFilterBackend.get_filterset_class` add it to the filter set it builds for every list. The backend replaces django-filter's own in `DEFAULT_FILTER_BACKENDS`, so projects, datasets and contributors take it too. The built-class cache is now keyed by the model as well. Tests first in `tests/test_api/test_viewsets.py::TestChangedSince` over projects, datasets, contributors and every registered sample and measurement type: window, both bounds inclusive, date alone, offset, 400 naming the parameter, both in the generated schema's list parameters. Seen failing first (143 failed; the boundary test had passed vacuously and was tightened before the fix). Documentation: filtering section of the API page, the guide for people reading with a script, `FAIRDM_API_DESCRIPTION` and the changelog entry. Choices recorded in decisions.md D27.
+Verified: `uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests/test_api_smoke.py` 1076 passed; ruff check and format clean on the files touched. Every served model has a `modified` field. Only the contributor's `modified` has `db_index=True`; project, dataset, sample and measurement are not indexed, and no migration was added.
+Next: T073, each type's own section in the generated documentation.
+Watch: no existing test changed in this task.
