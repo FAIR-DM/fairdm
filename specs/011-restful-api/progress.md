@@ -294,3 +294,10 @@ Did: docs/user-guide/reading-records-with-a-script.md gains "Get a token" and "R
 Verified: rendered the Account Center for a signed-in person and found the link to /account/tokens/; fetched the Swagger page and found the CSRF handling. No page under docs/ mentions the removed login or logout addresses (grep for login, logout, auth/login, dj-rest-auth).
 Next: full verify and the completion report.
 Watch: CHANGELOG.md has no entry for this feature yet.
+
+## 2026-10-09T00:40:21Z · Implementer US4 · T042
+
+Did: Changed one existing assertion outside the tests the brief names. tests/test_conf/test_settings/test_api.py::TestApi::test_rest_framework_and_cors_are_present asserted CORS_ALLOW_ALL_ORIGINS is False, the default this story replaces (FR-033), so it now asserts True. Nothing else in that test or file changed. The full run found it.
+Verified: uv run pytest -q -n0 tests/test_conf/test_settings/test_api.py: passes.
+Next: the full verify again, then the completion report.
+Watch: this edit to an existing test is outside the list in the task brief and is repeated in the report.
