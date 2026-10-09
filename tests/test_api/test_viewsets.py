@@ -558,6 +558,128 @@ class TestCommonFields:
         assert float(data["concentration_ppm"]) == 123.45
 
 
+KINDS_WITH_A_PAGE = (
+    "project",
+    "dataset",
+    "sample",
+    "measurement",
+    "person",
+    "organisation",
+)
+
+
+@pytest.mark.django_db
+class TestPageOnThePortal:
+    @staticmethod
+    def build(kind, make_record):
+        """Build a record of a kind that anyone may see, and return it."""
+        from demo.models import ExampleMeasurement, RockSample
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        if kind == "person":
+            return PersonFactory(is_claimed=True)
+        if kind == "organisation":
+            return OrganizationFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        if kind == "project":
+            return project
+        if kind == "dataset":
+            return dataset
+        return make_record(
+            RockSample if kind == "sample" else ExampleMeasurement, dataset
+        )
+
+    @staticmethod
+    def routes(record, url_of):
+        """Return the list and record addresses that serve a record."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        if isinstance(record, Contributor):
+            return (
+                reverse("api:contributor-list"),
+                reverse("api:contributor-detail", kwargs={"uuid": record.uuid}),
+            )
+        return url_of(type(record), "list"), url_of(record)
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_a_record_carries_the_absolute_address_of_its_page(
+        self, api_client, url_of, make_record, kind
+    ):
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+
+        data = api_client.get(detail).json()
+
+        assert data["html_url"] == f"http://testserver{record.get_absolute_url()}"
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_a_list_carries_it_too(self, api_client, url_of, make_record, kind):
+        record = self.build(kind, make_record)
+        listing, _detail = self.routes(record, url_of)
+
+        rows = api_client.get(listing, {"page_size": 1000}).json()["results"]
+
+        row = next(row for row in rows if row["uuid"] == record.uuid)
+        assert row["html_url"] == f"http://testserver{record.get_absolute_url()}"
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_the_address_returns_the_page(
+        self, api_client, client, url_of, make_record, kind
+    ):
+        from urllib.parse import urlsplit
+
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+        address = api_client.get(detail).json()["html_url"]
+
+        response = client.get(urlsplit(address).path)
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_it_follows_the_address_of_the_record_in_the_api(
+        self, api_client, url_of, make_record, kind
+    ):
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+
+        data = api_client.get(detail).json()
+
+        keys = list(data)
+        assert keys[keys.index("url") + 1] == "html_url"
+
+    @pytest.mark.parametrize("kind", ("project", "dataset", "sample"))
+    def test_a_value_sent_for_it_is_ignored(
+        self, url_of, make_record, member_at, signed_in, kind
+    ):
+        record = self.build(kind, make_record)
+        client = signed_in(member_at(record, ContributionLevel.EDIT))
+
+        response = client.patch(
+            url_of(record),
+            {"name": "Renamed", "html_url": "https://example.org/elsewhere"},
+            format="json",
+        )
+
+        assert response.status_code == 200, response.content
+        assert response.json()["name"] == "Renamed"
+        assert response.json()["html_url"] == (
+            f"http://testserver{record.get_absolute_url()}"
+        )
+
+    def test_a_reference_to_another_record_is_unchanged(
+        self, api_client, url_of, make_record
+    ):
+        record = self.build("sample", make_record)
+
+        dataset = api_client.get(url_of(record)).json()["dataset"]
+
+        assert set(dataset) == {"uuid", "url"}
+
+
 @pytest.mark.django_db
 class TestNoDatabaseNumbers:
     RELATIONS = (

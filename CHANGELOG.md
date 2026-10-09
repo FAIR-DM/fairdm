@@ -214,7 +214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     type, is not offered. Every sample list takes `?dataset=` and every measurement list also takes
     `?sample=`.
   - **Every sample and measurement carries the common fields**, whatever its registration lists:
-    `url`, `uuid`, `name`, `dataset`, `added` and `modified`, and `local_id` and `status` for a
+    `url`, `html_url`, `uuid`, `name`, `dataset`, `added` and `modified`, and `local_id` and `status` for a
     sample and `sample` for a measurement, then the metadata (`descriptions`, `dates`,
     `identifiers`, `keywords`, `contributors`). The fields a type declares come after them, and a
     measurement's measured values are included.
@@ -235,6 +235,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **A catalogue entry has `filters` in place of `filterable_fields`.** The entry at
     `GET /api/v1/samples/` or `/api/v1/measurements/` lists the filters the type's list accepts,
     and its `fields` is the serializer's flat list of names.
+  - **Every record and contributor carries `html_url`.** It is the absolute address of the record's
+    own page on the portal, beside `url`, which is its address in the API. It is read-only, and a
+    value sent for it is ignored. A serializer of your own that extends the base serializer's `Meta`
+    carries it too.
+  - **The token scheme in the generated documentation is named `tokenAuth`.** The authorisation
+    dialog on the documentation page no longer shows the name of the package that stores tokens.
   - **`FAIRDM_API_DOCS_URL` is removed.** Nothing read it. The API documentation is at
     `/api/v1/docs/`, and the sidebar has a single API entry that leads to it.
   - **New limits and page sizes, each a setting.** The rates `anon` and `user` (100 and 1,000

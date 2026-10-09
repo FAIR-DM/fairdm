@@ -335,6 +335,36 @@ class RecordURLField(serializers.HyperlinkedIdentityField):
         )
 
 
+class PortalPageField(serializers.ReadOnlyField):
+    """The address of a record's own page on the portal's website.
+
+    The address is absolute when the serializer has a request, and the path alone when it has
+    none.
+    """
+
+    def __init__(self, **kwargs):
+        """Read the whole record, as the address comes from its method.
+
+        Args:
+            **kwargs: Passed to ``ReadOnlyField``.
+        """
+        kwargs["source"] = "*"
+        super().__init__(**kwargs)
+
+    def to_representation(self, value) -> str:
+        """Return the address of the record's page.
+
+        Args:
+            value: The record or contributor.
+
+        Returns:
+            The absolute address, or the path when there is no request.
+        """
+        path = value.get_absolute_url()
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+
 class RecordListSerializer(serializers.ListSerializer):
     """List serializer that checks every reference on a page of records at once."""
 
@@ -427,6 +457,7 @@ class RecordSerializer(CreatorCreditMixin, serializers.ModelSerializer):
     parents: tuple[str, ...] = ()
 
     url = RecordURLField(read_only=True)
+    html_url = PortalPageField()
     descriptions = DescriptionSerializer(many=True, read_only=True)
     dates = DateSerializer(many=True, read_only=True)
     identifiers = IdentifierSerializer(many=True, read_only=True)
@@ -471,6 +502,7 @@ class ProjectSerializer(RecordSerializer):
         model = Project
         fields = [
             "url",
+            "html_url",
             "uuid",
             "name",
             "image",
@@ -499,6 +531,7 @@ class DatasetSerializer(RecordSerializer):
         model = Dataset
         fields = [
             "url",
+            "html_url",
             "uuid",
             "name",
             "image",
@@ -527,6 +560,7 @@ class BaseSampleSerializer(RecordSerializer):
 
     common_fields = (
         "url",
+        "html_url",
         "uuid",
         "name",
         "local_id",
@@ -543,6 +577,7 @@ class BaseSampleSerializer(RecordSerializer):
         model = Sample
         fields = [
             "url",
+            "html_url",
             "uuid",
             "name",
             "local_id",
@@ -567,7 +602,16 @@ class BaseMeasurementSerializer(RecordSerializer):
         common_fields: The fields every measurement carries, whatever its type declares.
     """
 
-    common_fields = ("url", "uuid", "name", "sample", "dataset", "added", "modified")
+    common_fields = (
+        "url",
+        "html_url",
+        "uuid",
+        "name",
+        "sample",
+        "dataset",
+        "added",
+        "modified",
+    )
     parents = ("sample", "dataset")
 
     sample = RecordReferenceField(queryset=Sample.objects.non_polymorphic())
@@ -577,6 +621,7 @@ class BaseMeasurementSerializer(RecordSerializer):
         model = Measurement
         fields = [
             "url",
+            "html_url",
             "uuid",
             "name",
             "sample",
@@ -603,6 +648,7 @@ class ContributorSerializer(serializers.ModelSerializer):
     """
 
     url = RecordURLField(read_only=True)
+    html_url = PortalPageField()
     type = serializers.SerializerMethodField()
     image = serializers.ImageField(read_only=True)
     identifiers = ContributorIdentifierSerializer(many=True, read_only=True)
@@ -616,6 +662,7 @@ class ContributorSerializer(serializers.ModelSerializer):
         model = Contributor
         fields = (
             "url",
+            "html_url",
             "uuid",
             "type",
             "name",

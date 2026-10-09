@@ -41,10 +41,10 @@ its list. The same fields appear in both.
 
 | Kind | Fields of its own | Its parent |
 |------|-------------------|------------|
-| Project | `url`, `uuid`, `name`, `image`, `status`, `visibility`, `funding`, `added`, `modified` | `owner`, the organization that owns it |
-| Dataset | `url`, `uuid`, `name`, `image`, `visibility`, `published`, `added`, `modified` | `project`, and `license` as `{"name", "url"}` |
-| Sample | `url`, `uuid`, `name`, `local_id`, `status`, `added`, `modified`, then every field its type declares | `dataset` |
-| Measurement | `url`, `uuid`, `name`, `added`, `modified`, then every field its type declares, measured values included | `sample` and `dataset` |
+| Project | `url`, `html_url`, `uuid`, `name`, `image`, `status`, `visibility`, `funding`, `added`, `modified` | `owner`, the organization that owns it |
+| Dataset | `url`, `html_url`, `uuid`, `name`, `image`, `visibility`, `published`, `added`, `modified` | `project`, and `license` as `{"name", "url"}` |
+| Sample | `url`, `html_url`, `uuid`, `name`, `local_id`, `status`, `added`, `modified`, then every field its type declares | `dataset` |
+| Measurement | `url`, `html_url`, `uuid`, `name`, `added`, `modified`, then every field its type declares, measured values included | `sample` and `dataset` |
 
 Every one of the four also carries its metadata, which is read-only:
 
@@ -60,11 +60,16 @@ A credit names the person or organization, the roles they hold on the record as 
 and the organization they are credited from. The level a person holds on the record is not shown,
 as the record's page does not show it.
 
+`url` is the record's address in the API. `html_url` is the absolute address of the record's own
+page on the portal, so a site that republishes a record can link back to it. A contributor carries
+both as well. Without a request to build an address from, `html_url` is the path alone.
+
 A rock sample looks like this:
 
 ```json
 {
   "url": "https://portal.example.org/api/v1/samples/rock-samples/sxXGUGgXRVStFw3jbpBWQeM/",
+  "html_url": "https://portal.example.org/samples/sxXGUGgXRVStFw3jbpBWQeM/overview/",
   "uuid": "sxXGUGgXRVStFw3jbpBWQeM",
   "name": "RS-14",
   "local_id": "SAMPLE-5165",
@@ -137,10 +142,10 @@ A record's own fields, its visibility and its parent are writable. Everything el
 
 | Kind | Writable | Read-only |
 |------|----------|-----------|
-| Project | `name`, `status`, `visibility`, `funding`, `owner` | `image`, `url`, `uuid`, `added`, `modified` and the metadata |
-| Dataset | `name`, `visibility`, `project` | `image`, `published`, `license`, `url`, `uuid`, `added`, `modified` and the metadata |
-| Sample | `name`, `local_id`, `status`, `dataset` and every field its type declares | `url`, `uuid`, `added`, `modified` and the metadata |
-| Measurement | `name`, `sample`, `dataset` and every field its type declares, measured values included | `url`, `uuid`, `added`, `modified` and the metadata |
+| Project | `name`, `status`, `visibility`, `funding`, `owner` | `image`, `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
+| Dataset | `name`, `visibility`, `project` | `image`, `published`, `license`, `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
+| Sample | `name`, `local_id`, `status`, `dataset` and every field its type declares | `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
+| Measurement | `name`, `sample`, `dataset` and every field its type declares, measured values included | `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
 
 The metadata (`descriptions`, `dates`, `identifiers`, `keywords` and `contributors`) is edited in the
 portal. A value sent for a read-only field is ignored, not refused: the request succeeds and the
@@ -227,7 +232,7 @@ profile page shows a visitor:
 
 | Field | Holds |
 |-------|-------|
-| `url`, `uuid`, `type`, `name`, `image`, `profile` | The profile, with `type` set to `person` or `organization` |
+| `url`, `html_url`, `uuid`, `type`, `name`, `image`, `profile` | The profile, with `type` set to `person` or `organization` |
 | `identifiers` | `{"type", "value", "link"}`, such as an ORCID iD or a ROR ID |
 | `links`, `languages` | The web links and the languages the profile lists |
 | `affiliation` | A person's primary organization, or an organization's parent |
@@ -551,7 +556,7 @@ the credit given to the person who creates a record, and the manage-level rule f
 record's visibility or parent. That is why a serializer built on a plain `ModelSerializer` is
 refused whichever way it is supplied.
 
-Extending `Meta` from the base class keeps the common fields (`url`, `uuid`, `name`, `dataset`, `added`, `modified`, and `local_id` and `status` for a sample, `sample` for a measurement) and the metadata that FairDM depends on. You can add, reorder, or override fields, but you cannot remove the common ones without risking broken API clients.
+Extending `Meta` from the base class keeps the common fields (`url`, `html_url`, `uuid`, `name`, `dataset`, `added`, `modified`, and `local_id` and `status` for a sample, `sample` for a measurement) and the metadata that FairDM depends on. You can add, reorder, or override fields, but you cannot remove the common ones without risking broken API clients.
 
 ```{warning}
 Passing a serializer that does not inherit from `BaseSampleSerializer` or `BaseMeasurementSerializer` raises:
@@ -585,7 +590,7 @@ can build on any of them.
 
 | Class | Use |
 |-------|-----|
-| `RecordSerializer` | Base of the four record serializers. Adds `url`, the five metadata fields and the creator credit |
+| `RecordSerializer` | Base of the four record serializers. Adds `url`, `html_url`, the five metadata fields and the creator credit |
 | `ProjectSerializer`, `DatasetSerializer` | Written out, not generated. A dataset carries its `project` and `license`, a project its `owner` |
 | `BaseSampleSerializer`, `BaseMeasurementSerializer` | Base of every generated sample and measurement serializer. `common_fields` lists the fields every record of the kind carries |
 | `RecordReferenceField` | A relation to a record, returned as `{"uuid", "url"}` or `null` |

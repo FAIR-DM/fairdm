@@ -25,6 +25,7 @@ The answer is a page of datasets and says how many there are in all:
   "results": [
     {
       "url": "https://portal.example.org/api/v1/datasets/dV4DYUk6ohGJdizhxJotoZ8/",
+      "html_url": "https://portal.example.org/datasets/dV4DYUk6ohGJdizhxJotoZ8/",
       "uuid": "dV4DYUk6ohGJdizhxJotoZ8",
       "name": "Rock chemistry of the north face",
       "project": {
@@ -44,7 +45,8 @@ The answer is a page of datasets and says how many there are in all:
 
 Each record is returned whole: its own fields, the record it sits under, its licence or owner, its
 descriptions, key dates, identifiers, keywords and the people credited on it. The address in `url`
-returns the same record, and the address in `project` returns the project.
+returns the same record, `html_url` is the record's own page on the portal's website, and the
+address in `project` returns the project.
 
 When a record refers to another it gives the other record's short identifier (`uuid`) and its
 address (`url`). Database numbers never appear. If a reference reads `null`, the record it would
@@ -224,7 +226,7 @@ visibility a record already has is not a change.
 ## What you cannot write
 
 Descriptions, key dates, identifiers, keywords and the credited people are read-only. So are a
-record's `uuid`, `url`, `added` and `modified`, a project's or dataset's `image`, and a dataset's
+record's `uuid`, `url`, `html_url`, `added` and `modified`, a project's or dataset's `image`, and a dataset's
 `published` and `license`. Send them and the request still succeeds, and they keep the values they
 had. Edit those on the record's page in the portal.
 

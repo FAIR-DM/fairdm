@@ -88,6 +88,7 @@ class TestBaseSampleSerializer:
 
         expected = {
             "url",
+            "html_url",
             "uuid",
             "name",
             "local_id",
@@ -145,6 +146,7 @@ class TestBaseMeasurementSerializer:
 
         expected = {
             "url",
+            "html_url",
             "uuid",
             "name",
             "sample",
