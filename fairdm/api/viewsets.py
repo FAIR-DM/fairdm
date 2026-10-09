@@ -15,10 +15,10 @@ This module provides:
 from __future__ import annotations
 
 import contextlib
-from typing import Any
+from typing import Any, cast
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import ProtectedError, Q, RestrictedError
+from django.db.models import Model, ProtectedError, Q, RestrictedError
 from django.urls import resolve, reverse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers, status
@@ -311,7 +311,7 @@ class _BaseDiscoveryView(APIView):
         ]
         return Response({"types": types})
 
-    def describe(self, request: Request, model: type) -> dict[str, Any]:
+    def describe(self, request: Request, model: type[Model]) -> dict[str, Any]:
         """Describe one registered type for the caller.
 
         Args:
@@ -323,7 +323,7 @@ class _BaseDiscoveryView(APIView):
             the filters its list accepts and how many of its records the caller may see.
         """
         route = reverse(f"api:{self.url_prefix}-{_model_to_slug(model)}-list")
-        viewset = resolve(route).func.cls
+        viewset = cast("Any", resolve(route).func).cls
         queryset = viewset.queryset.all()
         visible = FairDMVisibilityFilter().filter_queryset(request, queryset, self)
         return {

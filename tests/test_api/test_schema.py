@@ -205,6 +205,14 @@ class TestSchemaDescribesThePortal:
         assert "7927" in description
         assert "8209" in description
 
+    def test_a_portal_without_paging_still_gets_a_description(self, settings):
+        settings.REST_FRAMEWORK = {
+            **settings.REST_FRAMEWORK,
+            "DEFAULT_PAGINATION_CLASS": None,
+        }
+
+        assert self.described()
+
     def test_the_description_keeps_the_portals_own_text(self, monkeypatch):
         from drf_spectacular.settings import spectacular_settings
 

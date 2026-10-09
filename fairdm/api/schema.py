@@ -8,7 +8,7 @@ class at the moment the schema is generated, so the text cannot drift from what 
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from drf_spectacular.contrib.django_filters import DjangoFilterExtension
 from rest_framework.settings import api_settings
@@ -64,9 +64,13 @@ class ApiDescription:
         """State the default and the largest page size of a list.
 
         Returns:
-            A Markdown section read from the configured pagination class.
+            A Markdown section read from the configured pagination class, or one saying a list
+            is not paged when the portal sets none.
         """
-        pagination = api_settings.DEFAULT_PAGINATION_CLASS()
+        pagination_class = cast("Any", api_settings.DEFAULT_PAGINATION_CLASS)
+        if pagination_class is None:
+            return "### Paging\n\nA list returns all its records in one response."
+        pagination = pagination_class()
         return (
             "### Paging\n\n"
             f"A list returns {pagination.page_size} records a page unless "
