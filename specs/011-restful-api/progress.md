@@ -374,3 +374,10 @@ Existing tests changed (authorised by the story): in TestPagination, test_defaul
 Verified: uv run pytest -q -n0 tests/test_api/test_pagination.py: 4 fail (the ceiling is not a setting, a size above the ceiling is not cut to it, a changed default and a changed ceiling are not followed) and the other 11 pass.
 Next: T056.
 Watch: none.
+
+## 2026-10-09T01:10:02Z · Implementer US6 · T056
+
+Did: Added TestQueryCount in tests/test_api/test_viewsets.py. For the lists of projects, datasets, contributors, rock samples and example measurements, each record carries a description, a date, an identifier, a keyword and a credited contributor (a contributor carries an identifier and a primary affiliation), the test requests a list of two and then a list of twelve, as a visitor and as a token caller, after one warm-up request, and compares the number of queries. It compares the two counts and pins no number.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount: the two contributor cases fail (45 queries against 15); the other eight pass already. Probed: with load_related returning the queryset unchanged all ten cases fail, so the passing cases do test the prefetching.
+Next: T057.
+Watch: none.
