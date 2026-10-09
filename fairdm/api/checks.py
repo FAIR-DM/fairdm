@@ -50,7 +50,7 @@ def check_registered_types(app_configs, **kwargs) -> list[CheckMessage]:
     Returns:
         One error for each required field a sample or measurement type leaves out.
     """
-    errors = []
+    errors: list[CheckMessage] = []
     for model in (*registry.samples, *registry.measurements):
         config = registry.get_for_model(model)
         errors.extend(

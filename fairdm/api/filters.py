@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import django_filters
 from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Model
 from django.db.models.constants import LOOKUP_SEP
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
@@ -107,51 +108,6 @@ class DatasetFilterSet(django_filters.FilterSet):
     caller may not see.
     """
 
-    @classmethod
-    def match_relations_on_uuid(cls) -> None:
-        """Make every relation filter of this class that can match on ``uuid`` do so.
-
-        The filters are replaced by copies, so a filter set the portal's own pages share is
-        left as it was. Call it on a class built for the API. A relation whose model has no
-        ``uuid`` keeps its filter here and loses it when the filter set is built.
-        """
-        for name, filter_ in list(cls.base_filters.items()):
-            if not isinstance(filter_, QuerySetRequestMixin):
-                continue
-            related = cls.related_model(filter_)
-            if related is None or not any(
-                field.name == "uuid" for field in related._meta.concrete_fields
-            ):
-                continue
-            matching = copy.deepcopy(filter_)
-            matching.extra["to_field_name"] = "uuid"
-            if isinstance(matching, django_filters.ModelMultipleChoiceFilter):
-                # It reads the chosen records' `uuid` but filters on `field_name` as given.
-                matching.field_name += f"{LOOKUP_SEP}uuid"
-            cls.base_filters[name] = matching
-
-    @classmethod
-    def related_model(cls, filter_) -> type | None:
-        """Return the model a relation filter chooses among.
-
-        Args:
-            filter_: A relation filter of this class.
-
-        Returns:
-            The model at the end of the filter's field path, or ``None`` when the path does
-            not end on a relation.
-        """
-        model = cls._meta.model
-        for segment in filter_.field_name.split(LOOKUP_SEP):
-            try:
-                field = model._meta.get_field(segment)
-            except FieldDoesNotExist:
-                return None
-            model = field.related_model
-            if model is None:
-                return None
-        return model
-
     dataset = django_filters.ModelChoiceFilter(
         field_name="dataset",
         to_field_name="uuid",
@@ -184,6 +140,51 @@ class DatasetFilterSet(django_filters.FilterSet):
         if hasattr(queryset, "non_polymorphic"):
             queryset = queryset.non_polymorphic()
         return FairDMVisibilityFilter().filter_queryset(self.request, queryset, None)
+
+    @classmethod
+    def match_relations_on_uuid(cls) -> None:
+        """Make every relation filter of this class that can match on ``uuid`` do so.
+
+        The filters are replaced by copies, so a filter set the portal's own pages share is
+        left as it was. Call it on a class built for the API. A relation whose model has no
+        ``uuid`` keeps its filter here and loses it when the filter set is built.
+        """
+        for name, filter_ in list(cls.base_filters.items()):
+            if not isinstance(filter_, QuerySetRequestMixin):
+                continue
+            related = cls.related_model(filter_)
+            if related is None or not any(
+                field.name == "uuid" for field in related._meta.concrete_fields
+            ):
+                continue
+            matching = copy.deepcopy(filter_)
+            matching.extra["to_field_name"] = "uuid"
+            if isinstance(matching, django_filters.ModelMultipleChoiceFilter):
+                # It reads the chosen records' `uuid` but filters on `field_name` as given.
+                matching.field_name += f"{LOOKUP_SEP}uuid"
+            cls.base_filters[name] = matching
+
+    @classmethod
+    def related_model(cls, filter_) -> type[Model] | None:
+        """Return the model a relation filter chooses among.
+
+        Args:
+            filter_: A relation filter of this class.
+
+        Returns:
+            The model at the end of the filter's field path, or ``None`` when the path does
+            not end on a relation.
+        """
+        model: Any = cls._meta.model
+        for segment in filter_.field_name.split(LOOKUP_SEP):
+            try:
+                field = model._meta.get_field(segment)
+            except FieldDoesNotExist:
+                return None
+            model = field.related_model
+            if model is None:
+                return None
+        return cast("type[Model]", model)
 
 
 class SampleFilterSet(DatasetFilterSet):
