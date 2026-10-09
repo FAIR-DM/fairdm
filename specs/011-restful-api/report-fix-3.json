@@ -1,0 +1,99 @@
+{
+ "story": "US5",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T071",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_router.py::TestRoot::test_the_root_links_to_nothing_that_is_not_a_list_route",
+     "tests/test_api/test_router.py::TestKindOfRecordHasNoList"
+    ],
+    "criteria": [
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_router.py -k \"TestNoCatalogues or nothing_that_is_not\" (red: 3 failed)",
+     "uv run pytest -q -n0 tests/test_api demo/tests/test_api_smoke.py (933 passed)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "61841cd9"
+   ]
+  },
+  {
+   "id": "T072",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_viewsets.py::TestChangedSince"
+    ],
+    "criteria": [],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_viewsets.py -k TestChangedSince (red: 143 failed)",
+     "uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests/test_api_smoke.py (1076 passed)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "2cc70772"
+   ]
+  },
+  {
+   "id": "T073",
+   "status": "done",
+   "evidence": {
+    "tests_added": [
+     "tests/test_api/test_schema.py::TestTypesInTheDocumentation"
+    ],
+    "criteria": [
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_api/test_schema.py -k TestTypesInTheDocumentation (red: 8 failed, 1 passed)",
+     "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_registry demo (1399 passed)",
+     "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main (first run: docs step failed for TypeDocumentation, fixed in e7b54a41; second run exit 0)"
+    ],
+    "exit_code": 0
+   },
+   "commits": [
+    "018f44eb",
+    "e7b54a41"
+   ]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "FairDMFilterBackend now replaces django-filter's DjangoFilterBackend in REST_FRAMEWORK DEFAULT_FILTER_BACKENDS, and its built-filter-set cache is keyed by model as well.",
+   "why": "Projects, datasets and contributors have no filter set and use the default backends, so this is the one place every list goes through.",
+   "decision_ref": "decisions.md#d27-how-the-changed-since-filters-reach-every-list"
+  },
+  {
+   "what": "The router test that FairDMAPIRouter is a DefaultRouter subclass moved from the deleted TestAPIRootContainsDiscoveryLinks into TestRoot, unchanged in substance.",
+   "why": "It did not concern the catalogues, so deleting it with its class would have lost coverage.",
+   "decision_ref": "progress.md T071 entry"
+  }
+ ],
+ "concerns": [
+  "fairdm/core/measurement/config.py:71: BaseMeasurementConfiguration sets description = 'Observation or calculation recorded from a sample', so for any measurement registration without its own description the first-priority config.description is that sentence and metadata.description is never reached. The demo's XRF, ICP-MS and example measurements therefore show the generic sentence in the operations, section and record description although their metadata has a specific one. Followed the order the task names; not changed.",
+  "Only the contributor's modified column is indexed (db_index=True). Project, dataset, sample and measurement modified are not, so modified_after/modified_before scan the table. No migration added, as instructed.",
+  "A tag name must be unique in the schema, so a sample type and a measurement type with the same plural name would share one section (the first registered wins). The routes already keep them apart; the demo has no such pair.",
+  "A viewset of a portal's own that is on the router but has no docstring of its own inherits BaseViewSet's developer-facing docstring in its operation descriptions (drf-spectacular reads it with inspect.getdoc). Its section carries no description. Not changed.",
+  "demo/config.py comments and docstrings still say metadata.description surfaces as the operation description; true only when config.description is empty (see first concern). Outside the story, untouched.",
+  "The modified filters take a date as the start of that day, and a time without an offset is read in the portal's time zone."
+ ],
+ "blocked": []
+}
