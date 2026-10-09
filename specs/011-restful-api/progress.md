@@ -223,3 +223,10 @@ Did: Added TestAddresses in tests/test_api/test_router.py: a sample type's addre
 Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestAddresses: the five tests that build a router fail with AttributeError (register_types does not exist yet); the one that reads the served routes passes, as the addresses already follow the plural name.
 Next: T035.
 Watch: none.
+
+## 2026-10-09T00:14:24Z · Implementer US3 · T028
+
+Did: Added TestRelationFiltersUseIdentifiers beside T028's class in tests/test_api/test_viewsets.py, for the filters a type declares on its own relations. A route built from a type whose filter set filters on a project (single and multiple choice) and on a content type is expected to match the project by short identifier, refuse a database number, and leave out the content-type filter, which has no identifier.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestRelationFiltersUseIdentifiers: 4 fail for the right reason, the filters still match on database numbers (an identifier answers 400, a number answers 200, and the content-type number narrows the list).
+Next: T035.
+Watch: none.

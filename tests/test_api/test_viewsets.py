@@ -1895,6 +1895,102 @@ class TestRegisteredSerializerIsUsed:
         assert [row["marked_by"] for row in results] == ["the measurement class"]
 
 
+@pytest.mark.django_db
+class TestRelationFiltersUseIdentifiers:
+    """A filter a type declares on a relation matches the related record's short identifier."""
+
+    @pytest.fixture
+    def filtered_route(self, on_the_router):
+        import django_filters
+        from django.contrib.contenttypes.models import ContentType
+
+        from demo.models import RockSample
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        class RockFilters(django_filters.FilterSet):
+            project = django_filters.ModelChoiceFilter(
+                field_name="dataset__project", queryset=Project.objects.all()
+            )
+            projects = django_filters.ModelMultipleChoiceFilter(
+                field_name="dataset__project", queryset=Project.objects.all()
+            )
+            kind = django_filters.ModelChoiceFilter(
+                field_name="polymorphic_ctype", queryset=ContentType.objects.all()
+            )
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        config = ModelConfiguration(model=RockSample, filterset_class=RockFilters)
+        on_the_router(
+            "samples/filtered-rocks", generate_viewset(config), "samples-filtered"
+        )
+        return reverse("api:samples-filtered-list")
+
+    @pytest.fixture
+    def rocks(self, make_record):
+        from demo.models import RockSample
+
+        first = ProjectFactory(visibility=Visibility.PUBLIC)
+        second = ProjectFactory(visibility=Visibility.PUBLIC)
+        return {
+            project: make_record(
+                RockSample,
+                DatasetFactory(project=project, visibility=Visibility.PUBLIC),
+            )
+            for project in (first, second)
+        }
+
+    @staticmethod
+    def listed(client, address, **query):
+        response = client.get(address, query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_a_relation_filter_matches_the_short_identifier(
+        self, api_client, filtered_route, rocks
+    ):
+        project, record = next(iter(rocks.items()))
+
+        found = self.listed(api_client, filtered_route, project=project.uuid)
+
+        assert found == {record.uuid}
+
+    def test_a_relation_filter_refuses_a_database_number(
+        self, api_client, filtered_route, rocks
+    ):
+        project = next(iter(rocks))
+
+        response = api_client.get(filtered_route, {"project": project.pk})
+
+        assert response.status_code == 400
+        assert "project" in response.json()
+
+    def test_a_filter_for_several_related_records_matches_their_identifiers(
+        self, api_client, filtered_route, rocks
+    ):
+        found = self.listed(
+            api_client,
+            filtered_route,
+            projects=[project.uuid for project in rocks],
+        )
+
+        assert found == {record.uuid for record in rocks.values()}
+
+    def test_a_filter_on_a_relation_with_no_identifier_is_left_out(
+        self, api_client, filtered_route, rocks
+    ):
+        from django.contrib.contenttypes.models import ContentType
+
+        kind = ContentType.objects.get_for_model(Project)
+
+        found = self.listed(api_client, filtered_route, kind=kind.pk)
+
+        assert found == {record.uuid for record in rocks.values()}
+
+
 class TestSerializerMustBuildOnBase:
     @pytest.fixture
     def off_the_base(self):
