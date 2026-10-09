@@ -48,6 +48,10 @@ class TestSchemaMatchesRoutes:
         assert expected
         assert expected <= set(schema["paths"])
 
+    def test_both_catalogues_have_a_path(self, schema):
+        assert reverse("api:api-sample-discovery") in schema["paths"]
+        assert reverse("api:api-measurement-discovery") in schema["paths"]
+
     def test_every_registered_type_is_a_component(self, schema, registered_types):
         for model, _config in registered_types:
             assert model.__name__ in schema["components"]["schemas"]
