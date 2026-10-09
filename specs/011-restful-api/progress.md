@@ -279,3 +279,11 @@ Did: Added TestOtherOrigins in tests/test_api/test_settings.py. A read of the pr
 Verified: uv run pytest -q -n0 tests/test_api/test_settings.py::TestOtherOrigins: the read and the preflight fail with the header missing; the credentials and non-API cases pass already and guard against a later change.
 Next: T042.
 Watch: none.
+
+## 2026-10-09T00:36:45Z · Implementer US4 · T042
+
+Did: Knox's authenticator is now first in REST_FRAMEWORK, then the session. REST_KNOX (limit 10, no auto refresh) and CORS_ALLOW_ALL_ORIGINS = True are in fairdm/api/settings.py, REST_KNOX is re-exported from fairdm/conf/settings/api.py, and CORS credentials stay off. The token pages are included at account/tokens/ in fairdm/conf/urls.py. dj-rest-auth is removed from pyproject.toml, the deptry list, INSTALLED_APPS and fairdm/api/urls.py, and rest_framework.authtoken is out of INSTALLED_APPS. The description in the schema tells a caller to create a token on the account pages. No schema extension was written: drf-spectacular already ships one for knox (decisions.md D21).
+Existing tests changed, as the brief allows: TestTokenLogin, TestTokenHeaderAccess and TestTokenLogout in tests/test_api/test_urls.py are deleted with the endpoint they tested, and the LOGIN_URL and LOGOUT_URL constants with them. The make_token_client helpers in test_filters.py and test_permissions.py are replaced by the one in conftest.py, and the token and authenticated_client fixtures in conftest.py make knox tokens. Nothing else in those files changed.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api: 825 passed. makemigrations --check: no changes. manage.py check: no issues. Probes: with an authenticator drf-spectacular does not know, the schema-warning test fails; with a basic authenticator in place of knox's, the schema header test and the token tests fail.
+Next: T043.
+Watch: the dependency lock changed (dj-rest-auth out, django-rest-knox 5.1.0 in).
