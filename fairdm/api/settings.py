@@ -36,36 +36,9 @@ Interoperable, and Reusable.
 
 Use the discovery endpoints to list all registered sample and measurement types:
 
-- `GET /api/v1/samples/` — catalogue of all sample types with field and count information
-- `GET /api/v1/measurements/` — catalogue of all measurement types
-
-### Authentication
-
-Most data is publicly readable without authentication.  To **create, update, or delete**
-records you need a token:
-
-1. Sign in to the portal and create a token on your account pages, under API tokens.
-   The token is shown once, so copy it then.
-2. Include it in each request: `Authorization: Token <your-token>`
-
-Revoke a token on the same page when you no longer need it.
-
-### Rate Limits
-
-| Client type | Limit |
-|-------------|-------|
-| Anonymous | 100 requests / hour |
-| Authenticated | 1 000 requests / hour |
-
-Throttled requests receive `HTTP 429` with a `Retry-After` header.
-Portal operators can adjust limits via the `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` setting.
-
-### Pagination
-
-All list endpoints are paginated (default page size: 25, maximum: 100).
-
-- `?page=<n>` — page number
-- `?page_size=<n>` — results per page (capped at 100)
+- `GET /api/v1/samples/` — catalogue of all sample types: each type's address, fields,
+  filters and the number of records you may see
+- `GET /api/v1/measurements/` — the same for measurement types
 
 ### Filtering & Ordering
 
@@ -121,6 +94,10 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
     "SORT_OPERATIONS": False,
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+        "fairdm.api.schema.describe_api",
+    ],
 }
 
 #: A token travels in a header a page chooses to send, so any website may call the API.
@@ -133,6 +110,3 @@ CORS_URLS_REGEX = r"^/api/.*$"
 #: Settings of django-rest-knox, which stores the tokens people create on their account
 #: pages. A token does not renew when it is used, and a person holds at most ten.
 REST_KNOX = {"TOKEN_LIMIT_PER_USER": 10, "AUTO_REFRESH": False}
-
-#: URL of the API documentation. Override it in portal settings to point elsewhere.
-FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"

@@ -34,19 +34,6 @@ def openapi_schema(schema_client):
     return schema
 
 
-class TestFairDMAPIDocsURLSetting:
-    def test_third_child_default_url_is_fairdm_org(self):
-        from fairdm.api.settings import FAIRDM_API_DOCS_URL
-
-        assert FAIRDM_API_DOCS_URL == "https://fairdm.org/api/"
-
-    @pytest.mark.django_db
-    def test_override_fairdm_api_docs_url_respected(self, settings):
-        settings.FAIRDM_API_DOCS_URL = "https://custom.example.org/api/"
-
-        assert settings.FAIRDM_API_DOCS_URL == "https://custom.example.org/api/"
-
-
 @pytest.mark.django_db
 class TestSchemaComponentNaming:
     def test_registered_sample_types_have_clean_names(self, openapi_schema):

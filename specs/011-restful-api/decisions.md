@@ -464,3 +464,31 @@ it) are what the Account Center's menu entry and card reverse, so they do not de
 **Tests build tokens through knox's manager.** `AuthToken.objects.create` returns the record and the
 secret together, so the tests need no endpoint to get a token. Revoking is deleting the record and
 expiring is moving its expiry into the past, the same two things the pages and knox do.
+
+## D22. Choices made while building the fifth story
+
+**The schema leaves out a filter through an extension, not by removing it from the class.** The
+schema reads a filter set's filters from the class, while the API removes a relation filter that
+does not match on the short identifier when it builds the filter set for a request, because the
+type's own filter set still reads `polymorphic_ctype` while it is built. `fairdm.api.schema` has a
+small extension of drf-spectacular's django-filter extension, ahead of it in priority, that asks
+the filter set whether it drops a filter (`DatasetFilterSet.drops`, the same test the request-time
+removal uses) and describes only the rest. The portal's own pages, which share the type's filter
+set, are untouched.
+*Revisit if:* the sample mixin stops reading `polymorphic_ctype`, when the filter can leave the
+class and the extension can go.
+
+**A catalogue entry takes everything from the type's list route.** Its address is the list route
+made absolute, the viewset found by resolving that route supplies the serializer, the queryset and
+the filter set, and the count runs that queryset through the visibility filter for the caller. The
+entry's keys are `name`, `verbose_name`, `verbose_name_plural`, `app_label`, `endpoint`, `fields`,
+`filters` and `count`. `filterable_fields`, which listed a registration setting the API does not
+read, is replaced by `filters`. `fields` was the registration's list, which could hold nested groups
+and left out what the base serializer adds; it is now the serializer's flat list.
+*Revisit if:* a portal replaces a type's list route with a viewset that has no class-level queryset.
+
+**The description reads the limits and page sizes when the schema is generated.** The hook lists
+whichever rates are configured under whatever names they carry, and reads the default and largest
+page size and the size parameter's name from an instance of the configured pagination class, so
+the story that renames the rates and moves the page sizes into settings needs no change here.
+*Revisit if:* a rate needs words of its own beside its number.

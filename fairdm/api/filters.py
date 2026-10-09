@@ -122,11 +122,23 @@ class DatasetFilterSet(django_filters.FilterSet):
         # does not accept. A type's own filter set may need it while it is built, so it
         # goes only now.
         for name, filter_ in list(self.filters.items()):
-            if (
-                isinstance(filter_, QuerySetRequestMixin)
-                and filter_.extra.get("to_field_name") != "uuid"
-            ):
+            if self.drops(filter_):
                 del self.filters[name]
+
+    @staticmethod
+    def drops(filter_) -> bool:
+        """Say whether the API removes a filter when it builds the filter set for a request.
+
+        Args:
+            filter_: A filter of the filter set.
+
+        Returns:
+            True for a relation filter that does not match on the short identifier.
+        """
+        return (
+            isinstance(filter_, QuerySetRequestMixin)
+            and filter_.extra.get("to_field_name") != "uuid"
+        )
 
     def visible(self, queryset):
         """Limit a queryset of filter choices to what the requesting user may see.

@@ -19,6 +19,7 @@ from typing import Any
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import ProtectedError, Q, RestrictedError
+from django.urls import resolve, reverse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers, status
 from rest_framework.exceptions import APIException, PermissionDenied
@@ -304,52 +305,55 @@ class _BaseDiscoveryView(APIView):
     def get(self, request: Request) -> Response:
         from fairdm.registry import registry
 
-        types = []
-        for model in getattr(registry, self.registry_attr):
-            config = registry.get_for_model(model)
-            slug = _model_to_slug(model)
-            endpoint = f"{request.scheme}://{request.get_host()}/api/v1/{self.url_prefix}/{slug}/"
-
-            # Anonymous users are counted on public records only.
-            try:
-                if request.user and request.user.is_authenticated:
-                    count = model.objects.count()
-                else:
-                    from fairdm.utils.choices import Visibility
-
-                    # Samples and measurements inherit visibility from their dataset.
-                    if hasattr(model, "visibility"):
-                        count = model.objects.filter(
-                            visibility=Visibility.PUBLIC
-                        ).count()
-                    else:
-                        count = model.objects.filter(
-                            dataset__visibility=Visibility.PUBLIC
-                        ).count()
-            except Exception:
-                count = 0
-
-            fields = list(config.fields or [])
-            filterable = list(
-                getattr(config, "filter_fields", None)
-                or getattr(config, "filterset_fields", None)
-                or []
-            )
-
-            types.append(
-                {
-                    "name": model.__name__,
-                    "verbose_name": model._meta.verbose_name,
-                    "verbose_name_plural": model._meta.verbose_name_plural,
-                    "app_label": model._meta.app_label,
-                    "endpoint": endpoint,
-                    "fields": fields,
-                    "filterable_fields": filterable,
-                    "count": count,
-                }
-            )
-
+        types = [
+            self.describe(request, model)
+            for model in getattr(registry, self.registry_attr)
+        ]
         return Response({"types": types})
+
+    def describe(self, request: Request, model: type) -> dict[str, Any]:
+        """Describe one registered type for the caller.
+
+        Args:
+            request: The request being answered.
+            model: A registered sample or measurement type.
+
+        Returns:
+            The type's names, the address of its list, the fields its serializer carries,
+            the filters its list accepts and how many of its records the caller may see.
+        """
+        route = reverse(f"api:{self.url_prefix}-{_model_to_slug(model)}-list")
+        viewset = resolve(route).func.cls
+        queryset = viewset.queryset.all()
+        visible = FairDMVisibilityFilter().filter_queryset(request, queryset, self)
+        return {
+            "name": model.__name__,
+            "verbose_name": model._meta.verbose_name,
+            "verbose_name_plural": model._meta.verbose_name_plural,
+            "app_label": model._meta.app_label,
+            "endpoint": request.build_absolute_uri(route),
+            "fields": list(viewset.serializer_class().fields),
+            "filters": self.filter_names(request, viewset, queryset),
+            "count": visible.count(),
+        }
+
+    def filter_names(self, request: Request, viewset: type, queryset) -> list[str]:
+        """List the filters a type's list accepts, as the API builds them for a request.
+
+        Args:
+            request: The request being answered.
+            viewset: The viewset serving the type's list.
+            queryset: The type's records.
+
+        Returns:
+            The names of the filters, none for a list that takes no filter set.
+        """
+        view = viewset(request=request, format_kwarg=None, action="list")
+        filterset_class = FairDMFilterBackend().get_filterset_class(view, queryset)
+        if filterset_class is None:
+            return []
+        filterset = filterset_class(data={}, queryset=queryset, request=request)
+        return list(filterset.filters)
 
 
 class SampleDiscoveryView(_BaseDiscoveryView):
