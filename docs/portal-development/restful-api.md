@@ -283,12 +283,7 @@ measurements.
       "name": "SoilSample",
       "verbose_name": "Soil Sample",
       "verbose_name_plural": "Soil Samples",
-      "app_label": "demo",
       "endpoint": "https://portal.example.org/api/v1/samples/soil-samples/",
-      "fields": ["url", "uuid", "name", "local_id", "status", "dataset", "added", "modified",
-                 "soil_type", "ph_level", "depth_cm", "descriptions", "dates", "identifiers",
-                 "keywords", "contributors"],
-      "filters": ["soil_type", "ph_level", "depth_cm", "dataset", "image"],
       "count": 42
     }
   ]
@@ -299,11 +294,11 @@ measurements.
 |-----|-------|
 | `name` | The model's class name. |
 | `verbose_name`, `verbose_name_plural` | The names the model declares. |
-| `app_label` | The Django app the model belongs to. |
 | `endpoint` | The absolute address of the type's list, found by reversing its route. It follows the model's `verbose_name_plural` and the way the portal is mounted. |
-| `fields` | A flat list of the names of the fields the type's serializer carries, in the order a record returns them. |
-| `filters` | The names of the filters the type's list accepts, as the API builds them for the request. A filter on a range, such as `ph_level`, is also offered as `ph_level_min` and `ph_level_max`. A relation filter takes a short identifier, and the content-type filter is not offered. |
 | `count` | The number of the type's records the caller may see. |
+
+An entry does not list the type's fields or filters. The interactive documentation below gives
+both for every type, and the schema it is drawn from describes them in a form tools can read.
 
 The `count` is the one the type's list reports for the same caller. A visitor and a signed-in
 person with no level on a dataset count the records in datasets that are public and published. A

@@ -262,9 +262,10 @@ curl https://portal.example.org/api/v1/samples/
 curl https://portal.example.org/api/v1/measurements/
 ```
 
-Each answers with a `types` list. An entry gives the type's `name`, the `endpoint` where its
-records are, the `fields` a record of that type carries, the `filters` its list accepts and a
-`count` of the records you may see. A portal with no types of that kind answers an empty list.
+Each answers with a `types` list. An entry gives the type's `name`, its display names, the
+`endpoint` where its records are and a `count` of the records you may see. A portal with no types of
+that kind answers an empty list. The fields and filters of each type are on the API documentation
+page described below.
 
 ```json
 {
@@ -272,18 +273,16 @@ records are, the `fields` a record of that type carries, the `filters` its list 
     {
       "name": "RockSample",
       "verbose_name": "Rock Sample",
+      "verbose_name_plural": "Rock Samples",
       "endpoint": "https://portal.example.org/api/v1/samples/rock-samples/",
-      "fields": ["url", "uuid", "name", "dataset", "rock_type", "collection_date"],
-      "filters": ["dataset", "rock_type", "collection_date"],
       "count": 42
     }
   ]
 }
 ```
 
-(The entry is shortened here. It also carries the other names the type declares, and its `fields`
-and `filters` are longer.) The `count` is of the records you may see, so it is smaller for a visitor
-than for a person with access to private datasets. To read every record of a type, request its
+The `count` is of the records you may see, so it is smaller for a visitor than for a person with
+access to private datasets. To read every record of a type, request its
 `endpoint`.
 
 `/api/v1/` itself links to every list the portal serves and to both of these addresses.

@@ -232,15 +232,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `get_serializer_class`). Otherwise the portal refuses to load its API routes with
     `ImproperlyConfigured`. The check `fairdm.E600` reports at start-up, and in
     `manage.py check`, a registration whose API fields leave out a field the model requires.
-  - **A catalogue entry has `filters` in place of `filterable_fields`.** The entry at
-    `GET /api/v1/samples/` or `/api/v1/measurements/` lists the filters the type's list accepts,
-    and its `fields` is the serializer's flat list of names.
-  - **Every record and contributor carries `html_url`.** It is the absolute address of the record's
-    own page on the portal, beside `url`, which is its address in the API. It is read-only, and a
-    value sent for it is ignored. A serializer of your own that extends the base serializer's `Meta`
-    carries it too.
-  - **The token scheme in the generated documentation is named `tokenAuth`.** The authorisation
-    dialog on the documentation page no longer shows the name of the package that stores tokens.
+  - **A catalogue entry holds a type's names, the address of its records and a count.** The entry at
+    `GET /api/v1/samples/` or `/api/v1/measurements/` has `name`, `verbose_name`,
+    `verbose_name_plural`, `endpoint` and `count`. The fields and filters of each type are in the
+    generated API documentation.
   - **`FAIRDM_API_DOCS_URL` is removed.** Nothing read it. The API documentation is at
     `/api/v1/docs/`, and the sidebar has a single API entry that leads to it.
   - **New limits and page sizes, each a setting.** The rates `anon` and `user` (100 and 1,000

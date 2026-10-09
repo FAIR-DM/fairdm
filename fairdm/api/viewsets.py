@@ -383,41 +383,21 @@ class _BaseDiscoveryView(APIView):
             model: A registered sample or measurement type.
 
         Returns:
-            The type's names, the address of its list, the fields its serializer carries,
-            the filters its list accepts and how many of its records the caller may see.
+            The type's names, the address of its list and how many of its records the
+            caller may see.
         """
         route = reverse(f"api:{self.url_prefix}-{_model_to_slug(model)}-list")
         viewset = cast("Any", resolve(route).func).cls
-        queryset = viewset.queryset.all()
-        visible = FairDMVisibilityFilter().filter_queryset(request, queryset, self)
+        visible = FairDMVisibilityFilter().filter_queryset(
+            request, viewset.queryset.all(), self
+        )
         return {
             "name": model.__name__,
             "verbose_name": model._meta.verbose_name,
             "verbose_name_plural": model._meta.verbose_name_plural,
-            "app_label": model._meta.app_label,
             "endpoint": request.build_absolute_uri(route),
-            "fields": list(viewset.serializer_class().fields),
-            "filters": self.filter_names(request, viewset, queryset),
             "count": visible.count(),
         }
-
-    def filter_names(self, request: Request, viewset: type, queryset) -> list[str]:
-        """List the filters a type's list accepts, as the API builds them for a request.
-
-        Args:
-            request: The request being answered.
-            viewset: The viewset serving the type's list.
-            queryset: The type's records.
-
-        Returns:
-            The names of the filters, none for a list that takes no filter set.
-        """
-        view = viewset(request=request, format_kwarg=None, action="list")
-        filterset_class = FairDMFilterBackend().get_filterset_class(view, queryset)
-        if filterset_class is None:
-            return []
-        filterset = filterset_class(data={}, queryset=queryset, request=request)
-        return list(filterset.filters)
 
 
 class SampleDiscoveryView(_BaseDiscoveryView):

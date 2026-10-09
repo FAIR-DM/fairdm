@@ -2252,10 +2252,6 @@ class TestQueryCount:
 
 @pytest.mark.django_db
 class TestEveryListedFilter:
-    CATALOGUES = {
-        "samples": "api:api-sample-discovery",
-        "measurements": "api:api-measurement-discovery",
-    }
     VALUES = {
         "text": "abc",
         "number": "1",
@@ -2269,16 +2265,33 @@ class TestEveryListedFilter:
 
         return APIClient(raise_request_exception=False)
 
-    def listed(self, client, kind):
-        """Return each type's list address and the filter names its catalogue entry lists."""
-        response = client.get(reverse(self.CATALOGUES[kind]))
-        assert response.status_code == 200
-        return [(row["endpoint"], row["filters"]) for row in response.json()["types"]]
+    def listed(self, rf, kind, url_of):
+        """Return each type's list address and the filter names the API builds for it."""
+        from django.contrib.auth.models import AnonymousUser
+        from django.urls import resolve
+        from rest_framework.request import Request
+
+        from fairdm.api.filters import FairDMFilterBackend
+
+        types = []
+        for model in registered(kind[:-1]):
+            address = url_of(model, "list")
+            viewset = resolve(address).func.cls
+            request = Request(rf.get(address))
+            request.user = AnonymousUser()
+            view = viewset(request=request, format_kwarg=None, action="list")
+            queryset = viewset.queryset.all()
+            filterset_class = FairDMFilterBackend().get_filterset_class(view, queryset)
+            filterset = filterset_class(data={}, queryset=queryset, request=request)
+            types.append((address, list(filterset.filters)))
+        return types
 
     @pytest.mark.parametrize("kind", ["samples", "measurements"])
     @pytest.mark.parametrize("value", sorted(VALUES))
-    def test_a_listed_filter_is_answered_below_500(self, client, kind, value):
-        types = self.listed(client, kind)
+    def test_a_listed_filter_is_answered_below_500(
+        self, client, rf, url_of, kind, value
+    ):
+        types = self.listed(rf, kind, url_of)
         assert any(names for _address, names in types)
 
         for address, names in types:

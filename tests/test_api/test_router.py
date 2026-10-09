@@ -458,7 +458,22 @@ class TestCatalogues:
             entry = entries[model.__name__]
             assert entry["verbose_name"] == str(model._meta.verbose_name)
             assert entry["verbose_name_plural"] == str(model._meta.verbose_name_plural)
-            assert entry["app_label"] == model._meta.app_label
+
+    @pytest.mark.parametrize("kind", list(CATALOGUES))
+    def test_an_entry_holds_a_name_a_count_and_an_address_and_nothing_else(
+        self, catalogue, kind
+    ):
+        entries = catalogue(kind)
+
+        assert entries
+        for entry in entries.values():
+            assert set(entry) == {
+                "name",
+                "verbose_name",
+                "verbose_name_plural",
+                "endpoint",
+                "count",
+            }
 
     @pytest.mark.parametrize("kind", list(CATALOGUES))
     def test_an_entrys_address_is_its_list_route(self, catalogue, url_of, kind):
@@ -478,49 +493,6 @@ class TestCatalogues:
 
             assert response.status_code == 200
             assert "results" in response.json()
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entrys_fields_are_the_flat_list_its_serializer_carries(
-        self, catalogue, kind
-    ):
-        from fairdm.registry import registry
-
-        entries = catalogue(kind)
-
-        for model in registered(kind):
-            serializer = registry.get_for_model(model).get_serializer_class()
-            assert entries[model.__name__]["fields"] == list(serializer().fields)
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_an_entrys_filters_are_those_its_list_accepts(
-        self, api_client, catalogue, url_of, kind
-    ):
-        entries = catalogue(kind)
-        schema = api_client.get(reverse("api:api-schema"), {"format": "json"}).json()
-
-        for model in registered(kind):
-            filters = entries[model.__name__]["filters"]
-            parameters = {
-                parameter["name"]
-                for parameter in schema["paths"][url_of(model, "list")]["get"][
-                    "parameters"
-                ]
-            }
-            assert filters
-            for name in filters:
-                assert any(p == name or p.startswith(f"{name}_") for p in parameters)
-
-    def test_a_samples_filters_include_its_dataset_and_a_measurements_its_sample(
-        self, catalogue
-    ):
-        assert "dataset" in catalogue("samples")["RockSample"]["filters"]
-        measurement = catalogue("measurements")["XRFMeasurement"]["filters"]
-        assert {"dataset", "sample"} <= set(measurement)
-
-    @pytest.mark.parametrize("kind", list(CATALOGUES))
-    def test_no_entry_offers_a_content_type_filter(self, catalogue, kind):
-        for entry in catalogue(kind).values():
-            assert "polymorphic_ctype" not in entry["filters"]
 
     @pytest.mark.parametrize("kind", list(CATALOGUES))
     def test_with_no_registered_types_a_catalogue_is_an_empty_list(
