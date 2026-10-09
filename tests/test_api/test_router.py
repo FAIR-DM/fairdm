@@ -220,3 +220,54 @@ class TestAPIURLNamespaceIsolation:
         assert portal_url != api_url, (
             f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
         )
+
+
+@pytest.mark.django_db
+class TestCustomViewset:
+    @pytest.fixture
+    def viewset(self):
+        from fairdm.api.serializers import ProjectSerializer
+        from fairdm.api.viewsets import BaseViewSet
+        from fairdm.core.models import Project
+
+        class FeaturedProjectViewSet(BaseViewSet):
+            """Projects a portal highlights."""
+
+            serializer_class = ProjectSerializer
+            queryset = Project.objects.all()
+            http_method_names = ["get"]
+
+        return FeaturedProjectViewSet
+
+    def test_a_viewset_registered_on_the_router_is_served(
+        self, api_client, on_the_router, viewset, public_project
+    ):
+        on_the_router("featured", viewset, "featured")
+
+        response = api_client.get(reverse("api:featured-list"))
+
+        assert response.status_code == 200
+        assert str(public_project.uuid) in [
+            row["uuid"] for row in response.json()["results"]
+        ]
+
+    def test_it_is_served_beside_the_generated_routes(
+        self, api_client, on_the_router, viewset
+    ):
+        on_the_router("featured", viewset, "featured")
+
+        assert api_client.get(reverse("api:featured-list")).status_code == 200
+        assert api_client.get(reverse("api:project-list")).status_code == 200
+        assert (
+            api_client.get(reverse("api:samples-rock-samples-list")).status_code == 200
+        )
+
+    def test_it_appears_in_the_generated_schema(
+        self, api_client, on_the_router, viewset
+    ):
+        on_the_router("featured", viewset, "featured")
+
+        response = api_client.get(reverse("api:api-schema"), {"format": "json"})
+
+        assert response.status_code == 200
+        assert "/api/v1/featured/" in response.json()["paths"]

@@ -202,3 +202,10 @@ Did: Added TestRegistrationCheck in tests/test_api/test_checks.py. It calls the 
 Verified: uv run pytest -q -n0 tests/test_api/test_checks.py: 7 tests fail with ModuleNotFoundError for fairdm.api.checks, as expected before the check exists.
 Next: T031.
 Watch: the check is written and registered in T035.
+
+## 2026-10-09T00:12:13Z · Implementer US3 · T034
+
+Did: Added TestCustomViewset in tests/test_api/test_router.py: a viewset registered on fairdm_api_router is served at its address, is served beside the generated routes, and appears in the generated schema at /api/v1/schema/. The fixture from the earlier commit registers it for one test, reloads the URL modules and undoes both afterwards.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset: 3 passed on first run, as the router was already exposed. Probes: leaving out the URL reload turned the served and schema tests red; a following test confirmed the route and schema entry are gone after the fixture ends.
+Next: T031.
+Watch: the router's addresses are fixed when fairdm.api.urls is first imported, so a viewset registered after the URL configuration has loaded is served only once that module is loaded again. The module docstring says it can be registered "after Django startup"; T036 corrects that in the documentation and the docstring.
