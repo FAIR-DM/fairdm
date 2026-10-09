@@ -542,3 +542,37 @@ schema lists with the keys a catalogue answers, so the two cannot drift apart un
 *Revisit if:* the catalogue view becomes a generic view.
 
 **ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
+
+## D24. Choices made while fixing the findings of the code review
+
+**A sample's or measurement's records are public when their dataset is public and published.**
+The portal's own pages decide this with the dataset's `data_is_public`, and the API now asks the
+same question in the list filter and in the object permission. The dataset's own record is judged
+by its visibility alone and stays readable. The test fixtures that built a public dataset to hold
+records now also set `published=True`, because the dataset factory leaves it unset.
+*Revisit if:* publishing and visibility are merged into one flag.
+
+**The contributors a list leaves out are named once, and a reference reads that list.**
+`FairDMVisibilityFilter.hidden_contributors` selects the superusers and the anonymous account. The
+contributor list excludes them with it, and `RecordReferenceField` reads the same selection, once
+per request, keeping the result on the serializer context. Asking once matters because a record
+can carry many credits and each reference is checked on its own.
+*Revisit if:* the contributor list gains a rule of its own that is not about accounts.
+
+**A many-to-many to a record type is checked for the whole page.** A serializer FairDM builds gives
+such a relation a `RecordReferenceField(many=True)`. The list serializer primes the child field
+with the related records of the page, which the viewset has prefetched, so the check is one query as
+it is for a foreign key.
+*Revisit if:* none.
+
+**The sample description and date filters use the measurement filter set's date filter.** A sample's
+key date is a partial date, which a plain date filter cannot compare against, so the sample filter
+set imports `PartialDateFilter` from the measurement filter set instead of defining a second one.
+*Revisit if:* a third filter set needs it, when it moves to a shared module.
+
+**The proxy warning has the id `fairdm.W601`.** It sits in the API range with a `W` for its
+severity, runs only under `check --deploy`, and is outside the production-critical subset, so it
+cannot stop a portal from starting. Any value in `REST_FRAMEWORK["NUM_PROXIES"]` ends it.
+*Revisit if:* a default number of proxies can be chosen safely, which depends on the deployment.
+
+**ADR:** none — choices local to how this feature is built, nothing outside it inherits them.
