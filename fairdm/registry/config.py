@@ -90,12 +90,16 @@ class Component(NamedTuple):
         class_attr: The configuration attribute holding a supplied class.
         base: The class a supplied class must subclass.
         factory: The name of the generator in ``fairdm.registry.factories``.
+        default_exclude: Names left out when the component is built from the framework's
+            own choice of fields, because they are no use there. A field list the portal
+            declares is never filtered by it.
     """
 
     fields_attr: str
     class_attr: str
     base: type | None
     factory: str
+    default_exclude: tuple[str, ...] = ()
 
 
 COMPONENTS: dict[str, Component] = {
@@ -105,7 +109,11 @@ COMPONENTS: dict[str, Component] = {
         "filterset_fields", "filterset_class", FilterSet, "FilterFactory"
     ),
     "serializer": Component(
-        "serializer_fields", "serializer_class", None, "SerializerFactory"
+        "serializer_fields",
+        "serializer_class",
+        None,
+        "SerializerFactory",
+        default_exclude=("options", "tags"),
     ),
     "resource": Component(
         "resource_fields", "resource_class", ModelResource, "ResourceFactory"
@@ -500,11 +508,16 @@ class ModelConfiguration:
         """
         spec = COMPONENTS[component]
         declared = getattr(self, spec.fields_attr)
-        chosen = (
-            declared
-            if declared is not None
-            else (self.fields or self.get_default_fields(self.model))
-        )
+        if declared is not None:
+            chosen = declared
+        elif self.fields:
+            chosen = self.fields
+        else:
+            chosen = [
+                name
+                for name in self.get_default_fields(self.model)
+                if name not in spec.default_exclude
+            ]
         excluded = set(self.exclude)
         return [name for name in flatten_fields(chosen) if name not in excluded]
 

@@ -174,3 +174,10 @@ Did: Documented creating, changing and deleting in both pages. docs/portal-devel
 Verified: Ran each documented request against the branch through the test client: creating a rock sample answers 201, a partial change of `weight_grams` answers 200 and keeps the other fields, a replacement that leaves out an optional field keeps its value, a replacement that leaves out required fields answers 400 naming them, a project created with `visibility` 1 comes back public, a dataset created without it comes back private, and the delete answers 204. The docs step runs in the full verify.
 Next: full verify and the completion report.
 Watch: The pages do not say how to get a token. The authentication section is for a later story.
+
+## 2026-10-09T00:07:33Z · Implementer US3 · T027
+
+Did: Added TestSerializerFactory (sample and measurement variants) in tests/test_registry/test_factories.py. A type with no field list now gets the framework defaults without `options` and `tags` for its serializer only (Component.default_exclude in fairdm/registry/config.py); forms, tables and filters keep the full defaults, and a field named in serializer_fields or fields is always carried.
+Verified: uv run pytest -q -n0 tests/test_registry/test_factories.py tests/test_registry/test_config.py: 181 passed. The options/tags test failed first for the right reason; the others passed on first run and were probed (serializer built on the plain base, and the shared list taking precedence over serializer_fields each turned tests red).
+Next: T028.
+Watch: none.
