@@ -1900,13 +1900,12 @@ class TestRelationFiltersUseIdentifiers:
     """A filter a type declares on a relation matches the related record's short identifier."""
 
     @pytest.fixture
-    def filtered_route(self, on_the_router):
+    def portal_filters(self):
+        """Return the filter set a type declares, the one the portal's pages would use."""
         import django_filters
         from django.contrib.contenttypes.models import ContentType
 
         from demo.models import RockSample
-        from fairdm.api.viewsets import generate_viewset
-        from fairdm.registry import ModelConfiguration
 
         class RockFilters(django_filters.FilterSet):
             project = django_filters.ModelChoiceFilter(
@@ -1923,7 +1922,15 @@ class TestRelationFiltersUseIdentifiers:
                 model = RockSample
                 fields = []
 
-        config = ModelConfiguration(model=RockSample, filterset_class=RockFilters)
+        return RockFilters
+
+    @pytest.fixture
+    def filtered_route(self, on_the_router, portal_filters):
+        from demo.models import RockSample
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(model=RockSample, filterset_class=portal_filters)
         on_the_router(
             "samples/filtered-rocks", generate_viewset(config), "samples-filtered"
         )
@@ -1989,6 +1996,14 @@ class TestRelationFiltersUseIdentifiers:
         found = self.listed(api_client, filtered_route, kind=kind.pk)
 
         assert found == {record.uuid for record in rocks.values()}
+
+    def test_the_filter_set_the_portal_uses_is_left_as_declared(
+        self, api_client, filtered_route, portal_filters
+    ):
+        api_client.get(filtered_route)
+
+        assert "to_field_name" not in portal_filters.base_filters["project"].extra
+        assert "kind" in portal_filters.base_filters
 
 
 class TestSerializerMustBuildOnBase:

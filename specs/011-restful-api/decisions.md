@@ -412,3 +412,37 @@ mechanism it covers.
 **A dependency goes with the builder.** Nothing under `fairdm/` imports `djangorestframework-guardian`
 once `build_model_serializer` is gone, so it is removed from `pyproject.toml` and the lock file.
 *Revisit if:* a portal needs stored object permissions on a model served by the API.
+
+## D20. Choices made while building the third story
+
+**The API's defaults are the shared defaults minus two names.** A type with no field list takes
+the framework's default fields, which include `options` and `tags`. The API returned `options`, an
+internal JSON field, and `tags` as null whatever the record holds. `Component.default_exclude`
+names them for the serializer alone, and only when nothing is declared, so a field list a portal
+writes (including `options`) is always honoured and the forms, tables and filters keep the full
+defaults.
+*Revisit if:* `tags` is serialised as a list, when it can come back in.
+
+**Relation filters change in two places.** The API's copy of a type's filter set rewrites every
+relation filter whose model has a `uuid` to match it, on the class, so the generated schema
+describes the identifier. A relation filter whose model has no `uuid` is removed when the filter
+set is built for a request, not on the class, because the type's own filter set (the sample
+mixin's `__init__`) reads `polymorphic_ctype` while it is built. A multiple-choice filter also has
+`__uuid` added to its field name, since django-filter filters on the field name as given.
+*Revisit if:* the sample mixin stops reading `polymorphic_ctype`, when the removal can move to the
+class and out of the schema.
+
+**The start-up check is a plain system check.** `fairdm.E600` is registered under the `models`
+tag from the API app's `ready()`, so `manage.py check`, `runserver` and `migrate` report it. It is
+not in the production-critical set, because the registrations are written by the developer and
+reported long before a deploy. It compares the writable fields of the type's own serializer with
+the model's required fields, so a serializer the developer names is held to the same rule.
+*Revisit if:* a portal wants a registration mistake to stop a production boot.
+
+**Registering the types is a router method.** `FairDMAPIRouter.register_types` replaces the two
+module-level loops and their `try`/`except`, so a type whose endpoints cannot be built stops the
+import with the real error and a test can call it on a fresh router. The router's addresses are
+read once, when `fairdm.api.urls` is first imported, so a viewset registered after that is served
+only once the module is loaded again. The tests do exactly that, and the module's docstring says
+where to register.
+*Revisit if:* the URL configuration reads the router on every request.

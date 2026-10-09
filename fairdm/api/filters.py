@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 from typing import TYPE_CHECKING
 
 import django_filters
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models.constants import LOOKUP_SEP
+from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
@@ -103,6 +107,51 @@ class DatasetFilterSet(django_filters.FilterSet):
     caller may not see.
     """
 
+    @classmethod
+    def match_relations_on_uuid(cls) -> None:
+        """Make every relation filter of this class that can match on ``uuid`` do so.
+
+        The filters are replaced by copies, so a filter set the portal's own pages share is
+        left as it was. Call it on a class built for the API. A relation whose model has no
+        ``uuid`` keeps its filter here and loses it when the filter set is built.
+        """
+        for name, filter_ in list(cls.base_filters.items()):
+            if not isinstance(filter_, QuerySetRequestMixin):
+                continue
+            related = cls.related_model(filter_)
+            if related is None or not any(
+                field.name == "uuid" for field in related._meta.concrete_fields
+            ):
+                continue
+            matching = copy.deepcopy(filter_)
+            matching.extra["to_field_name"] = "uuid"
+            if isinstance(matching, django_filters.ModelMultipleChoiceFilter):
+                # It reads the chosen records' `uuid` but filters on `field_name` as given.
+                matching.field_name += f"{LOOKUP_SEP}uuid"
+            cls.base_filters[name] = matching
+
+    @classmethod
+    def related_model(cls, filter_) -> type | None:
+        """Return the model a relation filter chooses among.
+
+        Args:
+            filter_: A relation filter of this class.
+
+        Returns:
+            The model at the end of the filter's field path, or ``None`` when the path does
+            not end on a relation.
+        """
+        model = cls._meta.model
+        for segment in filter_.field_name.split(LOOKUP_SEP):
+            try:
+                field = model._meta.get_field(segment)
+            except FieldDoesNotExist:
+                return None
+            model = field.related_model
+            if model is None:
+                return None
+        return model
+
     dataset = django_filters.ModelChoiceFilter(
         field_name="dataset",
         to_field_name="uuid",
@@ -113,8 +162,15 @@ class DatasetFilterSet(django_filters.FilterSet):
         """Offer only the datasets the requesting user may see, and no content-type filter."""
         super().__init__(*args, **kwargs)
         self.filters["dataset"].queryset = self.visible(Dataset.all_objects.all())
-        # One endpoint serves one type, and the filter takes a database number.
-        self.filters.pop("polymorphic_ctype", None)
+        # A relation filter without an identifier takes a database number, which the API
+        # does not accept. A type's own filter set may need it while it is built, so it
+        # goes only now.
+        for name, filter_ in list(self.filters.items()):
+            if (
+                isinstance(filter_, QuerySetRequestMixin)
+                and filter_.extra.get("to_field_name") != "uuid"
+            ):
+                del self.filters[name]
 
     def visible(self, queryset):
         """Limit a queryset of filter choices to what the requesting user may see.
@@ -149,8 +205,8 @@ class FairDMFilterBackend(DjangoFilterBackend):
     """Django-filter backend that gives every list its dataset, and measurements their sample.
 
     The filters a registered type declares match related records by database number, and are
-    shared with the portal's own pages. Here ``dataset`` and, for measurements, ``sample``
-    match by short identifier whatever the type declares, and a number is refused.
+    shared with the portal's own pages. Here every relation filter matches by short identifier,
+    a number is refused, and a filter on a relation with no identifier is left out.
     """
 
     parent_filtersets: dict[tuple, type] = {}
@@ -182,5 +238,7 @@ class FairDMFilterBackend(DjangoFilterBackend):
                     "Meta", (), {"model": queryset.model, "fields": []}
                 )
             name = f"{queryset.model.__name__}FilterSet"
-            self.parent_filtersets[key] = type(name, bases, attrs)
+            generated = type(name, bases, attrs)
+            generated.match_relations_on_uuid()
+            self.parent_filtersets[key] = generated
         return self.parent_filtersets[key]

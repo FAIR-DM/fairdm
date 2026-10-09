@@ -99,6 +99,15 @@ class TestRegistrationCheck:
         assert [e.id for e in errors] == ["fairdm.E600"]
         assert "rock_type" in errors[0].msg
 
+    def test_django_reports_it_when_the_portal_is_checked(self, register_for_the_test):
+        from django.core.management import call_command
+        from django.core.management.base import SystemCheckError
+
+        register_for_the_test(RockSample, serializer_fields=["collection_date"])
+
+        with pytest.raises(SystemCheckError, match="fairdm.E600"):
+            call_command("check", tags=["models"], verbosity=0)
+
     def test_the_check_is_registered_with_django(self):
         from django.core.checks.registry import registry as checks
         from fairdm.api.checks import check_registered_types
