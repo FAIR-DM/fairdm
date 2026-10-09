@@ -319,9 +319,11 @@ has one link to it, **API**, in the **Documentation** group.
 | `/api/v1/schema/` | `api:api-schema` | The OpenAPI 3 schema both pages are drawn from, as YAML, or as JSON with `?format=json` |
 
 The schema describes the two ways of authenticating as `tokenAuth`, the `Authorization` header
-that carries a token, and `cookieAuth`, the session cookie. To try a request that needs a token, choose **Authorize** on the
-documentation page and enter `Token <your-token>`, or sign in to the portal first and the page
-sends your session.
+that carries a token, and `cookieAuth`, the session cookie. To try a request that needs a token,
+choose **Authorize** on the documentation page and enter `Token <your-token>`, or sign in to the
+portal first and the page sends your session. `fairdm.api.schema.TokenSchemeExtension` gives the
+header scheme its name and description. It subclasses the extension drf-spectacular ships for the
+token class, with a higher priority.
 
 The description at the top of the page is written when the schema is generated. After the text you
 set in `SPECTACULAR_SETTINGS["DESCRIPTION"]` it adds how to authenticate, the rates in
@@ -588,6 +590,7 @@ can build on any of them.
 | `RecordSerializer` | Base of the four record serializers. Adds `url`, `html_url`, the five metadata fields and the creator credit |
 | `ProjectSerializer`, `DatasetSerializer` | Written out, not generated. A dataset carries its `project` and `license`, a project its `owner` |
 | `BaseSampleSerializer`, `BaseMeasurementSerializer` | Base of every generated sample and measurement serializer. `common_fields` lists the fields every record of the kind carries |
+| `PortalPageField` | The record's own page on the portal as an absolute address, or the path alone when there is no request. `RecordSerializer` and `ContributorSerializer` declare it as `html_url` |
 | `RecordReferenceField` | A relation to a record, returned as `{"uuid", "url"}` or `null` |
 | `RecordURLField` | The address of a record, whatever its type |
 | `RecordListSerializer` | Checks every reference on a page of records in one query. `RecordSerializer` uses it for lists |

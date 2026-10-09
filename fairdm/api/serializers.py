@@ -360,9 +360,10 @@ class PortalPageField(serializers.ReadOnlyField):
         Returns:
             The absolute address, or the path when there is no request.
         """
-        path = value.get_absolute_url()
+        path: str = value.get_absolute_url()
         request = self.context.get("request")
-        return request.build_absolute_uri(path) if request else path
+        address: str = request.build_absolute_uri(path) if request else path
+        return address
 
 
 class RecordListSerializer(serializers.ListSerializer):
