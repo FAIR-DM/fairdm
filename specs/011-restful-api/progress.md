@@ -468,3 +468,10 @@ Did: Added TestApiProxyCountCheck (tests/test_conf/test_checks.py): without NUM_
 Verified: uv run pytest -q -n0 tests/test_conf/test_checks.py: 82 passed.
 Next: feature-state, tasks.md ticks, CHANGELOG, the full verify and the report.
 Watch: none.
+
+## 2026-10-09T02:19:46Z · Implementer fix-1 · T061
+
+Did: The whole suite showed two more existing tests that read samples in a public dataset without publishing it: demo/tests/test_api_smoke.py (test_public_sample_visible_to_anonymous and test_sample_count_in_discovery_reflects_public_records). Their fixtures now set published=True; the assertions are unchanged (authorised edit to existing tests). The type checker and the documentation check also flagged three annotations (T063) and the undocumented load_relations name (T066); fixed in their own commits.
+Verified: uv run pytest -q -n auto --dist loadscope across the repository: 6214 passed, 2 failed (the two above, now fixed); uv run mypy fairdm/api fairdm/registry: no issues.
+Next: the full verify, then the report.
+Watch: none.
