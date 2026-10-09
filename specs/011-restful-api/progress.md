@@ -389,3 +389,10 @@ Existing tests changed: TestRateLimiting in tests/test_api/test_viewsets.py is d
 Verified: uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests tests/test_conf tests/test_menus: 1186 passed, 1 skipped (the skip was already there). TestAffiliationHistory in tests/test_contrib/test_contributors/test_models.py: 3 passed. ruff check and ruff format clean on what changed. Probed: with the signed-in throttles counting anonymous callers again, the anonymous-rates-alone test fails.
 Next: T058.
 Watch: schema generation still reports one warning about two enums named `status` in different components (a name collision resolved automatically). It is unrelated to this story and not changed.
+
+## 2026-10-09T01:16:44Z · Implementer US6 · T058
+
+Did: New docs/portal-administration/api-limits.md for a portal administrator: the four limits and their starting values, what a refused caller receives, the two page-size settings, how to change them in the settings file (and that None removes a limit and a replaced dictionary needs all four names), REST_FRAMEWORK["NUM_PROXIES"] as the number of proxies in front of the portal with the warning that the limits count per address only once it is set, and where the counts are kept. It is linked from the administration guide's table of contents and its list. docs/portal-development/restful-api.md: the Rate Limiting section is now "Limits on Use" with the four throttles and rates, and the paging section states the 100 and 1,000 figures and the two settings. docs/user-guide/reading-records-with-a-script.md gains "How much you can ask for" (page_size, the limits, waiting on Retry-After) and a 429 row in the refusals table.
+Verified: no page under docs/ names the old `anon` or `user` rates or the old 25 and 100 page sizes (grep). Two claims on the new pages were run against this branch in a throw-away test, then removed: a rate set to None removes that limit, and with NUM_PROXIES = 1 a caller who changes the start of X-Forwarded-For is still counted as one address, while without it each value is a new caller.
+Next: T059.
+Watch: none.
