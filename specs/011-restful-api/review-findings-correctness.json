@@ -1,0 +1,91 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "Feature branch 011-restful-api against ffbfb69f, excluding specs/ (49 files). Correctness and spec-compliance, with the documentation pass over docs/portal-development/restful-api.md, docs/user-guide/reading-records-with-a-script.md, docs/portal-administration/api-limits.md and configuration-checks.md, using_the_registry.md, model_configuration.md and CHANGELOG.md. Method: every claim below was exercised on the real routes against the demonstration types in a rolled-back transaction, and 19 defects were reinstated one at a time by monkeypatch (no file changed) to see whether tests/test_api and tests/test_registry/test_factories.py go red.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "COR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "FR-043 is unmet for any registered type whose API fields include a relation: the list runs one extra query per record. This is the default path, because a sample type registered with no field list takes the framework defaults, which include the `location` foreign key. The shipped demonstration type Thin Sections (demo CustomSample) does it today.",
+      "evidence": "fairdm/registry/factories.py:906-932 renders every foreign key, one-to-one and many-to-many the base does not declare as `StringRelatedField`, which calls `str()` on the related row. fairdm/api/viewsets.py:269-273 builds the queryset with `serializer_cls.load_related(queryset)` only, and `RecordSerializer.load_related` (fairdm/api/serializers.py:416-435) selects only `cls.parents` (`dataset`, or `sample` and `dataset`). Nothing selects or prefetches the relations the factory added. Observed on GET /api/v1/samples/thin-sections/?page_size=1000 as a visitor, each sample given a `location`: 2 records ran 11 queries, 12 records ran 21, and 12 of the 21 were `SELECT ... FROM fairdm_location_point WHERE id = ...`. At the 1,000-record ceiling one anonymous request issues about 1,000 queries. The test that should catch it, tests/test_api/test_viewsets.py::TestQueryCount::test_a_list_of_twelve_runs_the_queries_of_a_list_of_two, reads only RockSample and ExampleMeasurement (lines 2017-2024), neither of which has a relation among its fields, so it proves the requirement for a stand-in. The other seven demonstration types hold steady (8 to 10 queries at 2, 8 and 14 records) only because their factories leave `location` empty or their field lists name no relation.",
+      "reproduction": "In a test: dataset = DatasetFactory(visibility=PUBLIC); create 2 CustomSampleFactory(dataset=dataset, location=Point.objects.create(x=..., y=...)); count queries for GET reverse('api:samples-thin-sections-list'); add 10 more with a location each; count again. The second count is 10 higher.",
+      "suggested_fix": "In `generate_viewset`, after `load_related`, add `select_related` for each foreign key or one-to-one, and `prefetch_related` for each many-to-many, among `serializer_cls.Meta.fields` that the model defines and `serializer_cls.parents` does not already cover. Add a `sample` case to TestQueryCount that uses CustomSample with a location on every record."
+    },
+    {
+      "id": "COR-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "FR-022 and SC-008 are unmet: an anonymous GET with a filter the API itself advertises is answered with a server error. On the Thin Sections list, `?description=`, `?date_after=` and `?date_before=` each raise `FieldError`.",
+      "evidence": "fairdm/core/sample/filters.py:118-134 declares `description` on `descriptions__text` and both date filters on `dates__date`. The sample description and date models store their content in `value` (the measurement filter set uses `descriptions__value` and `dates__value`, fairdm/core/measurement/filters.py:97,105,111, and those three filters answer 200 on every measurement list). The lines predate this branch, but the branch is what serves them: `FairDMFilterBackend` (fairdm/api/filters.py:227-257) builds the API filter set on the type's own, the catalogue at GET /api/v1/samples/ lists `description`, `date_after` and `date_before` under `filters` for Thin Sections, and the generated schema offers them as parameters. Observed: GET /api/v1/samples/thin-sections/?description=abc raises `FieldError: Unsupported lookup 'text__icontains' for ManyToOneRel or join on the field not permitted`; `?date_after=2020-01-01` and `?date_before=2020-01-01` raise the same for `date__gte` and `date__lte`. Any sample type whose filter set builds on `fairdm.core.sample.filters.SampleFilter` inherits all three. No test sends these filters: every other advertised filter on all eight demonstration types was sent three junk values and none answered 5xx.",
+      "reproduction": "APIClient(raise_request_exception=False).get('/api/v1/samples/thin-sections/', {'description': 'abc'}) answers 500. The same for {'date_after': '2020-01-01'} and {'date_before': '2020-01-01'}.",
+      "suggested_fix": "Change the three `field_name` values in fairdm/core/sample/filters.py to `descriptions__value` and `dates__value`, as the measurement filter set has them. Add one parametrised test that sends every filter name a type's catalogue entry lists and asserts the answer is below 500."
+    },
+    {
+      "id": "COR-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "A credit on a record can name a contributor whose address answers 404. `RecordReferenceField` treats every contributor as visible, while the contributor endpoint leaves out superusers and the anonymous account, so the reference links to a record the API refuses to return. docs/portal-development/restful-api.md:100 says requesting a reference's `url` returns the record it names.",
+      "evidence": "fairdm/api/serializers.py:222-224: `visible_pks` returns every key when the model has no visibility rule, which is the case for Contributor, Person and Organization. fairdm/api/viewsets.py:177-182: `ContributorViewSet.get_queryset` excludes superusers and the AnonymousUser account. Observed: a public dataset credited to a person with `is_superuser=True` is returned with `contributors[0].contributor = {uuid, url: /api/v1/contributors/<uuid>/}` and a GET of that url answers 404. The same holds for `ProjectSerializer.owner` and a contribution's `affiliation` only in principle, since organizations are never excluded.",
+      "reproduction": "su = PersonFactory(is_active=True, is_superuser=True); ContributionFactory(content_object=public_dataset, contributor=su); GET the dataset, follow contributors[0].contributor.url: 404.",
+      "suggested_fix": "Decide one rule and apply it in both places. The smaller edit is in `RecordReferenceField.visible_pks`: for a contributor, check the keys against the same exclusion `ContributorViewSet.get_queryset` applies, so a hidden contributor's reference reads null like any other hidden record."
+    },
+    {
+      "id": "COR-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The documented way to set the API's title and description does nothing. docs/portal-development/restful-api.md:759-781 tells a portal developer to assign `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` in settings.py and says FairDM merges them into `SPECTACULAR_SETTINGS` at start-up. No code does that.",
+      "evidence": "fairdm/api/settings.py builds `SPECTACULAR_SETTINGS` from the two names once, when the module is imported inside `fairdm.setup()`. A grep of fairdm/ finds no other reader of either name. fairdm/conf/settings/api.py:16-18 says so itself: overriding them after `setup()` has no effect, override `SPECTACULAR_SETTINGS` instead. The docstring of fairdm/api/settings.py (lines 6-13, edited in this diff) repeats the claim that does not hold. The two tests that appear to cover it, tests/test_api/test_settings.py:221-234, set a Django setting and read the same setting back, so they pass whether or not the schema follows. The page is touched by this diff, and the paragraph the diff adds directly below (line 783) builds on the example.",
+      "reproduction": "In a portal's settings.py, after fairdm.setup(): FAIRDM_API_TITLE = 'X'. GET /api/v1/schema/?format=json still has info.title 'FairDM Portal API'.",
+      "suggested_fix": "Rewrite the section's example to assign `SPECTACULAR_SETTINGS[\"TITLE\"]` and `SPECTACULAR_SETTINGS[\"DESCRIPTION\"]`, drop the sentence about merging, and make the docstring of fairdm/api/settings.py say the same as fairdm/conf/settings/api.py."
+    },
+    {
+      "id": "COR-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "No test goes red when the `dataset` and `sample` filters stop hiding records the caller may not see. The documentation states the identifier of a dataset the caller may not see is answered 400, the same as one that does not exist, and nothing pins it.",
+      "evidence": "fairdm/api/filters.py:120 and 214 narrow the two filters' choices through `DatasetFilterSet.visible` (lines 143-154). With `visible` replaced by a function that returns the queryset unfiltered, all 974 tests in tests/test_api and tests/test_registry/test_factories.py pass. The behaviour is correct today: as a visitor, `?dataset=<uuid of a private dataset>` and `?sample=<uuid of a sample in a private dataset>` both answer 400 with the same message as an unknown identifier. Without the narrowing the answer would be 200 with an empty list, which tells a caller the private record exists. Stated at docs/portal-development/restful-api.md:245-246.",
+      "suggested_fix": "Add two cases beside `test_a_person_with_a_level_can_narrow_by_a_private_dataset`: a visitor filtering a sample list by a private dataset's identifier, and a measurement list by the identifier of a sample in a private dataset, each asserting 400 and the same body as an unknown identifier."
+    },
+    {
+      "id": "COR-006",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A registered type whose filter set cannot be built is served without its filters and nothing is reported, which is the kind of swallowed failure FR-026 and US3 scenario 9 set out to remove.",
+      "evidence": "fairdm/api/viewsets.py:265-267 wraps `config.get_filterset_class()` in `contextlib.suppress(Exception)`. Any error in a developer's filter set or in an overridden accessor leaves `filterset_class` as None and the endpoint is registered with only the parent filter. A second effect follows: `FairDMFilterBackend.parent_filtersets` (fairdm/api/filters.py:241-257) keys its cache on `(filterset_class, parent_filterset)`, so every type that arrives with None shares one generated class whose `Meta.model` is whichever type was requested first. Not reproduced with a failing accessor; read from the code.",
+      "suggested_fix": "Remove the `suppress` so the error stops registration like a serializer off the base does, in line with `register_types`."
+    },
+    {
+      "id": "COR-007",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "The example under \"OpenAPI Schema Customisation\" replaces `SPECTACULAR_SETTINGS` with a three-key dictionary, which removes the bundled Swagger and ReDoc assets, the path prefix and the `describe_api` hook this branch adds, so the documentation page loses the authentication, limits and paging sections the same page promises.",
+      "evidence": "docs/portal-development/restful-api.md:751-757 assigns `SPECTACULAR_SETTINGS = {\"TITLE\", \"DESCRIPTION\", \"VERSION\"}`. fairdm/api/settings.py:97-113 holds `SWAGGER_UI_DIST`, `REDOC_DIST`, `SCHEMA_PATH_PREFIX` and `POSTPROCESSING_HOOKS` in the same dictionary. Line 783 of the page warns to keep the hook when replacing the dictionary, and the example 30 lines above does not. The example predates the branch. The hook does not.",
+      "suggested_fix": "Change the example to three item assignments: `SPECTACULAR_SETTINGS[\"TITLE\"] = ...` and so on."
+    }
+  ],
+  "notes": [
+    "The task asked for stage \"review\". The schema allows only \"design\" or \"code\", so this file carries \"code\".",
+    "Reinstated defects the suite caught (each turned between 1 and 16 tests red): a hidden reference shown, the signed-in throttles counting visitors, the start-up check returning nothing, the base-serializer check skipped for both ways of supplying a serializer, parents and metadata not loaded, the manage-level rule dropped, the page-size ceiling removed, contributor affiliations not prefetched, relation filters left on database numbers, parent choices not narrowed, the creator not credited, the schema filter extension bypassed, ordering fields unset, the limits left out of the description, references not checked per page, the daily anonymous rate misnamed, the daily signed-in throttle disabled, and a catalogue count of all records. Only the filter-choice narrowing (COR-005) survived.",
+    "Writes hold on the real routes for all eight demonstration types: create 201 as JSON and as multipart, full replacement, partial change, delete then 404, a sent uuid, added, descriptions, contributors, id and url ignored, the parent accepted as a string or as the returned object, a database number, null, a list and an empty body all 400, a body that is not JSON 400, a visitor 401, a viewer 403. Projects and datasets likewise, including a manager setting a dataset's project to null.",
+    "Hidden references read null on list and on detail for a dataset's project and a measurement's sample. Ordering answers 200 ascending and descending on every sortable field of every type.",
+    "The documentation's create and change examples for a rock sample answer 201 and 200 as written. The four rates, both page sizes, the token lifetimes, the token limit, the three token routes, MVP_ACCOUNTS_API_TOKEN_ACCESS, the status codes in both refusal tables, the manage level for delete, the 403 for a session write without a CSRF token, the root's links and the catalogue keys all match the code.",
+    "docs/portal-development/restful-api.md:109-119: the RecordReferenceField example imports only RecordReferenceField and uses BaseSampleSerializer and RockSample.",
+    "docs/portal-development/restful-api.md:297 says a range filter is also offered as ph_level_min and ph_level_max. The list accepts both parameters, and the catalogue's `filters` names only ph_level.",
+    "docs/portal-administration/api-limits.md and restful-api.md both state that without REST_FRAMEWORK[\"NUM_PROXIES\"] the anonymous limits count on a header the caller controls. That is accurate, and it means the shipped defaults do not limit an anonymous caller who varies X-Forwarded-For. Left to the security lens."
+  ]
+}

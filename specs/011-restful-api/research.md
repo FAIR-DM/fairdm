@@ -1,370 +1,146 @@
-# Research: Auto-Generated RESTful API
+# Research: 011-restful-api
 
-**Feature**: 011-restful-api
-**Date**: 2026-03-31
+Written 2026-10-09 against `main` at `ffbfb69f`, which carries django-mvp 0.28 and
+django-mvp-accounts 0.2.0.
 
-## R1: Serialization Performance — orjson vs stdlib JSON
+## The maintainer's planning notes
 
-**Decision**: Use `drf-orjson-renderer` as the default JSON renderer/parser.
+### Tokens through django-mvp-accounts
 
-**Rationale**: orjson is a Rust-backed JSON serializer that benchmarks 3–10x faster than Python's stdlib json. `drf-orjson-renderer` is a drop-in replacement for DRF's `JSONRenderer` and `JSONParser` — no API changes needed. It automatically pretty-prints for the Browsable API and handles Django/NumPy types natively.
+**Adopted.** django-mvp-accounts 0.2.0 is installed. Its `api` extra is not, so django-rest-knox
+and the token pages are absent today. The package's README gives four steps and this feature takes
+all four:
 
-**Alternatives considered**:
+1. Depend on `django-mvp-accounts[api]`, which brings django-rest-knox 5.
+2. Add `knox` to `INSTALLED_APPS`. `rest_framework` is already there.
+3. Include `mvp_accounts.tokens.urls` at `account/tokens/`.
+4. Put `knox.auth.TokenAuthentication` in `DEFAULT_AUTHENTICATION_CLASSES`.
 
-- `ujson` — faster than stdlib but slower than orjson; no native Django type support.
-- stdlib `json` via DRF default — functional but measurably slower for large payloads (datasets with hundreds of samples).
-- `msgpack` — binary format; not suitable for a human-readable REST API.
+The package adds no system check and no default, so the tests of this feature are what prove the
+pages resolve and the API accepts their tokens.
 
-**Configuration**:
+What knox gives over the tokens used until now: several tokens per person, a lifetime chosen when
+each is created, storage as a digest, and revoking one at a time. The request header keeps the
+form `Authorization: Token <token>`, so the documentation for callers barely changes.
 
-```python
-REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": (
-        "drf_orjson_renderer.renderers.ORJSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
-    ),
-    "DEFAULT_PARSER_CLASSES": (
-        "drf_orjson_renderer.parsers.ORJSONParser",
-    ),
-}
-```
+Two knox settings are set here. `TOKEN_LIMIT_PER_USER` is 10, because knox sets no limit and the
+package's README tells a project to set one. `AUTO_REFRESH` stays off, so a token ends when the
+person said it would.
 
----
+`dj-rest-auth` and `rest_framework.authtoken` are removed. Nothing else in the code imports
+either. The old token table is left in place by Django when the app is removed, and no release
+carried it, so no data migration is written.
 
-## R2: OpenAPI Schema & Interactive Documentation
+drf-spectacular does not know knox's authentication class and would warn and leave it out of the
+schema. Its documented answer is a small `OpenApiAuthenticationExtension` subclass, which goes in
+`fairdm/api/schema.py`.
 
-**Decision**: Use `drf-spectacular` with the sidecar extras for OpenAPI 3.0 schema generation and Swagger UI.
+### orjson as the default renderer
 
-**Rationale**: drf-spectacular is the de-facto standard for DRF schema generation. It replaces the deprecated `coreapi` schema and supports OpenAPI 3.0 with accurate type inference, enum handling, and polymorphic serializer support. The `[sidecar]` extra bundles Swagger UI and ReDoc static files so the docs page works without a CDN or internet access — important for air-gapped research environments.
+**Already adopted, kept.** `drf-orjson-renderer` has been the default renderer and parser since
+the April build (`fairdm/api/settings.py`). Its latest release is 1.8.0 of December 2025 and the
+lock holds 1.7.5 or later. The package is a thin wrapper of about two hundred lines over `orjson`,
+which is what does the work, so the maintenance risk is small. The browsable renderer stays second
+for a person in a browser. Nothing to build. The parser is the reason an unparseable body must be
+tested: orjson raises its own error type, which the wrapper turns into a 400.
 
-**Alternatives considered**:
+### Limits, access and paging for a small server
 
-- `drf-yasg` — deprecated in favor of drf-spectacular; does not support OpenAPI 3.0.
-- Manual OpenAPI YAML — maintenance burden; falls out of sync with code.
-- `drf-schema-adapter`'s `AutoMetadata` — provides OPTIONS-based schema but NOT OpenAPI/Swagger UI. Package dropped from plan (see R7).
+**Decided as follows.**
 
-**Configuration**:
+| | Anonymous | Token or session |
+|---|---|---|
+| Per minute | 30 | 120 |
+| Per day | 2,000 | 20,000 |
 
-```python
-INSTALLED_APPS = [
-    ...
-    "drf_spectacular",
-    "drf_spectacular_sidecar",
-]
+Django REST Framework's throttles count in the cache. Production already requires Redis
+(`fairdm.E200`), so a single server with several workers counts correctly. A throttle holds one
+rate, so each cell is a small subclass with its own scope, and the four rates sit in
+`REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` where an operator already looks.
 
-REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
+Paging stays by page number with a total. Cursor paging was considered and not taken: it drops the
+total and the page links callers expect, and its gain appears on tables far larger than a
+single-server portal holds. The default page is 100 records and the ceiling 1,000, each a setting.
+With those, a dataset of ten thousand samples is 100 requests at the default and 10 at the ceiling,
+which an anonymous caller completes in under four minutes without meeting the daily limit.
 
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Portal API",  # overridable per portal
-    "DESCRIPTION": "Auto-generated API for this FairDM research data portal.",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "SWAGGER_UI_DIST": "SIDECAR",
-    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
-    "REDOC_DIST": "SIDECAR",
-}
-```
+Larger pages make the cost of each record matter, so every list prefetches what its serializer
+reads and a test holds the query count level as the page grows.
 
----
+Access from other websites: `django-cors-headers` is already installed and limited to `/api/`.
+Setting `CORS_ALLOW_ALL_ORIGINS = True` and leaving `CORS_ALLOW_CREDENTIALS` off lets any page
+read, and write with a token it sends itself. A browser will not hand a response to a
+cross-origin page that sent cookies unless credentials are allowed, and Django REST Framework's
+session authentication also demands a CSRF token, which another origin cannot read.
 
-## R3: Authentication Strategy
+## What else the plan needed settled
 
-**Decision**: Use `dj-rest-auth` for API authentication endpoints, configured with DRF Token Authentication (`rest_framework.authtoken`) for programmatic clients and session authentication for browser/Swagger UI. JWT is explicitly **out of scope for v1** (`REST_USE_JWT = False`; `djangorestframework-simplejwt` is not added).
+### Why creating a sample fails
 
-**Rationale**: dj-rest-auth provides login, logout, password reset, and user detail endpoints out of the box, wired to allauth (already in use). Session authentication covers the browser/Swagger UI use case. DRF TokenAuthentication covers programmatic API clients. JWT with HTTP-only cookies (supported by dj-rest-auth) can be enabled later without breaking the API.
+`build_model_serializer` in `fairdm/api/serializers.py` writes a new `Meta` with the type's field
+list. A subclass's `Meta.fields` replaces its parent's, so `BaseSampleSerializer`'s common fields
+vanish and `dataset` is not a field. The fix is to build the field list as the common fields
+followed by the type's own.
 
-**Alternatives considered**:
+### Why measurements have no values
 
-- JWT-only (djangorestframework-simplejwt) — adds complexity; session auth is simpler for browser-based Swagger usage and matches the existing allauth stack.
-- Session-only — insufficient for programmatic clients (CLI tools, scripts, other services).
-- OAuth2 (django-oauth-toolkit) — overkill for v1; adds client/grant management overhead.
+`MeasurementConfig.serializer_fields` in `fairdm/core/measurement/config.py` is a fixed list, and a
+component's own list wins over `fields`. Removing it lets the type's `fields` through, as
+`BaseSampleConfiguration` already does by declaring only `fields`.
 
-**Configuration**:
+### Two serializer builders
 
-```python
-INSTALLED_APPS = [
-    ...
-    "rest_framework",
-    "rest_framework.authtoken",
-    "dj_rest_auth",
-]
+`fairdm/registry/factories.py::SerializerFactory` is what `config.get_serializer_class()` returns
+and what the registry documents. `fairdm/api/serializers.py::build_model_serializer` is what the
+API calls. The factory becomes the only builder and builds on the API's base serializers, and the
+viewset asks the configuration for its serializer.
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
-    ],
-}
-```
+### Why sorting fails
 
-**Auth endpoints provided by dj-rest-auth**:
-
-- `POST /api/v1/auth/login/` — obtain token
-- `POST /api/v1/auth/logout/` — revoke token
-- `GET /api/v1/auth/user/` — current user details
-- `POST /api/v1/auth/password/change/`
-- `POST /api/v1/auth/password/reset/`
-
----
-
-## R4: Endpoint Strategy for Sample/Measurement Types
-
-**Decision**: Use **separate endpoints per registered type** with a **discovery catalog endpoint** at the base path. Do NOT use a polymorphic mixed-type list endpoint. Drop `django-rest-polymorphic` from dependencies.
-
-**Rationale**: FairDM portals register domain-specific Sample and Measurement types. API consumers need to understand what types exist before querying them. A discovery-first approach serves this better than a polymorphic list:
-
-1. **Discoverability (FAIR)**: `GET /api/v1/samples/` returns a catalog — type names, descriptions, field schemas, endpoint URLs, record counts. A developer immediately sees what the portal offers without prior knowledge of registered types.
-2. **Clean OpenAPI schemas**: Each type-specific endpoint has a single, precise request/response schema. Polymorphic endpoints produce `oneOf` schemas that many code generators (Python, TypeScript, Java) handle poorly.
-3. **Type-specific filtering**: Each endpoint exposes only the filters relevant to that type (e.g., `rock_type` for RockSample, `soil_composition` for SoilSample). A polymorphic endpoint cannot cleanly expose type-specific filters.
-4. **Simpler implementation**: No polymorphic serializer mapping. Each viewset is a plain `ModelViewSet` with one serializer. One fewer dependency.
-5. **Performance**: No polymorphic query JOINs. Type-specific querysets hit concrete tables directly.
-
-**URL structure**:
-
-```
-GET /api/v1/samples/                    → Discovery catalog (read-only)
-GET /api/v1/samples/rock-samples/       → RockSample list (full CRUD)
-GET /api/v1/samples/rock-samples/{uuid}/ → RockSample detail
-GET /api/v1/measurements/               → Discovery catalog (read-only)
-GET /api/v1/measurements/seismic-data/  → SeismicData list (full CRUD)
-```
-
-**"All samples for dataset X"**: Handled by filtering each type endpoint with `?dataset={uuid}`. The discovery endpoint includes record counts per type, so a client can check which types have data for a given dataset without querying all endpoints.
-
-**Alternatives considered**:
-
-- `django-rest-polymorphic` with `PolymorphicSerializer` — produces mixed-type responses that are hard to consume, generates poor OpenAPI schemas with `oneOf`, requires an extra dependency, and doesn't add value when separate endpoints exist.
-- Manual `to_representation` override — error-prone, doesn't integrate with OpenAPI schema generation.
-- No discovery endpoint (separate endpoints only) — functional but requires API consumers to know type names in advance; violates FAIR discoverability.
-
----
-
-## R5: Translated Field Serialization — DEFERRED
-
-**Decision**: `django-parler-rest` is **NOT included in this feature**. It is deferred to the spec covering `fairdm.contrib.identity` (which owns the translatable models requiring it).
-
-**Rationale**: The `fairdm.contrib.identity` app contains models with translated fields (e.g., `IdentifierType`) that need `TranslatedFieldsField` / `TranslatableModelSerializer`. That feature spec is the correct place to introduce `django-parler-rest` and document its integration pattern. Adding it here would be premature — no models in scope for Feature 011 require translated field serialization.
-
-**Deferred to**: Future spec for `fairdm.contrib.identity` REST serialization.
-
-**Alternatives considered for that future spec**:
-
-- Manual serializer fields per language — verbose and error-prone.
-- Ignoring translations in API — loses multilingual data.
-
----
-
-## R6: CORS Configuration
-
-**Decision**: Use `django-cors-headers` for Cross-Origin Resource Sharing support.
-
-**Rationale**: API consumers (SPAs, Jupyter notebooks, external tools) will make cross-origin requests. `django-cors-headers` is the standard Django middleware for CORS. It integrates cleanly with Django middleware and supports per-origin allowlisting, credential support, and configurable headers.
-
-**Configuration**:
-
-```python
-INSTALLED_APPS = [
-    ...
-    "corsheaders",
-]
-
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # must be as high as possible
-    ...
-]
-
-# Default: restrictive. Portal operators configure allowed origins.
-CORS_ALLOWED_ORIGINS = []  # populated from env or portal settings
-CORS_ALLOW_CREDENTIALS = True
-```
-
----
-
-## R7: drf-schema-adapter — DROPPED
-
-**Decision**: Do NOT use `drf-schema-adapter`. Build the auto-registration router in-house.
-
-**Rationale**: Originally considered for its `drf_auto_endpoint` module (auto-generated viewsets/serializers/router). After review, the package is unnecessary:
-
-1. **Redundant with existing infrastructure**: FairDM's registry already provides model iteration (`registry.samples`, `registry.measurements`, `get_all_configs()`), and `SerializerFactory` already generates serializers. The only missing piece — viewset generation and router registration — is < 100 lines of straightforward DRF code.
-2. **Stale dependency risk eliminated**: Last release 3 years ago (v3.0.6), untested on Django 5.1. Dropping it removes a compatibility risk entirely rather than mitigating it.
-3. **Metadata adapters not needed**: The custom `Metadata` adapters that `drf-schema-adapter` provides for richer `OPTIONS` responses are fully covered by `drf-spectacular`'s OpenAPI schema and the discovery catalog endpoints.
-4. **Simpler dependency tree**: 7 new dependencies instead of 8.
-
-**What replaces it**: A lightweight `fairdm/api/router.py` that iterates over the FairDM registry and registers auto-generated `ModelViewSet` subclasses on DRF's `DefaultRouter`. See `generate_viewset()` in data-model.md.
-
----
-
-## R8: Rate Limiting Strategy
-
-**Decision**: Use DRF's built-in throttling classes (`AnonRateThrottle`, `UserRateThrottle`) for rate limiting.
-
-**Rationale**: DRF provides production-ready throttling out of the box. `AnonRateThrottle` throttles by IP for unauthenticated users. `UserRateThrottle` throttles by user ID for authenticated users. Both support configurable rates and use the configured cache backend (Redis in production).
-
-**Alternatives considered**:
-
-- `django-ratelimit` — more granular (per-view) but doesn't integrate with DRF's exception handling.
-- Reverse proxy rate limiting (nginx/Cloudflare) — complementary but not sufficient for per-user limits, and not testable from within Django.
-
-**Configuration**:
-
-```python
-REST_FRAMEWORK = {
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
-    },
-}
-```
-
----
-
-## R9: Permission Mapping for API
-
-**Decision**: Use DRF's `DjangoObjectPermissions` as the base, with a custom subclass to enforce 404 (not 403) for unauthorized access and integrate with the existing cascading permission backends.
-
-**Rationale**: `DjangoObjectPermissions` integrates with django-guardian's object-level permissions. The existing `SamplePermissionBackend` and `MeasurementPermissionBackend` cascade permissions from parent datasets. DRF's permission system calls `has_object_permission()` which in turn calls `user.has_perm()` — this already routes through the cascading backends configured in `AUTHENTICATION_BACKENDS`. A thin custom class is needed to return 404 instead of 403 for unauthorized users, preventing information leakage.
-
-**Alternatives considered**:
-
-- Custom permission class from scratch — unnecessary since cascading backends already work through Django's auth system.
-- `rest_framework.permissions.IsAuthenticated` only — insufficient; doesn't enforce object-level permissions.
-
----
-
-## R10: URL Routing & API Versioning
-
-**Decision**: Mount the API under `/api/v1/` using DRF's `DefaultRouter`. Version via URL path.
-
-**Rationale**: URL-based versioning (`/api/v1/`) is the most discoverable and cacheable strategy. It works naturally with Swagger documentation. When v2 is needed, endpoints can coexist at `/api/v2/` without breaking v1 clients.
-
-**Alternatives considered**:
-
-- Header-based versioning (`Accept: application/vnd.fairdm.v1+json`) — less discoverable, harder to test in browsers.
-- Query parameter versioning (`?version=1`) — fragile, pollutes query params.
-
----
-
-## R11: Guardian Integration for DRF — djangorestframework-guardian
-
-**Decision**: Use `djangorestframework-guardian` for queryset-level permission filtering and permission assignment on create/update.
-
-**Rationale**: This package provides two components that directly address plan requirements:
-
-1. **`ObjectPermissionsFilter`** *(NOT used as a filter backend — see below)*: Would constrain querysets to objects with an explicit guardian `view` permission. Unsuitable here because publicly-visible objects have no guardian permission rows at all, meaning anonymous users would get empty lists.
-
-2. **`ObjectPermissionsAssignmentMixin`**: A serializer mixin that assigns guardian object permissions when objects are created or updated. The `get_permissions_map()` method returns a dict mapping permission codenames to lists of users/groups. This replaces manual `assign_perm()` calls in `perform_create()` / `perform_update()`. **This is the primary reason `djangorestframework-guardian` is retained as a dependency.**
-
-**Integration with FairDMObjectPermissions**: The package's `DjangoObjectPermissions` base provides the exact `perms_map` with `view` permissions pattern needed. The non-disclosure behavior is provided by two components:
-
-- List endpoints: `FairDMVisibilityFilter` (custom, see data-model.md) restricts querysets to `is_public=True` OR guardian-permitted objects → private objects never appear for unauthorized users
-- Detail endpoints: `FairDMObjectPermissions` returns 404 for unauthorized access → no information leakage
-
-**Note on ObjectPermissionsFilter**: `ObjectPermissionsFilter` is NOT used as a filter backend. It requires guardian rows for every visible object — assigning guardian entries to all public objects is a scaling anti-pattern. `FairDMVisibilityFilter` replaces it at the list level, using guardian's `get_objects_for_user()` internally only for the private-permitted subset.
-
-**Configuration** (updated):
-
-```python
-REST_FRAMEWORK = {
-    "DEFAULT_FILTER_BACKENDS": [
-        "fairdm.api.filters.FairDMVisibilityFilter",
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.OrderingFilter",
-    ],
-}
-```
-
-**Alternatives considered**:
-
-- `ObjectPermissionsFilter` directly — cannot handle publicly-visible objects with no guardian rows; returns empty lists for anonymous users.
-- Manual queryset filtering in `get_queryset()` — error-prone, must be implemented per viewset, easy to forget for new types.
-- Assigning global guardian `view` permissions to every public object — scaling anti-pattern; millions of guardian rows.
-- Separate public/private endpoint pairs — doubles the URL surface, forces clients to merge results.
-
----
-
-## New Additions Research (2026-04-01)
-
-## R12: Exposing Discovery Endpoints in the DRF Browsable API Root
-
-**Decision**: Introduce `FairDMAPIRouter(DefaultRouter)` in `fairdm/api/router.py` that overrides`get_api_root_dict()` to inject the discovery endpoint URL names into the root listing.
-
-**Rationale**: `DefaultRouter` builds its root listing exclusively from viewsets registered via`register()`. Standalone `APIView` URL patterns mounted in `urls.py` are invisible to the root view.The cleanest solution is a minimal router subclass that appends the two discovery URL names to thedict returned by `super().get_api_root_dict()`. No view architecture or URL pattern changes needed.
-
-**Alternatives considered**:
-
-- Convert discovery views to ViewSets with `list()` action  more invasive, requires route registration changes.
-- Override `APIRootView.get()` directly  couples to DRF internals; breaks on DRF version changes.
-- Inject links via template  not visible to API clients programmatically.
-
-## R13: verbose_name_plural Basename Strategy
-
-**Decision**: `_model_to_slug()` uses `model._meta.verbose_name_plural.lower().replace(' ', '-')`.
-
-**Rationale**: Produces human-readable, Django-idiomatic URL slugs controlled by portal developers via`class Meta: verbose_name_plural`. Per the 2026-04-01 clarification, this supersedes the CamelCase decomposition strategy used in the initial implementation.
-
-**Impact**: URL names change for any model where the verbose_name_plural differs from what CamelCasedecomposition produces (e.g., `RockSample`  old: `rock-sample`, new: `rock-samples`).
-
-**Alternatives considered**: Keep class-name strategy  contradicts the clarified spec assumption.
-
-## R14: flex_menu API for Sidebar MenuGroup
-
-**Decision**: Use existing `MenuGroup` / `MenuItem` from `mvp.menus` (already imported) to add thethree-child API group. Docs URL resolved from `FAIRDM_API_DOCS_URL` Django setting with a sensibledefault.
-
-**Rationale**: Pattern already established for ''Community'' and ''Documentation'' groups in`fairdm/menus/menus.py`. No new dependencies. The setting approach avoids hard-coded external URLs.
-
-**Alternatives considered**: Hard-code FairDM docs URL  inflexible for portals that host their own docs.
-
----
-
-## Swagger/OpenAPI Documentation Quality Research (2026-04-02)
-
-## R15: Schema Component Naming — Removing the "API" Postfix
-
-**Decision**: Rename auto-generated serializer classes from `{ModelName}APISerializer` to `{ModelName}Serializer` in `build_model_serializer()`.
-
-**Rationale**: drf-spectacular derives OpenAPI schema component names by stripping the "Serializer" suffix from the serializer class name. The current naming `{Model}APISerializer` yields schema names like `RockSampleAPI`, `PatchedRockSampleAPI`, `ProjectAPI`. The "API" postfix is redundant within an API schema document and confusing in Swagger UI. Renaming to `{Model}Serializer` produces clean schema names (`RockSample`, `PatchedRockSample`, `Project`) which is the standard DRF convention.
-
-**Evidence**: Inspected Swagger UI at `/api/v1/docs/` — confirmed schema component names include `WaterSampleAPI`, `XRFMeasurementAPI`, `ProjectAPI`, `PatchedRockSampleAPI`, `PatchedProjectAPI`, `CustomParentSampleAPI`, etc.
-
-**Impact**: Breaking change for clients code-generating from the OpenAPI spec. Schema component names change globally. The `COMPONENT_SPLIT_PATCH` setting (currently `True`) means `Patched*` variants also change.
-
-**Alternatives considered**:
-
-- `POSTPROCESSING_HOOKS` to strip "API" — fragile, non-obvious.
-- `@extend_schema(component_name=...)` per-viewset — too verbose for auto-generated viewsets.
-- Keep "API" postfix — contradicts user feedback; confusing in Swagger UI.
-
-## R16: Endpoint Descriptions — Injecting Model Descriptions into Generated Viewsets
-
-**Decision**: Set `__doc__` on generated viewset classes in `generate_viewset()` from registry configuration. Replace core viewset docstrings.
-
-**Rationale**: drf-spectacular uses viewset `__doc__` as the operation description. All generated viewsets inherit `BaseViewSet.__doc__` which exposes internal details: "Base viewset for all FairDM API resource endpoints. Features: lookup_field = 'uuid'… get_queryset()… perform_create/update/destroy()…". Verified in Swagger UI that clicking any GET endpoint shows this text.
-
-**Description resolution order**: `config.description` → `config.metadata.description` → `model.__doc__` → `"Endpoints for managing {verbose_name_plural}."`.
-
-**Note**: `ModelConfiguration` already has both `description` (top-level string attribute) and `metadata.description` (on the `ModelMetadata` dataclass). The demo app's `CustomParentSampleConfig` already populates `metadata.description`. This means descriptions will surface immediately for models that already define them.
-
-**Alternatives considered**:
-
-- `@extend_schema(description=...)` per action — 6 decorators per generated viewset; overkill.
-- Global `AutoSchema.get_description()` override — too heavy; affects third-party viewsets.
-- `GET_LIB_DOC_EXCLUDES` — only prevents fallback, doesn't provide replacement.
-
-## R17: Portal-Developer API Description Customization
-
-**Decision**: Add `FAIRDM_API_TITLE` and `FAIRDM_API_DESCRIPTION` Django settings that flow into `SPECTACULAR_SETTINGS`. Provide a rich Markdown default describing FairDM API capabilities.
-
-**Rationale**: Current description is a single unhelpful sentence. Portal developers need customization without touching framework code. The setting approach is consistent with `FAIRDM_API_DOCS_URL` pattern established in Phase 12. drf-spectacular supports Markdown in descriptions, enabling rich formatting.
-
-**Alternatives considered**:
-
-- Template file for description — overcomplicated for a string.
-- No default at all — violates Constitution IV (Opinionated Defaults).
-- POSTPROCESSING_HOOKS — overkill for a static description string.
+The generated viewset's queryset is polymorphic. `OrderingFilter` with no `ordering_fields`
+inspects the serializer, and the ordering then reaches django-polymorphic's field translation with
+a model whose base has no primary key resolved. Each generated endpoint serves exactly one
+concrete type, so its queryset has no need to be polymorphic. Using the concrete type's plain
+queryset and naming `ordering_fields` removes the failure. This reading is to be confirmed by the
+failing test before the fix is written.
+
+### References between records
+
+A `SlugRelatedField` on `uuid` accepts and returns the short identifier. The specification asks for
+the address as well, so a small subclass returns `{"uuid": …, "url": …}` and accepts either a bare
+identifier or that object. It keeps the queryset narrowing that `CreatorCreditMixin` applies today,
+which is what makes an unknown parent and a forbidden one answer alike.
+
+### Metadata read with the record
+
+Descriptions, key dates and identifiers are rows with a `type` and a `value`
+(`fairdm/core/abstract.py`). Keywords are controlled-vocabulary concepts and free tags.
+Contributors are `Contribution` rows with a contributor, roles and an affiliation. Each gets a
+small read-only serializer. They are declared on the base record serializer, so a developer's own
+serializer inherits them.
+
+### What stops a delete
+
+Two things, both below the view. Foreign keys with `PROTECT` or `RESTRICT` raise from
+`Model.delete()`, which covers a sample with measurements. A `pre_delete` receiver raises
+`PublicDatasetsProtect` for a project with a public dataset. The API catches both and answers 409
+with the reason. No rule is duplicated.
+
+### Telling a developer at start-up
+
+Django's system checks are the place a framework reports a misconfigured project. One check walks
+the registry, builds each type's serializer and compares the model's required fields with the
+serializer's writable ones. The router stops catching exceptions around registration, so a type
+that fails to build stops the portal with the traceback.
+
+### Packages considered
+
+| Package | Verdict |
+|---|---|
+| django-rest-knox | Adopted, through django-mvp-accounts' extra |
+| dj-rest-auth | Removed |
+| djangorestframework-guardian | Removed. Its one use was assigning stored permissions on models other than the four record types, and no such endpoint is generated |
+| drf-orjson-renderer | Kept |
+| django-cors-headers | Kept |
+| drf-spectacular | Kept |
+| django-filter | Kept |

@@ -1,0 +1,198 @@
+{
+  "story": "US6",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T053",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_throttling.py::TestLimits"
+        ],
+        "criteria": [
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimits",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "f9db1670"
+      ]
+    },
+    {
+      "id": "T054",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_throttling.py::TestLimitsAreSettings"
+        ],
+        "criteria": [
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_throttling.py::TestLimitsAreSettings",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "c3fed746"
+      ]
+    },
+    {
+      "id": "T055",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_pagination.py::TestPageSizes"
+        ],
+        "criteria": [
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_pagination.py",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "0e4f4f8a"
+      ]
+    },
+    {
+      "id": "T056",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestQueryCount"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestQueryCount",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "9a2f80d1",
+        "8703f667"
+      ]
+    },
+    {
+      "id": "T057",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_schema.py::TestSchemaDescribesCatalogues",
+          "tests/test_api/test_schema.py::TestSchemaDescribesThePortal::test_the_description_carries_the_page_sizes_the_settings_hold"
+        ],
+        "criteria": [
+          "SC-007"
+        ],
+        "commands": [
+          "uv run pytest -q -n auto --dist loadscope tests/test_api demo/tests tests/test_conf tests/test_menus",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "6b40d6b0",
+        "15221032",
+        "062f49e4"
+      ]
+    },
+    {
+      "id": "T058",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "grep for the old rate names and page sizes under docs/",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "8317617d",
+        "572ee374"
+      ]
+    },
+    {
+      "id": "T059",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "c08adb84"
+      ]
+    },
+    {
+      "id": "T060",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "a70fd1ba"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The two signed-in throttles share a parent, SignedInThrottle, that returns no key for an anonymous caller, so they are not bare two-line subclasses.",
+      "why": "Django REST framework's UserRateThrottle also counts anonymous callers by address; the brief asked that anonymous callers be counted only by the two anonymous throttles, and a test proves it.",
+      "decision_ref": "decisions.md#d23-choices-made-while-building-the-sixth-story"
+    },
+    {
+      "what": "Person.get_affiliation_history in fairdm/contrib/contributors/models.py now reads affiliations.all() (selecting the organisation itself only when nothing was prefetched), and the contributors prefetch is done in ContributorViewSet.get_serializer with prefetch_related_objects rather than on the queryset.",
+      "why": "The old method built a fresh query on every call, so no prefetch could help, and a queryset over the base contributor type cannot prefetch what only a person or only an organisation has. Its result is unchanged and its existing tests pass.",
+      "decision_ref": "decisions.md#d23-choices-made-while-building-the-sixth-story"
+    },
+    {
+      "what": "docs/overview/index.md gains a sentence linking to docs/ROADMAP.md, a file outside the story's listed documentation.",
+      "why": "Changing the roadmap (T060) made the documentation check report it as reachable from no page, and the check blocks. Nothing else in docs/ROADMAP.md changed.",
+      "decision_ref": "decisions.md#d23-choices-made-while-building-the-sixth-story"
+    },
+    {
+      "what": "Existing tests changed as the brief authorised: TestRateLimiting deleted; test_default_page_size_is_25 and test_page_size_capped_at_100 replaced; three TestPagination envelope tests now pass page_size=25.",
+      "why": "They pinned the old rate names and page sizes. Named in progress.md under T055 and T057.",
+      "decision_ref": "decisions.md#d23-choices-made-while-building-the-sixth-story"
+    }
+  ],
+  "concerns": [
+    "Schema generation still logs one warning about two enums named status in different components (fairdm API, unrelated to the catalogues). The new catalogue test checks only for messages about the discovery views. Fixing it needs an ENUM_NAME_OVERRIDES entry in SPECTACULAR_SETTINGS, which I left alone.",
+    "The query-count test covers projects, datasets, contributors (people and organisations), RockSample and ExampleMeasurement. Other registered types with relations of their own (for example soil or water samples) may add per-record queries that no test covers.",
+    "Django REST framework reads DEFAULT_THROTTLE_RATES once when its throttling module is imported, so assigning a new REST_FRAMEWORK dict at run time (override_settings) does not change the rates; changes must go into the dict the settings hold, which is what a portal's settings file does. The tests change entries of that dict.",
+    "When the cache cannot be reached, the throttles count nothing and refuse nothing (the baseline cache ignores connection errors). The administrator page says so.",
+    "An unpaged contributors list (a portal that sets DEFAULT_PAGINATION_CLASS to none) still prefetches through get_serializer, but I tested only the paged list.",
+    "The test run reported sqlite3 in an IntegrityError traceback, although the brief says tests run on PostGIS. Query counts were compared on whichever backend the test settings select.",
+    "The unrelated collections navigation test named in the brief did not fail in the final verify."
+  ],
+  "blocked": []
+}

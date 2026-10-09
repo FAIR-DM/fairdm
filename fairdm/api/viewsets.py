@@ -1,4 +1,4 @@
-"""API viewsets and discovery views.
+"""API viewsets.
 
 This module provides:
 
@@ -8,31 +8,71 @@ This module provides:
 - :class:`ContributorViewSet` — read-only viewset for contributor profiles.
 - :func:`generate_viewset` — factory that creates a ``ModelViewSet`` subclass
   from a registry :class:`~fairdm.registry.ModelConfiguration`.
-- :class:`SampleDiscoveryView`, :class:`MeasurementDiscoveryView` — catalog
-  views that list all registered Sample/Measurement types.
 """
 
 from __future__ import annotations
 
-import contextlib
 from typing import Any
 
-from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.request import Request
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.core.exceptions import FieldDoesNotExist
+from django.db.models import (
+    ForeignKey,
+    ManyToManyField,
+    ProtectedError,
+    RestrictedError,
+    prefetch_related_objects,
+)
+from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import serializers, status
+from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from fairdm.api.filters import (
+    DatasetFilterSet,
+    FairDMFilterBackend,
+    FairDMVisibilityFilter,
+    SampleFilterSet,
+)
+from fairdm.api.schema import CORE_HEADINGS, TypeDescription
 from fairdm.api.serializers import (
-    BaseMeasurementSerializer,
-    BaseSampleSerializer,
+    ContributorSerializer,
+    DatasetSerializer,
+    ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
-    build_model_serializer,
 )
-from fairdm.contrib.contributors.models import Contributor
+from fairdm.contrib.contributors.models import Contributor, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
+from fairdm.core.project.models import PublicDatasetsProtect
+
+#: The actions of a generated viewset, each of which is titled with its type's name.
+ACTIONS = ("list", "retrieve", "create", "update", "partial_update", "destroy")
+
+
+def under_heading(heading: str, actions: tuple[str, ...] = ACTIONS):
+    """Group a viewset's operations under one heading of the generated documentation.
+
+    Args:
+        heading: The tag every operation carries.
+        actions: The actions the viewset serves.
+
+    Returns:
+        A class decorator.
+    """
+    return extend_schema_view(
+        **{action: extend_schema(tags=[heading]) for action in actions}
+    )
+
+
+class DeleteRefused(APIException):
+    """A delete the portal refuses for the state the record is in, answered 409 with a reason."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("This record cannot be deleted in its present state.")
+    default_code = "delete_refused"
 
 
 class BaseViewSet(ModelViewSet):
@@ -57,12 +97,31 @@ class BaseViewSet(ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance) -> None:
-        """Require an authenticated user before deleting."""
+        """Require an authenticated user before deleting, and refuse what the portal refuses.
+
+        Raises:
+            PermissionDenied: When the caller is not signed in.
+            DeleteRefused: When the record has public datasets or other records depend on it.
+                The reason is written here and names no other record, which the caller may not
+                be allowed to see.
+        """
         if not self.request.user or not self.request.user.is_authenticated:
             raise PermissionDenied("Authentication is required to delete objects.")
-        instance.delete()
+        try:
+            instance.delete()
+        except PublicDatasetsProtect as error:
+            raise DeleteRefused(
+                _(
+                    "This project has public datasets. Make them private or delete them first."
+                )
+            ) from error
+        except (ProtectedError, RestrictedError) as error:
+            raise DeleteRefused(
+                _("Other records depend on this one. Delete or move them first.")
+            ) from error
 
 
+@under_heading(CORE_HEADINGS["projects"])
 class ProjectViewSet(BaseViewSet):
     """Research projects registered in the portal.
 
@@ -71,25 +130,12 @@ class ProjectViewSet(BaseViewSet):
     you have permission to access.
     """
 
-    @property
-    def queryset(self):
-        """Return all projects."""
-        return Project.objects.all()
+    serializer_class = ProjectSerializer
+    ordering_fields = ("name", "added", "modified", "status", "uuid")
 
     def get_queryset(self):
-        """Return all projects."""
-        return Project.objects.all()
-
-    def get_serializer_class(self):
-        """Build the project serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Project,
-            ["uuid", "name", "status", "visibility", "added", "modified"],
-            view_name="api:project-detail",
-        )
-        return self._serializer_class
+        """Return all projects, with what the serializer reads loaded."""
+        return ProjectSerializer.load_related(Project.objects.all())
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         """Save a new project, recording the request user as its creator."""
@@ -100,6 +146,7 @@ class ProjectViewSet(BaseViewSet):
         serializer.save(created_by=self.request.user)
 
 
+@under_heading(CORE_HEADINGS["datasets"])
 class DatasetViewSet(BaseViewSet):
     """Datasets within research projects.
 
@@ -107,27 +154,14 @@ class DatasetViewSet(BaseViewSet):
     to query, add, and manage datasets you have permission to access.
     """
 
-    @property
-    def queryset(self):
-        """Return all datasets, including private ones the visibility filter admits."""
-        # `all_objects`, not `objects`: the default manager would hide a private
-        # dataset from a user who holds `view_dataset` before the filter can admit it.
-        return Dataset.all_objects.all()
+    serializer_class = DatasetSerializer
+    ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):
         """Return all datasets, including private ones the visibility filter admits."""
-        return Dataset.all_objects.all()
-
-    def get_serializer_class(self):
-        """Build the dataset serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Dataset,
-            ["uuid", "name", "visibility", "added", "modified"],
-            view_name="api:dataset-detail",
-        )
-        return self._serializer_class
+        # `all_objects`, not `objects`: the default manager would hide a private
+        # dataset from a user who holds `view_dataset` before the filter can admit it.
+        return DatasetSerializer.load_related(Dataset.all_objects.all())
 
     def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         """Save a new dataset, recording the request user as its creator."""
@@ -136,6 +170,7 @@ class DatasetViewSet(BaseViewSet):
         serializer.save(created_by=self.request.user)
 
 
+@under_heading(CORE_HEADINGS["contributors"], ("list", "retrieve"))
 class ContributorViewSet(ReadOnlyModelViewSet):
     """People and organizations that contribute to research projects.
 
@@ -144,37 +179,110 @@ class ContributorViewSet(ReadOnlyModelViewSet):
     """
 
     lookup_field = "uuid"
-
-    @property
-    def queryset(self):
-        """Return all contributors."""
-        return Contributor.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = ContributorSerializer
+    ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):
-        """Return all contributors."""
-        return Contributor.objects.all()
+        """Return the people and organisations the portal's own lists show.
 
-    def get_serializer_class(self):
-        """Build the contributor serializer once and reuse it."""
-        if hasattr(self, "_serializer_class"):
-            return self._serializer_class
-        self._serializer_class = build_model_serializer(
-            Contributor,
-            ["uuid", "name"],
-            view_name="api:contributor-detail",
-        )
-        return self._serializer_class
+        Leaves out superusers and the anonymous account, as ``Person.objects.real()`` does.
+        """
+        return Contributor.objects.exclude(
+            pk__in=FairDMVisibilityFilter.hidden_contributors()
+        ).prefetch_related("identifiers")
+
+    def get_serializer(self, instance=None, *args, **kwargs):
+        """Load the affiliations and parents of the contributors about to be described.
+
+        A queryset over the base type cannot prefetch what only a person or only an
+        organisation has, so this loads them once the real types are known.
+
+        Args:
+            instance: The contributor, or the contributors of a list, to describe.
+            *args: Passed on to the serializer.
+            **kwargs: Passed on to the serializer, including ``many``.
+
+        Returns:
+            The serializer, holding contributors that read no further queries.
+        """
+        if instance is not None:
+            records = list(instance) if kwargs.get("many") else [instance]
+            prefetch_related_objects(
+                [record for record in records if isinstance(record, Person)],
+                "affiliations__organization",
+            )
+            prefetch_related_objects(
+                [record for record in records if isinstance(record, Organization)],
+                "parent",
+            )
+            instance = records if kwargs.get("many") else instance
+        return super().get_serializer(instance, *args, **kwargs)
+
+
+def sortable_fields(model, serializer_cls) -> list[str]:
+    """List the fields a list may be sorted on: the model's own columns the serializer returns.
+
+    Args:
+        model: The model the list serves.
+        serializer_cls: The serializer the list uses.
+
+    Returns:
+        The names of the stored, non-relational fields among the serializer's fields.
+    """
+    declared = serializer_cls.Meta.fields
+    if declared == "__all__":
+        declared = [field.name for field in model._meta.concrete_fields]
+    names = []
+    for name in declared:
+        try:
+            field = model._meta.get_field(name)
+        except FieldDoesNotExist:
+            continue
+        if field.concrete and not field.is_relation:
+            names.append(name)
+    return names
+
+
+def load_relations(queryset, serializer_cls):
+    """Load the relations a serializer returns, so a list reads no query per record.
+
+    Args:
+        queryset: The records about to be serialized, with the serializer's parents loaded.
+        serializer_cls: The serializer the list uses.
+
+    Returns:
+        The queryset with each foreign key and one-to-one among the serializer's fields
+        selected and each many-to-many prefetched, apart from the parents it already loads.
+    """
+    model = queryset.model
+    declared = serializer_cls.Meta.fields
+    if declared == "__all__":
+        declared = [
+            field.name
+            for field in (*model._meta.concrete_fields, *model._meta.many_to_many)
+        ]
+    selected, prefetched = [], []
+    for name in declared:
+        if name in getattr(serializer_cls, "parents", ()):
+            continue
+        try:
+            field = model._meta.get_field(name)
+        except FieldDoesNotExist:
+            continue
+        if isinstance(field, ManyToManyField):
+            prefetched.append(name)
+        elif isinstance(field, ForeignKey):
+            selected.append(name)
+    return queryset.select_related(*selected).prefetch_related(*prefetched)
 
 
 def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     """Generate a :class:`ModelViewSet` subclass from a registry config.
 
-    The serializer is resolved in this order:
-
-    1. ``config.serializer_class`` set → use it directly (custom serializer).
-    2. ``config.serializer_fields`` set → auto-generate serializer with those fields.
-    3. Only ``config.fields`` set → auto-generate serializer with those fields.
-    4. Nothing set → auto-generate from model field inspection.
+    The serializer is whatever ``config.get_serializer_class()`` returns: the class named in the
+    registration, or one the registry builds from the configured fields. A sample or measurement
+    serializer must build on the base serializer of its kind.
 
     Args:
         config: A :class:`~fairdm.registry.ModelConfiguration` instance from the
@@ -183,54 +291,28 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
 
     Returns:
         A ``ModelViewSet`` subclass configured for ``config.model``.
+
+    Raises:
+        ImproperlyConfigured: When the serializer of a sample or measurement type does not
+            build on the base serializer of its kind.
     """
     model = config.model
     model_name = model.__name__
 
-    if config.serializer_class is not None:
-        serializer_cls = config._get_class(config.serializer_class)
-        if issubclass(model, Sample):
-            _validate_sample_serializer(serializer_cls)
-        elif issubclass(model, Measurement):
-            _validate_measurement_serializer(serializer_cls)
-    else:
-        fields: list[str] = list(config.serializer_fields or config.fields or [])
-        if not fields:
-            # Same default-field rule every generated component uses.
-            from fairdm.utils.inspection import FieldInspector
-
-            fields = FieldInspector(model).get_default_fields()
-        else:
-            from fairdm.api.serializers import _flatten_fields
-
-            fields = _flatten_fields(fields)
-
-        slug = _model_to_slug(model)
-        if hasattr(model, "sample_ptr"):
-            view_name = f"api:samples-{slug}-detail"
-        elif hasattr(model, "measurement_ptr"):
-            view_name = f"api:measurements-{slug}-detail"
-        else:
-            view_name = f"api:{model._meta.model_name}-detail"
-
-        ser_base_class: type[serializers.ModelSerializer] | None
-        if issubclass(model, Sample):
-            ser_base_class = BaseSampleSerializer
-        elif issubclass(model, Measurement):
-            ser_base_class = BaseMeasurementSerializer
-        else:
-            ser_base_class = None
-
-        serializer_cls = build_model_serializer(
-            model, fields, view_name=view_name, base_class=ser_base_class
-        )
+    serializer_cls = config.get_serializer_class()
+    if issubclass(model, Sample):
+        _validate_sample_serializer(serializer_cls)
+    elif issubclass(model, Measurement):
+        _validate_measurement_serializer(serializer_cls)
 
     # Via the accessor so a configuration overriding get_filterset_class() is honoured.
-    filterset_class = None
-    with contextlib.suppress(Exception):
-        filterset_class = config.get_filterset_class()
+    filterset_class = config.get_filterset_class()
 
-    _model = model
+    queryset = model.objects.all()
+    if hasattr(queryset, "non_polymorphic"):
+        queryset = queryset.non_polymorphic()
+    if hasattr(serializer_cls, "load_related"):
+        queryset = load_relations(serializer_cls.load_related(queryset), serializer_cls)
 
     class _GeneratedViewSet(base_class):
         pass
@@ -238,25 +320,42 @@ def generate_viewset(config: Any, base_class: type = BaseViewSet) -> type:
     _GeneratedViewSet.__name__ = f"{model_name}ViewSet"
     _GeneratedViewSet.__qualname__ = f"{model_name}ViewSet"
     _GeneratedViewSet.serializer_class = serializer_cls
-    _GeneratedViewSet.queryset = _model.objects.all()
+    _GeneratedViewSet.queryset = queryset
+    _GeneratedViewSet.ordering_fields = sortable_fields(model, serializer_cls)
+
+    if issubclass(model, Sample):
+        _GeneratedViewSet.parent_filterset = DatasetFilterSet
+    elif issubclass(model, Measurement):
+        _GeneratedViewSet.parent_filterset = SampleFilterSet
+    _GeneratedViewSet.filter_backends = [
+        FairDMVisibilityFilter,
+        FairDMFilterBackend,
+        OrderingFilter,
+    ]
 
     if filterset_class is not None:
         _GeneratedViewSet.filterset_class = filterset_class
 
+    description = TypeDescription(config)
+    _GeneratedViewSet.registration = config
     # drf-spectacular reads this as the operation description, so it is not
     # BaseViewSet's docstring.
-    description: str = ""
-    if getattr(config, "description", None):
-        description = config.description
-    elif getattr(config, "metadata", None) and getattr(
-        config.metadata, "description", None
-    ):
-        description = config.metadata.description
-    elif model.__doc__:
-        description = model.__doc__
-    if not description:
-        description = f"Endpoints for managing {model._meta.verbose_name_plural}."
-    _GeneratedViewSet.__doc__ = description
+    _GeneratedViewSet.__doc__ = description.summary()
+    operations = {}
+    for action in ACTIONS:
+        if action == "list":
+            operations[action] = extend_schema(
+                tags=[description.heading],
+                summary=description.action_title(action),
+                description=description.list_description(),
+                external_docs=description.repository(),
+            )
+        else:
+            operations[action] = extend_schema(
+                tags=[description.heading],
+                summary=description.action_title(action),
+            )
+    extend_schema_view(**operations)(_GeneratedViewSet)
 
     return _GeneratedViewSet
 
@@ -276,84 +375,3 @@ def _model_to_slug(model) -> str:
         ``"rock-samples"`` for ``verbose_name_plural="rock samples"``.
     """
     return str(model._meta.verbose_name_plural).lower().replace(" ", "-")
-
-
-class _BaseDiscoveryView(APIView):
-    """Shared base for sample/measurement discovery catalog views."""
-
-    permission_classes: list = []
-    registry_attr: str = ""
-    url_prefix: str = ""
-
-    # No docstring: drf-spectacular would show it instead of each subclass's own.
-    def get(self, request: Request) -> Response:
-        from fairdm.registry import registry
-
-        types = []
-        for model in getattr(registry, self.registry_attr):
-            config = registry.get_for_model(model)
-            slug = _model_to_slug(model)
-            endpoint = f"{request.scheme}://{request.get_host()}/api/v1/{self.url_prefix}/{slug}/"
-
-            # Anonymous users are counted on public records only.
-            try:
-                if request.user and request.user.is_authenticated:
-                    count = model.objects.count()
-                else:
-                    from fairdm.utils.choices import Visibility
-
-                    # Samples and measurements inherit visibility from their dataset.
-                    if hasattr(model, "visibility"):
-                        count = model.objects.filter(
-                            visibility=Visibility.PUBLIC
-                        ).count()
-                    else:
-                        count = model.objects.filter(
-                            dataset__visibility=Visibility.PUBLIC
-                        ).count()
-            except Exception:
-                count = 0
-
-            fields = list(config.fields or [])
-            filterable = list(
-                getattr(config, "filter_fields", None)
-                or getattr(config, "filterset_fields", None)
-                or []
-            )
-
-            types.append(
-                {
-                    "name": model.__name__,
-                    "verbose_name": model._meta.verbose_name,
-                    "verbose_name_plural": model._meta.verbose_name_plural,
-                    "app_label": model._meta.app_label,
-                    "endpoint": endpoint,
-                    "fields": fields,
-                    "filterable_fields": filterable,
-                    "count": count,
-                }
-            )
-
-        return Response({"types": types})
-
-
-class SampleDiscoveryView(_BaseDiscoveryView):
-    """Catalog of all registered Sample types.
-
-    ``GET /api/v1/samples/`` returns a JSON object with a ``types`` list,
-    each entry describing a registered Sample subtype.
-    """
-
-    registry_attr = "samples"
-    url_prefix = "samples"
-
-
-class MeasurementDiscoveryView(_BaseDiscoveryView):
-    """Catalog of all registered Measurement types.
-
-    ``GET /api/v1/measurements/`` returns a JSON object with a ``types`` list,
-    each entry describing a registered Measurement subtype.
-    """
-
-    registry_attr = "measurements"
-    url_prefix = "measurements"

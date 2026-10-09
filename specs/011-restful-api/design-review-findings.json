@@ -1,0 +1,174 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "One reviewer, four lenses, each finding tagged by id prefix and by the bracket at the start of its claim: SPEC = spec-compliance, SEC = security, ARCH = architecture, RECON = reconciliation. The schema allows one top-level lens, so it carries the first. Reviewed specs/011-restful-api/{spec,plan,research,tasks,decisions,planning-notes}.md and feature-state.json at 528b5255 against CONSTITUTION.md, CONTEXT.md and docs/contributing/standards/testing.md. Code read: fairdm/api/ (all modules), fairdm/registry/factories.py (SerializerFactory, FilterFactory, published_related_queryset), fairdm/registry/config.py (_component_class, get_serializer_class), fairdm/core/measurement/config.py, fairdm/core/sample/config.py, fairdm/core/{project,dataset,sample,measurement}/models.py, fairdm/core/dataset/plugins.py (get_project_info), fairdm/core/project/plugins.py (project_is_visible), fairdm/core/{sample,measurement}/filters.py, fairdm/contrib/contributors/{models,managers}.py and views/person.py, fairdm/menus/menus.py, fairdm/conf/settings/{api,apps}.py, tests/settings.py, tests/test_api/ (all), tests/test_menus/test_menus.py, demo/config.py. Installed packages read in .venv: mvp_accounts 0.2.0 (tokens/urls, views, forms, access, README), rest_framework 3.18.1 (throttling.get_ident), corsheaders (middleware, defaults), drf_orjson_renderer 1.8.0 (parsers). django-rest-knox is NOT installed and is not in uv.lock, so no knox claim could be checked against a resolved artefact (see SPEC-004). Both sides checked where one was relied on: both arms of FR-024 (a named serializer_class and an overridden get_serializer_class) against the planned base check; the read and the write direction of a parent reference; the declared and the undeclared arm of a type's filters; the first, middle and last page of the paging envelope. Tests run: all 59 tests cited as evidence for T007, T008, T010, T021, T033, T044 and T045 pass (uv run pytest -q -n0), as do TestImproperlyConfiguredEnforcement, TestDatasetCreatorParity and TestProjectCRUD::test_created_by_is_set_server_side_and_cannot_be_spoofed. No file in the repository was modified.",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The planned check that a developer's serializer builds on the sample or measurement base sits where neither arm of FR-024 reaches it, so a serializer that skips the base is served, and with it any signed-in person can create a sample or measurement in any dataset.",
+      "evidence": "plan.md D2: 'A custom serializer_class is checked against the base when the factory resolves it.' fairdm/registry/config.py:524-527: _component_class returns a declared serializer_class before the factory is ever called, so the factory never sees it. fairdm/registry/config.py:549-551: a configuration that overrides get_serializer_class (the second arm FR-024 requires the API to honour, tasks.md T028) bypasses _component_class and the factory entirely. plan.md D3 then sets serializer_class = config.get_serializer_class() with no check of its own. Today the check is in generate_viewset (fairdm/api/viewsets.py:189-194) and plan D2/D3 moves it out. Consequence: the parent narrowing, creator credit and manage-level hold-back all live in CreatorCreditMixin on the base (fairdm/api/serializers.py:23-121), and FairDMObjectPermissions.has_permission returns True for every signed-in POST (fairdm/api/permissions.py:48-58), so the base class is the only authorisation on create. FR-025 says the portal MUST refuse to start; FR-013 and FR-017 are what fail when it does not. tasks.md T029 tests the factory only and no task tests the override arm.",
+      "reproduction": "Register a sample type whose configuration overrides get_serializer_class to return a plain ModelSerializer with fields ['name', 'dataset']. Under plan D2/D3 the portal starts. POST to that type's list route as a signed-in person with no level anywhere, naming any dataset: the sample is created and nobody is credited.",
+      "suggested_fix": "plan.md D2/D3: keep the base check where it is today, in generate_viewset, applied to whatever config.get_serializer_class() returns, and drop it from the factory. tasks.md T029: move it to tests/test_api/test_viewsets.py and add the second case, a configuration that overrides get_serializer_class with a serializer off the base is refused with ImproperlyConfigured. No new mechanism."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The planned parent reference names a parent the caller may not see. A public dataset in a private project would return that project's short identifier and address to a visitor, which the portal's own dataset page deliberately withholds. The same holds for a measurement in a public dataset made on a sample in a private one.",
+      "evidence": "plan.md D1: RecordReferenceField 'Returns {\"uuid\": …, \"url\": …}', with no condition on who is asking, and DatasetSerializer 'carries project'. fairdm/core/dataset/plugins.py:456-471: get_project_info returns None unless project_is_visible, with the docstring 'Nothing ties a dataset's visibility to its project's, so a public dataset can sit in a private project that must not be named.' spec.md Clarifications defines the complete record as 'Everything a visitor who may see the record is shown on its overview page'; FR-012 and SC-004 ('No private record ... reaches a caller who may not see it, on any endpoint') forbid disclosing that the private record exists. fairdm/core/measurement/models.py:52-75 puts no constraint between a measurement's dataset and its sample's dataset, and visibility is decided on the measurement's own dataset (fairdm/api/filters.py:39-43), so the sample reference leaks the same way. What leaks is the identifier and the fact of existence, not the name. No task tests it: T002 uses public parents and T009/T011 test the record, not its references.",
+      "reproduction": "Private project P, public dataset D with D.project = P. GET /api/v1/datasets/<D.uuid>/ as a visitor returns project: {uuid: <P.uuid>, url: …}. The portal's overview page for D shows no project row to the same visitor.",
+      "suggested_fix": "plan.md D1: RecordReferenceField returns null on read when the referenced record is one the requesting caller may not see, using the same visibility rule the list filter applies. tasks.md T002: add one case, a public dataset in a private project returns project as null to a visitor and as the reference to someone with the view level on the project, and the same for a measurement's sample. Settle it now because it makes the parent field nullable in the /api/v1/ contract."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] No task gives a caller a way to list the samples or measurements of one dataset by its short identifier, so SC-007 cannot be demonstrated and FR-005 is broken on input: the only parent filters that exist take a database number, and some types have none.",
+      "evidence": "spec.md SC-007: 'A caller walks a dataset of ten thousand samples in no more than a hundred requests'; US-1: 'They follow the address of its samples'; FR-005: 'no accepted request may contain an internal database number'. fairdm/core/measurement/filters.py:70-82: dataset and sample are ModelChoiceFilter with no to_field_name, so they match on pk. fairdm/registry/factories.py:509-512: every generated foreign-key filter is the same. demo/config.py:301-305: a type that declares filterset_fields without dataset (soil_type, ph_level, depth_cm) has no dataset filter at all, because a declared list replaces the fallback to fields. plan.md D3 takes 'filterset_class from the configuration' unchanged. Once D1 removes database numbers from every response, a caller holds only short identifiers and cannot use the pk filters. tasks.md T012 tests only 'a registered type's declared filter'; T055 and T056 test page size and query count, not a walk of one dataset.",
+      "reproduction": "GET /api/v1/samples/<type>/?dataset=<dataset short identifier> on a type whose filters include dataset: 400, 'Select a valid choice'. On a type whose declared filters omit dataset the parameter is ignored and every visible sample of the type is returned.",
+      "suggested_fix": "plan.md D3: every generated list accepts dataset by short identifier, and a measurement list also accepts sample, whatever filters the type declares; relation filters served by the API match on uuid, never pk. tasks.md T012: add the cases, a sample list and a measurement list narrowed by the parent's short identifier return only that parent's records, and a database number in the same parameter is refused."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Ordering: T014 in US-1 deletes build_model_serializer, which the existing tests of the FS-022 write rules are built on, while the tests that replace them on the real routes (T017, T022, T023) are in US-2. US-1 can only be accepted by deleting or rewriting pre-existing tests of creator credit, the manage level and parent choices, leaving those rules untested for a whole story.",
+      "evidence": "tasks.md T014: 'Delete build_model_serializer.' tests/test_api/test_viewsets.py:411, 417, 447, 454, 825, 832: TestCreatedRecordsListTheirCreator (samples and measurements), and TestParentChoicesThroughTheApi import and call build_model_serializer, and the fixtures behind TestVisibilityNeedsManage, TestMovingARecordThroughTheApi and TestCreatingARecordThroughTheApi build viewsets by hand the same way (line 594 passes serializer_fields=None). plan.md 'Watch items' says a replaced test is 'updated in the task that changes the behaviour', but US-1 does not change these behaviours, it only removes the function they import. Their route-level replacements are T017, T022 and T023, Phase 2. plan.md D8 runs each story from the previous story's accepted commit.",
+      "suggested_fix": "tasks.md: move 'Delete build_model_serializer' from T014 to T025, and have T025 delete the hand-built write tests in the same commit that T016 to T023 pass. In US-1 the viewsets stop calling it and nothing else changes. This removes work from US-1 and adds none to US-2."
+    },
+    {
+      "id": "RECON-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[reconciliation] T010 is ticked but its cited tests never send a signed-in person with no level to a private dataset. The task names that caller for 'a private project or dataset'; only the project half is exercised.",
+      "evidence": "tasks.md T010: 'A private project or dataset is answered 404 to a visitor and to a signed-in person with no level, and returned to someone at the view level.' feature-state.json cites TestAnonymousAccess, TestAuthenticatedNoPermission, TestAuthenticatedWithPermission, TestDatasetPermissions. tests/test_api/test_permissions.py:177-195: TestDatasetPermissions has two tests, a visitor (404) and a viewer (200). TestAuthenticatedNoPermission (lines 61-97) uses projects only. A dataset's level is inherited from its project, a path a project test does not take. The cited tests pass. FR-012.",
+      "suggested_fix": "Leave T010 ticked and add the missing caller to T011, which is open and in the same file: a signed-in person with no level is answered 404 on a private dataset's record route."
+    },
+    {
+      "id": "RECON-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[reconciliation] T007 is ticked but no cited test requests a middle page. The test named for the second page is also the last page, so 'next and previous addresses on a middle page' is never asserted. Five of the nine cited tests also depend on the page size of 25 that D6 replaces, so the evidence stops passing at T057.",
+      "evidence": "tasks.md T007: 'the next and previous addresses, on the first, a middle and the last page'. tests/test_api/test_pagination.py:11-13 creates 30 projects; at 25 to a page there are two pages. test_second_page_has_previous_link (line 49) and test_last_page_has_no_next_link (line 54) both request page 2. No test has both next and previous non-null. test_default_page_size_is_25, test_page_size_capped_at_100, test_next_link_present_on_first_page and the two page-2 tests assume 25 or 100; plan.md D6 sets 100 and 1,000. FR-007.",
+      "suggested_fix": "Leave T007 ticked and add to T055, which is open and in the same file: a middle page carries both a next and a previous address. T055 already rewrites the size-dependent tests; say in it that TestPagination's envelope tests pass page_size explicitly."
+    },
+    {
+      "id": "RECON-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[reconciliation] T045 is ticked on a test that checks the first child of the documentation group is the API link. It does not check there is only one such entry in the sidebar, which is the clause FR-038 adds, and it anchors on position.",
+      "evidence": "tasks.md T045: 'the portal's sidebar carries one entry that resolves to the API documentation page.' tests/test_menus/test_menus.py:28-38: both tests assert documentation_menu_group.children[0].view_name == 'api:api-docs'. The fixture (lines 7-20) takes the first group holding the link. Nothing counts entries across AppMenu, and nothing resolves the name. fairdm/menus/menus.py:117-121 does carry exactly one link today.",
+      "suggested_fix": "No re-plan. Carry to the US-5 brief: when T051 touches the menu tests, assert the count of entries with that view name across the menu is one, without relying on position."
+    },
+    {
+      "id": "RECON-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[reconciliation] T008's cited classes leave two small clauses to tests that exist but are not cited: a private dataset hidden from a visitor in the list, and 'once' for datasets. T021 does not send a delete or a full replacement as a signed-in person with no level on a public project. Neither changes the tick.",
+      "evidence": "tests/test_api/test_filters.py:95-131: TestVisibilityFilterDatasets has no anonymous-private case and no duplicate check; the anonymous case is covered by tests/test_api/test_viewsets.py::TestDatasetListEndpoint::test_private_dataset_hidden_from_anonymous, and the duplicate check exists for projects only (test_mixed_queryset_no_duplicates, line 66). tests/test_api/test_permissions.py:69-75: the 403 on a public project is tested with PATCH only.",
+      "suggested_fix": "Add the uncited test to T008's evidence in feature-state.json. No task change."
+    },
+    {
+      "id": "RECON-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[reconciliation] Open tasks the code and a passing test already satisfy, in whole or in the half that matters: T029's behaviour (a serializer off the base is refused with ImproperlyConfigured naming the base, one on it is accepted) and the project and dataset half of T017 (created_by cannot be named by the caller, on the real routes).",
+      "evidence": "fairdm/api/viewsets.py:189-194 with tests/test_api/test_serializers.py::TestImproperlyConfiguredEnforcement (4 tests, passing). tests/test_api/test_viewsets.py::TestDatasetCreatorParity and ::TestProjectCRUD::test_created_by_is_set_server_side_and_cannot_be_spoofed (passing, real routes). T029 as written asks for the test in tests/test_registry/test_factories.py against the factory, which is why it reads as open; see SEC-001 for why the check should stay where it is.",
+      "suggested_fix": "With SEC-001 applied, T029 shrinks to the one new case for an overridden get_serializer_class. T017 keeps only the sample and measurement routes and the manage-level assertion."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The anonymous limits are counted per client address as Django REST Framework reads it, and with NUM_PROXIES unset it reads the whole X-Forwarded-For header as sent. Behind a proxy that appends to that header, a caller who changes it on each request is never counted twice, so neither anonymous limit holds against anyone who tries.",
+      "evidence": ".venv/lib/python3.13/site-packages/rest_framework/throttling.py:29-40: with NUM_PROXIES None, get_ident returns ''.join(xff.split()) when the header is present. NUM_PROXIES is set nowhere in fairdm/conf or fairdm/api/settings.py. plan.md D6 and research.md 'Limits' set four rates and say nothing of how the caller is identified. spec.md FR-040 and US-6 scenario 1; CONSTITUTION Article XIV as plan.md cites it. Whether it bites depends on the deployment's proxy, which is why this is not higher.",
+      "suggested_fix": "No new mechanism. tasks.md T058: the page for a portal administrator names REST_FRAMEWORK['NUM_PROXIES'] as the setting to set to the number of proxies in front of the portal, and says the limits are per address only once it is set."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[security] The contributor list in the API serves every Contributor row, where the portal's people list leaves out superuser accounts and the placeholder anonymous account. The plan fixes what a contributor's record carries and not which contributors are listed.",
+      "evidence": "fairdm/api/viewsets.py:149-155: Contributor.objects.all(). fairdm/contrib/contributors/views/person.py:21: queryset = Person.objects.real(); fairdm/contrib/contributors/managers.py:14-20: real() excludes is_superuser and the email 'AnonymousUser'. plan.md D1 and its last watch item cover fields only. spec.md FR-006: 'what their public profile shows'.",
+      "suggested_fix": "Carry to the US-1 brief as a watch item: ContributorViewSet lists what the portal's people and organisation lists show. No new task; T005 gains one assertion that a superuser account is not in the list."
+    },
+    {
+      "id": "SEC-005",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[security] The 409 'with the reason' for a refused delete must not be the exception's own text. Django's RestrictedError and ProtectedError carry the set of blocking objects, and their string form prints them, which can name measurements in a dataset the caller may not see.",
+      "evidence": "plan.md D3: 'perform_destroy turns ProtectedError, RestrictedError and PublicDatasetsProtect into a 409 with the reason.' fairdm/core/measurement/models.py:69-75: Measurement.sample is RESTRICT, and a measurement's dataset need not be its sample's. fairdm/core/project/models.py:300-311: PublicDatasetsProtect's own message is a count of public datasets and is safe. Not run, hence 'likely'.",
+      "suggested_fix": "Carry to the US-2 brief: the reason is a sentence the API writes for each of the two cases, never str(error). T019 already asserts a reason is present."
+    },
+    {
+      "id": "SEC-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[security] Two things in D5 that a test will not catch unless the brief says so. REST_KNOX has to be added to the explicit re-export list or the limit of ten tokens silently does not apply. And the session-without-CSRF case in T040 needs a client that enforces CSRF, because the test client skips the check by default and the write would succeed.",
+      "evidence": "fairdm/conf/settings/api.py:17-34 imports the API settings by name (CORS_ALLOW_ALL_ORIGINS, CORS_ALLOWED_ORIGINS, CORS_URLS_REGEX, FAIRDM_API_DOCS_URL, …), so a new name in fairdm/api/settings.py reaches Django only if listed there. No task asserts the token limit. mvp_accounts/tokens/views.py:62-70 honours TOKEN_LIMIT_PER_USER only when it is set. rest_framework.test.APIClient defaults enforce_csrf_checks to False. The CORS design itself checks out: corsheaders/middleware.py:112-118 sends '*' and no credentials header when allow-all is on and credentials are off, corsheaders/defaults.py:7 allows the authorization header, and CORS_URLS_REGEX stays ^/api/.*$.",
+      "suggested_fix": "Carry to the US-4 brief. T038 gains one assertion: at the limit the create page creates nothing. T040 builds its client with enforce_csrf_checks=True."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] T042 names only the fixture in conftest.py, but three more test modules import the token model that D5 removes from INSTALLED_APPS, and test_urls.py holds three classes that test the login and logout endpoints being deleted.",
+      "evidence": "tests/test_api/test_filters.py:5, tests/test_api/test_permissions.py:5 and tests/test_api/test_urls.py:5 import rest_framework.authtoken.models.Token at module level, each with its own make_token_client helper; these are the modules whose tests are the evidence for T008, T010 and T021. tests/test_api/test_urls.py:14-103: TestTokenLogin, TestTokenHeaderAccess, TestTokenLogout. tests/test_api/test_viewsets.py::TestRateLimiting::test_throttle_rates_configurable pins the old rate names. tests/test_api/test_settings.py:29-39 tests FAIRDM_API_DOCS_URL.",
+      "suggested_fix": "tasks.md T042: name the three modules and say their helpers use the new token fixture, and that the three login and logout classes are deleted with the endpoint. T051 and T057 name the two settings tests they retire."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] research.md's claims about django-rest-knox cannot be checked against what the project resolves, because the package is not installed and not locked. They are corroborated only by the installed django-mvp-accounts README. Everything else spot-checked in research.md holds.",
+      "evidence": "No knox directory in .venv/lib/python3.13/site-packages and no 'knox' in uv.lock; pyproject.toml:101 depends on django-mvp-accounts without the api extra, as research.md itself says. Corroborated by django_mvp_accounts-0.2.0.dist-info/METADATA:29 (django-rest-knox<6,>=5.0), :232-250 (AUTO_REFRESH behaviour, no token limit by default, the header form). Uncited claims that could not be checked at all: tokens stored as a digest, and that a revoked or expired token is answered 401. Verified in the resolved packages: the four README steps; mvp_accounts/tokens/urls.py route names; drf_orjson_renderer/parsers.py:45-46 turns a parse error into ParseError; drf-orjson-renderer 1.8.0 installed; corsheaders behaviour as in SEC-006; fairdm.E200 at fairdm/conf/checks.py:98-114; rest_framework_guardian imported only at fairdm/api/serializers.py:13. plan.md 'Technical context' says Django REST Framework 3.17; 3.18.1 is installed.",
+      "suggested_fix": "No plan change. T037 is the proof and comes before T042; say in the US-4 brief that the expired and revoked cases must be seen to fail first against the installed knox."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] tests/test_api/test_authentication.py mirrors no module. The repository's testing standard has every test module mirror the module it exercises, and what T037 to T041 exercise lives in fairdm/api/settings.py and fairdm/api/urls.py.",
+      "evidence": "docs/contributing/standards/testing.md:106: 'Every test module mirrors the path of the module it exercises'. plan.md D5 adds no fairdm/api/authentication.py; the authentication classes, REST_KNOX and CORS are settings (fairdm/api/settings.py) and the token pages are a URL include. tests/test_api/test_settings.py and tests/test_api/test_urls.py already exist. The other new test modules do mirror: test_checks.py, test_schema.py, test_throttling.py.",
+      "suggested_fix": "tasks.md T037, T040, T041: put the classes in tests/test_api/test_settings.py. T038: tests/test_api/test_urls.py, beside T039. One file fewer."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] With SEC-001 applied, D2 needs no serializer check in the registry at all, and the registry's factory then has one job. Worth saying because D2 as written has the registry factory both build and police serializers, with the policing unreachable.",
+      "evidence": "plan.md D2 last sentence; fairdm/registry/config.py:524-527.",
+      "suggested_fix": "Delete the last sentence of plan.md D2 when SEC-001 is applied."
+    }
+  ],
+  "notes": [
+    "decisions.md D3 and D8 each say an ADR is 'to be written at the build' under docs/adr/, and no task in tasks.md writes either. Add them to T015 and T043 or drop the promise.",
+    "research.md 'What stops a delete' says Project.delete() raises PublicDatasetsProtect; it is raised by a pre_delete receiver (fairdm/core/project/models.py:314-330). Same effect.",
+    "plan.md 'Technical context' says Django REST Framework 3.17; the environment resolves 3.18.1.",
+    "The brief for this review says knox is installed in .venv; it is not.",
+    "tasks.md T051 reads 'Implement to make T044 to T050 pass' while T044 and T045 are ticked; it should start at T046.",
+    "docs/portal-development/restful-api.md:68 and :96 still document POST /api/v1/auth/login/ and logout; T043 should name their removal.",
+    "fairdm/api/serializers.py docstrings for BaseSampleSerializer and BaseMeasurementSerializer list polymorphic_ctype among the guaranteed fields; it is a database number and T004 will remove it, so plan.md D1 could list what common_fields holds."
+  ]
+}

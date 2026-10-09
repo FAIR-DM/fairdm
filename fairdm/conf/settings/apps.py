@@ -99,11 +99,10 @@ INSTALLED_APPS = [
     "hijack.contrib.admin",
     "fairdm.api",
     "rest_framework",
-    "rest_framework.authtoken",
+    "knox",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "corsheaders",
-    "dj_rest_auth",
 ]
 
 # Order is critical: security and whitenoise must come early.

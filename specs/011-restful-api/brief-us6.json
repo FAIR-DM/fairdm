@@ -1,0 +1,134 @@
+{
+ "story": "US6",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 461,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/011-restful-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T053",
+  "T054",
+  "T055",
+  "T056",
+  "T057",
+  "T058",
+  "T059",
+  "T060"
+ ],
+ "context": {
+  "why": "Stories 1 to 5 are accepted. This last story sets the API's limits and page sizes for a research group running one small server, makes each of them a setting, and holds the cost of a list level as pages grow. Today an anonymous caller is allowed 100 requests an hour and a signed-in caller 1,000 (rates `anon` and `user` in fairdm/api/settings.py), and a page holds 25 records and at most 100 (fairdm/api/pagination.py). At those figures an anonymous caller needs four hours to read a dataset of ten thousand samples. It also closes the feature: the changelog entry and the roadmap status.",
+  "spec_sections": [
+   "User Story 6 (all 5 acceptance scenarios)",
+   "Clarifications: what are the limits on use",
+   "FR-040 to FR-043",
+   "SC-007"
+  ],
+  "plan_sections": [
+   "D6. Limits and paging",
+   "D3. Viewsets (prefetching)",
+   "Watch items"
+  ],
+  "prior_decisions": [
+   "decisions.md D14: four limits. Anonymous: 30 a minute and 2,000 a day. With a token or session: 120 a minute and 20,000 a day. A new fairdm/api/throttling.py holds four two-line subclasses, AnonBurstThrottle and AnonDailyThrottle of rest_framework.throttling.AnonRateThrottle and UserBurstThrottle and UserDailyThrottle of UserRateThrottle, each setting only `scope`: anon_burst, anon_day, user_burst, user_day. REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] lists the four and DEFAULT_THROTTLE_RATES holds '30/minute', '2000/day', '120/minute', '20000/day'. The old `anon` and `user` rates go. Note that UserRateThrottle also counts anonymous callers by address unless told otherwise: an anonymous caller must be counted only by the two anonymous throttles, so check DRF's own source in .venv for how each class identifies a caller and prove with a test that an anonymous caller is stopped at 30 and not earlier.",
+   "Pages hold 100 records by default and at most 1,000. The default is REST_FRAMEWORK['PAGE_SIZE'] and the ceiling a new plain setting FAIRDM_API_MAX_PAGE_SIZE, both read by FairDMPagination when a request is paged (not at import), so changing either in settings changes the API. fairdm/conf/settings/api.py imports the API's settings from fairdm/api/settings.py BY NAME and re-exports them in __all__: add the new setting to both lists there, or it never reaches Django. T055 proves it is live with override_settings.",
+   "Throttle tests: the test settings use a dummy cache that stores nothing, so a throttle test must give SimpleRateThrottle a real cache for its duration (the existing TestRateLimiting in tests/test_api/test_viewsets.py shows one way, with a LocMemCache patched onto the class). Override the rates to small numbers in the tests (for example 3/minute) and assert the request after the limit is 429 with a Retry-After header, never by sending thirty requests. TestRateLimiting pins the old rate names: delete it once T053 and T054 cover the same ground, and name it in progress.md. Tests go in a new tests/test_api/test_throttling.py.",
+   "T055 also carries two things from the design review: a middle page carries both a next and a previous address (the existing TestPagination has no true middle page), and the existing envelope tests in TestPagination assume 25 and 100; change them to pass page_size explicitly so they no longer depend on the default. That edit to existing tests is authorised; test_default_page_size_is_25 and test_page_size_capped_at_100 are replaced by T055's cases.",
+   "T056, query count: for the lists of projects, datasets, contributors, one sample type and one measurement type, each record carrying descriptions, dates, identifiers, keywords and contributors, a list of twelve records must run the same number of queries as a list of two (django's CaptureQueriesContext or pytest-django's django_assert_num_queries; compare the two counts, do not pin a number). Known from story 1: ContributorSerializer works out a person's primary organisation with get_affiliation_history(), one query per person, so the contributors list grows with the page; fix it with a prefetch on the viewset's queryset. Expect to find other per-record queries the same way; fix each on the queryset, not by caching in the serializer.",
+   "Carried from story 5: the two catalogue views (SampleDiscoveryView and MeasurementDiscoveryView in fairdm/api/viewsets.py) have no response serializer, so drf-spectacular logs that it cannot guess one each time the schema is generated and their entries in the documentation describe no response. Give them a small read-only serializer describing an entry (or drf-spectacular's extend_schema with one) so the documentation shows the response and generating the schema logs no warning. Add its test to tests/test_api/test_schema.py and treat it as part of T057.",
+   "The schema's description is built from the live settings by a hook in fairdm/api/schema.py that lists whatever rates are configured and reads the page sizes from the pagination class. After your changes, confirm in a test already there or a new case that the description shows the four new rates and the new page sizes.",
+   "T058 documentation: a page for a portal administrator on the limits, the page sizes and the settings that change them, linked from a table of contents under the administration docs. It must name REST_FRAMEWORK['NUM_PROXIES'] as the setting for the number of proxies in front of the portal and say that the limits count per address only once it is set (without it, DRF takes the caller's address from a header the caller controls). Rewrite the Rate Limiting section of docs/portal-development/restful-api.md, which still lists the old rate names, and the limits and paging parts of the page for people using a portal.",
+   "T059: an entry in CHANGELOG.md, in the form the file already uses for unreleased changes, saying what a portal with API clients or its own serializers has to change across this whole feature: references by short identifier and no database numbers; relation filters by identifier; every sample and measurement carries the common fields; tokens come from the account pages and the password login endpoint is gone, with dj-rest-auth and djangorestframework-guardian removed; a developer's serializer must build on the base and a registration is checked at start-up; catalogue entries have `filters` in place of `filterable_fields`; FAIRDM_API_DOCS_URL is removed; new limits and page sizes and their settings; any origin may call the API. Read docs/portal-development/restful-api.md and specs/011-restful-api/decisions.md for the facts.",
+   "T060: in docs/ROADMAP.md, roadmap item R11 carries the status line '*Delivered \u00b7 needs verification \u00b7 advances G10*'. Remove 'needs verification' from that line and change nothing else in the file.",
+   "Update feature-state.json for your own tasks (status, attempts, evidence with tests, commands, code as path:line, verified_by_ci) and tick your tasks in tasks.md.",
+   "No architecture decision record is needed for this story."
+  ],
+  "acceptance": [
+   {
+    "task": "T053",
+    "given_when_then": "Given small overridden rates and a real cache, when an anonymous caller passes the per-minute or the daily rate, then the next request is 429 with Retry-After, and a caller with a token is not stopped at the anonymous rate and is stopped at their own."
+   },
+   {
+    "task": "T054",
+    "given_when_then": "Given each of the four rates changed in settings, then the caller is stopped at the changed figure."
+   },
+   {
+    "task": "T055",
+    "given_when_then": "Given a list, then it holds the default number, honours a larger size up to the ceiling and no further, follows a changed default and ceiling, and a middle page has both a next and a previous address."
+   },
+   {
+    "task": "T056",
+    "given_when_then": "Given records with metadata, when a list of twelve and a list of two are requested, then both run the same number of queries, for projects, datasets, contributors, a sample type and a measurement type."
+   },
+   {
+    "task": "T057",
+    "given_when_then": "Given the failing tests from T053 to T056, when the implementation lands, then they pass, the catalogue responses are described in the schema and the schema's description shows the new limits and sizes."
+   },
+   {
+    "task": "T058",
+    "given_when_then": "Given the administrator page and the two API pages, when read against the branch, then they give the limits, page sizes and their settings, including NUM_PROXIES, and no page mentions the old rates."
+   },
+   {
+    "task": "T059",
+    "given_when_then": "Given CHANGELOG.md, then it has an entry saying what a portal has to change for this feature."
+   },
+   {
+    "task": "T060",
+    "given_when_then": "Given docs/ROADMAP.md, then R11's status line no longer says needs verification."
+   }
+  ],
+  "verified_base": {
+   "commit": "24235dc5cfea385dc53f805f2ca551af9b714028",
+   "verified_at": "2026-10-09T01:06:20Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at the commit named here: lint, typecheck, the documentation check against origin/main, the whole test suite, build and conformance pass. One unrelated test, tests/test_contrib/test_collections/test_apps.py::TestNavigationDoesNotDependOnThisApp::test_the_core_headings_are_present, can fail in a full run when another test leaves a language active (tracked separately): if you see only that failure, run verify again and mention it; do not fix it. Run verify with `--base origin/main` at the end."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Contributor",
+   "Registry"
+  ],
+  "environment": "Run everything from the worktree with `uv run`, e.g. `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering`. Tests use tests.settings and a real PostGIS database that is already running. The full verify is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api` (about two minutes, run it once at the end). A development server runs from this worktree on port 8000 and reloads itself; leave it running and do not start another. The registered types the tests use are the demonstration models in demo/ (RockSample, SoilSample, WaterSample, XRFMeasurement, ICP_MS_Measurement and others) with factories in demo/factories.py; core factories are in fairdm/factories.",
+  "conventions": "Follow docs/contributing/standards/testing.md and docs/contributing/standards/ for code and documentation. Line length 88. No leading-underscore names for new functions or classes. No compatibility aliases. Docstrings on every new public name, Google style, as the surrounding code. Tests call the real API routes through rest_framework.test.APIClient with reverse('api:...'), never a hand-built viewset, and never assert on wording. Group tests in the Test<Subject> classes tasks.md names. Commit as the identity already configured in this worktree; do not change git config. Everything written into the repository (code comments, docs, commit messages, progress.md, decisions.md) is public: plain words, no mention of agents, briefs, stages, reviewers or this process."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/011-restful-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/011-restful-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api/specs/011-restful-api/report-us6.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json beyond your own tasks' status, attempts and evidence (evidence keys: tests, commands, code as path:line, verified_by_ci).",
+  "Never push, merge, open or comment on anything on GitHub, and never mint or use a token.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never write a workaround for a defect in a dependency; report it in concerns.",
+  "Never add a model, a migration of FairDM's own, a settings object, a registry or a compatibility alias."
+ ]
+}

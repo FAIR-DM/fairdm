@@ -21,7 +21,6 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         table_fields: Table columns for list views.
         form_fields: Form fields for create and edit views.
         filterset_fields: Filterset fields for search and filtering.
-        serializer_fields: Serializer fields for the API.
         display_name: The name shown for the measurement type.
         description: A one-line description of the measurement type.
 
@@ -66,16 +65,6 @@ class BaseMeasurementConfiguration(ModelConfiguration):
         "sample",
         "dataset",
         "added",
-    ]
-
-    serializer_fields = [
-        "id",
-        "uuid",
-        "name",
-        "sample",
-        "dataset",
-        "added",
-        "modified",
     ]
 
     display_name = "Measurement"

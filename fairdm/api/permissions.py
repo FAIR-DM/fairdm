@@ -65,12 +65,8 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
             visibility = getattr(obj, "visibility", None)
             if visibility is not None and visibility == Visibility.PUBLIC:
                 return True
-            # Sample and Measurement inherit visibility from their dataset.
-            parent = getattr(obj, "dataset", None)
-            if (
-                parent is not None
-                and getattr(parent, "visibility", None) == Visibility.PUBLIC
-            ):
+            # Sample and Measurement are public when their dataset is public and published.
+            if getattr(getattr(obj, "dataset", None), "data_is_public", False):
                 return True
             if not request.user or not request.user.is_authenticated:
                 raise NotFound()
@@ -86,10 +82,9 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
         # Visibility decides between "public + no write perm" (403) and "private +
         # no perm at all" (404).
         visibility = getattr(obj, "visibility", None)
-        parent_vis = getattr(getattr(obj, "dataset", None), "visibility", None)
         is_publicly_visible = (
             visibility is not None and visibility == Visibility.PUBLIC
-        ) or (parent_vis is not None and parent_vis == Visibility.PUBLIC)
+        ) or getattr(getattr(obj, "dataset", None), "data_is_public", False)
 
         # super().has_object_permission() raises Http404 when the user lacks both
         # write and read permission, which would hide the 403 a public object needs.

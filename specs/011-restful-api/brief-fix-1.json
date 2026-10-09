@@ -1,0 +1,133 @@
+{
+ "story": "US1",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 456,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/011-restful-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T061",
+  "T062",
+  "T063",
+  "T064",
+  "T065",
+  "T066",
+  "T067"
+ ],
+ "context": {
+  "why": "All six stories of this feature are built and accepted. Two reviewers then read the whole change, one for correctness and one for security, and their findings are in specs/011-restful-api/review-findings-correctness.json and review-findings-security.json. This dispatch fixes them. Each task in tasks.md Phase 8 names its finding in plain words; the finding's own evidence, with file and line and the request that showed it, is in those two files under the ids given below. Read the finding before the task. The remedy for each is the smallest edit that fixes the named failure; add no mechanism beyond it.",
+  "spec_sections": [
+   "FR-005",
+   "FR-008",
+   "FR-011",
+   "FR-012",
+   "FR-022",
+   "FR-026",
+   "FR-035",
+   "FR-040",
+   "FR-043",
+   "SC-004"
+  ],
+  "plan_sections": [
+   "D1. Serializers",
+   "D3. Viewsets",
+   "Watch items"
+  ],
+  "prior_decisions": [
+   "T061 is security finding SEC-001 (high). The portal's rule for whether a dataset's samples and measurements are public is the dataset's `data_is_public` (public AND published); see Sample.objects.visible_to and the dataset model. The API tested only visibility. Fix it in `_get_public_filter` and FairDMVisibilityFilter (fairdm/api/filters.py), in FairDMObjectPermissions.has_object_permission (fairdm/api/permissions.py, both the read branch and the write branch that decides 403 against 404), and confirm RecordReferenceField.visible_pks and the catalogue counts follow, since they share the filter. The dataset's own record is governed by its visibility alone and stays readable when public and unpublished. Existing API tests build public datasets with DatasetFactory(visibility=PUBLIC) and expect their samples to be readable: check what the factory sets for `published`; where an existing test needs a published dataset to keep meaning what it meant, set published=True in its fixture and name the change in progress.md. That edit to existing tests is authorised. Update the docstring in filters.py and the documentation pages where they state who can read samples and measurements.",
+   "T062 is correctness finding COR-002 (high). fairdm/core/sample/filters.py lines 118 to 134 point `description`, `date_after` and `date_before` at `descriptions__text` and `dates__date`; the fields are `value` (the measurement filter set has it right). This also repairs the portal's own sample list pages, which share the filter set. The new test walks every filter name each type's catalogue entry lists (GET /api/v1/samples/ and /api/v1/measurements/) and sends a plausible value for each; none may answer 500 or above.",
+   "T063 is correctness finding COR-003 (medium) and security finding SEC-003 (low). ContributorViewSet.get_queryset leaves out superusers and the anonymous account, while a record's nested contributors, a project's owner and an affiliation can still reference them, giving an address that answers 404. Make RecordReferenceField.visible_pks apply the same exclusion for contributors, by calling one shared piece of code rather than repeating the rule. And in the registry's SerializerFactory (fairdm/registry/factories.py, where relations the base does not declare become StringRelatedField), use RecordReferenceField(read_only=True) (many=True for a many-to-many) when the related model is a project, dataset, sample or measurement, and keep StringRelatedField for every other relation.",
+   "T064 is correctness finding COR-005 (low): the behaviour is right today and no test would fail if it broke. Add the two cases and prove they fail when DatasetFilterSet.visible (fairdm/api/filters.py) is made to return its queryset unfiltered, then restore it.",
+   "T065 is correctness findings COR-004 (medium), COR-006 (low) and COR-007 (low). (a) fairdm/api/viewsets.py wraps config.get_filterset_class() in contextlib.suppress(Exception): remove it so a broken filter set stops registration with its error. (b) FAIRDM_API_TITLE and FAIRDM_API_DESCRIPTION are read once, when fairdm/api/settings.py is imported, to build SPECTACULAR_SETTINGS, so setting them in a portal's settings after fairdm.setup() changes nothing; fairdm/conf/settings/api.py already says so. Make the docstring of fairdm/api/settings.py and docs/portal-development/restful-api.md (the 'Customizing the API Description' and 'OpenAPI Schema Customisation' sections, around lines 750 to 790) say the same: a portal assigns SPECTACULAR_SETTINGS['TITLE'] and SPECTACULAR_SETTINGS['DESCRIPTION'], and every example assigns items, never a new dictionary, because replacing it drops the hook that writes the limits into the description. (c) tests/test_api/test_settings.py test_fairdm_api_title_is_overrideable and test_fairdm_api_description_is_overrideable set a setting and read it back: replace them with tests that change SPECTACULAR_SETTINGS['TITLE'] and ['DESCRIPTION'] and read the generated schema (story 5's tests show how to patch drf-spectacular's settings in a test). That edit to existing tests is authorised.",
+   "T066 is correctness finding COR-001 (high). The serializer factory adds a field for each relation a type declares, and generate_viewset (fairdm/api/viewsets.py, where it calls serializer_cls.load_related) loads only the parents and the five metadata relations, so a list runs one query per record for each such relation. After load_related, add select_related for each foreign key and one-to-one, and prefetch_related for each many-to-many, among the serializer's Meta.fields that the model defines and the serializer's `parents` do not already cover. The test adds the thin-section demonstration type (demo CustomSample) with a location on every record to TestQueryCount's cases; see how the reviewer set it up in the finding. With T063 in place a relation to a record type is a RecordReferenceField, whose visibility check must stay one query per page, as story 1 built it for parents.",
+   "T067 is security finding SEC-002 (medium). Without REST_FRAMEWORK['NUM_PROXIES'], Django REST Framework takes the caller's address from the X-Forwarded-For header, which the caller controls, so the limits can be avoided. Add a deployment check in fairdm/conf/checks.py, following how the checks there are written, numbered and tagged for deployment, that returns a Warning (not an Error) when REST_FRAMEWORK has no NUM_PROXIES key and nothing when it is set, including when it is set to 0 or None explicitly by an operator who has decided. Its hint names the setting and the administrator page docs/portal-administration/api-limits.md. Choose no default. Mention the check on that page. Tests assert on the check's id, not its wording.",
+   "Work in the order T062, T061, T063, T066, T064, T065, T067. T063 before T066 because T066's loading depends on which field class a relation gets.",
+   "Update feature-state.json for these seven tasks (status, attempts, evidence with tests, commands, code as path:line, verified_by_ci) and tick them in tasks.md. Add one line to CHANGELOG.md's entry for this feature if a fix changes what a portal sees (T061 does: samples and measurements of an unpublished dataset are no longer public through the API; T062 does for the portal's sample filters).",
+   "Write your completion report to specs/011-restful-api/report-fix-1.json."
+  ],
+  "acceptance": [
+   {
+    "task": "T061",
+    "given_when_then": "Given a sample and a measurement in a public, unpublished dataset, then a visitor and an outsider get nothing in lists, 404 on the record and on a write, and a count without them; someone with a level reads them; the dataset's own record is readable."
+   },
+   {
+    "task": "T062",
+    "given_when_then": "Given every filter name every type's catalogue entry lists, when sent, then the answer is below 500."
+   },
+   {
+    "task": "T063",
+    "given_when_then": "Given a contributor the contributor list leaves out and a declared relation to a record type, then the first is null wherever referenced and the second is a reference that is null when hidden."
+   },
+   {
+    "task": "T064",
+    "given_when_then": "Given a visitor narrowing by a private parent's identifier, then the answer is the same as for an identifier that does not exist, and the test fails when the narrowing is removed."
+   },
+   {
+    "task": "T065",
+    "given_when_then": "Given a configuration whose filter set cannot be built, then registration stops with the error; and the documentation, docstring and tests say and prove that the title and description are changed through SPECTACULAR_SETTINGS."
+   },
+   {
+    "task": "T066",
+    "given_when_then": "Given a type with a relation of its own on every record, when lists of two and twelve are requested, then both run the same number of queries."
+   },
+   {
+    "task": "T067",
+    "given_when_then": "Given REST_FRAMEWORK without NUM_PROXIES, when the deployment checks run, then a warning is returned, and none when it is set."
+   }
+  ],
+  "verified_base": {
+   "commit": "9b97b47a2b11ed2e16b86ff9d6d209693b60ef92",
+   "verified_at": "2026-10-09T02:00:00Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at the last story's acceptance: lint, typecheck, the documentation check against origin/main, the whole test suite, build and conformance pass; every commit since changes only files under specs/011-restful-api/. One unrelated test, tests/test_contrib/test_collections/test_apps.py::TestNavigationDoesNotDependOnThisApp::test_the_core_headings_are_present, can fail in a full run when another test leaves a language active (tracked separately): if you see only that failure, run verify again and mention it. Run verify with `--base origin/main` at the end."
+  },
+  "glossary_terms": [
+   "Project",
+   "Dataset",
+   "Sample",
+   "Measurement",
+   "Contributor",
+   "Registry"
+  ],
+  "environment": "Run everything from the worktree with `uv run`, e.g. `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering`. Tests use tests.settings and a real PostGIS database that is already running. The full verify is `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api` (about two minutes, run it once at the end). A development server runs from this worktree on port 8000 and reloads itself; leave it running and do not start another. The registered types the tests use are the demonstration models in demo/ (RockSample, SoilSample, WaterSample, XRFMeasurement, ICP_MS_Measurement and others) with factories in demo/factories.py; core factories are in fairdm/factories.",
+  "conventions": "Follow docs/contributing/standards/testing.md and docs/contributing/standards/ for code and documentation. Line length 88. No leading-underscore names for new functions or classes. No compatibility aliases. Docstrings on every new public name, Google style, as the surrounding code. Tests call the real API routes through rest_framework.test.APIClient with reverse('api:...'), never a hand-built viewset, and never assert on wording. Group tests in the Test<Subject> classes tasks.md names. Commit as the identity already configured in this worktree; do not change git config. Everything written into the repository (code comments, docs, commit messages, progress.md, decisions.md) is public: plain words, no mention of agents, briefs, stages, reviewers or this process."
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/011-restful-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/011-restful-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api/specs/011-restful-api/report-fix-1.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json beyond your own tasks' status, attempts and evidence (evidence keys: tests, commands, code as path:line, verified_by_ci).",
+  "Never push, merge, open or comment on anything on GitHub, and never mint or use a token.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never write a workaround for a defect in a dependency; report it in concerns.",
+  "Never add a model, a migration of FairDM's own, a settings object, a registry or a compatibility alias."
+ ]
+}

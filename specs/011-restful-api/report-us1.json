@@ -1,0 +1,263 @@
+{
+  "story": "US1",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_serializers.py::TestRecordReferenceField"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_serializers.py::TestRecordReferenceField"
+        ]
+      },
+      "commits": [
+        "beb2aa8c"
+      ]
+    },
+    {
+      "id": "T002",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCompleteRecord"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-001"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestCompleteRecord"
+        ]
+      },
+      "commits": [
+        "95488414"
+      ]
+    },
+    {
+      "id": "T003",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCommonFields"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-001"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestCommonFields"
+        ]
+      },
+      "commits": [
+        "f88ac059"
+      ]
+    },
+    {
+      "id": "T004",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestNoDatabaseNumbers"
+        ]
+      },
+      "commits": [
+        "a04a53f6"
+      ]
+    },
+    {
+      "id": "T005",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributor"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-001"
+        ],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestContributor"
+        ]
+      },
+      "commits": [
+        "269ff58c"
+      ]
+    },
+    {
+      "id": "T006",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestListAndRecordRoutes"
+        ]
+      },
+      "commits": [
+        "b1302cb1"
+      ]
+    },
+    {
+      "id": "T009",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-004"
+        ],
+        "tests_added": [
+          "tests/test_api/test_filters.py::TestVisibilityOfSamplesAndMeasurements"
+        ]
+      },
+      "commits": [
+        "b0bb1758"
+      ]
+    },
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
+        ],
+        "exit_code": 0,
+        "criteria": [
+          "SC-004"
+        ],
+        "tests_added": [
+          "tests/test_api/test_permissions.py::TestReadingASampleOrMeasurement"
+        ]
+      },
+      "commits": [
+        "d0df3d7a"
+      ]
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestFiltering"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestFiltering"
+        ]
+      },
+      "commits": [
+        "ada7a26f"
+      ]
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrdering"
+        ],
+        "exit_code": 0,
+        "criteria": [],
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestOrdering"
+        ]
+      },
+      "commits": [
+        "47a9ef0f"
+      ]
+    },
+    {
+      "id": "T014",
+      "status": "blocked",
+      "evidence": {
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api tests/test_registry",
+          "uv run pytest -q -n auto --dist loadscope",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main"
+        ],
+        "exit_code": 1,
+        "criteria": []
+      },
+      "commits": [
+        "c5c79a5d",
+        "6c1aaefb"
+      ]
+    },
+    {
+      "id": "T015",
+      "status": "done",
+      "evidence": {
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo . --base origin/main --steps docs"
+        ],
+        "exit_code": 0,
+        "criteria": []
+      },
+      "commits": [
+        "4abc0129",
+        "2c85ded1"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "RecordReferenceField takes no view_name argument; it works out the route from the record it is given.",
+      "why": "A measurement's sample can be of any registered type and each type has its own route, so one route name per field cannot be right. Plan D1 asked for a view_name per use.",
+      "decision_ref": "D17"
+    },
+    {
+      "what": "The API drops the content-type (polymorphic_ctype) filter from generated sample and measurement lists, in addition to replacing the dataset and sample filters.",
+      "why": "It accepts a database number, which FR-005 forbids, and means nothing on an endpoint that serves one type. The portal's own pages still use their filter sets unchanged.",
+      "decision_ref": "D17"
+    },
+    {
+      "what": "ContributorViewSet is readable by anyone through permission_classes = AllowAny.",
+      "why": "The object-level permission class answered 404 to a visitor for any record that has neither visibility nor a dataset, so every contributor record route was 404 for a visitor.",
+      "decision_ref": "D17"
+    }
+  ],
+  "concerns": [
+    "BLOCKED T014: 17 existing tests in tests/test_api/test_viewsets.py fail and cannot pass untouched. TestCreatedRecordsListTheirCreator::test_a_sample_lists_its_creator_at_the_manage_level and ::test_a_measurement_lists_its_creator_at_the_manage_level send the dataset and sample as database numbers to build_model_serializer(base_class=BaseSampleSerializer/BaseMeasurementSerializer), which now refuse them. TestParentChoicesThroughTheApi::test_a_measurement_cannot_name_a_sample_the_person_cannot_edit, and the fixtures behind TestMovingARecordThroughTheApi (6 cases) and TestCreatingARecordThroughTheApi (8 cases), hand generate_viewset a types.SimpleNamespace with no get_serializer_class and send database numbers. Passing them needs the API to accept database numbers or generate_viewset to special-case a test double, both refused by the brief. The brief expects them to keep passing, which is not possible with D3, D9 and D16 together. Suggested triage: edit each payload to send identifiers and each fixture to use a real registry configuration, or move their replacements (T016 to T023) and the deletion (T025) into this story. Every other test in the repository passes (5600 passed, 14 skipped). forge verify is red on these (its test step stops at the first failure); lint, typecheck, build, conformance and docs pass.",
+    "Cause of the sorting failure differs from the one the brief believed. It is not a polymorphic queryset: with no ordering_fields on the view, Django REST Framework's OrderingFilter reads every property of the model class, and django-polymorphic's polymorphic_primary_key_name classproperty raises AttributeError ('NoneType' object has no attribute 'attname') on a sample or measurement subclass because the abstract polymorphic base has no primary key. Naming ordering_fields on each generated viewset avoids the lookup. The raising classproperty is a defect in django-polymorphic and is not worked around beyond that.",
+    "Filters that a registered type declares on its own foreign keys (for example a location) are generated with ModelChoiceFilter and still match on database numbers; the filter sets are shared with the portal's pages (fairdm/registry/factories.py FilterFactory) and were left alone. Only dataset, sample and the content-type filter were replaced or dropped for the API.",
+    "FieldInspector's default field list (fairdm/utils/inspection.py), which a registered type with no declared fields falls back to, includes tags and options. In the API tags is returned as null whatever a record holds, and options (an internal JSON field) is returned as is. Types that declare fields are unaffected.",
+    "ContributorSerializer works out a person's primary organization with get_affiliation_history(), one query per person, so a contributors list runs a query per person. The query-count test in T056 does not cover contributors.",
+    "specs/011-restful-api/feature-state.json carried uncommitted edits from before this story started (state set to IMPLEMENT with a history entry, and the file re-indented to two spaces). The ledger commit includes them together with this story's task status, attempts and evidence. The story's own status was left at todo.",
+    "tests/test_api/conftest.py still builds its token fixture from rest_framework.authtoken, and make_token_client in test_filters.py and test_permissions.py do the same; the new tests sign in with force_authenticate so they do not depend on it. T042 replaces the fixtures.",
+    "T009 and T011 add tests for behaviour that already held. Both were probed by removing the mechanism: removing the list filter fails the sample and measurement visitor cases of T009, and removing the list filter and the object-permission check together fails the six 404 cases of T011 (either one alone is not enough, since each stops the request on its own)."
+  ],
+  "blocked": [
+    {
+      "task": "T014",
+      "reason": "17 existing write tests in tests/test_api/test_viewsets.py cannot pass untouched with records named by identifier (D3) and the registry as the one builder (D9). See the first concern for the list and a suggested way through. Everything else T014 asks for is built and every test of T001 to T013 passes.",
+      "attempts_used": 3
+    }
+  ]
+}

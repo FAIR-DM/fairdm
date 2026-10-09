@@ -1,0 +1,165 @@
+{
+  "story": "US4",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T037",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_settings.py::TestTokens"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_settings.py::TestTokens",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "609ebc4d"
+      ]
+    },
+    {
+      "id": "T038",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_urls.py::TestTokenPages"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_urls.py::TestTokenPages",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "40081000"
+      ]
+    },
+    {
+      "id": "T039",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_urls.py::TestNoAccountEndpoints"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_urls.py::TestNoAccountEndpoints",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "b50a3410"
+      ]
+    },
+    {
+      "id": "T040",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_settings.py::TestSession"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_settings.py::TestSession",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "d31a72ec"
+      ]
+    },
+    {
+      "id": "T041",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_settings.py::TestOtherOrigins"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_settings.py::TestOtherOrigins",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "46fe25bc"
+      ]
+    },
+    {
+      "id": "T042",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n auto --dist loadscope tests/test_api",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "5518606e",
+        "b45c4e66"
+      ]
+    },
+    {
+      "id": "T043",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "c102a687"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "No fairdm/api/schema.py was written. The plan called for a drf-spectacular extension describing knox's header.",
+      "why": "drf-spectacular 0.30.0 already ships one for knox. The generated schema carries a knoxApiToken header scheme and raises no warning about an unknown authenticator. A test fails on such a warning and was seen to fail with an authenticator drf-spectacular does not know.",
+      "decision_ref": "decisions.md#d21-choices-made-while-building-the-fourth-story"
+    },
+    {
+      "what": "One existing assertion outside the tests the brief names was changed: tests/test_conf/test_settings/test_api.py::TestApi::test_rest_framework_and_cors_are_present asserted CORS_ALLOW_ALL_ORIGINS is False; it now asserts True.",
+      "why": "That is the default this story replaces (FR-033). The full verify failed on it. Named in progress.md under T042 and in its own commit b45c4e66.",
+      "decision_ref": "decisions.md#d21-choices-made-while-building-the-fourth-story"
+    },
+    {
+      "what": "The knox app, the api extra of django-mvp-accounts and the shared token helper and fixture were added in the T037 commit, ahead of T042.",
+      "why": "The T037 tests need knox's token table and a way to make a token. The old authenticator, dj-rest-auth and the old fixtures stayed until T042 so the suite stayed green between commits.",
+      "decision_ref": "decisions.md#d21-choices-made-while-building-the-fourth-story"
+    }
+  ],
+  "concerns": [
+    "T040 (session read and CSRF-refused write) passed on first run because the API already accepted the session. Probe: removing SessionAuthentication from fairdm/api/settings.py turned both cases red.",
+    "T037's unknown-token cases and the T041 credentials and non-API-page cases also pass before the change; they guard against a later regression. The revoked and expired cases were made to fail first by sending the token once, expecting 200, then revoking or expiring it.",
+    "The spec edge case 'a portal restricts tokens to some people' is covered by django-mvp-accounts' own pages and documented in docs/portal-development/restful-api.md, but no test in this repo exercises MVP_ACCOUNTS_API_TOKEN_ACCESS.",
+    "Documented from django-mvp-accounts' README: restricting who may hold tokens does not delete tokens already held and is not consulted when a token is used (docs/portal-development/restful-api.md, docs/adr/0028).",
+    "The development server on port 8000 survived the dependency change and answers 200 on / and 302 (to sign in) on /account/tokens/.",
+    "CHANGELOG.md has no entry for this feature yet."
+  ],
+  "blocked": []
+}

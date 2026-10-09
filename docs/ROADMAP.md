@@ -109,7 +109,7 @@ Serves G4 and G15.
 
 ### R11 — The machine-readable API
 
-*Delivered · needs verification · advances G10*
+*Delivered · advances G10*
 
 Projects, datasets, contributors and every registered sample and measurement type are reachable over a versioned HTTP API with authentication, pagination, filtering, ordering and generated interactive documentation.
 

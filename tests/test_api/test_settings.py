@@ -1,7 +1,15 @@
 """Tests for FairDM API settings (``fairdm/api/settings.py``)."""
 
+from datetime import timedelta
+
 import pytest
+from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
+
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import ContributionFactory, ProjectFactory, UserFactory
+from fairdm.utils.choices import Visibility
 
 
 @pytest.fixture
@@ -24,19 +32,6 @@ def openapi_schema(schema_client):
     schema = yaml.safe_load(content)
     assert isinstance(schema, dict), "Schema must be a dict"
     return schema
-
-
-class TestFairDMAPIDocsURLSetting:
-    def test_third_child_default_url_is_fairdm_org(self):
-        from fairdm.api.settings import FAIRDM_API_DOCS_URL
-
-        assert FAIRDM_API_DOCS_URL == "https://fairdm.org/api/"
-
-    @pytest.mark.django_db
-    def test_override_fairdm_api_docs_url_respected(self, settings):
-        settings.FAIRDM_API_DOCS_URL = "https://custom.example.org/api/"
-
-        assert settings.FAIRDM_API_DOCS_URL == "https://custom.example.org/api/"
 
 
 @pytest.mark.django_db
@@ -223,17 +218,209 @@ class TestAPIDescriptionSettings:
             "SPECTACULAR_SETTINGS['DESCRIPTION'] does not match FAIRDM_API_DESCRIPTION"
         )
 
-    def test_fairdm_api_title_is_overrideable(self, settings):
-        settings.FAIRDM_API_TITLE = "My Custom Portal API"
-        from django.conf import settings as django_settings
+    @staticmethod
+    def schema_info(client):
+        """Return the ``info`` object of the schema generated now."""
+        response = client.get(reverse("api:api-schema"), {"format": "json"})
+        assert response.status_code == 200
+        return response.json()["info"]
 
-        assert django_settings.FAIRDM_API_TITLE == "My Custom Portal API"
+    def test_the_title_is_changed_through_spectacular_settings(
+        self, monkeypatch, schema_client
+    ):
+        from drf_spectacular.settings import spectacular_settings
 
-    def test_fairdm_api_description_is_overrideable(self, settings):
-        settings.FAIRDM_API_DESCRIPTION = "A custom portal for my research domain."
-        from django.conf import settings as django_settings
+        monkeypatch.setattr(spectacular_settings, "TITLE", "My Custom Portal API")
 
-        assert (
-            django_settings.FAIRDM_API_DESCRIPTION
-            == "A custom portal for my research domain."
+        assert self.schema_info(schema_client)["title"] == "My Custom Portal API"
+
+    def test_the_description_is_changed_through_spectacular_settings(
+        self, monkeypatch, schema_client
+    ):
+        from drf_spectacular.settings import spectacular_settings
+
+        monkeypatch.setattr(
+            spectacular_settings,
+            "DESCRIPTION",
+            "A custom portal for my research domain.",
         )
+
+        description = self.schema_info(schema_client)["description"]
+
+        assert description.startswith("A custom portal for my research domain.")
+
+
+@pytest.mark.django_db
+class TestTokens:
+    @pytest.fixture
+    def private_project(self):
+        """A private project and a person who holds the view level on it."""
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        holder = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=holder, level=ContributionLevel.VIEW
+        )
+        return project, holder
+
+    @staticmethod
+    def send(value):
+        """Request the list of projects with a token's value in the header."""
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {value}")
+        return client.get(reverse("api:project-list"))
+
+    @staticmethod
+    def uuids(response):
+        return {item["uuid"] for item in response.json()["results"]}
+
+    def test_a_current_token_acts_as_its_holder(self, make_token, private_project):
+        project, holder = private_project
+        _record, value = make_token(holder)
+
+        response = self.send(value)
+
+        assert response.status_code == 200
+        assert str(project.uuid) in self.uuids(response)
+
+    def test_a_visitor_does_not_see_what_the_holder_sees(self, private_project):
+        project, _holder = private_project
+
+        response = APIClient().get(reverse("api:project-list"))
+
+        assert str(project.uuid) not in self.uuids(response)
+
+    def test_a_revoked_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        record, value = make_token(holder)
+        assert self.send(value).status_code == 200
+
+        record.delete()
+
+        assert self.send(value).status_code == 401
+
+    def test_an_expired_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        record, value = make_token(holder, expiry=timedelta(days=1))
+        assert self.send(value).status_code == 200
+
+        record.__class__.objects.filter(pk=record.pk).update(
+            expiry=timezone.now() - timedelta(seconds=1)
+        )
+
+        assert self.send(value).status_code == 401
+
+    def test_an_unknown_token_is_answered_401(self, make_token, private_project):
+        _project, holder = private_project
+        _record, value = make_token(holder)
+
+        assert self.send(value[::-1]).status_code == 401
+
+    def test_a_token_that_is_not_in_the_store_is_answered_401(self):
+        assert self.send("0123456789abcdef" * 8).status_code == 401
+
+    def test_the_schema_describes_the_authorization_header(self, openapi_schema):
+        schemes = openapi_schema["components"]["securitySchemes"].values()
+
+        assert any(
+            scheme.get("in") == "header" and scheme.get("name") == "Authorization"
+            for scheme in schemes
+        )
+
+    def test_generating_the_schema_warns_of_no_unknown_authentication_class(self):
+        from drf_spectacular.drainage import GENERATOR_STATS
+        from drf_spectacular.generators import SchemaGenerator
+
+        GENERATOR_STATS.reset()
+        SchemaGenerator().get_schema(request=None, public=True)
+
+        warnings = [
+            msg for msg in GENERATOR_STATS._warn_cache if "authenticator" in msg
+        ]
+        assert warnings == []
+
+    def test_the_token_limit_is_the_one_the_portal_sets(self, settings):
+        from knox.settings import knox_settings
+
+        assert knox_settings.TOKEN_LIMIT_PER_USER == 10
+        assert knox_settings.AUTO_REFRESH is False
+
+
+@pytest.mark.django_db
+class TestSession:
+    @pytest.fixture
+    def project(self):
+        return ProjectFactory(visibility=Visibility.PRIVATE)
+
+    @pytest.fixture
+    def editor(self, project):
+        person = UserFactory()
+        ContributionFactory(
+            content_object=project, contributor=person, level=ContributionLevel.EDIT
+        )
+        return person
+
+    @staticmethod
+    def signed_in_by_session(person, **kwargs):
+        client = APIClient(**kwargs)
+        client.force_login(person)
+        return client
+
+    def test_a_person_reads_their_private_record_with_their_session(
+        self, project, editor
+    ):
+        client = self.signed_in_by_session(editor, enforce_csrf_checks=True)
+
+        response = client.get(reverse("api:project-detail", args=[project.uuid]))
+
+        assert response.status_code == 200
+
+    def test_a_write_with_a_session_and_no_csrf_token_is_refused(self, project, editor):
+        address = reverse("api:project-detail", args=[project.uuid])
+        allowed = self.signed_in_by_session(editor).patch(
+            address, {"name": "Changed"}, format="json"
+        )
+        assert allowed.status_code == 200
+
+        client = self.signed_in_by_session(editor, enforce_csrf_checks=True)
+        response = client.patch(address, {"name": "Changed again"}, format="json")
+
+        assert response.status_code == 403
+        project.refresh_from_db()
+        assert project.name == "Changed"
+
+
+@pytest.mark.django_db
+class TestOtherOrigins:
+    ORIGIN = "https://another-site.example"
+
+    def test_a_response_to_another_origin_may_be_read_by_it(self):
+        response = APIClient().get(reverse("api:project-list"), HTTP_ORIGIN=self.ORIGIN)
+
+        assert response["Access-Control-Allow-Origin"] in ("*", self.ORIGIN)
+
+    def test_the_authorization_header_is_allowed_in_a_preflight(self):
+        response = APIClient().options(
+            reverse("api:project-list"),
+            HTTP_ORIGIN=self.ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="authorization",
+        )
+
+        allowed = response["Access-Control-Allow-Headers"].lower().split(", ")
+        assert response.status_code == 200
+        assert "authorization" in allowed
+
+    @pytest.mark.parametrize("method", ["get", "options"])
+    def test_no_response_permits_credentials(self, method):
+        response = getattr(APIClient(), method)(
+            reverse("api:project-list"),
+            HTTP_ORIGIN=self.ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+
+        assert "Access-Control-Allow-Credentials" not in response
+
+    def test_a_page_outside_the_api_gets_no_cors_header(self):
+        response = APIClient().get(reverse("home"), HTTP_ORIGIN=self.ORIGIN)
+
+        assert "Access-Control-Allow-Origin" not in response

@@ -9,9 +9,11 @@ from django_tables2 import Table
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement
+from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
+from fairdm.registry import ModelConfiguration
 from fairdm.registry.factories import (
     AdminFactory,
     FilterFactory,
@@ -19,6 +21,7 @@ from fairdm.registry.factories import (
     TableFactory,
 )
 from fairdm.utils.choices import Visibility
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 @pytest.fixture
@@ -615,3 +618,116 @@ class TestPublishedChoiceLists:
 
         assert published in queryset
         assert unpublished not in queryset
+
+
+@pytest.mark.django_db
+class TestSerializerFactory:
+    """The one builder of the serializer a registered type's API uses."""
+
+    @pytest.fixture(
+        params=[
+            (ConcreteSample, BaseSampleSerializer, "rock_type"),
+            (ConcreteMeasurement, BaseMeasurementSerializer, "reading"),
+        ],
+        ids=["sample", "measurement"],
+    )
+    def kind(self, request):
+        model, base, own_field = request.param
+        return model, base, own_field
+
+    @staticmethod
+    def extras(serializer_class, base):
+        """The fields the serializer carries beyond the base's common and metadata fields."""
+        fields = list(serializer_class.Meta.fields)
+        return [
+            name
+            for name in fields
+            if name not in base.common_fields and name not in base.metadata_fields
+        ]
+
+    def test_it_builds_on_the_base_for_its_kind(self, kind):
+        model, base, _ = kind
+
+        serializer_class = ModelConfiguration(model=model).get_serializer_class()
+
+        assert issubclass(serializer_class, base)
+
+    def test_with_no_api_configuration_it_carries_the_common_fields_and_the_defaults(
+        self, kind
+    ):
+        model, base, own_field = kind
+
+        serializer_class = ModelConfiguration(model=model).get_serializer_class()
+
+        fields = list(serializer_class.Meta.fields)
+        assert fields[: len(base.common_fields)] == list(base.common_fields)
+        assert own_field in fields
+
+    def test_the_defaults_leave_out_options_and_tags(self, kind):
+        model, _, _ = kind
+
+        serializer_class = ModelConfiguration(model=model).get_serializer_class()
+
+        assert "options" not in serializer_class.Meta.fields
+        assert "tags" not in serializer_class.Meta.fields
+
+    def test_a_field_listed_for_the_api_is_carried_even_when_the_defaults_leave_it_out(
+        self, kind
+    ):
+        model, base, own_field = kind
+
+        serializer_class = ModelConfiguration(
+            model=model, serializer_fields=[own_field, "options"]
+        ).get_serializer_class()
+
+        assert self.extras(serializer_class, base) == [own_field, "options"]
+
+    def test_serializer_fields_are_carried_with_the_common_fields(self, kind):
+        model, base, own_field = kind
+
+        serializer_class = ModelConfiguration(
+            model=model, serializer_fields=[own_field]
+        ).get_serializer_class()
+
+        fields = list(serializer_class.Meta.fields)
+        assert fields[: len(base.common_fields)] == list(base.common_fields)
+        assert self.extras(serializer_class, base) == [own_field]
+
+    def test_only_the_general_field_list_is_carried_when_the_api_has_none(self, kind):
+        model, base, own_field = kind
+
+        serializer_class = ModelConfiguration(
+            model=model, fields=[own_field]
+        ).get_serializer_class()
+
+        assert self.extras(serializer_class, base) == [own_field]
+
+    def test_the_api_list_wins_over_the_general_list(self, kind):
+        model, base, own_field = kind
+        general = "image"
+
+        serializer_class = ModelConfiguration(
+            model=model, fields=[general], serializer_fields=[own_field]
+        ).get_serializer_class()
+
+        assert self.extras(serializer_class, base) == [own_field]
+
+    def test_a_field_the_base_already_carries_is_not_repeated(self, kind):
+        model, _, own_field = kind
+
+        serializer_class = ModelConfiguration(
+            model=model, serializer_fields=["name", own_field]
+        ).get_serializer_class()
+
+        fields = list(serializer_class.Meta.fields)
+        assert len(fields) == len(set(fields))
+
+    def test_the_defaults_for_other_components_still_include_options_and_tags(
+        self, kind
+    ):
+        model, _, _ = kind
+
+        config = ModelConfiguration(model=model)
+
+        assert "options" in config.resolve_fields("form")
+        assert "tags" in config.resolve_fields("form")

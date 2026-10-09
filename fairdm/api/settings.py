@@ -6,17 +6,25 @@ and CORS. They are merged into the main Django settings via fairdm/conf/settings
 Portal developers can override any of these in their own settings:
 
     # In portal's settings.py
-    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {"anon": "50/hour", "user": "500/hour"}
-    FAIRDM_API_TITLE = "My Research Portal API"
-    FAIRDM_API_DESCRIPTION = "A specialised API for geochemical data."
+    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["user_day"] = "50000/day"
+    REST_FRAMEWORK["PAGE_SIZE"] = 50
+    FAIRDM_API_MAX_PAGE_SIZE = 500
+    SPECTACULAR_SETTINGS["TITLE"] = "My Research Portal API"
+    SPECTACULAR_SETTINGS["DESCRIPTION"] = "A specialised API for geochemical data."
+
+``FAIRDM_API_TITLE`` and ``FAIRDM_API_DESCRIPTION`` below are the defaults that
+``SPECTACULAR_SETTINGS`` is built from once, when this module is imported. A portal changes the
+title and description by assigning items of ``SPECTACULAR_SETTINGS``, after ``fairdm.setup()``
+returns. It assigns items and never a new dictionary: replacing the dictionary drops the hook
+that writes the limits into the description.
 """
 
-#: Title displayed in Swagger UI and OpenAPI schema ``info.title``.
-#: Override in your portal settings: ``FAIRDM_API_TITLE = "My Portal API"``
+#: Default title, ``info.title`` of the OpenAPI schema. A portal sets
+#: ``SPECTACULAR_SETTINGS["TITLE"]`` instead of this name.
 FAIRDM_API_TITLE = "FairDM Portal API"
 
-#: Rich Markdown description shown in Swagger UI and OpenAPI schema ``info.description``.
-#: Override in your portal settings: ``FAIRDM_API_DESCRIPTION = "..."``
+#: Default Markdown description, ``info.description`` of the OpenAPI schema. A portal sets
+#: ``SPECTACULAR_SETTINGS["DESCRIPTION"]`` instead of this name.
 FAIRDM_API_DESCRIPTION = """\
 ## FairDM Research Data Portal API
 
@@ -31,50 +39,28 @@ Interoperable, and Reusable.
 | **Projects** | `/api/v1/projects/` | Top-level research projects |
 | **Datasets** | `/api/v1/datasets/` | Collections of samples within a project |
 | **Contributors** | `/api/v1/contributors/` | People and organisations contributing data |
-| **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data (see discovery endpoint) |
-| **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements (see discovery endpoint) |
+| **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data |
+| **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements |
 
-Use the discovery endpoints to list all registered sample and measurement types:
-
-- `GET /api/v1/samples/` — catalogue of all sample types with field and count information
-- `GET /api/v1/measurements/` — catalogue of all measurement types
-
-### Authentication
-
-Most data is publicly readable without authentication.  To **create, update, or delete**
-records you need a token:
-
-1. Obtain a token: `POST /api/v1/auth/login/` with `{"username": "...", "password": "..."}`
-2. Include it in subsequent requests: `Authorization: Token <your-token>`
-
-### Rate Limits
-
-| Client type | Limit |
-|-------------|-------|
-| Anonymous | 100 requests / hour |
-| Authenticated | 1 000 requests / hour |
-
-Throttled requests receive `HTTP 429` with a `Retry-After` header.
-Portal operators can adjust limits via the `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` setting.
-
-### Pagination
-
-All list endpoints are paginated (default page size: 25, maximum: 100).
-
-- `?page=<n>` — page number
-- `?page_size=<n>` — results per page (capped at 100)
+`/api/v1/` links to every list the portal serves, and each type's description is on its list below.
 
 ### Filtering & Ordering
 
 - `?<field>=<value>` — filter by exact field value (available fields vary by resource)
+- `?modified_after=<date or date-time>` / `?modified_before=<date or date-time>` — only
+  records changed after, or before, a moment (ISO 8601), on every list
 - `?ordering=<field>` / `?ordering=-<field>` — ascending/descending ordering
 """
+
+#: The most records a caller may ask for in one page of a list. The default page size is
+#: ``REST_FRAMEWORK["PAGE_SIZE"]``. Both are read when a request is answered.
+FAIRDM_API_MAX_PAGE_SIZE = 1000
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # Token first: DRF answers 403 instead of 401 when the first authenticator
         # (SessionAuthentication) has no authenticate_header().
-        "rest_framework.authentication.TokenAuthentication",
+        "knox.auth.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -91,18 +77,24 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "fairdm.api.pagination.FairDMPagination",
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": 100,
+    # Two limits for each kind of caller: one over a minute to stop a burst, one over a day.
+    # The figures suit a portal on one small server.
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
+        "fairdm.api.throttling.AnonBurstThrottle",
+        "fairdm.api.throttling.AnonDailyThrottle",
+        "fairdm.api.throttling.UserBurstThrottle",
+        "fairdm.api.throttling.UserDailyThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
+        "anon_burst": "30/minute",
+        "anon_day": "2000/day",
+        "user_burst": "120/minute",
+        "user_day": "20000/day",
     },
     "DEFAULT_FILTER_BACKENDS": [
         "fairdm.api.filters.FairDMVisibilityFilter",
-        "django_filters.rest_framework.DjangoFilterBackend",
+        "fairdm.api.filters.FairDMFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
 }
@@ -115,14 +107,21 @@ SPECTACULAR_SETTINGS = {
     # Bundled assets, so the docs work in air-gapped environments.
     "SWAGGER_UI_DIST": "SIDECAR",
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
-    "REDOC_DIST": "SIDECAR",
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
     "SORT_OPERATIONS": False,
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+        "fairdm.api.schema.describe_api",
+    ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = False
+#: A token travels in a header a page chooses to send, so any website may call the API.
+#: Credentials stay off (``CORS_ALLOW_CREDENTIALS`` is not set), so a sign-in cookie is
+#: never accepted from another origin.
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS: list[str] = []
 CORS_URLS_REGEX = r"^/api/.*$"
 
-#: URL of the API documentation. Override it in portal settings to point elsewhere.
-FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"
+#: Settings of django-rest-knox, which stores the tokens people create on their account
+#: pages. A token does not renew when it is used, and a person holds at most ten.
+REST_KNOX = {"TOKEN_LIMIT_PER_USER": 10, "AUTO_REFRESH": False}

@@ -1,13 +1,21 @@
 """Tests for FairDM API viewsets (Feature 011 â€” US1)."""
 
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import pytest
 from django.urls import reverse
 
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.models import Contributor
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from fairdm.factories import (
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -300,209 +308,6 @@ class TestProjectCRUD:
         assert project.created_by != other_user
 
 
-@pytest.mark.django_db
-class TestRateLimiting:
-    # Test settings use DummyCache, which never stores throttle counts, so the throttle gets a real
-    # LocMemCache and a patched rate.
-    @pytest.fixture(autouse=True)
-    def _throttle_setup(self):
-        from unittest.mock import patch
-
-        from django.core.cache.backends.locmem import LocMemCache
-        from rest_framework.throttling import SimpleRateThrottle
-
-        test_cache = LocMemCache("throttle-test", {})
-        test_cache.clear()
-        with patch.object(SimpleRateThrottle, "cache", test_cache):
-            yield
-        test_cache.clear()
-
-    def test_anonymous_throttled_after_limit(self, api_client):
-        from unittest.mock import patch
-
-        from rest_framework.throttling import AnonRateThrottle
-
-        with patch.object(AnonRateThrottle, "get_rate", return_value="2/minute"):
-            url = reverse("api:project-list")
-            for _ in range(2):
-                assert api_client.get(url).status_code == 200
-            assert api_client.get(url).status_code == 429
-
-    def test_throttled_response_has_retry_after_header(self, api_client):
-        from unittest.mock import patch
-
-        from rest_framework.throttling import AnonRateThrottle
-
-        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"):
-            url = reverse("api:project-list")
-            api_client.get(url)
-            resp = api_client.get(url)
-            assert resp.status_code == 429
-            assert "Retry-After" in resp
-
-    def test_throttled_response_has_detail_message(self, api_client):
-        from unittest.mock import patch
-
-        from rest_framework.throttling import AnonRateThrottle
-
-        with patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"):
-            url = reverse("api:project-list")
-            api_client.get(url)
-            resp = api_client.get(url)
-            assert resp.status_code == 429
-            assert "detail" in resp.json()
-
-    def test_authenticated_gets_higher_limit(self, api_client, authenticated_client):
-        from unittest.mock import patch
-
-        from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-
-        with (
-            patch.object(AnonRateThrottle, "get_rate", return_value="1/minute"),
-            patch.object(UserRateThrottle, "get_rate", return_value="3/minute"),
-        ):
-            url = reverse("api:project-list")
-            api_client.get(url)
-            assert api_client.get(url).status_code == 429
-            for _ in range(3):
-                assert authenticated_client.get(url).status_code == 200
-
-    def test_throttle_rates_configurable(self, settings):
-        rates = settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {})
-        assert "anon" in rates
-        assert "user" in rates
-        assert rates["anon"] == "100/hour"
-        assert rates["user"] == "1000/hour"
-        settings.REST_FRAMEWORK = {
-            **settings.REST_FRAMEWORK,
-            "DEFAULT_THROTTLE_RATES": {"anon": "50/hour", "user": "500/hour"},
-        }
-        assert settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["anon"] == "50/hour"
-
-
-@pytest.mark.django_db
-class TestCreatedRecordsListTheirCreator:
-    @pytest.mark.parametrize("name", ["project", "dataset"])
-    def test_a_project_or_dataset_lists_its_creator_at_the_manage_level(
-        self, authenticated_client, user, name
-    ):
-        from guardian.models import UserObjectPermission
-
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        response = authenticated_client.post(
-            reverse(f"api:{name}-list"), {"name": f"Made by API {name}"}, format="json"
-        )
-
-        assert response.status_code == 201
-        model = Project if name == "project" else Dataset
-        manager = getattr(model, "all_objects", model.objects)
-        record = manager.get(uuid=response.json()["uuid"])
-        assert RecordAccess(record).own_level(user) == ContributionLevel.MANAGE
-        assert not UserObjectPermission.objects.exists()
-
-    def test_a_sample_lists_its_creator_at_the_manage_level(self, user):
-        from types import SimpleNamespace
-
-        from guardian.models import UserObjectPermission
-
-        from demo.models import RockSample
-        from fairdm.api.serializers import BaseSampleSerializer, build_model_serializer
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        person_at(dataset, ContributionLevel.EDIT, user)
-        serializer_class = build_model_serializer(
-            RockSample,
-            ["name", "dataset", "rock_type", "collection_date"],
-            base_class=BaseSampleSerializer,
-        )
-        serializer = serializer_class(
-            data={
-                "name": "Made by API",
-                "dataset": dataset.pk,
-                "rock_type": "igneous",
-                "collection_date": "2024-01-02",
-            },
-            context={"request": SimpleNamespace(user=user)},
-        )
-        assert serializer.is_valid(), serializer.errors
-
-        sample = serializer.save()
-
-        assert RecordAccess(sample).own_level(user) == ContributionLevel.MANAGE
-        assert not UserObjectPermission.objects.exists()
-
-    def test_a_measurement_lists_its_creator_at_the_manage_level(self, user):
-        from types import SimpleNamespace
-
-        from guardian.models import UserObjectPermission
-
-        from demo.factories import RockSampleFactory
-        from demo.models import ExampleMeasurement
-        from fairdm.api.serializers import (
-            BaseMeasurementSerializer,
-            build_model_serializer,
-        )
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        person_at(dataset, ContributionLevel.EDIT, user)
-        serializer_class = build_model_serializer(
-            ExampleMeasurement,
-            ["name", "dataset", "sample"],
-            base_class=BaseMeasurementSerializer,
-        )
-        serializer = serializer_class(
-            data={
-                "name": "Made by API",
-                "dataset": dataset.pk,
-                "sample": RockSampleFactory(dataset=dataset).pk,
-            },
-            context={"request": SimpleNamespace(user=user)},
-        )
-        assert serializer.is_valid(), serializer.errors
-
-        measurement = serializer.save()
-
-        assert RecordAccess(measurement).own_level(user) == ContributionLevel.MANAGE
-        assert not UserObjectPermission.objects.exists()
-
-    def test_a_superuser_creates_without_being_credited(self, db):
-        from rest_framework.test import APIClient
-
-        admin = UserFactory(is_superuser=True, is_staff=True)
-        client = APIClient()
-        client.force_authenticate(admin)
-
-        response = client.post(
-            reverse("api:project-list"), {"name": "Admin by API"}, format="json"
-        )
-
-        assert response.status_code == 201
-        project = Project.objects.get(uuid=response.json()["uuid"])
-        assert project.contributors.count() == 0
-
-
-@pytest.fixture(params=["project", "dataset"])
-def private_record(request):
-    """A private project or dataset, each in turn, with one person at manage."""
-    from fairdm.contrib.contributors.choices import ContributionLevel
-    from fairdm.factories import ContributionFactory, PersonFactory
-
-    factory = ProjectFactory if request.param == "project" else DatasetFactory
-    record = factory(visibility=Visibility.PRIVATE)
-    ContributionFactory(
-        content_object=record,
-        contributor=PersonFactory(is_active=True, is_claimed=True),
-        level=ContributionLevel.MANAGE,
-    )
-    return record
-
-
 def person_at(record, level, person=None):
     """Return a person who can sign in, credited on the record at the level."""
     from fairdm.factories import ContributionFactory, PersonFactory
@@ -521,323 +326,2223 @@ def signed_in_as(person):
     return client
 
 
-def detail_url(record):
-    """Return the API address of a project or dataset."""
-    name = "project" if isinstance(record, Project) else "dataset"
-    return reverse(f"api:{name}-detail", kwargs={"uuid": record.uuid})
+def build_record(kind, make_record, add_metadata):
+    """Build a public record of a kind, with metadata recorded, and its parents."""
+    from demo.models import ExampleMeasurement, RockSample
+
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    dataset = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
+    if kind == "project":
+        record = project
+    elif kind == "dataset":
+        record = dataset
+    elif kind == "sample":
+        record = make_record(RockSample, dataset)
+    elif kind == "located sample":
+        from demo.models import CustomSample
+        from fairdm.factories import PointFactory
+
+        record = make_record(CustomSample, dataset, location=PointFactory())
+    else:
+        record = make_record(ExampleMeasurement, dataset)
+    return add_metadata(record)
 
 
 @pytest.mark.django_db
-class TestVisibilityNeedsManage:
-    def test_an_editor_cannot_change_visibility(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
+class TestCompleteRecord:
+    METADATA = ("descriptions", "dates", "identifiers", "keywords", "contributors")
 
-        editor = person_at(private_record, ContributionLevel.EDIT)
+    @pytest.mark.parametrize("kind", ["project", "dataset", "sample", "measurement"])
+    def test_a_record_carries_its_own_fields_and_its_metadata(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
 
-        response = signed_in_as(editor).patch(
-            detail_url(private_record), {"visibility": Visibility.PUBLIC}, format="json"
-        )
-
-        assert response.status_code == 403
-        private_record.refresh_from_db()
-        assert private_record.visibility == Visibility.PRIVATE
-
-    def test_a_manager_can_change_visibility(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        manager = person_at(private_record, ContributionLevel.MANAGE)
-
-        response = signed_in_as(manager).patch(
-            detail_url(private_record), {"visibility": Visibility.PUBLIC}, format="json"
-        )
+        response = api_client.get(url_of(record))
 
         assert response.status_code == 200
-        private_record.refresh_from_db()
-        assert private_record.visibility == Visibility.PUBLIC
+        data = response.json()
+        assert data["uuid"] == record.uuid
+        assert data["name"] == record.name
+        for name in self.METADATA:
+            assert len(data[name]) == 1, name
+        description = record.descriptions.get()
+        assert data["descriptions"][0]["type"] == description.type
+        assert data["descriptions"][0]["value"] == description.value
+        assert data["dates"][0]["type"] == record.dates.get().type
+        assert data["identifiers"][0]["value"] == record.identifiers.get().value
+        assert data["keywords"][0]["name"] == record.keywords.get().name
 
-    def test_an_editor_can_change_another_field(self, private_record):
-        from fairdm.contrib.contributors.choices import ContributionLevel
+    @pytest.mark.parametrize("kind", ["project", "dataset", "sample", "measurement"])
+    def test_a_credited_contributor_is_named_with_roles_and_affiliation(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
+        credit = record.contributors.get()
 
-        editor = person_at(private_record, ContributionLevel.EDIT)
+        credited = api_client.get(url_of(record)).json()["contributors"][0]
 
-        response = signed_in_as(editor).patch(
-            detail_url(private_record), {"name": "Renamed"}, format="json"
+        assert credited["contributor"]["uuid"] == credit.contributor.uuid
+        assert credited["affiliation"]["uuid"] == credit.affiliation.uuid
+        assert [role["name"] for role in credited["roles"]] == [
+            role.name for role in credit.roles.all()
+        ]
+
+    def test_a_dataset_carries_its_licence_and_a_project_its_owner(
+        self, api_client, url_of, make_record, add_metadata
+    ):
+        project = build_record("project", make_record, add_metadata)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
         )
 
-        assert response.status_code == 200
-        private_record.refresh_from_db()
-        assert private_record.name == "Renamed"
+        project_data = api_client.get(url_of(project)).json()
+        dataset_data = api_client.get(url_of(dataset)).json()
 
-    def test_an_editor_can_send_the_visibility_it_already_has(self, private_record):
+        assert project_data["owner"]["uuid"] == project.owner.uuid
+        assert dataset_data["license"]["name"] == dataset.license.name
+
+    @pytest.mark.parametrize("kind", ["dataset", "sample", "measurement"])
+    def test_the_address_of_a_parent_returns_the_parent(
+        self, api_client, url_of, make_record, add_metadata, kind
+    ):
+        record = build_record(kind, make_record, add_metadata)
+        data = api_client.get(url_of(record)).json()
+        parent_name = "project" if kind == "dataset" else "dataset"
+
+        parent = api_client.get(data[parent_name]["url"])
+
+        assert parent.status_code == 200
+        assert parent.json()["uuid"] == data[parent_name]["uuid"]
+
+    def test_a_measurement_names_its_sample_and_the_sample_address_returns_it(
+        self, api_client, url_of, make_record, add_metadata
+    ):
+        measurement = build_record("measurement", make_record, add_metadata)
+        data = api_client.get(url_of(measurement)).json()
+
+        sample = api_client.get(data["sample"]["url"])
+
+        assert data["sample"]["uuid"] == measurement.sample.uuid
+        assert sample.status_code == 200
+        assert sample.json()["uuid"] == measurement.sample.uuid
+
+    def test_a_public_dataset_in_a_private_project_hides_the_project_from_a_visitor(
+        self, api_client, url_of
+    ):
         from fairdm.contrib.contributors.choices import ContributionLevel
 
-        editor = person_at(private_record, ContributionLevel.EDIT)
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        viewer = person_at(project, ContributionLevel.VIEW)
 
-        response = signed_in_as(editor).patch(
-            detail_url(private_record),
-            {"name": "Renamed", "visibility": Visibility.PRIVATE},
+        visitor_sees = api_client.get(url_of(dataset)).json()["project"]
+        viewer_sees = signed_in_as(viewer).get(url_of(dataset)).json()["project"]
+
+        assert visitor_sees is None
+        assert viewer_sees["uuid"] == project.uuid
+
+    def test_a_sample_in_a_private_dataset_is_hidden_from_a_measurement_that_names_it(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import ExampleMeasurement, RockSample
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = make_record(RockSample, elsewhere)
+        measurement = make_record(
+            ExampleMeasurement,
+            DatasetFactory(visibility=Visibility.PUBLIC, published=True),
+            sample=sample,
+        )
+        viewer = person_at(elsewhere, ContributionLevel.VIEW)
+
+        visitor_sees = api_client.get(url_of(measurement)).json()["sample"]
+        viewer_sees = signed_in_as(viewer).get(url_of(measurement)).json()["sample"]
+
+        assert visitor_sees is None
+        assert viewer_sees["uuid"] == sample.uuid
+
+    def test_a_list_hides_the_parent_it_would_otherwise_name(self, api_client, url_of):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        DatasetFactory(project=project, visibility=Visibility.PUBLIC, published=True)
+
+        results = api_client.get(url_of(Dataset, "list")).json()["results"]
+
+        assert [row["project"] for row in results] == [None]
+
+
+def registered(kind):
+    """Return the registered sample or measurement types, in a stable order."""
+    from fairdm.registry import registry
+
+    models = registry.samples if kind == "sample" else registry.measurements
+    return sorted(models, key=lambda model: model.__name__)
+
+
+COMMON_SAMPLE_FIELDS = (
+    "url",
+    "uuid",
+    "name",
+    "local_id",
+    "status",
+    "dataset",
+    "added",
+    "modified",
+)
+COMMON_MEASUREMENT_FIELDS = (
+    "url",
+    "uuid",
+    "name",
+    "sample",
+    "dataset",
+    "added",
+    "modified",
+)
+
+
+@pytest.mark.django_db
+class TestCommonFields:
+    @pytest.mark.parametrize("model", registered("sample"), ids=lambda m: m.__name__)
+    def test_a_sample_carries_the_common_fields_and_every_declared_field(
+        self, api_client, url_of, make_record, model
+    ):
+        from fairdm.registry import registry
+        from fairdm.registry.config import flatten_fields
+
+        sample = make_record(
+            model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
+        declared = flatten_fields(
+            registry.get_for_model(model).resolve_fields("serializer")
+        )
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert set(COMMON_SAMPLE_FIELDS) <= set(data)
+        assert set(declared) <= set(data)
+        assert data["dataset"]["uuid"] == sample.dataset.uuid
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_measurement_carries_the_common_fields_and_its_measured_values(
+        self, api_client, url_of, make_record, model
+    ):
+        from fairdm.registry import registry
+        from fairdm.registry.config import flatten_fields
+
+        measurement = make_record(
+            model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
+        declared = flatten_fields(
+            registry.get_for_model(model).resolve_fields("serializer")
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert set(COMMON_MEASUREMENT_FIELDS) <= set(data)
+        assert set(declared) <= set(data)
+        assert data["sample"]["uuid"] == measurement.sample.uuid
+
+    def test_a_measured_value_is_returned_as_recorded(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import XRFMeasurement
+
+        measurement = make_record(
+            XRFMeasurement,
+            DatasetFactory(visibility=Visibility.PUBLIC, published=True),
+            element="Fe",
+            concentration_ppm="123.45",
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert data["element"] == "Fe"
+        assert float(data["concentration_ppm"]) == 123.45
+
+
+KINDS_WITH_A_PAGE = (
+    "project",
+    "dataset",
+    "sample",
+    "measurement",
+    "person",
+    "organisation",
+)
+
+
+@pytest.mark.django_db
+class TestPageOnThePortal:
+    @staticmethod
+    def build(kind, make_record):
+        """Build a record of a kind that anyone may see, and return it."""
+        from demo.models import ExampleMeasurement, RockSample
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        if kind == "person":
+            return PersonFactory(is_claimed=True)
+        if kind == "organisation":
+            return OrganizationFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        if kind == "project":
+            return project
+        if kind == "dataset":
+            return dataset
+        return make_record(
+            RockSample if kind == "sample" else ExampleMeasurement, dataset
+        )
+
+    @staticmethod
+    def routes(record, url_of):
+        """Return the list and record addresses that serve a record."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        if isinstance(record, Contributor):
+            return (
+                reverse("api:contributor-list"),
+                reverse("api:contributor-detail", kwargs={"uuid": record.uuid}),
+            )
+        return url_of(type(record), "list"), url_of(record)
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_a_record_carries_the_absolute_address_of_its_page(
+        self, api_client, url_of, make_record, kind
+    ):
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+
+        data = api_client.get(detail).json()
+
+        assert data["html_url"] == f"http://testserver{record.get_absolute_url()}"
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_a_list_carries_it_too(self, api_client, url_of, make_record, kind):
+        record = self.build(kind, make_record)
+        listing, _detail = self.routes(record, url_of)
+
+        rows = api_client.get(listing, {"page_size": 1000}).json()["results"]
+
+        row = next(row for row in rows if row["uuid"] == record.uuid)
+        assert row["html_url"] == f"http://testserver{record.get_absolute_url()}"
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_the_address_returns_the_page(
+        self, api_client, client, url_of, make_record, kind
+    ):
+        from urllib.parse import urlsplit
+
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+        address = api_client.get(detail).json()["html_url"]
+
+        response = client.get(urlsplit(address).path)
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
+    def test_it_follows_the_address_of_the_record_in_the_api(
+        self, api_client, url_of, make_record, kind
+    ):
+        record = self.build(kind, make_record)
+        _list, detail = self.routes(record, url_of)
+
+        data = api_client.get(detail).json()
+
+        keys = list(data)
+        assert keys[keys.index("url") + 1] == "html_url"
+
+    @pytest.mark.parametrize("kind", ("project", "dataset", "sample"))
+    def test_a_value_sent_for_it_is_ignored(
+        self, url_of, make_record, member_at, signed_in, kind
+    ):
+        record = self.build(kind, make_record)
+        client = signed_in(member_at(record, ContributionLevel.EDIT))
+
+        response = client.patch(
+            url_of(record),
+            {"name": "Renamed", "html_url": "https://example.org/elsewhere"},
             format="json",
         )
 
-        assert response.status_code == 200
-
-
-def default_viewset(model):
-    """Build the viewset a registered type gets when it declares no field list."""
-    from types import SimpleNamespace
-
-    from fairdm.api.viewsets import generate_viewset
-
-    config = SimpleNamespace(
-        model=model,
-        serializer_class=None,
-        serializer_fields=None,
-        fields=None,
-        get_filterset_class=lambda: None,
-        description="",
-        metadata=None,
-    )
-    return generate_viewset(config)
-
-
-def call(viewset, method, person, data=None, uuid=None):
-    """Send a request to a viewset's list or detail route as a person, or as a visitor."""
-    from rest_framework.test import APIRequestFactory, force_authenticate
-
-    factory = APIRequestFactory()
-    request = getattr(factory, method)("/", data or {}, format="json")
-    if person is not None:
-        force_authenticate(request, user=person)
-    actions = {
-        "post": {"post": "create"},
-        "patch": {"patch": "partial_update"},
-    }
-    kwargs = {} if uuid is None else {"uuid": uuid}
-    response = viewset.as_view(actions[method])(request, **kwargs)
-    response.render()
-    return response
-
-
-@pytest.fixture(params=["sample", "measurement"])
-def moving(request):
-    """A sample or a measurement in a dataset, with the viewset that carries its dataset."""
-    from types import SimpleNamespace
-
-    from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-    from demo.models import ExampleMeasurement, RockSample
-
-    home = DatasetFactory(visibility=Visibility.PRIVATE)
-    if request.param == "sample":
-        record = RockSampleFactory(dataset=home)
-        viewset = default_viewset(RockSample)
-    else:
-        record = ExampleMeasurementFactory(
-            dataset=home, sample=RockSampleFactory(dataset=home)
+        assert response.status_code == 200, response.content
+        assert response.json()["name"] == "Renamed"
+        assert response.json()["html_url"] == (
+            f"http://testserver{record.get_absolute_url()}"
         )
-        viewset = default_viewset(ExampleMeasurement)
-    return SimpleNamespace(record=record, home=home, viewset=viewset)
 
 
 @pytest.mark.django_db
-class TestMovingARecordThroughTheApi:
-    def test_an_editor_cannot_move_a_record_to_a_dataset_they_manage(self, moving):
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        owner = person_at(moving.home, ContributionLevel.MANAGE)
-        editor = person_at(moving.home, ContributionLevel.EDIT)
-        theirs = DatasetFactory(visibility=Visibility.PUBLIC)
-        person_at(theirs, ContributionLevel.MANAGE, editor)
-
-        response = call(
-            moving.viewset,
-            "patch",
-            editor,
-            {"dataset": theirs.pk},
-            uuid=moving.record.uuid,
-        )
-
-        assert response.status_code == 403
-        moving.record.refresh_from_db()
-        assert moving.record.dataset_id == moving.home.pk
-        assert RecordAccess(moving.record).level_of(editor) == ContributionLevel.EDIT
-        assert RecordAccess(moving.record).level_of(owner) == ContributionLevel.MANAGE
-
-    def test_a_move_that_leaves_nobody_to_manage_it_is_refused(self, moving):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        manager = person_at(moving.home, ContributionLevel.MANAGE)
-        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC)
-        person_at(elsewhere, ContributionLevel.EDIT, manager)
-
-        response = call(
-            moving.viewset,
-            "patch",
-            manager,
-            {"dataset": elsewhere.pk},
-            uuid=moving.record.uuid,
-        )
-
-        assert response.status_code == 400
-        assert "dataset" in response.data
-        assert response.data["dataset"][0].code == "no_manager"
-        moving.record.refresh_from_db()
-        assert moving.record.dataset_id == moving.home.pk
-
-    def test_a_manager_can_move_a_record_to_a_dataset_they_manage(self, moving):
-        from fairdm.contrib.contributors.choices import ContributionLevel
-
-        manager = person_at(moving.home, ContributionLevel.MANAGE)
-        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC)
-        person_at(elsewhere, ContributionLevel.MANAGE, manager)
-
-        response = call(
-            moving.viewset,
-            "patch",
-            manager,
-            {"dataset": elsewhere.pk},
-            uuid=moving.record.uuid,
-        )
-
-        assert response.status_code == 200
-        moving.record.refresh_from_db()
-        assert moving.record.dataset_id == elsewhere.pk
-
-
-@pytest.fixture(params=["sample", "measurement"])
-def creating(request):
-    """A sample or measurement viewset, with a way to build a payload for a dataset."""
-    from types import SimpleNamespace
-
-    from demo.factories import RockSampleFactory
-    from demo.models import ExampleMeasurement, RockSample
-
-    if request.param == "sample":
-
-        def payload(dataset):
-            return {
-                "name": "Made by API",
-                "dataset": dataset.pk,
-                "rock_type": "igneous",
-                "collection_date": "2024-01-02",
-            }
-
-        return SimpleNamespace(
-            model=RockSample, viewset=default_viewset(RockSample), payload=payload
-        )
-
-    def payload(dataset):
-        return {
-            "name": "Made by API",
-            "dataset": dataset.pk,
-            "sample": RockSampleFactory(dataset=dataset).pk,
-        }
-
-    return SimpleNamespace(
-        model=ExampleMeasurement,
-        viewset=default_viewset(ExampleMeasurement),
-        payload=payload,
+class TestNoDatabaseNumbers:
+    RELATIONS = (
+        "project",
+        "dataset",
+        "sample",
+        "owner",
+        "license",
+        "contributor",
+        "affiliation",
+        "location",
+        "polymorphic_ctype",
+        "created_by",
     )
 
+    @staticmethod
+    def walk(value, path=""):
+        """Yield the path of every key that is a database number or holds one."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                where = f"{path}.{key}"
+                if key in ("id", "pk") or (
+                    key in TestNoDatabaseNumbers.RELATIONS and isinstance(inner, int)
+                ):
+                    yield where
+                yield from TestNoDatabaseNumbers.walk(inner, where)
+        elif isinstance(value, list):
+            for position, inner in enumerate(value):
+                yield from TestNoDatabaseNumbers.walk(inner, f"{path}[{position}]")
 
-@pytest.mark.django_db
-class TestCreatingARecordThroughTheApi:
-    def test_an_account_with_no_credit_cannot_create_in_a_public_dataset(
-        self, creating
+    @pytest.fixture
+    def every_address(self, url_of, make_record, add_metadata):
+        """The list and record address of every kind of record and registered type."""
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        project = add_metadata(ProjectFactory(visibility=Visibility.PUBLIC))
+        dataset = add_metadata(
+            DatasetFactory(
+                project=project, visibility=Visibility.PUBLIC, published=True
+            )
+        )
+        records = [project, dataset]
+        records += [
+            add_metadata(make_record(model, dataset))
+            for model in registered("sample") + registered("measurement")
+        ]
+        addresses = [
+            address
+            for record in records
+            for address in (url_of(type(record), "list"), url_of(record))
+        ]
+        addresses.append(reverse("api:contributor-list"))
+        for contributor in (PersonFactory(), OrganizationFactory()):
+            addresses.append(
+                reverse("api:contributor-detail", kwargs={"uuid": contributor.uuid})
+            )
+        return addresses
+
+    def test_no_list_or_record_response_carries_a_database_number(
+        self, api_client, every_address
     ):
-        from fairdm.contrib.contributors.models import Contribution
+        found = []
+        for address in every_address:
+            response = api_client.get(address)
+            assert response.status_code == 200, address
+            found += [f"{address}{where}" for where in self.walk(response.json())]
+
+        assert found == []
+
+
+@pytest.mark.django_db
+class TestContributor:
+    ACCOUNT_KEYS = (
+        "email",
+        "password",
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "last_login",
+        "date_joined",
+        "groups",
+        "user_permissions",
+        "is_claimed",
+    )
+
+    @pytest.fixture
+    def person(self):
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory(
+            email="private.address@example.org",
+            is_claimed=True,
+            links=["https://example.org/me"],
+            lang=["en"],
+        )
+        ContributorIdentifierFactory(related=person, type="ORCID")
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        return person
+
+    @pytest.fixture
+    def organisation(self):
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        organisation = OrganizationFactory(parent=OrganizationFactory())
+        ContributorIdentifierFactory(
+            related=organisation, type="ROR", value="03yrm5c26"
+        )
+        return organisation
+
+    @staticmethod
+    def keys_of(value):
+        """Return every key that appears anywhere in a response."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                yield key
+                yield from TestContributor.keys_of(inner)
+        elif isinstance(value, list):
+            for inner in value:
+                yield from TestContributor.keys_of(inner)
+
+    def test_a_person_is_returned_with_what_their_profile_page_shows(
+        self, api_client, person
+    ):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["uuid"] == person.uuid
+        assert data["name"] == person.name
+        assert data["type"] == "person"
+        assert data["profile"] == person.profile
+        assert data["links"] == person.links
+        assert data["identifiers"][0]["value"] == person.identifiers.get().value
+        assert data["affiliation"]["uuid"] == person.primary_organization.uuid
+
+    def test_an_organisation_is_returned_with_what_its_profile_page_shows(
+        self, api_client, organisation
+    ):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": organisation.uuid})
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["uuid"] == organisation.uuid
+        assert data["type"] == "organization"
+        assert data["identifiers"][0]["value"] == "03yrm5c26"
+        assert data["affiliation"]["uuid"] == organisation.parent.uuid
+
+    def test_no_response_carries_an_account_detail(
+        self, api_client, person, organisation
+    ):
+        responses = [
+            api_client.get(reverse("api:contributor-list")),
+            api_client.get(
+                reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == 200
+            assert set(self.keys_of(response.json())).isdisjoint(self.ACCOUNT_KEYS)
+            assert person.email not in response.content.decode()
+
+    def test_a_superuser_and_the_anonymous_account_are_not_listed(
+        self, api_client, person
+    ):
         from fairdm.factories import PersonFactory
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        outsider = PersonFactory(is_active=True, is_claimed=True)
-        payload = creating.payload(dataset)
-        before = creating.model._default_manager.count()
-        credits = Contribution.objects.count()
+        administrator = PersonFactory(is_superuser=True, is_staff=True)
+        anonymous = PersonFactory(email="AnonymousUser")
 
-        response = call(creating.viewset, "post", outsider, payload)
+        listed = [
+            row["uuid"]
+            for row in api_client.get(reverse("api:contributor-list")).json()["results"]
+        ]
 
-        assert response.status_code == 400
-        assert "dataset" in response.data
-        assert creating.model._default_manager.count() == before
-        assert Contribution.objects.count() == credits
+        assert person.uuid in listed
+        assert administrator.uuid not in listed
+        assert anonymous.uuid not in listed
 
-    def test_a_person_at_edit_on_the_dataset_creates_and_is_listed_at_manage(
-        self, creating
-    ):
-        from fairdm.contrib.contributors.access import RecordAccess
-        from fairdm.contrib.contributors.choices import ContributionLevel
+    def test_a_superuser_is_answered_as_a_record_that_does_not_exist(self, api_client):
+        from fairdm.factories import PersonFactory
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        editor = person_at(dataset, ContributionLevel.EDIT)
+        administrator = PersonFactory(is_superuser=True, is_staff=True)
 
-        response = call(creating.viewset, "post", editor, creating.payload(dataset))
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": administrator.uuid})
+        )
 
-        assert response.status_code == 201
-        record = creating.model._default_manager.get(name="Made by API")
-        assert record.dataset_id == dataset.pk
-        assert RecordAccess(record).own_level(editor) == ContributionLevel.MANAGE
+        assert response.status_code == 404
 
-    def test_a_person_at_view_on_the_dataset_cannot_create(self, creating):
-        from fairdm.contrib.contributors.choices import ContributionLevel
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        reader = person_at(dataset, ContributionLevel.VIEW)
-        payload = creating.payload(dataset)
-        before = creating.model._default_manager.count()
+def routable_models():
+    """Every model with a list and record route: the core kinds and the registered types."""
+    from fairdm.contrib.contributors.models import Contributor
 
-        response = call(creating.viewset, "post", reader, payload)
-
-        assert response.status_code == 400
-        assert "dataset" in response.data
-        assert creating.model._default_manager.count() == before
-
-    def test_a_visitor_is_answered_unauthenticated(self, creating):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-
-        response = call(creating.viewset, "post", None, creating.payload(dataset))
-
-        assert response.status_code == 401
+    return [
+        Project,
+        Dataset,
+        Contributor,
+        *registered("sample"),
+        *registered("measurement"),
+    ]
 
 
 @pytest.mark.django_db
-class TestParentChoicesThroughTheApi:
-    def test_a_measurement_cannot_name_a_sample_the_person_cannot_edit(self):
+class TestListAndRecordRoutes:
+    @pytest.fixture
+    def a_record_of(self, make_record):
+        """Return a function building a public record of a routable model."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.factories import OrganizationFactory
+
+        def a_record_of(model):
+            if model is Project:
+                return ProjectFactory(visibility=Visibility.PUBLIC)
+            if model is Dataset:
+                return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            if model is Contributor:
+                return OrganizationFactory()
+            return make_record(
+                model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            )
+
+        return a_record_of
+
+    @staticmethod
+    def address(model, action, uuid=None):
+        from fairdm.contrib.contributors.models import Contributor
+        from tests.test_api.conftest import route_name
+
+        name = (
+            f"api:contributor-{action}"
+            if model is Contributor
+            else route_name(model, action)
+        )
+        return reverse(name, kwargs={"uuid": uuid} if uuid else None)
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_a_list_is_served_to_a_visitor(self, api_client, a_record_of, model):
+        record = a_record_of(model)
+
+        response = api_client.get(self.address(model, "list"))
+
+        assert response.status_code == 200
+        assert record.uuid in [row["uuid"] for row in response.json()["results"]]
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_a_record_is_found_by_its_short_identifier(
+        self, api_client, a_record_of, model
+    ):
+        record = a_record_of(model)
+
+        response = api_client.get(self.address(model, "detail", record.uuid))
+
+        assert response.status_code == 200
+        assert response.json()["uuid"] == record.uuid
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    def test_an_unknown_identifier_is_answered_404(self, api_client, model):
+        response = api_client.get(self.address(model, "detail", "xNoSuchRecord"))
+
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/api/v1/samples/unregistered-types/",
+            "/api/v1/measurements/unregistered-types/",
+            "/api/v1/samples/unregistered-types/sNoSuchRecord/",
+            "/api/v1/measurements/unregistered-types/mNoSuchRecord/",
+        ],
+    )
+    def test_an_unregistered_type_is_answered_404(self, api_client, path):
+        assert api_client.get(path).status_code == 404
+
+    def test_a_sample_type_is_not_served_under_the_measurement_prefix(
+        self, api_client, a_record_of
+    ):
+        from demo.models import RockSample
+
+        record = a_record_of(RockSample)
+
+        response = api_client.get(f"/api/v1/measurements/rock-samples/{record.uuid}/")
+
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestFiltering:
+    @staticmethod
+    def listed(client, address, **query):
+        response = client.get(address, query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_a_declared_filter_narrows_a_sample_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import SoilSample
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        clay = make_record(SoilSample, dataset, soil_type="clay")
+        make_record(SoilSample, dataset, soil_type="sand")
+
+        found = self.listed(api_client, url_of(SoilSample, "list"), soil_type="clay")
+
+        assert found == {clay.uuid}
+
+    def test_a_declared_filter_narrows_a_measurement_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import XRFMeasurement
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        iron = make_record(XRFMeasurement, dataset, element="Fe")
+        make_record(XRFMeasurement, dataset, element="Si")
+
+        found = self.listed(api_client, url_of(XRFMeasurement, "list"), element="Fe")
+
+        assert found == {iron.uuid}
+
+    def test_a_filter_declared_by_overriding_the_accessor_narrows_a_list(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import WaterSample
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        river = make_record(WaterSample, dataset, water_source="river")
+        make_record(WaterSample, dataset, water_source="well")
+
+        found = self.listed(
+            api_client, url_of(WaterSample, "list"), water_source="river"
+        )
+
+        assert found == {river.uuid}
+
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_list_is_narrowed_by_the_short_identifier_of_its_dataset(
+        self, api_client, url_of, make_record, model
+    ):
+        wanted = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        here = make_record(model, wanted)
+        make_record(model, DatasetFactory(visibility=Visibility.PUBLIC, published=True))
+
+        found = self.listed(api_client, url_of(model, "list"), dataset=wanted.uuid)
+
+        assert found == {here.uuid}
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_measurement_list_is_narrowed_by_the_short_identifier_of_its_sample(
+        self, api_client, url_of, make_record, model
+    ):
         from demo.factories import RockSampleFactory
-        from demo.models import ExampleMeasurement
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        sample = RockSampleFactory(dataset=dataset)
+        here = make_record(model, dataset, sample=sample)
+        make_record(model, dataset, sample=RockSampleFactory(dataset=dataset))
+
+        found = self.listed(api_client, url_of(model, "list"), sample=sample.uuid)
+
+        assert found == {here.uuid}
+
+    def test_a_person_with_a_level_can_narrow_by_a_private_dataset(
+        self, url_of, make_record
+    ):
+        from demo.models import RockSample
         from fairdm.contrib.contributors.choices import ContributionLevel
 
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        editor = person_at(dataset, ContributionLevel.EDIT)
-        foreign = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        viewer = person_at(private, ContributionLevel.VIEW)
+        here = make_record(RockSample, private)
+        make_record(
+            RockSample, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
 
-        response = call(
-            default_viewset(ExampleMeasurement),
-            "post",
-            editor,
-            {"name": "Made by API", "dataset": dataset.pk, "sample": foreign.pk},
+        found = self.listed(
+            signed_in_as(viewer), url_of(RockSample, "list"), dataset=private.uuid
+        )
+
+        assert found == {here.uuid}
+
+    @staticmethod
+    def answer_to(client, address, name, sent):
+        """Return the status and the body of a refused filter, without the value sent."""
+        response = client.get(address, {name: sent})
+        return response.status_code, str(response.json()).replace(sent, "<sent>")
+
+    def test_a_visitor_narrowing_by_a_private_dataset_is_answered_as_for_an_unknown_one(
+        self, api_client, url_of, make_record
+    ):
+        from demo.models import RockSample
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        make_record(RockSample, private)
+        address = url_of(RockSample, "list")
+
+        answer = self.answer_to(api_client, address, "dataset", private.uuid)
+
+        assert answer[0] == 400
+        assert answer == self.answer_to(api_client, address, "dataset", "u" * 23)
+
+    def test_a_visitor_narrowing_by_a_sample_of_a_private_dataset_is_answered_as_for_an_unknown_one(
+        self, api_client, url_of, make_record
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import ExampleMeasurement
+
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=private)
+        make_record(ExampleMeasurement, private, sample=sample)
+        address = url_of(ExampleMeasurement, "list")
+
+        answer = self.answer_to(api_client, address, "sample", sample.uuid)
+
+        assert answer[0] == 400
+        assert answer == self.answer_to(api_client, address, "sample", "u" * 23)
+
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_database_number_is_refused_for_the_dataset(
+        self, api_client, url_of, make_record, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        make_record(model, dataset)
+
+        response = api_client.get(url_of(model, "list"), {"dataset": dataset.pk})
+
+        assert response.status_code == 400
+        assert "dataset" in response.json()
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_a_database_number_is_refused_for_the_sample(
+        self, api_client, url_of, make_record, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        measurement = make_record(model, dataset)
+
+        response = api_client.get(
+            url_of(model, "list"), {"sample": measurement.sample.pk}
         )
 
         assert response.status_code == 400
-        assert "sample" in response.data
-        assert not ExampleMeasurement.objects.exists()
+        assert "sample" in response.json()
 
-    def test_a_dataset_can_only_be_put_in_a_project_the_person_can_edit(self):
-        from fairdm.api.serializers import build_model_serializer
-        from fairdm.contrib.contributors.choices import ContributionLevel
+    @pytest.mark.parametrize(
+        "model",
+        registered("sample") + registered("measurement"),
+        ids=lambda m: m.__name__,
+    )
+    def test_a_content_type_number_is_not_a_way_to_narrow_a_list(
+        self, api_client, url_of, make_record, model
+    ):
+        from django.contrib.contenttypes.models import ContentType
 
-        reader_of = ProjectFactory(visibility=Visibility.PUBLIC)
-        editor_of = ProjectFactory(visibility=Visibility.PUBLIC)
-        person = person_at(reader_of, ContributionLevel.VIEW)
-        person_at(editor_of, ContributionLevel.EDIT, person)
-        serializer_class = build_model_serializer(Dataset, ["name", "project"])
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        here = make_record(model, dataset)
+        other = ContentType.objects.get_for_model(ProjectFactory._meta.model)
 
-        def errors_for(project):
-            serializer = serializer_class(
-                data={"name": "New", "project": project.pk},
-                context={"request": SimpleNamespace(user=person)},
+        found = self.listed(
+            api_client, url_of(model, "list"), polymorphic_ctype=other.pk
+        )
+
+        assert here.uuid in found
+
+
+@pytest.mark.django_db
+class TestOrdering:
+    NAMES = ("Charlie", "Alpha", "Bravo")
+
+    @pytest.fixture(
+        params=[Project, Dataset, *registered("sample"), *registered("measurement")],
+        ids=lambda model: model.__name__,
+    )
+    def model(self, request, make_record):
+        """A kind of record, with three public records named out of order."""
+        model = request.param
+        for name in self.NAMES:
+            if model is Project:
+                ProjectFactory(name=name, visibility=Visibility.PUBLIC)
+            elif model is Dataset:
+                DatasetFactory(name=name, visibility=Visibility.PUBLIC, published=True)
+            else:
+                dataset = Dataset.objects.filter(name="Holder").first() or (
+                    DatasetFactory(
+                        name="Holder", visibility=Visibility.PUBLIC, published=True
+                    )
+                )
+                make_record(model, dataset, name=name)
+        return model
+
+    def names_in(self, client, url_of, model, ordering):
+        response = client.get(url_of(model, "list"), {"ordering": ordering})
+        assert response.status_code == 200, response.content
+        return [row["name"] for row in response.json()["results"]]
+
+    def test_a_list_is_returned_in_ascending_order(self, api_client, url_of, model):
+        names = self.names_in(api_client, url_of, model, "name")
+
+        assert names == sorted(self.NAMES)
+
+    def test_a_list_is_returned_in_descending_order(self, api_client, url_of, model):
+        names = self.names_in(api_client, url_of, model, "-name")
+
+        assert names == sorted(self.NAMES, reverse=True)
+
+    def test_a_list_is_returned_in_the_order_records_were_added(
+        self, api_client, url_of, model
+    ):
+        oldest_first = self.names_in(api_client, url_of, model, "added")
+        newest_first = self.names_in(api_client, url_of, model, "-added")
+
+        assert oldest_first == list(self.NAMES)
+        assert newest_first == list(reversed(self.NAMES))
+
+
+@pytest.mark.django_db
+class TestCreating:
+    @pytest.mark.parametrize("model", registered("sample"), ids=lambda m: m.__name__)
+    def test_someone_at_the_edit_level_creates_a_sample_in_a_dataset(
+        self, url_of, member_at, signed_in, body_for, saved, model
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        client = signed_in(member_at(dataset, ContributionLevel.EDIT))
+        body, stored = body_for(model)
+
+        response = client.post(
+            url_of(model, "list"), {**body, "dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 201, response.content
+        sample = model.objects.get(uuid=response.json()["uuid"])
+        assert sample.dataset == dataset
+        assert saved(sample, stored) == stored
+        assert response.json() == client.get(url_of(sample)).json()
+
+    @pytest.mark.parametrize(
+        "model", registered("measurement"), ids=lambda m: m.__name__
+    )
+    def test_someone_at_the_edit_level_creates_a_measurement_with_its_values(
+        self, url_of, member_at, signed_in, body_for, saved, model
+    ):
+        from demo.factories import RockSampleFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        client = signed_in(member_at(dataset, ContributionLevel.EDIT))
+        body, stored = body_for(model)
+
+        response = client.post(
+            url_of(model, "list"),
+            {**body, "dataset": dataset.uuid, "sample": sample.uuid},
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        measurement = model.objects.get(uuid=response.json()["uuid"])
+        assert measurement.dataset == dataset
+        assert measurement.sample_id == sample.pk
+        assert saved(measurement, stored) == stored
+        assert response.json() == client.get(url_of(measurement)).json()
+
+    def test_someone_at_the_edit_level_creates_a_dataset_in_a_project(
+        self, member_at, signed_in
+    ):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        client = signed_in(member_at(project, ContributionLevel.EDIT))
+
+        response = client.post(
+            reverse("api:dataset-list"),
+            {"name": "Sent by a script", "project": project.uuid},
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        dataset = Dataset.all_objects.get(uuid=response.json()["uuid"])
+        assert dataset.project == project
+        assert dataset.name == "Sent by a script"
+        detail = reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        assert response.json() == client.get(detail).json()
+
+    def test_any_signed_in_person_creates_a_project(self, signed_in):
+        from fairdm.factories import PersonFactory
+
+        client = signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+        response = client.post(
+            reverse("api:project-list"), {"name": "Sent by a script"}, format="json"
+        )
+
+        assert response.status_code == 201, response.content
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.name == "Sent by a script"
+        detail = reverse("api:project-detail", kwargs={"uuid": project.uuid})
+        assert response.json() == client.get(detail).json()
+
+
+def create_through_the_api(
+    kind, url_of, member_at, signed_in, body_for, person, **sent
+):
+    """Create a record of a kind through its route as a person, and return the response.
+
+    The person is given the level the kind needs on its parent first. Anything in ``sent`` is
+    added to the body.
+    """
+    from demo.factories import RockSampleFactory
+    from demo.models import RockSample, XRFMeasurement
+
+    client = signed_in(person)
+    if kind == "project":
+        return client.post(
+            reverse("api:project-list"), {"name": "Sent by a script", **sent}, "json"
+        )
+    if kind == "dataset":
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        member_at(project, ContributionLevel.EDIT, person)
+        body = {"name": "Sent by a script", "project": project.uuid, **sent}
+        return client.post(reverse("api:dataset-list"), body, format="json")
+    dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+    member_at(dataset, ContributionLevel.EDIT, person)
+    model = RockSample if kind == "sample" else XRFMeasurement
+    body, _stored = body_for(model)
+    body["dataset"] = dataset.uuid
+    if kind == "measurement":
+        body["sample"] = RockSampleFactory(dataset=dataset).uuid
+    return client.post(url_of(model, "list"), {**body, **sent}, format="json")
+
+
+def stored_record(kind, uuid):
+    """Return the stored project, dataset, sample or measurement with the identifier."""
+    from fairdm.core.models import Measurement, Sample
+
+    model = {
+        "project": Project,
+        "dataset": Dataset,
+        "sample": Sample,
+        "measurement": Measurement,
+    }[kind]
+    return getattr(model, "all_objects", model.objects).get(uuid=uuid)
+
+
+RECORD_KINDS = ["project", "dataset", "sample", "measurement"]
+
+
+@pytest.mark.django_db
+class TestCreatorIsCredited:
+    @pytest.mark.parametrize("kind", RECORD_KINDS)
+    def test_the_creator_is_listed_at_the_manage_level(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind, url_of, member_at, signed_in, body_for, creator
+        )
+
+        assert response.status_code == 201, response.content
+        record = stored_record(kind, response.json()["uuid"])
+        assert RecordAccess(record).own_level(creator) == ContributionLevel.MANAGE
+
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
+    def test_a_created_by_sent_by_the_caller_is_ignored(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+        someone_else = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind,
+            url_of,
+            member_at,
+            signed_in,
+            body_for,
+            creator,
+            created_by=someone_else.pk,
+        )
+
+        assert response.status_code == 201, response.content
+        assert "created_by" not in response.json()
+        record = stored_record(kind, response.json()["uuid"])
+        assert record.created_by_id == creator.pk
+
+    @pytest.mark.parametrize("kind", RECORD_KINDS)
+    def test_a_person_named_as_created_by_is_not_credited(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(is_active=True, is_claimed=True)
+        someone_else = PersonFactory(is_active=True, is_claimed=True)
+
+        response = create_through_the_api(
+            kind,
+            url_of,
+            member_at,
+            signed_in,
+            body_for,
+            creator,
+            created_by=someone_else.pk,
+        )
+
+        record = stored_record(kind, response.json()["uuid"])
+        assert RecordAccess(record).own_level(someone_else) is None
+
+    def test_a_superuser_creates_without_being_credited(self, signed_in):
+        admin = UserFactory(is_superuser=True, is_staff=True)
+
+        response = signed_in(admin).post(
+            reverse("api:project-list"), {"name": "Sent by an admin"}, format="json"
+        )
+
+        assert response.status_code == 201
+        project = Project.objects.get(uuid=response.json()["uuid"])
+        assert project.contributors.count() == 0
+
+
+def writable_models():
+    """Every model the API creates records of: the core kinds with a type and the registered types."""
+    return [Project, Dataset, *registered("sample"), *registered("measurement")]
+
+
+@pytest.fixture
+def a_private_record(make_record):
+    """Return a function building a private record of a writable model, with its parents."""
+
+    def a_private_record(model):
+        if model is Project:
+            return ProjectFactory(visibility=Visibility.PRIVATE)
+        if model is Dataset:
+            return DatasetFactory(
+                project=ProjectFactory(visibility=Visibility.PRIVATE),
+                visibility=Visibility.PRIVATE,
             )
-            serializer.is_valid()
-            return serializer.errors
+        return make_record(model, DatasetFactory(visibility=Visibility.PRIVATE))
 
-        assert "project" in errors_for(reader_of)
-        assert "project" not in errors_for(editor_of)
+    return a_private_record
+
+
+@pytest.fixture
+def replacement_for(body_for):
+    """Return a function giving a full body that replaces a record, naming the parents it has."""
+
+    def replacement_for(record):
+        model = type(record)
+        if model is Project:
+            other = next(
+                value
+                for value, _label in Project.STATUS_CHOICES.choices
+                if value != record.status
+            )
+            body = {"name": "Replaced by a script", "status": other}
+            return body, dict(body)
+        if model is Dataset:
+            body = {"name": "Replaced by a script", "project": record.project.uuid}
+            return body, {"name": "Replaced by a script"}
+        body, stored = body_for(model, name="Replaced by a script")
+        body["dataset"] = record.dataset.uuid
+        if "sample" in {field.name for field in model._meta.fields}:
+            body["sample"] = record.sample.uuid
+        return body, stored
+
+    return replacement_for
+
+
+@pytest.mark.django_db
+class TestChanging:
+    @staticmethod
+    def edited_by_an_editor(record, member_at, signed_in):
+        return signed_in(member_at(record, ContributionLevel.EDIT))
+
+    @staticmethod
+    def without(data, *names):
+        return {key: value for key, value in data.items() if key not in names}
+
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_partial_change_alters_the_named_field_and_nothing_else(
+        self, url_of, member_at, signed_in, a_private_record, model
+    ):
+        record = a_private_record(model)
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        before = client.get(url_of(record)).json()
+
+        response = client.patch(url_of(record), {"name": "Renamed"}, format="json")
+
+        assert response.status_code == 200, response.content
+        after = client.get(url_of(record)).json()
+        assert after["name"] == "Renamed"
+        assert self.without(after, "name", "modified") == self.without(
+            before, "name", "modified"
+        )
+        assert response.json() == after
+
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_full_replacement_sets_the_writable_fields(
+        self,
+        url_of,
+        member_at,
+        signed_in,
+        saved,
+        a_private_record,
+        replacement_for,
+        model,
+    ):
+        record = a_private_record(model)
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        body, stored = replacement_for(record)
+
+        response = client.put(url_of(record), body, format="json")
+
+        assert response.status_code == 200, response.content
+        manager = getattr(model, "all_objects", model.objects)
+        record = manager.get(uuid=record.uuid)
+        assert saved(record, stored) == stored
+
+    @pytest.mark.parametrize("method", ["patch", "put"])
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_value_for_a_read_only_field_changes_nothing(
+        self,
+        url_of,
+        member_at,
+        signed_in,
+        add_metadata,
+        a_private_record,
+        replacement_for,
+        model,
+        method,
+    ):
+        record = add_metadata(a_private_record(model))
+        client = self.edited_by_an_editor(record, member_at, signed_in)
+        before = client.get(url_of(record)).json()
+        body, _stored = replacement_for(record)
+        body.update(
+            {
+                "uuid": "xNotMyIdentifier",
+                "added": "2001-01-01T00:00:00Z",
+                "modified": "2001-01-01T00:00:00Z",
+                "url": "http://example.org/elsewhere/",
+                "descriptions": [{"type": "Abstract", "value": "Overwritten"}],
+                "dates": [{"type": "Created", "value": "2001-01-01"}],
+                "identifiers": [{"type": "DOI", "value": "10.1234/overwritten"}],
+                "keywords": [],
+                "contributors": [],
+            }
+        )
+
+        response = getattr(client, method)(url_of(record), body, format="json")
+
+        assert response.status_code == 200, response.content
+        after = client.get(url_of(record)).json()
+        read_only = ("uuid", "url", "added", "descriptions", "dates", "identifiers")
+        for name in (*read_only, "keywords", "contributors"):
+            assert after[name] == before[name]
+
+
+@pytest.mark.django_db
+class TestDeleting:
+    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    def test_a_deleted_record_is_gone_and_then_answered_404(
+        self, url_of, member_at, signed_in, a_private_record, model
+    ):
+        record = a_private_record(model)
+        client = signed_in(member_at(record, ContributionLevel.MANAGE))
+        address = url_of(record)
+
+        response = client.delete(address)
+
+        assert response.status_code == 204
+        assert client.get(address).status_code == 404
+        manager = getattr(model, "all_objects", model.objects)
+        assert not manager.filter(uuid=record.uuid).exists()
+
+    def test_a_project_with_a_public_dataset_is_refused_with_a_reason(
+        self, url_of, member_at, signed_in
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        client = signed_in(member_at(project, ContributionLevel.MANAGE))
+
+        response = client.delete(url_of(project))
+
+        assert response.status_code == 409
+        assert response.json()["detail"]
+        assert dataset.uuid not in response.content.decode()
+        assert Project.objects.filter(pk=project.pk).exists()
+        assert Dataset.all_objects.filter(pk=dataset.pk).exists()
+
+    def test_a_sample_with_measurements_is_refused_with_a_reason(
+        self, url_of, member_at, signed_in
+    ):
+        from demo.factories import RockSampleFactory, XRFMeasurementFactory
+        from demo.models import RockSample, XRFMeasurement
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        sample = RockSampleFactory(dataset=dataset)
+        measurement = XRFMeasurementFactory(dataset=dataset, sample=sample)
+        client = signed_in(member_at(dataset, ContributionLevel.MANAGE))
+
+        response = client.delete(url_of(sample))
+
+        assert response.status_code == 409
+        assert response.json()["detail"]
+        assert measurement.uuid not in response.content.decode()
+        assert RockSample.objects.filter(pk=sample.pk).exists()
+        assert XRFMeasurement.objects.filter(pk=measurement.pk).exists()
+
+
+@pytest.mark.django_db
+class TestValidation:
+    @pytest.fixture
+    def person(self):
+        from fairdm.factories import PersonFactory
+
+        return PersonFactory(is_active=True, is_claimed=True)
+
+    @pytest.fixture
+    def dataset(self, person, member_at):
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        member_at(dataset, ContributionLevel.EDIT, person)
+        return dataset
+
+    def test_missing_required_fields_are_named_and_nothing_is_saved(
+        self, url_of, signed_in, person, dataset
+    ):
+        from demo.models import RockSample
+
+        response = signed_in(person).post(
+            url_of(RockSample, "list"), {"dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert {"name", "rock_type", "collection_date"} <= set(response.json())
+        assert not RockSample.objects.exists()
+
+    def test_missing_required_fields_of_a_measurement_are_named(
+        self, url_of, signed_in, person, dataset
+    ):
+        from demo.models import XRFMeasurement
+
+        response = signed_in(person).post(
+            url_of(XRFMeasurement, "list"), {"dataset": dataset.uuid}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert {"name", "sample", "element", "concentration_ppm"} <= set(
+            response.json()
+        )
+        assert not XRFMeasurement.objects.exists()
+
+    def test_missing_required_fields_of_a_project_and_a_dataset_are_named(
+        self, signed_in, person
+    ):
+        client = signed_in(person)
+
+        project = client.post(reverse("api:project-list"), {}, format="json")
+        dataset = client.post(reverse("api:dataset-list"), {}, format="json")
+
+        assert project.status_code == dataset.status_code == 400
+        assert "name" in project.json()
+        assert "name" in dataset.json()
+        assert not Project.objects.exists()
+        assert not Dataset.all_objects.exists()
+
+    def test_an_unacceptable_value_is_named_with_every_other_one_at_fault(
+        self, url_of, signed_in, person, dataset, body_for
+    ):
+        from demo.models import RockSample
+
+        body, _stored = body_for(RockSample)
+        body.update(
+            dataset=dataset.uuid,
+            weight_grams="heavy",
+            collection_date="not a date",
+            name="x" * 1000,
+        )
+
+        response = signed_in(person).post(url_of(RockSample, "list"), body, "json")
+
+        assert response.status_code == 400
+        assert set(response.json()) == {"weight_grams", "collection_date", "name"}
+        assert not RockSample.objects.filter(dataset=dataset).exists()
+
+    def test_an_unacceptable_value_in_a_change_is_named_and_the_record_is_kept(
+        self, url_of, signed_in, person, dataset, make_record
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(RockSample, dataset)
+        before = sample.weight_grams
+
+        response = signed_in(person).patch(
+            url_of(sample), {"weight_grams": "heavy"}, format="json"
+        )
+
+        assert response.status_code == 400
+        assert set(response.json()) == {"weight_grams"}
+        sample.refresh_from_db()
+        assert sample.weight_grams == before
+
+    @pytest.mark.parametrize(
+        ("kind", "parent"),
+        [("sample", "dataset"), ("measurement", "sample"), ("dataset", "project")],
+    )
+    def test_a_parent_that_does_not_exist_and_one_the_caller_may_not_add_to_are_answered_alike(
+        self, url_of, signed_in, member_at, body_for, person, dataset, kind, parent
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample, XRFMeasurement
+
+        own_project = ProjectFactory(visibility=Visibility.PRIVATE)
+        member_at(own_project, ContributionLevel.EDIT, person)
+        elsewhere = DatasetFactory(visibility=Visibility.PRIVATE)
+        public = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        member_at(public, ContributionLevel.VIEW, person)
+        make_parent = {
+            "dataset": lambda: DatasetFactory(visibility=Visibility.PRIVATE),
+            "sample": lambda: RockSampleFactory(dataset=elsewhere),
+            "project": lambda: ProjectFactory(visibility=Visibility.PRIVATE),
+        }[parent]
+        unseen = make_parent()
+        seen = make_parent()
+        if parent != "sample":
+            seen.visibility = Visibility.PUBLIC
+            seen.save()
+            member_at(seen, ContributionLevel.VIEW, person)
+        else:
+            member_at(elsewhere, ContributionLevel.VIEW, person)
+        if kind == "dataset":
+            model, body = Dataset, {"name": "Sent by a script"}
+            url = reverse("api:dataset-list")
+        else:
+            model = RockSample if kind == "sample" else XRFMeasurement
+            body, _stored = body_for(model)
+            body["dataset"] = dataset.uuid
+            if kind == "measurement":
+                body["sample"] = RockSampleFactory(dataset=dataset).uuid
+            url = url_of(model, "list")
+        manager = getattr(model, "all_objects", model.objects)
+        stored_before = manager.count()
+
+        answers = []
+        for sent in ("xNoSuchRecord", unseen.uuid, seen.uuid):
+            response = signed_in(person).post(
+                url, {**body, parent: sent}, format="json"
+            )
+            assert response.status_code == 400, response.content
+            assert set(response.json()) == {parent}
+            answers.append(
+                [message.replace(sent, "<sent>") for message in response.json()[parent]]
+            )
+
+        assert answers[0] == answers[1] == answers[2]
+        assert manager.count() == stored_before
+
+    @pytest.mark.parametrize("name", ["project", "dataset"])
+    def test_a_body_that_cannot_be_parsed_is_answered_400(
+        self, signed_in, person, name
+    ):
+        response = signed_in(person).post(
+            reverse(f"api:{name}-list"),
+            data=b'{"name": "unfinished',
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+        assert not Project.objects.exists()
+        assert not Dataset.all_objects.exists()
+
+
+@pytest.mark.django_db
+class TestNoServerErrors:
+    @pytest.fixture(params=["superuser", "stranger"])
+    def client(self, request, signed_in):
+        """A client signed in as a superuser, and as a person with no level on anything."""
+        from fairdm.factories import PersonFactory
+
+        if request.param == "superuser":
+            return signed_in(UserFactory(is_superuser=True, is_staff=True))
+        return signed_in(PersonFactory(is_active=True, is_claimed=True))
+
+    @pytest.fixture
+    def a_record_of(self, make_record):
+        """Return a function building a public record of a routable model."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.factories import OrganizationFactory
+
+        def a_record_of(model):
+            if model is Project:
+                return ProjectFactory(visibility=Visibility.PUBLIC)
+            if model is Dataset:
+                return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            if model is Contributor:
+                return OrganizationFactory()
+            return make_record(
+                model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            )
+
+        return a_record_of
+
+    @pytest.fixture
+    def address(self, url_of):
+        """Return a function giving a record's or a model's list address, contributors too."""
+        from fairdm.contrib.contributors.models import Contributor
+
+        def address(subject, action="detail"):
+            if subject is Contributor or isinstance(subject, Contributor):
+                kwargs = None if isinstance(subject, type) else {"uuid": subject.uuid}
+                return reverse(f"api:contributor-{action}", kwargs=kwargs)
+            return url_of(subject, action)
+
+        return address
+
+    @pytest.fixture
+    def bodies(self, body_for):
+        """Return a function giving the bodies to send to the routes of a model, as a dict."""
+        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.core.models import Measurement
+        from fairdm.registry import registry
+
+        def bodies(model, record):
+            if model is Contributor:
+                valid = {"name": "Sent by a script"}
+                fields = ["name", "type"]
+            elif model in (Project, Dataset):
+                valid = {"name": "Sent by a script"}
+                fields = ["name", "status", "visibility", "project", "funding", "owner"]
+            else:
+                valid, _stored = body_for(model)
+                valid["dataset"] = record.dataset.uuid
+                if issubclass(model, Measurement):
+                    valid["sample"] = record.sample.uuid
+                fields = list(
+                    registry.get_for_model(model).get_serializer_class()().fields
+                )
+            return {
+                "empty": {},
+                "wrong types": {name: {"nested": [1, None]} for name in fields},
+                "a list": ["not", "an", "object"],
+                "valid": valid,
+            }
+
+        return bodies
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
+    def test_a_create_is_answered_below_500(
+        self, client, a_record_of, bodies, address, model, sent
+    ):
+        record = a_record_of(model)
+
+        response = client.post(
+            address(model, "list"), bodies(model, record)[sent], format="json"
+        )
+
+        assert response.status_code < 500
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("method", ["put", "patch"])
+    @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
+    def test_a_change_is_answered_below_500(
+        self, client, a_record_of, bodies, address, model, method, sent
+    ):
+        record = a_record_of(model)
+
+        response = getattr(client, method)(
+            address(record), bodies(model, record)[sent], format="json"
+        )
+
+        assert response.status_code < 500
+
+    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("held_by_others", [False, True])
+    def test_a_delete_is_answered_below_500(
+        self, client, a_record_of, address, make_record, model, held_by_others
+    ):
+        from demo.models import XRFMeasurement
+        from fairdm.core.models import Sample
+
+        record = a_record_of(model)
+        if held_by_others and model is Project:
+            DatasetFactory(project=record, visibility=Visibility.PUBLIC, published=True)
+        if held_by_others and issubclass(model, Sample):
+            make_record(XRFMeasurement, record.dataset, sample=record)
+
+        response = client.delete(address(record))
+
+        assert response.status_code < 500
+
+
+def marked_serializer(base, model, marker):
+    """Return a serializer on ``base`` that carries one extra field holding ``marker``."""
+    from rest_framework import serializers
+
+    class MarkedSerializer(base):
+        marked_by = serializers.SerializerMethodField()
+
+        def get_marked_by(self, obj):
+            return marker
+
+        class Meta(base.Meta):
+            fields = [*base.Meta.fields, "marked_by"]
+
+    MarkedSerializer.Meta.model = model
+    return MarkedSerializer
+
+
+@pytest.mark.django_db
+class TestRegisteredSerializerIsUsed:
+    @pytest.fixture
+    def rock(self):
+        from demo.factories import RockSampleFactory
+
+        return RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
+
+    def test_a_serializer_named_in_the_registration_is_the_routes_serializer(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.models import RockSample
+        from fairdm.api.serializers import BaseSampleSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(
+            model=RockSample,
+            serializer_class=marked_serializer(
+                BaseSampleSerializer, RockSample, "the named class"
+            ),
+        )
+        on_the_router(
+            "samples/named-serializer", generate_viewset(config), "samples-named"
+        )
+
+        results = api_client.get(reverse("api:samples-named-list")).json()["results"]
+
+        assert [row["marked_by"] for row in results] == ["the named class"]
+
+    def test_a_serializer_from_an_overridden_accessor_is_the_routes_serializer(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.models import RockSample
+        from fairdm.api.serializers import BaseSampleSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        serializer_class = marked_serializer(
+            BaseSampleSerializer, RockSample, "the accessor"
+        )
+
+        class OverridingConfig(ModelConfiguration):
+            def get_serializer_class(self):
+                return serializer_class
+
+        on_the_router(
+            "samples/accessor-serializer",
+            generate_viewset(OverridingConfig(model=RockSample)),
+            "samples-accessor",
+        )
+
+        results = api_client.get(reverse("api:samples-accessor-list")).json()["results"]
+
+        assert [row["marked_by"] for row in results] == ["the accessor"]
+
+    def test_a_measurement_route_uses_the_serializer_its_configuration_returns(
+        self, api_client, on_the_router, rock
+    ):
+        from demo.factories import XRFMeasurementFactory
+        from demo.models import XRFMeasurement
+        from fairdm.api.serializers import BaseMeasurementSerializer
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
+        config = ModelConfiguration(
+            model=XRFMeasurement,
+            serializer_class=marked_serializer(
+                BaseMeasurementSerializer, XRFMeasurement, "the measurement class"
+            ),
+        )
+        on_the_router(
+            "measurements/named-serializer",
+            generate_viewset(config),
+            "measurements-named",
+        )
+
+        results = api_client.get(reverse("api:measurements-named-list")).json()[
+            "results"
+        ]
+
+        assert [row["marked_by"] for row in results] == ["the measurement class"]
+
+
+@pytest.mark.django_db
+class TestRelationFiltersUseIdentifiers:
+    """A filter a type declares on a relation matches the related record's short identifier."""
+
+    @pytest.fixture
+    def portal_filters(self):
+        """Return the filter set a type declares, the one the portal's pages would use."""
+        import django_filters
+        from django.contrib.contenttypes.models import ContentType
+
+        from demo.models import RockSample
+
+        class RockFilters(django_filters.FilterSet):
+            project = django_filters.ModelChoiceFilter(
+                field_name="dataset__project", queryset=Project.objects.all()
+            )
+            projects = django_filters.ModelMultipleChoiceFilter(
+                field_name="dataset__project", queryset=Project.objects.all()
+            )
+            kind = django_filters.ModelChoiceFilter(
+                field_name="polymorphic_ctype", queryset=ContentType.objects.all()
+            )
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        return RockFilters
+
+    @pytest.fixture
+    def filtered_route(self, on_the_router, portal_filters):
+        from demo.models import RockSample
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(model=RockSample, filterset_class=portal_filters)
+        on_the_router(
+            "samples/filtered-rocks", generate_viewset(config), "samples-filtered"
+        )
+        return reverse("api:samples-filtered-list")
+
+    @pytest.fixture
+    def rocks(self, make_record):
+        from demo.models import RockSample
+
+        first = ProjectFactory(visibility=Visibility.PUBLIC)
+        second = ProjectFactory(visibility=Visibility.PUBLIC)
+        return {
+            project: make_record(
+                RockSample,
+                DatasetFactory(
+                    project=project, visibility=Visibility.PUBLIC, published=True
+                ),
+            )
+            for project in (first, second)
+        }
+
+    @staticmethod
+    def listed(client, address, **query):
+        response = client.get(address, query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_a_relation_filter_matches_the_short_identifier(
+        self, api_client, filtered_route, rocks
+    ):
+        project, record = next(iter(rocks.items()))
+
+        found = self.listed(api_client, filtered_route, project=project.uuid)
+
+        assert found == {record.uuid}
+
+    def test_a_relation_filter_refuses_a_database_number(
+        self, api_client, filtered_route, rocks
+    ):
+        project = next(iter(rocks))
+
+        response = api_client.get(filtered_route, {"project": project.pk})
+
+        assert response.status_code == 400
+        assert "project" in response.json()
+
+    def test_a_filter_for_several_related_records_matches_their_identifiers(
+        self, api_client, filtered_route, rocks
+    ):
+        found = self.listed(
+            api_client,
+            filtered_route,
+            projects=[project.uuid for project in rocks],
+        )
+
+        assert found == {record.uuid for record in rocks.values()}
+
+    def test_a_filter_on_a_relation_with_no_identifier_is_left_out(
+        self, api_client, filtered_route, rocks
+    ):
+        from django.contrib.contenttypes.models import ContentType
+
+        kind = ContentType.objects.get_for_model(Project)
+
+        found = self.listed(api_client, filtered_route, kind=kind.pk)
+
+        assert found == {record.uuid for record in rocks.values()}
+
+    def test_the_filter_set_the_portal_uses_is_left_as_declared(
+        self, api_client, filtered_route, portal_filters
+    ):
+        api_client.get(filtered_route)
+
+        assert "to_field_name" not in portal_filters.base_filters["project"].extra
+        assert "kind" in portal_filters.base_filters
+
+
+class TestSerializerMustBuildOnBase:
+    @pytest.fixture
+    def off_the_base(self):
+        from rest_framework import serializers
+
+        def build(model):
+            class OffTheBase(serializers.ModelSerializer):
+                class Meta:
+                    pass
+
+            OffTheBase.Meta.model = model
+            OffTheBase.Meta.fields = ["name"]
+            return OffTheBase
+
+        return build
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_an_overridden_accessor_returning_a_serializer_off_the_base_is_refused(
+        self, off_the_base, kind
+    ):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        model = registered(kind)[0]
+        serializer_class = off_the_base(model)
+
+        class OverridingConfig(ModelConfiguration):
+            def get_serializer_class(self):
+                return serializer_class
+
+        with pytest.raises(ImproperlyConfigured):
+            generate_viewset(OverridingConfig(model=model))
+
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_named_serializer_off_the_base_is_refused(self, off_the_base, kind):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.registry import ModelConfiguration
+
+        model = registered(kind)[0]
+
+        with pytest.raises(ImproperlyConfigured):
+            generate_viewset(
+                ModelConfiguration(model=model, serializer_class=off_the_base(model))
+            )
+
+
+@pytest.mark.django_db
+class TestQueryCount:
+    KINDS = (
+        "project",
+        "dataset",
+        "contributor",
+        "sample",
+        "located sample",
+        "measurement",
+    )
+
+    @staticmethod
+    def add_contributors():
+        """Add a person with an identifier and an affiliation, and an organisation with a parent."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory(is_active=True, is_claimed=True)
+        ContributorIdentifierFactory(related=person, type="ORCID")
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        AffiliationFactory(person=person, organization=OrganizationFactory())
+        organisation = OrganizationFactory(parent=OrganizationFactory())
+        ContributorIdentifierFactory(related=organisation, type="ROR")
+
+    @pytest.fixture
+    def grow(self, make_record, add_metadata):
+        """Return a function adding records of a kind, each with its metadata recorded."""
+
+        def grow(kind, number):
+            for _ in range(number):
+                if kind == "contributor":
+                    self.add_contributors()
+                else:
+                    build_record(kind, make_record, add_metadata)
+
+        return grow
+
+    @staticmethod
+    def address(kind, url_of):
+        from demo.models import CustomSample, ExampleMeasurement, RockSample
+
+        return {
+            "project": lambda: reverse("api:project-list"),
+            "dataset": lambda: reverse("api:dataset-list"),
+            "contributor": lambda: reverse("api:contributor-list"),
+            "sample": lambda: url_of(RockSample, "list"),
+            "located sample": lambda: url_of(CustomSample, "list"),
+            "measurement": lambda: url_of(ExampleMeasurement, "list"),
+        }[kind]()
+
+    @staticmethod
+    def queries_for(client, address):
+        """Return the number of queries behind a list, and the number of records it holds."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            response = client.get(address, {"page_size": 100})
+        assert response.status_code == 200
+        return len(captured), len(response.json()["results"])
+
+    @pytest.mark.parametrize("caller", ["anonymous", "token"])
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+        self, api_client, authenticated_client, url_of, grow, kind, caller
+    ):
+        client = api_client if caller == "anonymous" else authenticated_client
+        address = self.address(kind, url_of)
+        grow(kind, 2)
+        self.queries_for(client, address)
+        few, held_few = self.queries_for(client, address)
+
+        grow(kind, 10)
+        many, held_many = self.queries_for(client, address)
+
+        assert held_many >= held_few + 10
+        assert many == few
+
+
+@pytest.mark.django_db
+class TestEveryListedFilter:
+    VALUES = {
+        "text": "abc",
+        "number": "1",
+        "date": "2020-01-01",
+        "identifier": "00000000-0000-0000-0000-000000000000",
+    }
+
+    @pytest.fixture
+    def client(self):
+        from rest_framework.test import APIClient
+
+        return APIClient(raise_request_exception=False)
+
+    def listed(self, rf, kind, url_of):
+        """Return each type's list address and the filter names the API builds for it."""
+        from django.contrib.auth.models import AnonymousUser
+        from django.urls import resolve
+        from rest_framework.request import Request
+
+        from fairdm.api.filters import FairDMFilterBackend
+
+        types = []
+        for model in registered(kind[:-1]):
+            address = url_of(model, "list")
+            viewset = resolve(address).func.cls
+            request = Request(rf.get(address))
+            request.user = AnonymousUser()
+            view = viewset(request=request, format_kwarg=None, action="list")
+            queryset = viewset.queryset.all()
+            filterset_class = FairDMFilterBackend().get_filterset_class(view, queryset)
+            filterset = filterset_class(data={}, queryset=queryset, request=request)
+            types.append((address, list(filterset.filters)))
+        return types
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    @pytest.mark.parametrize("value", sorted(VALUES))
+    def test_a_listed_filter_is_answered_below_500(
+        self, client, rf, url_of, kind, value
+    ):
+        types = self.listed(rf, kind, url_of)
+        assert any(names for _address, names in types)
+
+        for address, names in types:
+            for name in names:
+                response = client.get(address, {name: self.VALUES[value]})
+
+                assert response.status_code < 500, (address, name)
+
+
+@pytest.mark.django_db
+class TestReferencesFollowTheLists:
+    @pytest.fixture(params=["superuser", "anonymous account"])
+    def unlisted(self, request):
+        """A contributor the contributor list leaves out."""
+        from fairdm.factories import PersonFactory
+
+        if request.param == "superuser":
+            return PersonFactory(is_active=True, is_superuser=True)
+        return PersonFactory(email="AnonymousUser")
+
+    def test_the_contributor_list_leaves_the_account_out(self, api_client, unlisted):
+        response = api_client.get(
+            reverse("api:contributor-detail", kwargs={"uuid": unlisted.uuid})
+        )
+
+        assert response.status_code == 404
+
+    def test_a_credit_to_that_contributor_reads_null(self, api_client, unlisted):
+        from fairdm.factories import ContributionFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        ContributionFactory(content_object=dataset, contributor=unlisted)
+
+        response = api_client.get(
+            reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 200
+        referred = [row["contributor"] for row in response.json()["contributors"]]
+        assert referred == [None]
+
+    def test_a_credit_to_a_listed_contributor_is_a_reference(self, api_client):
+        from fairdm.factories import ContributionFactory, PersonFactory
+
+        person = PersonFactory(is_active=True)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        ContributionFactory(content_object=dataset, contributor=person)
+
+        response = api_client.get(
+            reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
+        )
+
+        referred = [row["contributor"] for row in response.json()["contributors"]]
+        assert {"uuid": person.uuid, "url": referred[0]["url"]} in referred
+
+    @pytest.fixture
+    def related_samples(self, on_the_router):
+        """Register a rock sample type listing its relation to other samples; return it."""
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample
+        from fairdm.api.viewsets import generate_viewset
+        from fairdm.core.sample.models import SampleRelation
+        from fairdm.registry import ModelConfiguration
+
+        config = ModelConfiguration(
+            model=RockSample, serializer_fields=["name", "related"]
+        )
+        on_the_router(
+            "samples/with-relations", generate_viewset(config), "samples-related"
+        )
+        public = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        shown = RockSampleFactory(dataset=public)
+        hidden = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PRIVATE)
+        )
+        source = RockSampleFactory(dataset=public)
+        for target in (shown, hidden):
+            SampleRelation.objects.create(source=source, target=target, type="child_of")
+        return source, shown
+
+    def test_a_declared_relation_to_a_sample_is_a_reference_null_when_hidden(
+        self, api_client, related_samples
+    ):
+        source, shown = related_samples
+
+        response = api_client.get(
+            reverse("api:samples-related-detail", kwargs={"uuid": source.uuid})
+        )
+
+        assert response.status_code == 200
+        related = response.json()["related"]
+        assert len(related) == 2
+        assert None in related
+        assert [row["uuid"] for row in related if row] == [shown.uuid]
+
+    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+        self, api_client, related_samples
+    ):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import SampleRelation
+
+        source, _shown = related_samples
+        address = reverse("api:samples-related-list")
+
+        def relate(number):
+            for _ in range(number):
+                SampleRelation.objects.create(
+                    source=RockSampleFactory(dataset=source.dataset),
+                    target=RockSampleFactory(
+                        dataset=DatasetFactory(visibility=Visibility.PRIVATE)
+                    ),
+                    type="child_of",
+                )
+
+        def queries():
+            from django.db import connection
+            from django.test.utils import CaptureQueriesContext
+
+            with CaptureQueriesContext(connection) as captured:
+                response = api_client.get(address, {"page_size": 100})
+            assert response.status_code == 200
+            return len(captured)
+
+        relate(2)
+        queries()
+        few = queries()
+        relate(10)
+
+        assert queries() == few
+
+
+@pytest.mark.django_db
+class TestChangedSince:
+    MOMENTS = (
+        datetime(2024, 1, 15, 12, tzinfo=UTC),
+        datetime(2025, 1, 15, 12, tzinfo=UTC),
+        datetime(2026, 1, 15, 12, tzinfo=UTC),
+    )
+
+    @pytest.fixture(
+        params=[
+            Project,
+            Dataset,
+            Contributor,
+            *registered("sample"),
+            *registered("measurement"),
+        ],
+        ids=lambda model: model.__name__,
+    )
+    def records(self, request, make_record, public_dataset):
+        """Three public records of a kind, last changed in 2024, 2025 and 2026 in that order."""
+        model = request.param
+        made = []
+        for _ in range(3):
+            if model is Project:
+                made.append(ProjectFactory(visibility=Visibility.PUBLIC))
+            elif model is Dataset:
+                made.append(
+                    DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+                )
+            elif model is Contributor:
+                made.append(PersonFactory(is_active=True, is_claimed=True))
+            else:
+                made.append(make_record(model, public_dataset))
+        for record, moment in zip(made, self.MOMENTS, strict=True):
+            type(record).objects.filter(pk=record.pk).update(modified=moment)
+        return SimpleNamespace(model=model, made=made)
+
+    def listed(self, client, url_of, records, **query):
+        response = client.get(url_of(records.model, "list"), query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def uuids(self, records, *positions):
+        return {records.made[position].uuid for position in positions}
+
+    def test_modified_after_returns_what_changed_after_the_moment(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client, url_of, records, modified_after="2024-06-01T00:00:00Z"
+        )
+
+        assert listed >= self.uuids(records, 1, 2)
+        assert not listed & self.uuids(records, 0)
+
+    def test_modified_before_returns_what_changed_before_the_moment(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client, url_of, records, modified_before="2025-06-01T00:00:00Z"
+        )
+
+        assert listed >= self.uuids(records, 0, 1)
+        assert not listed & self.uuids(records, 2)
+
+    def test_the_two_together_return_what_changed_between_them(
+        self, api_client, url_of, records
+    ):
+        listed = self.listed(
+            api_client,
+            url_of,
+            records,
+            modified_after="2024-06-01T00:00:00Z",
+            modified_before="2025-06-01T00:00:00Z",
+        )
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 1)
+
+    def test_a_record_changed_at_the_moment_given_is_returned_by_both(
+        self, api_client, url_of, records
+    ):
+        moment = self.MOMENTS[1].isoformat()
+
+        after = self.listed(api_client, url_of, records, modified_after=moment)
+        before = self.listed(api_client, url_of, records, modified_before=moment)
+
+        assert after & self.uuids(records, 0, 1, 2) == self.uuids(records, 1, 2)
+        assert before & self.uuids(records, 0, 1, 2) == self.uuids(records, 0, 1)
+
+    def test_a_date_alone_is_a_moment(self, api_client, url_of, records):
+        listed = self.listed(api_client, url_of, records, modified_after="2025-06-01")
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 2)
+
+    def test_a_moment_with_an_offset_is_read_in_that_offset(
+        self, api_client, url_of, records
+    ):
+        # 14:00 at +03:00 is 11:00 UTC, an hour before the middle record changed.
+        listed = self.listed(
+            api_client, url_of, records, modified_after="2025-01-15T14:00:00+03:00"
+        )
+
+        assert listed & self.uuids(records, 0, 1, 2) == self.uuids(records, 1, 2)
+
+    @pytest.mark.parametrize("name", ["modified_after", "modified_before"])
+    @pytest.mark.parametrize("value", ["yesterday", "2025-13-45", "12"])
+    def test_a_moment_that_cannot_be_read_is_refused_naming_the_parameter(
+        self, api_client, url_of, records, name, value
+    ):
+        response = api_client.get(url_of(records.model, "list"), {name: value})
+
+        assert response.status_code == 400
+        assert name in response.json()
+
+    def test_both_are_among_the_list_parameters_of_the_documentation(
+        self, api_client, url_of, records
+    ):
+        schema = api_client.get(reverse("api:api-schema"), {"format": "json"}).json()
+
+        parameters = schema["paths"][url_of(records.model, "list")]["get"]["parameters"]
+
+        offered = {parameter["name"] for parameter in parameters}
+        assert {"modified_after", "modified_before"} <= offered

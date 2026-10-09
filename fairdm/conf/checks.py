@@ -7,6 +7,7 @@ import logging
 
 from django.conf import settings
 from django.core.checks import Error, Tags, register
+from django.core.checks import Warning as CheckWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import OperationalError, ProgrammingError
 
@@ -263,6 +264,29 @@ def check_secure_cookie_prefixes_match_secure_flag(app_configs, **kwargs):
         )
 
     return errors
+
+
+@register(Tags.security, DeployTags.deploy, deploy=True)
+def check_api_proxy_count(app_configs, **kwargs):
+    """Report fairdm.W601 when REST_FRAMEWORK has no NUM_PROXIES.
+
+    Without it, the API takes a caller's address from the ``X-Forwarded-For`` header, which the
+    caller writes, so the request limits can be avoided. Any value an operator sets, ``0`` and
+    ``None`` included, is a decision and is left alone.
+    """
+    if "NUM_PROXIES" in getattr(settings, "REST_FRAMEWORK", {}):
+        return []
+    return [
+        CheckWarning(
+            "REST_FRAMEWORK has no NUM_PROXIES, so the API limits count callers by a header "
+            "the caller controls.",
+            hint=(
+                "Set REST_FRAMEWORK['NUM_PROXIES'] to the number of proxies in front of the "
+                "portal. See docs/portal-administration/api-limits.md."
+            ),
+            id="fairdm.W601",
+        )
+    ]
 
 
 @register(DeployTags.deploy, deploy=True)

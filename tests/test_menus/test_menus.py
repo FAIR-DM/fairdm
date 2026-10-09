@@ -26,15 +26,28 @@ class TestDocumentationMenuGroupPresent:
 
 
 class TestAPIMenuItem:
-    def test_first_child_is_api(self, documentation_menu_group):
-        child = documentation_menu_group.children[0]
-        assert child.view_name == "api:api-docs", (
-            f"Unexpected view_name: {child.view_name!r}"
-        )
+    def test_exactly_one_entry_leads_to_the_api_documentation(self):
+        from mvp.menus import AppMenu
+
+        def entries(items):
+            for item in items:
+                yield item
+                yield from entries(getattr(item, "children", []))
+
+        leading = [
+            item
+            for item in entries(AppMenu.children)
+            if getattr(item, "view_name", None) == "api:api-docs"
+        ]
+
+        assert len(leading) == 1
 
     def test_api_child_uses_view_name_not_hardcoded_url(self, documentation_menu_group):
-        child = documentation_menu_group.children[0]
-        assert child.view_name == "api:api-docs"
+        child = next(
+            child
+            for child in documentation_menu_group.children
+            if getattr(child, "view_name", None) == "api:api-docs"
+        )
         assert child._url == "", "Internal links must not carry a hardcoded _url"
 
 

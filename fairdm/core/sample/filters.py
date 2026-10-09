@@ -4,6 +4,7 @@ import django_filters
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.core.measurement.filters import PartialDateFilter
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import FairDMSampleStatus
 
@@ -116,19 +117,19 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
     )
 
     description = django_filters.CharFilter(
-        field_name="descriptions__text",
+        field_name="descriptions__value",
         lookup_expr="icontains",
         label=_("Description contains"),
     )
 
-    date_after = django_filters.DateFilter(
-        field_name="dates__date",
+    date_after = PartialDateFilter(
+        field_name="dates__value",
         lookup_expr="gte",
         label=_("Date after"),
     )
 
-    date_before = django_filters.DateFilter(
-        field_name="dates__date",
+    date_before = PartialDateFilter(
+        field_name="dates__value",
         lookup_expr="lte",
         label=_("Date before"),
     )

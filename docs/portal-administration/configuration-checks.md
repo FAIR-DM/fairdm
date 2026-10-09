@@ -224,6 +224,47 @@ In development nothing is blocked, and `check --deploy` reports the same thing o
 Deleting or renaming one of these four through the administration interface is refused outright, so
 reaching this check at all means a role was removed by some other route.
 
+### API checks (fairdm.E600-E699 and fairdm.W600-W699)
+
+#### E600: a registered type's API cannot create a record
+
+**Error:** the serializer the API uses for a sample or measurement type has no writable field for a
+field the model requires, so a request to create a record of that type can never succeed.
+
+**Fix:** add the field to `serializer_fields` (or `fields`) in the type's registration, or to the
+serializer the registration names. A field the serializer marks read-only counts as left out.
+
+```python
+@fairdm.register
+class RockSampleConfig(BaseSampleConfiguration):
+    model = RockSample
+    serializer_fields = ["rock_type", "collection_date"]
+```
+
+The check runs with the other checks of the `models` tag, in `manage.py check`, `runserver` and
+`migrate`. It is not part of the production-critical subset, because it reports a mistake in the
+code of the portal, which shows up in development. See
+[Customizing Serializer Fields](../portal-development/restful-api.md#customizing-serializer-fields).
+
+#### W601: the number of proxies in front of the API is not set
+
+**Warning:** `REST_FRAMEWORK` has no `NUM_PROXIES`, so the API takes a caller's address from the
+`X-Forwarded-For` header, which the caller writes. A script that sends a new value in that header on
+every request is counted as a new caller each time, and the request limits never stop it.
+
+**Fix:** set the number of proxies between the visitor and the portal, or `0` when there is none.
+
+```python
+REST_FRAMEWORK["NUM_PROXIES"] = 1
+```
+
+Any value you set silences the warning, `0` and `None` included, because setting it is the decision
+the check asks for. FairDM chooses no default: the right number depends on your deployment. See
+[Counting callers behind a proxy](api-limits.md#counting-callers-behind-a-proxy).
+
+The check runs only with `manage.py check --deploy`. It is a warning and is not part of the
+production-critical subset, so it never stops a portal from starting.
+
 ## Integration with CI/CD
 
 Add the check command to your deployment pipeline:

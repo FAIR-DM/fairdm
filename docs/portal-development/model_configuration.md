@@ -10,7 +10,7 @@ The registration system uses a simple `@register` decorator with declarative con
 - **Tables** for displaying lists of records
 - **Filters** for searching and filtering data
 - **Resources** for import/export functionality
-- **Serializers** for REST API endpoints (when DRF is available)
+- **Serializers** for the REST API endpoints, which the portal serves for every registered type
 
 You can configure different fields for each component, or use general field lists that apply to all components. FairDM handles all the auto-generation!
 
@@ -167,7 +167,8 @@ class TemperatureMeasurementConfig(ModelConfiguration):
 | `table_fields` | `list[str]` | Uses `fields` | Fields for Table generation (list views) |
 | `filterset_fields` | `list[str]` | Uses `fields` | Fields for FilterSet generation (search/filter) |
 | `resource_fields` | `list[str]` | Uses `fields` | Fields for import/export Resource generation |
-| `serializer_fields` | `list[str]` | Uses `fields` | Fields for DRF Serializer generation (when available) |
+| `serializer_fields` | `list[str]` | Uses `fields` | Fields the API carries, added to those every sample or measurement has. With neither list, the defaults without `options` and `tags` |
+| `serializer_class` | serializer or dotted path | Generated | A serializer of your own for the API. It must build on `BaseSampleSerializer` or `BaseMeasurementSerializer`; see [RESTful API](restful-api.md#customizing-serializer-fields) |
 | `private_fields` | `list[str]` | `[]` | Fields to exclude from all auto-generation |
 
 ### Field Defaults
@@ -491,7 +492,7 @@ form_class = config.get_form_class()
 filterset_class = config.get_filterset_class()
 table_class = config.get_table_class()
 resource_class = config.get_resource_class()
-serializer_class = config.get_serializer_class()  # if DRF available
+serializer_class = config.get_serializer_class()
 ```
 
 ## Troubleshooting

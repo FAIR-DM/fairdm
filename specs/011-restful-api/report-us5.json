@@ -1,0 +1,168 @@
+{
+  "story": "US5",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-09-28/3f7d8b12",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T046",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaMatchesRoutes"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "ff386fae",
+        "3db83166"
+      ]
+    },
+    {
+      "id": "T047",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_schema.py::TestSchemaDescribesThePortal"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "e15252a8"
+      ]
+    },
+    {
+      "id": "T048",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_router.py::TestCatalogues"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogues"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "f67c3598"
+      ]
+    },
+    {
+      "id": "T049",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_router.py::TestCatalogueCounts"
+        ],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_router.py::TestCatalogueCounts"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "2a06d305"
+      ]
+    },
+    {
+      "id": "T050",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_router.py::TestRoot"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_api/test_router.py::TestRoot"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "d85d2037"
+      ]
+    },
+    {
+      "id": "T051",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_schema.py::TestSchemaDescribesThePortal::test_a_portal_without_paging_still_gets_a_description"
+        ],
+        "criteria": [
+          "SC-006"
+        ],
+        "commands": [
+          "uv run pytest -q -n auto --dist loadscope tests/test_api tests/test_menus tests/test_conf demo/tests",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "c5a195f2",
+        "5969be0f"
+      ]
+    },
+    {
+      "id": "T052",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/011-restful-api --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "8f057100",
+        "ff8baff8"
+      ]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "A catalogue entry's `filterable_fields` key is replaced by `filters`, and `fields` is now the serializer's flat list instead of the registration's list. `name`, `verbose_name`, `verbose_name_plural`, `app_label`, `endpoint` and `count` are kept.",
+      "why": "The old keys read registration settings the API does not act on, so they could not state what the list accepts.",
+      "decision_ref": "D22"
+    },
+    {
+      "what": "The content-type filter is left out of the schema by a drf-spectacular filter extension (fairdm/api/schema.py) that asks the filter set whether it drops a filter, rather than by removing it from the filter set's class.",
+      "why": "The type's own filter set reads the content-type filter while it is built, so removing it on the class breaks the portal's pages that share it.",
+      "decision_ref": "D22"
+    },
+    {
+      "what": "Added one test outside the listed classes' original scope: a portal with no pagination class still gets a description, and the paging section says lists are not paged.",
+      "why": "The configured pagination class may be None; the hook must not fail on it.",
+      "decision_ref": "D22"
+    }
+  ],
+  "concerns": [
+    "fairdm/api/viewsets.py: the two catalogue views have no response serializer, so drf-spectacular logs 'unable to guess serializer' for them each time the schema is generated and their operations carry no response description. They do have paths (tested). Documenting their response shape would be a small follow-up.",
+    "tests/test_api/test_schema.py::TestSchemaMatchesRoutes: the route, component, read-only and required tests, and tests/test_api/test_router.py::TestRoot, passed on first run because the behaviour already existed. Each was probed by mutation (excluding a viewset from the schema; removing a catalogue link from the root) and failed as it should.",
+    "drf-spectacular does not reload its settings when Django's change in a test, so tests that need a different SPECTACULAR_SETTINGS value patch spectacular_settings directly.",
+    "The Rate Limiting section of docs/portal-development/restful-api.md still lists the current rate names; the next story renames them and should rewrite it."
+  ],
+  "blocked": []
+}

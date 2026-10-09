@@ -823,16 +823,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dj-rest-auth"
-version = "7.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "djangorestframework" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/14/fd/c8a185a98f6860b802dc5e663c652efc01cd68f4e046c65f8cb9328c0077/dj_rest_auth-7.2.0.tar.gz", hash = "sha256:f77af37da5cf6ee28f03f283a378a2f5761860e72d1d6f2fa3d50e6286000482", size = 490126, upload-time = "2026-03-15T04:05:39.272Z" }
-
-[[package]]
 name = "django"
 version = "5.2.17"
 source = { registry = "https://pypi.org/simple" }
@@ -1501,6 +1491,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/15/31/9c1ca199c82614087a586f7f6c52a73863a585d1ac61ffd025781285389c/django_mvp_accounts-0.2.0-py3-none-any.whl", hash = "sha256:9d7eee76e8ffb96f02860444f8ef954b7c80e35bfbccc60420913930945aa5bf", size = 40991, upload-time = "2026-10-08T14:09:18.251Z" },
 ]
 
+[package.optional-dependencies]
+api = [
+    { name = "django-rest-knox" },
+    { name = "djangorestframework" },
+]
+
 [[package]]
 name = "django-mvp-charts"
 version = "0.2.0"
@@ -1625,6 +1621,19 @@ source = { git = "https://github.com/SamuelJennings/django-research-vocabs#07aba
 dependencies = [
     { name = "django" },
     { name = "rdflib" },
+]
+
+[[package]]
+name = "django-rest-knox"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "djangorestframework" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/45/8d/14c8e67495f0e01fd26929c34d2fbebd910c20f9f3dcc268fadb93a009ec/django_rest_knox-5.1.0.tar.gz", hash = "sha256:78307dce32858679fe96afb06c4ab2d4fe0ed085c7a739a7ccc03a14dea2b37b", size = 20973, upload-time = "2026-07-12T12:02:34.482Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/20/188535a919c642a20fef171571e5b3470c3323c4be952602e709a0790edf/django_rest_knox-5.1.0-py3-none-any.whl", hash = "sha256:7dad21e91091db07796ea96f559fd2e1f67b8d42748d4e140d2fa7a0319538e7", size = 16044, upload-time = "2026-07-12T12:02:33.249Z" },
 ]
 
 [[package]]
@@ -1835,20 +1844,6 @@ wheels = [
 ]
 
 [[package]]
-name = "djangorestframework-guardian"
-version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-guardian" },
-    { name = "djangorestframework" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/c4/67df9963395e9dddd4e16cbf75098953798e5135f73fb8f4855895505e39/djangorestframework_guardian-0.4.0.tar.gz", hash = "sha256:a8113659e062f65b74cc31af6982420c382642e782d38581b3fdc748a179756c", size = 8239, upload-time = "2025-07-01T07:22:10.809Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/81/3d62f7ff71f7c45ec6664ebf03a4c736bf77f49481604361d40f8f4471e4/djangorestframework_guardian-0.4.0-py3-none-any.whl", hash = "sha256:30c2a349318c1cd603d6953d50d58159f9a0c833f5f8f5a811407d5984a39e14", size = 6064, upload-time = "2025-07-01T07:22:09.661Z" },
-]
-
-[[package]]
 name = "djangorestframework-stubs"
 version = "3.18.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2050,7 +2045,6 @@ source = { editable = "." }
 dependencies = [
     { name = "celery" },
     { name = "defusedxml" },
-    { name = "dj-rest-auth" },
     { name = "django", extra = ["argon2"] },
     { name = "django-addanother" },
     { name = "django-admin-extra-buttons" },
@@ -2086,7 +2080,7 @@ dependencies = [
     { name = "django-meta" },
     { name = "django-model-utils" },
     { name = "django-mvp" },
-    { name = "django-mvp-accounts" },
+    { name = "django-mvp-accounts", extra = ["api"] },
     { name = "django-mvp-charts" },
     { name = "django-mvp-forms" },
     { name = "django-orbit", extra = ["mcp"] },
@@ -2108,7 +2102,6 @@ dependencies = [
     { name = "django-waffle" },
     { name = "django-widget-tweaks" },
     { name = "djangorestframework" },
-    { name = "djangorestframework-guardian" },
     { name = "drf-orjson-renderer" },
     { name = "drf-spectacular", extra = ["sidecar"] },
     { name = "easy-thumbnails" },
@@ -2152,7 +2145,6 @@ docs = [
 requires-dist = [
     { name = "celery", specifier = ">=5.6.2,<6.0.0" },
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
-    { name = "dj-rest-auth", specifier = ">=7.0.0,<8.0.0" },
     { name = "django", extras = ["argon2"], specifier = ">=5.2,<6.0.0" },
     { name = "django-addanother", specifier = ">=2.2.2,<3.0.0" },
     { name = "django-admin-extra-buttons", specifier = ">=1.5.8,<3.0.0" },
@@ -2188,7 +2180,7 @@ requires-dist = [
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
     { name = "django-mvp", specifier = ">=0.28.0,<0.29.0" },
-    { name = "django-mvp-accounts", specifier = ">=0.2.0,<0.3.0" },
+    { name = "django-mvp-accounts", extras = ["api"], specifier = ">=0.2.0,<0.3.0" },
     { name = "django-mvp-charts", specifier = ">=0.2.0,<0.3.0" },
     { name = "django-mvp-forms", specifier = ">=0.2.1,<1.0" },
     { name = "django-orbit", extras = ["mcp"], specifier = ">=0.12.1,<0.13.0" },
@@ -2211,7 +2203,6 @@ requires-dist = [
     { name = "django-widget-tweaks", specifier = ">=1.5.0,<2.0.0" },
     { name = "djangorestframework", specifier = ">=3.17.2,<4.0.0" },
     { name = "djangorestframework-gis", marker = "extra == 'gis'", specifier = ">=1.3.0,<2.0.0" },
-    { name = "djangorestframework-guardian", specifier = ">=0.3.0,<0.5.0" },
     { name = "drf-orjson-renderer", specifier = ">=1.7.5,<2.0.0" },
     { name = "drf-spectacular", extras = ["sidecar"], specifier = ">=0.29.0,<0.31.0" },
     { name = "easy-thumbnails", specifier = ">=2.10,<3.0" },

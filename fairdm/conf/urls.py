@@ -23,6 +23,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.import_export.urls")),
     path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
+    path("account/tokens/", include("mvp_accounts.tokens.urls")),
     path("account-center/", include("mvp.urls")),
     path("account-center/", include("allauth.urls")),
     # django-mvp mounts its landing page at ``account/`` inside ``mvp.urls``. Django reverses a

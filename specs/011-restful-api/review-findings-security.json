@@ -1,0 +1,55 @@
+{
+  "lens": "security",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "high",
+  "scope": "Feature branch 011-restful-api against ffbfb69f, `git diff ffbfb69f...HEAD -- . ':!specs/'`, security lens only. Probed with a throwaway test file (removed, git status clean). Tried and found sound: 404 for unseen private records on read and write, null parent references for hidden projects and samples, parent choices limited to edit-level records with the same 'does not exist' message for a hidden and a missing parent, the dataset and sample list filters answering the same for a hidden and a missing identifier, catalogue counts following the list rule, PUT and PATCH both held to the edit level with visibility and parent changes held to manage, uuid/created_by/added/modified/contributors not writable, delete refusals naming no other record, CSRF enforced on session writes from another origin, CORS header '*' without credentials on /api/ only and none on /account/tokens/, no dj-rest-auth, authtoken or guardian-filter references left in code or settings, contributor output carrying no account field and matching the people list the portal already serves, project and dataset creation open to any signed-in person exactly as the portal's create pages are.",
+  "skills_loaded": [
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "The API serves the samples and measurements of a dataset that is public but not published to anonymous callers. The portal hides them: a dataset's `published` flag, not its visibility, decides whether the data beneath it may be shown (`Dataset.published` help text: 'Independent of visibility, which governs metadata only'; `Dataset.data_is_public`; `RecordVisibilityMixin.visible_to` in fairdm/core/managers.py:154 requires `dataset__visibility=PUBLIC` and `dataset__published=True`). The API's rule tests visibility alone, so unreleased research data is readable by anyone through list, detail, the `?dataset=` filter and the catalogue count.",
+      "evidence": "fairdm/api/filters.py:53 `_get_public_filter` returns `{\"dataset__visibility\": Visibility.PUBLIC}` for samples and measurements, with no `dataset__published`. `FairDMVisibilityFilter.filter_queryset` (filters.py:81-101), `RecordReferenceField.visible_pks` (serializers.py) and the catalogue count (viewsets.py `_BaseDiscoveryView.describe`) all use it. fairdm/api/permissions.py:69-74 lets a GET through when `obj.dataset.visibility == PUBLIC`, again without `published`. Observed in a probe: for a RockSample in `DatasetFactory(visibility=PUBLIC, published=False)`, `Sample.objects.visible_to(None).filter(pk=s.pk).exists()` is False (the portal's answer), while an anonymous `GET /api/v1/samples/rock-samples/` returned 200 with count 1, `GET` on the sample's detail returned 200 with its fields, and `GET /api/v1/samples/` reported count 1 for RockSample. No test in tests/test_api/ sets `published`, so nothing would go red. The spec (FR-011) says samples and measurements 'take the visibility of their dataset' and does not mention `published`; the flag and the portal rule both exist at the base commit ffbfb69f, so this is the API diverging from the access rule the brief says it uses and does not change.",
+      "reproduction": "Create a dataset with visibility PUBLIC and published False, add one sample of any registered type and one measurement on it. With no credentials: GET the type's list, GET the record's detail address, GET /api/v1/samples/ and /api/v1/measurements/. All return the record or count it. Compare `Sample.objects.visible_to(None)`, which excludes it.",
+      "suggested_fix": "Make the public rule for dataset-following records the portal's: in `_get_public_filter` (fairdm/api/filters.py:49-53) return `{\"dataset__visibility\": Visibility.PUBLIC, \"dataset__published\": True}`, and in `FairDMObjectPermissions.has_object_permission` (fairdm/api/permissions.py:69-74 and :89) test the parent with `parent.data_is_public` instead of `parent.visibility == PUBLIC`. Add a test for an anonymous caller and for a signed-in outsider on a sample and a measurement of a public unpublished dataset (list, detail, catalogue count, 404 on write). The dataset record itself stays readable, since visibility governs its metadata."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "With the settings the package ships, the anonymous rate limits do not hold: any caller avoids them by sending a different `X-Forwarded-For` value on each request. `REST_FRAMEWORK` sets no `NUM_PROXIES`, and Django REST framework then uses the whole header, which the caller writes, as the caller's identity. The administration guide says so and tells the operator to set it, but nothing at start-up tells an operator who has not read that page, so a portal is unprotected by default.",
+      "evidence": "fairdm/api/settings.py:55-96 defines `REST_FRAMEWORK` with the four throttle classes and no `NUM_PROXIES`. rest_framework/throttling.py `get_ident`: when `NUM_PROXIES is None` it returns `''.join(xff.split()) if xff else remote_addr`, and `AnonRateThrottle` (base of `AnonBurstThrottle`/`AnonDailyThrottle`, fairdm/api/throttling.py:11-20) keys its count on that. docs/portal-administration/api-limits.md:63-75 documents the weakness accurately. Not shown at runtime: the test settings use DummyCache, so no limit can be reached there; this rests on the two code paths named.",
+      "reproduction": "On a portal with a real cache and default settings, send more than 30 anonymous GET requests a minute to /api/v1/projects/, each with a new `X-Forwarded-For: 10.0.0.<n>` header. None is answered 429.",
+      "suggested_fix": "Add a deployment check (a `Warning` under `manage.py check --deploy`, beside the existing checks in fairdm/conf/checks.py) that fires when `REST_FRAMEWORK` has no `NUM_PROXIES` key, pointing at the 'Counting callers behind a proxy' section. Do not pick a default number: 0 would count every visitor behind a proxy as one caller."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A generated serializer shows every relation its registration lists, other than `dataset` and `sample`, as the related record's string form with no check that the caller may see that record. A sample or measurement type that lists a relation to another project, dataset, sample or measurement (a parent sample, for instance) would return the name of a private one to anyone who can read the referring record. No type in the repository's demo app lists such a field today, which is why this is low.",
+      "evidence": "fairdm/registry/factories.py:929-931 `_get_nested_serializers` assigns `serializers.StringRelatedField()` to each ForeignKey, OneToOneField and ManyToManyField the base serializer does not declare. Only `RecordReferenceField` (fairdm/api/serializers.py) applies the visibility rule and returns null for a hidden record. Probe output shows the demo types' serializers carry no such relation at present (`CustomParentSample` exposes only `char_field` beyond the common fields).",
+      "reproduction": "Register a sample type with `serializer_fields` naming a ForeignKey to `Sample` whose target sits in a private dataset; read a public record of that type anonymously. Would confirm it: the response carries `str()` of the private sample.",
+      "suggested_fix": "In `_get_nested_serializers`, use `RecordReferenceField(read_only=True)` (or `many=True`) when the related model is a project, dataset, sample or measurement, and keep `StringRelatedField` for every other relation."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "A request carrying an unknown or malformed token is refused before the rate limits run, so such requests are never counted. Guessing a token is not practical at knox's token length, so the consequence is only that a caller can make unlimited requests that each cost a token lookup.",
+      "evidence": "Django REST framework's `APIView.initial` runs `perform_authentication` before `check_throttles`; `knox.auth.TokenAuthentication` raises `AuthenticationFailed` for an unknown token, which ends the request with 401 (probe: eight requests with `Authorization: Token aaaa…` all 401). fairdm/api/settings.py:56-61 places knox first in `DEFAULT_AUTHENTICATION_CLASSES`. The count itself could not be observed under the test settings' DummyCache.",
+      "suggested_fix": "None needed in this feature. If it is wanted later, limit by address at the reverse proxy, which the administration guide could mention in one sentence."
+    }
+  ],
+  "notes": [
+    "fairdm/api/filters.py:72-74 docstring says a model with no visibility field is 'publicly accessible'; with SEC-001 fixed the list above it should also say that data needs the dataset to be published.",
+    "fairdm/api/settings.py FAIRDM_API_DESCRIPTION says the API gives access to 'all data published in this portal', which is the rule SEC-001 asks the code to follow."
+  ]
+}

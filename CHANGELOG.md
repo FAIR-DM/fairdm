@@ -110,6 +110,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The description and date filters of the sample lists answer instead of failing.** On the
+  portal's sample pages and in the API, filtering by description, "date after" or "date before"
+  raised a server error, because the filters read fields the sample models do not have. They now
+  read the description text and the key dates.
+
 - **`PersonFactory` builds a new person on every call.** Its email was made from the random first
   and last name, and the factory returns the existing person when the email is already in use, so
   two calls that drew the same name gave back one person. Tests that then affiliated "both" people
@@ -193,6 +198,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   used to generate on its own, and `image=<file>` still takes a specific one.
 
 ### Changed
+
+- **The REST API is complete, and a portal with API clients or serializers of its own has changes
+  to make.** See [The REST API](docs/portal-development/restful-api.md) and
+  [Limits on the API](docs/portal-administration/api-limits.md). What to change:
+  - **Records refer to each other by short identifier, and no response carries a database number.**
+    The `id` field is gone from every record. `project`, `dataset` and `sample` are
+    `{"uuid", "url"}` objects, or `null` when the caller may not see the record, where they were
+    numbers. A request names a parent by its short identifier, as a bare string or as that object,
+    and a database number is refused. A serializer of your own declares each relation it adds as a
+    `fairdm.api.serializers.RecordReferenceField` or a `StringRelatedField`.
+  - **A relation filter matches on the short identifier.** `?dataset=`, `?sample=` and a type's
+    filters on a project or a contributor take the related record's short identifier and refuse a
+    database number. A filter on a relation whose model has no short identifier, such as a content
+    type, is not offered. Every sample list takes `?dataset=` and every measurement list also takes
+    `?sample=`.
+  - **Every sample and measurement carries the common fields**, whatever its registration lists:
+    `url`, `html_url`, `uuid`, `name`, `dataset`, `added` and `modified`, and `local_id` and
+    `status` for a sample and `sample` for a measurement, then the metadata (`descriptions`,
+    `dates`, `identifiers`, `keywords`, `contributors`). The fields a type declares come after
+    them, and a measurement's measured values are included.
+  - **Tokens come from the account pages, and the password login is gone.** A person creates a
+    token at `/account/tokens/`, shown once and revocable, and a script sends it as
+    `Authorization: Token <token>`. The addresses under `/api/v1/auth/`, which exchanged a
+    password for a token and managed accounts, no longer exist, and `dj-rest-auth` and
+    `djangorestframework-guardian` are no longer dependencies. The tokens are kept by
+    django-rest-knox, which FairDM installs and configures through `REST_KNOX`. Existing Django
+    REST framework tokens stop working, so scripts need new ones. A portal that listed
+    `dj_rest_auth` or `rest_framework.authtoken` in its settings removes them.
+  - **A serializer of your own builds on the base, and a registration is checked at start-up.** A
+    serializer for a sample type must subclass `BaseSampleSerializer` and one for a measurement
+    type `BaseMeasurementSerializer`, however it is supplied (`serializer_class` or an overridden
+    `get_serializer_class`). Otherwise the portal refuses to load its API routes with
+    `ImproperlyConfigured`. The check `fairdm.E600` reports at start-up, and in
+    `manage.py check`, a registration whose API fields leave out a field the model requires.
+  - **The two lists of registered types are removed.** `GET /api/v1/samples/` and
+    `GET /api/v1/measurements/` answer `404`. `/api/v1/` links to every list, a list reports how
+    many records the caller may see in `count`, and the generated API documentation describes each
+    type.
+  - **Every list takes `modified_after` and `modified_before`.** Each is an ISO 8601 date or
+    date-time, compared with the record's `modified` time, so a harvester can ask for what changed
+    since it last read. A value that cannot be read is answered `400`, naming the parameter, and
+    both appear in the generated API documentation. They are added to every list by
+    `FairDMFilterBackend`, which now stands in `REST_FRAMEWORK["DEFAULT_FILTER_BACKENDS"]` in place
+    of django-filter's own backend.
+  - **The API documentation describes each registered type.** On the documentation page the operations
+    of every sample type are under `Samples` and those of every measurement type under
+    `Measurements`, and each operation is titled with the type's plural name and what it does.
+    A type's list operation carries the description from its registration, with the authority,
+    the citation, the keywords and a link to the repository. A maintainer's name and email address
+    are left out. Projects, datasets and contributors keep a heading each. The description of each type's record, and its
+    `Patched` variant, is the type's own and its `title` is the type's `verbose_name`, where it
+    was the base serializer's docstring. The schema gains a top-level `tags` list. The headings
+    are built by `fairdm.api.schema.describe_api`, so a portal that replaces
+    `SPECTACULAR_SETTINGS["POSTPROCESSING_HOOKS"]` keeps that hook in it.
+  - **`FAIRDM_API_DOCS_URL` is removed.** Nothing read it. The API documentation is at
+    `/api/v1/docs/`, and the sidebar has a single API entry that leads to it.
+  - **New limits and page sizes, each a setting.** The rates `anon` and `user` (100 and 1,000
+    requests an hour) are replaced by four in `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]`:
+    `anon_burst` (30/minute), `anon_day` (2000/day), `user_burst` (120/minute) and `user_day`
+    (20000/day). A portal that set the old names changes them to the new ones, or the API fails
+    with a missing-rate error. A page holds 100 records instead of 25 (`REST_FRAMEWORK["PAGE_SIZE"]`)
+    and a caller may ask for up to 1,000 instead of 100 (the new `FAIRDM_API_MAX_PAGE_SIZE`). A
+    refused caller receives `429` with a `Retry-After` header. Behind a proxy, set
+    `REST_FRAMEWORK["NUM_PROXIES"]`, since the limits count per address only once it is set;
+    `manage.py check --deploy` warns (`fairdm.W601`) until it is.
+  - **The samples and measurements of a dataset that is public but not published are not public
+    through the API**, as on the portal's pages. They are listed, counted and returned only to a
+    person with a level on them. The dataset's own record stays readable.
+  - **Any origin may call the API.** `CORS_ALLOW_ALL_ORIGINS` is now `True` for the addresses under
+    `/api/`, to read and, with a token, to write. A portal's sign-in cookie is never accepted from
+    another site. A portal that wants the old behaviour sets `CORS_ALLOW_ALL_ORIGINS = False` and
+    lists its sites in `CORS_ALLOWED_ORIGINS`.
 
 - **django-mvp moves to 0.28 and django-mvp-accounts to 0.2.** django-mvp now takes its basic
   components from daisy-cotton and puts the ones it keeps under an `mvp.` prefix. FairDM's own
