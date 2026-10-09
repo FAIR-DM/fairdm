@@ -937,7 +937,10 @@ class SerializerFactory(ComponentFactory):
                 is_many or isinstance(field, (models.ForeignKey, models.OneToOneField))
             ):
                 continue
-            if issubclass(field.related_model, (Project, Dataset, Sample, Measurement)):
+            related = field.related_model
+            if related is not None and issubclass(
+                related, (Project, Dataset, Sample, Measurement)
+            ):
                 nested[field_name] = RecordReferenceField(read_only=True, many=is_many)
             else:
                 nested[field_name] = serializers.StringRelatedField(many=is_many)

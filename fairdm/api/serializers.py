@@ -2,7 +2,7 @@
 
 import copy
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -222,13 +222,14 @@ class RecordReferenceField(serializers.SlugRelatedField):
         core = getattr(model, "type_of", None) or model
         if issubclass(core, Contributor):
             # Asked once per request: the accounts it holds are few, the references many.
-            if "hidden_contributors" not in self.context:
+            context = cast("dict[str, Any]", self.context)
+            if "hidden_contributors" not in context:
                 hidden = FairDMVisibilityFilter.hidden_contributors()
-                self.context["hidden_contributors"] = set(
+                context["hidden_contributors"] = set(
                     hidden.values_list("pk", flat=True)
                 )
-            hidden = self.context["hidden_contributors"]
-            return set(pks) - hidden
+            hidden_pks: set = context["hidden_contributors"]
+            return set(pks) - hidden_pks
         if not _get_public_filter(core):
             return set(pks)
         manager = getattr(core, "all_objects", core._default_manager)
