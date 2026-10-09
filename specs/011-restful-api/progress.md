@@ -209,3 +209,10 @@ Did: Added TestCustomViewset in tests/test_api/test_router.py: a viewset registe
 Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestCustomViewset: 3 passed on first run, as the router was already exposed. Probes: leaving out the URL reload turned the served and schema tests red; a following test confirmed the route and schema entry are gone after the fixture ends.
 Next: T031.
 Watch: the router's addresses are fixed when fairdm.api.urls is first imported, so a viewset registered after the URL configuration has loaded is served only once that module is loaded again. The module docstring says it can be registered "after Django startup"; T036 corrects that in the documentation and the docstring.
+
+## 2026-10-09T00:12:26Z · Implementer US3 · T031
+
+Did: Added TestRegistrationFailureIsReported in tests/test_api/test_router.py. It builds the registration of the registered types on a new router, with a sample type and then a measurement type configured so its endpoints cannot be built (a serializer off the base, and a serializer that raises), and expects the error to propagate.
+Verified: uv run pytest -q -n0 tests/test_api/test_router.py::TestRegistrationFailureIsReported: 3 fail with AttributeError, because the registration is still two module-level loops that log a warning, so there is nothing to call. T035 turns the loops into FairDMAPIRouter.register_types and removes the swallowing.
+Next: T032.
+Watch: none.

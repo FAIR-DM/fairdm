@@ -271,3 +271,69 @@ class TestCustomViewset:
 
         assert response.status_code == 200
         assert "/api/v1/featured/" in response.json()["paths"]
+
+
+class TestRegistrationFailureIsReported:
+    @pytest.fixture
+    def off_the_base(self):
+        from rest_framework import serializers
+
+        class OffTheBase(serializers.ModelSerializer):
+            class Meta:
+                fields = ["name"]
+
+        return OffTheBase
+
+    def test_a_type_whose_endpoints_cannot_be_built_stops_the_registration(
+        self, monkeypatch, off_the_base
+    ):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from demo.models import RockSample
+        from fairdm.api.router import FairDMAPIRouter
+        from fairdm.registry import ModelConfiguration, registry
+
+        off_the_base.Meta.model = RockSample
+        monkeypatch.setitem(
+            registry._registry,
+            RockSample,
+            ModelConfiguration(model=RockSample, serializer_class=off_the_base),
+        )
+
+        with pytest.raises(ImproperlyConfigured):
+            FairDMAPIRouter().register_types()
+
+    def test_a_measurement_type_whose_endpoints_cannot_be_built_stops_it_too(
+        self, monkeypatch, off_the_base
+    ):
+        from django.core.exceptions import ImproperlyConfigured
+
+        from demo.models import XRFMeasurement
+        from fairdm.api.router import FairDMAPIRouter
+        from fairdm.registry import ModelConfiguration, registry
+
+        off_the_base.Meta.model = XRFMeasurement
+        monkeypatch.setitem(
+            registry._registry,
+            XRFMeasurement,
+            ModelConfiguration(model=XRFMeasurement, serializer_class=off_the_base),
+        )
+
+        with pytest.raises(ImproperlyConfigured):
+            FairDMAPIRouter().register_types()
+
+    def test_a_failure_that_is_not_a_configuration_error_is_not_swallowed_either(
+        self, monkeypatch
+    ):
+        from demo.models import RockSample
+        from fairdm.api.router import FairDMAPIRouter
+        from fairdm.registry import ModelConfiguration, registry
+
+        class Failing(ModelConfiguration):
+            def get_serializer_class(self):
+                raise RuntimeError("the serializer cannot be built")
+
+        monkeypatch.setitem(registry._registry, RockSample, Failing(model=RockSample))
+
+        with pytest.raises(RuntimeError, match="cannot be built"):
+            FairDMAPIRouter().register_types()
