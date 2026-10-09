@@ -1,7 +1,6 @@
 """Pytest fixtures for the FairDM REST API test suite (Feature 011)."""
 
 import pytest
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
@@ -48,16 +47,8 @@ def make_token():
 
 
 @pytest.fixture
-def token(user):
-    token, _ = Token.objects.get_or_create(user=user)
-    return token
-
-
-@pytest.fixture
-def authenticated_client(user, token) -> APIClient:
-    client = APIClient()
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
+def authenticated_client(user) -> APIClient:
+    return make_token_client(user)
 
 
 @pytest.fixture

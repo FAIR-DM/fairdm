@@ -44,8 +44,11 @@ Use the discovery endpoints to list all registered sample and measurement types:
 Most data is publicly readable without authentication.  To **create, update, or delete**
 records you need a token:
 
-1. Obtain a token: `POST /api/v1/auth/login/` with `{"username": "...", "password": "..."}`
-2. Include it in subsequent requests: `Authorization: Token <your-token>`
+1. Sign in to the portal and create a token on your account pages, under API tokens.
+   The token is shown once, so copy it then.
+2. Include it in each request: `Authorization: Token <your-token>`
+
+Revoke a token on the same page when you no longer need it.
 
 ### Rate Limits
 
@@ -74,7 +77,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # Token first: DRF answers 403 instead of 401 when the first authenticator
         # (SessionAuthentication) has no authenticate_header().
-        "rest_framework.authentication.TokenAuthentication",
+        "knox.auth.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -120,9 +123,16 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATIONS": False,
 }
 
-CORS_ALLOW_ALL_ORIGINS = False
+#: A token travels in a header a page chooses to send, so any website may call the API.
+#: Credentials stay off (``CORS_ALLOW_CREDENTIALS`` is not set), so a sign-in cookie is
+#: never accepted from another origin.
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS: list[str] = []
 CORS_URLS_REGEX = r"^/api/.*$"
+
+#: Settings of django-rest-knox, which stores the tokens people create on their account
+#: pages. A token does not renew when it is used, and a person holds at most ten.
+REST_KNOX = {"TOKEN_LIMIT_PER_USER": 10, "AUTO_REFRESH": False}
 
 #: URL of the API documentation. Override it in portal settings to point elsewhere.
 FAIRDM_API_DOCS_URL = "https://fairdm.org/api/"

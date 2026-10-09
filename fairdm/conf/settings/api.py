@@ -7,6 +7,8 @@ overrides any of it by assignment after ``fairdm.setup()`` returns::
     REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {"anon": "50/hour", "user": "500/hour"}
     SPECTACULAR_SETTINGS["TITLE"] = "My Portal API"
     SPECTACULAR_SETTINGS["DESCRIPTION"] = "A specialised API for my research domain."
+    REST_KNOX["TOKEN_LIMIT_PER_USER"] = 5
+    CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = ["https://my-frontend.example.com"]
 
 Overriding ``FAIRDM_API_TITLE``/``FAIRDM_API_DESCRIPTION`` after ``setup()``
@@ -22,6 +24,7 @@ from fairdm.api.settings import (
     FAIRDM_API_DOCS_URL,
     FAIRDM_API_TITLE,
     REST_FRAMEWORK,
+    REST_KNOX,
     SPECTACULAR_SETTINGS,
 )
 
@@ -34,5 +37,6 @@ __all__ = [
     "FAIRDM_API_DOCS_URL",
     "FAIRDM_API_TITLE",
     "REST_FRAMEWORK",
+    "REST_KNOX",
     "SPECTACULAR_SETTINGS",
 ]

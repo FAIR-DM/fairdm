@@ -2,7 +2,6 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -13,13 +12,7 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
-
-
-def make_token_client(user) -> APIClient:
-    token, _ = Token.objects.get_or_create(user=user)
-    client = APIClient()
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
+from tests.test_api.conftest import make_token_client
 
 
 @pytest.mark.django_db

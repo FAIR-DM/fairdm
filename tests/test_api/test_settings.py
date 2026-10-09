@@ -315,6 +315,26 @@ class TestTokens:
     def test_a_token_that_is_not_in_the_store_is_answered_401(self):
         assert self.send("0123456789abcdef" * 8).status_code == 401
 
+    def test_the_schema_describes_the_authorization_header(self, openapi_schema):
+        schemes = openapi_schema["components"]["securitySchemes"].values()
+
+        assert any(
+            scheme.get("in") == "header" and scheme.get("name") == "Authorization"
+            for scheme in schemes
+        )
+
+    def test_generating_the_schema_warns_of_no_unknown_authentication_class(self):
+        from drf_spectacular.drainage import GENERATOR_STATS
+        from drf_spectacular.generators import SchemaGenerator
+
+        GENERATOR_STATS.reset()
+        SchemaGenerator().get_schema(request=None, public=True)
+
+        warnings = [
+            msg for msg in GENERATOR_STATS._warn_cache if "authenticator" in msg
+        ]
+        assert warnings == []
+
     def test_the_token_limit_is_the_one_the_portal_sets(self, settings):
         from knox.settings import knox_settings
 

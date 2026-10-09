@@ -446,3 +446,22 @@ read once, when `fairdm.api.urls` is first imported, so a viewset registered aft
 only once the module is loaded again. The tests do exactly that, and the module's docstring says
 where to register.
 *Revisit if:* the URL configuration reads the router on every request.
+
+## D21. Choices made while building the fourth story
+
+**No schema extension of our own.** The plan called for a small drf-spectacular extension so the
+schema describes knox's header. drf-spectacular 0.30 already ships one for knox
+(`drf_spectacular.contrib.knox_auth_token`), so the generated schema carries a `knoxApiToken` header
+scheme and raises no warning about an unknown authenticator. A test generates the schema and fails
+on such a warning, and was seen to fail with an authenticator drf-spectacular does not know. No
+`fairdm/api/schema.py` was added.
+*Revisit if:* drf-spectacular drops its knox extension.
+
+**The token pages sit at `account/tokens/`, outside the Account Center prefix.** The address is the
+one in django-mvp-accounts' guide. The pages' route names (`account_api_tokens` and the two beside
+it) are what the Account Center's menu entry and card reverse, so they do not depend on the prefix.
+*Revisit if:* the Account Center moves and the tokens pages should follow it.
+
+**Tests build tokens through knox's manager.** `AuthToken.objects.create` returns the record and the
+secret together, so the tests need no endpoint to get a token. Revoking is deleting the record and
+expiring is moving its expiry into the past, the same two things the pages and knox do.

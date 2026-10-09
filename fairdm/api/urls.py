@@ -26,7 +26,6 @@ urlpatterns = [
         name="api-measurement-discovery",
     ),
     path("v1/", include(fairdm_api_router.urls)),
-    path("v1/auth/", include("dj_rest_auth.urls")),
     path("v1/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "v1/docs/",

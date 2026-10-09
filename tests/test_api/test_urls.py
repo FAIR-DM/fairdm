@@ -1,108 +1,13 @@
 """Tests for FairDM API URL routing (``fairdm/api/urls.py``)."""
 
 import pytest
+from django.shortcuts import resolve_url
 from django.test import Client
 from django.urls import get_resolver, reverse
 from knox.models import AuthToken
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from fairdm.factories import UserFactory
-
-LOGIN_URL = "/api/v1/auth/login/"
-LOGOUT_URL = "/api/v1/auth/logout/"
-
-
-@pytest.mark.django_db
-class TestTokenLogin:
-    def test_login_returns_200(self, api_client, db):
-        password = "SecurePass123!"
-        user = UserFactory(password=password)
-        response = api_client.post(
-            LOGIN_URL,
-            {"email": user.email, "password": password},
-            format="json",
-        )
-        assert response.status_code == 200
-
-    def test_login_response_contains_token_key(self, api_client, db):
-        password = "SecurePass123!"
-        user = UserFactory(password=password)
-        response = api_client.post(
-            LOGIN_URL,
-            {"email": user.email, "password": password},
-            format="json",
-        )
-        assert "key" in response.json()
-
-    def test_login_token_key_matches_stored_token(self, api_client, db):
-        password = "SecurePass123!"
-        user = UserFactory(password=password)
-        response = api_client.post(
-            LOGIN_URL,
-            {"email": user.email, "password": password},
-            format="json",
-        )
-        token = Token.objects.get(user=user)
-        assert response.json()["key"] == token.key
-
-    def test_invalid_credentials_return_400(self, api_client, db):
-        user = UserFactory(password="correct_password")
-        response = api_client.post(
-            LOGIN_URL,
-            {"email": user.email, "password": "wrongpassword"},
-            format="json",
-        )
-        assert response.status_code == 400
-
-    def test_missing_credentials_return_400(self, api_client, db):
-        response = api_client.post(LOGIN_URL, {}, format="json")
-        assert response.status_code == 400
-
-
-@pytest.mark.django_db
-class TestTokenHeaderAccess:
-    def test_token_from_login_authenticates_request(self, api_client, db):
-        password = "SecurePass123!"
-        user = UserFactory(password=password)
-        login_resp = api_client.post(
-            LOGIN_URL,
-            {"email": user.email, "password": password},
-            format="json",
-        )
-        assert login_resp.status_code == 200
-        token_key = login_resp.json()["key"]
-
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Token {token_key}")
-        response = client.get(reverse("api:project-list"))
-        assert response.status_code == 200
-
-    def test_invalid_token_returns_401(self, api_client, db):
-        api_client.credentials(HTTP_AUTHORIZATION="Token thisisnotavalidtoken")
-        response = api_client.get(reverse("api:project-list"))
-        assert response.status_code == 401
-
-
-@pytest.mark.django_db
-class TestTokenLogout:
-    def test_logout_returns_200(self, authenticated_client):
-        response = authenticated_client.post(LOGOUT_URL)
-        assert response.status_code == 200
-
-    def test_token_unusable_after_logout(self, user, token):
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-
-        pre_response = client.get(reverse("api:project-list"))
-        assert pre_response.status_code == 200
-
-        logout_resp = client.post(LOGOUT_URL)
-        assert logout_resp.status_code == 200
-
-        # Token should now be invalid (dj-rest-auth deletes the token on logout)
-        post_response = client.get(reverse("api:project-list"))
-        assert post_response.status_code == 401
 
 
 @pytest.mark.django_db
@@ -231,7 +136,9 @@ class TestTokenPages:
             response = Client().get(address)
 
             assert response.status_code == 302, address
-            assert response["Location"].startswith(settings.LOGIN_URL), address
+            assert response["Location"].startswith(resolve_url(settings.LOGIN_URL)), (
+                address
+            )
 
     def test_a_token_created_on_the_create_page_authenticates_a_request(
         self, signed_in_client, person

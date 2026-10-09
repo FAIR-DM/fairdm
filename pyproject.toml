@@ -90,7 +90,6 @@ dependencies = [
     "djangorestframework (>=3.17.2,<4.0.0)",
     "drf-spectacular[sidecar]>=0.29.0,<0.31.0",
     "drf-orjson-renderer (>=1.7.5,<2.0.0)",
-    "dj-rest-auth (>=7.0.0,<8.0.0)",
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
@@ -369,7 +368,6 @@ package_module_name_map = { django-environ = "environ", django-filter = "django_
 # backends) and deploys others as processes, so a static import scan cannot see
 # them. Everything below is genuinely used and none of it is dead weight.
 DEP002 = [
-    "dj-rest-auth",
     "django-admin-extra-buttons",
     "django-celery-beat",
     "django-classy-tags",
