@@ -603,6 +603,11 @@ can build on any of them.
 sorted on: the stored, non-relational fields the serializer returns. Set `ordering_fields` on a
 viewset of your own to the result, or name the fields yourself.
 
+`fairdm.api.viewsets.load_relations(queryset, serializer_class)` loads the relations a serializer
+returns, so a list does not read a query per record. It selects each foreign key and one-to-one
+among the serializer's fields and prefetches each many-to-many. A generated viewset applies it
+after `load_related`. Apply it to the queryset of a viewset of your own that returns a relation.
+
 ## URL Slugs and verbose_name_plural
 
 FairDM derives the `<model-slug>` component of every endpoint from the model's `verbose_name_plural` metadata (lowercased, spaces → hyphens). This gives you full control over URL structure without touching router configuration.
