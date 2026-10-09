@@ -475,3 +475,10 @@ Did: The whole suite showed two more existing tests that read samples in a publi
 Verified: uv run pytest -q -n auto --dist loadscope across the repository: 6214 passed, 2 failed (the two above, now fixed); uv run mypy fairdm/api fairdm/registry: no issues.
 Next: the full verify, then the report.
 Watch: none.
+
+## 2026-10-09T09:00:39Z · Implementer fix-2 · T068
+
+Did: Added two cases to TestSchemaDescribesThePortal: the security schemes are named tokenAuth and cookieAuth with no mention of the token package in any name or description, and every operation's security refers to a scheme the schema defines (tokenAuth among them). Seen failing (the scheme was named knoxApiToken). Added TokenSchemeExtension in fairdm/api/schema.py, a subclass of drf-spectacular's extension for the token class with a higher priority, that renames the scheme and adds a plain description of the Authorization header. fairdm.api.apps already imports the module when the app loads. The API page names both schemes.
+Verified: uv run pytest -q -n0 tests/test_api/test_schema.py tests/test_api/test_settings.py: 52 passed. No existing test named the old scheme, so none changed.
+Next: T069.
+Watch: none.
