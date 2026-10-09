@@ -74,6 +74,9 @@ caller's address from the `X-Forwarded-For` header, which the caller controls. A
 a different value in that header on every request is counted as a new caller each time and is never
 stopped. Set it to `0` when no proxy stands in front of the portal.
 
+`manage.py check --deploy` warns (`fairdm.W601`) while `REST_FRAMEWORK` has no `NUM_PROXIES`. Any value
+you set, `0` included, ends the warning. See [Configuration Checks](configuration-checks.md#w601-the-number-of-proxies-in-front-of-the-api-is-not-set).
+
 ## Where the counts are kept
 
 The counts live in the portal's default cache, which is Redis on a production portal. Every worker

@@ -6,6 +6,7 @@ from unittest import mock
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.checks import Error
+from django.core.checks import Warning as CheckWarning
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
 from django.db import utils as django_db_utils
@@ -900,3 +901,47 @@ class TestDevAccountsAbsentReportsTheRoleAccounts:
         assert len(errors) == 1
         assert errors[0].id == "fairdm.E501"
         assert email in errors[0].msg
+
+
+class TestApiProxyCountCheck:
+    """A portal that has not said how many proxies stand in front of it is warned."""
+
+    @staticmethod
+    def rest_framework(**extra):
+        """Return the portal's REST_FRAMEWORK with its NUM_PROXIES removed, then ``extra``."""
+        from django.conf import settings
+
+        values = {
+            k: v for k, v in settings.REST_FRAMEWORK.items() if k != "NUM_PROXIES"
+        }
+        return {**values, **extra}
+
+    def test_a_portal_without_num_proxies_is_warned(self):
+        from fairdm.conf.checks import check_api_proxy_count
+
+        with override_settings(REST_FRAMEWORK=self.rest_framework()):
+            found = check_api_proxy_count(app_configs=None)
+
+        assert [(type(item), item.id) for item in found] == [
+            (CheckWarning, "fairdm.W601")
+        ]
+
+    @pytest.mark.parametrize("proxies", [0, 1, 2, None])
+    def test_a_portal_that_set_it_is_not_warned(self, proxies):
+        from fairdm.conf.checks import check_api_proxy_count
+
+        with override_settings(REST_FRAMEWORK=self.rest_framework(NUM_PROXIES=proxies)):
+            assert check_api_proxy_count(app_configs=None) == []
+
+    def test_the_deployment_checks_report_it(self):
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import DeployTags, check_api_proxy_count
+
+        assert check_api_proxy_count in registry.get_checks(
+            include_deployment_checks=True
+        )
+        assert check_api_proxy_count not in registry.get_checks(
+            include_deployment_checks=False
+        )
+        assert DeployTags.production_critical not in check_api_proxy_count.tags
