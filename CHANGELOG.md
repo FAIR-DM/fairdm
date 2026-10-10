@@ -110,6 +110,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The browser tab shows the FairDM icon in dark mode.** FairDM shipped `brand/icon.svg` and no
+  `brand/icon_dark.svg`, so a browser set to a dark colour scheme was given django-mvp's own dark
+  icon. FairDM now ships both. A portal that replaces `brand/icon.svg` with its own icon should
+  replace `brand/icon_dark.svg` as well.
 - **The description and date filters of the sample lists answer instead of failing.** On the
   portal's sample pages and in the API, filtering by description, "date after" or "date before"
   raised a server error, because the filters read fields the sample models do not have. They now
