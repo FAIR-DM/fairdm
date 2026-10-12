@@ -885,19 +885,30 @@ class Person(AbstractUser, Contributor):
         return qs.get() if qs else None
 
     def primary_affiliation(self):
-        """Return the person's primary affiliation.
+        """Return the person's primary affiliation when it is verified and has not ended.
 
-        Reads ``affiliations.all()``, so a listing that prefetches
-        ``affiliations__organization`` costs no query per person.
+        A primary affiliation that is still pending, or has an end date, is not returned, so
+        nothing that reads this names an organization the person's page does not. Reads
+        ``affiliations.all()``, so a listing that prefetches ``affiliations__organization``
+        costs no query per person.
 
         Returns:
-            The primary affiliation, or None when none is set.
+            The primary affiliation, or None when there is none that is verified and current.
         """
-        return next((a for a in self.affiliations.all() if a.is_primary), None)
+        return next(
+            (
+                a
+                for a in self.affiliations.all()
+                if a.is_primary
+                and a.end_date is None
+                and a.type >= Affiliation.MembershipType.MEMBER
+            ),
+            None,
+        )
 
     @property
     def primary_organization(self):
-        """The organisation of the person's primary affiliation, or None."""
+        """The organisation of the verified, current primary affiliation, or None."""
         affiliation = self.primary_affiliation()
         return affiliation.organization if affiliation else None
 
@@ -958,24 +969,6 @@ class Person(AbstractUser, Contributor):
             reverse=True,
         )
         return {"current": current, "past": past}
-
-    def to_public_schema_org(self):
-        """Export the person as Schema.org metadata that is safe to publish on a page.
-
-        The affiliation is kept only when it is the verified, current primary affiliation the
-        page header shows, so the metadata never names an organization the page does not.
-
-        Returns:
-            The JSON-LD metadata without the email address and without an affiliation the page
-            leaves out.
-        """
-        data = super().to_public_schema_org()
-        shown = next(
-            (a for a in self.get_affiliation_history()["current"] if a.is_primary), None
-        )
-        if shown is None:
-            data.pop("affiliation", None)
-        return data
 
     def get_profile_completeness(self):
         """Say which parts of a complete profile the person has filled in.
@@ -1132,16 +1125,7 @@ class Person(AbstractUser, Contributor):
         Returns:
             The location text, or None when there is no such affiliation.
         """
-        aff = next(
-            (
-                a
-                for a in self.affiliations.all()
-                if a.is_primary
-                and a.end_date is None
-                and a.type >= Affiliation.MembershipType.MEMBER
-            ),
-            None,
-        )
+        aff = self.primary_affiliation()
         if aff and aff.organization:
             org = aff.organization
             parts = []

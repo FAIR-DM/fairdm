@@ -1740,6 +1740,24 @@ class TestPrimaryOrganization:
 
         assert person.primary_organization is None
 
+    def test_a_pending_primary_affiliation_gives_none(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            is_primary=True,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        assert person.primary_affiliation() is None
+        assert person.primary_organization is None
+
+    def test_an_ended_primary_affiliation_gives_none(self):
+        person = PersonFactory()
+        AffiliationFactory(person=person, is_primary=True, end_date="2023")
+
+        assert person.primary_affiliation() is None
+        assert person.primary_organization is None
+
     def test_an_organization_has_none(self):
         assert OrganizationFactory().primary_organization is None
 

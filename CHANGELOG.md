@@ -110,6 +110,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A person's card and list row no longer name an organization from a pending or ended primary
+  affiliation.** `Person.primary_affiliation()` and `Person.primary_organization` now give `None`
+  unless the primary affiliation is verified (member or above) and has no end date, the rule the
+  person's page already follows. The DataCite, Schema.org and CSL-JSON exports of a person, and
+  `Person.as_geojson()`, read the same method and leave the organization out too.
 - **The browser tab shows the FairDM icon in dark mode.** FairDM shipped `brand/icon.svg` and no
   `brand/icon_dark.svg`, so a browser set to a dark colour scheme was given django-mvp's own dark
   icon. FairDM now ships both. A portal that replaces `brand/icon.svg` with its own icon should

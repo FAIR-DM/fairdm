@@ -142,9 +142,7 @@ class Overview(OverviewPlugin):
         is_self = user.is_authenticated and user.pk == person.pk
         update_url = person.get_update_url()
         affiliations = person.get_affiliation_history()
-        primary = next(
-            (a.organization for a in affiliations["current"] if a.is_primary), None
-        )
+        primary = person.primary_organization
         state = person.account_state
         collaborators = person.get_collaborators(contributions=contributions)
         projects = [{"record": p, "owned": False} for p in person.get_public_projects()]
