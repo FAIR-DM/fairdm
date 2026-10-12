@@ -113,6 +113,8 @@ MyPy is configured but currently disabled in CI. When enabled:
   the test-first cycle, structure and fixtures, and the coverage floors (project 90%, patch 85%).
 - Docstrings, Cotton component annotations and comments follow the
   [code documentation standard](docs/contributing/standards/code-documentation.md).
+- Where code lives, and when a new abstraction is worth adding, follows the
+  [Django standard](docs/contributing/standards/django.md).
 
 ## Pre-commit Hooks
 

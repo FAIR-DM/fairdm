@@ -43,6 +43,7 @@ getting_started
 django_dev
 standards/testing
 standards/code-documentation
+standards/django
 documentation/index
 documentation-standards
 feature-documentation
