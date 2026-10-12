@@ -19,3 +19,10 @@ Did: Replaced TestReferencesFollowTheLists.test_a_credit_to_that_contributor_rea
 Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestReferencesFollowTheLists -> 2 failed (KeyError uuid, old shape), 5 passed.
 Next: T003.
 Watch: none.
+
+## 2026-10-12T10:10:36Z · Implementer US1 · T003
+
+Did: Added TestCreditQueries: a page of 12 records, each with 3 person credits holding an identifier and an affiliation with an identifier plus an organization credit, runs the queries of a page of 2 records with 1 person credit each, for projects, datasets, one sample type and one measurement type.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreditQueries -> 4 passed on the old code, as expected: the old credit read nothing per credit. This is a guard for the rewrite in T005; it is probed there by removing the new prefetches and watching it fail.
+Next: T004.
+Watch: none.

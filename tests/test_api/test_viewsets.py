@@ -2594,6 +2594,55 @@ class TestQueryCount:
 
 
 @pytest.mark.django_db
+class TestCreditQueries:
+    @staticmethod
+    def add_credits(record, people=1):
+        """Credit people each with an identifier and an affiliation that has one, and an organization."""
+        from fairdm.factories import (
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        for _ in range(people):
+            person = PersonFactory()
+            ContributorIdentifierFactory(related=person, type="ORCID")
+            institute = OrganizationFactory()
+            ContributorIdentifierFactory(related=institute, type="ROR")
+            add_credit(record, person, institute, roles=2)
+        add_credit(record, OrganizationFactory())
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_a_page_of_twelve_runs_the_queries_of_a_page_of_two(
+        self, api_client, url_of, make_record, kind
+    ):
+        from demo.models import ExampleMeasurement, RockSample
+
+        model = {
+            "project": Project,
+            "dataset": Dataset,
+            "sample": RockSample,
+            "measurement": ExampleMeasurement,
+        }[kind]
+
+        def grow(number, people):
+            for _ in range(number):
+                record = build_record(kind, make_record, lambda record: record)
+                self.add_credits(record, people)
+
+        address = url_of(model, "list")
+        grow(2, people=1)
+        TestQueryCount.queries_for(api_client, address)
+        few, held_few = TestQueryCount.queries_for(api_client, address)
+
+        grow(10, people=3)
+        many, held_many = TestQueryCount.queries_for(api_client, address)
+
+        assert held_many >= held_few + 10
+        assert many == few
+
+
+@pytest.mark.django_db
 class TestEveryListedFilter:
     VALUES = {
         "text": "abc",
