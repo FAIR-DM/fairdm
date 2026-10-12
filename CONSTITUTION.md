@@ -122,6 +122,9 @@ class: a `QuerySet` or `Manager` method instead of a function taking a queryset,
 property instead of a function taking an instance, a `Form` or `Serializer` method instead of a
 free validation function, a view method instead of a helper called by a view.
 
+**Django standards.** Where code lives in a Django codebase, and when a new abstraction is worth
+adding, is set out in [`docs/contributing/standards/django.md`](docs/contributing/standards/django.md).
+
 **Exceptions** are narrow and stated: a genuinely standalone pure function with no siblings, and
 framework-dictated module shapes (`conftest.py` fixtures, migrations, `urls.py`, `apps.py`,
 decorator-registered template tags and filters, signal receivers, management-command entry
@@ -339,4 +342,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 3.0.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-09-28
+**Version**: 3.1.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-10-12
