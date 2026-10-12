@@ -138,6 +138,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Wikidata and Crossref Funder ID identifiers link to their resolver, and a type with no
+  resolver gives no address.** The resolver table was keyed by display names (`Wikidata`,
+  `Crossref Funder ID`) while identifiers store `WIKIDATA` and `CROSSREF_FUNDER_ID`, so the
+  lookup found nothing and `get_absolute_url()` returned the text `None` followed by the value.
+  `IdentifierLookup` is now keyed by the stored type, and `get_absolute_url()` returns `None`
+  for a type with no resolver, such as a ResearcherID or a grant number. In the API, the
+  `name_identifier` and `scheme_uri` of a Wikidata or Crossref Funder ID identifier now carry
+  its address. If your code looks up `IdentifierLookup["Wikidata"]` or
+  `IdentifierLookup["Crossref Funder ID"]`, use `"WIKIDATA"` and `"CROSSREF_FUNDER_ID"`.
+- **A location's page renders.** `/location/<longitude>/<latitude>/` answered with a server
+  error, because it asked for a card template per sample type and a page layout that were never
+  in the repository. It now lists the samples taken at the location as the new `c-sample.card`
+  component, one card for every sample type, and shows only the samples the viewer may see. See
+  [Overview pages](docs/portal-development/overview-pages.md).
+- **Selecting two keywords narrows the project list to the projects that carry both.** The
+  keyword filters of `ProjectFilter` kept a project that carried either keyword, so each
+  further keyword widened the list. See
+  [Filtering by vocabulary](docs/portal-development/filtering-by-vocabulary.md).
 - **The plugin guide and two docstrings no longer say an additional view takes its plugin's access
   rule.** A view listed in `extra_views` is decided by its own `check` and `permission` only, so a
   restricted plugin leaves its additional views open until each states the rule itself. The guide,

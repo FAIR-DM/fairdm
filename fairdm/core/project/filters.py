@@ -72,7 +72,7 @@ class ProjectFilter(BaseListFilter):
                     queryset=Concept.objects.filter(
                         vocabulary__name=vocab_name, projects__isnull=False
                     ).distinct(),
-                    conjoined=False,
+                    conjoined=True,
                     label=field_name,
                     widget=ConceptMultiSelect(
                         vocabulary=vocab_path, required=False
@@ -82,7 +82,7 @@ class ProjectFilter(BaseListFilter):
             self.filters["keywords"] = df.ModelMultipleChoiceFilter(
                 field_name="keywords",
                 queryset=Concept.objects.filter(projects__isnull=False).distinct(),
-                conjoined=False,
+                conjoined=True,
                 label=_("Keywords"),
                 widget=forms.CheckboxSelectMultiple,
             )

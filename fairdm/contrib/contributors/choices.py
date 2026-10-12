@@ -73,13 +73,15 @@ class FairDMIdentifiers(VocabularyBuilder):
     )
 
 
+# Keyed by the identifier type as it is stored: the member names of
+# ``fairdm.core.vocabularies.FairDMIdentifiers``. A type with no resolver has no entry.
 IdentifierLookup = {
     "ORCID": "https://orcid.org/",
     "ROR": "https://ror.org/",
     "GRID": "https://www.grid.ac/institutes/",
-    "Wikidata": "https://www.wikidata.org/wiki/",
+    "WIKIDATA": "https://www.wikidata.org/wiki/",
     "ISNI": "https://isni.org/isni/",
-    "Crossref Funder ID": "https://doi.org/",
+    "CROSSREF_FUNDER_ID": "https://doi.org/",
     "IGSN": "https://igsn.org/",
     "DOI": "https://doi.org/",
 }

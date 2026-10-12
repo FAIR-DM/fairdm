@@ -1,9 +1,0 @@
-{% load contributor_tags %}
-
-<c-mvp.card title="{{ obj }}">
-  <c-slot name="subtitle">
-    <c-contributor.names class="fs-6 text-secondary mt-2 mb-3"
-                         :contributors="obj.contributions.all" />
-  </c-slot>
-  {% trans "Direct child samples" %}: {{ obj.numchild }}
-</c-mvp.card>

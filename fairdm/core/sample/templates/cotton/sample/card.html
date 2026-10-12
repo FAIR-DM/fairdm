@@ -1,0 +1,74 @@
+{# @description The card a sample of any type is drawn as in a listing: image or icon, its type, name, the dataset it belongs to and its identifiers. The whole card is one link to the sample. #}
+{# @prop object:text | description:"The sample, loaded with its dataset (`select_related('dataset')`)." #}
+<c-vars object />
+{% load i18n thumbnail %}
+{% comment %}
+  One card for every sample type, sharing the `record-card` classes with the project and dataset
+  cards, so change all three together. Its stylesheet is linked once from base.html, never here.
+  It reads the sample's own fields and its dataset, and nothing else, so a listing that loads the
+  dataset adds no query per card.
+{% endcomment %}
+<a href="{{ object.get_absolute_url }}"
+   class="record-card"
+   aria-label="{% blocktranslate with name=object.name %}Open sample {{ name }}{% endblocktranslate %}">
+
+  <div class="record-card__layout">
+
+    {# Every card has a media block so listings stay aligned. A sample with no image gets a tinted icon panel. #}
+    <div class="record-card__media">
+      {% if object.image %}
+        <img src="{{ object.image|thumbnail_url:'core_small' }}"
+             alt=""
+             loading="lazy" />
+      {% else %}
+        <span class="record-card__placeholder" aria-hidden="true">
+          <c-icon name="sample" />
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="record-card__body">
+
+      <div class="record-card__meta">
+        <span class="record-card__badges">
+          {# The sample's own type (rock sample, water sample), not the word "sample". #}
+          <span class="badge badge-sm record-card__type">
+            <c-icon name="sample" />
+            {{ object.verbose_name|capfirst }}
+          </span>
+        </span>
+      </div>
+
+      <h3 class="record-card__title">{{ object.name }}</h3>
+
+      <div class="record-card__people">
+        {# A span, not a nested `<a>`, because the whole card is already a link. #}
+        <span class="record-card__parent">
+          <c-icon name="dataset" />
+          <span>{{ object.dataset.name }}</span>
+        </span>
+      </div>
+
+      <div class="record-card__footer">
+        <span class="record-card__uuid font-mono">
+          {{ object.uuid }}
+          {# The card is one link, so the copy control must stop the click reaching it. #}
+          <button type="button"
+                  class="record-card__copy"
+                  title="{% translate 'Copy sample identifier' %}"
+                  aria-label="{% translate 'Copy sample identifier' %}"
+                  onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText(this.dataset.uuid);"
+                  data-uuid="{{ object.uuid }}">
+            <c-icon name="copy" />
+          </button>
+        </span>
+        {% if object.local_id %}<span class="font-mono">{{ object.local_id }}</span>{% endif %}
+        <span class="record-card__modified">
+          {% blocktranslate with modified=object.modified|date:"M j, Y" %}Last updated {{ modified }}{% endblocktranslate %}
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+</a>

@@ -1977,8 +1977,7 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
     @property
     def resolver_url(self):
         """The address the identifier resolves to, or None for a type with no resolver."""
-        url = self.get_absolute_url()
-        return url if url and url.startswith("http") else None
+        return self.get_absolute_url()
 
     def clean(self):
         """Refuse a second identifier of the same type, with a message naming the type."""

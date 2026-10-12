@@ -3,6 +3,29 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## Identifier resolvers are keyed by the stored type
+
+`IdentifierLookup` (`fairdm.contrib.contributors.choices`) maps an identifier type to its
+resolver address. Two of its keys were display names and are now the types identifiers store:
+
+| Before | Now |
+| --- | --- |
+| `IdentifierLookup["Wikidata"]` | `IdentifierLookup["WIKIDATA"]` |
+| `IdentifierLookup["Crossref Funder ID"]` | `IdentifierLookup["CROSSREF_FUNDER_ID"]` |
+
+1. Search your code for `IdentifierLookup` and replace the two keys above.
+2. Search for calls to an identifier's `get_absolute_url()`. It now returns `None` for a type
+   with no resolver, where it used to return the text `None` followed by the value. Guard a link
+   on the result:
+
+   ```django
+   {% if identifier.get_absolute_url %}
+     <a href="{{ identifier.get_absolute_url }}">{{ identifier.value }}</a>
+   {% else %}
+     {{ identifier.value }}
+   {% endif %}
+   ```
+
 ## 024 - Upgrading to the shared editing pages
 
 A project, a dataset, a sample and a measurement are now edited and deleted through six pages

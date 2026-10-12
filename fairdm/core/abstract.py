@@ -464,18 +464,25 @@ class AbstractIdentifier(GenericModel):
         """Return the base URL of the identifier's resolver.
 
         Returns:
-            The resolver URL registered for the identifier's type.
+            The resolver URL registered for the identifier's type, or None when it has none.
         """
         return IdentifierLookup.get(self.type)
 
     def get_absolute_url(self):
-        """Return the URL of the identifier's resolver page."""
+        """Return the URL of the identifier's resolver page.
+
+        Returns:
+            The address the identifier resolves to, or None for a type with no resolver.
+        """
+        root = self.get_root_url()
+        if root is None:
+            return None
         value = (
             func()
             if (func := getattr(self, f"slugify_{self.type.lower()}", None))
             else self.value
         )
-        return f"{self.get_root_url()}{value}"
+        return f"{root}{value}"
 
     def slugify_isni(self):
         """Return the ISNI value with its spaces removed.

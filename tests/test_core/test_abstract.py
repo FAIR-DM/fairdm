@@ -6,7 +6,7 @@ from django.db import connection
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
-from fairdm.factories import PersonFactory
+from fairdm.factories import ContributorIdentifierFactory, PersonFactory
 from fairdm.factories.core import (
     DatasetDateFactory,
     DatasetDescriptionFactory,
@@ -14,6 +14,7 @@ from fairdm.factories.core import (
     MeasurementDescriptionFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
+    ProjectIdentifierFactory,
     SampleDescriptionFactory,
 )
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -294,3 +295,38 @@ class TestDescriptionMaxLength:
             description.full_clean()
 
         assert "value" in excinfo.value.message_dict
+
+
+@pytest.mark.django_db
+class TestIdentifierAddress:
+    @pytest.mark.parametrize(
+        ("type_", "value", "address"),
+        [
+            ("WIKIDATA", "Q42", "https://www.wikidata.org/wiki/Q42"),
+            (
+                "CROSSREF_FUNDER_ID",
+                "10.13039/100000001",
+                "https://doi.org/10.13039/100000001",
+            ),
+        ],
+    )
+    def test_a_type_with_a_resolver_gives_its_address(self, type_, value, address):
+        identifier = ContributorIdentifierFactory(
+            related=PersonFactory(), type=type_, value=value
+        )
+
+        assert identifier.get_absolute_url() == address
+
+    def test_a_contributor_type_with_no_resolver_gives_no_address(self):
+        identifier = ContributorIdentifierFactory(
+            related=PersonFactory(), type="RESEARCHER_ID", value="A-1234-2020"
+        )
+
+        assert identifier.get_absolute_url() is None
+
+    def test_a_record_type_with_no_resolver_gives_no_address(self):
+        identifier = ProjectIdentifierFactory(
+            related=ProjectFactory(), type="GRANT_NUMBER", value="EAR-1234567"
+        )
+
+        assert identifier.get_absolute_url() is None
