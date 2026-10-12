@@ -462,3 +462,152 @@ class TestPeopleFilters:
         )
 
         assert found == set()
+
+
+@pytest.mark.django_db
+class TestOrganizationFilters:
+    @staticmethod
+    def found(client, **query):
+        response = client.get(reverse("api:organization-list"), query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_type_returns_only_organizations_of_that_stored_code(self):
+        from fairdm.contrib.contributors.choices import OrganizationType
+        from fairdm.factories import OrganizationFactory
+
+        university = OrganizationFactory(type=OrganizationType.EDUCATION)
+        company = OrganizationFactory(type=OrganizationType.COMPANY)
+        untyped = OrganizationFactory(type=None)
+
+        found = self.found(APIClient(), type="education")
+
+        assert found == {university.uuid}
+        assert {company.uuid, untyped.uuid}.isdisjoint(found)
+
+    def test_country_returns_only_organizations_in_that_country(self):
+        from fairdm.factories import OrganizationFactory
+
+        australian = OrganizationFactory(country="AU")
+        german = OrganizationFactory(country="DE")
+        unplaced = OrganizationFactory(country=None)
+
+        found = self.found(APIClient(), country="AU")
+
+        assert found == {australian.uuid}
+        assert {german.uuid, unplaced.uuid}.isdisjoint(found)
+
+    def test_parent_returns_the_organizations_that_are_part_of_it(self):
+        from fairdm.factories import OrganizationFactory
+
+        university = OrganizationFactory()
+        physics = OrganizationFactory(parent=university)
+        chemistry = OrganizationFactory(parent=university)
+        elsewhere = OrganizationFactory(parent=OrganizationFactory())
+
+        found = self.found(APIClient(), parent=university.uuid)
+
+        assert found == {physics.uuid, chemistry.uuid}
+        assert {university.uuid, elsewhere.uuid}.isdisjoint(found)
+
+    def test_a_database_number_for_parent_is_refused(self):
+        from fairdm.factories import OrganizationFactory
+
+        university = OrganizationFactory()
+        OrganizationFactory(parent=university)
+
+        response = APIClient().get(
+            reverse("api:organization-list"), {"parent": university.pk}
+        )
+
+        assert response.status_code == 400
+        assert "parent" in response.json()
+
+    def test_an_identifier_nobody_holds_in_parent_is_refused_not_listed(self):
+        response = APIClient().get(
+            reverse("api:organization-list"), {"parent": "u" * 23}
+        )
+
+        assert response.status_code == 400
+
+    def test_top_level_true_returns_organizations_with_no_parent(self):
+        from fairdm.factories import OrganizationFactory
+
+        university = OrganizationFactory()
+        department = OrganizationFactory(parent=university)
+        standalone = OrganizationFactory()
+
+        found = self.found(APIClient(), top_level="true")
+
+        assert {university.uuid, standalone.uuid} <= found
+        assert department.uuid not in found
+
+    def test_top_level_false_returns_organizations_with_a_parent(self):
+        from fairdm.factories import OrganizationFactory
+
+        university = OrganizationFactory()
+        department = OrganizationFactory(parent=university)
+
+        found = self.found(APIClient(), top_level="false")
+
+        assert department.uuid in found
+        assert university.uuid not in found
+
+    def test_identifier_returns_the_one_holder_given_the_bare_value(self):
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        holder = OrganizationFactory()
+        other = OrganizationFactory()
+        ContributorIdentifierFactory(related=holder, type="ROR", value="03yrm5c26")
+        ContributorIdentifierFactory(related=other, type="ROR", value="05gq02987")
+
+        found = self.found(APIClient(), identifier="03yrm5c26")
+
+        assert found == {holder.uuid}
+
+    @pytest.mark.parametrize(
+        "sent",
+        [
+            "https://ror.org/03yrm5c26",
+            "http://ror.org/03yrm5c26",
+            "https://ror.org/03yrm5c26/",
+            "  03yrm5c26  ",
+        ],
+    )
+    def test_identifier_returns_the_holder_given_the_full_address(self, sent):
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        holder = OrganizationFactory()
+        ContributorIdentifierFactory(related=holder, type="ROR", value="03yrm5c26")
+        OrganizationFactory()
+
+        found = self.found(APIClient(), identifier=sent)
+
+        assert found == {holder.uuid}
+
+    def test_identifier_returns_an_empty_list_for_a_value_nobody_holds(self):
+        from fairdm.factories import OrganizationFactory
+
+        OrganizationFactory()
+
+        found = self.found(APIClient(), identifier="05gq02987")
+
+        assert found == set()
+
+    def test_the_filters_combine_with_each_other(self):
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        university = OrganizationFactory()
+        australian = OrganizationFactory(parent=university, country="AU")
+        german = OrganizationFactory(parent=university, country="DE")
+        ContributorIdentifierFactory(related=german, type="ROR", value="03yrm5c26")
+
+        by_parent_and_country = self.found(
+            APIClient(), parent=university.uuid, country="AU"
+        )
+        by_country_and_identifier = self.found(
+            APIClient(), country="AU", identifier="03yrm5c26"
+        )
+
+        assert by_parent_and_country == {australian.uuid}
+        assert by_country_and_identifier == set()
