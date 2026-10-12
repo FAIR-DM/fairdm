@@ -59,8 +59,6 @@ def locations_for_dataset(dataset):
     Returns:
         A queryset of points.
     """
-    from .models import Point
-
     return Point.objects.filter(samples__dataset=dataset)
 
 
