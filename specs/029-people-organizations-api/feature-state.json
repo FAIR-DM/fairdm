@@ -3,7 +3,7 @@
   "feature": "029-people-organizations-api",
   "branch": "029-people-organizations-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -29,6 +29,11 @@
       "state": "CONVERGE",
       "at": "2026-10-12T11:11:24Z",
       "note": "four stories accepted; full verification green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-12T11:14:37Z",
+      "note": "converged and green; one reviewer with the security lens, since the feature decides what the API says about people"
     }
   ],
   "gates": {
@@ -481,7 +486,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
