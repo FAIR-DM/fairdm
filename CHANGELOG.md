@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A landing page for visitors who have not signed in.** The address `/` now opens on a
+  full-height hero and follows it with public figures, the portal's description, the latest
+  datasets, the registered sample and measurement types, the community, new projects, the API, an
+  invitation to join and a footer. Everything shown is what a visitor may open, and a section with
+  nothing to show is left out. `HOME_PAGE_CONFIG` sets the hero's `eyebrow`, `title`, `lead`,
+  `image` and `logo`. Each section sits in a `landing.<name>` template block and is a
+  `c-landing.*` component, and `FairDMHomeView` reads each section's data from a `get_*` method
+  a subclass can override. The
+  listings' record cards are now the components `c-dataset.card` and `c-project.card`. See
+  [Home page](docs/portal-development/home_page.md).
 - **A keywords page on projects, datasets, samples and measurements.** Each record type has the URL
   name `keywords`, at `<record address>/keywords/`, reached from the Manage menu after the
   descriptions entry. The Manage menu now offers all six pages in one order on every record type: edit
@@ -35,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The landing page no longer extends `mvp/landing.html`.** A portal that filled its `page.hero`
+  or `page.content` blocks in a `fairdm/landing.html` of its own moves that content into the
+  `landing.<name>` blocks. `FAIRDM_LANDING_PAGE_HERO` in `fairdm.views.generic` is gone, replaced
+  by the `HOME_PAGE_CONFIG` setting.
 - **The project's Manage menu no longer has a contributors entry.** The Contributors tab is where
   a project's contributors are managed, as on a dataset.
 - **The sample keywords page is replaced by the shared one.** The sample `Keywords` plugin,

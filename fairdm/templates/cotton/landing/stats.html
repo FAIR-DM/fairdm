@@ -1,0 +1,11 @@
+{# @description The portal in figures: one count for each kind of public record, counting up as the band scrolls into view. Renders nothing when there is nothing to count. #}
+{# @prop counts:text | description:"A list of figures, each with a title, a whole-number value and an icon name." #}
+<c-vars counts />
+{% if counts %}
+  <c-stats.band size="sm" class="bg-base-200" id="landing-stats">
+    {# Not `figure`: the stat underneath has a slot of that name and would draw the loop variable in it. #}
+    {% for item in counts %}
+      <c-stats.count title="{{ item.title }}" :to="item.value" icon="{{ item.icon }}" />
+    {% endfor %}
+  </c-stats.band>
+{% endif %}

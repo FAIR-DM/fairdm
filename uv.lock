@@ -773,6 +773,20 @@ wheels = [
 ]
 
 [[package]]
+name = "daisy-cotton-ext"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "daisy-cotton" },
+    { name = "django" },
+    { name = "django-cotton" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/6f/a75d5cb403f5ac0eb868ff98824b43c4055327c8f68f330868e1edeafcbf/daisy_cotton_ext-0.4.0.tar.gz", hash = "sha256:10f80d3e471881c8d039cf7165b0541e3c0edfea6b2798d91cfa9b8cb73936ff", size = 78060, upload-time = "2026-10-11T23:29:25.415Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/98/22f7cbca7f26dc445ad30075929f6935a181ae54abfd8aa0ed5427f25340/daisy_cotton_ext-0.4.0-py3-none-any.whl", hash = "sha256:b253712747ee86231d1327625a522dfe859da83f72c733cbf869c156944e9be5", size = 117630, upload-time = "2026-10-11T23:29:23.82Z" },
+]
+
+[[package]]
 name = "defusedxml"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2044,6 +2058,7 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "celery" },
+    { name = "daisy-cotton-ext" },
     { name = "defusedxml" },
     { name = "django", extra = ["argon2"] },
     { name = "django-addanother" },
@@ -2144,6 +2159,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "celery", specifier = ">=5.6.2,<6.0.0" },
+    { name = "daisy-cotton-ext", specifier = ">=0.4.0,<0.5.0" },
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
     { name = "django", extras = ["argon2"], specifier = ">=5.2,<6.0.0" },
     { name = "django-addanother", specifier = ">=2.2.2,<3.0.0" },

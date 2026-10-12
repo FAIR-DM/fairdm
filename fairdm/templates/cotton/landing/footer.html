@@ -1,0 +1,34 @@
+{# @description The landing page's footer: the portal's logo and a line about it, the places a visitor can go, and the copyright line. #}
+{# @prop name:text | description:"The portal's name." #}
+{# @prop authority:text | description:"Who runs the portal, named in the copyright line in place of the portal." #}
+{# @prop allow_registration:boolean | description:"List account creation among the links." #}
+{% load i18n %}
+{# Plain anchors: fairdm has a `c-link` of its own that takes other attributes than daisy-cotton's. #}
+<c-vars name authority allow_registration />
+{% now "Y" as year %}
+<c-footer.columns class="bg-base-200"
+                  tagline="{% translate 'Built by researchers, for researchers.' %}"
+                  notice="© {{ year }} {% firstof authority name %}"
+                  id="landing-footer">
+  <c-slot name="logo">
+    <a href="{% url 'home' %}"><c-mvp.brand.logo class="landing-footer__logo" /></a>
+  </c-slot>
+  <c-footer.nav title="{% translate 'Explore' %}">
+    <a class="link link-hover" href="{% url 'project-list' %}">{% translate 'Projects' %}</a>
+    <a class="link link-hover" href="{% url 'dataset-list' %}">{% translate 'Datasets' %}</a>
+    <a class="link link-hover" href="{% url 'people-list' %}">{% translate 'People' %}</a>
+    <a class="link link-hover" href="{% url 'organization-list' %}">{% translate 'Organizations' %}</a>
+  </c-footer.nav>
+  <c-footer.nav title="{% translate 'Resources' %}">
+    <a class="link link-hover" href="{% url 'api:api-docs' %}">{% translate 'API docs' %}</a>
+    <a class="link link-hover" href="https://fairdm.org/user-guide/">{% translate 'User guide' %}</a>
+    <a class="link link-hover" href="{% url 'django_contact_form' %}">{% translate 'Contact' %}</a>
+  </c-footer.nav>
+  <c-footer.nav title="{% translate 'Account' %}">
+    <a class="link link-hover" href="{% url 'account_login' %}">{% translate 'Sign in' %}</a>
+    {% if allow_registration %}<a class="link link-hover" href="{% url 'account_signup' %}">{% translate 'Create account' %}</a>{% endif %}
+  </c-footer.nav>
+  <c-slot name="legal">
+    <a class="link link-hover" href="https://fairdm.org/">{% translate 'Powered by FairDM' %}</a>
+  </c-slot>
+</c-footer.columns>

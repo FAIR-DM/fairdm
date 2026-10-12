@@ -1,0 +1,25 @@
+{# @description The page's closing invitation to contribute, on a wash of the theme's colours. With registration closed it asks members to sign in instead. #}
+{# @prop name:text | description:"The portal's name." #}
+{# @prop allow_registration:boolean | description:"Offer account creation." #}
+{% load i18n %}
+<c-vars name allow_registration />
+{% if allow_registration %}
+  {% blocktranslate asvar join_title %}Add your data to {{ name }}{% endblocktranslate %}
+  {% translate "Your data, with your name on it, public when you decide." as join_lead %}
+{% else %}
+  {% translate "Sign in to contribute" as join_title %}
+  {% translate "Accounts on this portal are created by its administrators. Members sign in to add and edit records." as join_lead %}
+{% endif %}
+<c-hero.centred level="2" invert :title="join_title" :lead="join_lead" class="landing-section" id="landing-join">
+  <c-slot name="background">
+    <c-background.gradient opacity="1" />
+  </c-slot>
+  <c-slot name="actions">
+    {% if allow_registration %}
+      <c-button variant="neutral" size="lg" icon="signup" href="{% url 'account_signup' %}" text="{% translate 'Create account' %}" />
+      <c-button size="lg" icon="login" href="{% url 'account_login' %}" text="{% translate 'Sign in' %}" />
+    {% else %}
+      <c-button variant="neutral" size="lg" icon="login" href="{% url 'account_login' %}" text="{% translate 'Sign in' %}" />
+    {% endif %}
+  </c-slot>
+</c-hero.centred>

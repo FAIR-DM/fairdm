@@ -1,0 +1,20 @@
+{% extends "fairdm/landing.html" %}
+{% load i18n %}
+
+{% comment %}
+  The demo portal's own landing page, and the example of how a portal adds to the one FairDM ships:
+  extend it, fill a block, and keep the section it holds with `{{ block.super }}`.
+{% endcomment %}
+
+{% block landing.stats %}
+  {{ block.super }}
+  <c-section container="narrow" invert class="bg-neutral landing-section" id="landing-demo">
+    <c-heading invert eyebrow="{% translate 'Demonstration portal' %}"
+               title="{% translate 'The records here are examples' %}"
+               lead="{% translate 'This portal runs FairDM as it comes, before any customising. Nothing here is real data, and anything you add may be reset.' %}" />
+    <div class="mt-8 dce:flex dce:flex-wrap dce:justify-center dce:gap-3">
+      <c-button variant="primary" icon="documentation" href="https://www.fairdm.com" text="{% translate 'Documentation' %}" />
+      <c-button icon="github" href="https://github.com/FAIR-DM/fairdm" text="{% translate 'GitHub' %}" />
+    </div>
+  </c-section>
+{% endblock landing.stats %}

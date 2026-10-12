@@ -1,0 +1,41 @@
+{# @description The landing page's opener: a hero as tall as the window, carrying the portal's name and what it is for. With a picture it is dimmed and the copy turns light. Without one it draws a background in the theme's own colours, so a portal that configures nothing still gets a finished hero. #}
+{# @prop eyebrow:text | description:"Short line above the title." #}
+{# @prop title:text | description:"The page's heading." #}
+{# @prop lead:text | description:"The sentence under the title." #}
+{# @prop image:text | description:"URL of a background picture. Left out, the hero draws the theme's colours." #}
+{# @prop logo:boolean | description:"Show the portal's logo above the title. Only without a picture: the logo is drawn for a light surface." #}
+{# @prop allow_registration:boolean | description:"Offer account creation under the buttons." #}
+{# @slot:actions — Replaces the two buttons. #}
+{% load i18n %}
+<c-vars eyebrow title lead image logo allow_registration actions />
+<c-hero.centred size="screen" :eyebrow="eyebrow" :title="title" :lead="lead" :invert="image" id="landing-hero">
+  <c-slot name="background">
+    {% if image %}
+      <c-background.image src="{{ image }}" dim="0.72" />
+    {% else %}
+      <c-background.aurora />
+      <c-background.grid />
+    {% endif %}
+  </c-slot>
+  {% if logo and not image %}
+    <c-slot name="announcement">
+      <c-mvp.brand.logo class="landing-hero__logo" />
+    </c-slot>
+  {% endif %}
+  <c-slot name="actions">
+    {% if actions %}
+      {{ actions }}
+    {% else %}
+      <c-button variant="primary" size="lg" icon="dataset" href="{% url 'dataset-list' %}" text="{% translate 'Browse datasets' %}" />
+      <c-button variant="secondary" size="lg" icon="project" href="{% url 'project-list' %}" text="{% translate 'Explore projects' %}" />
+    {% endif %}
+  </c-slot>
+  <c-slot name="footnote">
+    {% if allow_registration %}
+      {% translate "New here?" %}
+      <a class="link" href="{% url 'account_signup' %}">{% translate "Create account" %}</a>
+      <span aria-hidden="true">·</span>
+    {% endif %}
+    <a class="link" href="{% url 'account_login' %}">{% translate "Sign in" %}</a>
+  </c-slot>
+</c-hero.centred>

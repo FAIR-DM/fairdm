@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "mvp",
     # Directly below mvp, which replaces some of its templates.
     "daisy_cotton",
+    "daisy_cotton_ext",
     "mvp_charts",
     "polymorphic",
     "parler",

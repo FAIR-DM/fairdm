@@ -1,0 +1,119 @@
+{# @description The card a project is drawn as in a listing: banner, type and status, title, contributors, abstract, keywords and identifier. The whole card is one link to the project. #}
+{# @prop object:text | description:"The project, loaded with ProjectQuerySet.with_list_data() and with_contributors()." #}
+<c-vars object />
+{% load i18n static thumbnail %}
+{% comment %}
+  Project card for the public listing (#330), drawn directly because `cotton/components/object_card.html` uses Bootstrap-era classes that no longer resolve.
+  The `record-card` classes are shared with the dataset card, so change both together. The card reflows on its own width (`@container`), and its stylesheet is linked once from base.html, never here.
+  Data comes from `ProjectQuerySet.with_list_data()` and `with_contributors()`; a field that neither prefetches adds a query per card.
+{% endcomment %}
+<a href="{{ object.get_absolute_url }}"
+   class="record-card"
+   aria-label="{% blocktrans with name=object.title %}Open project {{ name }}{% endblocktrans %}">
+
+  {# The reflow lives on this wrapper: a container query is answered by an ancestor, so `.record-card` cannot respond to its own width. #}
+  <div class="record-card__layout">
+
+    {# Every card has a media block so listings stay aligned. An imageless project gets a tinted icon panel, not a placeholder file, which would 404. #}
+    <div class="record-card__media">
+      {% if object.image %}
+        <img src="{{ object.image|thumbnail_url:'core_small' }}"
+             alt=""
+             loading="lazy" />
+      {% else %}
+        <span class="record-card__placeholder" aria-hidden="true">
+          <c-icon name="project" />
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="record-card__body">
+
+      <div class="record-card__meta">
+        <span class="record-card__badges">
+          <span class="badge badge-sm record-card__type">
+            <c-icon name="project" />
+            {% translate "Project" %}
+          </span>
+          <span class="badge badge-{{ object.status_badge_variant }} badge-sm">
+            {{ object.get_status_display }}
+          </span>
+        </span>
+        <span class="record-card__counts">
+          <span class="record-card__count">
+            <c-icon name="dataset" />
+            {% if object.dataset_count %}
+              {% blocktrans count counter=object.dataset_count %}
+                {{ counter }} dataset
+              {% plural %}
+                {{ counter }} datasets
+              {% endblocktrans %}
+            {% else %}
+              {% translate "No datasets" %}
+            {% endif %}
+          </span>
+        </span>
+      </div>
+
+      <h3 class="record-card__title">{{ object.title }}</h3>
+
+      <div class="record-card__people">
+        {% if object.contributors.all %}
+          <div class="avatar-group -space-x-4">
+            {# `for` is passed explicitly, or the component falls back to `request.user` and draws the visitor's avatar. #}
+            {% for contribution in object.contributors.all|slice:":4" %}
+              <c-mvp.avatar :for="contribution.contributor"
+                        src="{% if contribution.contributor.image %}{{ contribution.contributor.image|thumbnail_url:'thumb' }}{% endif %}"
+                        alt="{{ contribution.contributor }}"
+                        size="xs" />
+            {% endfor %}
+          </div>
+          <span class="record-card__names">
+            {% for contribution in object.contributors.all|slice:":3" %}
+              {{ contribution.contributor }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </span>
+        {% endif %}
+        {% if object.owner %}
+          <span class="record-card__owner">{{ object.owner }}</span>
+        {% endif %}
+      </div>
+
+      {% with summary=object.get_abstract_summary %}
+        {% if summary %}
+          {# Plain text, escaped like any string. Never `|safe`: the source markdown is user-authored. #}
+          <p class="record-card__abstract">{{ summary }}</p>
+        {% endif %}
+      {% endwith %}
+
+      {% if object.keywords.all %}
+        <div class="record-card__keywords">
+          {# Badges, not links: keyword filters are named from a setting, so there is no stable query parameter. #}
+          {% for keyword in object.keywords.all %}
+            <span class="badge badge-ghost badge-sm">{{ keyword.label }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="record-card__footer">
+        <span class="record-card__uuid font-mono">
+          {{ object.uuid }}
+          {# The card is one link, so the copy control must stop the click reaching it. #}
+          <button type="button"
+                  class="record-card__copy"
+                  title="{% translate 'Copy project identifier' %}"
+                  aria-label="{% translate 'Copy project identifier' %}"
+                  onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText(this.dataset.uuid);"
+                  data-uuid="{{ object.uuid }}">
+            <c-icon name="copy" />
+          </button>
+        </span>
+        <span class="record-card__modified">
+          {% blocktrans with modified=object.modified|date:"M j, Y" %}Last updated {{ modified }}{% endblocktrans %}
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+</a>

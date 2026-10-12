@@ -1,0 +1,24 @@
+{# @description What the portal collects: every kind of sample and measurement registered with it, with how many are public and a link to each listing. Renders nothing when no type is registered. #}
+{# @prop sample_types:text | description:"A dict with shown, the sample types to list (each with a name, description, count and url), and more, how many were left out." #}
+{# @prop measurement_types:text | description:"Registered measurement types, in the same shape." #}
+{% load i18n %}
+<c-vars sample_types measurement_types />
+{% if sample_types.shown or measurement_types.shown %}
+  <c-section gap="sm" align="start" class="landing-section" id="landing-types">
+    <c-slot name="header">
+      <c-heading eyebrow="{% translate 'Not a one-size-fits-all upload' %}"
+                 title="{% translate 'Samples and measurements' %}"
+                 lead="{% translate 'Recorded to a schema this community designed for its own data.' %}" />
+    </c-slot>
+    {% if sample_types.shown %}
+      <c-section.col>
+        <c-landing.type-list title="{% translate 'Samples' %}" icon="sample" :types="sample_types.shown" :more="sample_types.more" />
+      </c-section.col>
+    {% endif %}
+    {% if measurement_types.shown %}
+      <c-section.col>
+        <c-landing.type-list title="{% translate 'Measurements' %}" icon="measurement" :types="measurement_types.shown" :more="measurement_types.more" />
+      </c-section.col>
+    {% endif %}
+  </c-section>
+{% endif %}
