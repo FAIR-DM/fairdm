@@ -1876,9 +1876,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
         """Credit a contributor on an object, adding roles to any already recorded.
 
-        A person credited for the first time starts at the view level. A sample or measurement
-        held as its base class is credited under its real type, which is where its
-        contributors and their levels are read.
+        A person credited for the first time starts at the view level. A sample or
+        measurement held as its base class is credited under its real type, which is
+        where its contributors and their levels are read.
 
         Args:
             contributor: The person or organisation to credit.

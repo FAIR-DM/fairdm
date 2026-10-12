@@ -640,8 +640,8 @@ class ContributionAdd(ContributionPage):
     def add_from_portal(self):
         """Add a contributor who is already in the portal.
 
-        The page for people answers 404 for anything that is not a person, and the page for
-        organizations for anything that is not an organization.
+        The page for people answers 404 for anything that is not a person, and the
+        page for organizations for anything that is not an organization.
         """
         pk = self.request.POST.get("contributor", "")
         contributor = get_object_or_404(

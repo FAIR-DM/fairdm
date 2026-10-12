@@ -41,12 +41,12 @@ class RegistryUnavailable(Exception):
 
 
 def ask(address, parse, *, params=None, headers=None, missing_ok=False):
-    """Request an address from a registry and read its answer, unless it is already kept.
+    """Request an address from a registry and read its answer, unless it is kept.
 
-    What a registry answers is kept for ``KEPT`` seconds in the default cache, under the
-    address, the parameters and the active language, since an answer is read into text in
-    that language. "There is no such record" is an answer and is kept. A failure is not, so
-    the next request asks again.
+    What a registry answers is kept for ``KEPT`` seconds in the default cache, under
+    the address, the parameters and the active language, since an answer is read into
+    text in that language. "There is no such record" is an answer and is kept. A
+    failure is not, so the next request asks again.
 
     Args:
         address: The address, which no search term is ever part of.

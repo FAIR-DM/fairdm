@@ -1056,7 +1056,7 @@ class TestAddRefusesThePlaceholderAccount:
 
 @pytest.mark.django_db
 class TestCreditThroughABaseClassInstance:
-    """A sample or measurement held as its base class is credited under its real type."""
+    """A record held as its base class is credited under its real type."""
 
     @pytest.fixture(params=["sample", "measurement"])
     def real(self, request, record_chain):

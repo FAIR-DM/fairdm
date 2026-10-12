@@ -9,6 +9,7 @@ import copy
 import pytest
 import requests
 from django.core.cache import cache
+from django.utils import translation
 
 from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import (
@@ -686,4 +687,16 @@ class TestAnswersAreKept:
         found = Orcid().search("Carberry")
 
         assert found["results"]
+        assert len(registry_network.calls) == 2
+
+    def test_an_answer_kept_in_one_language_is_not_given_in_another(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+
+        with translation.override("en"):
+            Orcid().search("Carberry")
+        with translation.override("de"):
+            Orcid().search("Carberry")
+
         assert len(registry_network.calls) == 2

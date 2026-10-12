@@ -24,9 +24,9 @@ class Crediting:
     test can assert on it.
 
     Args:
-        record: A project, dataset, sample or measurement, of any registered type. A sample
-            or measurement held as its base class is changed as its real type, which is where
-            its contributors and their levels are read.
+        record: A project, dataset, sample or measurement, of any registered type. A
+            sample or measurement held as its base class is changed as its real type,
+            which is where its contributors and their levels are read.
     """
 
     def __init__(self, record):
@@ -134,8 +134,9 @@ class Crediting:
 
         Raises:
             ValidationError: With code ``superuser`` when they are a superuser, who cannot be
-                credited, ``anonymous`` when they are the placeholder account that stands
-                for every visitor, or ``duplicate`` when the contributor is already listed.
+                credited, ``anonymous`` when they are the placeholder account that
+                stands for every visitor, or ``duplicate`` when the contributor is
+                already listed.
         """
         contributor = contributor.get_real_instance()
         is_person = isinstance(contributor, Person)
