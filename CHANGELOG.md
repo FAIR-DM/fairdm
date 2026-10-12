@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A template tag that asks whether the viewer holds a level on a record.**
+  `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
+  manage level on a project, dataset, sample or measurement, decided as the record's own pages
+  decide it. A template that fills a block of a record's page can guard what it adds without a
+  view of its own. `plugins.holds_level(request, level, record)` asks the same from Python. See
+  [Create a plugin](docs/portal-development/create_a_plugin.md).
 - **A landing page for visitors who have not signed in.** The address `/` now opens on a
   full-height hero and follows it with public figures, the portal's description, the latest
   datasets, the registered sample and measurement types, the community, new projects, the API, an
@@ -124,6 +130,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The plugin guide and two docstrings no longer say an additional view takes its plugin's access
+  rule.** A view listed in `extra_views` is decided by its own `check` and `permission` only, so a
+  restricted plugin leaves its additional views open until each states the rule itself. The guide,
+  `can_open` and `Plugin.plugin_class` now say so. No behaviour changed.
 - **A person's card and list row no longer name an organization from a pending or ended primary
   affiliation.** `Person.primary_affiliation()` and `Person.primary_organization` now give `None`
   unless the primary affiliation is verified (member or above) and has no end date, the rule the

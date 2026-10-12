@@ -12,6 +12,7 @@ from fairdm.contrib.plugins.access import (
     can_open,
     check_is_valid,
     has_perm,
+    holds_level,
     is_instance_of,
     menu_check,
     resolve_check,
@@ -206,6 +207,55 @@ class TestCanOpen:
 
 
 @pytest.mark.django_db
+class TestHoldsLevel:
+    @pytest.mark.parametrize(
+        ("level", "held"), [("view", True), ("edit", True), ("manage", False)]
+    )
+    def test_a_level_includes_the_ones_below_it_and_none_above(
+        self, as_user, object_perm_user, sample, level, held
+    ):
+        request = as_user(object_perm_user)
+
+        assert holds_level(request, level, sample) is held
+
+    def test_a_level_on_a_record_above_is_held_on_the_record(
+        self, as_user, plain_user, project, sample
+    ):
+        ContributionFactory(
+            content_object=project,
+            contributor=plain_user,
+            level=ContributionLevel.MANAGE,
+        )
+
+        assert holds_level(as_user(plain_user), "manage", sample) is True
+
+    def test_a_right_over_the_whole_portal_counts_as_the_level(
+        self, as_user, model_perm_user, sample
+    ):
+        assert holds_level(as_user(model_perm_user), "edit", sample) is True
+
+    def test_someone_with_no_level_holds_none(self, as_user, plain_user, sample):
+        assert holds_level(as_user(plain_user), "view", sample) is False
+
+    @pytest.mark.parametrize("level", ["view", "edit", "manage"])
+    def test_a_visitor_holds_no_level_even_on_a_public_record(
+        self, as_user, anonymous_user, project, level
+    ):
+        assert holds_level(as_user(anonymous_user), level, project) is False
+
+    def test_no_record_holds_no_level(self, as_user, admin_user):
+        assert holds_level(as_user(admin_user), "view", None) is False
+
+    def test_something_that_is_not_a_record_holds_no_level(
+        self, as_user, admin_user, plain_user
+    ):
+        assert holds_level(as_user(admin_user), "view", plain_user) is False
+
+    def test_a_level_that_does_not_exist_is_an_error(self, as_user, plain_user, sample):
+        with pytest.raises(ValueError, match="mange"):
+            holds_level(as_user(plain_user), "mange", sample)
+
+
 class TestMenuCheck:
     def test_matches_the_navigation_package_signature(
         self, as_user, plain_user, sample

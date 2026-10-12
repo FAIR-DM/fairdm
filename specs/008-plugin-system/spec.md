@@ -238,6 +238,36 @@ appears as specified.
 
 ---
 
+### User Story 7 - Show part of a page only to the record's team (Priority: P2)
+
+A portal developer extends a dataset's page and adds an edit link to one of its blocks. In the
+template they ask whether the viewer holds the edit level on the dataset and show the link only
+when they do. They write no view and pass no flag into the context.
+
+**Why this priority**: a page a plugin adds, or a block a portal fills, is often for the people who
+may act on the record. Without a way to ask from the template, every such page needs a view that
+works the answer out and passes it down, and a template in another app cannot reuse it.
+
+**Independent Test**: render a template that guards a fragment by a level on a record, then confirm
+the fragment is present for a viewer who holds the level and absent for one who does not.
+
+**Acceptance Scenarios**:
+
+1. **Given** a viewer who holds the edit level on a record, **When** a template asks for the view
+   level or the edit level on it, **Then** the answer is yes, and for the manage level it is no
+2. **Given** a viewer who holds a level on a record above, **When** a template asks for that level
+   on the record below, **Then** the answer is yes
+3. **Given** a viewer who holds the matching permission for the whole portal, **When** a template
+   asks for the level on any record, **Then** the answer is yes
+4. **Given** a visitor who is not signed in, **When** a template asks for any level on a record,
+   public or private, **Then** the answer is no
+5. **Given** something that is not a project, dataset, sample or measurement, or no record at all,
+   **When** a template asks for a level on it, **Then** the answer is no
+6. **Given** a level that does not exist, **When** a template asks for it, **Then** rendering fails
+   and names the level
+
+---
+
 ### Edge Cases
 
 - A plugin is registered against a model that has no page of its own, so nothing can serve it.
@@ -297,6 +327,11 @@ appears as specified.
   that the two cannot disagree
 - **FR-021**: Permission checking MUST use the framework's own permission call, so that
   object-level permissions are resolved by the configured backends rather than by the plugin system
+
+- **FR-037**: A template MUST be able to ask whether the viewer holds the view, edit or manage
+  level on a project, dataset, sample or measurement, and the answer MUST come from the same
+  permission call that opens the record's own pages
+- **FR-038**: A visitor who is not signed in MUST hold no level on any record
 
 **Composition**
 

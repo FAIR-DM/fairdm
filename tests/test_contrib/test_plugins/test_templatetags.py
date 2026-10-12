@@ -72,3 +72,37 @@ class TestPluginUrl:
             result = template.render(context)
 
             mock_reverse.assert_called_once_with(sample, "test-view")
+
+
+class TestHoldsLevel:
+    TEMPLATE = (
+        "{% load plugin_tags %}"
+        "{% holds_level 'edit' record as can_edit %}"
+        "{% if can_edit %}shown{% endif %}"
+    )
+
+    def test_what_the_tag_guards_is_rendered_for_a_viewer_who_holds_the_level(
+        self, as_user, object_perm_user, sample
+    ):
+        context = Context({"request": as_user(object_perm_user), "record": sample})
+
+        assert Template(self.TEMPLATE).render(context) == "shown"
+
+    def test_what_the_tag_guards_is_left_out_for_a_viewer_who_does_not(
+        self, as_user, plain_user, sample
+    ):
+        context = Context({"request": as_user(plain_user), "record": sample})
+
+        assert Template(self.TEMPLATE).render(context) == ""
+
+    def test_what_the_tag_guards_is_left_out_for_a_visitor(
+        self, as_user, anonymous_user, sample
+    ):
+        context = Context({"request": as_user(anonymous_user), "record": sample})
+
+        assert Template(self.TEMPLATE).render(context) == ""
+
+    def test_what_the_tag_guards_is_left_out_where_there_is_no_request(self, sample):
+        context = Context({"record": sample})
+
+        assert Template(self.TEMPLATE).render(context) == ""
