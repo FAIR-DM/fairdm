@@ -1,0 +1,583 @@
+{
+  "$schema": "../../../../.openclaw/workspaces/forge/engineering-org/kit/schemas/feature-state.schema.json",
+  "feature": "029-people-organizations-api",
+  "branch": "029-people-organizations-api",
+  "repo": "FAIR-DM/fairdm",
+  "state": "PR_READY",
+  "state_history": [
+    {
+      "state": "QUEUED",
+      "at": "2026-10-12T09:27:19Z",
+      "note": "specification approved on #471; epic #470, stories #472-475"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-12T09:51:24Z",
+      "note": "started on the maintainer's instruction while #383 is open; research, plan and 23 tasks written"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-12T09:51:30Z",
+      "note": "plan and tasks written: 23 tasks, all open; one reviewer, three lenses"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-12T10:02:21Z",
+      "note": "design review applied; plan gate open; story 1 next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-12T11:11:24Z",
+      "note": "four stories accepted; full verification green"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-12T11:14:37Z",
+      "note": "converged and green; one reviewer with the security lens, since the feature decides what the API says about people"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-12T11:35:50Z",
+      "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
+    }
+  ],
+  "gates": {
+    "spec": {
+      "approved_by": "Sam",
+      "at": "2026-10-12T09:27:19Z",
+      "self_resolved": [
+        "approved in the session at commit d515b5d2",
+        "endpoint split, hidden-account credits, public-only record lists and list shapes were decided without asking and listed in the gate message"
+      ]
+    },
+    "plan": {
+      "approved_by": "open",
+      "at": "2026-10-12T10:02:20Z"
+    },
+    "merge": {
+      "approved_by": null,
+      "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-12T10:01:57Z",
+      "self_resolved": [
+        "14 findings: 1 high, 6 medium, 7 low; verdict request changes",
+        "high SPEC-001 applied: the contributor filter narrows by credit only, not by the organization page's owned projects (plan D5, T020)",
+        "medium SEC-001 applied: primary organization is verified and current only (plan D2, T004)",
+        "medium ARCH-001 applied: names on a credit come from an annotation, no page walk (plan D1, T005)",
+        "medium SPEC-002, SPEC-003, SPEC-004 applied as task edits (T001, T004, T006)",
+        "medium SEC-002 carried: other names and affiliation kind stay as the approved spec lists them; put to the maintainer at the merge gate (decisions D9)",
+        "lows applied as task wording; T011 folded into T004; added, modified, type_label and country_name dropped from the output"
+      ]
+    },
+    "review": {
+      "approved_by": "code-reviewer",
+      "at": "2026-10-12T11:34:08Z",
+      "self_resolved": [
+        "one reviewer, four lenses; 5 findings: 2 medium, 3 low; verdict approve",
+        "medium DOC-001 remedied: ADR 0027 no longer describes a credit as a reference (T024)",
+        "medium TEST-001 remedied and verified by mutation (T024)",
+        "low CORR-001 remedied: unset names are null (T024)",
+        "low TEST-002 remedied and verified by mutation (T025)",
+        "low SEC-001 open: modified is sortable and filterable on the people list; put to the maintainer at the merge gate"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-12T12:47:14Z",
+      "self_resolved": []
+    }
+  },
+  "stories": [
+    {
+      "id": "US1",
+      "priority": "P1",
+      "issue": 472,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T001",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCredit",
+              "tests/test_api/test_schema.py::TestCreditComponent"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed; the tests were seen red first)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:517",
+              "tests/test_api/test_schema.py:465"
+            ]
+          }
+        },
+        {
+          "id": "T002",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestReferencesFollowTheLists"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed; the tests were seen red first)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:2972"
+            ]
+          }
+        },
+        {
+          "id": "T003",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCreditQueries"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed; the tests were seen red first)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:2872"
+            ]
+          }
+        },
+        {
+          "id": "T004",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPeopleList",
+              "tests/test_api/test_viewsets.py::TestOrganizationsList",
+              "tests/test_api/test_router.py::TestCoreRoutesRegistered"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed; the tests were seen red first)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:1264",
+              "tests/test_api/test_viewsets.py:1402"
+            ]
+          }
+        },
+        {
+          "id": "T005",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCredit",
+              "tests/test_api/test_viewsets.py::TestCreditQueries",
+              "tests/test_api/test_schema.py::TestCreditComponent"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed)"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:524"
+            ]
+          }
+        },
+        {
+          "id": "T006",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPeopleList",
+              "tests/test_api/test_viewsets.py::TestOrganizationsList",
+              "tests/test_api/test_router.py::TestCoreRoutesRegistered",
+              "tests/test_contrib/test_contributors/test_plugins/test_overview.py::TestPersonOverview"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api -n auto --dist loadscope (1186 passed)"
+            ],
+            "code": [
+              "fairdm/api/viewsets.py:175",
+              "fairdm/api/serializers.py:828",
+              "fairdm/api/router.py:59"
+            ]
+          }
+        },
+        {
+          "id": "T007",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api --base origin/main (docs step passed)"
+            ],
+            "code": [
+              "docs/portal-development/restful-api.md:90",
+              "docs/portal-development/restful-api.md:296",
+              "docs/user-guide/reading-records-with-a-script.md:147"
+            ]
+          }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCredit::test_an_affiliation_with_two_identifiers_gives_its_ror_id",
+              "tests/test_api/test_viewsets.py::TestCredit::test_a_person_with_one_name_has_null_for_the_names_they_lack"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py -k 'ror_id or one_name'",
+              "mutation: identifier_of returns held[0] -> test_an_affiliation_with_two_identifiers_gives_its_ror_id fails; restored"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:591",
+              "docs/adr/0027-records-refer-to-each-other-by-short-identifier.md:8"
+            ]
+          }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCredit",
+              "tests/test_api/test_schema.py::TestCreditComponent",
+              "tests/test_api/test_filters.py::TestOrganizationFilters"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:538",
+              "fairdm/api/filters.py:378"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US2",
+      "priority": "P1",
+      "issue": 473,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T008",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPeopleList"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPeopleList"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:1264"
+            ]
+          }
+        },
+        {
+          "id": "T009",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPerson"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPerson"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:1504"
+            ]
+          }
+        },
+        {
+          "id": "T010",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_filters.py::TestPeopleFilters"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestPeopleFilters"
+            ],
+            "code": [
+              "tests/test_api/test_filters.py:300"
+            ]
+          }
+        },
+        {
+          "id": "T012",
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPerson",
+              "tests/test_api/test_filters.py::TestPeopleFilters",
+              "tests/test_api/test_viewsets.py::TestPeopleList"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:909",
+              "fairdm/api/filters.py:254",
+              "fairdm/api/filters.py:313",
+              "fairdm/api/viewsets.py:190"
+            ]
+          }
+        },
+        {
+          "id": "T013",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_schema.py::TestPeopleComponents"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_schema.py"
+            ],
+            "code": [
+              "tests/test_api/test_schema.py:508"
+            ]
+          }
+        },
+        {
+          "id": "T025",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestPeopleList::test_the_list_is_in_name_order_when_no_order_is_asked_for",
+              "tests/test_api/test_viewsets.py::TestOrganizationsList::test_the_list_is_in_name_order_when_no_order_is_asked_for"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py -k name_order",
+              "mutation: both querysets order_by('pk') -> both tests fail; restored"
+            ],
+            "code": [
+              "fairdm/api/viewsets.py:210"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US3",
+      "priority": "P1",
+      "issue": 474,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T014",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestOrganizationsList"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganizationsList"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:1859"
+            ]
+          }
+        },
+        {
+          "id": "T015",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestOrganization"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganization (red: 18 failed, 2 passed, before T018)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:1938"
+            ]
+          }
+        },
+        {
+          "id": "T016",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_filters.py::TestOrganizationFilters"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestOrganizationFilters (red before T018)"
+            ],
+            "code": [
+              "tests/test_api/test_filters.py:466"
+            ]
+          }
+        },
+        {
+          "id": "T017",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestOrganizationQueries"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganizationQueries (red before T018)"
+            ],
+            "code": [
+              "tests/test_api/test_viewsets.py:2257"
+            ]
+          }
+        },
+        {
+          "id": "T018",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestOrganization",
+              "tests/test_api/test_viewsets.py::TestOrganizationQueries",
+              "tests/test_api/test_filters.py::TestOrganizationFilters"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto --dist loadscope tests/test_api"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:1020",
+              "fairdm/api/filters.py:360",
+              "fairdm/api/viewsets.py:212"
+            ]
+          }
+        },
+        {
+          "id": "T019",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_schema.py::TestOrganizationComponents"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_schema.py::TestOrganizationComponents"
+            ],
+            "code": [
+              "tests/test_api/test_schema.py:581",
+              "docs/portal-development/restful-api.md:398"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "US4",
+      "priority": "P2",
+      "issue": 475,
+      "status": "done",
+      "replans": 0,
+      "tasks": [
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_filters.py::TestContributorRecords"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestContributorRecords"
+            ],
+            "code": [
+              "fairdm/api/filters.py:412"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestContributorRecordAddresses"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestContributorRecordAddresses"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:830"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_filters.py::TestContributorRecords",
+              "tests/test_api/test_viewsets.py::TestContributorRecordAddresses"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto --dist loadscope tests/test_api",
+              "uv run pre-commit run --files fairdm/api/filters.py fairdm/api/serializers.py fairdm/api/viewsets.py"
+            ],
+            "code": [
+              "fairdm/api/filters.py:412",
+              "fairdm/api/serializers.py:830",
+              "fairdm/api/viewsets.py:141"
+            ]
+          }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pytest -q -n0 tests/test_api/test_filters.py::TestContributorRecords tests/test_api/test_viewsets.py::TestContributorRecordAddresses"
+            ],
+            "code": [
+              "docs/portal-development/restful-api.md:546",
+              "docs/user-guide/reading-records-with-a-script.md:172"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "converge_cycles": {
+      "used": 1,
+      "max": 2
+    },
+    "review_cycles": {
+      "used": 1,
+      "max": 1
+    },
+    "tokens": {
+      "used": 36.7,
+      "max": 120
+    },
+    "design_review_cycles": {
+      "used": 1,
+      "max": 1
+    }
+  },
+  "pr": {
+    "number": 471,
+    "draft": false
+  }
+}

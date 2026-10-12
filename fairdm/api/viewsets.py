@@ -5,7 +5,8 @@ This module provides:
 - :class:`BaseViewSet` — the base class for all FairDM API viewsets.
 - :class:`ProjectViewSet`, :class:`DatasetViewSet` — full CRUD viewsets for
   core models.
-- :class:`ContributorViewSet` — read-only viewset for contributor profiles.
+- :class:`PersonViewSet`, :class:`OrganizationViewSet` — read-only viewsets for the people
+  and the organizations a portal holds.
 - :func:`generate_viewset` — factory that creates a ``ModelViewSet`` subclass
   from a registry :class:`~fairdm.registry.ModelConfiguration`.
 """
@@ -18,9 +19,9 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import (
     ForeignKey,
     ManyToManyField,
+    Prefetch,
     ProtectedError,
     RestrictedError,
-    prefetch_related_objects,
 )
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -31,20 +32,26 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from fairdm.api.filters import (
+    ContributorRecordsFilterSet,
     DatasetFilterSet,
     FairDMFilterBackend,
     FairDMVisibilityFilter,
+    OrganizationFilterSet,
+    PersonFilterSet,
     SampleFilterSet,
 )
 from fairdm.api.schema import CORE_HEADINGS, TypeDescription
 from fairdm.api.serializers import (
-    ContributorSerializer,
     DatasetSerializer,
+    OrganizationListSerializer,
+    OrganizationSerializer,
+    PersonListSerializer,
+    PersonSerializer,
     ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
 )
-from fairdm.contrib.contributors.models import Contributor, Organization, Person
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import PublicDatasetsProtect
 
@@ -131,6 +138,7 @@ class ProjectViewSet(BaseViewSet):
     """
 
     serializer_class = ProjectSerializer
+    filterset_class = ContributorRecordsFilterSet
     ordering_fields = ("name", "added", "modified", "status", "uuid")
 
     def get_queryset(self):
@@ -155,6 +163,7 @@ class DatasetViewSet(BaseViewSet):
     """
 
     serializer_class = DatasetSerializer
+    filterset_class = ContributorRecordsFilterSet
     ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):
@@ -170,54 +179,76 @@ class DatasetViewSet(BaseViewSet):
         serializer.save(created_by=self.request.user)
 
 
-@under_heading(CORE_HEADINGS["contributors"], ("list", "retrieve"))
-class ContributorViewSet(ReadOnlyModelViewSet):
-    """People and organizations that contribute to research projects.
+@under_heading(CORE_HEADINGS["people"], ("list", "retrieve"))
+class PersonViewSet(ReadOnlyModelViewSet):
+    """People credited on the portal's projects, datasets, samples and measurements.
 
-    Contributor profiles are publicly accessible (read-only). Use this endpoint
-    to look up individuals and institutions associated with portal data.
+    A person's profile is publicly accessible (read-only). Use this endpoint to look up the
+    individuals associated with portal data.
     """
 
     lookup_field = "uuid"
     permission_classes = (AllowAny,)
-    serializer_class = ContributorSerializer
-    ordering_fields = ("name", "added", "modified", "uuid")
+    serializer_class = PersonSerializer
+    filterset_class = PersonFilterSet
+    ordering_fields = ("name", "last_name", "added", "modified", "uuid")
+
+    def get_serializer_class(self):
+        """Serve a list entry for the list, and the whole person for one record."""
+        if self.action == "list":
+            return PersonListSerializer
+        return PersonSerializer
 
     def get_queryset(self):
-        """Return the people and organisations the portal's own lists show.
+        """Return the people the portal's own lists show, with what the serializer reads.
 
         Leaves out superusers and the anonymous account, as ``Person.objects.real()`` does.
         """
-        return Contributor.objects.exclude(
-            pk__in=FairDMVisibilityFilter.hidden_contributors()
-        ).prefetch_related("identifiers")
+        return (
+            Person.objects.real()
+            .prefetch_related("identifiers", "affiliations__organization")
+            .order_by("name", "pk")
+        )
 
-    def get_serializer(self, instance=None, *args, **kwargs):
-        """Load the affiliations and parents of the contributors about to be described.
 
-        A queryset over the base type cannot prefetch what only a person or only an
-        organisation has, so this loads them once the real types are known.
+@under_heading(CORE_HEADINGS["organizations"], ("list", "retrieve"))
+class OrganizationViewSet(ReadOnlyModelViewSet):
+    """Organizations credited on the portal's records, or that people are affiliated with.
 
-        Args:
-            instance: The contributor, or the contributors of a list, to describe.
-            *args: Passed on to the serializer.
-            **kwargs: Passed on to the serializer, including ``many``.
+    An organization's profile is publicly accessible (read-only). Use this endpoint to look up
+    the institutions associated with portal data.
+    """
 
-        Returns:
-            The serializer, holding contributors that read no further queries.
+    lookup_field = "uuid"
+    permission_classes = (AllowAny,)
+    serializer_class = OrganizationSerializer
+    filterset_class = OrganizationFilterSet
+    ordering_fields = ("name", "added", "modified", "uuid")
+
+    def get_serializer_class(self):
+        """Serve a list entry for the list, and the whole organization for one record."""
+        if self.action == "list":
+            return OrganizationListSerializer
+        return OrganizationSerializer
+
+    def get_queryset(self):
+        """Return all organizations, with what the serializer reads.
+
+        A single record also loads its parent, its sub-organizations and its current verified
+        affiliations with their people, which the list does not show.
         """
-        if instance is not None:
-            records = list(instance) if kwargs.get("many") else [instance]
-            prefetch_related_objects(
-                [record for record in records if isinstance(record, Person)],
-                "affiliations__organization",
-            )
-            prefetch_related_objects(
-                [record for record in records if isinstance(record, Organization)],
-                "parent",
-            )
-            instance = records if kwargs.get("many") else instance
-        return super().get_serializer(instance, *args, **kwargs)
+        queryset = Organization.objects.prefetch_related("identifiers").order_by(
+            "name", "pk"
+        )
+        if self.action == "list":
+            return queryset
+        members = Affiliation.objects.current().filter(
+            type__gte=Affiliation.MembershipType.MEMBER
+        )
+        return queryset.select_related("parent").prefetch_related(
+            "sub_organizations",
+            Prefetch("affiliations", queryset=members.select_related("person")),
+        )
 
 
 def sortable_fields(model, serializer_cls) -> list[str]:

@@ -146,9 +146,58 @@ it with every request.
 
 ## People and organizations
 
-`/api/v1/contributors/` lists the people and organizations credited on records. Each carries what
-its profile page shows, such as its name, biography, ORCID iD or ROR ID and links. It never carries
-an email address or anything about an account.
+People are listed at `/api/v1/people/` and organizations at `/api/v1/organizations/`. A list entry
+carries the name, the identifiers and the address in the API and on the portal, and a person's
+entry adds their given and family name and the organization they mainly belong to. It never
+carries an email address or anything about an account.
+
+Request one person at `/api/v1/people/{uuid}/` for their biography, other names, links, languages,
+picture and every verified affiliation with its dates. To list the members of one organization,
+send `?organization=<short identifier>`. To look a person up by an identifier, send
+`?identifier=` with the value or its address, such as `0000-0002-1825-0097` or
+`https://orcid.org/0000-0002-1825-0097`.
+
+Request one organization at `/api/v1/organizations/{uuid}/` for its description, city, links,
+picture, the organization it is part of, the organizations that are part of it, and the people who
+belong to it now. The organizations list takes `?type=`, `?country=` with a two-letter code,
+`?parent_organization=` with a short identifier, `?top_level=true` for organizations that are part of no other,
+and `?identifier=` with a value or its address, such as `03yrm5c26` or `https://ror.org/03yrm5c26`.
+
+A record you read carries its credits in full. Each credit has the name of the person or
+organization, whether it is a person or an organization, their given and family name, their
+identifiers such as an ORCID iD with the scheme each belongs to, the organization the work was
+credited from, and the roles they held. You can write a citation or a metadata record from the one
+response that returned the record.
+
+### From a person to their datasets
+
+A single person and a single organization each give the address of their datasets and of their
+projects:
+
+```bash
+curl https://portal.example.org/api/v1/people/cXq7Lw0eR2sNn4KcJ8VdZb3/
+```
+
+```json
+{
+  "uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3",
+  "name": "Ada Lovelace",
+  "projects": "https://portal.example.org/api/v1/projects/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3",
+  "datasets": "https://portal.example.org/api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3"
+}
+```
+
+The example leaves out the other fields. Request the address in `datasets` to list the datasets
+they are credited on, each one whole, as in any dataset list:
+
+```bash
+curl "https://portal.example.org/api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3"
+```
+
+The list holds public datasets only, for every caller, so it matches what the person's own page
+shows. A person credited on no public dataset, and an identifier that names nobody, both give an
+empty list. The same `contributor` filter on the projects list gives their projects, and it works
+the same for an organization.
 
 ## Records you may not see
 
@@ -269,8 +318,8 @@ datasets private, or delete the measurements, and try again.
 
 ## Find out what a portal offers
 
-`/api/v1/` answers with a link to every list the portal serves, one for each of projects, datasets
-and contributors, and one for each sample type and measurement type:
+`/api/v1/` answers with a link to every list the portal serves, one for each of projects, datasets,
+people and organizations, and one for each sample type and measurement type:
 
 ```bash
 curl https://portal.example.org/api/v1/

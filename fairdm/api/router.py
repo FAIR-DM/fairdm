@@ -18,8 +18,9 @@ viewsets are served under ``/api/v1/`` and appear in the OpenAPI schema.
 from rest_framework.routers import DefaultRouter
 
 from fairdm.api.viewsets import (
-    ContributorViewSet,
     DatasetViewSet,
+    OrganizationViewSet,
+    PersonViewSet,
     ProjectViewSet,
     _model_to_slug,
     generate_viewset,
@@ -55,5 +56,8 @@ fairdm_api_router = FairDMAPIRouter()
 
 fairdm_api_router.register(r"projects", ProjectViewSet, basename="project")
 fairdm_api_router.register(r"datasets", DatasetViewSet, basename="dataset")
-fairdm_api_router.register(r"contributors", ContributorViewSet, basename="contributor")
+fairdm_api_router.register(r"people", PersonViewSet, basename="person")
+fairdm_api_router.register(
+    r"organizations", OrganizationViewSet, basename="organization"
+)
 fairdm_api_router.register_types()

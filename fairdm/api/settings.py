@@ -38,7 +38,8 @@ Interoperable, and Reusable.
 |----------|----------|-------------|
 | **Projects** | `/api/v1/projects/` | Top-level research projects |
 | **Datasets** | `/api/v1/datasets/` | Collections of samples within a project |
-| **Contributors** | `/api/v1/contributors/` | People and organisations contributing data |
+| **People** | `/api/v1/people/` | People credited on records |
+| **Organizations** | `/api/v1/organizations/` | Institutions credited on records or that people belong to |
 | **Sample types** | `/api/v1/samples/{type}/` | Domain-specific sample data |
 | **Measurement types** | `/api/v1/measurements/{type}/` | Analytical measurements |
 

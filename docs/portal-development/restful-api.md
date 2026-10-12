@@ -29,8 +29,10 @@ Core model endpoints are also available:
 | `/api/v1/projects/{uuid}/` | GET, PUT, PATCH, DELETE |
 | `/api/v1/datasets/` | GET, POST |
 | `/api/v1/datasets/{uuid}/` | GET, PUT, PATCH, DELETE |
-| `/api/v1/contributors/` | GET |
-| `/api/v1/contributors/{uuid}/` | GET |
+| `/api/v1/people/` | GET |
+| `/api/v1/people/{uuid}/` | GET |
+| `/api/v1/organizations/` | GET |
+| `/api/v1/organizations/{uuid}/` | GET |
 
 ## What a Record Contains
 
@@ -52,15 +54,12 @@ Every one of the four also carries its metadata, which is read-only:
 | `dates` | `{"type", "value"}` for each key date, as a year, a month or a day |
 | `identifiers` | `{"type", "value"}` for each external identifier, such as a DOI |
 | `keywords` | `{"name", "label", "uri", "vocabulary"}` for each controlled keyword |
-| `contributors` | `{"contributor", "roles", "affiliation"}` for each credit, in the order the record's team set |
-
-A credit names the person or organization, the roles they hold on the record as `{"name", "label"}`
-and the organization they are credited from. The level a person holds on the record is not shown,
-as the record's page does not show it.
+| `contributors` | One credit for each person or organization credited, in the order the record's team set. See [A credit on a record](#a-credit-on-a-record) |
 
 `url` is the record's address in the API. `html_url` is the absolute address of the record's own
-page on the portal, so a site that republishes a record can link back to it. A contributor carries
-both as well. Without a request to build an address from, `html_url` is the path alone.
+page on the portal, so a site that republishes a record can link back to it. A person and an
+organization carry both as well. Without a request to build an address from, `html_url` is the path
+alone.
 
 A rock sample looks like this:
 
@@ -88,6 +87,76 @@ A rock sample looks like this:
 }
 ```
 
+## A credit on a record
+
+A credit holds what a harvester needs to attribute a record without asking the API anything else.
+Its fields follow the properties DataCite asks of a creator or contributor.
+
+```json
+{
+  "uuid": "cLBrpvMLpvBDYAg9xkbt9Z",
+  "url": "https://portal.example.org/api/v1/people/cLBrpvMLpvBDYAg9xkbt9Z/",
+  "name": "Lovelace, Ada",
+  "type": "Personal",
+  "given_name": "Ada",
+  "family_name": "Lovelace",
+  "name_identifiers": [
+    {
+      "name_identifier": "https://orcid.org/0000-0002-1825-0097",
+      "name_identifier_scheme": "ORCID",
+      "scheme_uri": "https://orcid.org/"
+    }
+  ],
+  "affiliation": {
+    "uuid": "cK3mT9xQwPzV7aUe2nRfHs",
+    "url": "https://portal.example.org/api/v1/organizations/cK3mT9xQwPzV7aUe2nRfHs/",
+    "name": "Analytical Institute",
+    "affiliation_identifier": "https://ror.org/03yrm5c26",
+    "affiliation_identifier_scheme": "ROR",
+    "scheme_uri": "https://ror.org/"
+  },
+  "roles": [{"name": "DataCollector", "label": "Data collector"}]
+}
+```
+
+Each field corresponds to a DataCite property as follows.
+
+| Credit field | DataCite property |
+|--------------|-------------------|
+| `name` | `creatorName` or `contributorName`. A person is written "Family, Given", or the one name they have, and an organization by its name |
+| `type` | `nameType`, either `Personal` or `Organizational` |
+| `given_name`, `family_name` | `givenName` and `familyName`. Both are `null` for an organization, and each is `null` for a person who has not recorded it |
+| `name_identifiers[].name_identifier` | `nameIdentifier`. The address the identifier resolves to, or its value where the scheme has no resolver |
+| `name_identifiers[].name_identifier_scheme` | `nameIdentifierScheme`, such as `ORCID` |
+| `name_identifiers[].scheme_uri` | `schemeURI`. `null` where the scheme has no resolver address |
+| `affiliation.name` | `affiliation`, the name of the organization |
+| `affiliation.affiliation_identifier` | `affiliationIdentifier`. The organization's ROR ID where it has one, and otherwise its first identifier |
+| `affiliation.affiliation_identifier_scheme` | `affiliationIdentifierScheme` |
+| `affiliation.scheme_uri` | `schemeURI` of the affiliation |
+| `roles` | The roles from the portal's own vocabulary as `{"name", "label"}`. An export maps them to DataCite's `contributorType` |
+| `uuid`, `url` | None. The short identifier and the API address of the person or organization |
+| `affiliation.uuid`, `affiliation.url` | None. The same for the organization |
+
+A record keeps one list of credits and does not separate creators from other contributors. Which
+roles make someone a DataCite creator is for an export to decide, and it reads that from `roles`.
+
+`affiliation` is one organization, because a credit records one. DataCite allows several, so an
+export writes it as a list of one. It is the organization recorded on that credit and never the
+organization on the person's profile, so a credit keeps saying where the person worked when the
+work was done. It is `null` on a credit that records none, and on one whose organization has since
+been deleted. A credit whose person or organization has been deleted is
+left out of the list.
+
+A credit held by an account the people list leaves out, such as a superuser, is still returned,
+with its name, its identifiers and its roles. Its `uuid` and `url` are `null`, because no profile
+is served for that account.
+
+A credit carries no biography, link, language, image, email address or access level. The level a
+person holds on the record is not shown, as the record's page does not show it.
+
+The number of queries behind a page of records does not depend on how many records the page holds
+or how many credits each has.
+
 ## How Records Refer to Each Other
 
 A record names another by its short identifier and its address in the API, and never by a database
@@ -104,8 +173,9 @@ Requesting the `url` returns the record it names. A reference is `null` when the
 see the record it would name. A public dataset can sit in a private project, and a measurement's
 sample can be in another, private dataset. Both references read `null` for a visitor and name the
 record for someone who holds at least the view level on it, so a response never reveals a record
-the caller could not open. A contributor the contributor list leaves out, such as a superuser, reads
-`null` wherever a record credits them.
+the caller could not open. A contributor the people list leaves out, such as a superuser, reads
+`null` in a reference to them. A credit held by such an account is not a reference, and is described
+under [A credit on a record](#a-credit-on-a-record).
 
 `fairdm.api.serializers.RecordReferenceField` is the field that does this. Use it in a serializer
 of your own for a relation to a project, dataset, sample, measurement or contributor:
@@ -222,23 +292,232 @@ with a reason to answer the same way.
 No request is answered with a server error because of what it contains. Two writes that reach the
 same record at once are applied in turn and the later one wins.
 
-## Contributors
+## People
 
-`/api/v1/contributors/` lists the people and organizations the portal's own lists show, so
-superusers and the anonymous account are left out. A contributor is returned with what their
-profile page shows a visitor:
+`/api/v1/people/` lists the people the portal's own lists show, so superusers and the anonymous
+account are left out and are answered as a person that does not exist when requested directly.
+Organizations are not in it. A profile nobody has claimed is listed like any other.
+
+A list entry holds what identifies a person:
 
 | Field | Holds |
 |-------|-------|
-| `url`, `html_url`, `uuid`, `type`, `name`, `image`, `profile` | The profile, with `type` set to `person` or `organization` |
-| `identifiers` | `{"type", "value", "link"}`, such as an ORCID iD or a ROR ID |
-| `links`, `languages` | The web links and the languages the profile lists |
-| `affiliation` | A person's primary organization, or an organization's parent |
-| `location` | The city and country of that organization |
-| `organization_type` | The kind of organization, `null` for a person |
+| `url`, `html_url`, `uuid` | The person's address in the API, their page on the portal and their short identifier |
+| `name`, `given_name`, `family_name` | The name they are known by, and their given and family name |
+| `identifiers` | `{"type", "value", "link"}` for each identifier, such as an ORCID iD |
+| `primary_affiliation` | `{"uuid", "url", "name"}` for the organization of their primary affiliation, or `null` |
 
-Nothing about the account behind a person is ever returned: no email address, credential, flag or
-sign-in date. Contributors are read-only.
+`primary_affiliation` is `null` when the primary affiliation has not been verified or has ended.
+`added` and `modified` are not returned, but a list can be ordered by either and narrowed with
+`modified_after` and `modified_before`. People are read-only.
+
+### A single person
+
+`/api/v1/people/{uuid}/` returns every field of a list entry and adds what the person's own page
+shows:
+
+| Field | Holds |
+|-------|-------|
+| `alternative_names` | Other names the person is known by, as a list of strings |
+| `profile` | The biography as the person wrote it |
+| `links` | The web addresses on the page, as a list of strings. An address that is not `http` or `https` is left out |
+| `languages` | The names of their languages in the active language, as a list of strings |
+| `image` | The address of their picture, or `null` |
+| `affiliations` | Every verified affiliation, the current ones first and the past ones after them |
+| `projects` | The address of the project list narrowed to this person, which holds the public projects they are credited on |
+| `datasets` | The address of the dataset list narrowed to this person, which holds the public datasets they are credited on |
+
+An entry of `affiliations` holds:
+
+| Field | Holds |
+|-------|-------|
+| `organization` | `{"uuid", "url", "name"}` for the organization |
+| `type` | `member`, `admin` or `owner` |
+| `start`, `end` | When the affiliation began and ended, as a year, a month or a day as it was recorded, or `null` |
+| `is_primary` | Whether it is the person's primary affiliation |
+
+Among the current affiliations the primary one comes first and the rest follow by the name of the
+organization. The past ones come with the most recently ended first. An affiliation that has not
+been verified is never in the response.
+
+A list entry leaves all eight of these fields out, so a page of people stays small. Request the
+person to read them.
+
+```json
+{
+  "uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3",
+  "name": "Ada Lovelace",
+  "primary_affiliation": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+  "affiliations": [
+    {
+      "organization": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+      "type": "member",
+      "start": "2019",
+      "end": null,
+      "is_primary": true
+    }
+  ]
+}
+```
+
+The example leaves out the other fields and the `url` of each organization.
+
+### Filtering people
+
+The people list takes two filters, besides `modified_after`, `modified_before` and `ordering`.
+
+`organization` takes the short identifier of an organization and keeps the people with a verified
+affiliation to it that has not ended. A person whose affiliation is pending, or whose affiliation
+has ended, is not returned. A database number, or an identifier that names no organization, is
+answered `400`.
+
+```http
+GET /api/v1/people/?organization=cT5mYh1uPq9AaWz6GfCx2Ke
+```
+
+`identifier` takes an identifier a person holds and returns the person who holds it. Give the value,
+such as `0000-0002-1825-0097`, or the address it resolves to, such as
+`https://orcid.org/0000-0002-1825-0097`. The address of any scheme the portal knows is accepted
+with `http` or `https` and with or without a trailing slash. An identifier nobody holds, and one
+held by an account the list leaves out, gives an empty list and not an error.
+
+```http
+GET /api/v1/people/?identifier=https://orcid.org/0000-0002-1825-0097
+```
+
+### What a person's record never carries
+
+No response about a person has an email address, a credential, a flag about their account, a portal
+role, a sign-in date or a preference.
+
+`fairdm.api.viewsets.PersonViewSet` serves the list and the record. It uses
+`fairdm.api.serializers.PersonListSerializer` for the list and
+`fairdm.api.serializers.PersonSerializer` for one person, and takes its two filters from
+`fairdm.api.filters.PersonFilterSet`, whose `identifier` is a
+`fairdm.api.filters.IdentifierFilter`.
+
+## Organizations
+
+`/api/v1/organizations/` lists the organizations the portal holds. People are not in it.
+
+A list entry holds what identifies an organization:
+
+| Field | Holds |
+|-------|-------|
+| `url`, `html_url`, `uuid` | The organization's address in the API, its page on the portal and its short identifier |
+| `name` | The name it is known by |
+| `type` | The kind of organization as its stored code, such as `education`, or `null` |
+| `country` | The two-letter country code, or `null` |
+| `identifiers` | `{"type", "value", "link"}` for each identifier, such as a ROR ID |
+
+`added` and `modified` are not returned, and are available for ordering and for `modified_after`
+and `modified_before`. Organizations are read-only.
+
+### A single organization
+
+`/api/v1/organizations/{uuid}/` returns every field of a list entry and adds what the
+organization's own page shows:
+
+| Field | Holds |
+|-------|-------|
+| `alternative_names` | Other names the organization is known by, as a list of strings |
+| `profile` | The description as the organization wrote it |
+| `city` | The city it is based in, or `null` |
+| `links` | The web addresses on the page, as a list of strings. An address that is not `http` or `https` is left out |
+| `image` | The address of its picture, or `null` |
+| `parent_organization` | `{"uuid", "url", "name"}` for the organization it is part of, or `null` for one that is part of no other |
+| `sub_organizations` | `{"uuid", "url", "name"}` for each organization that is part of it, by name |
+| `members` | The people who belong to it now, with the kind of affiliation each holds |
+| `projects` | The address of the project list narrowed to this organization, which holds the public projects it is credited on |
+| `datasets` | The address of the dataset list narrowed to this organization, which holds the public datasets it is credited on |
+
+An entry of `members` holds:
+
+| Field | Holds |
+|-------|-------|
+| `person` | `{"uuid", "url", "name"}` for the person |
+| `type` | `member`, `admin` or `owner` |
+
+Only members whose affiliation has been verified and has not ended are listed. The people who run
+the organization come first, owners and then administrators, and each group is in order of name.
+A pending member, a former member, a superuser and the anonymous account are not listed. The number
+of database queries behind a record does not depend on how many members it has.
+
+A list entry leaves all ten of these fields out, so a page of organizations stays small.
+Request the organization to read them.
+
+```json
+{
+  "uuid": "cT5mYh1uPq9AaWz6GfCx2Ke",
+  "name": "Analytical Institute",
+  "city": "Hobart",
+  "parent_organization": {"uuid": "cB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
+  "sub_organizations": [
+    {"uuid": "oK2cFv9zXe5MgUa7NwTb3Dh", "name": "Difference Engine Group"}
+  ],
+  "members": [
+    {"person": {"uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3", "name": "Ada Lovelace"}, "type": "owner"}
+  ]
+}
+```
+
+The example leaves out the other fields and the `url` of each reference.
+
+### Filtering organizations
+
+The organizations list takes five filters, besides `modified_after`, `modified_before` and
+`ordering`. They combine, and an organization must match every one that is sent.
+
+`type` takes the stored code of an organization type, such as `education`, `company` or
+`government`. A value that is not one of the stored codes is refused with a `400`.
+
+```http
+GET /api/v1/organizations/?type=education
+```
+
+`country` takes the two-letter country code as it is stored, in capitals.
+
+```http
+GET /api/v1/organizations/?country=AU
+```
+
+`parent_organization` takes the short identifier of an organization and keeps the organizations that are part of
+it, for example the departments of one university. A database number, or an identifier that names
+no organization, is answered `400`.
+
+```http
+GET /api/v1/organizations/?parent_organization=cB8nWq3sLd6RtYj1HxVm4Pa
+```
+
+`top_level` takes `true` to keep the organizations that are part of no other and `false` to keep
+those that are part of one.
+
+```http
+GET /api/v1/organizations/?top_level=true
+```
+
+`identifier` takes an identifier an organization holds and returns the organization that holds it.
+Give the value, such as `03yrm5c26`, or the address it resolves to, such as
+`https://ror.org/03yrm5c26`. An identifier nobody holds gives an empty list and not an error.
+
+```http
+GET /api/v1/organizations/?identifier=https://ror.org/03yrm5c26
+```
+
+### Classes behind the organizations endpoint
+
+`fairdm.api.viewsets.OrganizationViewSet` serves the list and the record. It uses
+`fairdm.api.serializers.OrganizationListSerializer` for the list and
+`fairdm.api.serializers.OrganizationSerializer` for one organization, and takes its filters from
+`fairdm.api.filters.OrganizationFilterSet`, whose `identifier` is a
+`fairdm.api.filters.IdentifierFilter`.
+
+`fairdm.api.serializers.MemberSerializer` gives one entry of `members`, with the person as a
+`fairdm.api.serializers.PersonReferenceSerializer`. The kind of affiliation is written by
+`fairdm.api.serializers.AffiliationTypeField`, which `AffiliationSerializer` uses for a person's
+affiliations as well. `fairdm.api.serializers.OrganizationReferenceSerializer` gives an
+organization as `{"uuid", "url", "name"}`, which is how a person's primary organization, a credit's
+affiliation, a parent and a sub-organization name one.
 
 ## Filtering, Ordering and Paging
 
@@ -263,9 +542,42 @@ identifier here and refuses a database number. A filter on a relation whose mode
 identifier, such as a content type, is not offered by the API. The portal's pages keep their own
 filters unchanged.
 
+### Records a contributor is credited on
+
+The project list and the dataset list take `?contributor=` with the short identifier of a person or
+an organization. The list then holds the records that contributor is credited on, and no others. A
+project an organization owns but is not credited on is not in its list.
+
+```http
+GET /api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3
+GET /api/v1/projects/?contributor=cT5mYh1uPq9AaWz6GfCx2Ke
+```
+
+The first request lists the datasets a person is credited on, and the second the projects an
+organization is credited on.
+
+The answer holds public records only, whoever asks. A private project, a private dataset and a
+public dataset inside a private project are never returned or counted, even for a person with access
+to them. Those records stay in the unfiltered list for that person, and the credit still shows on
+the record's own page.
+
+An identifier that names nobody, the identifier of a superuser or of the anonymous account, and a
+database number all give an empty list with status `200`, not an error. The filter combines with
+`ordering`, `modified_after` and `modified_before`.
+
+A single person and a single organization give both addresses, as `projects` and `datasets`, so a
+script can follow them without building the request itself. Each is absolute when the request is,
+and the path alone otherwise.
+
+`fairdm.api.filters.ContributorRecordsFilterSet` declares the filter and is the `filterset_class` of
+`fairdm.api.viewsets.ProjectViewSet` and `fairdm.api.viewsets.DatasetViewSet`. One class serves
+both lists and reads whether to narrow projects or datasets from the list's model.
+`fairdm.api.serializers.ContributorRecordsMixin` adds the two addresses to `PersonSerializer` and
+`OrganizationSerializer`.
+
 ### Reading only what changed
 
-Every list, of projects, datasets, contributors and each sample and measurement type, takes
+Every list, of projects, datasets, people, organizations and each sample and measurement type, takes
 `?modified_after=` and `?modified_before=`. Each is an ISO 8601 date or date-time and is compared
 with the record's `modified` time: `modified_after` keeps the records last changed at or after
 the moment and `modified_before` those changed at or before it. A date alone means the start of
@@ -574,16 +886,30 @@ can build on any of them.
 | `RecordSerializer` | Base of the four record serializers. Adds `url`, `html_url`, the five metadata fields and the creator credit |
 | `ProjectSerializer`, `DatasetSerializer` | Written out, not generated. A dataset carries its `project` and `license`, a project its `owner` |
 | `BaseSampleSerializer`, `BaseMeasurementSerializer` | Base of every generated sample and measurement serializer. `common_fields` lists the fields every record of the kind carries |
-| `PortalPageField` | The record's own page on the portal as an absolute address, or the path alone when there is no request. `RecordSerializer` and `ContributorSerializer` declare it as `html_url` |
+| `PortalPageField` | The record's own page on the portal as an absolute address, or the path alone when there is no request. `RecordSerializer`, `PersonListSerializer` and `OrganizationListSerializer` declare it as `html_url` |
 | `RecordReferenceField` | A relation to a record, returned as `{"uuid", "url"}` or `null` |
 | `RecordURLField` | The address of a record, whatever its type |
 | `RecordListSerializer` | Checks every reference on a page of records in one query. `RecordSerializer` uses it for lists |
 | `DescriptionSerializer`, `DateSerializer`, `IdentifierSerializer`, `KeywordSerializer` | The read-only metadata rows of a record |
 | `ContributionSerializer`, `RoleSerializer` | A credit on a record and the roles in it |
+| `ContributionListSerializer` | The credits of a record. Leaves out a credit whose contributor was deleted and reads a person's given and family name for credits that arrive without them |
+| `NameIdentifierSerializer`, `CreditAffiliationSerializer` | An identifier on a credit and the organization recorded on it, as DataCite gives a name identifier and an affiliation |
 | `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
-| `ContributorSerializer`, `ContributorIdentifierSerializer` | A person or organization as their profile page shows them |
+| `PersonListSerializer`, `OrganizationListSerializer` | A person and an organization as an entry of their list shows them |
+| `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image`, `affiliations`, `projects` and `datasets` |
+| `AffiliationSerializer` | One verified affiliation of a person, as `{"organization", "type", "start", "end", "is_primary"}` |
+| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent_organization`, `sub_organizations`, `members`, `projects` and `datasets` |
+| `ContributorRecordsMixin` | Adds the `projects` and `datasets` addresses to `PersonSerializer` and `OrganizationSerializer` |
+| `MemberSerializer` | One current member of an organization, as `{"person", "type"}` |
+| `AffiliationTypeField` | The kind of an affiliation as `member`, `admin` or `owner` |
+| `OrganizationReferenceSerializer`, `PersonReferenceSerializer` | An organization and a person as `{"uuid", "url", "name"}` |
+| `ContributorIdentifierSerializer` | An identifier of a person or organization as `{"type", "value", "link"}` |
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
+| `PersonFilterSet` | The people list's `organization` and `identifier` filters |
+| `ContributorRecordsFilterSet` | The project list's and the dataset list's `contributor` filter, which keeps the public records a person or an organization is credited on |
+| `OrganizationFilterSet` | The organizations list's `type`, `country`, `parent_organization`, `top_level` and `identifier` filters |
+| `IdentifierFilter` | A filter on `identifiers__value` that accepts a value or the address of a known scheme, and ignores the spaces an identifier may be written with |
 
 `fairdm.api.viewsets.sortable_fields(model, serializer_class)` returns the names a list can be
 sorted on: the stored, non-relational fields the serializer returns. Set `ordering_fields` on a
@@ -809,14 +1135,14 @@ schema component names have changed — `RockSampleAPI` → `RockSample`, `Patch
 
 ## Model Descriptions in the API Docs
 
-The documentation page has five headings: `Projects`, `Datasets`, `Contributors`, `Samples` and
-`Measurements`. Every sample type's operations are under `Samples` and every measurement type's
+The documentation page has six headings: `Projects`, `Datasets`, `People`, `Organizations`,
+`Samples` and `Measurements`. Every sample type's operations are under `Samples` and every measurement type's
 under `Measurements`. Each operation is titled with the type's plural name,
 `str(model._meta.verbose_name_plural)`, and what it does: `Rock Samples: list`,
 `Rock Samples: read`, `Rock Samples: create`, `Rock Samples: replace`, `Rock Samples: change`,
 `Rock Samples: delete`. The operations of one type sit together and the types follow the order of
 the registry. The two headings for types carry one short sentence saying what they hold. Projects,
-datasets and contributors are described by the docstring of their viewsets.
+datasets, people and organizations are described by the docstring of their viewsets.
 
 FairDM serves one documentation page, Swagger UI, because it is the one a request can be tried
 from.
@@ -862,7 +1188,7 @@ moment.
 
 A viewset of your own that you add to the router can be placed under a heading of your choice
 with the class decorator `fairdm.api.viewsets.under_heading`, which is how the projects, datasets
-and contributors viewsets get theirs:
+people and organizations viewsets get theirs:
 
 ```python
 from fairdm.api.viewsets import BaseViewSet, under_heading

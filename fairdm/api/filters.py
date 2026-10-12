@@ -11,14 +11,19 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Model, Q
 from django.db.models.constants import LOOKUP_SEP
 from django.utils.translation import gettext_lazy as _
+from django_filters.constants import EMPTY_VALUES
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.contributors.access import RecordAccess
-from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Person
-from fairdm.core.models import Dataset, Sample
+from fairdm.contrib.contributors.choices import (
+    ContributionLevel,
+    IdentifierLookup,
+    OrganizationType,
+)
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
+from fairdm.core.models import Dataset, Project, Sample
 from fairdm.core.utils import get_objects_for_user
 
 if TYPE_CHECKING:
@@ -72,8 +77,9 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     Both sets are combined in one query to avoid N+1 queries.
 
-    For models with no known visibility mechanism (such as Contributor), the
-    filter returns the full queryset, making all records publicly accessible.
+    For models with no known visibility mechanism (such as Organization), the
+    filter returns the full queryset, making all records publicly accessible. The people
+    list leaves accounts out in its own queryset.
     Override ``filter_queryset()`` in a viewset subclass for stricter filtering.
 
     This replaces ``ObjectPermissionsFilter`` from ``djangorestframework-guardian``,
@@ -248,6 +254,204 @@ class ChangedSinceFilterSet(django_filters.FilterSet):
         lookup_expr="lte",
         help_text=_("Only records changed at or before this ISO 8601 moment."),
     )
+
+
+class IdentifierFilter(django_filters.CharFilter):
+    """Narrows a list to the contributor that holds an identifier.
+
+    The value is an identifier as stored, such as an ORCID iD, or the address it resolves to:
+    the address of a known scheme is taken off the front, with or without a trailing slash
+    and with ``http`` or ``https``. A value is also matched with its spaces removed, as an
+    ISNI is written in groups of four and stored without them.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Match ``identifiers__value``, which the filter set's own models carry.
+
+        Args:
+            *args: Passed to ``CharFilter``.
+            **kwargs: Passed to ``CharFilter``.
+        """
+        kwargs.setdefault("field_name", "identifiers__value")
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def bare(value: str) -> str:
+        """Take the scheme address off the front of an identifier.
+
+        Args:
+            value: The value sent, which may be an identifier or its address.
+
+        Returns:
+            The identifier, trimmed and without a known scheme address or trailing slash.
+        """
+        value = value.strip().rstrip("/")
+        for root in IdentifierLookup.values():
+            address = root.rstrip("/")
+            for scheme in ("https://", "http://"):
+                candidate = scheme + address.split("://", 1)[1]
+                if value.lower().startswith(candidate.lower() + "/"):
+                    return value[len(candidate) + 1 :].strip()
+        return value
+
+    def filter(self, qs, value):
+        """Keep the contributors holding the identifier.
+
+        Args:
+            qs: The queryset to narrow.
+            value: The value sent.
+
+        Returns:
+            The contributors that hold it, or all of them when no value was sent.
+        """
+        if value in EMPTY_VALUES:
+            return qs
+        bare = self.bare(value)
+        if not bare:
+            return qs.none()
+        matching = Q(**{self.field_name: bare}) | Q(
+            **{self.field_name: bare.replace(" ", "")}
+        )
+        return qs.filter(matching).distinct()
+
+
+class PersonFilterSet(django_filters.FilterSet):
+    """Narrows the people list to an organization's members, or to the holder of an identifier.
+
+    ``organization`` is the short identifier of an organization. It keeps the people with a
+    verified affiliation to it that has not ended, and refuses a database number.
+    """
+
+    organization = django_filters.ModelChoiceFilter(
+        method="narrow_to_members",
+        to_field_name="uuid",
+        queryset=Organization.objects.all(),
+        help_text=_(
+            "Only people with a verified affiliation to this organization that has not ended."
+        ),
+    )
+    identifier = IdentifierFilter(
+        help_text=_(
+            "Only the person holding this identifier, given as the value or as its address."
+        ),
+    )
+
+    class Meta:
+        model = Person
+        fields: list[str] = []
+
+    def narrow_to_members(self, queryset, name, organization):
+        """Keep the people with a verified, current affiliation to the organization.
+
+        Args:
+            queryset: The people to narrow.
+            name: The name of the filter.
+            organization: The organization chosen.
+
+        Returns:
+            The people with an affiliation to it of at least the member level and no end date.
+        """
+        return queryset.filter(
+            affiliations__organization=organization,
+            affiliations__type__gte=Affiliation.MembershipType.MEMBER,
+            affiliations__end_date__isnull=True,
+        )
+
+
+class OrganizationFilterSet(django_filters.FilterSet):
+    """Narrows the organizations list by type, country, parent or identifier.
+
+    ``type`` is the stored code and ``country`` the two-letter code. ``parent_organization`` is
+    the short identifier of an organization, and a database number is refused. ``top_level``
+    true keeps the organizations that are part of no other, and false those that are part of
+    one.
+    """
+
+    type = django_filters.ChoiceFilter(
+        choices=OrganizationType.choices,
+        help_text=_("Only organizations of this type, given as the stored code."),
+    )
+    country = django_filters.CharFilter(
+        help_text=_(
+            "Only organizations in this country, given as its two-letter code."
+        ),
+    )
+    parent_organization = django_filters.ModelChoiceFilter(
+        field_name="parent",
+        to_field_name="uuid",
+        queryset=Organization.objects.all(),
+        help_text=_("Only organizations that are part of this organization."),
+    )
+    top_level = django_filters.BooleanFilter(
+        method="narrow_to_top_level",
+        help_text=_(
+            "True for organizations that are part of no other, false for those that are."
+        ),
+    )
+    identifier = IdentifierFilter(
+        help_text=_(
+            "Only the organization holding this identifier, given as the value or as its address."
+        ),
+    )
+
+    class Meta:
+        model = Organization
+        fields: list[str] = []
+
+    def narrow_to_top_level(self, queryset, name, value):
+        """Keep the organizations with no parent, or those with one.
+
+        Args:
+            queryset: The organizations to narrow.
+            name: The name of the filter.
+            value: True for organizations with no parent, false for those with one.
+
+        Returns:
+            The narrowed organizations.
+        """
+        return queryset.filter(parent__isnull=value)
+
+
+class ContributorRecordsFilterSet(django_filters.FilterSet):
+    """Narrows the project list or the dataset list to the records a contributor is credited on.
+
+    ``contributor`` is the short identifier of a person the people list shows, or of an
+    organization. The answer holds public records only, whoever asks, and only records the
+    contributor is credited on: a project an organization owns without a credit is left out.
+    An identifier that names nobody gives an empty list.
+    """
+
+    contributor = django_filters.CharFilter(
+        method="narrow_to_credited",
+        help_text=_(
+            "Only the public records this person or organization is credited on, "
+            "given as its short identifier."
+        ),
+    )
+
+    def narrow_to_credited(self, queryset, name, value):
+        """Keep the public records the contributor is credited on.
+
+        Args:
+            queryset: The projects or the datasets to narrow.
+            name: The name of the filter.
+            value: The short identifier sent.
+
+        Returns:
+            The projects or datasets credited to the contributor, which may be none.
+        """
+        contributor = (
+            Person.objects.real().filter(uuid=value).first()
+            or Organization.objects.filter(uuid=value).first()
+        )
+        if contributor is None:
+            return queryset.none()
+        credited = (
+            contributor.projects
+            if issubclass(queryset.model, Project)
+            else contributor.datasets
+        )
+        return queryset.filter(pk__in=credited.get_visible().values("pk"))
 
 
 class FairDMFilterBackend(DjangoFilterBackend):

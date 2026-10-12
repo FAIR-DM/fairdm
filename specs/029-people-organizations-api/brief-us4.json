@@ -1,0 +1,107 @@
+{
+ "story": "US4",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 475,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-09-28/3f7d8b12"
+  }
+ ],
+ "tasks": [
+  "T020",
+  "T021",
+  "T022",
+  "T023"
+ ],
+ "context": {
+  "why": "Stories 1 to 3 are accepted. /api/v1/people/ and /api/v1/organizations/ serve a list entry and a fuller single record (PersonSerializer, OrganizationSerializer in fairdm/api/serializers.py), each with its filter set in fairdm/api/filters.py. ProjectViewSet and DatasetViewSet in fairdm/api/viewsets.py have no filter set of their own yet. This last story lets a script go from a contributor to their work: a `contributor` filter on the project list and the dataset list, and the addresses of those two narrowed lists on a single person and a single organization.",
+  "spec_sections": [
+   "User Story 4 (all 5 acceptance scenarios)",
+   "Clarifications (how a script finds what a person or organization is credited on)",
+   "FR-019, FR-020, FR-023, FR-024",
+   "Edge Cases (a person credited on a private record the caller may see)"
+  ],
+  "plan_sections": [
+   "D5. A contributor's records",
+   "D7. Documentation"
+  ],
+  "prior_decisions": [
+   "decisions.md D6 and D8: the narrowed list holds the records the contributor is CREDITED on and that are PUBLIC, for every caller. Credit only: `contributor.projects.get_visible()` and `contributor.datasets.get_visible()` (Contributor.projects / .datasets in fairdm/contrib/contributors/models.py around line 350, and the base Contributor.get_public_projects/get_public_datasets, which do exactly this). Do NOT call get_public_projects()/get_public_datasets() on the real instance: Organization overrides both to add projects it owns, and an owned project with no credit must not be returned (T020 tests this).",
+   "Public only for every caller means the narrowed list ignores the levels a caller holds: a member of a private dataset's team asking for ?contributor=<person> does not get that private dataset, although the plain dataset list would show it to them. FairDMVisibilityFilter still runs on the viewset; the contributor filter intersects with it, so the result is the public credited records.",
+   "ContributorRecordsFilterSet in fairdm/api/filters.py with one filter, `contributor`, a CharFilter with a method (not a ModelChoiceFilter: an unknown identifier must give an empty list with status 200, never a 400). The method looks the contributor up by uuid among Person.objects.real() and Organization.objects.all(); when nobody matches (an unknown value, a superuser's or the anonymous account's uuid, a database number) it returns queryset.none(). It narrows by primary key: queryset.filter(pk__in=<credited visible records>.values('pk')). Check that get_visible() exists on both the project and the dataset querysets and what it means for a dataset in a private project (it must be left out).",
+   "One class serves both lists: it picks projects or datasets from the queryset's model. Set it as filterset_class on ProjectViewSet and DatasetViewSet. Read FairDMFilterBackend.get_filterset_class first: it combines the view's filterset_class with ChangedSinceFilterSet and builds a Meta when there is none, so a filter set whose Meta names no model has to work for both. PersonFilterSet and OrganizationFilterSet show how stories 2 and 3 fitted in.",
+   "T021: PersonSerializer and OrganizationSerializer each gain exactly two fields, `projects` and `datasets`: the absolute address of the project list and the dataset list with ?contributor=<uuid>, built with rest_framework.reverse.reverse and the request from the serializer context (the path alone when there is no request, as the other address fields do). They are on the single record only, not on the list entries. No query is spent on them.",
+   "The existing test in story 2 and story 3 that pins the exact key set of a single person and a single organization (TestPerson, TestOrganization, and the schema tests in tests/test_api/test_schema.py) will need the two new keys added. Those are tests of this feature written by earlier stories of it: extend their expected key sets, change nothing else in them, and name each such edit in progress.md.",
+   "The query-count tests for project and dataset lists (TestQueryCount, TestCreditQueries) must stay green with the filter unused and should not grow when it is used.",
+   "T023: docs/portal-development/restful-api.md gains the `contributor` filter under the filters section with an example for a person and one for an organization, the sentence that it returns public records only whoever asks, and the two addresses in the People and Organizations field tables. docs/user-guide/reading-records-with-a-script.md gains a short worked step from a person to their datasets. Name ContributorRecordsFilterSet in the developer page.",
+   "Formatting: do not run a formatter over files you are not editing. tests/ is excluded from the pre-commit hooks; run `uv run ruff check` and `uv run ruff format` only on the test files you edit."
+  ],
+  "acceptance": [
+   "Every US-4 acceptance scenario has a test that fails if the behaviour regresses.",
+   "A private project, a private dataset and a public dataset in a private project are never returned or counted by the narrowed lists, for a visitor, the person themself and a member of the private record's team.",
+   "A public project an organization owns and is not credited on is not returned.",
+   "The full verify is green at your last commit, including the documentation step."
+  ],
+  "verified_base": {
+   "commit": "7624a71c4670c80b15eea45dbdbf082b4ad82d42",
+   "verified_at": "2026-10-12T11:00:09Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "test",
+    "build",
+    "conformance"
+   ],
+   "note": "Verified at the commit named here, or at a commit that differs from it only under specs/029-people-organizations-api/: lint, typecheck, the documentation check against origin/main, the whole test suite, build and conformance pass. Run verify with `--base origin/main` at the end. Anything red on arrival: report it, do not work around it."
+  },
+  "glossary_terms": [
+   "Contributor, Person, Organization",
+   "Contribution",
+   "Member",
+   "People, in three contexts",
+   "Roles (portal role, contribution role)"
+  ],
+  "environment": [
+   "uv-managed. Tests: `uv run pytest -q -n0 <path>::<Class>` for a narrow scope. Lint gate: `uv run pre-commit run --all-files` (stage new files first, untracked files are skipped).",
+   "Full verify, once, at the end: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api --base origin/main`.",
+   "Git identity in this worktree is already bound to the repository's bot. Commit normally. Never push."
+  ],
+  "conventions": [
+   "Line length 88. No leading-underscore names for new functions, classes or module attributes. No compatibility aliases for anything removed.",
+   "Tests follow docs/contributing/standards/testing.md: Test<Subject> classes, factories from fairdm.factories, requests through APIClient on the real routes (see tests/test_api/conftest.py for the fixtures). Never test wording. Never write a test that a removed thing stays removed beyond what a task names.",
+   "Docstrings in Google style, as the surrounding code. Read-only serializers declare read_only fields; give computed fields a declared schema type with extend_schema_field so the generated documentation matches the response.",
+   "Public markdown (docs/, specs/011-restful-api/spec.md): plain sentences, no em dashes, no bold-label bullet lists, sentence-case headings, and never the name of a tool, an agent or a workflow stage."
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/029-people-organizations-api/tasks.md, your tasks only.",
+  "Read the plan.md sections named in context.plan_sections, and the spec sections named in context.spec_sections.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/029-people-organizations-api/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Record each finished task with `kit/forge ledger-task` and each progress entry with `kit/forge progress`, exactly as your protocol gives them (repo FAIR-DM/fairdm, feature 029-people-organizations-api, --path /home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api).",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api/specs/029-people-organizations-api/report-us4.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the ones this brief names as moved or replaced; name each such change in progress.md.",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json by hand; use kit/forge ledger-task for your own tasks only.",
+  "Never push, merge, open or comment on anything on GitHub. You hold no tokens and must not obtain one.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never add a field to a serializer that this brief or the plan section does not name. In particular: no email address, no account flag, no portal role, no sign-in date, no preference, no `config`, no `added` or `modified`, no database number.",
+  "Never add a migration, a dependency, or a setting."
+ ]
+}

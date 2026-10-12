@@ -25,7 +25,8 @@ from rest_framework.settings import api_settings
 CORE_HEADINGS = {
     "projects": "Projects",
     "datasets": "Datasets",
-    "contributors": "Contributors",
+    "people": "People",
+    "organizations": "Organizations",
 }
 
 #: The heading every sample type's operations are under in the generated documentation.

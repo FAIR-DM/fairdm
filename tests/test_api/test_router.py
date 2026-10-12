@@ -19,9 +19,48 @@ class TestCoreRoutesRegistered:
         url = reverse("api:dataset-list")
         assert "/api/v1/datasets/" in url
 
-    def test_contributor_list_url_resolves(self):
-        url = reverse("api:contributor-list")
-        assert "/api/v1/contributors/" in url
+    @pytest.mark.parametrize(
+        ("basename", "prefix"),
+        [("person", "people"), ("organization", "organizations")],
+    )
+    def test_a_contributor_kind_has_a_list_and_a_record_route(self, basename, prefix):
+        assert reverse(f"api:{basename}-list") == f"/api/v1/{prefix}/"
+        record = reverse(f"api:{basename}-detail", kwargs={"uuid": "cAbCdEfGhIjK"})
+        assert record == f"/api/v1/{prefix}/cAbCdEfGhIjK/"
+
+    @pytest.mark.django_db
+    def test_a_contributor_is_found_by_short_identifier_at_the_route_of_its_kind(
+        self, api_client
+    ):
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        person = PersonFactory()
+        organization = OrganizationFactory()
+
+        at_people = api_client.get(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        )
+        at_organizations = api_client.get(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        )
+
+        assert at_people.json()["uuid"] == person.uuid
+        assert at_organizations.json()["uuid"] == organization.uuid
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("route", ["person", "organization"])
+    def test_a_contributor_is_not_answered_at_the_route_of_the_other_kind(
+        self, api_client, route
+    ):
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        record = (OrganizationFactory if route == "person" else PersonFactory)()
+
+        response = api_client.get(
+            reverse(f"api:{route}-detail", kwargs={"uuid": record.uuid})
+        )
+
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
@@ -307,6 +346,9 @@ class TestRoot:
 
         for _prefix, _viewset, basename in fairdm_api_router.registry:
             assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
+
+    def test_the_root_links_to_people_and_organizations(self, links):
+        assert set(links) >= {"people", "organizations"}
 
     def test_the_router_is_the_one_the_portal_serves(self):
         from rest_framework.routers import DefaultRouter

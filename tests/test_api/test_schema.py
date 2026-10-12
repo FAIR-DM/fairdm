@@ -269,7 +269,14 @@ def every_description(node):
 @pytest.mark.django_db
 class TestTypesInTheDocumentation:
     #: The headings of the first schema, which the interactive page reads.
-    HEADINGS = ("Projects", "Datasets", "Contributors", "Samples", "Measurements")
+    HEADINGS = (
+        "Projects",
+        "Datasets",
+        "People",
+        "Organizations",
+        "Samples",
+        "Measurements",
+    )
 
     @pytest.fixture
     def tags(self, schema):
@@ -299,21 +306,23 @@ class TestTypesInTheDocumentation:
         basename = TestSchemaMatchesRoutes.basename(model)
         return schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
-    def test_projects_datasets_and_contributors_are_described_with_their_viewsets_words(
+    def test_projects_datasets_people_and_organizations_are_described_with_their_viewsets_words(
         self, tags
     ):
         import inspect
 
         from fairdm.api.viewsets import (
-            ContributorViewSet,
             DatasetViewSet,
+            OrganizationViewSet,
+            PersonViewSet,
             ProjectViewSet,
         )
 
         for name, viewset in (
             ("Projects", ProjectViewSet),
             ("Datasets", DatasetViewSet),
-            ("Contributors", ContributorViewSet),
+            ("People", PersonViewSet),
+            ("Organizations", OrganizationViewSet),
         ):
             assert tags[name]["description"] == inspect.getdoc(viewset)
 
@@ -450,3 +459,204 @@ class TestMetadataDescriptionComesFirst:
         operation = schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
         assert operation["description"].startswith(own)
+
+
+@pytest.mark.django_db
+class TestCreditComponent:
+    CREDIT_KEYS = {
+        "uuid",
+        "url",
+        "name",
+        "type",
+        "given_name",
+        "family_name",
+        "name_identifiers",
+        "affiliation",
+        "roles",
+    }
+
+    @staticmethod
+    def credit_of(schema, name):
+        """Return the component a record's list of credits refers to."""
+        items = schema["components"]["schemas"][name]["properties"]["contributors"][
+            "items"
+        ]
+        return schema["components"]["schemas"][items["$ref"].rsplit("/", 1)[-1]]
+
+    @pytest.mark.parametrize(
+        "name", ["Project", "Dataset", "RockSample", "ExampleMeasurement"]
+    )
+    def test_the_credit_of_a_record_lists_exactly_the_keys_a_credit_returns(
+        self, schema, name
+    ):
+        credit = self.credit_of(schema, name)
+
+        assert set(credit["properties"]) == self.CREDIT_KEYS
+
+    def test_a_credit_is_the_same_component_on_every_kind_of_record(self, schema):
+        components = {
+            schema["components"]["schemas"][name]["properties"]["contributors"][
+                "items"
+            ]["$ref"]
+            for name in ("Project", "Dataset", "RockSample", "ExampleMeasurement")
+        }
+
+        assert len(components) == 1
+
+
+@pytest.mark.django_db
+class TestPeopleComponents:
+    LIST_KEYS = {
+        "url",
+        "html_url",
+        "uuid",
+        "name",
+        "given_name",
+        "family_name",
+        "identifiers",
+        "primary_affiliation",
+    }
+    RECORD_ONLY_KEYS = {
+        "alternative_names",
+        "profile",
+        "links",
+        "languages",
+        "image",
+        "affiliations",
+        "projects",
+        "datasets",
+    }
+
+    @staticmethod
+    def component(schema, reference):
+        return schema["components"]["schemas"][reference["$ref"].rsplit("/", 1)[-1]]
+
+    @staticmethod
+    def response_of(schema, path):
+        operation = schema["paths"][path]["get"]
+        return operation["responses"]["200"]["content"]["application/json"]["schema"]
+
+    def test_the_list_describes_an_entry_with_the_list_fields_only(self, schema):
+        page = self.component(
+            schema, self.response_of(schema, reverse("api:person-list"))
+        )
+
+        entry = self.component(schema, page["properties"]["results"]["items"])
+
+        assert set(entry["properties"]) == self.LIST_KEYS
+
+    def test_a_record_describes_the_list_fields_and_its_own(self, schema):
+        record = self.component(schema, self.response_of(schema, detail_path("person")))
+
+        assert set(record["properties"]) == self.LIST_KEYS | self.RECORD_ONLY_KEYS
+
+    def test_an_affiliation_lists_exactly_the_keys_it_returns(self, schema):
+        record = self.component(schema, self.response_of(schema, detail_path("person")))
+
+        affiliation = self.component(
+            schema, record["properties"]["affiliations"]["items"]
+        )
+
+        assert set(affiliation["properties"]) == {
+            "organization",
+            "type",
+            "start",
+            "end",
+            "is_primary",
+        }
+
+    def test_the_list_offers_the_organization_and_identifier_filters(self, schema):
+        operation = schema["paths"][reverse("api:person-list")]["get"]
+
+        offered = {parameter["name"] for parameter in operation["parameters"]}
+
+        assert {"organization", "identifier"} <= offered
+
+    def test_a_record_offers_no_filter(self, schema):
+        operation = schema["paths"][detail_path("person")]["get"]
+
+        offered = {parameter["name"] for parameter in operation.get("parameters", [])}
+
+        assert offered.isdisjoint({"organization", "identifier"})
+
+
+@pytest.mark.django_db
+class TestOrganizationComponents:
+    LIST_KEYS = {
+        "url",
+        "html_url",
+        "uuid",
+        "name",
+        "type",
+        "country",
+        "identifiers",
+    }
+    RECORD_ONLY_KEYS = {
+        "alternative_names",
+        "profile",
+        "city",
+        "links",
+        "image",
+        "parent_organization",
+        "sub_organizations",
+        "members",
+        "projects",
+        "datasets",
+    }
+    FILTERS = {
+        "type",
+        "country",
+        "parent_organization",
+        "top_level",
+        "identifier",
+    }
+
+    @staticmethod
+    def component(schema, reference):
+        return schema["components"]["schemas"][reference["$ref"].rsplit("/", 1)[-1]]
+
+    @staticmethod
+    def response_of(schema, path):
+        operation = schema["paths"][path]["get"]
+        return operation["responses"]["200"]["content"]["application/json"]["schema"]
+
+    def test_the_list_describes_an_entry_with_the_list_fields_only(self, schema):
+        page = self.component(
+            schema, self.response_of(schema, reverse("api:organization-list"))
+        )
+
+        entry = self.component(schema, page["properties"]["results"]["items"])
+
+        assert set(entry["properties"]) == self.LIST_KEYS
+
+    def test_a_record_describes_the_list_fields_and_its_own(self, schema):
+        record = self.component(
+            schema, self.response_of(schema, detail_path("organization"))
+        )
+
+        assert set(record["properties"]) == self.LIST_KEYS | self.RECORD_ONLY_KEYS
+
+    def test_a_member_lists_exactly_the_keys_it_returns(self, schema):
+        record = self.component(
+            schema, self.response_of(schema, detail_path("organization"))
+        )
+
+        member = self.component(schema, record["properties"]["members"]["items"])
+
+        assert set(member["properties"]) == {"person", "type"}
+
+    def test_the_list_offers_the_type_country_parent_top_level_and_identifier_filters(
+        self, schema
+    ):
+        operation = schema["paths"][reverse("api:organization-list")]["get"]
+
+        offered = {parameter["name"] for parameter in operation["parameters"]}
+
+        assert offered >= self.FILTERS
+
+    def test_a_record_offers_no_filter(self, schema):
+        operation = schema["paths"][detail_path("organization")]["get"]
+
+        offered = {parameter["name"] for parameter in operation.get("parameters", [])}
+
+        assert offered.isdisjoint(self.FILTERS)
