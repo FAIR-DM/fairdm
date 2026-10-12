@@ -3005,7 +3005,7 @@ class TestReferencesFollowTheLists:
         [returned] = response.json()["contributors"]
         assert returned["uuid"] is None
         assert returned["url"] is None
-        assert returned["name"]
+        assert returned["name"] == unlisted.get_full_name_display("family_given")
         assert returned["name_identifiers"] == [
             {
                 "name_identifier": "https://orcid.org/0000-0003-1415-9269",

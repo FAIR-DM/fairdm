@@ -39,3 +39,10 @@ Watch: pre-existing tests changed beyond a route rename, each because the brief'
 - TestCompleteRecord.test_a_credited_contributor_is_named_with_roles_and_affiliation: reads credit["uuid"] and credit["affiliation"][0]["uuid"] instead of the old nested contributor and affiliation references.
 - TestReferencesFollowTheLists.test_a_credit_to_a_listed_contributor_is_a_reference: reads the credit's uuid.
 - TestContributorListEndpoint and TestVisibilityFilterContributors: parametrized over both new lists.
+
+## 2026-10-12T10:16:18Z · Implementer US1 · T005
+
+Did: fairdm/api/serializers.py: NameIdentifierSerializer, CreditAffiliationSerializer (ROR ID else first identifier, null keys when none), ContributionListSerializer (leaves out a credit whose contributor is gone; fills given and family name for credits without the annotation with one query), the rewritten ContributionSerializer (uuid, url, name, name_type, given_name, family_name, name_identifiers, affiliation as a list, roles; uuid and url null for an account the people list leaves out, read from the context's hidden_contributors set through the new RecordReferenceField.hidden_contributor_pks), and RecordSerializer.load_related() prefetching contributor and affiliation identifiers and annotating the person's names on the credit queryset.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCredit tests/test_api/test_schema.py::TestCreditComponent tests/test_api/test_viewsets.py::TestCreditQueries -> 30 passed, 8 failed; the 8 only reverse api:person-detail / api:organization-detail, which T006 adds. Probed TestCreditQueries: without the identifier prefetches 4 failed, without the name annotation 4 failed. uv run pre-commit run --files fairdm/api/serializers.py -> passed (ruff, mypy).
+Next: T006.
+Watch: the credit's url still resolves through the old contributor route until T006 changes RecordReferenceField.route_name; test_the_contributor_list_leaves_the_account_out reverses person-detail and stays red until T006. In TestReferencesFollowTheLists the replaced test now compares the credit name with get_full_name_display, because the anonymous account's stored name is empty.

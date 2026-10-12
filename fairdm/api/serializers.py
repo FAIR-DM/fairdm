@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Model, Prefetch, Q
+from django.db.models import F, Model, Prefetch, Q
 from django.db.models.manager import BaseManager
 from django.urls import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
@@ -209,6 +209,22 @@ class RecordReferenceField(serializers.SlugRelatedField):
             return f"api:measurements-{_model_to_slug(model)}-detail"
         return f"api:{model._meta.model_name}-detail"
 
+    @staticmethod
+    def hidden_contributor_pks(context) -> set:
+        """Say which contributors the people list leaves out, asking once per request.
+
+        Args:
+            context: The serializer context of the request, which keeps the answer.
+
+        Returns:
+            The primary keys of superusers and of the anonymous account.
+        """
+        if "hidden_contributors" not in context:
+            hidden = FairDMVisibilityFilter.hidden_contributors()
+            context["hidden_contributors"] = set(hidden.values_list("pk", flat=True))
+        pks: set = context["hidden_contributors"]
+        return pks
+
     def visible_pks(self, model, pks) -> set:
         """Say which of the records the requesting user may see.
 
@@ -221,15 +237,8 @@ class RecordReferenceField(serializers.SlugRelatedField):
         """
         core = getattr(model, "type_of", None) or model
         if issubclass(core, Contributor):
-            # Asked once per request: the accounts it holds are few, the references many.
             context = cast("dict[str, Any]", self.context)
-            if "hidden_contributors" not in context:
-                hidden = FairDMVisibilityFilter.hidden_contributors()
-                context["hidden_contributors"] = set(
-                    hidden.values_list("pk", flat=True)
-                )
-            hidden_pks: set = context["hidden_contributors"]
-            return set(pks) - hidden_pks
+            return set(pks) - self.hidden_contributor_pks(context)
         if not _get_public_filter(core):
             return set(pks)
         manager = getattr(core, "all_objects", core._default_manager)
@@ -419,15 +428,176 @@ class RoleSerializer(serializers.Serializer):
     label = serializers.CharField(read_only=True)  # type: ignore[assignment]
 
 
-class ContributionSerializer(serializers.Serializer):
-    """A credit on a record: who, in what roles, and from which organisation.
+class NameIdentifierSerializer(serializers.Serializer):
+    """An identifier of a credited contributor, as DataCite gives a name identifier."""
 
-    The access level a credit carries is not shown, as the record's page does not show it.
+    name_identifier = serializers.SerializerMethodField()
+    name_identifier_scheme = serializers.CharField(source="type", read_only=True)
+    scheme_uri = serializers.SerializerMethodField()
+
+    def get_name_identifier(self, identifier) -> str:
+        """Give the address the identifier resolves to, or its value where it has none."""
+        return str(identifier.resolver_url or identifier.value)
+
+    def get_scheme_uri(self, identifier) -> str | None:
+        """Give the address of the scheme's resolver, or nothing for an unknown scheme."""
+        root: str | None = identifier.get_root_url()
+        return root
+
+
+class CreditAffiliationSerializer(serializers.Serializer):
+    """The organization a contributor is credited from, as DataCite gives an affiliation.
+
+    The identifier is the organization's ROR ID where it has one, and otherwise its first.
     """
 
-    contributor = RecordReferenceField(read_only=True)
+    uuid = serializers.CharField(read_only=True)
+    url = RecordURLField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    affiliation_identifier = serializers.SerializerMethodField()
+    affiliation_identifier_scheme = serializers.SerializerMethodField()
+    scheme_uri = serializers.SerializerMethodField()
+
+    @staticmethod
+    def identifier_of(organization):
+        """Pick the identifier to give: its ROR ID, else the first it holds.
+
+        Args:
+            organization: The organization credited from.
+
+        Returns:
+            The identifier, or None when the organization holds none.
+        """
+        held = sorted(organization.identifiers.all(), key=lambda held: held.pk)
+        return next((i for i in held if i.type == "ROR"), held[0] if held else None)
+
+    def get_affiliation_identifier(self, organization) -> str | None:
+        """Give the address the identifier resolves to, or its value where it has none."""
+        identifier = self.identifier_of(organization)
+        if identifier is None:
+            return None
+        return str(identifier.resolver_url or identifier.value)
+
+    def get_affiliation_identifier_scheme(self, organization) -> str | None:
+        """Give the kind of the identifier."""
+        identifier = self.identifier_of(organization)
+        return str(identifier.type) if identifier else None
+
+    def get_scheme_uri(self, organization) -> str | None:
+        """Give the address of the identifier's scheme, or nothing for an unknown scheme."""
+        identifier = self.identifier_of(organization)
+        root: str | None = identifier.get_root_url() if identifier else None
+        return root
+
+
+class ContributionListSerializer(serializers.ListSerializer):
+    """The credits of a record: those that still name a contributor, each with its names.
+
+    A person's given and family name come from an annotation on the credit queryset when the
+    record was loaded for a read. A credit without them, as in the body that answers a create
+    or an update, has them read for the whole list with one query.
+    """
+
+    def to_representation(self, data):
+        """Leave out a credit whose contributor was deleted, then serialize the rest."""
+        credits_ = list(data.all() if isinstance(data, BaseManager) else data)
+        credits_ = [credit for credit in credits_ if credit.contributor_id is not None]
+        unnamed = [credit for credit in credits_ if not hasattr(credit, "given_name")]
+        if unnamed:
+            people = Person.objects.in_bulk(
+                {credit.contributor_id for credit in unnamed}
+            )
+            for credit in unnamed:
+                person = people.get(credit.contributor_id)
+                credit.given_name = person.first_name if person else None
+                credit.family_name = person.last_name if person else None
+        return [self.child.to_representation(credit) for credit in credits_]
+
+
+class ContributionSerializer(serializers.Serializer):
+    """A credit on a record, with what DataCite asks of a creator or contributor.
+
+    The credit names the person or organization, their identifiers, the organization recorded
+    on the credit and the roles held. The access level a credit carries is not shown, as the
+    record's page does not show it. A credit held by an account the people list leaves out has
+    no ``uuid`` and no ``url``.
+    """
+
+    uuid = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    name_type = serializers.SerializerMethodField()
+    given_name = serializers.SerializerMethodField()
+    family_name = serializers.SerializerMethodField()
+    name_identifiers = NameIdentifierSerializer(
+        source="contributor.identifiers", many=True, read_only=True
+    )
+    affiliation = serializers.SerializerMethodField()
     roles = RoleSerializer(many=True, read_only=True)
-    affiliation = RecordReferenceField(read_only=True)
+
+    class Meta:
+        list_serializer_class = ContributionListSerializer
+
+    @staticmethod
+    def is_organization(credit) -> bool:
+        """Say whether the credited contributor is an organization, without a query."""
+        real_class = credit.contributor.get_real_instance_class()
+        return bool(real_class and issubclass(real_class, Organization))
+
+    def is_hidden(self, credit) -> bool:
+        """Say whether the people list leaves out the credited contributor."""
+        context = cast("dict[str, Any]", self.context)
+        return credit.contributor_id in RecordReferenceField.hidden_contributor_pks(
+            context
+        )
+
+    def get_uuid(self, credit) -> str | None:
+        """Give the contributor's short identifier, or nothing for a hidden account."""
+        if self.is_hidden(credit):
+            return None
+        return str(credit.contributor.uuid)
+
+    def get_url(self, credit) -> str | None:
+        """Give the contributor's address in the API, or nothing for a hidden account."""
+        if self.is_hidden(credit):
+            return None
+        return reverse(
+            RecordReferenceField.route_name(credit.contributor),
+            kwargs={"uuid": credit.contributor.uuid},
+            request=self.context.get("request"),
+        )
+
+    def get_name(self, credit) -> str:
+        """Give an organization's name, or a person's as "Family, Given"."""
+        contributor = credit.contributor
+        if self.is_organization(credit):
+            return str(contributor.name)
+        parts = [name for name in (credit.family_name, credit.given_name) if name]
+        return ", ".join(parts) if parts else str(contributor.name)
+
+    def get_name_type(self, credit) -> str:
+        """Say whether the credit is for a person or an organization."""
+        return "Organizational" if self.is_organization(credit) else "Personal"
+
+    def get_given_name(self, credit) -> str | None:
+        """Give a person's given name, and nothing for an organization."""
+        name: str | None = None if self.is_organization(credit) else credit.given_name
+        return name
+
+    def get_family_name(self, credit) -> str | None:
+        """Give a person's family name, and nothing for an organization."""
+        name: str | None = None if self.is_organization(credit) else credit.family_name
+        return name
+
+    @extend_schema_field(CreditAffiliationSerializer(many=True))
+    def get_affiliation(self, credit) -> list:
+        """List the organization recorded on the credit: one entry, or none."""
+        if credit.affiliation_id is None:
+            return []
+        serializer = CreditAffiliationSerializer(
+            credit.affiliation, context=self.context
+        )
+        return [serializer.data]
 
 
 class LicenseSerializer(serializers.Serializer):
@@ -478,9 +648,16 @@ class RecordSerializer(CreatorCreditMixin, serializers.ModelSerializer):
         Returns:
             The queryset with its parents selected and its metadata prefetched.
         """
-        credits_ = Contribution.objects.select_related(
-            "contributor", "affiliation"
-        ).prefetch_related("roles")
+        credits_ = (
+            Contribution.objects.select_related("contributor", "affiliation")
+            .prefetch_related(
+                "roles", "contributor__identifiers", "affiliation__identifiers"
+            )
+            .annotate(
+                given_name=F("contributor__person__first_name"),
+                family_name=F("contributor__person__last_name"),
+            )
+        )
         return queryset.select_related(*cls.parents).prefetch_related(
             "descriptions",
             "dates",
