@@ -165,3 +165,7 @@ Did: docs/portal-development/restful-api.md: the projects and datasets rows in t
 Verified: read against the branch; the addresses and the empty-list behaviour are the ones the tests in T020 and T021 pin.
 Next: the full verify, then the report.
 Watch: the same user guide page still says the portal root lists "projects, datasets and contributors" under "Find out what a portal offers"; that is story 1's wording and was left as it is.
+
+## 2026-10-12T11:35:24Z · orchestrator · review and ready
+
+Four stories accepted, converged with ADRs 0029 and 0030. Code review: approve, two medium and three low findings; four remedied in T024 and T025, two of them verified by mutation; one low left for the maintainer. Pull request description written and the walkthrough laid out.

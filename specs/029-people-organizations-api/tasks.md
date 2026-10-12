@@ -132,3 +132,11 @@ This story changes what every record returns and moves contributors to their two
   `contributor` filter, that it returns public records only, and the two addresses on a person and
   an organization. `docs/user-guide/reading-records-with-a-script.md` shows going from a person to
   their datasets.
+
+## Phase 5: fixes from the code review
+
+- [x] T024 [US1] A person's unset given or family name is null on a credit. The test of an
+  affiliation with two identifiers creates the ROR ID second, so it fails when the ROR ID is not
+  preferred. ADR 0027 no longer lists a credit among the references.
+- [x] T025 [US2] Each of the two lists is in name order when no order is asked for, with a test
+  that fails when the default order is removed.
