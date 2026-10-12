@@ -71,7 +71,7 @@ Watch: nothing in these tests failed before T012 because the behaviour is story 
 ## 2026-10-12T10:38:29Z · Implementer US2 · T009
 
 Did: tests/test_api/test_viewsets.py, TestPerson (new class): exact keys of a single person, the list entry's fields unchanged on the record, profile, alternative_names, links (a non-web address left out), languages, image, an affiliation's organization/type/start/end/is_primary, type for each level, null dates, a pending affiliation absent, an ended one present after the current ones, primary first, an explicit set of forbidden account-state keys walked over the list and the record at any depth, and the query count for a record with 2 versus 12 affiliations.
-Verified: red before T012 (23 failed in the two classes); uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPerson -> 20 passed after T012.
+Verified: red before T012 (16 failed); uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPerson -> 20 passed after T012.
 Next: T010.
 Watch: the moved TestContributor person test is not edited; profile and links are asserted in TestPerson.
 
