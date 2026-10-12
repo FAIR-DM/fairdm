@@ -588,6 +588,12 @@ class TestPersonOverview:
         assert page.select(f"a[href^='{update_url}']") == []
         assert response.context["can_edit"] is False
 
+    def test_the_api_link_goes_to_the_person_at_the_people_route(
+        self, get_page, credited_world
+    ):
+        person = credited_world.person
+        address = reverse("api:person-detail", kwargs={"uuid": person.uuid})
+
 
 def _members(page):
     """The places of the members card, as the person each links to or None for a count."""
@@ -697,12 +703,6 @@ def owner_world(db):
         members_dataset=members_dataset,
     )
 
-
-    def test_the_api_link_goes_to_the_person_at_the_people_route(
-        self, get_page, credited_world
-    ):
-        person = credited_world.person
-        address = reverse("api:person-detail", kwargs={"uuid": person.uuid})
 
         _, page = get_page(person.get_absolute_url())
 
@@ -1131,6 +1131,12 @@ class TestOrganizationOverview:
         assert page.select(f"a[href^='{organization.get_update_url()}']") == []
         assert response.context["can_edit"] is False
 
+    def test_the_api_link_goes_to_the_organization_at_the_organizations_route(
+        self, get_page, owner_world
+    ):
+        organization = owner_world.organization
+        address = reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+
 
 def _checklist(page):
     """The checklist card's progress as (items in place, total items), or None without it."""
@@ -1153,12 +1159,6 @@ def incomplete_person(db):
         is_active=True, is_claimed=True, password="x", profile="A biography.", links=[]
     )
 
-
-    def test_the_api_link_goes_to_the_organization_at_the_organizations_route(
-        self, get_page, owner_world
-    ):
-        organization = owner_world.organization
-        address = reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
 
         _, page = get_page(organization.get_absolute_url())
 
