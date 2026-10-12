@@ -175,8 +175,18 @@
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/029-people-organizations-api --base origin/main (docs step passed)"
+            ],
+            "code": [
+              "docs/portal-development/restful-api.md:90",
+              "docs/portal-development/restful-api.md:296",
+              "docs/user-guide/reading-records-with-a-script.md:147"
+            ]
+          }
         }
       ]
     },

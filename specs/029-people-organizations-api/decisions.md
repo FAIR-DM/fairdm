@@ -120,3 +120,35 @@ go beyond what the specification lists, and the codes are what the filters take.
 the polymorphic base, so the credit queryset annotates the two names through `contributor__person`
 in the same query. The reviewer's probe confirmed one query for a page of credits.
 **ADR:** none — a detail of how one serializer is fed.
+
+## D13. Implementer US1: a list serializer holds the credits
+
+**The credits of a record go through `ContributionListSerializer`.** The plan names the two small
+serializers for an identifier and an affiliation and the rewritten credit serializer. A credit
+whose contributor was deleted has to be absent on every path, and the body that answers a create or
+an update reads the record's credits from the database with no annotation on them. A list
+serializer can drop the credit that names nobody and fill the given and family name of the
+credits that arrive without them with one query for the whole list, so the credit serializer reads
+one attribute whichever way the record was loaded.
+*Revisit if:* the credit queryset gains a second path that makes the annotation unnecessary.
+**ADR:** none, local to this feature.
+
+## D14. Implementer US1: assertions the new shapes leave with nothing to read
+
+**Two moved tests lose assertions about keys the list shape does not carry.** The person test no
+longer asserts `type`, `profile` and `links`, and the organization test no longer asserts `type`
+and the parent. The brief serves the list shape for a single record in this story, so the keys are
+not there to assert. The assertions that remain are the ones the new shape supports, and the fuller
+record serializers carry the rest. Two other pre-existing tests read the old credit keys and read
+the new ones. Each change is named in progress.md.
+*Revisit if:* the fuller serializers do not arrive with the assertions on those keys.
+**ADR:** none, local to this feature.
+
+## D15. Implementer US1: stable order for the two lists
+
+**Both viewsets order by name and then by primary key.** The people queryset had no default
+ordering of its own, and the old mixed list was ordered by name. Name is not unique, and pages cut
+from an order with ties can repeat or skip an entry.
+*Revisit if:* a caller needs another default order.
+**ADR:** none, local to this feature.
+
