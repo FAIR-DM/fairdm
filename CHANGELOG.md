@@ -121,6 +121,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `overview.*` blocks. A portal that subclassed the view or extended the template overrides the
   matching block or plugin method instead, as described in
   [Overview pages](docs/portal-development/overview-pages.md).
+- **The `gis` extra and the GeoDjango code in `fairdm.contrib.location` are gone.** FairDM does not
+  support geospatial operations, because GDAL is a system library every portal would have to
+  carry. `pip install fairdm[gis]` no longer names an extra, and `djangorestframework-gis` is no
+  longer a dependency of any kind. Removed with it: the modules `fairdm.contrib.location.api`,
+  `.serializers`, `.gis_utils`, `.managers` and `.db`, none of which could be imported on a default
+  install, and `fairdm.contrib.location.utils.get_sites_within`, which queried a field `Point` does
+  not have. Locations are still stored as x and y coordinates, and a dataset's bounding box is
+  computed as before.
 
 ### Fixed
 
@@ -294,6 +302,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     another site. A portal that wants the old behaviour sets `CORS_ALLOW_ALL_ORIGINS = False` and
     lists its sites in `CORS_ALLOWED_ORIGINS`.
 
+- **django-mvp's minimum is 0.28.1.** That release leaves the heading and divider out of a row set
+  that is all a page holds, which the key dates and identifiers pages rely on. The `.editing-rows`
+  wrapper in `editing/rows.html` and the stylesheet rule that hid the divider are gone, so a
+  portal that overrides that template has no wrapper to keep.
 - **django-mvp moves to 0.28 and django-mvp-accounts to 0.2.** django-mvp now takes its basic
   components from daisy-cotton and puts the ones it keeps under an `mvp.` prefix. FairDM's own
   settings install `daisy_cotton`, so a portal that writes no templates of its own has nothing

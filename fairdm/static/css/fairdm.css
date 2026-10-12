@@ -374,14 +374,6 @@
   font-weight: 600;
 }
 
-/* A page that is one row set alone: the page's title names the rows, so the heading django-mvp
-   draws above every row set, and the line it sits on, would only repeat it.
-   A stopgap until django-mvp can leave the divider out (django-mvp/django-mvp#511). Removing this
-   rule and the wrapper it styles is FAIR-DM/fairdm#448. */
-.editing-rows .divider {
-  display: none;
-}
-
 /* Landing page. django-mvp's build carries no height utilities of these sizes, and the page
  * blocks offer a section as tall as its content or as tall as the window, with nothing between. */
 .landing-hero__logo {
