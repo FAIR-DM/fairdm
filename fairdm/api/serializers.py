@@ -22,6 +22,7 @@ from fairdm.api.filters import FairDMVisibilityFilter, _get_public_filter
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import (
+    Affiliation,
     Contribution,
     Contributor,
     Organization,
@@ -841,7 +842,7 @@ class PersonListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = (
+        fields: tuple[str, ...] = (
             "url",
             "html_url",
             "uuid",
@@ -874,6 +875,79 @@ class PersonListSerializer(serializers.ModelSerializer):
         )
         reference: dict = serializer.data
         return reference
+
+
+class AffiliationSerializer(serializers.Serializer):
+    """A verified affiliation of a person: the organization, the kind, and the dates.
+
+    The dates are given as they were recorded, as a year, a month or a day, and are null when
+    none was recorded.
+    """
+
+    organization = OrganizationReferenceSerializer(read_only=True)
+    type = serializers.SerializerMethodField()
+    start = serializers.SerializerMethodField()
+    end = serializers.SerializerMethodField()
+    is_primary = serializers.BooleanField(read_only=True)
+
+    @extend_schema_field(
+        {"type": "string", "enum": ["member", "admin", "owner"]},
+    )
+    def get_type(self, affiliation) -> str:
+        """Give the lower-case name of the affiliation's level."""
+        return str(Affiliation.MembershipType(affiliation.type).name.lower())
+
+    def get_start(self, affiliation) -> str | None:
+        """Give when the affiliation began, or nothing when it is not recorded."""
+        return affiliation.start_display or None
+
+    def get_end(self, affiliation) -> str | None:
+        """Give when the affiliation ended, or nothing when it has not."""
+        return affiliation.end_display or None
+
+
+class PersonSerializer(PersonListSerializer):
+    """A single person, as far as their public profile page shows.
+
+    It carries every field of a list entry together with the person's other names, profile,
+    links, languages, image and verified affiliations. Nothing about the account behind a
+    person is returned.
+    """
+
+    image = serializers.ImageField(read_only=True, allow_null=True)
+    links = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    affiliations = serializers.SerializerMethodField()
+
+    class Meta(PersonListSerializer.Meta):
+        fields = (
+            *PersonListSerializer.Meta.fields,
+            "alternative_names",
+            "profile",
+            "links",
+            "languages",
+            "image",
+            "affiliations",
+        )
+        read_only_fields = fields
+
+    def get_links(self, person) -> list[str]:
+        """List the web addresses the profile page draws."""
+        return [entry["url"] for entry in person.get_links_display()]
+
+    def get_languages(self, person) -> list[str]:
+        """Name the person's languages in the active language."""
+        return [str(name) for name in person.get_language_names()]
+
+    @extend_schema_field(AffiliationSerializer(many=True))
+    def get_affiliations(self, person) -> list[dict]:
+        """List the verified affiliations, the current ones first and then the past ones."""
+        history = person.get_affiliation_history()
+        serializer = AffiliationSerializer(
+            [*history["current"], *history["past"]], many=True, context=self.context
+        )
+        entries: list[dict] = list(serializer.data)
+        return entries
 
 
 class OrganizationListSerializer(serializers.ModelSerializer):

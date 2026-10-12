@@ -34,6 +34,7 @@ from fairdm.api.filters import (
     DatasetFilterSet,
     FairDMFilterBackend,
     FairDMVisibilityFilter,
+    PersonFilterSet,
     SampleFilterSet,
 )
 from fairdm.api.schema import CORE_HEADINGS, TypeDescription
@@ -41,6 +42,7 @@ from fairdm.api.serializers import (
     DatasetSerializer,
     OrganizationListSerializer,
     PersonListSerializer,
+    PersonSerializer,
     ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
@@ -181,8 +183,15 @@ class PersonViewSet(ReadOnlyModelViewSet):
 
     lookup_field = "uuid"
     permission_classes = (AllowAny,)
-    serializer_class = PersonListSerializer
+    serializer_class = PersonSerializer
+    filterset_class = PersonFilterSet
     ordering_fields = ("name", "last_name", "added", "modified", "uuid")
+
+    def get_serializer_class(self):
+        """Serve a list entry for the list, and the whole person for one record."""
+        if self.action == "list":
+            return PersonListSerializer
+        return PersonSerializer
 
     def get_queryset(self):
         """Return the people the portal's own lists show, with what the serializer reads.

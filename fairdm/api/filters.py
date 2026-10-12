@@ -11,13 +11,14 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Model, Q
 from django.db.models.constants import LOOKUP_SEP
 from django.utils.translation import gettext_lazy as _
+from django_filters.constants import EMPTY_VALUES
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.contributors.access import RecordAccess
-from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Person
+from fairdm.contrib.contributors.choices import ContributionLevel, IdentifierLookup
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.core.models import Dataset, Sample
 from fairdm.core.utils import get_objects_for_user
 
@@ -248,6 +249,108 @@ class ChangedSinceFilterSet(django_filters.FilterSet):
         lookup_expr="lte",
         help_text=_("Only records changed at or before this ISO 8601 moment."),
     )
+
+
+class IdentifierFilter(django_filters.CharFilter):
+    """Narrows a list to the contributor that holds an identifier.
+
+    The value is an identifier as stored, such as an ORCID iD, or the address it resolves to:
+    the address of a known scheme is taken off the front, with or without a trailing slash
+    and with ``http`` or ``https``. A value is also matched with its spaces removed, as an
+    ISNI is written in groups of four and stored without them.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Match ``identifiers__value``, which the filter set's own models carry.
+
+        Args:
+            *args: Passed to ``CharFilter``.
+            **kwargs: Passed to ``CharFilter``.
+        """
+        kwargs.setdefault("field_name", "identifiers__value")
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def bare(value: str) -> str:
+        """Take the scheme address off the front of an identifier.
+
+        Args:
+            value: The value sent, which may be an identifier or its address.
+
+        Returns:
+            The identifier, trimmed and without a known scheme address or trailing slash.
+        """
+        value = value.strip().rstrip("/")
+        for root in IdentifierLookup.values():
+            address = root.rstrip("/")
+            for scheme in ("https://", "http://"):
+                candidate = scheme + address.split("://", 1)[1]
+                if value.lower().startswith(candidate.lower() + "/"):
+                    return value[len(candidate) + 1 :].strip()
+        return value
+
+    def filter(self, qs, value):
+        """Keep the contributors holding the identifier.
+
+        Args:
+            qs: The queryset to narrow.
+            value: The value sent.
+
+        Returns:
+            The contributors that hold it, or all of them when no value was sent.
+        """
+        if value in EMPTY_VALUES:
+            return qs
+        bare = self.bare(value)
+        if not bare:
+            return qs.none()
+        matching = Q(**{self.field_name: bare}) | Q(
+            **{self.field_name: bare.replace(" ", "")}
+        )
+        return qs.filter(matching).distinct()
+
+
+class PersonFilterSet(django_filters.FilterSet):
+    """Narrows the people list to an organization's members, or to the holder of an identifier.
+
+    ``organization`` is the short identifier of an organization. It keeps the people with a
+    verified affiliation to it that has not ended, and refuses a database number.
+    """
+
+    organization = django_filters.ModelChoiceFilter(
+        method="narrow_to_members",
+        to_field_name="uuid",
+        queryset=Organization.objects.all(),
+        help_text=_(
+            "Only people with a verified affiliation to this organization that has not ended."
+        ),
+    )
+    identifier = IdentifierFilter(
+        help_text=_(
+            "Only the person holding this identifier, given as the value or as its address."
+        ),
+    )
+
+    class Meta:
+        model = Person
+        fields: list[str] = []
+
+    def narrow_to_members(self, queryset, name, organization):
+        """Keep the people with a verified, current affiliation to the organization.
+
+        Args:
+            queryset: The people to narrow.
+            name: The name of the filter.
+            organization: The organization chosen.
+
+        Returns:
+            The people with an affiliation to it of at least the member level and no end date.
+        """
+        return queryset.filter(
+            affiliations__organization=organization,
+            affiliations__type__gte=Affiliation.MembershipType.MEMBER,
+            affiliations__end_date__isnull=True,
+        )
 
 
 class FairDMFilterBackend(DjangoFilterBackend):
