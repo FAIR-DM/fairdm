@@ -60,3 +60,38 @@ Did: docs/portal-development/restful-api.md: endpoint table, a "A credit on a re
 Verified: kit/forge verify --repo <worktree> --base origin/main -> conformance, docs, uv:lint, uv:typecheck, uv:test and uv:build all passed (exit 0).
 Next: completion report.
 Watch: the docs and spec pages describe the single record as returning the list fields, which is what it does until the fuller serializers land.
+
+## 2026-10-12T10:38:28Z · Implementer US2 · T008
+
+Did: tests/test_api/test_viewsets.py, TestPeopleList: a superuser and the anonymous account are absent from the list and answered 404 by address, the list is paged, sorts by name both ways, and narrows by modified_after. The unclaimed-profile test was already there.
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPeopleList -> passed once T012 landed (the behaviour existed from story 1). Probe: with Person.objects.real() changed to .all() the hidden-account, paging and ordering tests fail (6 failed across the three classes).
+Next: T009.
+Watch: nothing in these tests failed before T012 because the behaviour is story 1's; the probe is the evidence they can fail.
+
+## 2026-10-12T10:38:29Z · Implementer US2 · T009
+
+Did: tests/test_api/test_viewsets.py, TestPerson (new class): exact keys of a single person, the list entry's fields unchanged on the record, profile, alternative_names, links (a non-web address left out), languages, image, an affiliation's organization/type/start/end/is_primary, type for each level, null dates, a pending affiliation absent, an ended one present after the current ones, primary first, an explicit set of forbidden account-state keys walked over the list and the record at any depth, and the query count for a record with 2 versus 12 affiliations.
+Verified: red before T012 (23 failed in the two classes); uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestPerson -> 20 passed after T012.
+Next: T010.
+Watch: the moved TestContributor person test is not edited; profile and links are asserted in TestPerson.
+
+## 2026-10-12T10:38:29Z · Implementer US2 · T010
+
+Did: tests/test_api/test_filters.py, TestPeopleFilters: organization keeps verified affiliations that have not ended and not pending, ended or other organizations; a person with a past and a current affiliation is listed once; a database number and an unknown identifier for organization are 400; identifier by bare value, by https, http and trailing-slash address, trimmed; a value written with spaces; a value nobody holds; a value a superuser holds; the two filters together. PersonFactory is added to the file's existing factory import.
+Verified: red before T012 (10 failed); uv run pytest -q -n0 tests/test_api/test_filters.py::TestPeopleFilters -> 12 passed after T012. Probes: dropping the end_date clause, the type clause, and the space removal each fail one test.
+Next: T012.
+Watch: none.
+
+## 2026-10-12T10:38:29Z · Implementer US2 · T012
+
+Did: fairdm/api/serializers.py: AffiliationSerializer and PersonSerializer(PersonListSerializer) adding alternative_names, profile, links, languages, image, affiliations (from get_affiliation_history(), current then past), with Meta.fields on the list serializer annotated tuple[str, ...] so the subclass type-checks. fairdm/api/filters.py: IdentifierFilter and PersonFilterSet (organization as a ModelChoiceFilter on uuid, identifier). fairdm/api/viewsets.py: filterset_class and get_serializer_class on PersonViewSet.
+Verified: uv run pytest -q -n0 tests/test_api -> 1225 passed, including TestQueryCount's people kind. uv run pre-commit run --files fairdm/api/filters.py fairdm/api/serializers.py fairdm/api/viewsets.py -> ruff, ruff format, mypy, deptry passed.
+Next: T013.
+Watch: the schema generator warns that it cannot guess the type of the organization filter and defaults to string; the parameter is offered and works.
+
+## 2026-10-12T10:38:29Z · Implementer US2 · T013
+
+Did: tests/test_api/test_schema.py, TestPeopleComponents: the list entry component has the list fields only, the single person's has them plus the six, an affiliation lists its five keys, the list offers organization and identifier, a record offers neither. docs/portal-development/restful-api.md: the single person's fields and an affiliation in tables, what the list leaves out, the two filters with an example request each, what is never returned, and PersonSerializer, AffiliationSerializer, PersonFilterSet and IdentifierFilter in the reference table. docs/user-guide/reading-records-with-a-script.md: a paragraph on the single person and the two filters.
+Verified: uv run pytest -q -n0 tests/test_api/test_schema.py -> passed. Probes: the list serving the full person fails the entry test, removing filterset_class fails the filters test.
+Next: full verify, then the completion report.
+Watch: none.

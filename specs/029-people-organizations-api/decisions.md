@@ -152,3 +152,18 @@ from an order with ties can repeat or skip an entry.
 *Revisit if:* a caller needs another default order.
 **ADR:** none, local to this feature.
 
+
+## D16. Implementer US2: the people filters and the moved profile test
+
+**`organization` does not use `distinct()`, `identifier` does.** A person has at most one
+affiliation to an organization (the model's uniqueness constraint), and the three conditions are
+applied in one `filter()` call so they hold on the same row, so the join cannot repeat a person.
+An identifier is matched on its value and on the value with its spaces removed, and a person
+holding both forms would be listed twice without it.
+*Revisit if:* an organization can hold a person through more than one affiliation.
+
+**The assertions on `profile` and `links` that D14 took out of the moved person test are in
+`TestPerson`, and the moved test is untouched.** The brief names the single record as where they
+return. They sit in new tests of the new class, so no pre-existing test changed in this story.
+*Revisit if:* the moved test should carry them as well.
+**ADR:** none, local to this feature.
