@@ -18,7 +18,7 @@ Written 2026-10-12 against `origin/main` at `5201beed`.
 | `contributorType` | 1, contributors only | One of a fixed list |
 
 A credit in the API carries the same properties, with the names in the API's snake case:
-`name`, `name_type`, `given_name`, `family_name`, `name_identifiers` and `affiliation`. Everything
+`name`, `type`, `given_name`, `family_name`, `name_identifiers` and `affiliation`. Everything
 DataCite asks of a creator can be read from one credit without a second request.
 
 Two things differ, both on the maintainer's instruction:
@@ -28,9 +28,8 @@ Two things differ, both on the maintainer's instruction:
 - A credit adds `uuid` and `url`, the contributor's short identifier and address in the API, and
   each affiliation entry does the same for its organization.
 
-`affiliation` is a list, as in DataCite, though a contribution stores one organization. A list
-with nothing or one entry in it reads the same to a harvester as DataCite's own, and leaves room
-if a credit ever holds more than one.
+`affiliation` is one organization or nothing, because a contribution stores one. DataCite allows
+several, so an export writes it as a list of one.
 
 ### Credits are for attribution only
 

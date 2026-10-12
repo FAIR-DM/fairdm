@@ -505,7 +505,7 @@ class TestOrganizationFilters:
         chemistry = OrganizationFactory(parent=university)
         elsewhere = OrganizationFactory(parent=OrganizationFactory())
 
-        found = self.found(APIClient(), parent=university.uuid)
+        found = self.found(APIClient(), parent_organization=university.uuid)
 
         assert found == {physics.uuid, chemistry.uuid}
         assert {university.uuid, elsewhere.uuid}.isdisjoint(found)
@@ -517,15 +517,15 @@ class TestOrganizationFilters:
         OrganizationFactory(parent=university)
 
         response = APIClient().get(
-            reverse("api:organization-list"), {"parent": university.pk}
+            reverse("api:organization-list"), {"parent_organization": university.pk}
         )
 
         assert response.status_code == 400
-        assert "parent" in response.json()
+        assert "parent_organization" in response.json()
 
     def test_an_identifier_nobody_holds_in_parent_is_refused_not_listed(self):
         response = APIClient().get(
-            reverse("api:organization-list"), {"parent": "u" * 23}
+            reverse("api:organization-list"), {"parent_organization": "u" * 23}
         )
 
         assert response.status_code == 400
@@ -603,7 +603,7 @@ class TestOrganizationFilters:
         ContributorIdentifierFactory(related=german, type="ROR", value="03yrm5c26")
 
         by_parent_and_country = self.found(
-            APIClient(), parent=university.uuid, country="AU"
+            APIClient(), parent_organization=university.uuid, country="AU"
         )
         by_country_and_identifier = self.found(
             APIClient(), country="AU", identifier="03yrm5c26"

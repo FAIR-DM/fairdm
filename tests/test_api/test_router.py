@@ -62,17 +62,6 @@ class TestCoreRoutesRegistered:
 
         assert response.status_code == 404
 
-    @pytest.mark.django_db
-    def test_the_mixed_contributors_address_is_answered_as_one_that_does_not_exist(
-        self, api_client
-    ):
-        from fairdm.factories import PersonFactory
-
-        person = PersonFactory()
-
-        assert api_client.get("/api/v1/contributors/").status_code == 404
-        assert api_client.get(f"/api/v1/contributors/{person.uuid}/").status_code == 404
-
 
 @pytest.mark.django_db
 class TestRegistryGeneratedEndpoints:
@@ -358,11 +347,8 @@ class TestRoot:
         for _prefix, _viewset, basename in fairdm_api_router.registry:
             assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
 
-    def test_the_root_links_to_people_and_organizations_and_not_to_contributors(
-        self, links
-    ):
+    def test_the_root_links_to_people_and_organizations(self, links):
         assert set(links) >= {"people", "organizations"}
-        assert "contributors" not in links
 
     def test_the_router_is_the_one_the_portal_serves(self):
         from rest_framework.routers import DefaultRouter

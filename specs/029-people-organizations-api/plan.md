@@ -34,10 +34,10 @@ lists. Everything is read-only, there is no migration and no new dependency.
 |---|---|
 | `uuid`, `url` | The contributor's short identifier and API address. Both `null` for a hidden account |
 | `name` | For a person, whatever `get_full_name_display("family_given")` gives: "Family, Given" with both names, the one name when only one is set, the display name when neither is. For an organization, its `name` |
-| `name_type` | `Personal` or `Organizational` |
+| `type` | `Personal` or `Organizational`, which is DataCite's `nameType` |
 | `given_name`, `family_name` | A person's `first_name` and `last_name`. `null` for an organization |
 | `name_identifiers` | One entry per identifier: `name_identifier`, `name_identifier_scheme`, `scheme_uri` |
-| `affiliation` | A list with no entry or one: `uuid`, `url`, `name`, `affiliation_identifier`, `affiliation_identifier_scheme`, `scheme_uri` |
+| `affiliation` | One object, or `null` when the credit records no organization: `uuid`, `url`, `name`, `affiliation_identifier`, `affiliation_identifier_scheme`, `scheme_uri` |
 | `roles` | `{"name", "label"}` for each role, unchanged |
 
 `NameIdentifierSerializer` and `CreditAffiliationSerializer` are new, both plain read-only
@@ -48,7 +48,7 @@ first.
 `affiliation__identifiers`, and annotates each credit with the person's given and family name
 through `contributor__person`, which costs no further query. The credit serializer reads the two
 annotated values. A credit serialized without the annotation, as in the body that answers a create
-or an update, reads the names from the contributor itself. `name_type` and the typed route come
+or an update, reads the names from the contributor itself. `type` and the typed route come
 from `get_real_instance_class()`, which needs no query. A credit whose contributor has been
 deleted is left out of the list.
 
@@ -57,15 +57,15 @@ The level a credit grants is not a field, as now.
 ### D2. People
 
 `PersonListSerializer(serializers.ModelSerializer)`: `url`, `html_url`, `uuid`, `name`,
-`given_name`, `family_name`, `identifiers`, `primary_organization`. `added` and `modified` are not returned. They stay
+`given_name`, `family_name`, `identifiers`, `primary_affiliation`. `added` and `modified` are not returned. They stay
 available for ordering and for the changed-since filters.
 
 `PersonSerializer(PersonListSerializer)` adds `alternative_names`, `profile`, `links`,
 `languages`, `image`, `affiliations`, `projects`, `datasets`.
 
 - `identifiers` uses the existing `ContributorIdentifierSerializer` (`type`, `value`, `link`).
-- `primary_organization` and each affiliation's `organization` are `{"uuid", "url", "name"}`,
-  from a small `OrganizationReferenceSerializer`. The primary organization is that of the primary
+- `primary_affiliation` and each affiliation's `organization` are `{"uuid", "url", "name"}`,
+  from a small `OrganizationReferenceSerializer`. The primary affiliation is the organization of the primary
   entry among `get_affiliation_history()["current"]`, so a pending or ended primary affiliation
   gives none. `Person.primary_organization` is not used, because it does not check either.
 - `affiliations` comes from `get_affiliation_history()`, current first and then past. Each entry:
@@ -89,9 +89,9 @@ has not ended) and `identifier`.
 take.
 
 `OrganizationSerializer(OrganizationListSerializer)` adds `alternative_names`, `profile`, `city`,
-`links`, `image`, `parent`, `sub_organizations`, `members`, `projects`, `datasets`.
+`links`, `image`, `parent_organization`, `sub_organizations`, `members`, `projects`, `datasets`.
 
-- `parent` and `sub_organizations` are `{"uuid", "url", "name"}`.
+- `parent_organization` and `sub_organizations` are `{"uuid", "url", "name"}`.
 - `members` is one entry per verified current affiliation: `person` as `{"uuid", "url", "name"}`
   and `type`. Hidden accounts are left out. The members are loaded with one prefetch on the
   viewset, so the query count does not depend on how many there are.
@@ -99,7 +99,7 @@ take.
 `OrganizationViewSet(ReadOnlyModelViewSet)` mirrors the people viewset over
 `Organization.objects`.
 
-`OrganizationFilterSet`: `type`, `country`, `parent` (short identifier), `top_level` (true for
+`OrganizationFilterSet`: `type`, `country`, `parent_organization` (short identifier), `top_level` (true for
 organizations with no parent) and `identifier`.
 
 ### D4. Identifier filter

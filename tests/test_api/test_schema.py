@@ -467,7 +467,7 @@ class TestCreditComponent:
         "uuid",
         "url",
         "name",
-        "name_type",
+        "type",
         "given_name",
         "family_name",
         "name_identifiers",
@@ -514,7 +514,7 @@ class TestPeopleComponents:
         "given_name",
         "family_name",
         "identifiers",
-        "primary_organization",
+        "primary_affiliation",
     }
     RECORD_ONLY_KEYS = {
         "alternative_names",
@@ -597,13 +597,19 @@ class TestOrganizationComponents:
         "city",
         "links",
         "image",
-        "parent",
+        "parent_organization",
         "sub_organizations",
         "members",
         "projects",
         "datasets",
     }
-    FILTERS = {"type", "country", "parent", "top_level", "identifier"}
+    FILTERS = {
+        "type",
+        "country",
+        "parent_organization",
+        "top_level",
+        "identifier",
+    }
 
     @staticmethod
     def component(schema, reference):

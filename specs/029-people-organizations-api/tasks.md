@@ -16,11 +16,11 @@ This story changes what every record returns and moves contributors to their two
 
 - [ ] T001 [US1] `tests/test_api/test_viewsets.py`, `TestCredit`: on a project, a dataset, a
   sample and a measurement, a credit for a person with an ORCID iD and an organization recorded on
-  the credit carries `uuid`, `url`, `name`, `name_type`, `given_name`, `family_name`,
-  `name_identifiers` with scheme and scheme address, `affiliation` with the organization's name,
+  the credit carries `uuid`, `url`, `name`, `type`, `given_name`, `family_name`,
+  `name_identifiers` with scheme and scheme address, `affiliation` as one object with the organization's name,
   identifier, scheme, `uuid` and `url`, and `roles`. A person with neither has empty
-  `name_identifiers` and `affiliation`, even when their profile has a primary affiliation. An
-  organization's credit has `name_type` `Organizational` and null given and family names. The
+  `name_identifiers` and a null `affiliation`, even when their profile has a primary affiliation. An
+  organization's credit has `type` `Organizational` and null given and family names. The
   credit's `url` returns that person or organization. Credits come in the record's order. A record
   with none returns an empty list. A credit carries no key beyond those named here. A credit whose
   contributor has been deleted is absent and the record is still returned. The body answering a
@@ -37,8 +37,8 @@ This story changes what every record returns and moves contributors to their two
   for projects and for one registered sample type and one measurement type.
 - [ ] T004 [US1] `tests/test_api/test_router.py` and `tests/test_api/test_viewsets.py`: `people`
   and `organizations` each have a list and a record route, found by short identifier.
-  `/api/v1/contributors/` and a record address beneath it are answered 404. The API root links to
-  people and organizations and not to contributors. Every existing test that names
+  The API root links to
+  people and organizations. Every existing test that names
   `api:contributor-list` or `api:contributor-detail` is moved to the new routes, keeping what it
   asserts. That includes `routable_models()`, the import of `ContributorViewSet` and the
   `Contributors` heading in `tests/test_api/test_schema.py`, and the contributor kind of
@@ -97,14 +97,14 @@ This story changes what every record returns and moves contributors to their two
 - [ ] T014 [US3] `tests/test_api/test_viewsets.py`, `TestOrganizationsList`: the list is paged,
   sorts by name ascending and descending, and narrows by `modified_after`.
 - [ ] T015 [US3] `tests/test_api/test_viewsets.py`, `TestOrganization`: a single organization
-  carries the list fields and `alternative_names`, `profile`, `city`, `links`, `image`, `parent`,
+  carries the list fields and `alternative_names`, `profile`, `city`, `links`, `image`, `parent_organization`,
   `sub_organizations` and `members`. Parent and sub-organizations are named by `uuid`, `url` and
   `name`. A member names the person the same way and gives the type of affiliation. A pending
   member, a member whose affiliation has ended and a member who is a superuser are absent. An
   organization with no parent has a null parent.
 - [ ] T016 [US3] `tests/test_api/test_filters.py`, `TestOrganizationFilters`: `type`, `country`,
-  `parent` by short identifier, `top_level` and `identifier` (bare and as an address) each return
-  only what matches. A database number for `parent` is refused.
+  `parent_organization` by short identifier, `top_level` and `identifier` (bare and as an address) each return
+  only what matches. A database number for `parent_organization` is refused.
 - [ ] T017 [US3] `tests/test_api/test_viewsets.py`, `TestOrganizationQueries`: the query count for
   a single organization is the same with two members as with thirty.
 - [ ] T018 [US3] `fairdm/api/serializers.py`, `viewsets.py`, `filters.py`:
@@ -140,3 +140,7 @@ This story changes what every record returns and moves contributors to their two
   preferred. ADR 0027 no longer lists a credit among the references.
 - [x] T025 [US2] Each of the two lists is in name order when no order is asked for, with a test
   that fails when the default order is removed.
+- [x] T026 [US1] Names changed at review: a credit's `name_type` is `type` and its `affiliation`
+  is one object or null, a person's `primary_organization` is `primary_affiliation`, and an
+  organization's `parent` is `parent_organization`, as a field and as a filter. The two tests
+  that asserted the old contributors address was gone are removed.

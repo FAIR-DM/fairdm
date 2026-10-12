@@ -160,7 +160,7 @@ send `?organization=<short identifier>`. To look a person up by an identifier, s
 Request one organization at `/api/v1/organizations/{uuid}/` for its description, city, links,
 picture, the organization it is part of, the organizations that are part of it, and the people who
 belong to it now. The organizations list takes `?type=`, `?country=` with a two-letter code,
-`?parent=` with a short identifier, `?top_level=true` for organizations that are part of no other,
+`?parent_organization=` with a short identifier, `?top_level=true` for organizations that are part of no other,
 and `?identifier=` with a value or its address, such as `03yrm5c26` or `https://ror.org/03yrm5c26`.
 
 A record you read carries its credits in full. Each credit has the name of the person or

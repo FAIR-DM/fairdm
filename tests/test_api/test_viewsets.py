@@ -391,7 +391,7 @@ class TestCompleteRecord:
         credited = api_client.get(url_of(record)).json()["contributors"][0]
 
         assert credited["uuid"] == credit.contributor.uuid
-        assert credited["affiliation"][0]["uuid"] == credit.affiliation.uuid
+        assert credited["affiliation"]["uuid"] == credit.affiliation.uuid
         assert [role["name"] for role in credited["roles"]] == [
             role.name for role in credit.roles.all()
         ]
@@ -488,7 +488,7 @@ CREDIT_KEYS = {
     "uuid",
     "url",
     "name",
-    "name_type",
+    "type",
     "given_name",
     "family_name",
     "name_identifiers",
@@ -583,7 +583,7 @@ class TestCredit:
             reverse("api:person-detail", kwargs={"uuid": person.uuid})
         )
         assert credit["name"] == "Lovelace, Ada"
-        assert credit["name_type"] == "Personal"
+        assert credit["type"] == "Personal"
         assert credit["given_name"] == "Ada"
         assert credit["family_name"] == "Lovelace"
         assert credit["name_identifiers"] == [
@@ -593,17 +593,15 @@ class TestCredit:
                 "scheme_uri": "https://orcid.org/",
             }
         ]
-        assert credit["affiliation"] == [
-            {
-                "uuid": institute.uuid,
-                "url": credit["affiliation"][0]["url"],
-                "name": "Analytical Institute",
-                "affiliation_identifier": "https://ror.org/03yrm5c26",
-                "affiliation_identifier_scheme": "ROR",
-                "scheme_uri": "https://ror.org/",
-            }
-        ]
-        assert credit["affiliation"][0]["url"].endswith(
+        assert credit["affiliation"] == {
+            "uuid": institute.uuid,
+            "url": credit["affiliation"]["url"],
+            "name": "Analytical Institute",
+            "affiliation_identifier": "https://ror.org/03yrm5c26",
+            "affiliation_identifier_scheme": "ROR",
+            "scheme_uri": "https://ror.org/",
+        }
+        assert credit["affiliation"]["url"].endswith(
             reverse("api:organization-detail", kwargs={"uuid": institute.uuid})
         )
         held = made["author"].roles.all()
@@ -623,7 +621,7 @@ class TestCredit:
 
         assert credit["name"] == "Hopper, Grace"
         assert credit["name_identifiers"] == []
-        assert credit["affiliation"] == []
+        assert credit["affiliation"] is None
 
     @pytest.mark.parametrize("kind", CREDIT_KINDS)
     def test_an_organizations_credit_is_organizational_with_no_personal_names(
@@ -637,7 +635,7 @@ class TestCredit:
 
         assert set(credit) == CREDIT_KEYS
         assert credit["name"] == organization.name
-        assert credit["name_type"] == "Organizational"
+        assert credit["type"] == "Organizational"
         assert credit["given_name"] is None
         assert credit["family_name"] is None
         assert credit["url"].endswith(
@@ -705,7 +703,7 @@ class TestCredit:
 
         credit = self.credits_of(api_client, url_of, record)[0]
 
-        assert credit["affiliation"] == []
+        assert credit["affiliation"] is None
 
     def test_a_person_holding_two_identifiers_carries_both(
         self, api_client, url_of, record_of, author
@@ -762,7 +760,7 @@ class TestCredit:
         record = record_of("dataset")
         add_credit(record, person, institute)
 
-        affiliation = self.credits_of(api_client, url_of, record)[0]["affiliation"][0]
+        affiliation = self.credits_of(api_client, url_of, record)[0]["affiliation"]
 
         assert affiliation["affiliation_identifier_scheme"] == "ROR"
         assert affiliation["affiliation_identifier"] == "https://ror.org/04aj4c181"
@@ -790,7 +788,7 @@ class TestCredit:
         record = record_of("dataset")
         add_credit(record, PersonFactory(), OrganizationFactory())
 
-        entry = self.credits_of(api_client, url_of, record)[0]["affiliation"][0]
+        entry = self.credits_of(api_client, url_of, record)[0]["affiliation"]
 
         assert entry["affiliation_identifier"] is None
         assert entry["affiliation_identifier_scheme"] is None
@@ -1180,7 +1178,7 @@ class TestContributor:
         assert data["uuid"] == person.uuid
         assert data["name"] == person.name
         assert data["identifiers"][0]["value"] == person.identifiers.get().value
-        assert data["primary_organization"]["uuid"] == person.primary_organization.uuid
+        assert data["primary_affiliation"]["uuid"] == person.primary_organization.uuid
 
     def test_an_organisation_is_returned_with_what_its_profile_page_shows(
         self, api_client, organisation
@@ -1246,7 +1244,7 @@ PERSON_LIST_KEYS = {
     "given_name",
     "family_name",
     "identifiers",
-    "primary_organization",
+    "primary_affiliation",
 }
 
 ORGANIZATION_LIST_KEYS = {
@@ -1270,7 +1268,7 @@ LEFT_OUT_OF_A_LIST = {
     "projects",
     "datasets",
     "city",
-    "parent",
+    "parent_organization",
     "sub_organizations",
     "members",
     "added",
@@ -1347,7 +1345,7 @@ class TestPeopleList:
         )
         assert entry["html_url"] == f"http://testserver{person.get_absolute_url()}"
 
-    def test_a_verified_current_primary_affiliation_is_the_primary_organization(
+    def test_a_verified_current_primary_affiliation_is_the_primary_affiliation(
         self, listed
     ):
         from fairdm.factories import AffiliationFactory
@@ -1358,17 +1356,17 @@ class TestPeopleList:
 
         entry = listed()[person.uuid]
 
-        assert entry["primary_organization"] == {
+        assert entry["primary_affiliation"] == {
             "uuid": institute.uuid,
-            "url": entry["primary_organization"]["url"],
+            "url": entry["primary_affiliation"]["url"],
             "name": institute.name,
         }
-        assert entry["primary_organization"]["url"].endswith(
+        assert entry["primary_affiliation"]["url"].endswith(
             reverse("api:organization-detail", kwargs={"uuid": institute.uuid})
         )
 
     @pytest.mark.parametrize("state", ["pending", "ended"])
-    def test_a_primary_affiliation_that_is_pending_or_ended_gives_no_primary_organization(
+    def test_a_primary_affiliation_that_is_pending_or_ended_gives_no_primary_affiliation(
         self, listed, state
     ):
         from fairdm.contrib.contributors.models import Affiliation
@@ -1389,12 +1387,12 @@ class TestPeopleList:
         entry = listed()[person.uuid]
 
         assert affiliation.is_primary
-        assert entry["primary_organization"] is None
+        assert entry["primary_affiliation"] is None
 
-    def test_a_person_with_no_affiliation_has_no_primary_organization(self, listed):
+    def test_a_person_with_no_affiliation_has_no_primary_affiliation(self, listed):
         person = PersonFactory()
 
-        assert listed()[person.uuid]["primary_organization"] is None
+        assert listed()[person.uuid]["primary_affiliation"] is None
 
     @pytest.mark.parametrize("name", ["added", "modified"])
     def test_added_and_modified_are_not_returned_but_can_order_the_list(
@@ -1977,7 +1975,7 @@ ORGANIZATION_KEYS = ORGANIZATION_LIST_KEYS | {
     "city",
     "links",
     "image",
-    "parent",
+    "parent_organization",
     "sub_organizations",
     "members",
     "projects",
@@ -2087,19 +2085,19 @@ class TestOrganization:
 
         data = self.record(api_client, department)
 
-        assert data["parent"] == {
+        assert data["parent_organization"] == {
             "uuid": university.uuid,
-            "url": data["parent"]["url"],
+            "url": data["parent_organization"]["url"],
             "name": "University of Tasmania",
         }
-        assert data["parent"]["url"].endswith(
+        assert data["parent_organization"]["url"].endswith(
             reverse("api:organization-detail", kwargs={"uuid": university.uuid})
         )
 
     def test_an_organization_with_no_parent_has_a_null_parent(
         self, api_client, organization
     ):
-        assert self.record(api_client, organization)["parent"] is None
+        assert self.record(api_client, organization)["parent_organization"] is None
 
     def test_sub_organizations_are_named_by_identifier_address_and_name_by_name(
         self, api_client, organization

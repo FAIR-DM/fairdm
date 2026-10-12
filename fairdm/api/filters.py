@@ -361,9 +361,10 @@ class PersonFilterSet(django_filters.FilterSet):
 class OrganizationFilterSet(django_filters.FilterSet):
     """Narrows the organizations list by type, country, parent or identifier.
 
-    ``type`` is the stored code and ``country`` the two-letter code. ``parent`` is the short
-    identifier of an organization, and a database number is refused. ``top_level`` true keeps the
-    organizations that are part of no other, and false those that are part of one.
+    ``type`` is the stored code and ``country`` the two-letter code. ``parent_organization`` is
+    the short identifier of an organization, and a database number is refused. ``top_level``
+    true keeps the organizations that are part of no other, and false those that are part of
+    one.
     """
 
     type = django_filters.ChoiceFilter(
@@ -375,7 +376,8 @@ class OrganizationFilterSet(django_filters.FilterSet):
             "Only organizations in this country, given as its two-letter code."
         ),
     )
-    parent = django_filters.ModelChoiceFilter(
+    parent_organization = django_filters.ModelChoiceFilter(
+        field_name="parent",
         to_field_name="uuid",
         queryset=Organization.objects.all(),
         help_text=_("Only organizations that are part of this organization."),

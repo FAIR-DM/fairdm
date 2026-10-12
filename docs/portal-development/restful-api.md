@@ -97,7 +97,7 @@ Its fields follow the properties DataCite asks of a creator or contributor.
   "uuid": "cLBrpvMLpvBDYAg9xkbt9Z",
   "url": "https://portal.example.org/api/v1/people/cLBrpvMLpvBDYAg9xkbt9Z/",
   "name": "Lovelace, Ada",
-  "name_type": "Personal",
+  "type": "Personal",
   "given_name": "Ada",
   "family_name": "Lovelace",
   "name_identifiers": [
@@ -107,16 +107,14 @@ Its fields follow the properties DataCite asks of a creator or contributor.
       "scheme_uri": "https://orcid.org/"
     }
   ],
-  "affiliation": [
-    {
-      "uuid": "cK3mT9xQwPzV7aUe2nRfHs",
-      "url": "https://portal.example.org/api/v1/organizations/cK3mT9xQwPzV7aUe2nRfHs/",
-      "name": "Analytical Institute",
-      "affiliation_identifier": "https://ror.org/03yrm5c26",
-      "affiliation_identifier_scheme": "ROR",
-      "scheme_uri": "https://ror.org/"
-    }
-  ],
+  "affiliation": {
+    "uuid": "cK3mT9xQwPzV7aUe2nRfHs",
+    "url": "https://portal.example.org/api/v1/organizations/cK3mT9xQwPzV7aUe2nRfHs/",
+    "name": "Analytical Institute",
+    "affiliation_identifier": "https://ror.org/03yrm5c26",
+    "affiliation_identifier_scheme": "ROR",
+    "scheme_uri": "https://ror.org/"
+  },
   "roles": [{"name": "DataCollector", "label": "Data collector"}]
 }
 ```
@@ -126,26 +124,27 @@ Each field corresponds to a DataCite property as follows.
 | Credit field | DataCite property |
 |--------------|-------------------|
 | `name` | `creatorName` or `contributorName`. A person is written "Family, Given", or the one name they have, and an organization by its name |
-| `name_type` | `nameType`, either `Personal` or `Organizational` |
+| `type` | `nameType`, either `Personal` or `Organizational` |
 | `given_name`, `family_name` | `givenName` and `familyName`. Both are `null` for an organization, and each is `null` for a person who has not recorded it |
 | `name_identifiers[].name_identifier` | `nameIdentifier`. The address the identifier resolves to, or its value where the scheme has no resolver |
 | `name_identifiers[].name_identifier_scheme` | `nameIdentifierScheme`, such as `ORCID` |
 | `name_identifiers[].scheme_uri` | `schemeURI`. `null` where the scheme has no resolver address |
-| `affiliation[].name` | `affiliation`, the name of the organization |
-| `affiliation[].affiliation_identifier` | `affiliationIdentifier`. The organization's ROR ID where it has one, and otherwise its first identifier |
-| `affiliation[].affiliation_identifier_scheme` | `affiliationIdentifierScheme` |
-| `affiliation[].scheme_uri` | `schemeURI` of the affiliation |
+| `affiliation.name` | `affiliation`, the name of the organization |
+| `affiliation.affiliation_identifier` | `affiliationIdentifier`. The organization's ROR ID where it has one, and otherwise its first identifier |
+| `affiliation.affiliation_identifier_scheme` | `affiliationIdentifierScheme` |
+| `affiliation.scheme_uri` | `schemeURI` of the affiliation |
 | `roles` | The roles from the portal's own vocabulary as `{"name", "label"}`. An export maps them to DataCite's `contributorType` |
 | `uuid`, `url` | None. The short identifier and the API address of the person or organization |
-| `affiliation[].uuid`, `affiliation[].url` | None. The same for the organization |
+| `affiliation.uuid`, `affiliation.url` | None. The same for the organization |
 
 A record keeps one list of credits and does not separate creators from other contributors. Which
 roles make someone a DataCite creator is for an export to decide, and it reads that from `roles`.
 
-`affiliation` is a list with no entry or one. It holds the organization recorded on that credit and
-never the organization on the person's profile, so a credit keeps saying where the person worked
-when the work was done. A credit that records none has an empty list, and so does one whose
-organization has since been deleted. A credit whose person or organization has been deleted is
+`affiliation` is one organization, because a credit records one. DataCite allows several, so an
+export writes it as a list of one. It is the organization recorded on that credit and never the
+organization on the person's profile, so a credit keeps saying where the person worked when the
+work was done. It is `null` on a credit that records none, and on one whose organization has since
+been deleted. A credit whose person or organization has been deleted is
 left out of the list.
 
 A credit held by an account the people list leaves out, such as a superuser, is still returned,
@@ -306,9 +305,9 @@ A list entry holds what identifies a person:
 | `url`, `html_url`, `uuid` | The person's address in the API, their page on the portal and their short identifier |
 | `name`, `given_name`, `family_name` | The name they are known by, and their given and family name |
 | `identifiers` | `{"type", "value", "link"}` for each identifier, such as an ORCID iD |
-| `primary_organization` | `{"uuid", "url", "name"}` for the organization of their primary affiliation, or `null` |
+| `primary_affiliation` | `{"uuid", "url", "name"}` for the organization of their primary affiliation, or `null` |
 
-`primary_organization` is `null` when the primary affiliation has not been verified or has ended.
+`primary_affiliation` is `null` when the primary affiliation has not been verified or has ended.
 `added` and `modified` are not returned, but a list can be ordered by either and narrowed with
 `modified_after` and `modified_before`. People are read-only.
 
@@ -348,7 +347,7 @@ person to read them.
 {
   "uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3",
   "name": "Ada Lovelace",
-  "primary_organization": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+  "primary_affiliation": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
   "affiliations": [
     {
       "organization": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
@@ -426,7 +425,7 @@ organization's own page shows:
 | `city` | The city it is based in, or `null` |
 | `links` | The web addresses on the page, as a list of strings. An address that is not `http` or `https` is left out |
 | `image` | The address of its picture, or `null` |
-| `parent` | `{"uuid", "url", "name"}` for the organization it is part of, or `null` for one that is part of no other |
+| `parent_organization` | `{"uuid", "url", "name"}` for the organization it is part of, or `null` for one that is part of no other |
 | `sub_organizations` | `{"uuid", "url", "name"}` for each organization that is part of it, by name |
 | `members` | The people who belong to it now, with the kind of affiliation each holds |
 | `projects` | The address of the project list narrowed to this organization, which holds the public projects it is credited on |
@@ -452,7 +451,7 @@ Request the organization to read them.
   "uuid": "cT5mYh1uPq9AaWz6GfCx2Ke",
   "name": "Analytical Institute",
   "city": "Hobart",
-  "parent": {"uuid": "cB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
+  "parent_organization": {"uuid": "cB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
   "sub_organizations": [
     {"uuid": "oK2cFv9zXe5MgUa7NwTb3Dh", "name": "Difference Engine Group"}
   ],
@@ -482,12 +481,12 @@ GET /api/v1/organizations/?type=education
 GET /api/v1/organizations/?country=AU
 ```
 
-`parent` takes the short identifier of an organization and keeps the organizations that are part of
+`parent_organization` takes the short identifier of an organization and keeps the organizations that are part of
 it, for example the departments of one university. A database number, or an identifier that names
 no organization, is answered `400`.
 
 ```http
-GET /api/v1/organizations/?parent=cB8nWq3sLd6RtYj1HxVm4Pa
+GET /api/v1/organizations/?parent_organization=cB8nWq3sLd6RtYj1HxVm4Pa
 ```
 
 `top_level` takes `true` to keep the organizations that are part of no other and `false` to keep
@@ -899,7 +898,7 @@ can build on any of them.
 | `PersonListSerializer`, `OrganizationListSerializer` | A person and an organization as an entry of their list shows them |
 | `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image`, `affiliations`, `projects` and `datasets` |
 | `AffiliationSerializer` | One verified affiliation of a person, as `{"organization", "type", "start", "end", "is_primary"}` |
-| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent`, `sub_organizations`, `members`, `projects` and `datasets` |
+| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent_organization`, `sub_organizations`, `members`, `projects` and `datasets` |
 | `ContributorRecordsMixin` | Adds the `projects` and `datasets` addresses to `PersonSerializer` and `OrganizationSerializer` |
 | `MemberSerializer` | One current member of an organization, as `{"person", "type"}` |
 | `AffiliationTypeField` | The kind of an affiliation as `member`, `admin` or `owner` |
@@ -909,7 +908,7 @@ can build on any of them.
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
 | `PersonFilterSet` | The people list's `organization` and `identifier` filters |
 | `ContributorRecordsFilterSet` | The project list's and the dataset list's `contributor` filter, which keeps the public records a person or an organization is credited on |
-| `OrganizationFilterSet` | The organizations list's `type`, `country`, `parent`, `top_level` and `identifier` filters |
+| `OrganizationFilterSet` | The organizations list's `type`, `country`, `parent_organization`, `top_level` and `identifier` filters |
 | `IdentifierFilter` | A filter on `identifiers__value` that accepts a value or the address of a known scheme, and ignores the spaces an identifier may be written with |
 
 `fairdm.api.viewsets.sortable_fields(model, serializer_class)` returns the names a list can be

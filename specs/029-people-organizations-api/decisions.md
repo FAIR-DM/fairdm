@@ -220,3 +220,16 @@ fields, so the two method fields and the helper that builds the address are writ
 mixin is a `Serializer`, so the declared fields are collected.
 *Revisit if:* a third serializer needs the addresses with different routes.
 **ADR:** none — local to this feature, nothing outside it inherits the choice.
+
+## D19. Review by the maintainer: field names, one affiliation, no test of the removed address
+
+**Four names changed at the maintainer's request.** On a credit, `name_type` is `type` and
+`affiliation` is one object or `null`, because a contribution stores one organization. On a person,
+`primary_organization` is `primary_affiliation`. On an organization, `parent` is
+`parent_organization`, and the filter of the same name follows it. DataCite's affiliation is a
+list, so an export writes the one object as a list of one.
+
+**The two tests that asserted the removed contributors address answers as not existing, and is
+absent from the API root, are deleted.** The project does not test that a removal stays removed.
+*Revisit if:* a contribution comes to store more than one organization.
+**ADR:** docs/adr/0030-a-credit-carries-what-datacite-asks-of-a-creator.md

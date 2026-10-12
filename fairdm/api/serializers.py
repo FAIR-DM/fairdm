@@ -535,7 +535,7 @@ class ContributionSerializer(serializers.Serializer):
     uuid = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
-    name_type = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
     given_name = serializers.SerializerMethodField()
     family_name = serializers.SerializerMethodField()
     name_identifiers = NameIdentifierSerializer(
@@ -584,7 +584,7 @@ class ContributionSerializer(serializers.Serializer):
         parts = [name for name in (credit.family_name, credit.given_name) if name]
         return ", ".join(parts) if parts else str(contributor.name)
 
-    def get_name_type(self, credit) -> str:
+    def get_type(self, credit) -> str:
         """Say whether the credit is for a person or an organization."""
         return "Organizational" if self.is_organization(credit) else "Personal"
 
@@ -602,15 +602,16 @@ class ContributionSerializer(serializers.Serializer):
         name: str | None = credit.family_name or None
         return name
 
-    @extend_schema_field(CreditAffiliationSerializer(many=True))
-    def get_affiliation(self, credit) -> list:
-        """List the organization recorded on the credit: one entry, or none."""
+    @extend_schema_field(CreditAffiliationSerializer(allow_null=True))
+    def get_affiliation(self, credit) -> dict | None:
+        """Give the organization recorded on the credit, or nothing when it records none."""
         if credit.affiliation_id is None:
-            return []
+            return None
         serializer = CreditAffiliationSerializer(
             credit.affiliation, context=self.context
         )
-        return [serializer.data]
+        affiliation: dict = serializer.data
+        return affiliation
 
 
 class LicenseSerializer(serializers.Serializer):
@@ -877,7 +878,7 @@ class PersonListSerializer(serializers.ModelSerializer):
     given_name = serializers.CharField(source="first_name", read_only=True)
     family_name = serializers.CharField(source="last_name", read_only=True)
     identifiers = ContributorIdentifierSerializer(many=True, read_only=True)
-    primary_organization = serializers.SerializerMethodField()
+    primary_affiliation = serializers.SerializerMethodField()
 
     class Meta:
         model = Person
@@ -889,12 +890,12 @@ class PersonListSerializer(serializers.ModelSerializer):
             "given_name",
             "family_name",
             "identifiers",
-            "primary_organization",
+            "primary_affiliation",
         )
         read_only_fields = fields
 
     @extend_schema_field(OrganizationReferenceSerializer(allow_null=True))
-    def get_primary_organization(self, person) -> dict | None:
+    def get_primary_affiliation(self, person) -> dict | None:
         """Refer to the organization of the person's primary affiliation, when it is current.
 
         A pending or ended affiliation gives none.
@@ -1072,7 +1073,9 @@ class OrganizationSerializer(ContributorRecordsMixin, OrganizationListSerializer
     )
     image = serializers.ImageField(read_only=True, allow_null=True)
     links = serializers.SerializerMethodField()
-    parent = OrganizationReferenceSerializer(read_only=True, allow_null=True)
+    parent_organization = OrganizationReferenceSerializer(
+        source="parent", read_only=True, allow_null=True
+    )
     sub_organizations = OrganizationReferenceSerializer(many=True, read_only=True)
     members = serializers.SerializerMethodField()
 
@@ -1084,7 +1087,7 @@ class OrganizationSerializer(ContributorRecordsMixin, OrganizationListSerializer
             "city",
             "links",
             "image",
-            "parent",
+            "parent_organization",
             "sub_organizations",
             "members",
             "projects",
