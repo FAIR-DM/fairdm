@@ -65,7 +65,7 @@ The `Sample` base class provides these required fields:
 - `status`: Custody status, drawn from a fixed vocabulary — `available`, `in_use`, `stored`,
   `destroyed`, `unknown`. Defaults to `unknown` when nothing is set, and can move to any other
   status from any status, including back out of `destroyed`
-- `location`: Spatial location (requires GeoDjango)
+- `location`: Where the sample was taken, as a point with x and y coordinates
 
 ## Advanced Field Types
 

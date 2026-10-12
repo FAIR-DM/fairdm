@@ -52,8 +52,8 @@ between the earlier specification and the code, what was decided about it and wh
   feature turns them on and makes the API accept their tokens.
 - **A record's page showing its API address** is #432.
 - **Import and export of tabular data** is R21. **Dataset versions in the API** is R23.
-- **The location module's GeoJSON endpoints** are not part of this feature. That file imports code
-  that no longer exists and is never loaded, which makes it roadmap item R20's to remove or repair.
+- **GeoJSON endpoints for locations** are not part of this feature. The location module's own were
+  never loaded and were removed with the rest of its GeoDjango code in #196.
 
 ## Clarifications
 

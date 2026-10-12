@@ -3,7 +3,6 @@
 import json
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 
-from django.contrib.gis.measure import Distance
 from django.core.exceptions import ValidationError
 from django.db.models import F, Max, Min
 
@@ -51,16 +50,6 @@ def serialize_dataset_samples(self, dataset):
     return {str(dataset.uuid): json.dumps([])}
 
 
-def get_sites_within(location, radius=25):
-    """Build the query for points within a radius of a location, without returning it.
-
-    Args:
-        location: The location to search around.
-        radius: The search radius in kilometres.
-    """
-    Point.objects.filter(point__distance_lt=(location.point, Distance(km=radius)))
-
-
 def locations_for_dataset(dataset):
     """Return the locations of a dataset's samples.
 
@@ -70,8 +59,6 @@ def locations_for_dataset(dataset):
     Returns:
         A queryset of points.
     """
-    from .models import Point
-
     return Point.objects.filter(samples__dataset=dataset)
 
 
