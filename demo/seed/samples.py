@@ -11,6 +11,9 @@ Development only. Creates the standard sign-in accounts, one project and three d
 - a soil sample with nothing but a name;
 - a rock sample in an unpublished dataset, which only the dataset's team can open.
 
+The core and the water sample share one location and the unpublished sample has another, so a
+location's page can be opened with two sample types and with nothing a visitor may see.
+
 Safe to run twice: it removes what it created before creating it again.
 """
 
@@ -87,7 +90,18 @@ class SampleSeed(BaseCommand):
         soil = SoilSampleFactory(
             dataset=cores, name="Bruchsal soil, transect B, point 7"
         )
-        hidden = RockSampleFactory(dataset=pending, name="EPS-1 core, 1840 m")
+        # Two sample types at the core's location, and a second location whose only sample
+        # is unpublished, so a location's page can be opened in both states.
+        water.location = core.location
+        water.save()
+        Point = apps.get_model("fairdm_location", "Point")
+        hidden = RockSampleFactory(
+            dataset=pending,
+            name="EPS-1 core, 1840 m",
+            location=Point.objects.get_or_create(
+                x=7.8672, y=48.9306, defaults={"crs": "EPSG:4326"}
+            )[0],
+        )
 
         for label, sample in [
             ("Rock core, full history (extended page)", core),
@@ -96,6 +110,11 @@ class SampleSeed(BaseCommand):
             ("Rock sample in an unpublished dataset", hidden),
         ]:
             self.stdout.write(f"{label}: {sample.get_absolute_url()}")
+        for label, sample in [
+            ("Location with two sample types", core),
+            ("Location whose only sample is unpublished", hidden),
+        ]:
+            self.stdout.write(f"{label}: {sample.location.get_absolute_url()}")
 
     def person(self, first, last):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"
