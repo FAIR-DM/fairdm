@@ -75,6 +75,43 @@ def has_perm(request: HttpRequest, permission: str, obj: Model | None = None) ->
     return cache[key]
 
 
+#: The action each level stands for, as it appears in a core record's permission names.
+LEVEL_ACTIONS = {"view": "view", "edit": "change", "manage": "delete"}
+
+
+def holds_level(request: HttpRequest, level: str, obj: Model | None) -> bool:
+    """Say whether the viewer holds a level on a project, dataset, sample or measurement.
+
+    The level is asked as the permission the record's own pages are opened with:
+    ``view_<model>``, ``change_<model>`` or ``delete_<model>``, resolved by :func:`has_perm`.
+    So a level held on a record above counts, and so does the permission held for the whole
+    portal. A visitor holds no level, on a public record as on a private one: the question is
+    who is on the record's team, not who may read it.
+
+    Args:
+        request: The current request.
+        level: ``"view"``, ``"edit"`` or ``"manage"``.
+        obj: The record asked about.
+
+    Returns:
+        True when the viewer holds the level or a higher one. False when there is no record,
+        or it is not a project, dataset, sample or measurement.
+
+    Raises:
+        ValueError: ``level`` is not one of the three.
+    """
+    from fairdm.contrib.contributors.access import RecordAccess
+
+    if level not in LEVEL_ACTIONS:
+        msg = f"{level!r} is not a level; use one of {', '.join(LEVEL_ACTIONS)}"
+        raise ValueError(msg)
+    if not RecordAccess.is_core_record(obj):
+        return False
+    meta = RecordAccess(obj).model._meta
+    permission = f"{meta.app_label}.{LEVEL_ACTIONS[level]}_{meta.model_name}"
+    return has_perm(request, permission, obj)
+
+
 def resolve_check(view_class: type) -> Callable[..., bool] | bool:
     """Read a view's predicate as declared, without invoking the descriptor protocol.
 
@@ -108,8 +145,9 @@ def can_open(
 ) -> bool:
     """Decide whether the user may open this view for this record.
 
-    The predicate is read from the owning plugin, so an additional view cannot be opened
-    while its restricted parent is refused.
+    A view answers for itself: only its own ``check`` and ``permission`` are read. An
+    additional view listed in a plugin's ``extra_views`` takes nothing from that plugin, so
+    it states its own rule or stays open while the plugin is refused.
 
     Args:
         view_class: The plugin or additional view class.

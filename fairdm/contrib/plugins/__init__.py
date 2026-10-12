@@ -4,6 +4,7 @@
 - ``register`` — the registration decorator, used as ``@plugins.register(Model, ...)``
 - ``registry`` — the registry itself
 - ``can_open`` / ``has_perm`` — the access decision and its memoised permission check
+- ``holds_level`` — whether the viewer holds a level on a record
 - ``is_instance_of`` — narrows a plugin to one subtype of a polymorphic record
 - ``reverse`` — resolves a plugin address for a record
 
@@ -14,7 +15,7 @@ Attributes are resolved on first access because Django imports this package duri
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - import-time surface for type checkers only
-    from .access import can_open, has_perm, is_instance_of
+    from .access import can_open, has_perm, holds_level, is_instance_of
     from .base import Plugin
     from .registration import registry
     from .utils import reverse, slugify
@@ -23,6 +24,7 @@ __all__ = [
     "Plugin",
     "can_open",
     "has_perm",
+    "holds_level",
     "is_instance_of",
     "register",
     "registry",
@@ -34,6 +36,7 @@ _LAZY = {
     "Plugin": (".base", "Plugin"),
     "can_open": (".access", "can_open"),
     "has_perm": (".access", "has_perm"),
+    "holds_level": (".access", "holds_level"),
     "is_instance_of": (".access", "is_instance_of"),
     "registry": (".registration", "registry"),
     "reverse": (".utils", "reverse"),

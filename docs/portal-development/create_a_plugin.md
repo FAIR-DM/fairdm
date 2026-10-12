@@ -176,6 +176,41 @@ def handle_no_permission(self):
     return super().handle_no_permission()
 ```
 
+## Showing part of a page to the record's team
+
+A template that adds to a record's page often shows something only to the people who may act on
+the record: an edit link, a card for the team. `{% holds_level %}` asks whether the viewer holds a
+level on a project, dataset, sample or measurement, so the template needs no view of its own to
+work the answer out:
+
+```django
+{% load i18n plugin_tags %}
+
+{% holds_level "edit" object as can_edit %}
+{% if can_edit %}
+  <a href="{% plugin_url 'edit' %}">{% trans "Edit" %}</a>
+{% endif %}
+```
+
+The level is `"view"`, `"edit"` or `"manage"`, and each includes the ones before it. It is decided
+as the record's own pages decide it, through the permission the level stands for on that record:
+`view_<model>`, `change_<model>` or `delete_<model>`. So a level held on a record above counts, a
+dataset's team holding it on the dataset's samples, and so does a portal role that holds the
+permission for the whole portal.
+
+A visitor who is not signed in holds no level, on a public record as on a private one. The tag
+answers who is on the record's team, not who may read the record. It is also false for anything
+that is not a project, dataset, sample or measurement. A level that does not exist raises
+`ValueError`, so a mistyped one is found the first time the template renders.
+
+The tag decides what a page shows, never who may open another page. A link it hides still leads
+somewhere, and that page needs its own `check` or `permission`.
+
+Each record asked about costs one query, remembered for the rest of the request. Ask about the
+record the page belongs to. For a list of records, work the answer out in the view.
+
+From Python the same question is `plugins.holds_level(request, "edit", record)`.
+
 ## A feature that is more than one page
 
 Declare the other views on the plugin. They share its address prefix and its single navigation
@@ -202,8 +237,10 @@ That serves `/samples/<uuid>/notes/`, `/samples/<uuid>/notes/add/` and
 `/samples/<uuid>/notes/<pk>/edit/`, under the names `sample:notes`, `sample:notes-note-create` and
 `sample:notes-note-edit`.
 
-An additional view inherits its plugin's `check`, so restricting the plugin restricts everything it
-owns.
+An additional view takes nothing from its plugin. Only its own `check` and `permission` decide
+who opens it, so restricting the plugin leaves its additional views open until each one states the
+rule itself. Give every additional view the `check` or `permission` it needs, as the worked example
+under [Who can see it, and who can open it](#who-can-see-it-and-who-can-open-it) does.
 
 ## Templates, assets and context
 
