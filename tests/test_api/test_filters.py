@@ -8,6 +8,7 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
+    PersonFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -293,3 +294,171 @@ class TestUnpublishedDataset:
 
         assert response.status_code == 200
         assert response.json()["sample"] is None
+
+
+@pytest.mark.django_db
+class TestPeopleFilters:
+    @staticmethod
+    def found(client, **query):
+        response = client.get(reverse("api:person-list"), query)
+        assert response.status_code == 200, response.content
+        return {row["uuid"] for row in response.json()["results"]}
+
+    def test_organization_returns_people_with_a_verified_affiliation_that_has_not_ended(
+        self,
+    ):
+        from fairdm.contrib.contributors.models import Affiliation
+        from fairdm.factories import AffiliationFactory, OrganizationFactory
+
+        institute = OrganizationFactory()
+        member = AffiliationFactory(
+            organization=institute, type=Affiliation.MembershipType.MEMBER
+        ).person
+        admin = AffiliationFactory(
+            organization=institute, type=Affiliation.MembershipType.ADMIN
+        ).person
+        pending = AffiliationFactory(
+            organization=institute, type=Affiliation.MembershipType.PENDING
+        ).person
+        ended = AffiliationFactory(
+            organization=institute, start_date="2015", end_date="2018"
+        ).person
+        elsewhere = AffiliationFactory(organization=OrganizationFactory()).person
+        unaffiliated = PersonFactory()
+
+        found = self.found(APIClient(), organization=institute.uuid)
+
+        assert found == {member.uuid, admin.uuid}
+        assert {pending.uuid, ended.uuid, elsewhere.uuid, unaffiliated.uuid}.isdisjoint(
+            found
+        )
+
+    def test_a_person_with_a_past_and_a_current_affiliation_is_found_once(self):
+        from fairdm.factories import AffiliationFactory, OrganizationFactory
+
+        institute = OrganizationFactory()
+        person = AffiliationFactory(organization=institute).person
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(),
+            start_date="2010",
+            end_date="2012",
+        )
+
+        response = APIClient().get(
+            reverse("api:person-list"), {"organization": institute.uuid}
+        )
+
+        assert [row["uuid"] for row in response.json()["results"]] == [person.uuid]
+
+    def test_a_database_number_for_organization_is_refused(self):
+        from fairdm.factories import OrganizationFactory
+
+        institute = OrganizationFactory()
+
+        response = APIClient().get(
+            reverse("api:person-list"), {"organization": institute.pk}
+        )
+
+        assert response.status_code == 400
+        assert "organization" in response.json()
+
+    def test_an_identifier_nobody_holds_in_organization_is_refused_not_listed(self):
+        response = APIClient().get(
+            reverse("api:person-list"), {"organization": "u" * 23}
+        )
+
+        assert response.status_code == 400
+
+    def test_identifier_returns_the_one_holder_given_the_bare_value(self):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        holder = PersonFactory()
+        other = PersonFactory()
+        ContributorIdentifierFactory(
+            related=holder, type="ORCID", value="0000-0002-1825-0097"
+        )
+        ContributorIdentifierFactory(related=other, type="ORCID")
+
+        found = self.found(APIClient(), identifier="0000-0002-1825-0097")
+
+        assert found == {holder.uuid}
+
+    @pytest.mark.parametrize(
+        "sent",
+        [
+            "https://orcid.org/0000-0002-1825-0097",
+            "http://orcid.org/0000-0002-1825-0097",
+            "https://orcid.org/0000-0002-1825-0097/",
+            "  0000-0002-1825-0097  ",
+        ],
+    )
+    def test_identifier_returns_the_holder_given_the_full_address(self, sent):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        holder = PersonFactory()
+        ContributorIdentifierFactory(
+            related=holder, type="ORCID", value="0000-0002-1825-0097"
+        )
+        PersonFactory()
+
+        found = self.found(APIClient(), identifier=sent)
+
+        assert found == {holder.uuid}
+
+    def test_identifier_finds_a_value_stored_without_the_spaces_it_is_written_with(
+        self,
+    ):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        holder = PersonFactory()
+        ContributorIdentifierFactory(
+            related=holder, type="ISNI", value="0000000121032683"
+        )
+
+        found = self.found(APIClient(), identifier="0000 0001 2103 2683")
+
+        assert found == {holder.uuid}
+
+    def test_identifier_returns_an_empty_list_for_a_value_nobody_holds(self):
+        PersonFactory()
+
+        found = self.found(APIClient(), identifier="0000-0000-0000-0000")
+
+        assert found == set()
+
+    def test_identifier_returns_an_empty_list_for_one_a_superuser_holds(self):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        administrator = PersonFactory(is_superuser=True, is_staff=True)
+        ContributorIdentifierFactory(
+            related=administrator, type="ORCID", value="0000-0003-1415-9265"
+        )
+        PersonFactory()
+
+        found = self.found(APIClient(), identifier="0000-0003-1415-9265")
+
+        assert found == set()
+
+    def test_the_filters_combine_with_each_other(self):
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+        )
+
+        institute = OrganizationFactory()
+        holder = AffiliationFactory(organization=institute).person
+        ContributorIdentifierFactory(
+            related=holder, type="ORCID", value="0000-0002-1825-0097"
+        )
+        outsider = PersonFactory()
+        ContributorIdentifierFactory(
+            related=outsider, type="ORCID", value="0000-0001-5109-3700"
+        )
+
+        found = self.found(
+            APIClient(), organization=institute.uuid, identifier="0000-0001-5109-3700"
+        )
+
+        assert found == set()
