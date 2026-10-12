@@ -1470,6 +1470,316 @@ class TestPeopleList:
         assert old.uuid not in found
 
 
+#: What the people responses must never carry, at any depth.
+ACCOUNT_STATE_KEYS = {
+    "email",
+    "password",
+    "is_staff",
+    "is_superuser",
+    "is_active",
+    "is_claimed",
+    "last_login",
+    "date_joined",
+    "groups",
+    "user_permissions",
+    "portal_roles",
+    "config",
+    "synced_data",
+    "last_synced",
+    "added",
+    "modified",
+}
+
+PERSON_KEYS = PERSON_LIST_KEYS | {
+    "alternative_names",
+    "profile",
+    "links",
+    "languages",
+    "image",
+    "affiliations",
+}
+
+
+@pytest.mark.django_db
+class TestPerson:
+    @pytest.fixture
+    def person(self):
+        return PersonFactory(
+            first_name="Ada",
+            last_name="Lovelace",
+            profile="Wrote the first program.",
+            alternative_names=["A. A. King", "Countess of Lovelace"],
+            links=["https://example.org/ada", "javascript:alert(1)"],
+            lang=["en", "de"],
+            is_claimed=True,
+        )
+
+    @staticmethod
+    def record(client, person):
+        response = client.get(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        )
+        assert response.status_code == 200, response.content
+        data: dict = response.json()
+        return data
+
+    @staticmethod
+    def keys_of(value):
+        """Return every key that appears anywhere in a response."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                yield key
+                yield from TestPerson.keys_of(inner)
+        elif isinstance(value, list):
+            for inner in value:
+                yield from TestPerson.keys_of(inner)
+
+    def test_a_person_carries_the_list_keys_and_what_only_a_record_carries(
+        self, api_client, person
+    ):
+        data = self.record(api_client, person)
+
+        assert set(data) == PERSON_KEYS
+
+    def test_a_person_carries_everything_their_list_entry_does(
+        self, api_client, person
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        entry = next(
+            row
+            for row in api_client.get(reverse("api:person-list")).json()["results"]
+            if row["uuid"] == person.uuid
+        )
+
+        data = self.record(api_client, person)
+
+        assert {key: data[key] for key in PERSON_LIST_KEYS} == entry
+
+    def test_a_person_carries_the_profile_the_page_shows(self, api_client, person):
+        data = self.record(api_client, person)
+
+        assert data["profile"] == "Wrote the first program."
+        assert data["alternative_names"] == ["A. A. King", "Countess of Lovelace"]
+
+    def test_links_are_the_web_addresses_the_page_draws(self, api_client, person):
+        data = self.record(api_client, person)
+
+        assert data["links"] == ["https://example.org/ada"]
+
+    def test_languages_are_named_as_the_page_names_them(self, api_client, person):
+        data = self.record(api_client, person)
+
+        assert data["languages"] == [str(name) for name in person.get_language_names()]
+        assert len(data["languages"]) == 2
+
+    def test_a_person_with_no_links_languages_or_other_names_returns_empty_lists(
+        self, api_client
+    ):
+        person = PersonFactory(links=[], lang=[], alternative_names=[])
+
+        data = self.record(api_client, person)
+
+        assert data["links"] == []
+        assert data["languages"] == []
+        assert data["alternative_names"] == []
+
+    def test_a_person_with_no_image_has_a_null_image(self, api_client, person):
+        assert self.record(api_client, person)["image"] is None
+
+    def test_an_image_is_given_as_an_address(self, api_client):
+        person = PersonFactory(with_image=True)
+
+        image = self.record(api_client, person)["image"]
+
+        assert image.startswith("http://testserver/")
+
+    def test_an_affiliation_names_its_organization_and_gives_its_kind_and_dates(
+        self, api_client, person
+    ):
+        from fairdm.contrib.contributors.models import Affiliation
+        from fairdm.factories import AffiliationFactory
+
+        institute = OrganizationFactory()
+        AffiliationFactory(
+            person=person,
+            organization=institute,
+            type=Affiliation.MembershipType.ADMIN,
+            is_primary=True,
+            start_date="2019",
+        )
+
+        (entry,) = self.record(api_client, person)["affiliations"]
+
+        assert set(entry) == {"organization", "type", "start", "end", "is_primary"}
+        assert entry["organization"] == {
+            "uuid": institute.uuid,
+            "url": entry["organization"]["url"],
+            "name": institute.name,
+        }
+        assert entry["organization"]["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": institute.uuid})
+        )
+        assert entry["type"] == "admin"
+        assert entry["start"] == "2019"
+        assert entry["end"] is None
+        assert entry["is_primary"] is True
+
+    @pytest.mark.parametrize(
+        ("level", "name"),
+        [(1, "member"), (2, "admin"), (3, "owner")],
+    )
+    def test_the_kind_of_an_affiliation_is_the_lower_case_name_of_its_level(
+        self, api_client, person, level, name
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), type=level
+        )
+
+        (entry,) = self.record(api_client, person)["affiliations"]
+
+        assert entry["type"] == name
+
+    def test_an_affiliation_with_no_dates_returns_null_for_both(
+        self, api_client, person
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(),
+            start_date=None,
+            end_date=None,
+        )
+
+        (entry,) = self.record(api_client, person)["affiliations"]
+
+        assert entry["start"] is None
+        assert entry["end"] is None
+
+    def test_a_pending_affiliation_is_absent(self, api_client, person):
+        from fairdm.contrib.contributors.models import Affiliation
+        from fairdm.factories import AffiliationFactory
+
+        verified = OrganizationFactory()
+        pending = OrganizationFactory()
+        AffiliationFactory(person=person, organization=verified)
+        AffiliationFactory(
+            person=person,
+            organization=pending,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        shown = {
+            entry["organization"]["uuid"]
+            for entry in self.record(api_client, person)["affiliations"]
+        }
+
+        assert shown == {verified.uuid}
+
+    def test_an_ended_affiliation_is_present_with_its_end_after_the_current_ones(
+        self, api_client, person
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        former = OrganizationFactory()
+        current = OrganizationFactory()
+        AffiliationFactory(
+            person=person, organization=former, start_date="2015", end_date="2018"
+        )
+        AffiliationFactory(person=person, organization=current, is_primary=True)
+
+        entries = self.record(api_client, person)["affiliations"]
+
+        assert [entry["organization"]["uuid"] for entry in entries] == [
+            current.uuid,
+            former.uuid,
+        ]
+        assert entries[0]["end"] is None
+        assert entries[1]["start"] == "2015"
+        assert entries[1]["end"] == "2018"
+        assert entries[1]["is_primary"] is False
+
+    def test_a_person_with_no_affiliation_has_an_empty_list(self, api_client, person):
+        assert self.record(api_client, person)["affiliations"] == []
+
+    def test_the_primary_affiliation_comes_first_among_the_current_ones(
+        self, api_client, person
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        other = OrganizationFactory(name="Aardvark Institute")
+        primary = OrganizationFactory(name="Zebra Institute")
+        AffiliationFactory(person=person, organization=other)
+        AffiliationFactory(person=person, organization=primary, is_primary=True)
+
+        entries = self.record(api_client, person)["affiliations"]
+
+        assert [entry["organization"]["uuid"] for entry in entries] == [
+            primary.uuid,
+            other.uuid,
+        ]
+
+    def test_an_unclaimed_profile_is_returned_like_any_other_person(self, api_client):
+        person = PersonFactory(is_claimed=False)
+
+        assert self.record(api_client, person)["uuid"] == person.uuid
+
+    def test_no_response_about_a_person_has_a_key_for_account_state(
+        self, api_client, person
+    ):
+        from fairdm.factories import (
+            AffiliationFactory,
+            ContributorIdentifierFactory,
+        )
+
+        ContributorIdentifierFactory(related=person, type="ORCID")
+        AffiliationFactory(
+            person=person, organization=OrganizationFactory(), is_primary=True
+        )
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(),
+            start_date="2010",
+            end_date="2012",
+        )
+        responses = [
+            api_client.get(reverse("api:person-list")),
+            api_client.get(reverse("api:person-detail", kwargs={"uuid": person.uuid})),
+        ]
+
+        for response in responses:
+            assert response.status_code == 200
+            assert set(self.keys_of(response.json())).isdisjoint(ACCOUNT_STATE_KEYS)
+            assert person.email not in response.content.decode()
+
+    def test_a_record_runs_the_queries_of_one_with_fewer_affiliations(self, api_client):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        from fairdm.factories import AffiliationFactory
+
+        def queries(person):
+            address = reverse("api:person-detail", kwargs={"uuid": person.uuid})
+            with CaptureQueriesContext(connection) as captured:
+                assert api_client.get(address).status_code == 200
+            return len(captured)
+
+        few = PersonFactory()
+        many = PersonFactory()
+        for person, number in ((few, 2), (many, 12)):
+            for _ in range(number):
+                AffiliationFactory(person=person, organization=OrganizationFactory())
+        queries(few)
+
+        assert queries(many) == queries(few)
+
+
 @pytest.mark.django_db
 class TestOrganizationsList:
     @pytest.fixture
