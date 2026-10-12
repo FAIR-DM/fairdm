@@ -146,9 +146,16 @@ it with every request.
 
 ## People and organizations
 
-`/api/v1/contributors/` lists the people and organizations credited on records. Each carries what
-its profile page shows, such as its name, biography, ORCID iD or ROR ID and links. It never carries
-an email address or anything about an account.
+People are listed at `/api/v1/people/` and organizations at `/api/v1/organizations/`. A list entry
+carries the name, the identifiers and the address in the API and on the portal, and a person's
+entry adds their given and family name and the organization they mainly belong to. It never
+carries an email address or anything about an account.
+
+A record you read carries its credits in full. Each credit has the name of the person or
+organization, whether it is a person or an organization, their given and family name, their
+identifiers such as an ORCID iD with the scheme each belongs to, the organization the work was
+credited from, and the roles they held. You can write a citation or a metadata record from the one
+response that returned the record.
 
 ## Records you may not see
 

@@ -13,8 +13,8 @@ by side, controlled per object.
 **Roadmap**: R11, the machine-readable API.
 
 **Input**: Every record a portal holds should be reachable by a program, complete, with nothing for
-the portal developer to write. A script reads a whole project, dataset, sample, measurement or
-contributor. A person with the right level on a record creates it, changes it and deletes it through
+the portal developer to write. A script reads a whole project, dataset, sample, measurement, person or
+organization. A person with the right level on a record creates it, changes it and deletes it through
 the API, under the same access rules as the portal's pages. A portal developer who registers a
 sample or measurement type gets its endpoints with no further work, and can say which fields they
 carry. A person reaches the API with a token they create and revoke on their own account pages. The
@@ -122,7 +122,9 @@ Filter and sort each list. Request a private record, and a record that does not 
 
 1. **Given** a public project, dataset, sample or measurement, **When** anyone requests it,
    **Then** the response carries its own fields, its parent, its descriptions, key dates,
-   identifiers, keywords and credited contributors, and for a dataset its licence.
+   identifiers, keywords and its credits, and for a dataset its licence. A credit names the
+   person or organization with their identifiers, the organization recorded on the credit and the
+   roles held.
 2. **Given** a record that sits under another, **When** it is returned, **Then** it names its
    parent by short identifier and by address, and requesting that address returns the parent.
 3. **Given** a sample or measurement of a registered type, **When** it is returned, **Then** it
@@ -130,9 +132,9 @@ Filter and sort each list. Request a private record, and a record that does not 
    every measurement has.
 4. **Given** any response from the API, **When** it is read, **Then** it contains no internal
    database number, for the record or for anything it refers to.
-5. **Given** a contributor, **When** anyone requests them, **Then** the response carries what
-   their public profile page shows, and never an email address, a password or anything about their
-   account.
+5. **Given** a person or an organization, **When** anyone requests them, **Then** the response
+   carries what their public profile page shows, and never an email address, a password or
+   anything about their account.
 6. **Given** a list of more records than one page holds, **When** it is requested, **Then** the
    response says how many there are in all and gives the address of the next and previous pages.
 7. **Given** a registered type that declares filters, **When** its list is requested with one of
@@ -380,22 +382,25 @@ confirm the portal follows them.
 
 **Reading**
 
-- **FR-001**: The API MUST serve a list and a single-record endpoint for projects, datasets and
-  contributors, and for every sample and measurement type in the registry, with no configuration by
-  the portal developer.
+- **FR-001**: The API MUST serve a list and a single-record endpoint for projects, datasets,
+  people and organizations, and for every sample and measurement type in the registry, with no
+  configuration by the portal developer.
 - **FR-002**: A single record MUST be addressed by its short identifier.
 - **FR-003**: A project, dataset, sample or measurement MUST be returned with its own fields, its
-  parent, its descriptions, key dates, identifiers, keywords and credited contributors. A dataset
-  MUST also carry its licence, and a project its owner. Each record, and each contributor, MUST
-  carry the address of its own page on the portal's website beside its address in the API, so
-  that anyone who republishes the record can link back to the portal.
+  parent, its descriptions, key dates, identifiers, keywords and its credits. A credit MUST name
+  the person or organization credited, with their identifiers, the organization recorded on the
+  credit and the roles held. A dataset MUST also carry its licence, and a project its owner. Each
+  record, and each person and organization, MUST carry the address of its own page on the
+  portal's website beside its address in the API, so that anyone who republishes the record can
+  link back to the portal.
 - **FR-004**: A sample MUST always carry the fields common to every sample, and a measurement those
   common to every measurement, whatever field list its type declares. Each MUST also carry every
   field its type declares for the API.
 - **FR-005**: A record MUST refer to another record by that record's short identifier and its
   address in the API. No response and no accepted request may contain an internal database number.
-- **FR-006**: A contributor MUST be returned with what their public profile shows. No endpoint may
-  return an email address, a credential or any other account detail of a person.
+- **FR-006**: A person and an organization MUST each be returned with what their public profile
+  shows. No endpoint may return an email address, a credential or any other account detail of a
+  person.
 - **FR-007**: Every list MUST be paged, and each page MUST carry the total number of records and
   the addresses of the next and previous pages.
 - **FR-008**: A list MUST accept the filters its registered type declares, and every list MUST
@@ -421,7 +426,7 @@ confirm the portal follows them.
 **Writing**
 
 - **FR-015**: Projects, datasets and every registered sample and measurement type MUST support
-  create, full replacement, partial change and delete. Contributors are read-only.
+  create, full replacement, partial change and delete. People and organizations are read-only.
 - **FR-016**: A record's own fields, its visibility and its parent MUST be writable. Its
   descriptions, key dates, identifiers, keywords and contributors MUST be read-only, and an attempt
   to set one MUST leave it unchanged.
