@@ -134,6 +134,7 @@ class Sample(BasePolymorphicModel):
         verbose_name_plural = _("samples")
         ordering = ["added"]
         default_related_name = "samples"
+        indexes = [models.Index(fields=["modified"], name="sample_modified_idx")]
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import sample data"),

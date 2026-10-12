@@ -91,6 +91,7 @@ class Measurement(BasePolymorphicModel):
         verbose_name_plural = _("measurements")
         ordering = ["-modified"]
         default_related_name = "measurements"
+        indexes = [models.Index(fields=["modified"], name="measurement_modified_idx")]
         permissions = [
             *CORE_PERMISSIONS,
         ]
