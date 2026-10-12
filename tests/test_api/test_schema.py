@@ -450,3 +450,46 @@ class TestMetadataDescriptionComesFirst:
         operation = schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
         assert operation["description"].startswith(own)
+
+
+@pytest.mark.django_db
+class TestCreditComponent:
+    CREDIT_KEYS = {
+        "uuid",
+        "url",
+        "name",
+        "name_type",
+        "given_name",
+        "family_name",
+        "name_identifiers",
+        "affiliation",
+        "roles",
+    }
+
+    @staticmethod
+    def credit_of(schema, name):
+        """Return the component a record's list of credits refers to."""
+        items = schema["components"]["schemas"][name]["properties"]["contributors"][
+            "items"
+        ]
+        return schema["components"]["schemas"][items["$ref"].rsplit("/", 1)[-1]]
+
+    @pytest.mark.parametrize(
+        "name", ["Project", "Dataset", "RockSample", "ExampleMeasurement"]
+    )
+    def test_the_credit_of_a_record_lists_exactly_the_keys_a_credit_returns(
+        self, schema, name
+    ):
+        credit = self.credit_of(schema, name)
+
+        assert set(credit["properties"]) == self.CREDIT_KEYS
+
+    def test_a_credit_is_the_same_component_on_every_kind_of_record(self, schema):
+        components = {
+            schema["components"]["schemas"][name]["properties"]["contributors"][
+                "items"
+            ]["$ref"]
+            for name in ("Project", "Dataset", "RockSample", "ExampleMeasurement")
+        }
+
+        assert len(components) == 1

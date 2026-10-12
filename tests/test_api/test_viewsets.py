@@ -476,6 +476,349 @@ class TestCompleteRecord:
         assert [row["project"] for row in results] == [None]
 
 
+CREDIT_KINDS = ("project", "dataset", "sample", "measurement")
+
+CREDIT_KEYS = {
+    "uuid",
+    "url",
+    "name",
+    "name_type",
+    "given_name",
+    "family_name",
+    "name_identifiers",
+    "affiliation",
+    "roles",
+}
+
+
+def add_credit(record, contributor, affiliation=None, roles=1):
+    """Credit a contributor on a record, with the first roles of the roles vocabulary."""
+    from research_vocabs.models import Concept
+
+    from fairdm.factories import ContributionFactory
+
+    credit = ContributionFactory(
+        content_object=record,
+        contributor=contributor,
+        affiliation=affiliation,
+        level=None if contributor.is_organization else ContributionLevel.VIEW,
+    )
+    credit.roles.add(*Concept.objects.filter(vocabulary__name="fairdm-roles")[:roles])
+    return credit
+
+
+@pytest.mark.django_db
+class TestCredit:
+    @pytest.fixture
+    def author(self):
+        """A person with an ORCID iD, credited from an organization with a ROR ID."""
+        from fairdm.factories import (
+            ContributorIdentifierFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person = PersonFactory(first_name="Ada", last_name="Lovelace")
+        ContributorIdentifierFactory(
+            related=person, type="ORCID", value="0000-0002-1825-0097"
+        )
+        institute = OrganizationFactory(name="Analytical Institute")
+        ContributorIdentifierFactory(related=institute, type="ROR", value="03yrm5c26")
+        return person, institute
+
+    @pytest.fixture
+    def add_team(self, author):
+        """Return a function crediting the three kinds of credit on a record."""
+        from fairdm.factories import (
+            AffiliationFactory,
+            OrganizationFactory,
+            PersonFactory,
+        )
+
+        person, institute = author
+
+        def add_team(record):
+            bare = PersonFactory(first_name="Grace", last_name="Hopper")
+            AffiliationFactory(
+                person=bare, organization=OrganizationFactory(), is_primary=True
+            )
+            return {
+                "author": add_credit(record, person, institute, roles=2),
+                "bare": add_credit(record, bare),
+                "organization": add_credit(record, OrganizationFactory()),
+            }
+
+        return add_team
+
+    @pytest.fixture
+    def record_of(self, make_record):
+        """Return a function building a public record of a kind with no add_team."""
+        return lambda kind: build_record(kind, make_record, lambda record: record)
+
+    @staticmethod
+    def credits_of(client, url_of, record):
+        response = client.get(url_of(record))
+        assert response.status_code == 200
+        return response.json()["contributors"]
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_a_credit_carries_what_datacite_asks_of_a_creator(
+        self, api_client, url_of, record_of, add_team, author, kind
+    ):
+        person, institute = author
+        record = record_of(kind)
+        made = add_team(record)
+
+        credit = self.credits_of(api_client, url_of, record)[0]
+
+        assert set(credit) == CREDIT_KEYS
+        assert credit["uuid"] == person.uuid
+        assert credit["url"].endswith(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        )
+        assert credit["name"] == "Lovelace, Ada"
+        assert credit["name_type"] == "Personal"
+        assert credit["given_name"] == "Ada"
+        assert credit["family_name"] == "Lovelace"
+        assert credit["name_identifiers"] == [
+            {
+                "name_identifier": "https://orcid.org/0000-0002-1825-0097",
+                "name_identifier_scheme": "ORCID",
+                "scheme_uri": "https://orcid.org/",
+            }
+        ]
+        assert credit["affiliation"] == [
+            {
+                "uuid": institute.uuid,
+                "url": credit["affiliation"][0]["url"],
+                "name": "Analytical Institute",
+                "affiliation_identifier": "https://ror.org/03yrm5c26",
+                "affiliation_identifier_scheme": "ROR",
+                "scheme_uri": "https://ror.org/",
+            }
+        ]
+        assert credit["affiliation"][0]["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": institute.uuid})
+        )
+        held = made["author"].roles.all()
+        assert len(held) == 2
+        assert {(role["name"], role["label"]) for role in credit["roles"]} == {
+            (role.name, str(role.label)) for role in held
+        }
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_a_person_with_no_identifier_and_no_credited_affiliation_has_neither(
+        self, api_client, url_of, record_of, add_team, kind
+    ):
+        record = record_of(kind)
+        add_team(record)
+
+        credit = self.credits_of(api_client, url_of, record)[1]
+
+        assert credit["name"] == "Hopper, Grace"
+        assert credit["name_identifiers"] == []
+        assert credit["affiliation"] == []
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_an_organizations_credit_is_organizational_with_no_personal_names(
+        self, api_client, url_of, record_of, add_team, kind
+    ):
+        record = record_of(kind)
+        made = add_team(record)
+        organization = made["organization"].contributor
+
+        credit = self.credits_of(api_client, url_of, record)[2]
+
+        assert set(credit) == CREDIT_KEYS
+        assert credit["name"] == organization.name
+        assert credit["name_type"] == "Organizational"
+        assert credit["given_name"] is None
+        assert credit["family_name"] is None
+        assert credit["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        )
+
+    def test_the_address_of_a_credit_returns_that_contributor(
+        self, api_client, url_of, record_of, add_team
+    ):
+        record = record_of("dataset")
+        add_team(record)
+
+        for credit in self.credits_of(api_client, url_of, record):
+            response = api_client.get(credit["url"])
+
+            assert response.status_code == 200
+            assert response.json()["uuid"] == credit["uuid"]
+
+    def test_credits_come_in_the_order_the_record_keeps_them(
+        self, api_client, url_of, record_of, add_team
+    ):
+        record = record_of("dataset")
+        made = add_team(record)
+        made["organization"].top()
+
+        names = [
+            credit["name"] for credit in self.credits_of(api_client, url_of, record)
+        ]
+
+        assert names == [
+            made["organization"].contributor.name,
+            "Lovelace, Ada",
+            "Hopper, Grace",
+        ]
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_a_record_with_no_credits_returns_an_empty_list(
+        self, api_client, url_of, record_of, kind
+    ):
+        record = record_of(kind)
+
+        assert self.credits_of(api_client, url_of, record) == []
+
+    def test_a_credit_whose_contributor_was_deleted_is_absent(
+        self, api_client, url_of, record_of, add_team
+    ):
+        record = record_of("dataset")
+        made = add_team(record)
+        made["bare"].contributor.delete()
+
+        names = [
+            credit["name"] for credit in self.credits_of(api_client, url_of, record)
+        ]
+
+        assert "Hopper, Grace" not in names
+        assert len(names) == 2
+
+    def test_a_credit_whose_affiliation_was_deleted_shows_none(
+        self, api_client, url_of, record_of, add_team, author
+    ):
+        _person, institute = author
+        record = record_of("dataset")
+        add_team(record)
+        institute.delete()
+
+        credit = self.credits_of(api_client, url_of, record)[0]
+
+        assert credit["affiliation"] == []
+
+    def test_a_person_holding_two_identifiers_carries_both(
+        self, api_client, url_of, record_of, author
+    ):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        person, _institute = author
+        ContributorIdentifierFactory(
+            related=person, type="ISNI", value="0000 0001 2281 955X"
+        )
+        ContributorIdentifierFactory(related=person, type="Wikidata", value="Q7259")
+        record = record_of("dataset")
+        add_credit(record, person)
+
+        credit = self.credits_of(api_client, url_of, record)[0]
+
+        assert {
+            entry["name_identifier_scheme"] for entry in credit["name_identifiers"]
+        } == {
+            "ORCID",
+            "ISNI",
+            "Wikidata",
+        }
+
+    def test_an_identifier_with_no_resolver_has_its_value_and_no_scheme_address(
+        self, api_client, url_of, record_of
+    ):
+        from fairdm.factories import ContributorIdentifierFactory, PersonFactory
+
+        person = PersonFactory()
+        unresolved = ContributorIdentifierFactory(related=person, type="Local")
+        record = record_of("dataset")
+        add_credit(record, person)
+
+        credit = self.credits_of(api_client, url_of, record)[0]
+
+        assert credit["name_identifiers"] == [
+            {
+                "name_identifier": unresolved.value,
+                "name_identifier_scheme": "Local",
+                "scheme_uri": None,
+            }
+        ]
+
+    def test_an_affiliation_with_two_identifiers_gives_its_ror_id(
+        self, api_client, url_of, record_of, author
+    ):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        person, institute = author
+        ContributorIdentifierFactory(related=institute, type="Wikidata", value="Q1")
+        record = record_of("dataset")
+        add_credit(record, person, institute)
+
+        credit = self.credits_of(api_client, url_of, record)[0]
+
+        assert credit["affiliation"][0]["affiliation_identifier_scheme"] == "ROR"
+
+    def test_an_affiliation_with_no_identifier_gives_null_for_the_three_keys(
+        self, api_client, url_of, record_of
+    ):
+        from fairdm.factories import OrganizationFactory, PersonFactory
+
+        record = record_of("dataset")
+        add_credit(record, PersonFactory(), OrganizationFactory())
+
+        entry = self.credits_of(api_client, url_of, record)[0]["affiliation"][0]
+
+        assert entry["affiliation_identifier"] is None
+        assert entry["affiliation_identifier_scheme"] is None
+        assert entry["scheme_uri"] is None
+
+    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    def test_the_body_answering_a_create_carries_the_creators_credit(
+        self, url_of, member_at, signed_in, body_for, kind
+    ):
+        from fairdm.factories import PersonFactory
+
+        creator = PersonFactory(
+            first_name="Ada", last_name="Lovelace", is_active=True, is_claimed=True
+        )
+
+        response = create_through_the_api(
+            kind, url_of, member_at, signed_in, body_for, creator
+        )
+
+        assert response.status_code == 201, response.content
+        credit = next(
+            credit
+            for credit in response.json()["contributors"]
+            if credit["uuid"] == creator.uuid
+        )
+        assert set(credit) == CREDIT_KEYS
+        assert credit["name"] == "Lovelace, Ada"
+        assert credit["given_name"] == "Ada"
+        assert credit["family_name"] == "Lovelace"
+
+    def test_the_body_answering_a_partial_change_carries_the_same_keys(
+        self, url_of, member_at, signed_in
+    ):
+        from fairdm.factories import PersonFactory
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        editor = PersonFactory(
+            first_name="Ada", last_name="Lovelace", is_active=True, is_claimed=True
+        )
+        member_at(project, ContributionLevel.EDIT, editor)
+
+        response = signed_in(editor).patch(
+            url_of(project), {"name": "Renamed"}, format="json"
+        )
+
+        assert response.status_code == 200, response.content
+        credit = response.json()["contributors"][0]
+        assert set(credit) == CREDIT_KEYS
+        assert credit["given_name"] == "Ada"
+        assert credit["family_name"] == "Lovelace"
+
+
 def registered(kind):
     """Return the registered sample or measurement types, in a stable order."""
     from fairdm.registry import registry
