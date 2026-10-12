@@ -3,7 +3,7 @@
 Questions the specification answered without putting them to the maintainer, with the reasoning
 that is too long for the specification itself. Each says what would reopen it.
 
-## Two endpoints, and the mixed one is removed
+## D1. Two endpoints, and the mixed one is removed
 
 The maintainer asked for this to be thought through and agreed with the outcome.
 
@@ -24,7 +24,7 @@ carried the API, so removing the mixed endpoint breaks nobody.
 *Revisit if:* a caller needs one request that returns people and organizations together for a
 reason a record's credits do not cover.
 
-## A list entry is compact and a single record is complete
+## D2. A list entry is compact and a single record is complete
 
 FS-011 returns a project, dataset, sample or measurement in full in a list, because a script
 walking a dataset wants every value. A directory of people is different. A biography, a set of
@@ -35,14 +35,14 @@ so a caller reading both never meets a field that means two things.
 
 *Revisit if:* callers routinely request every person one by one after listing them.
 
-## One list of credits, with the portal's own roles
+## D3. One list of credits, with the portal's own roles
 
 The maintainer ruled that creators and contributors are not separated. A record holds one ordered
 list of contributions, each with its roles from the portal's contribution role vocabulary. Deciding
 which roles make someone a DataCite creator, and which DataCite contributor type each other role
 becomes, is a mapping an export owns. Putting it in the API would freeze it into every response.
 
-## The affiliation on a credit never falls back to the profile
+## D4. The affiliation on a credit never falls back to the profile
 
 A contribution stores the organization the person is credited from, and that value is kept with
 the record. It does not follow the person when they change institution. Filling an empty one from
@@ -51,21 +51,21 @@ part in it, and the answer would change over time without the record changing.
 
 *Revisit if:* portals report that most credits are entered without an organization.
 
-## A credit held by a hidden account is still shown
+## D5. A credit held by a hidden account is still shown
 
 The people list leaves out superusers and the anonymous account, as the portal's own lists do. A
 superuser can still be an author. The record's page shows that credit to every visitor, so the API
 shows it too, with the name, identifiers and roles. It gives no address, because no profile is
 served at one. The alternative, dropping the credit, would make a record's attribution wrong.
 
-## A contributor's records are public only, for every caller
+## D6. A contributor's records are public only, for every caller
 
 FS-019 ruled that a contributor's page lists public projects and datasets only, even to the person
 themself, so that a profile reads the same to everyone. The lists narrowed to a contributor follow
 that rule and not the usual one, under which a caller also sees private records they hold a level
 on. A caller who wants their own private records asks the ordinary lists.
 
-## Samples and measurements are not listed by contributor
+## D7. Samples and measurements are not listed by contributor
 
 A contributor's page has tabs for projects and datasets and none for samples or measurements. The
 API offers the same two. Samples and measurements have one endpoint per registered type, so a list
@@ -73,3 +73,50 @@ of everything a person is credited on would be a new kind of endpoint spanning t
 than this feature needs.
 
 *Revisit if:* a contributor's page gains samples or measurements.
+
+## Design review, 2026-10-12
+
+
+One reviewer read the plan through three lenses before any code was written: one high finding,
+six medium and seven low. Each was applied as an edit to the plan or the task list, except the two
+below.
+
+## D8. Design review: a contributor's records are the ones they are credited on
+
+**A contributor's records are the ones they are credited on, and nothing else.** The plan first
+used the methods behind an organization's page, which add the projects the organization owns. The
+specification asks for the records a contributor is credited on, so the filter narrows by credit
+alone and an owned project with no credit is left out.
+*Revisit if:* the maintainer wants the API's list to match the organization page's tabs.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
+
+## D9. Design review: other names and the kind of affiliation are returned
+
+**Other names and the kind of affiliation are returned although a person's page does not show
+them.** The specification asks for a person's other names and for the kind of each affiliation.
+Neither is on the person's own page today. Other names are entered under the label "Other names
+you publish under", so they are public by intent, and the kind of affiliation is shown on the
+organization's page, where owners and administrators are named. Both stay, as the approved
+specification lists them. The maintainer is told at the merge gate so that either can be removed.
+*Revisit if:* #246 gives a person control over what is shared.
+**ADR:** none — a reading of this feature's own requirements.
+
+## D10. Design review: neither list returns added or modified
+
+**Neither list returns `added` or `modified`.** The specification's lists of fields do not name
+them, and the endpoint being replaced returned neither. Both remain usable for ordering and for the
+changed-since filters.
+**ADR:** none — local to this feature.
+
+## D11. Design review: type and country are stored codes only
+
+**An organization's type and country are returned as stored codes only.** Labels beside them would
+go beyond what the specification lists, and the codes are what the filters take.
+**ADR:** none — local to this feature.
+
+## D12. Design review: names on a credit come from an annotation
+
+**Given and family name on a credit come from an annotation.** `Contribution.contributor` points at
+the polymorphic base, so the credit queryset annotates the two names through `contributor__person`
+in the same query. The reviewer's probe confirmed one query for a page of credits.
+**ADR:** none — a detail of how one serializer is fed.

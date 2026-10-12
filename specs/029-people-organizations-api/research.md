@@ -87,14 +87,16 @@ account. The people viewset uses it. An organization's members are filtered by t
 **A credit held by a hidden account.** FS-011 returned `null` for the contributor. The
 specification now asks for the credit to be shown, without an address. The credit serializer reads
 the name and identifiers from the contributor and sets `uuid` and `url` to `null` when the
-contributor is in the hidden set, which `RecordListSerializer` already loads once for a page.
+contributor is in the hidden set, which `RecordReferenceField.visible_pks()` loads once for a
+request into the serializer context.
 
 **Identifiers on credits cost one prefetch.** `load_related()` adds
 `contributor__identifiers` and `affiliation__identifiers` to the credit prefetch. Given and family
 names live on the `Person` table, while the prefetch selects the `Contributor` base, so the credit
-queryset must return real instances. `Contribution.contributor` is a foreign key to a polymorphic
-model, and `select_related` on it yields base instances. The plan loads the people of a page in
-one extra query, keyed by primary key, and the test for the query ceiling proves the count.
+queryset cannot read them from it. `Contribution.contributor` is a foreign key to a polymorphic
+model, and `select_related` on it yields base instances. The credit queryset annotates the two
+names through `contributor__person` in the same query, and the test for the query ceiling proves
+the count.
 
 **No new package.** django-filter, DRF and drf-spectacular are already used for everything this
 needs.
@@ -108,7 +110,6 @@ otherwise, with the scheme's own address in `scheme_uri`.
 **An identifier filter must accept both forms.** The value is stored bare. The filter strips a
 known scheme address from the front of what it is given before comparing.
 
-**A contributor's records.** `get_public_projects()` and `get_public_datasets()` are the one source
-behind the profile page's tabs. The `contributor` filter on the project and dataset lists calls
-them, so the API cannot drift from the page. For an organization that includes the projects it
-owns and the datasets in them, as its page does.
+**A contributor's records.** The `contributor` filter on the project and dataset lists returns the
+public records the contributor is credited on, which is `contributor.projects.get_visible()` and
+`contributor.datasets.get_visible()`.

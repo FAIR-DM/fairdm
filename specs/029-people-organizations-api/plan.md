@@ -33,7 +33,7 @@ lists. Everything is read-only, there is no migration and no new dependency.
 | Field | Source |
 |---|---|
 | `uuid`, `url` | The contributor's short identifier and API address. Both `null` for a hidden account |
-| `name` | "Family, Given" for a person with both names (`get_full_name_display("family_given")`), else the contributor's `name` |
+| `name` | For a person, whatever `get_full_name_display("family_given")` gives: "Family, Given" with both names, the one name when only one is set, the display name when neither is. For an organization, its `name` |
 | `name_type` | `Personal` or `Organizational` |
 | `given_name`, `family_name` | A person's `first_name` and `last_name`. `null` for an organization |
 | `name_identifiers` | One entry per identifier: `name_identifier`, `name_identifier_scheme`, `scheme_uri` |
@@ -45,23 +45,29 @@ serializers. An affiliation with several identifiers gives its ROR ID where it h
 first.
 
 `RecordSerializer.load_related()` extends the credit prefetch with `contributor__identifiers` and
-`affiliation__identifiers`. Real `Person` instances for a page of records are loaded in one query
-by `RecordListSerializer`, which already walks the page once to prime references, and are also
-loaded for a single record. A credit whose contributor has been deleted is left out of the list.
+`affiliation__identifiers`, and annotates each credit with the person's given and family name
+through `contributor__person`, which costs no further query. The credit serializer reads the two
+annotated values. A credit serialized without the annotation, as in the body that answers a create
+or an update, reads the names from the contributor itself. `name_type` and the typed route come
+from `get_real_instance_class()`, which needs no query. A credit whose contributor has been
+deleted is left out of the list.
 
 The level a credit grants is not a field, as now.
 
 ### D2. People
 
 `PersonListSerializer(serializers.ModelSerializer)`: `url`, `html_url`, `uuid`, `name`,
-`given_name`, `family_name`, `identifiers`, `primary_organization`, `added`, `modified`.
+`given_name`, `family_name`, `identifiers`, `primary_organization`. `added` and `modified` are not returned. They stay
+available for ordering and for the changed-since filters.
 
 `PersonSerializer(PersonListSerializer)` adds `alternative_names`, `profile`, `links`,
 `languages`, `image`, `affiliations`, `projects`, `datasets`.
 
 - `identifiers` uses the existing `ContributorIdentifierSerializer` (`type`, `value`, `link`).
 - `primary_organization` and each affiliation's `organization` are `{"uuid", "url", "name"}`,
-  from a small `OrganizationReferenceSerializer`.
+  from a small `OrganizationReferenceSerializer`. The primary organization is that of the primary
+  entry among `get_affiliation_history()["current"]`, so a pending or ended primary affiliation
+  gives none. `Person.primary_organization` is not used, because it does not check either.
 - `affiliations` comes from `get_affiliation_history()`, current first and then past. Each entry:
   `organization`, `type` (`member`, `admin` or `owner`), `start`, `end`, `is_primary`. Dates are
   given as recorded, as a year, a month or a day.
@@ -79,8 +85,8 @@ has not ended) and `identifier`.
 ### D3. Organizations
 
 `OrganizationListSerializer`: `url`, `html_url`, `uuid`, `name`, `type`, `country`,
-`identifiers`, `added`, `modified`. `type` and `country` are given as stored codes with their
-labels beside them in `type_label` and `country_name`, so a caller can filter on what it reads.
+`identifiers`. `type` and `country` are given as the stored codes, which are what the filters
+take.
 
 `OrganizationSerializer(OrganizationListSerializer)` adds `alternative_names`, `profile`, `city`,
 `links`, `image`, `parent`, `sub_organizations`, `members`, `projects`, `datasets`.
@@ -101,18 +107,23 @@ organizations with no parent) and `identifier`.
 `IdentifierFilter` in `fairdm/api/filters.py`, a `django_filters.CharFilter` subclass used by both
 filter sets. It trims the value, strips a known scheme address from the front
 (`IdentifierLookup` in `fairdm/contrib/contributors/choices.py`) and matches
-`identifiers__value` exactly.
+`identifiers__value` exactly, and also with its spaces removed, so that the address a credit
+gives for an ISNI finds its holder. The people list is `Person.objects.real()`, so an identifier
+a hidden account holds finds nobody.
 
 ### D5. A contributor's records
 
 `ContributorRecordsFilterSet` in `fairdm/api/filters.py` with one filter, `contributor`, taking a
 short identifier. `ProjectViewSet` and `DatasetViewSet` name it as their `filterset_class`. It
 resolves the contributor among people the people list shows and all organizations, and narrows
-the list to `get_public_projects()` or `get_public_datasets()` by primary key. An identifier that
+the list to the records that contributor is credited on: `contributor.projects.get_visible()` or
+`contributor.datasets.get_visible()`, by primary key. That is credit only, for a person and an
+organization alike. A project an organization owns and is not credited on is not returned, because
+the specification asks for the records a contributor is credited on. An identifier that
 names nobody, or names a hidden account, gives an empty list and not an error, as the
 specification asks.
 
-Because those methods return public records only, the narrowed list is public only for every
+Because `get_visible()` returns public records only, the narrowed list is public only for every
 caller, even one who holds a level on a private record.
 
 ### D6. Routes, references and removal
@@ -120,7 +131,8 @@ caller, even one who holds a level on a private record.
 - `fairdm/api/router.py` registers `people` (`basename="person"`) and `organizations`
   (`basename="organization"`) and no longer registers `contributors`.
 - `RecordReferenceField.route_name()` returns `api:person-detail` or `api:organization-detail`.
-- `ContributorSerializer` and `ContributorViewSet` are deleted, with no alias.
+- `ContributorSerializer` and `ContributorViewSet` are deleted, with no alias, and the module
+  docstring of `fairdm/api/viewsets.py` is corrected.
 - `CORE_HEADINGS` in `fairdm/api/schema.py` gains `people` and `organizations` and loses
   `contributors`. The endpoint table in `fairdm/api/settings.py` follows.
 - `fairdm/contrib/contributors/plugins/overview.py` builds the API address from the contributor's
@@ -148,8 +160,5 @@ documentation for each.
 
 ## Risks
 
-- A credit needs real `Person` instances for given and family names. If the one extra query per
-  page cannot be made to hold, the fallback is to read `first_name` and `last_name` through an
-  annotation on the credit queryset.
 - Twenty existing tests name the old routes. They are rewritten in US-1 against the new ones, and
   none is deleted without its replacement.

@@ -1,0 +1,151 @@
+{
+ "lens": "spec-compliance",
+ "stage": "design",
+ "verdict": "request_changes",
+ "risk": "medium",
+ "scope": "Design review of specs/029-people-organizations-api plan.md, tasks.md, research.md, planning-notes.md and decisions.md against the approved spec.md; no diff. Three lenses in one pass: spec-compliance, security, architecture; each finding's claim starts with its lens. Coverage: FR against tasks 27 of 27, SC against tasks 7 of 7; gaps reported are FR-005 (identifier filter), FR-012/013 (write responses), FR-019, FR-022, FR-025 and SC-007 (credit schema). Acceptance scenarios against a failing test: US-1 12 of 12, US-2 12 of 12, US-3 10 of 10, US-4 5 of 5, edge cases 8 of 8 (one with no test, SPEC-005). Routes, 7 of 7 with their rule: GET people list and record (AllowAny, Person.objects.real(), hidden accounts 404); GET organizations list and record (AllowAny, all organizations, members limited to verified, current, listed people); contributors list and record removed (404); project and dataset lists gain ?contributor= (existing permissions and visibility filter, then public records only); every record route changes the shape of `contributors` with permissions unchanged; the profile page's API link. Serializer fields checked against the signed-out page, every field of D1, D2 and D3: person.html, organization.html, the affiliations and hierarchy cards and the embedded Schema.org metadata. Both sides checked: select_related and lazy access to Contribution.contributor (probe on the test database, nothing written to the repository); read and write responses; person and organization branches of get_public_projects()/get_public_datasets(); ended and pending branches of the primary affiliation; _get_public_filter() for Person and Organization (no `visibility` or `dataset` field on either, so the default visibility backend leaves both lists whole). Research premise spot-check: django-polymorphic 4.11.7 as installed, select_related over a foreign key to a polymorphic base yields base instances (confirmed). Code read: fairdm/api serializers, viewsets, filters, router, schema (headings), settings (endpoint table, defaults); contributors models (Contributor, Person, Affiliation, Organization, Contribution, ContributorIdentifier), managers, choices, forms/forms.py, forms/profile.py, utils/transforms.py, plugins/overview.py and its templates; fairdm/db/models.py; fairdm/registry/factories.py (serializer Meta); core project and dataset get_visible(); tests/test_api/test_viewsets.py and conftest.py; CONSTITUTION.md articles I-V; CONTEXT.md contributor terms; docs/contributing/standards/testing.md. Not read: the rest of the repository.",
+ "skills_loaded": [
+  {
+   "name": "craft-review",
+   "receipt": "RECEIPT: craft-review/2026-09-28/e60c2a95",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-security",
+   "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-simplify",
+   "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+   "loaded_via": "path-read"
+  }
+ ],
+ "findings": [
+  {
+   "id": "SPEC-001",
+   "severity": "high",
+   "confidence": "verified",
+   "claim": "[spec-compliance] plan D5 and tasks T020 return, for an organization, projects it owns and datasets in those projects whether or not it is credited on them. spec FR-019 narrows to the records the contributor 'is credited on', and US-4 scenarios 1 and 2 say 'exactly those' records are returned. T020 asserts the opposite of those scenarios for an organization.",
+   "evidence": "plan.md D5: the filter narrows to get_public_projects()/get_public_datasets(). fairdm/contrib/contributors/models.py:1495-1518: Organization overrides both to add Q(owner=self) and Q(project__owner=self). tasks.md T020: 'For an organization the lists match its profile page, including a project it owns.' spec.md FR-019 and US-4 acceptance scenarios 1-2. Consequence: ?contributor=<organization> returns records whose own `contributors` list does not name that organization, for every organization that owns a project. The spec's clarification 'as the contributor's page does' is attached to the public-only rule, not to which records count. Nothing private is exposed: both methods end in get_visible().",
+   "suggested_fix": "plan.md D5: narrow by credit only, for a person and an organization alike: the contributor's `projects` / `datasets` (models.py:350-359) followed by get_visible(), which is what the base Contributor.get_public_projects()/get_public_datasets() already do (models.py:361-382). tasks.md T020: replace the organization sentence with 'a public project an organization owns and is not credited on is not returned'. Drop the last sentence of research.md 'A contributor's records'. If the lists should instead mirror the organization page, that is a change to FR-019 and US-4 scenarios 1-2 in spec.md and goes to the maintainer; it is not a plan edit.",
+   "reproduction": "Organization O owns public project P and holds no credit on it. GET /api/v1/projects/?contributor=<O.uuid> returns P under the plan; US-4 scenario 1 expects it absent."
+  },
+  {
+   "id": "SEC-001",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[security] plan D2 does not say where `primary_organization` is read from, and no planned test fails if an unverified primary affiliation is published. The model attribute of that exact name returns the organization of any primary affiliation, pending or ended, and a signed-in person can create a pending primary affiliation to any organization themselves.",
+   "evidence": "fairdm/contrib/contributors/models.py:887-902: Person.primary_affiliation()/primary_organization filter on is_primary only. fairdm/contrib/contributors/forms/forms.py:100-120: the self-service form takes `organization` and `is_primary` and stores type PENDING when the organization has managers. A ModelSerializer field named `primary_organization` with no source reads that property. tasks.md T008 covers the ended case only; T009's pending case is about `affiliations`. spec.md FR-022: an affiliation is shown only when verified. The serializer being removed gets this right (fairdm/api/serializers.py:693-703) and nothing in the plan carries that rule over.",
+   "suggested_fix": "plan.md D2: state that `primary_organization` is the organization of the primary entry in get_affiliation_history()['current'] (verified and not ended), in the list and the single record. tasks.md T008: add 'a person whose primary affiliation is pending has no primary organization'.",
+   "reproduction": "Person P submits the affiliation form for organization O with 'Primary' ticked; O has an owner, so the row is PENDING. GET /api/v1/people/ must show primary_organization null for P."
+  },
+  {
+   "id": "SEC-002",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[security] Fault in spec.md, not the plan: FR-007 and FR-010 require a person's and an organization's other names, and FR-022 / SC-003 forbid anything the public page does not show a signed-out visitor. The public pages do not show other names anywhere, so the two requirements cannot both hold. research.md states that every served field is one the page shows; that is untrue for `alternative_names`.",
+   "evidence": "grep for alternative_names over fairdm/**/templates returns nothing; the only readers are forms/profile.py, admin.py and the ORCID and ROR transforms (utils/transforms.py:514, 746). The page's embedded Schema.org metadata (SchemaOrgTransform, transforms.py:195-240) carries givenName and familyName and no alternateName. plan.md D2 and D3 serve `alternative_names` on both record serializers, as FR-007/FR-010 ask. The profile form labels the field 'Other names you publish under' (forms/profile.py:231-235), so the content is meant to be public, which is why this is medium and not high. Two lesser cases of the same tension, both required by the spec: a person's affiliation `type` (the person page shows organization, period and primary only; the kind appears only on the organization's page), and members beyond the ten the organization page draws.",
+   "suggested_fix": "No plan edit settles this. Put one question to the maintainer before US-2 is built: either FR-022/SC-003 read 'what the public page shows, and the other names a contributor publishes under', or FR-007/FR-010 lose other names and D2/D3/T009/T015 drop `alternative_names`. Until ruled, carry it as a watch item on T009, T012, T015 and T018."
+  },
+  {
+   "id": "ARCH-001",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[architecture] plan D1 loads real Person instances by walking the page in RecordListSerializer, and 'also' for a single record at a place it does not name. The plan's own fallback (Risks, first bullet) is simpler and cheaper: it costs no query, sits in RecordSerializer.load_related(), and serves the list and the single record through one path. The query ceiling of FR-024 holds either way; the primary design is the one with two code paths to keep in step.",
+   "evidence": "Probe run against the test database on this branch (three person credits and one organization credit on a dataset): Contribution.objects.select_related('contributor') returns base Contributor instances in 1 query, confirming research.md; adding annotate(given=F('contributor__person__first_name'), family=F('contributor__person__last_name')) returns the names in the same 1 query, null for the organization; select_related('contributor__person') also stays at 1 query. get_real_instance_class() on the base instance needs no query, so `name_type` and the typed route need no real instance either. fairdm/api/serializers.py:369-382: RecordListSerializer is reached only through Meta.list_serializer_class, so the page walk is skipped for any record serializer whose Meta does not inherit RecordSerializer.Meta, and for every single-record response.",
+   "suggested_fix": "plan.md D1: replace the sentence 'Real Person instances ... are also loaded for a single record' with: the credit queryset in load_related() annotates the person's given and family name through contributor__person, and the credit serializer builds 'Family, Given' from those two values. Remove RecordListSerializer from tasks.md T005 and delete the first bullet of plan.md Risks. T003 stays as written and proves the count."
+  },
+  {
+   "id": "SPEC-002",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[spec-compliance] No planned test reads a credit from the response to a create or a change, where the credits do not come from load_related(). FR-012/FR-013 apply to every record the API returns. On those two paths the credit rows are fetched lazily, with no prefetch, no annotation and no page walk, so whichever loading design D1 uses, this is the path it does not cover.",
+   "evidence": ".venv/lib/python3.13/site-packages/rest_framework/mixins.py:70-73: after an update DRF empties the instance's prefetch cache before serializing the response. A create serializes a new instance that never passed through get_queryset(), and CreatorCreditMixin.create() has just credited the creator on it (fairdm/api/serializers.py:101-112), so every POST response holds one credit. tests/test_api/test_viewsets.py:1350-1366: the existing creator test reads the stored level and never the response's credit. Probe: on the lazy path contribution.contributor is a real Person, so reading given and family name from the contributor when the annotation is absent works. tasks.md T001 names GET cases only.",
+   "suggested_fix": "tasks.md T001: add 'the body answering a create and a partial change carries the creator's credit with the same keys, given and family name included'. tasks.md T005: add 'a credit serialized without the annotation reads the names from the contributor itself'.",
+   "reproduction": "POST /api/v1/projects/ as a claimed person with first and last name set; the 201 body's contributors[0] must carry given_name and family_name and must not be a 500."
+  },
+  {
+   "id": "SPEC-003",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[spec-compliance] tasks.md builds the people and organizations list serializers in US-1 (T006) before any test of their shape exists; the tests that describe a list entry are T008 (US-2) and T014 (US-3). Those assertions pass on arrival and are never seen to fail, against the plan's own constitution check and the testing standard. T006 also needs OrganizationReferenceSerializer for `primary_organization`, which T012 (US-2) creates.",
+   "evidence": "tasks.md T006: 'PersonListSerializer, OrganizationListSerializer, PersonViewSet and OrganizationViewSet serving the list shape'. T004, the only US-1 test of the two endpoints, checks that the routes exist and nothing about an entry. T008 and T014 list the entry's keys. plan.md D2: `primary_organization` comes from OrganizationReferenceSerializer; tasks.md T012 is where that class is listed. plan.md 'Constitution check': tests are written first and seen to fail.",
+   "suggested_fix": "tasks.md: move the list-entry assertions of T008 and T014 (keys carried, keys absent, people only / organizations only, primary organization rules) into a US-1 test task placed before T006, and move OrganizationReferenceSerializer from T012 to T006. T008 and T014 keep paging, sorting and changed-since; US-2 and US-3 keep the single record, the filters and the query counts. No task is added."
+  },
+  {
+   "id": "SPEC-004",
+   "severity": "medium",
+   "confidence": "verified",
+   "claim": "[spec-compliance] FR-025 and SC-007 ask the generated documentation to show the shape of a credit with fields that match what is returned. No task tests it: T013 and T019 cover the people and organizations schemas, T007 is prose only.",
+   "evidence": "tasks.md T001-T007 contain no tests/test_api/test_schema.py work. plan.md D1 makes `uuid` and `url` null for some credits, `given_name`/`family_name` null for organizations and `affiliation` a list; a computed field with no declared type is documented by drf-spectacular as a string or not at all, so the generated shape can drift from the response without any test failing.",
+   "suggested_fix": "tasks.md T001: add one test in tests/test_api/test_schema.py that the credit component of a project, a dataset, one sample type and one measurement type lists exactly the keys T001 names for a returned credit."
+  },
+  {
+   "id": "SPEC-005",
+   "severity": "low",
+   "confidence": "verified",
+   "claim": "[spec-compliance] The spec's edge case 'a contributor is deleted while credited on a record; the record is returned without that credit' has an implementation line (T005) and no test. Without the guard a flattened credit reads a name from nothing and the record, and every list page holding it, answers 500.",
+   "evidence": "fairdm/contrib/contributors/models.py:1809-1818: Contribution.contributor is null=True, on_delete=SET_NULL. tasks.md T005: 'A credit whose contributor is gone is left out.' T001 lists no such case. Today the reference field returns null for it (serializers.py:428), so the failure is new with the flattened shape.",
+   "suggested_fix": "tasks.md T001: add 'a credit whose contributor has been deleted is absent from the record and the record is still returned'."
+  },
+  {
+   "id": "SEC-003",
+   "severity": "low",
+   "confidence": "verified",
+   "claim": "[security] FR-005 requires hidden accounts to be absent 'from the answer to any filter'. T010 has no case for the `identifier` filter given an identifier a superuser holds. The design is sound, since the filter narrows a queryset that already leaves them out; the requirement has no test that would fail.",
+   "evidence": "plan.md D2: PersonViewSet queryset is Person.objects.real(). tasks.md T010 identifier cases: the holder, the full address, a value nobody holds. T020 does cover the superuser case for the `contributor` filter, and T015 for an organization's members.",
+   "suggested_fix": "tasks.md T010: add 'an identifier held by a superuser returns an empty list'."
+  },
+  {
+   "id": "SPEC-006",
+   "severity": "low",
+   "confidence": "verified",
+   "claim": "[spec-compliance] tasks.md T020 asks for two things that cannot both be told apart: an identifier that names nobody gives an empty list with status 200, and a database number is refused. A database number is an identifier that names nobody.",
+   "evidence": "tasks.md T020, last two sentences. spec.md US-4 scenario 4: a contributor who does not exist gives an empty list. plan.md D5: 'gives an empty list and not an error'. Refusing digits with a 400 would need a second rule the spec does not ask for.",
+   "suggested_fix": "tasks.md T020: replace 'A database number is refused' with 'a contributor's database number gives an empty list, never that contributor's records'."
+  },
+  {
+   "id": "SPEC-007",
+   "severity": "low",
+   "confidence": "likely",
+   "claim": "[spec-compliance] The query-count tasks T003 and T011 compare against a baseline too small to exercise every prefetch. Django skips a prefetch that has no rows to fetch for, so 'one dataset holding one credit' runs fewer queries than a page of mixed credits with no N+1 present, and the test fails for the wrong reason.",
+   "evidence": "tasks.md T003: 'one dataset holding one credit' against 'ten datasets holding five credits each, people and organizations mixed, with identifiers and affiliations'. One credit cannot be both a person and an organization. T011 has the same wording for 'one person'. The existing pattern grows identical fixtures from two to twelve (tests/test_api/test_viewsets.py:2237-2251).",
+   "suggested_fix": "tasks.md T003 and T011: state that the small case holds every kind the large one does (a person credit with an identifier and an affiliation that has an identifier, and an organization credit; a person with an identifier and an affiliation)."
+  },
+  {
+   "id": "ARCH-002",
+   "severity": "low",
+   "confidence": "verified",
+   "claim": "[architecture] T011 and the list half of T017 add new query-count classes for something the existing parametrised test gives once T004 has moved it. TestQueryCount already has a 'contributor' kind with a person holding an identifier and two affiliations and an organization with a parent and an identifier.",
+   "evidence": "tests/test_api/test_viewsets.py:2169-2251: KINDS includes 'contributor', add_contributors() builds both kinds, and the test compares two against twelve for a visitor and a token. T004 must split that kind into people and organizations because it names api:contributor-list.",
+   "suggested_fix": "tasks.md: fold T011 and the 'page of organizations' half of T017 into T004 as 'the contributor kind of TestQueryCount becomes a people kind and an organizations kind'. T017 keeps the single organization with one member against thirty."
+  },
+  {
+   "id": "SEC-004",
+   "severity": "low",
+   "confidence": "likely",
+   "claim": "[security] plan D2 and D3 add `added` and `modified` to the people and organizations responses. FR-006 and FR-009 do not ask for them and the public page shows neither. For a person, `modified` moves on every full save of the account row, which includes changes that have nothing to do with the profile.",
+   "evidence": "plan.md D2/D3 field lists. fairdm/contrib/contributors/models.py:194-204: `modified` is auto_now on the Contributor row that Person extends. spec.md FR-006, FR-009, FR-022. The exposure is small and partly required: FR-004 makes both lists filterable by modified_after and modified_before, so the same moment can be found by narrowing. The serializer being removed returns neither field (serializers.py:662-679).",
+   "suggested_fix": "plan.md D2 and D3, tasks.md T008 and T014: drop `added` and `modified` from the two list serializers and keep them as ordering and filter fields only, as the contributors list does today. Removes two fields and two assertions."
+  },
+  {
+   "id": "ARCH-003",
+   "severity": "low",
+   "confidence": "likely",
+   "claim": "[architecture] plan D3 adds `type_label` and `country_name` beside `type` and `country`. FR-009 asks for the type and the country; the two extra keys have no requirement behind them.",
+   "evidence": "plan.md D3 first paragraph; tasks.md T014 key list; spec.md FR-009. A caller holding the stored code can filter with it (FR-011), which is the reason D3 gives for returning codes.",
+   "suggested_fix": "Either drop `type_label` and `country_name` from D3 and T014, or keep them and record in decisions.md that they go beyond FR-009. No further work either way."
+  }
+ ],
+ "notes": [
+  "research.md 'A credit held by a hidden account' says RecordListSerializer loads the hidden set once for a page. It is RecordReferenceField.visible_pks() that loads it, once per request, into the serializer context (fairdm/api/serializers.py:223-232).",
+  "tasks.md T004 names tests by route name only. tests/test_api/test_schema.py:308-316 imports ContributorViewSet and asserts the 'Contributors' heading, and test_viewsets.py routable_models() and TestQueryCount.KINDS refer to the Contributor model; all three break in US-1 and are not named.",
+  "plan.md D1 says `name` is 'Family, Given' for a person with both names, else the contributor's name. get_full_name_display('family_given') returns the one name it has when only one is set (models.py:1018-1039). Say which is meant.",
+  "tasks.md T019 corrects the serializer reference table and the documentation headings in US-3, while the classes they name are removed in US-1. docs/portal-development/restful-api.md:577, 584 and 812 are stale between the two stories.",
+  "fairdm/api/viewsets.py:8 names ContributorViewSet in the module docstring; plan.md D6 does not list it.",
+  "plan.md D6: the profile page's 'REST API' button on a superuser's page will link to a people address that answers 404, as the contributors address does today.",
+  "plan.md D4 strips a scheme address and matches the stored value exactly, while D1 returns `name_identifier` as the resolver address. For a scheme whose resolver address reshapes the value (fairdm/core/abstract.py:488-500, ISNI spaces) the address a credit gives will not match in the filter.",
+  "specs/011-restful-api/decisions.md, plan.md and progress.md also describe the contributors endpoint. FR-027 covers spec.md only, so these are left as history; say so in T007."
+ ]
+}

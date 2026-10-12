@@ -3,12 +3,22 @@
   "feature": "029-people-organizations-api",
   "branch": "029-people-organizations-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "QUEUED",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
       "at": "2026-10-12T09:27:19Z",
       "note": "specification approved on #471; epic #470, stories #472-475"
+    },
+    {
+      "state": "PLAN",
+      "at": "2026-10-12T09:51:24Z",
+      "note": "started on the maintainer's instruction while #383 is open; research, plan and 23 tasks written"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-12T09:51:30Z",
+      "note": "plan and tasks written: 23 tasks, all open; one reviewer, three lenses"
     }
   ],
   "gates": {
@@ -27,6 +37,19 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-12T10:01:57Z",
+      "self_resolved": [
+        "14 findings: 1 high, 6 medium, 7 low; verdict request changes",
+        "high SPEC-001 applied: the contributor filter narrows by credit only, not by the organization page's owned projects (plan D5, T020)",
+        "medium SEC-001 applied: primary organization is verified and current only (plan D2, T004)",
+        "medium ARCH-001 applied: names on a credit come from an annotation, no page walk (plan D1, T005)",
+        "medium SPEC-002, SPEC-003, SPEC-004 applied as task edits (T001, T004, T006)",
+        "medium SEC-002 carried: other names and affiliation kind stay as the approved spec lists them; put to the maintainer at the merge gate (decisions D9)",
+        "lows applied as task wording; T011 folded into T004; added, modified, type_label and country_name dropped from the output"
+      ]
     }
   },
   "stories": [
@@ -93,11 +116,6 @@
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T011",
           "status": "todo",
           "attempts": 0
         },
@@ -196,7 +214,7 @@
       "max": 120
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     }
   },
