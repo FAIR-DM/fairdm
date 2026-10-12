@@ -2212,6 +2212,38 @@ class TestOrganization:
             assert person.email not in response.content.decode()
 
 
+@pytest.mark.django_db
+class TestOrganizationQueries:
+    def test_a_record_runs_the_queries_of_one_with_fewer_members(self, api_client):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        from fairdm.factories import AffiliationFactory
+
+        def read(organization):
+            address = reverse(
+                "api:organization-detail", kwargs={"uuid": organization.uuid}
+            )
+            with CaptureQueriesContext(connection) as captured:
+                response = api_client.get(address)
+            assert response.status_code == 200
+            return len(captured), len(response.json()["members"])
+
+        few = OrganizationFactory(parent=OrganizationFactory())
+        many = OrganizationFactory(parent=OrganizationFactory())
+        for organization, number in ((few, 2), (many, 30)):
+            for _ in range(number):
+                AffiliationFactory(organization=organization)
+            OrganizationFactory.create_batch(2, parent=organization)
+        read(few)
+
+        queries_few, members_few = read(few)
+        queries_many, members_many = read(many)
+
+        assert (members_few, members_many) == (2, 30)
+        assert queries_many == queries_few
+
+
 def routable_models():
     """Every model with a list and record route: the core kinds and the registered types."""
     from fairdm.contrib.contributors.models import Organization, Person
