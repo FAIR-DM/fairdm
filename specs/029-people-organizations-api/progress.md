@@ -95,3 +95,45 @@ Did: tests/test_api/test_schema.py, TestPeopleComponents: the list entry compone
 Verified: uv run pytest -q -n0 tests/test_api/test_schema.py -> passed. Probes: the list serving the full person fails the entry test, removing filterset_class fails the filters test.
 Next: full verify, then the completion report.
 Watch: none.
+
+## 2026-10-12T10:45:50Z · Implementer US3 · T014
+
+Did: added test_the_list_is_paged, test_the_list_sorts_by_name_in_either_direction (both directions) and test_the_list_narrows_by_the_moment_an_organization_was_changed to TestOrganizationsList.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganizationsList` 12 passed. They pass on arrival because the list route and its backends came with story 1. Probed by setting filter_backends=[] and pagination_class=None on OrganizationViewSet: 12 failed; the file was restored.
+Next: T015, the single organization.
+Watch: none.
+
+## 2026-10-12T10:47:15Z · Implementer US3 · T015
+
+Did: added TestOrganization to tests/test_api/test_viewsets.py: the key set, equality with the list entry, profile/alternative_names/city, links, image, parent (named and null), sub_organizations by name, member shape and type wording, ordering (owner, admin, member then name), absence of pending, ended, superuser and anonymous members, no account state keys. The parent assertions that story 1 took out of TestContributor are in test_the_parent_is_named_by_identifier_address_and_name.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganization` 18 failed, 2 passed; the failures are KeyError for each missing key (members, parent, links, sub_organizations, profile, image) and the key-set assertion. The two passing are the list-entry equality and the account-state guard, which hold already.
+Next: T016, the organization filters.
+Watch: the ordering of sub_organizations (by name) is this story's reading of "by name" in the brief.
+
+## 2026-10-12T10:47:58Z · Implementer US3 · T016
+
+Did: added TestOrganizationFilters to tests/test_api/test_filters.py: type, country, parent by short identifier, a database number and an unknown identifier for parent refused with 400, top_level true and false, identifier bare and as an address (https, http, trailing slash, padded), no holder, and the filters combined.
+Verified: `uv run pytest -q -n0 tests/test_api/test_filters.py::TestOrganizationFilters` red before T018: the filters are not declared, so every narrowing test returns the whole list and the refusals answer 200.
+Next: T017, the query count for a single organization.
+Watch: the unknown-type case is deliberately untested; the spec names no behaviour for it.
+
+## 2026-10-12T10:48:24Z · Implementer US3 · T017
+
+Did: added TestOrganizationQueries: one organization with two members, one with thirty, each with a parent and two sub-organizations; the query count of the single record is equal, and the test asserts the members are present so it cannot pass with none.
+Verified: `uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestOrganizationQueries` fails with KeyError 'members' before T018.
+Next: T018, the serializer, the member serializer, the filter set and get_serializer_class.
+Watch: probe this test after T018 by dropping the member prefetch.
+
+## 2026-10-12T10:50:22Z · Implementer US3 · T018
+
+Did: added OrganizationSerializer (alternative_names, profile, city, links, image, parent, sub_organizations, members), MemberSerializer, PersonReferenceSerializer and AffiliationTypeField (the wording of an affiliation's type, now used by AffiliationSerializer too); OrganizationFilterSet with type, country, parent, top_level and identifier; OrganizationViewSet.get_serializer_class() and a single-record queryset that selects the parent and prefetches sub_organizations and the current verified affiliations with their people. The list queryset is unchanged.
+Verified: `uv run pytest -q -n0` on TestOrganization, TestOrganizationQueries, TestOrganizationsList and TestOrganizationFilters: 47 passed. `uv run pytest -q -n auto --dist loadscope tests/test_api`: 1269 passed. Probes: removing the affiliations Prefetch makes TestOrganizationQueries fail (35 queries against 7); removing the hidden-account exclusion fails both hidden-member cases. Both files restored.
+Next: T019, schema tests and the Organizations section of the documentation.
+Watch: AffiliationSerializer changed from a method field to AffiliationTypeField (story 2's code, same output); decisions.md D17.
+
+## 2026-10-12T10:51:30Z · Implementer US3 · T019
+
+Did: added TestOrganizationComponents to tests/test_api/test_schema.py (list component, single component, member component, the five filters on the list and none on the record). Rewrote the Organizations section of docs/portal-development/restful-api.md: the single organization's fields and members in tables, what the list leaves out, one example request per filter, that only current verified members are listed, the classes behind it, and rows for OrganizationSerializer, MemberSerializer, AffiliationTypeField, PersonReferenceSerializer and OrganizationFilterSet in the serializer table. Added a paragraph for the single organization and its filters to docs/user-guide/reading-records-with-a-script.md, which described people and organizations and now would have left the organization record out.
+Verified: `uv run pytest -q -n0 tests/test_api/test_schema.py::TestOrganizationComponents` 5 passed. Probed by returning the list serializer for every action and dropping the filter set: 3 failed; restored.
+Next: the full verify, then the report.
+Watch: the user guide page is outside the paths the brief names; the protocol asks for every page the story changed the truth of.
