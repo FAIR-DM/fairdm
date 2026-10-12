@@ -62,7 +62,7 @@
       "id": "US1",
       "priority": "P1",
       "issue": 472,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -303,7 +303,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 0,
+      "used": 21.51,
       "max": 120
     },
     "design_review_cycles": {
