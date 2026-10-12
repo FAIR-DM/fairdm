@@ -4,7 +4,6 @@ import pytest
 from bs4 import BeautifulSoup
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
 
 from demo.factories import RockSampleFactory, WaterSampleFactory
 from fairdm.factories import DatasetFactory, PointFactory, UserFactory

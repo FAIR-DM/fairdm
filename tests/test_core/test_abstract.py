@@ -3,10 +3,12 @@
 import pytest
 from django.db import connection
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
-from fairdm.factories import ContributorIdentifierFactory, PersonFactory
+from fairdm.factories import PersonFactory
+from fairdm.factories.contributors import ContributorIdentifierFactory
 from fairdm.factories.core import (
     DatasetDateFactory,
     DatasetDescriptionFactory,
@@ -17,7 +19,6 @@ from fairdm.factories.core import (
     ProjectIdentifierFactory,
     SampleDescriptionFactory,
 )
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
