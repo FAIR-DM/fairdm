@@ -409,16 +409,112 @@ A list entry holds what identifies an organization:
 | `country` | The two-letter country code, or `null` |
 | `identifiers` | `{"type", "value", "link"}` for each identifier, such as a ROR ID |
 
-The entry carries no description, links, members or sub-organizations. `added` and `modified` are
-not returned, and are available for ordering and for `modified_after` and `modified_before`.
-`/api/v1/organizations/{uuid}/` returns the same fields for one organization. Organizations are
-read-only.
+`added` and `modified` are not returned, and are available for ordering and for `modified_after`
+and `modified_before`. Organizations are read-only.
 
-`fairdm.api.viewsets.OrganizationViewSet` serves the list and the record, and
-`fairdm.api.serializers.OrganizationListSerializer` shapes the entry.
-`fairdm.api.serializers.OrganizationReferenceSerializer` gives an organization as
-`{"uuid", "url", "name"}`, which is how a person's primary organization and a credit's affiliation
-name one.
+### A single organization
+
+`/api/v1/organizations/{uuid}/` returns every field of a list entry and adds what the
+organization's own page shows:
+
+| Field | Holds |
+|-------|-------|
+| `alternative_names` | Other names the organization is known by, as a list of strings |
+| `profile` | The description as the organization wrote it |
+| `city` | The city it is based in, or `null` |
+| `links` | The web addresses on the page, as a list of strings. An address that is not `http` or `https` is left out |
+| `image` | The address of its picture, or `null` |
+| `parent` | `{"uuid", "url", "name"}` for the organization it is part of, or `null` for one that is part of no other |
+| `sub_organizations` | `{"uuid", "url", "name"}` for each organization that is part of it, by name |
+| `members` | The people who belong to it now, with the kind of affiliation each holds |
+
+An entry of `members` holds:
+
+| Field | Holds |
+|-------|-------|
+| `person` | `{"uuid", "url", "name"}` for the person |
+| `type` | `member`, `admin` or `owner` |
+
+Only members whose affiliation has been verified and has not ended are listed. The people who run
+the organization come first, owners and then administrators, and each group is in order of name.
+A pending member, a former member, a superuser and the anonymous account are not listed. The number
+of database queries behind a record does not depend on how many members it has.
+
+A list entry leaves all eight of these fields out, so a page of organizations stays small.
+Request the organization to read them.
+
+```json
+{
+  "uuid": "oT5mYh1uPq9AaWz6GfCx2Ke",
+  "name": "Analytical Institute",
+  "city": "Hobart",
+  "parent": {"uuid": "oB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
+  "sub_organizations": [
+    {"uuid": "oK2cFv9zXe5MgUa7NwTb3Dh", "name": "Difference Engine Group"}
+  ],
+  "members": [
+    {"person": {"uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3", "name": "Ada Lovelace"}, "type": "owner"}
+  ]
+}
+```
+
+The example leaves out the other fields and the `url` of each reference.
+
+### Filtering organizations
+
+The organizations list takes five filters, besides `modified_after`, `modified_before` and
+`ordering`. They combine, and an organization must match every one that is sent.
+
+`type` takes the stored code of an organization type, such as `education`, `company` or
+`government`.
+
+```http
+GET /api/v1/organizations/?type=education
+```
+
+`country` takes the two-letter country code as it is stored, in capitals.
+
+```http
+GET /api/v1/organizations/?country=AU
+```
+
+`parent` takes the short identifier of an organization and keeps the organizations that are part of
+it, for example the departments of one university. A database number, or an identifier that names
+no organization, is answered `400`.
+
+```http
+GET /api/v1/organizations/?parent=oB8nWq3sLd6RtYj1HxVm4Pa
+```
+
+`top_level` takes `true` to keep the organizations that are part of no other and `false` to keep
+those that are part of one.
+
+```http
+GET /api/v1/organizations/?top_level=true
+```
+
+`identifier` takes an identifier an organization holds and returns the organization that holds it.
+Give the value, such as `03yrm5c26`, or the address it resolves to, such as
+`https://ror.org/03yrm5c26`. An identifier nobody holds gives an empty list and not an error.
+
+```http
+GET /api/v1/organizations/?identifier=https://ror.org/03yrm5c26
+```
+
+### Classes behind the organizations endpoint
+
+`fairdm.api.viewsets.OrganizationViewSet` serves the list and the record. It uses
+`fairdm.api.serializers.OrganizationListSerializer` for the list and
+`fairdm.api.serializers.OrganizationSerializer` for one organization, and takes its filters from
+`fairdm.api.filters.OrganizationFilterSet`, whose `identifier` is a
+`fairdm.api.filters.IdentifierFilter`.
+
+`fairdm.api.serializers.MemberSerializer` gives one entry of `members`, with the person as a
+`fairdm.api.serializers.PersonReferenceSerializer`. The kind of affiliation is written by
+`fairdm.api.serializers.AffiliationTypeField`, which `AffiliationSerializer` uses for a person's
+affiliations as well. `fairdm.api.serializers.OrganizationReferenceSerializer` gives an
+organization as `{"uuid", "url", "name"}`, which is how a person's primary organization, a credit's
+affiliation, a parent and a sub-organization name one.
 
 ## Filtering, Ordering and Paging
 
@@ -766,11 +862,15 @@ can build on any of them.
 | `PersonListSerializer`, `OrganizationListSerializer` | A person and an organization as an entry of their list shows them |
 | `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image` and `affiliations` |
 | `AffiliationSerializer` | One verified affiliation of a person, as `{"organization", "type", "start", "end", "is_primary"}` |
-| `OrganizationReferenceSerializer` | An organization as `{"uuid", "url", "name"}` |
+| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent`, `sub_organizations` and `members` |
+| `MemberSerializer` | One current member of an organization, as `{"person", "type"}` |
+| `AffiliationTypeField` | The kind of an affiliation as `member`, `admin` or `owner` |
+| `OrganizationReferenceSerializer`, `PersonReferenceSerializer` | An organization and a person as `{"uuid", "url", "name"}` |
 | `ContributorIdentifierSerializer` | An identifier of a person or organization as `{"type", "value", "link"}` |
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
 | `PersonFilterSet` | The people list's `organization` and `identifier` filters |
+| `OrganizationFilterSet` | The organizations list's `type`, `country`, `parent`, `top_level` and `identifier` filters |
 | `IdentifierFilter` | A filter on `identifiers__value` that accepts a value or the address of a known scheme, and ignores the spaces an identifier may be written with |
 
 `fairdm.api.viewsets.sortable_fields(model, serializer_class)` returns the names a list can be

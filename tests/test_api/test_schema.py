@@ -576,3 +576,77 @@ class TestPeopleComponents:
         offered = {parameter["name"] for parameter in operation.get("parameters", [])}
 
         assert offered.isdisjoint({"organization", "identifier"})
+
+
+@pytest.mark.django_db
+class TestOrganizationComponents:
+    LIST_KEYS = {
+        "url",
+        "html_url",
+        "uuid",
+        "name",
+        "type",
+        "country",
+        "identifiers",
+    }
+    RECORD_ONLY_KEYS = {
+        "alternative_names",
+        "profile",
+        "city",
+        "links",
+        "image",
+        "parent",
+        "sub_organizations",
+        "members",
+    }
+    FILTERS = {"type", "country", "parent", "top_level", "identifier"}
+
+    @staticmethod
+    def component(schema, reference):
+        return schema["components"]["schemas"][reference["$ref"].rsplit("/", 1)[-1]]
+
+    @staticmethod
+    def response_of(schema, path):
+        operation = schema["paths"][path]["get"]
+        return operation["responses"]["200"]["content"]["application/json"]["schema"]
+
+    def test_the_list_describes_an_entry_with_the_list_fields_only(self, schema):
+        page = self.component(
+            schema, self.response_of(schema, reverse("api:organization-list"))
+        )
+
+        entry = self.component(schema, page["properties"]["results"]["items"])
+
+        assert set(entry["properties"]) == self.LIST_KEYS
+
+    def test_a_record_describes_the_list_fields_and_its_own(self, schema):
+        record = self.component(
+            schema, self.response_of(schema, detail_path("organization"))
+        )
+
+        assert set(record["properties"]) == self.LIST_KEYS | self.RECORD_ONLY_KEYS
+
+    def test_a_member_lists_exactly_the_keys_it_returns(self, schema):
+        record = self.component(
+            schema, self.response_of(schema, detail_path("organization"))
+        )
+
+        member = self.component(schema, record["properties"]["members"]["items"])
+
+        assert set(member["properties"]) == {"person", "type"}
+
+    def test_the_list_offers_the_type_country_parent_top_level_and_identifier_filters(
+        self, schema
+    ):
+        operation = schema["paths"][reverse("api:organization-list")]["get"]
+
+        offered = {parameter["name"] for parameter in operation["parameters"]}
+
+        assert offered >= self.FILTERS
+
+    def test_a_record_offers_no_filter(self, schema):
+        operation = schema["paths"][detail_path("organization")]["get"]
+
+        offered = {parameter["name"] for parameter in operation.get("parameters", [])}
+
+        assert offered.isdisjoint(self.FILTERS)
