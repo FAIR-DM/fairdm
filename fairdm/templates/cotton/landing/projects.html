@@ -1,0 +1,19 @@
+{# @description The public projects added most recently, as the same cards the project listing draws. Renders nothing when the portal has no public project. #}
+{# @prop projects:text | description:"Up to three projects, loaded with ProjectQuerySet.with_list_data() and with_contributors()." #}
+{% load i18n %}
+<c-vars projects />
+{% if projects %}
+  <c-section class="landing-section" id="landing-projects">
+    <c-slot name="header">
+      <c-heading eyebrow="{% translate 'Recently added' %}"
+                 title="{% translate 'New projects' %}"
+                 lead="{% translate 'See what the community is currently working on.' %}" />
+    </c-slot>
+    <div class="dce:grid dce:gap-6 dce:sm:grid-cols-2 dce:lg:grid-cols-3">
+      {% for project in projects %}<c-project.card :object="project" />{% endfor %}
+    </div>
+    <div class="mt-10 dce:flex dce:justify-center">
+      <c-button variant="primary" icon="project" href="{% url 'project-list' %}" text="{% translate 'Explore projects' %}" />
+    </div>
+  </c-section>
+{% endif %}

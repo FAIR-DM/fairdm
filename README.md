@@ -228,6 +228,7 @@ Extend FairDM with custom functionality:
 ### 🌍 Modern Frontend Stack
 
 - **django-mvp** — Shared application shell built on Tailwind CSS and daisyUI
+- **daisy-cotton-ext** — Page blocks the landing page is built from
 - **HTMX** — Dynamic interactions without writing JavaScript
 - **Alpine.js** — Lightweight reactivity for complex interactions
 - **Django Cotton** — Reusable component-based templates

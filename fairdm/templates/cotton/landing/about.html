@@ -1,0 +1,45 @@
+{# @description What the portal is, in its own words, beside what a visitor can count on from any FairDM portal. The words come from the portal identity saved in the administration, or from the PORTAL_DESCRIPTION setting. #}
+{# @prop name:text | description:"The portal's name." #}
+{# @prop description:text | description:"The portal's description. Left out, the heading stands alone." #}
+{# @prop keywords:text | description:"The portal's keywords, shown as badges." #}
+{# @prop authority:text | description:"Who runs the portal." #}
+{# @prop authority_url:text | description:"Their website." #}
+{% load i18n %}
+<c-vars name description keywords authority authority_url />
+<c-section align="center" class="landing-section" id="landing-about">
+  <c-section.col>
+    {% blocktranslate asvar about_eyebrow %}About {{ name }}{% endblocktranslate %}
+    <c-heading align="start" :eyebrow="about_eyebrow" title="{% translate 'Built by researchers, for researchers' %}" :lead="description" />
+    {% if keywords %}
+      <div class="mt-6 dce:flex dce:flex-wrap dce:gap-2">
+        {% for keyword in keywords %}<c-badge ghost text="{{ keyword.label }}" />{% endfor %}
+      </div>
+    {% endif %}
+    {% if authority %}
+      <p class="mt-6 dce:text-sm">
+        {% translate "Run by" %}
+        {% if authority_url %}<a class="link" href="{{ authority_url }}">{{ authority }}</a>{% else %}{{ authority }}{% endif %}
+      </p>
+    {% endif %}
+  </c-section.col>
+  <c-section.col>
+    <c-points>
+      <c-points.point title="{% translate 'Findable.' %}">
+        <c-slot name="mark"><c-icon name="filter_active" /></c-slot>
+        {% translate "Search and filter every project, dataset, sample and measurement." %}
+      </c-points.point>
+      <c-points.point title="{% translate 'Accessible.' %}">
+        <c-slot name="mark"><c-icon name="unlock" /></c-slot>
+        {% translate "Public records open without an account, in the browser or through the API." %}
+      </c-points.point>
+      <c-points.point title="{% translate 'Interoperable.' %}">
+        <c-slot name="mark"><c-icon name="relationships" /></c-slot>
+        {% translate "DataCite metadata and controlled vocabularies that other systems can read." %}
+      </c-points.point>
+      <c-points.point title="{% translate 'Reusable.' %}">
+        <c-slot name="mark"><c-icon name="license" /></c-slot>
+        {% translate "A licence, a citation and full credit on every dataset." %}
+      </c-points.point>
+    </c-points>
+  </c-section.col>
+</c-section>

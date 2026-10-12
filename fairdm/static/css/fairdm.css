@@ -381,3 +381,30 @@
 .editing-rows .divider {
   display: none;
 }
+
+/* Landing page. django-mvp's build carries no height utilities of these sizes, and the page
+ * blocks offer a section as tall as its content or as tall as the window, with nothing between. */
+.landing-hero__logo {
+  height: 7rem;
+}
+
+.landing-footer__logo {
+  height: 2.5rem;
+  margin-inline: 0;
+}
+
+/* A section takes most of a window whatever it holds, with its content on the centre line. */
+.landing-section {
+  display: flex;
+  align-items: center;
+  min-height: 70svh;
+}
+
+/* The example request wraps where it would otherwise scroll sideways: its address is as long as
+ * the portal's own, and daisyUI's code mockup keeps every line on one row. */
+.landing-code pre {
+  box-sizing: border-box;
+  width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

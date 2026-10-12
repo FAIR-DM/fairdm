@@ -1,0 +1,19 @@
+{# @description The public datasets changed most recently, as the same cards the dataset listing draws. Renders nothing when the portal has no public dataset. #}
+{# @prop datasets:text | description:"Up to three datasets, loaded with DatasetQuerySet.with_list_data()." #}
+{% load i18n %}
+<c-vars datasets />
+{% if datasets %}
+  <c-section class="bg-base-200 landing-section" id="landing-datasets">
+    <c-slot name="header">
+      <c-heading eyebrow="{% translate 'Recently updated' %}"
+                 title="{% translate 'Latest datasets' %}"
+                 lead="{% translate 'Explore the latest datasets published through this portal.' %}" />
+    </c-slot>
+    <div class="dce:grid dce:gap-6 dce:sm:grid-cols-2 dce:lg:grid-cols-3">
+      {% for dataset in datasets %}<c-dataset.card :object="dataset" />{% endfor %}
+    </div>
+    <div class="mt-10 dce:flex dce:justify-center">
+      <c-button variant="primary" icon="dataset" href="{% url 'dataset-list' %}" text="{% translate 'Browse datasets' %}" />
+    </div>
+  </c-section>
+{% endif %}

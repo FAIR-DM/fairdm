@@ -1,0 +1,32 @@
+{# @description One list of record types on the landing page: a row for each, linking to its table. #}
+{# @prop title:text | description:"What the list holds: Samples or Measurements." #}
+{# @prop icon:text | description:"The icon drawn on each row." #}
+{# @prop types:text | description:"The types, each with a name, description, count and url." #}
+{# @prop more:number | description:"How many types were left off the list, named in a last row." #}
+{% load i18n %}
+<c-vars title icon types more />
+<c-list title="{{ title }}" class="bg-base-100 rounded-box border border-base-300">
+  {% for type in types %}
+    <c-list.row>
+      <div class="text-2xl dce:opacity-60" aria-hidden="true"><c-icon name="{{ icon }}" /></div>
+      <div class="list-col-grow">
+        {% if type.url %}
+          <a class="link link-hover font-semibold" href="{{ type.url }}">{{ type.name|capfirst }}</a>
+        {% else %}
+          <span class="font-semibold">{{ type.name|capfirst }}</span>
+        {% endif %}
+        {% if type.description %}<p class="text-sm dce:opacity-80">{{ type.description|truncatewords:16 }}</p>{% endif %}
+      </div>
+      <div class="text-sm tabular-nums">
+        {% if type.count %}{{ type.count }}{% else %}<span aria-hidden="true">–</span><span class="sr-only">{% translate "None" %}</span>{% endif %}
+      </div>
+    </c-list.row>
+  {% endfor %}
+  {% if more %}
+    <c-list.row>
+      <div class="list-col-grow text-sm dce:opacity-80">
+        {% blocktranslate count counter=more %}and {{ counter }} more kind{% plural %}and {{ counter }} more kinds{% endblocktranslate %}
+      </div>
+    </c-list.row>
+  {% endif %}
+</c-list>

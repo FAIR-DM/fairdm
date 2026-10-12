@@ -1,22 +1,78 @@
-{% extends "mvp/landing.html" %}
-{% load i18n static %}
+{% extends "base.html" %}
+{% load i18n %}
 
-{% block page.hero %}
-  <c-mvp.section.hero height="75vh"
-                  title="{{ hero_content.title }}"
-                  subtitle="{{ hero_content.lead }}"
-                  bg-image="{% static hero_content.image %}">
-    <c-slot name="actions">
-      <c-button text="{% trans "Login to your account" %}"
-                icon="login"
-                size="lg"
-                variant="primary"
-                href="{% url "account_login" %}" />
-      <c-button text="{% trans "Join the community" %}"
-                icon="people"
-                size="lg"
-                variant="light"
-                href="{% url "account_signup" %}" />
-    </c-slot>
-  </c-mvp.section.hero>
-{% endblock page.hero %}
+{% comment %}
+  The page a visitor who has not signed in lands on, built from daisy-cotton-ext's page blocks.
+
+  Every section sits in a block of its own, named `landing.<section>`. A portal changes the page by
+  adding `fairdm/landing.html` to its own templates, extending this one, and filling the blocks it
+  cares about: `{{ block.super }}` keeps a section and adds content before or after it, and a block
+  filled without it replaces the section.
+
+  Each section is also a component, `<c-landing.*>`, that takes its data as attributes, so a portal
+  writing a page of its own can draw any of them there. A section with nothing to show renders
+  nothing.
+{% endcomment %}
+
+{% block title %}
+  {{ about.name }}
+{% endblock title %}
+
+{# The shell's navigation bar is left out so the hero starts at the top of the window. Fill `landing.header` to put one back. #}
+{% block app.header %}
+  {% block landing.header %}
+  {% endblock landing.header %}
+{% endblock app.header %}
+
+{% block content %}
+  {% block landing.hero %}
+    <c-landing.hero :eyebrow="hero.eyebrow"
+                    :title="hero.title"
+                    :lead="hero.lead"
+                    :image="hero.image"
+                    :logo="hero.logo"
+                    :allow_registration="allow_registration" />
+  {% endblock landing.hero %}
+
+  {% block landing.stats %}
+    <c-landing.stats :counts="portal_counts" />
+  {% endblock landing.stats %}
+
+  {% block landing.about %}
+    <c-landing.about :name="about.name"
+                     :description="about.description"
+                     :keywords="about.keywords"
+                     :authority="about.authority"
+                     :authority_url="about.authority_url" />
+  {% endblock landing.about %}
+
+  {% block landing.datasets %}
+    <c-landing.datasets :datasets="latest_datasets" />
+  {% endblock landing.datasets %}
+
+  {% block landing.types %}
+    <c-landing.types :sample_types="sample_types" :measurement_types="measurement_types" />
+  {% endblock landing.types %}
+
+  {% block landing.community %}
+    <c-landing.community :people="people" :people_count="people_count" :organizations="organizations" />
+  {% endblock landing.community %}
+
+  {% block landing.projects %}
+    <c-landing.projects :projects="latest_projects" />
+  {% endblock landing.projects %}
+
+  {% block landing.api %}
+    <c-landing.api api_url="{{ request.scheme }}://{{ request.get_host }}{% url 'api:dataset-list' %}" />
+  {% endblock landing.api %}
+
+  {% block landing.join %}
+    <c-landing.join :name="about.name" :allow_registration="allow_registration" />
+  {% endblock landing.join %}
+{% endblock content %}
+
+{% block app.footer %}
+  {% block landing.footer %}
+    <c-landing.footer :name="about.name" :authority="about.authority" :allow_registration="allow_registration" />
+  {% endblock landing.footer %}
+{% endblock app.footer %}

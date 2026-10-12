@@ -1,0 +1,29 @@
+{# @description The API, for a visitor who wants the data in a script: one request and where the documentation is. #}
+{# @prop api_url:text | description:"Address of the dataset endpoint, shown in the example request." #}
+{% load i18n %}
+<c-vars api_url />
+<c-section align="center" reverse class="bg-base-200 landing-section" id="landing-api">
+  <c-section.col>
+    <c-heading align="start"
+               eyebrow="{% translate 'Automate your workflows' %}"
+               title="{% translate 'Browse public data via the API' %}"
+               lead="{% translate 'Query projects, datasets, samples, measurements and contributors as JSON. Public records need no key.' %}" />
+    <div class="mt-8 dce:flex dce:flex-wrap dce:gap-3">
+      <c-button variant="primary" icon="api" href="{% url 'api:api-docs' %}" text="{% translate 'API docs' %}" />
+    </div>
+  </c-section.col>
+  <c-section.col>
+    <c-mockup.code class="landing-code" aria-label="{% translate 'An example request to the API' %}">
+      <c-mockup.code.line prefix="$" text="curl {{ api_url }}" />
+      <c-mockup.code.line prefix="" text="{" />
+      <c-mockup.code.line prefix="" text='  "count": 128,' />
+      <c-mockup.code.line prefix="" text='  "results": [' />
+      <c-mockup.code.line prefix="" text="    {" />
+      <c-mockup.code.line prefix="" text='      "name": "Soil chemistry survey",' />
+      <c-mockup.code.line prefix="" text='      "license": "CC BY 4.0"' />
+      <c-mockup.code.line prefix="" text="    }" />
+      <c-mockup.code.line prefix="" text="  ]" />
+      <c-mockup.code.line prefix="" text="}" />
+    </c-mockup.code>
+  </c-section.col>
+</c-section>

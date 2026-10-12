@@ -1,0 +1,42 @@
+{# @description The people and organizations credited on the portal's records, most credited first. Renders nothing when nobody has been credited yet. #}
+{# @prop people:text | description:"People to show, most credited first." #}
+{# @prop people_count:number | description:"How many people the portal lists in all, for the count after the faces." #}
+{# @prop organizations:text | description:"Organizations to show, most credited first." #}
+{% load i18n %}
+<c-vars people people_count organizations />
+{% if people or organizations %}
+  <c-section align="center" class="bg-base-200 landing-section" id="landing-community">
+    <c-section.col>
+      <c-heading align="start"
+                 eyebrow="{% translate 'Community' %}"
+                 lead="{% translate 'Everyone who worked on a record is credited on it by name, with a profile of their own.' %}">
+        <c-slot name="title">
+          {# Three strings, because a translation block cannot hold a component. #}
+          {% translate "Developed and maintained by" %}
+          <c-text.marker>{% translate "your" %}</c-text.marker>
+          {% translate "research community" %}
+        </c-slot>
+      </c-heading>
+      <div class="mt-8 dce:flex dce:flex-wrap dce:gap-3">
+        <c-button variant="primary" icon="member" href="{% url 'people-list' %}" text="{% translate 'Meet the people' %}" />
+        <c-button variant="secondary" icon="organization" href="{% url 'organization-list' %}" text="{% translate 'Organizations' %}" />
+      </div>
+    </c-section.col>
+    <c-section.col class="dce:flex dce:flex-col dce:gap-8">
+      {% if people %}
+        {% url 'people-list' as people_url %}
+        <c-contributor.stack :contributors="people" max="8" :total="people_count" size="md" more_url="{{ people_url }}" />
+      {% endif %}
+      {% if organizations %}
+        <ul class="dce:grid dce:gap-4 dce:sm:grid-cols-2">
+          {% for organization in organizations %}
+            <li class="dce:flex dce:items-center dce:gap-3">
+              <c-contributor.avatar :contributor="organization" size="sm" />
+              <a class="link link-hover" href="{{ organization.get_absolute_url }}">{{ organization.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </c-section.col>
+  </c-section>
+{% endif %}
