@@ -23,6 +23,7 @@ carried the API, so removing the mixed endpoint breaks nobody.
 
 *Revisit if:* a caller needs one request that returns people and organizations together for a
 reason a record's credits do not cover.
+**ADR:** docs/adr/0029-people-and-organizations-have-their-own-api-endpoints.md
 
 ## D2. A list entry is compact and a single record is complete
 
@@ -34,6 +35,7 @@ The list entry therefore holds what identifies someone, and it is a subset of th
 so a caller reading both never meets a field that means two things.
 
 *Revisit if:* callers routinely request every person one by one after listing them.
+**ADR:** docs/adr/0029-people-and-organizations-have-their-own-api-endpoints.md
 
 ## D3. One list of credits, with the portal's own roles
 
@@ -41,6 +43,7 @@ The maintainer ruled that creators and contributors are not separated. A record 
 list of contributions, each with its roles from the portal's contribution role vocabulary. Deciding
 which roles make someone a DataCite creator, and which DataCite contributor type each other role
 becomes, is a mapping an export owns. Putting it in the API would freeze it into every response.
+**ADR:** docs/adr/0030-a-credit-carries-what-datacite-asks-of-a-creator.md
 
 ## D4. The affiliation on a credit never falls back to the profile
 
@@ -50,6 +53,7 @@ the person's current primary affiliation would attribute old work to an institut
 part in it, and the answer would change over time without the record changing.
 
 *Revisit if:* portals report that most credits are entered without an organization.
+**ADR:** docs/adr/0030-a-credit-carries-what-datacite-asks-of-a-creator.md
 
 ## D5. A credit held by a hidden account is still shown
 
@@ -57,6 +61,7 @@ The people list leaves out superusers and the anonymous account, as the portal's
 superuser can still be an author. The record's page shows that credit to every visitor, so the API
 shows it too, with the name, identifiers and roles. It gives no address, because no profile is
 served at one. The alternative, dropping the credit, would make a record's attribution wrong.
+**ADR:** docs/adr/0030-a-credit-carries-what-datacite-asks-of-a-creator.md
 
 ## D6. A contributor's records are public only, for every caller
 
@@ -64,6 +69,7 @@ FS-019 ruled that a contributor's page lists public projects and datasets only, 
 themself, so that a profile reads the same to everyone. The lists narrowed to a contributor follow
 that rule and not the usual one, under which a caller also sees private records they hold a level
 on. A caller who wants their own private records asks the ordinary lists.
+**ADR:** none — it applies a rule the contributor pages already set, and adds none.
 
 ## D7. Samples and measurements are not listed by contributor
 
@@ -73,6 +79,7 @@ of everything a person is credited on would be a new kind of endpoint spanning t
 than this feature needs.
 
 *Revisit if:* a contributor's page gains samples or measurements.
+**ADR:** none — a boundary of this feature that the next one may move.
 
 ## Design review, 2026-10-12
 
@@ -131,7 +138,7 @@ serializer can drop the credit that names nobody and fill the given and family n
 credits that arrive without them with one query for the whole list, so the credit serializer reads
 one attribute whichever way the record was loaded.
 *Revisit if:* the credit queryset gains a second path that makes the annotation unnecessary.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
 
 ## D14. Implementer US1: assertions the new shapes leave with nothing to read
 
@@ -142,7 +149,7 @@ not there to assert. The assertions that remain are the ones the new shape suppo
 record serializers carry the rest. Two other pre-existing tests read the old credit keys and read
 the new ones. Each change is named in progress.md.
 *Revisit if:* the fuller serializers do not arrive with the assertions on those keys.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
 
 ## D15. Implementer US1: stable order for the two lists
 
@@ -150,7 +157,7 @@ the new ones. Each change is named in progress.md.
 ordering of its own, and the old mixed list was ordered by name. Name is not unique, and pages cut
 from an order with ties can repeat or skip an entry.
 *Revisit if:* a caller needs another default order.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
 
 
 ## D16. Implementer US2: the people filters and the moved profile test
@@ -166,7 +173,7 @@ holding both forms would be listed twice without it.
 `TestPerson`, and the moved test is untouched.** The brief names the single record as where they
 return. They sit in new tests of the new class, so no pre-existing test changed in this story.
 *Revisit if:* the moved test should carry them as well.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
 
 ## D17. Implementer US3: members, the affiliation type and the organization filters
 
@@ -190,7 +197,7 @@ unchanged.
 generated schema. An unknown type is therefore answered 400, which the specification does not
 describe and no test pins. A lower-case country code finds nothing.
 *Revisit if:* callers send country codes in lower case.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.
 
 ## D18. Implementer US4: the contributor filter and the two addresses
 
@@ -212,4 +219,4 @@ team.
 fields, so the two method fields and the helper that builds the address are written once. The
 mixin is a `Serializer`, so the declared fields are collected.
 *Revisit if:* a third serializer needs the addresses with different routes.
-**ADR:** none, local to this feature.
+**ADR:** none — local to this feature, nothing outside it inherits the choice.

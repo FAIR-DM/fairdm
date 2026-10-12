@@ -318,8 +318,8 @@ datasets private, or delete the measurements, and try again.
 
 ## Find out what a portal offers
 
-`/api/v1/` answers with a link to every list the portal serves, one for each of projects, datasets
-and contributors, and one for each sample type and measurement type:
+`/api/v1/` answers with a link to every list the portal serves, one for each of projects, datasets,
+people and organizations, and one for each sample type and measurement type:
 
 ```bash
 curl https://portal.example.org/api/v1/

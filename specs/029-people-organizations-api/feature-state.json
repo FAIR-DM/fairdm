@@ -3,7 +3,7 @@
   "feature": "029-people-organizations-api",
   "branch": "029-people-organizations-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-12T10:02:21Z",
       "note": "design review applied; plan gate open; story 1 next"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-12T11:11:24Z",
+      "note": "four stories accepted; full verification green"
     }
   ],
   "gates": {
@@ -398,7 +403,7 @@
       "id": "US4",
       "priority": "P2",
       "issue": 475,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -472,7 +477,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
@@ -480,7 +485,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 32.31,
+      "used": 36.7,
       "max": 120
     },
     "design_review_cycles": {
