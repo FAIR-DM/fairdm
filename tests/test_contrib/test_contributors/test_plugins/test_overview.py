@@ -100,6 +100,16 @@ class TestPersonOverview:
 
         assert response.status_code == 200
 
+    def test_the_api_link_goes_to_the_person_at_the_people_route(
+        self, get_page, credited_world
+    ):
+        person = credited_world.person
+        address = reverse("api:person-detail", kwargs={"uuid": person.uuid})
+
+        _, page = get_page(person.get_absolute_url())
+
+        assert page.select_one(f"a[href='{address}']") is not None
+
     def test_a_contributor_that_does_not_exist_answers_not_found(self, get_page, db):
         response, _ = get_page("/contributor/cDoesNotExist/")
 
@@ -747,6 +757,16 @@ class TestOrganizationOverview:
 
         assert visitor.status_code == 200
         assert signed_in.status_code == 200
+
+    def test_the_api_link_goes_to_the_organization_at_the_organizations_route(
+        self, get_page, owner_world
+    ):
+        organization = owner_world.organization
+        address = reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert page.select_one(f"a[href='{address}']") is not None
 
     # Scenario 1
     def test_the_owned_and_the_credited_projects_are_both_listed_once_with_the_owned_marked(

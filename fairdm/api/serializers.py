@@ -201,8 +201,10 @@ class RecordReferenceField(serializers.SlugRelatedField):
 
         real_class = getattr(record, "get_real_instance_class", None)
         model = (real_class() if real_class else None) or type(record)
+        if issubclass(model, Organization):
+            return "api:organization-detail"
         if issubclass(model, Contributor):
-            return "api:contributor-detail"
+            return "api:person-detail"
         if issubclass(model, Sample):
             return f"api:samples-{_model_to_slug(model)}-detail"
         if issubclass(model, Measurement):
@@ -445,15 +447,20 @@ class NameIdentifierSerializer(serializers.Serializer):
         return root
 
 
-class CreditAffiliationSerializer(serializers.Serializer):
+class OrganizationReferenceSerializer(serializers.Serializer):
+    """An organization named by its short identifier, its address in the API and its name."""
+
+    uuid = serializers.CharField(read_only=True)
+    url = RecordURLField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
+class CreditAffiliationSerializer(OrganizationReferenceSerializer):
     """The organization a contributor is credited from, as DataCite gives an affiliation.
 
     The identifier is the organization's ROR ID where it has one, and otherwise its first.
     """
 
-    uuid = serializers.CharField(read_only=True)
-    url = RecordURLField(read_only=True)
-    name = serializers.CharField(read_only=True)
     affiliation_identifier = serializers.SerializerMethodField()
     affiliation_identifier_scheme = serializers.SerializerMethodField()
     scheme_uri = serializers.SerializerMethodField()
@@ -818,8 +825,8 @@ class ContributorIdentifierSerializer(serializers.Serializer):
     link = serializers.CharField(source="resolver_url", read_only=True)
 
 
-class ContributorSerializer(serializers.ModelSerializer):
-    """A person or an organisation, as far as their public profile page shows.
+class PersonListSerializer(serializers.ModelSerializer):
+    """A person as the people list shows them: who they are and where they mainly belong.
 
     Nothing about the account behind a person is returned: no email address, credential, flag
     or sign-in date.
@@ -827,75 +834,77 @@ class ContributorSerializer(serializers.ModelSerializer):
 
     url = RecordURLField(read_only=True)
     html_url = PortalPageField()
-    type = serializers.SerializerMethodField()
-    image = serializers.ImageField(read_only=True)
+    given_name = serializers.CharField(source="first_name", read_only=True)
+    family_name = serializers.CharField(source="last_name", read_only=True)
     identifiers = ContributorIdentifierSerializer(many=True, read_only=True)
-    links = serializers.SerializerMethodField()
-    languages = serializers.SerializerMethodField()
-    affiliation = serializers.SerializerMethodField()
-    location = serializers.SerializerMethodField()
-    organization_type = serializers.SerializerMethodField()
+    primary_organization = serializers.SerializerMethodField()
 
     class Meta:
-        model = Contributor
+        model = Person
         fields = (
             "url",
             "html_url",
             "uuid",
-            "type",
             "name",
-            "image",
-            "profile",
+            "given_name",
+            "family_name",
             "identifiers",
-            "links",
-            "languages",
-            "affiliation",
-            "location",
-            "organization_type",
+            "primary_organization",
         )
         read_only_fields = fields
 
-    def get_type(self, contributor) -> str:
-        """Say whether the contributor is a person or an organisation."""
-        return "organization" if contributor.is_organization else "person"
+    @extend_schema_field(OrganizationReferenceSerializer(allow_null=True))
+    def get_primary_organization(self, person) -> dict | None:
+        """Refer to the organization of the person's primary affiliation, when it is current.
 
-    def get_links(self, contributor) -> list[str]:
-        """List the web links the profile page draws."""
-        return [entry["url"] for entry in contributor.get_links_display()]
-
-    def get_languages(self, contributor) -> list[str]:
-        """Name the languages in the active language."""
-        return [str(name) for name in contributor.get_language_names()]
-
-    def get_affiliation(self, contributor) -> dict | None:
-        """Refer to the organisation the profile names: a person's primary, an organisation's parent."""
-        if isinstance(contributor, Person):
-            organisation = next(
-                (
-                    affiliation.organization
-                    for affiliation in contributor.get_affiliation_history()["current"]
-                    if affiliation.is_primary
-                ),
-                None,
-            )
-        else:
-            organisation = getattr(contributor, "parent", None)
-        if organisation is None:
+        A pending or ended affiliation gives none.
+        """
+        primary = next(
+            (
+                affiliation
+                for affiliation in person.get_affiliation_history()["current"]
+                if affiliation.is_primary
+            ),
+            None,
+        )
+        if primary is None:
             return None
-        field = RecordReferenceField(read_only=True)
-        field.bind(field_name="affiliation", parent=self)
-        reference: dict | None = field.to_representation(organisation)
+        serializer = OrganizationReferenceSerializer(
+            primary.organization, context=self.context
+        )
+        reference: dict = serializer.data
         return reference
 
-    def get_location(self, contributor) -> str | None:
-        """Give the city and country the profile page shows."""
-        return contributor.get_location_display() or None
 
-    def get_organization_type(self, contributor) -> str | None:
-        """Give an organisation's type, and nothing for a person."""
-        if not contributor.is_organization or not contributor.type:
-            return None
-        return str(contributor.get_type_display())
+class OrganizationListSerializer(serializers.ModelSerializer):
+    """An organization as the organizations list shows it.
+
+    The type and the country are given as the codes that are stored, which are the values the
+    lists filter by.
+    """
+
+    url = RecordURLField(read_only=True)
+    html_url = PortalPageField()
+    identifiers = ContributorIdentifierSerializer(many=True, read_only=True)
+    country = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = (
+            "url",
+            "html_url",
+            "uuid",
+            "name",
+            "type",
+            "country",
+            "identifiers",
+        )
+        read_only_fields = fields
+
+    def get_country(self, organization) -> str | None:
+        """Give the two-letter code of the country, or nothing when none is set."""
+        code: str | None = getattr(organization.country, "code", None) or None
+        return code
 
 
 def _validate_sample_serializer(cls: type) -> None:

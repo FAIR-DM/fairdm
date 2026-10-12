@@ -103,6 +103,11 @@ class Overview(OverviewPlugin):
         """The keys both pages and the shared skeleton read."""
         contributor = self.base_object
         identifier = contributor.default_identifier
+        api_route = (
+            "api:organization-detail"
+            if contributor.is_organization
+            else "api:person-detail"
+        )
         return {
             "record": contributor,
             "identifiers": [
@@ -114,7 +119,7 @@ class Overview(OverviewPlugin):
             "links": contributor.get_links_display(),
             "languages": ", ".join(contributor.get_language_names()),
             "json_ld": json_ld(contributor.to_public_schema_org()),
-            "api_url": safe_reverse("api:contributor-detail", uuid=contributor.uuid),
+            "api_url": safe_reverse(api_route, uuid=contributor.uuid),
             "urls": {
                 "projects": safe_reverse(
                     "contributor:contributor-projects", uuid=contributor.uuid
