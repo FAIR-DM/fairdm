@@ -50,7 +50,9 @@ class TestPointDetailView:
     def test_a_sample_in_a_private_dataset_is_hidden_from_a_visitor(
         self, client, point
     ):
-        private = RockSampleFactory(location=point, dataset=DatasetFactory())
+        private = RockSampleFactory(
+            location=point, dataset=DatasetFactory(), name="PRIVATE-SAMPLE-MARKER"
+        )
 
         response = client.get(point.get_absolute_url())
 

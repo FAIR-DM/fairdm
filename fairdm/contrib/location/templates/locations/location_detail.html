@@ -6,11 +6,9 @@
 {% endcomment %}
 {% block page.content %}
   {% if samples %}
-    <ul class="grid gap-6 list-none p-0">
-      {% for sample in samples %}
-        <li><c-sample.card :object="sample" /></li>
-      {% endfor %}
-    </ul>
+    <div class="flex flex-col gap-4">
+      {% for sample in samples %}<c-sample.card :object="sample" />{% endfor %}
+    </div>
   {% else %}
     <c-mvp.placeholder.card icon="sample"
                             message="{% translate 'No samples at this location are available to you.' %}" />
