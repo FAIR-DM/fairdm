@@ -628,7 +628,9 @@ class TestContributorRecords:
     @staticmethod
     def credit(record, contributor, level=ContributionLevel.VIEW):
         return ContributionFactory(
-            content_object=record, contributor=contributor, level=level
+            content_object=record,
+            contributor=contributor,
+            level=None if contributor.is_organization else level,
         )
 
     @staticmethod
