@@ -3,6 +3,7 @@
 import copy
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import urlencode
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
@@ -826,6 +827,40 @@ class ContributorIdentifierSerializer(serializers.Serializer):
     link = serializers.CharField(source="resolver_url", read_only=True)
 
 
+class ContributorRecordsMixin(serializers.Serializer):
+    """Gives a contributor the addresses of the project and dataset lists narrowed to them.
+
+    Each address is absolute when the request is known and the path alone when it is not. The
+    lists it points to hold the public records the contributor is credited on.
+    """
+
+    projects = serializers.SerializerMethodField()
+    datasets = serializers.SerializerMethodField()
+
+    def records_address(self, route: str, contributor) -> str:
+        """Give the address of a record list narrowed to a contributor.
+
+        Args:
+            route: The name of the list route.
+            contributor: The person or organization the list is narrowed to.
+
+        Returns:
+            The list's address with the contributor's short identifier as a query.
+        """
+        address = reverse(route, request=self.context.get("request"))
+        return f"{address}?{urlencode({'contributor': contributor.uuid})}"
+
+    @extend_schema_field({"type": "string", "format": "uri"})
+    def get_projects(self, contributor) -> str:
+        """Give the address of the projects the contributor is credited on."""
+        return self.records_address("api:project-list", contributor)
+
+    @extend_schema_field({"type": "string", "format": "uri"})
+    def get_datasets(self, contributor) -> str:
+        """Give the address of the datasets the contributor is credited on."""
+        return self.records_address("api:dataset-list", contributor)
+
+
 class PersonListSerializer(serializers.ModelSerializer):
     """A person as the people list shows them: who they are and where they mainly belong.
 
@@ -924,12 +959,12 @@ class AffiliationSerializer(serializers.Serializer):
         return affiliation.end_display or None
 
 
-class PersonSerializer(PersonListSerializer):
+class PersonSerializer(ContributorRecordsMixin, PersonListSerializer):
     """A single person, as far as their public profile page shows.
 
     It carries every field of a list entry together with the person's other names, profile,
-    links, languages, image and verified affiliations. Nothing about the account behind a
-    person is returned.
+    links, languages, image and verified affiliations, and the addresses of the projects and
+    datasets they are credited on. Nothing about the account behind a person is returned.
     """
 
     alternative_names = serializers.ListField(
@@ -949,6 +984,8 @@ class PersonSerializer(PersonListSerializer):
             "languages",
             "image",
             "affiliations",
+            "projects",
+            "datasets",
         )
         read_only_fields = fields
 
@@ -1017,12 +1054,13 @@ class MemberSerializer(serializers.Serializer):
     type = AffiliationTypeField()
 
 
-class OrganizationSerializer(OrganizationListSerializer):
+class OrganizationSerializer(ContributorRecordsMixin, OrganizationListSerializer):
     """A single organization, as far as its public profile page shows.
 
     It carries every field of a list entry together with the organization's other names,
     profile, city, links, image, the organization it is part of, the organizations that are
-    part of it, and its current members.
+    part of it, its current members, and the addresses of the projects and datasets it is
+    credited on.
     """
 
     alternative_names = serializers.ListField(
@@ -1045,6 +1083,8 @@ class OrganizationSerializer(OrganizationListSerializer):
             "parent",
             "sub_organizations",
             "members",
+            "projects",
+            "datasets",
         )
         read_only_fields = fields
 

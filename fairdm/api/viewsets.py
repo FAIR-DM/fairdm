@@ -32,6 +32,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from fairdm.api.filters import (
+    ContributorRecordsFilterSet,
     DatasetFilterSet,
     FairDMFilterBackend,
     FairDMVisibilityFilter,
@@ -137,6 +138,7 @@ class ProjectViewSet(BaseViewSet):
     """
 
     serializer_class = ProjectSerializer
+    filterset_class = ContributorRecordsFilterSet
     ordering_fields = ("name", "added", "modified", "status", "uuid")
 
     def get_queryset(self):
@@ -161,6 +163,7 @@ class DatasetViewSet(BaseViewSet):
     """
 
     serializer_class = DatasetSerializer
+    filterset_class = ContributorRecordsFilterSet
     ordering_fields = ("name", "added", "modified", "uuid")
 
     def get_queryset(self):

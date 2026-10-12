@@ -23,7 +23,7 @@ from fairdm.contrib.contributors.choices import (
     OrganizationType,
 )
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
-from fairdm.core.models import Dataset, Sample
+from fairdm.core.models import Dataset, Project, Sample
 from fairdm.core.utils import get_objects_for_user
 
 if TYPE_CHECKING:
@@ -407,6 +407,48 @@ class OrganizationFilterSet(django_filters.FilterSet):
             The narrowed organizations.
         """
         return queryset.filter(parent__isnull=value)
+
+
+class ContributorRecordsFilterSet(django_filters.FilterSet):
+    """Narrows the project list or the dataset list to the records a contributor is credited on.
+
+    ``contributor`` is the short identifier of a person the people list shows, or of an
+    organization. The answer holds public records only, whoever asks, and only records the
+    contributor is credited on: a project an organization owns without a credit is left out.
+    An identifier that names nobody gives an empty list.
+    """
+
+    contributor = django_filters.CharFilter(
+        method="narrow_to_credited",
+        help_text=_(
+            "Only the public records this person or organization is credited on, "
+            "given as its short identifier."
+        ),
+    )
+
+    def narrow_to_credited(self, queryset, name, value):
+        """Keep the public records the contributor is credited on.
+
+        Args:
+            queryset: The projects or the datasets to narrow.
+            name: The name of the filter.
+            value: The short identifier sent.
+
+        Returns:
+            The projects or datasets credited to the contributor, which may be none.
+        """
+        contributor = (
+            Person.objects.real().filter(uuid=value).first()
+            or Organization.objects.filter(uuid=value).first()
+        )
+        if contributor is None:
+            return queryset.none()
+        credited = (
+            contributor.projects
+            if issubclass(queryset.model, Project)
+            else contributor.datasets
+        )
+        return queryset.filter(pk__in=credited.get_visible().values("pk"))
 
 
 class FairDMFilterBackend(DjangoFilterBackend):
