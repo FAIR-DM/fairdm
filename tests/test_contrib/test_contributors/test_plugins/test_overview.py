@@ -33,7 +33,15 @@ from fairdm.factories import (
 )
 from fairdm.utils.choices import Visibility
 
-CARDS = ["about", "projects", "datasets", "roles", "identifiers", "links", "affiliations"]
+CARDS = [
+    "about",
+    "projects",
+    "datasets",
+    "roles",
+    "identifiers",
+    "links",
+    "affiliations",
+]
 
 
 def _tab_url(person, tab):
@@ -57,7 +65,9 @@ def _figure(page, url):
     """The number in the figure whose title links to ``url``."""
     link = page.select_one(f".stat a[href='{url}']")
     assert link is not None, f"no figure links to {url}"
-    value = link.find_parent(class_="stat").select_one(".stat-value").get_text(strip=True)
+    value = (
+        link.find_parent(class_="stat").select_one(".stat-value").get_text(strip=True)
+    )
     return int(value.replace(",", ""))
 
 
@@ -142,7 +152,9 @@ class TestPersonOverview:
 
         _, page = get_page(world.person.get_absolute_url(), viewer=member)
 
-        assert world.private_project.get_absolute_url() not in _entries(page, "projects")
+        assert world.private_project.get_absolute_url() not in _entries(
+            page, "projects"
+        )
         assert _figure(page, _tab_url(world.person, "projects")) == 1
 
     def test_the_person_sees_the_same_public_work_as_a_visitor(
@@ -221,14 +233,20 @@ class TestPersonOverview:
         _, first = get_page(signed_in.get_absolute_url())
         _, second = get_page(claimed_person.get_absolute_url())
 
-        first_link = _header(first).select_one(f"a[href='{authenticated.resolver_url}']")
+        first_link = _header(first).select_one(
+            f"a[href='{authenticated.resolver_url}']"
+        )
         second_link = _header(second).select_one(f"a[href='{typed.resolver_url}']")
         assert first_link is not None
         assert second_link is not None
         assert first_link["aria-label"] != second_link["aria-label"]
-        assert str(first_link.select_one("i, svg")) != str(second_link.select_one("i, svg"))
+        assert str(first_link.select_one("i, svg")) != str(
+            second_link.select_one("i, svg")
+        )
 
-    def test_a_person_with_no_orcid_id_has_no_orcid_link(self, get_page, claimed_person):
+    def test_a_person_with_no_orcid_id_has_no_orcid_link(
+        self, get_page, claimed_person
+    ):
         _, page = get_page(claimed_person.get_absolute_url())
 
         assert _header(page).select_one("a[href*='orcid.org']") is None
@@ -332,7 +350,9 @@ class TestPersonOverview:
     def test_a_pending_primary_affiliation_names_its_organization_nowhere(
         self, get_page, claimed_person
     ):
-        organization = OrganizationFactory(name="PENDING-ORG-MARKER", city="Pendingville")
+        organization = OrganizationFactory(
+            name="PENDING-ORG-MARKER", city="Pendingville"
+        )
         AffiliationFactory(
             person=claimed_person,
             organization=organization,
@@ -365,7 +385,9 @@ class TestPersonOverview:
 
         card = _card(page, "roles")
         names = [dt.get_text(strip=True) for dt in card.select("dt")]
-        counts = [int(re.search(r"\d+", dd.get_text()).group()) for dd in card.select("dd")]
+        counts = [
+            int(re.search(r"\d+", dd.get_text()).group()) for dd in card.select("dd")
+        ]
         assert names[0] == "Creator"
         assert counts[0] == 2
         assert counts == sorted(counts, reverse=True)
@@ -424,7 +446,14 @@ class TestPersonOverview:
         claimed_person.refresh_from_db()
 
         shown = [card["data-card"] for card in page.select("[data-card]")]
-        for name in ("projects", "datasets", "roles", "links", "affiliations", "people"):
+        for name in (
+            "projects",
+            "datasets",
+            "roles",
+            "links",
+            "affiliations",
+            "people",
+        ):
             assert name in shown
             assert _card(page, name).select_one("[role=alert], p") is not None
         assert "identifiers" in shown
@@ -432,7 +461,9 @@ class TestPersonOverview:
     def test_a_person_with_no_biography_is_told_so_where_the_biography_goes(
         self, get_page, db
     ):
-        person = PersonFactory(is_active=True, is_claimed=True, password="x", profile="")
+        person = PersonFactory(
+            is_active=True, is_claimed=True, password="x", profile=""
+        )
 
         _, page = get_page(person.get_absolute_url())
 
@@ -456,7 +487,9 @@ class TestPersonOverview:
         claimed_person.save()
 
         response, _ = get_page(claimed_person.get_absolute_url())
-        signed_in, _ = get_page(claimed_person.get_absolute_url(), viewer=claimed_person)
+        signed_in, _ = get_page(
+            claimed_person.get_absolute_url(), viewer=claimed_person
+        )
 
         assert "secret.address@example.org" not in response.content.decode()
         assert "secret.address@example.org" not in signed_in.content.decode()
@@ -470,12 +503,18 @@ class TestPersonOverview:
         base = f"/contributor/{claimed_person.uuid}/"
         tabs = [a["href"] for a in page.select("a[href]") if a["href"].startswith(base)]
         assert tabs[0] == claimed_person.get_absolute_url()
-        assert not [href for href in tabs if href.rstrip("/").endswith(("statistics", "network"))]
+        assert not [
+            href
+            for href in tabs
+            if href.rstrip("/").endswith(("statistics", "network"))
+        ]
         for name in ("statistics", "network"):
             with pytest.raises(NoReverseMatch):
                 reverse(f"contributor:{name}", kwargs={"uuid": claimed_person.uuid})
 
-    def test_the_overview_tab_carries_the_name_every_record_gives_its_first_tab(self, db):
+    def test_the_overview_tab_carries_the_name_every_record_gives_its_first_tab(
+        self, db
+    ):
         def first_tab(model):
             plugins.registry.get_urls_for_model(model)
             return plugins.registry.get_plugin_menu_for_model(model).children[0]
@@ -1039,7 +1078,6 @@ class TestOrganizationOverview:
             datasets.context["object_list"]
         )
 
-
     # Scenario 1
     @pytest.mark.parametrize("who", ["owner", "admin"])
     def test_the_menus_edit_entry_links_to_the_editing_page_and_the_other_two_stay_disabled(
@@ -1240,7 +1278,9 @@ class TestPersonChecklist:
         )
 
         assert _checklist(after) == (_checklist(before)[0] + 1, _checklist(before)[1])
-        assert reverse("socialaccount_connections") in _hrefs(_card(before, "readiness"))
+        assert reverse("socialaccount_connections") in _hrefs(
+            _card(before, "readiness")
+        )
         assert reverse("socialaccount_connections") not in _hrefs(
             _card(after, "readiness")
         )

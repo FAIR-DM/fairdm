@@ -7,11 +7,12 @@ import pytest
 from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Contributor
+from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.factories import (
     DatasetFactory,
+    OrganizationFactory,
     PersonFactory,
     ProjectFactory,
     UserFactory,
@@ -197,18 +198,23 @@ class TestDatasetCreatorParity:
 
 @pytest.mark.django_db
 class TestContributorListEndpoint:
-    def test_returns_200(self, api_client):
-        response = api_client.get(reverse("api:contributor-list"))
+    ROUTES = ("api:person-list", "api:organization-list")
+
+    @pytest.mark.parametrize("route", ROUTES)
+    def test_returns_200(self, api_client, route):
+        response = api_client.get(reverse(route))
         assert response.status_code == 200
 
-    def test_has_pagination_keys(self, api_client):
-        data = api_client.get(reverse("api:contributor-list")).json()
+    @pytest.mark.parametrize("route", ROUTES)
+    def test_has_pagination_keys(self, api_client, route):
+        data = api_client.get(reverse(route)).json()
         for key in ("count", "next", "previous", "results"):
             assert key in data
 
-    def test_post_not_allowed(self, authenticated_client):
+    @pytest.mark.parametrize("route", ROUTES)
+    def test_post_not_allowed(self, authenticated_client, route):
         response = authenticated_client.post(
-            reverse("api:contributor-list"), {"name": "New"}, format="json"
+            reverse(route), {"name": "New"}, format="json"
         )
         # DRF may return 403 (permission denied) before 405 (method not allowed)
         # when object-level permissions fire before method routing.
@@ -384,8 +390,8 @@ class TestCompleteRecord:
 
         credited = api_client.get(url_of(record)).json()["contributors"][0]
 
-        assert credited["contributor"]["uuid"] == credit.contributor.uuid
-        assert credited["affiliation"]["uuid"] == credit.affiliation.uuid
+        assert credited["uuid"] == credit.contributor.uuid
+        assert credited["affiliation"][0]["uuid"] == credit.affiliation.uuid
         assert [role["name"] for role in credited["roles"]] == [
             role.name for role in credit.roles.all()
         ]
@@ -947,13 +953,6 @@ class TestPageOnThePortal:
     @staticmethod
     def routes(record, url_of):
         """Return the list and record addresses that serve a record."""
-        from fairdm.contrib.contributors.models import Contributor
-
-        if isinstance(record, Contributor):
-            return (
-                reverse("api:contributor-list"),
-                reverse("api:contributor-detail", kwargs={"uuid": record.uuid}),
-            )
         return url_of(type(record), "list"), url_of(record)
 
     @pytest.mark.parametrize("kind", KINDS_WITH_A_PAGE)
@@ -1074,11 +1073,12 @@ class TestNoDatabaseNumbers:
             for record in records
             for address in (url_of(type(record), "list"), url_of(record))
         ]
-        addresses.append(reverse("api:contributor-list"))
+        addresses += [
+            reverse("api:person-list"),
+            reverse("api:organization-list"),
+        ]
         for contributor in (PersonFactory(), OrganizationFactory()):
-            addresses.append(
-                reverse("api:contributor-detail", kwargs={"uuid": contributor.uuid})
-            )
+            addresses.append(url_of(contributor))
         return addresses
 
     def test_no_list_or_record_response_carries_a_database_number(
@@ -1154,41 +1154,36 @@ class TestContributor:
         self, api_client, person
     ):
         response = api_client.get(
-            reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
         )
 
         assert response.status_code == 200
         data = response.json()
         assert data["uuid"] == person.uuid
         assert data["name"] == person.name
-        assert data["type"] == "person"
-        assert data["profile"] == person.profile
-        assert data["links"] == person.links
         assert data["identifiers"][0]["value"] == person.identifiers.get().value
-        assert data["affiliation"]["uuid"] == person.primary_organization.uuid
+        assert data["primary_organization"]["uuid"] == person.primary_organization.uuid
 
     def test_an_organisation_is_returned_with_what_its_profile_page_shows(
         self, api_client, organisation
     ):
         response = api_client.get(
-            reverse("api:contributor-detail", kwargs={"uuid": organisation.uuid})
+            reverse("api:organization-detail", kwargs={"uuid": organisation.uuid})
         )
 
         assert response.status_code == 200
         data = response.json()
         assert data["uuid"] == organisation.uuid
-        assert data["type"] == "organization"
+        assert data["name"] == organisation.name
         assert data["identifiers"][0]["value"] == "03yrm5c26"
-        assert data["affiliation"]["uuid"] == organisation.parent.uuid
 
     def test_no_response_carries_an_account_detail(
         self, api_client, person, organisation
     ):
         responses = [
-            api_client.get(reverse("api:contributor-list")),
-            api_client.get(
-                reverse("api:contributor-detail", kwargs={"uuid": person.uuid})
-            ),
+            api_client.get(reverse("api:person-list")),
+            api_client.get(reverse("api:organization-list")),
+            api_client.get(reverse("api:person-detail", kwargs={"uuid": person.uuid})),
         ]
 
         for response in responses:
@@ -1206,7 +1201,7 @@ class TestContributor:
 
         listed = [
             row["uuid"]
-            for row in api_client.get(reverse("api:contributor-list")).json()["results"]
+            for row in api_client.get(reverse("api:person-list")).json()["results"]
         ]
 
         assert person.uuid in listed
@@ -1219,20 +1214,300 @@ class TestContributor:
         administrator = PersonFactory(is_superuser=True, is_staff=True)
 
         response = api_client.get(
-            reverse("api:contributor-detail", kwargs={"uuid": administrator.uuid})
+            reverse("api:person-detail", kwargs={"uuid": administrator.uuid})
         )
 
         assert response.status_code == 404
 
 
+PERSON_LIST_KEYS = {
+    "url",
+    "html_url",
+    "uuid",
+    "name",
+    "given_name",
+    "family_name",
+    "identifiers",
+    "primary_organization",
+}
+
+ORGANIZATION_LIST_KEYS = {
+    "url",
+    "html_url",
+    "uuid",
+    "name",
+    "type",
+    "country",
+    "identifiers",
+}
+
+#: What only a single record carries, or nothing in the API: never a list entry.
+LEFT_OUT_OF_A_LIST = {
+    "alternative_names",
+    "profile",
+    "links",
+    "languages",
+    "image",
+    "affiliations",
+    "projects",
+    "datasets",
+    "city",
+    "parent",
+    "sub_organizations",
+    "members",
+    "added",
+    "modified",
+}
+
+
+@pytest.mark.django_db
+class TestPeopleList:
+    @pytest.fixture
+    def listed(self, api_client):
+        """Return a function giving the entries of the people list, by identifier."""
+
+        def listed(**query):
+            response = api_client.get(
+                reverse("api:person-list"), {"page_size": 1000, **query}
+            )
+            assert response.status_code == 200, response.content
+            return {row["uuid"]: row for row in response.json()["results"]}
+
+        return listed
+
+    def test_the_list_holds_people_only(self, listed):
+        person = PersonFactory()
+        organization = OrganizationFactory()
+
+        entries = listed()
+
+        assert person.uuid in entries
+        assert organization.uuid not in entries
+
+    def test_an_entry_carries_the_keys_of_the_list_shape_and_no_others(self, listed):
+        person = PersonFactory()
+
+        entry = listed()[person.uuid]
+
+        assert set(entry) == PERSON_LIST_KEYS
+
+    def test_an_entry_leaves_out_what_a_single_record_carries(self, listed):
+        person = PersonFactory(links=["https://example.org/me"], lang=["en"])
+
+        entry = listed()[person.uuid]
+
+        assert set(entry).isdisjoint(LEFT_OUT_OF_A_LIST)
+
+    def test_an_entry_names_the_person_and_their_identifiers(self, listed):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        person = PersonFactory(first_name="Ada", last_name="Lovelace")
+        identifier = ContributorIdentifierFactory(related=person, type="ORCID")
+
+        entry = listed()[person.uuid]
+
+        assert entry["name"] == person.name
+        assert entry["given_name"] == "Ada"
+        assert entry["family_name"] == "Lovelace"
+        assert entry["identifiers"] == [
+            {
+                "type": "ORCID",
+                "value": identifier.value,
+                "link": f"https://orcid.org/{identifier.value}",
+            }
+        ]
+
+    def test_an_entry_carries_the_address_of_the_person_in_the_api_and_on_the_portal(
+        self, listed
+    ):
+        person = PersonFactory(is_claimed=True)
+
+        entry = listed()[person.uuid]
+
+        assert entry["url"].endswith(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        )
+        assert entry["html_url"] == f"http://testserver{person.get_absolute_url()}"
+
+    def test_a_verified_current_primary_affiliation_is_the_primary_organization(
+        self, listed
+    ):
+        from fairdm.factories import AffiliationFactory
+
+        person = PersonFactory()
+        institute = OrganizationFactory()
+        AffiliationFactory(person=person, organization=institute, is_primary=True)
+
+        entry = listed()[person.uuid]
+
+        assert entry["primary_organization"] == {
+            "uuid": institute.uuid,
+            "url": entry["primary_organization"]["url"],
+            "name": institute.name,
+        }
+        assert entry["primary_organization"]["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": institute.uuid})
+        )
+
+    @pytest.mark.parametrize("state", ["pending", "ended"])
+    def test_a_primary_affiliation_that_is_pending_or_ended_gives_no_primary_organization(
+        self, listed, state
+    ):
+        from fairdm.contrib.contributors.models import Affiliation
+        from fairdm.factories import AffiliationFactory
+
+        person = PersonFactory()
+        affiliation = AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(),
+            is_primary=True,
+            **(
+                {"type": Affiliation.MembershipType.PENDING}
+                if state == "pending"
+                else {"end_date": "2021"}
+            ),
+        )
+
+        entry = listed()[person.uuid]
+
+        assert affiliation.is_primary
+        assert entry["primary_organization"] is None
+
+    def test_a_person_with_no_affiliation_has_no_primary_organization(self, listed):
+        person = PersonFactory()
+
+        assert listed()[person.uuid]["primary_organization"] is None
+
+    @pytest.mark.parametrize("name", ["added", "modified"])
+    def test_added_and_modified_are_not_returned_but_can_order_the_list(
+        self, api_client, name
+    ):
+        PersonFactory.create_batch(2)
+
+        for ordering in (name, f"-{name}"):
+            response = api_client.get(
+                reverse("api:person-list"), {"ordering": ordering}
+            )
+
+            assert response.status_code == 200
+            assert all(name not in row for row in response.json()["results"])
+
+    def test_an_unclaimed_profile_is_listed_like_any_other_person(self, listed):
+        person = PersonFactory(is_claimed=False)
+
+        assert person.uuid in listed()
+
+
+@pytest.mark.django_db
+class TestOrganizationsList:
+    @pytest.fixture
+    def listed(self, api_client):
+        """Return a function giving the entries of the organizations list, by identifier."""
+
+        def listed(**query):
+            response = api_client.get(
+                reverse("api:organization-list"), {"page_size": 1000, **query}
+            )
+            assert response.status_code == 200, response.content
+            return {row["uuid"]: row for row in response.json()["results"]}
+
+        return listed
+
+    def test_the_list_holds_organizations_only(self, listed):
+        person = PersonFactory()
+        organization = OrganizationFactory()
+
+        entries = listed()
+
+        assert organization.uuid in entries
+        assert person.uuid not in entries
+
+    def test_an_entry_carries_the_keys_of_the_list_shape_and_no_others(self, listed):
+        organization = OrganizationFactory()
+
+        entry = listed()[organization.uuid]
+
+        assert set(entry) == ORGANIZATION_LIST_KEYS
+
+    def test_an_entry_leaves_out_what_a_single_record_carries(self, listed):
+        organization = OrganizationFactory(
+            parent=OrganizationFactory(), links=["https://example.org"]
+        )
+
+        entry = listed()[organization.uuid]
+
+        assert set(entry).isdisjoint(LEFT_OUT_OF_A_LIST)
+
+    def test_type_and_country_are_the_stored_codes(self, listed):
+        from fairdm.contrib.contributors.choices import OrganizationType
+
+        organization = OrganizationFactory(
+            type=OrganizationType.EDUCATION, country="AU"
+        )
+
+        entry = listed()[organization.uuid]
+
+        assert entry["type"] == "education"
+        assert entry["country"] == "AU"
+
+    def test_an_organization_with_neither_type_nor_country_returns_null_for_both(
+        self, listed
+    ):
+        organization = OrganizationFactory(type=None, country=None)
+
+        entry = listed()[organization.uuid]
+
+        assert entry["type"] is None
+        assert entry["country"] in (None, "")
+
+    def test_an_entry_carries_its_identifiers_and_addresses(self, listed):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        organization = OrganizationFactory()
+        ContributorIdentifierFactory(
+            related=organization, type="ROR", value="03yrm5c26"
+        )
+
+        entry = listed()[organization.uuid]
+
+        assert entry["identifiers"] == [
+            {
+                "type": "ROR",
+                "value": "03yrm5c26",
+                "link": "https://ror.org/03yrm5c26",
+            }
+        ]
+        assert entry["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        )
+        assert entry["html_url"] == (
+            f"http://testserver{organization.get_absolute_url()}"
+        )
+
+    @pytest.mark.parametrize("name", ["added", "modified"])
+    def test_added_and_modified_are_not_returned_but_can_order_the_list(
+        self, api_client, name
+    ):
+        OrganizationFactory.create_batch(2)
+
+        for ordering in (name, f"-{name}"):
+            response = api_client.get(
+                reverse("api:organization-list"), {"ordering": ordering}
+            )
+
+            assert response.status_code == 200
+            assert all(name not in row for row in response.json()["results"])
+
+
 def routable_models():
     """Every model with a list and record route: the core kinds and the registered types."""
-    from fairdm.contrib.contributors.models import Contributor
+    from fairdm.contrib.contributors.models import Organization, Person
 
     return [
         Project,
         Dataset,
-        Contributor,
+        Person,
+        Organization,
         *registered("sample"),
         *registered("measurement"),
     ]
@@ -1243,15 +1518,16 @@ class TestListAndRecordRoutes:
     @pytest.fixture
     def a_record_of(self, make_record):
         """Return a function building a public record of a routable model."""
-        from fairdm.contrib.contributors.models import Contributor
-        from fairdm.factories import OrganizationFactory
+        from fairdm.contrib.contributors.models import Organization, Person
 
         def a_record_of(model):
             if model is Project:
                 return ProjectFactory(visibility=Visibility.PUBLIC)
             if model is Dataset:
                 return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-            if model is Contributor:
+            if model is Person:
+                return PersonFactory()
+            if model is Organization:
                 return OrganizationFactory()
             return make_record(
                 model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
@@ -1261,15 +1537,11 @@ class TestListAndRecordRoutes:
 
     @staticmethod
     def address(model, action, uuid=None):
-        from fairdm.contrib.contributors.models import Contributor
         from tests.test_api.conftest import route_name
 
-        name = (
-            f"api:contributor-{action}"
-            if model is Contributor
-            else route_name(model, action)
+        return reverse(
+            route_name(model, action), kwargs={"uuid": uuid} if uuid else None
         )
-        return reverse(name, kwargs={"uuid": uuid} if uuid else None)
 
     @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
     def test_a_list_is_served_to_a_visitor(self, api_client, a_record_of, model):
@@ -2135,15 +2407,16 @@ class TestNoServerErrors:
     @pytest.fixture
     def a_record_of(self, make_record):
         """Return a function building a public record of a routable model."""
-        from fairdm.contrib.contributors.models import Contributor
-        from fairdm.factories import OrganizationFactory
+        from fairdm.contrib.contributors.models import Organization, Person
 
         def a_record_of(model):
             if model is Project:
                 return ProjectFactory(visibility=Visibility.PUBLIC)
             if model is Dataset:
                 return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-            if model is Contributor:
+            if model is Person:
+                return PersonFactory()
+            if model is Organization:
                 return OrganizationFactory()
             return make_record(
                 model, DatasetFactory(visibility=Visibility.PUBLIC, published=True)
@@ -2154,25 +2427,17 @@ class TestNoServerErrors:
     @pytest.fixture
     def address(self, url_of):
         """Return a function giving a record's or a model's list address, contributors too."""
-        from fairdm.contrib.contributors.models import Contributor
-
-        def address(subject, action="detail"):
-            if subject is Contributor or isinstance(subject, Contributor):
-                kwargs = None if isinstance(subject, type) else {"uuid": subject.uuid}
-                return reverse(f"api:contributor-{action}", kwargs=kwargs)
-            return url_of(subject, action)
-
-        return address
+        return url_of
 
     @pytest.fixture
     def bodies(self, body_for):
         """Return a function giving the bodies to send to the routes of a model, as a dict."""
-        from fairdm.contrib.contributors.models import Contributor
+        from fairdm.contrib.contributors.models import Organization, Person
         from fairdm.core.models import Measurement
         from fairdm.registry import registry
 
         def bodies(model, record):
-            if model is Contributor:
+            if model in (Person, Organization):
                 valid = {"name": "Sent by a script"}
                 fields = ["name", "type"]
             elif model in (Project, Dataset):
@@ -2513,15 +2778,16 @@ class TestQueryCount:
     KINDS = (
         "project",
         "dataset",
-        "contributor",
+        "people",
+        "organizations",
         "sample",
         "located sample",
         "measurement",
     )
 
     @staticmethod
-    def add_contributors():
-        """Add a person with an identifier and an affiliation, and an organisation with a parent."""
+    def add_person():
+        """Add a person with an identifier and two affiliations, one of them primary."""
         from fairdm.factories import (
             AffiliationFactory,
             ContributorIdentifierFactory,
@@ -2535,6 +2801,12 @@ class TestQueryCount:
             person=person, organization=OrganizationFactory(), is_primary=True
         )
         AffiliationFactory(person=person, organization=OrganizationFactory())
+
+    @staticmethod
+    def add_organization():
+        """Add an organisation with a parent and an identifier."""
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
         organisation = OrganizationFactory(parent=OrganizationFactory())
         ContributorIdentifierFactory(related=organisation, type="ROR")
 
@@ -2544,8 +2816,10 @@ class TestQueryCount:
 
         def grow(kind, number):
             for _ in range(number):
-                if kind == "contributor":
-                    self.add_contributors()
+                if kind == "people":
+                    self.add_person()
+                elif kind == "organizations":
+                    self.add_organization()
                 else:
                     build_record(kind, make_record, add_metadata)
 
@@ -2558,7 +2832,8 @@ class TestQueryCount:
         return {
             "project": lambda: reverse("api:project-list"),
             "dataset": lambda: reverse("api:dataset-list"),
-            "contributor": lambda: reverse("api:contributor-list"),
+            "people": lambda: reverse("api:person-list"),
+            "organizations": lambda: reverse("api:organization-list"),
             "sample": lambda: url_of(RockSample, "list"),
             "located sample": lambda: url_of(CustomSample, "list"),
             "measurement": lambda: url_of(ExampleMeasurement, "list"),
@@ -2706,7 +2981,7 @@ class TestReferencesFollowTheLists:
 
     def test_the_contributor_list_leaves_the_account_out(self, api_client, unlisted):
         response = api_client.get(
-            reverse("api:contributor-detail", kwargs={"uuid": unlisted.uuid})
+            reverse("api:person-detail", kwargs={"uuid": unlisted.uuid})
         )
 
         assert response.status_code == 404
@@ -2754,8 +3029,8 @@ class TestReferencesFollowTheLists:
             reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
         )
 
-        referred = [row["contributor"] for row in response.json()["contributors"]]
-        assert {"uuid": person.uuid, "url": referred[0]["url"]} in referred
+        referred = [row["uuid"] for row in response.json()["contributors"]]
+        assert referred == [person.uuid]
 
     @pytest.fixture
     def related_samples(self, on_the_router):
@@ -2845,7 +3120,8 @@ class TestChangedSince:
         params=[
             Project,
             Dataset,
-            Contributor,
+            Person,
+            Organization,
             *registered("sample"),
             *registered("measurement"),
         ],
@@ -2862,8 +3138,10 @@ class TestChangedSince:
                 made.append(
                     DatasetFactory(visibility=Visibility.PUBLIC, published=True)
                 )
-            elif model is Contributor:
+            elif model is Person:
                 made.append(PersonFactory(is_active=True, is_claimed=True))
+            elif model is Organization:
+                made.append(OrganizationFactory())
             else:
                 made.append(make_record(model, public_dataset))
         for record, moment in zip(made, self.MOMENTS, strict=True):

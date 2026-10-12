@@ -119,7 +119,9 @@ class TestOverviewTemplateChoice:
         names = [t.name for t in _page(client, water).templates if t.name]
 
         assert "sample/sample_overview.html" in names
-        assert not any(n.startswith("demo/") and n.endswith("_overview.html") for n in names)
+        assert not any(
+            n.startswith("demo/") and n.endswith("_overview.html") for n in names
+        )
 
     @isolate_apps("demo")
     def test_a_subtype_with_no_template_of_its_own_uses_its_parents(self):
@@ -207,13 +209,13 @@ class TestOverviewMeasurements:
         self, client, rock
     ):
         shown = XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
-        hidden = XRFMeasurementFactory(
-            dataset=_dataset(published=False), sample=rock
-        )
+        hidden = XRFMeasurementFactory(dataset=_dataset(published=False), sample=rock)
 
         response = _page(client, rock)
 
-        assert [e["measurement"].pk for e in response.context["measurements"]["items"]] == [shown.pk]
+        assert [
+            e["measurement"].pk for e in response.context["measurements"]["items"]
+        ] == [shown.pk]
         assert response.context["counts"]["measurements"] == 1
         assertNotContains(response, hidden.get_absolute_url())
 
@@ -307,7 +309,10 @@ class TestOverviewRelatedSamples:
     def test_the_summary_says_how_many_parents_and_subsamples_are_shown(
         self, client, rock, family
     ):
-        assert _page(client, rock).context["counts"]["related_desc"] == "1 parent · 1 subsample"
+        assert (
+            _page(client, rock).context["counts"]["related_desc"]
+            == "1 parent · 1 subsample"
+        )
 
     def test_a_sample_with_no_relations_says_none_are_recorded(self, client, rock):
         counts = _page(client, rock).context["counts"]
@@ -461,7 +466,9 @@ class TestOverviewTypeBadge:
 class TestOverviewStatus:
     """FR-039 and US-3 scenario 12."""
 
-    def test_a_destroyed_specimen_is_announced_as_kept_on_record(self, client, released):
+    def test_a_destroyed_specimen_is_announced_as_kept_on_record(
+        self, client, released
+    ):
         sample = RockSampleFactory(dataset=released, status="destroyed")
 
         response = _page(client, sample)
@@ -469,7 +476,9 @@ class TestOverviewStatus:
         assert response.context["status"]["value"] == "destroyed"
         assert response.page.select_one(".alert-warning") is not None
 
-    def test_a_specimen_that_still_exists_carries_no_such_notice(self, client, released):
+    def test_a_specimen_that_still_exists_carries_no_such_notice(
+        self, client, released
+    ):
         sample = RockSampleFactory(dataset=released, status="stored")
 
         response = _page(client, sample)
@@ -566,6 +575,5 @@ class TestOverviewManageMenu:
 
     def test_the_editing_pages_keep_their_addresses(self, rock):
         assert self._addresses(rock) == [
-            f"/samples/{rock.uuid}/{segment}/"
-            for segment in self.EDITING_PAGES
+            f"/samples/{rock.uuid}/{segment}/" for segment in self.EDITING_PAGES
         ]

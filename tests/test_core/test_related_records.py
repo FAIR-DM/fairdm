@@ -38,6 +38,7 @@ ROW_SET_CASES = [
     (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory, "CollectionStart"),
 ]
 
+
 def make_measurement():
     """Make a measurement of a demo type on a sample in the same dataset."""
     sample = RockSampleFactory()

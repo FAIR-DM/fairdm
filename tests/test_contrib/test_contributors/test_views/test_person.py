@@ -33,7 +33,9 @@ class TestPersonListViewQueryCount:
 
         person = PersonFactory()
         identifier = ContributorIdentifierFactory(related=person)
-        SocialAccount.objects.create(user=person, provider="orcid", uid=identifier.value)
+        SocialAccount.objects.create(
+            user=person, provider="orcid", uid=identifier.value
+        )
         AffiliationFactory(person=person, is_primary=True)
         person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
         return person

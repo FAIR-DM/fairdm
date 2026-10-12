@@ -26,3 +26,16 @@ Did: Added TestCreditQueries: a page of 12 records, each with 3 person credits h
 Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestCreditQueries -> 4 passed on the old code, as expected: the old credit read nothing per credit. This is a guard for the rewrite in T005; it is probed there by removing the new prefetches and watching it fail.
 Next: T004.
 Watch: none.
+
+## 2026-10-12T10:13:59Z · Implementer US1 · T004
+
+Did: Moved every test that named api:contributor-list or api:contributor-detail to api:person-* / api:organization-* (tests/test_api/test_router.py, test_filters.py, test_viewsets.py, test_schema.py), including routable_models(), the ContributorViewSet import and the Contributors heading in test_schema.py, the contributor kind of TestQueryCount (now people and organizations kinds), TestChangedSince and TestNoServerErrors (which parametrize over routable_models). Added route tests (list and record routes, 404 at the old address and at the other kind's route, root links) and TestPeopleList and TestOrganizationsList (kind only, exact list keys, keys left out, no added or modified but orderable, primary organization from a verified current primary entry only).
+Verified: uv run pytest -q -n0 tests/test_api/test_viewsets.py tests/test_api/test_router.py tests/test_api/test_filters.py tests/test_api/test_schema.py -> all new and moved tests red on NoReverseMatch for person-* / organization-* (routes do not exist yet) or on the old credit shape.
+Next: T005, then T006.
+Watch: pre-existing tests changed beyond a route rename, each because the brief's list shape (D10, D11) or the new credit shape leaves the old assertion with nothing to read:
+- TestContributor.test_a_person_is_returned_with_what_their_profile_page_shows: dropped the assertions on type, profile and links (a list entry has none; the single person serializer arrives with US2) and moved affiliation to primary_organization.
+- TestContributor.test_an_organisation_is_returned_with_what_its_profile_page_shows: dropped type and the parent assertion (US3 adds parent); added name.
+- TestContributor.test_no_response_carries_an_account_detail: added the organizations list to the responses it walks.
+- TestCompleteRecord.test_a_credited_contributor_is_named_with_roles_and_affiliation: reads credit["uuid"] and credit["affiliation"][0]["uuid"] instead of the old nested contributor and affiliation references.
+- TestReferencesFollowTheLists.test_a_credit_to_a_listed_contributor_is_a_reference: reads the credit's uuid.
+- TestContributorListEndpoint and TestVisibilityFilterContributors: parametrized over both new lists.

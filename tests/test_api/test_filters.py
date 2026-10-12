@@ -126,12 +126,16 @@ class TestVisibilityFilterDatasets:
 
 @pytest.mark.django_db
 class TestVisibilityFilterContributors:
-    def test_all_contributors_visible_to_anonymous(self):
-        resp = APIClient().get(reverse("api:contributor-list"))
+    ROUTES = ("api:person-list", "api:organization-list")
+
+    @pytest.mark.parametrize("route", ROUTES)
+    def test_all_contributors_visible_to_anonymous(self, route):
+        resp = APIClient().get(reverse(route))
         assert resp.status_code == 200
 
-    def test_contributor_list_returns_200_for_authenticated(self):
-        resp = make_token_client(UserFactory()).get(reverse("api:contributor-list"))
+    @pytest.mark.parametrize("route", ROUTES)
+    def test_contributor_list_returns_200_for_authenticated(self, route):
+        resp = make_token_client(UserFactory()).get(reverse(route))
         assert resp.status_code == 200
 
 

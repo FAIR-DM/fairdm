@@ -829,9 +829,7 @@ class TestDatasetUpdateView:
         dataset, _own, _other = self._setup(user, ContributionLevel.EDIT)
         client.force_login(user)
 
-        response = client.get(
-            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        )
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
 
         assert {"name", "license"} <= set(response.context["form"].fields)
         assert not {"visibility", "project"} & set(response.context["form"].fields)

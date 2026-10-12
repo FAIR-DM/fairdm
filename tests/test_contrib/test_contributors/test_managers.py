@@ -526,7 +526,9 @@ class TestQuerysetManagerParity:
 
 @pytest.mark.django_db
 class TestPersonQuerySetForCards:
-    def test_reading_a_card_costs_no_query_after_the_fetch(self, django_assert_num_queries):
+    def test_reading_a_card_costs_no_query_after_the_fetch(
+        self, django_assert_num_queries
+    ):
         from allauth.socialaccount.models import SocialAccount
 
         from fairdm.factories import (
@@ -537,7 +539,9 @@ class TestPersonQuerySetForCards:
 
         person = PersonFactory()
         identifier = ContributorIdentifierFactory(related=person)
-        SocialAccount.objects.create(user=person, provider="orcid", uid=identifier.value)
+        SocialAccount.objects.create(
+            user=person, provider="orcid", uid=identifier.value
+        )
         AffiliationFactory(person=person, is_primary=True)
         fetched = Person.objects.for_cards().get(pk=person.pk)
 
@@ -598,7 +602,9 @@ class TestContributionKinds:
 
         assert list(scoped.people()) == [second, first]
 
-    def test_the_kind_is_decided_in_the_query(self, credited, django_assert_num_queries):
+    def test_the_kind_is_decided_in_the_query(
+        self, credited, django_assert_num_queries
+    ):
         dataset, *_ = credited
         Contribution.objects.for_entity(dataset)
 

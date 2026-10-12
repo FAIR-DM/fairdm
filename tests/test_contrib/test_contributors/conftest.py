@@ -324,7 +324,11 @@ def credited_world(db):
     for record in (public_project, public_dataset):
         open_mate.add_to(record)
     sample_mate.add_to(public_sample)
-    for record in (private_project, dataset_in_private_project, sample_in_private_project):
+    for record in (
+        private_project,
+        dataset_in_private_project,
+        sample_in_private_project,
+    ):
         private_mate.add_to(record)
     private_dataset_mate.add_to(private_dataset)
     private_dataset_mate.add_to(private_sample)

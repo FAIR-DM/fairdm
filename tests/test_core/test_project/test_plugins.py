@@ -204,15 +204,13 @@ class TestAPrivateProjectsOtherTabs:
 
 @pytest.mark.django_db
 class TestEditPageForAModelLevelChangePermission:
-
-
     def test_a_user_holding_only_model_level_change_permission_is_refused(self, client):
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import (
-    ProjectFactory,
-    UserFactory,
-)
+            ProjectFactory,
+            UserFactory,
+        )
 
         project = ProjectFactory()
         user = UserFactory()
@@ -234,9 +232,9 @@ class TestEditPageForAModelLevelChangePermission:
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import (
-    ProjectFactory,
-    UserFactory,
-)
+            ProjectFactory,
+            UserFactory,
+        )
 
         project = ProjectFactory()
         user = UserFactory()
@@ -486,6 +484,7 @@ class TestProjectsOwnPageOffersTheDeletionLink:
         delete_url = reverse("project:delete", kwargs={"uuid": project.uuid})
         assertNotContains(response, f'href="{delete_url}"')
 
+
 @pytest.mark.django_db
 class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
     def test_the_update_page_links_back_to_the_project(self, client):
@@ -515,6 +514,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assertContains(response, f'href="{project_url}"')
+
 
 @pytest.mark.django_db
 class TestEveryLinkEachPageDrawsResolvesToARealAddress:
@@ -551,9 +551,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(project))
 
-        response = client.get(
-            reverse("project:edit", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -575,9 +573,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(project))
 
-        response = client.get(
-            reverse("project:delete", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:delete", kwargs={"uuid": project.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -599,9 +595,7 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.get(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            )
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
         )
 
         assert response.status_code in (403, 404)
@@ -613,15 +607,12 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.post(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            ),
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid}),
             data={"Abstract": "written by someone who may not see this project"},
         )
 
         assert response.status_code in (403, 404)
         assert private_project.descriptions.count() == 0
-
 
     def test_a_visitor_holding_view_rights_still_reaches_it(
         self, client, private_project, user_with_no_permission
@@ -634,9 +625,7 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user_with_no_permission)
 
         response = client.get(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            )
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
         )
 
         assert response.status_code == 200
@@ -708,9 +697,7 @@ def _card_holding(page, tag):
 class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     """US-1 scenarios 1 and 2: a visitor's counts follow the datasets they may see."""
 
-    def test_a_visitor_counts_the_public_datasets_only(
-        self, client, overview_showcase
-    ):
+    def test_a_visitor_counts_the_public_datasets_only(self, client, overview_showcase):
         response = _page(client, overview_showcase.project)
 
         assert _figures(response.page)[:3] == ["2", "3", "2"]
@@ -805,7 +792,10 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     ):
         response = _page(client, overview_showcase.project)
 
-        rows = {row.pk: row.data_is_public for row in response.context["datasets_preview"]["rows"]}
+        rows = {
+            row.pk: row.data_is_public
+            for row in response.context["datasets_preview"]["rows"]
+        }
         assert rows == {
             overview_showcase.published.pk: True,
             overview_showcase.unpublished.pk: False,
@@ -949,9 +939,9 @@ class TestOverviewPeople:
         assert shown & {p.pk for p in overview_showcase.leaders} == {
             p.pk for p in overview_showcase.leaders
         }
-        assert response.context["people"]["total"] == len(overview_showcase.leaders) + len(
-            overview_showcase.others
-        )
+        assert response.context["people"]["total"] == len(
+            overview_showcase.leaders
+        ) + len(overview_showcase.others)
 
     def test_the_card_draws_eighteen_faces_and_counts_the_rest(
         self, client, overview_showcase
@@ -960,13 +950,18 @@ class TestOverviewPeople:
 
         tiles = response.page.select("li[data-tip]")
         assert len(tiles) == 18
-        assert (response.context["people"]["more"], response.context["people"]["total"]) == (4, 22)
+        assert (
+            response.context["people"]["more"],
+            response.context["people"]["total"],
+        ) == (4, 22)
 
     def test_the_count_links_to_the_full_list_of_contributors(
         self, client, overview_showcase
     ):
         project = overview_showcase.project
-        contributors_url = reverse("project:contribution-list", kwargs={"uuid": project.uuid})
+        contributors_url = reverse(
+            "project:contribution-list", kwargs={"uuid": project.uuid}
+        )
 
         response = _page(client, project)
 
@@ -1040,9 +1035,7 @@ class TestOverviewCitation:
     def test_two_creators_are_joined_by_an_ampersand(self, client):
         project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
 
-        assert self._citation(client, project).startswith(
-            "Keller, A. & Oliveira, T. ("
-        )
+        assert self._citation(client, project).startswith("Keller, A. & Oliveira, T. (")
 
     def test_several_creators_are_comma_separated_with_an_ampersand_before_the_last(
         self, client
@@ -1085,8 +1078,10 @@ class TestOverviewCitation:
 
         response = _page(client, project)
 
-        assert response.page.find(id="citation-text").get_text().endswith(
-            _overview_url(project)
+        assert (
+            response.page.find(id="citation-text")
+            .get_text()
+            .endswith(_overview_url(project))
         )
         assert response.context["citation"]["note"]
 
@@ -1206,12 +1201,16 @@ class TestOverviewFunding:
         )
         response = _page(client, project)
         title = next(
-            h for h in response.page.select("h2.card-title") if h.get_text(strip=True) == "Funding"
+            h
+            for h in response.page.select("h2.card-title")
+            if h.get_text(strip=True) == "Funding"
         )
         card = title.find_parent(class_="card")
         return response, card.find_all("a")
 
-    @pytest.mark.parametrize("identifier", ["javascript:alert(1)", "10.13039/501100001659"])
+    @pytest.mark.parametrize(
+        "identifier", ["javascript:alert(1)", "10.13039/501100001659"]
+    )
     def test_a_funder_identifier_that_is_not_a_web_address_is_not_a_link(
         self, client, identifier
     ):
@@ -1263,9 +1262,7 @@ class TestOverviewCardsAlwaysShown:
         for card in self.SIDE_CARDS:
             assert response.page.select_one(f'[data-card="{card}"]') is not None, card
 
-    def test_a_project_with_no_dates_shows_the_progress_entry_in_details(
-        self, client
-    ):
+    def test_a_project_with_no_dates_shows_the_progress_entry_in_details(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         response = _page(client, project)
@@ -1311,12 +1308,12 @@ class TestOverviewSchemaOrgDescription:
 
         assert person.email not in response.content.decode()
 
-    def test_it_names_no_dataset_the_viewer_may_not_see(self, client, overview_showcase):
+    def test_it_names_no_dataset_the_viewer_may_not_see(
+        self, client, overview_showcase
+    ):
         response = _page(client, overview_showcase.project)
 
-        assert overview_showcase.private.name not in json.dumps(
-            _json_ld(response.page)
-        )
+        assert overview_showcase.private.name not in json.dumps(_json_ld(response.page))
 
 
 @pytest.mark.django_db
@@ -1509,6 +1506,7 @@ class TestOverviewManageMenu:
 
         assert visitor.page.find("a", href=add_url) is None
         assert team.page.find("a", href=add_url) is not None
+
 
 @pytest.mark.django_db
 class TestOverviewNotAvailableYet:

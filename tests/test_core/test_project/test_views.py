@@ -569,9 +569,7 @@ class TestProjectUpdateView:
         )
         client.force_login(editor)
 
-        response = client.get(
-            reverse("project:edit", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
 
         assert {"name", "status"} <= set(response.context["form"].fields)
         assert not {"visibility", "owner"} & set(response.context["form"].fields)

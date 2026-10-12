@@ -167,8 +167,10 @@ class TestContributorsTab:
     def test_nobody_else_is_offered_a_control(
         self, request, record, colleague, partner, viewer
     ):
-        user = None if viewer == "visitor" else request.getfixturevalue(
-            "newcomer" if viewer == "stranger" else viewer
+        user = (
+            None
+            if viewer == "visitor"
+            else request.getfixturevalue("newcomer" if viewer == "stranger" else viewer)
         )
 
         response = browser_as(user).get(tab(record))
@@ -390,7 +392,9 @@ class TestLevels:
             browser_as(newcomer).get(private_record.get_absolute_url()).status_code
             == 200
         )
-        assert browser_as(newcomer).get(changing_page(private_record)).status_code == 403
+        assert (
+            browser_as(newcomer).get(changing_page(private_record)).status_code == 403
+        )
         assert not newcomer.has_perm(
             f"{RecordAccess(private_record).kind}.change_{RecordAccess(private_record).kind}",
             private_record,
@@ -708,7 +712,10 @@ class TestAddFromPortal:
             page_of(record, "add-person"), {"q": colleague.contributor.name}
         )
 
-        results = {r["contributor"].pk: r["listed"] for r in response.context["adding"]["results"]}
+        results = {
+            r["contributor"].pk: r["listed"]
+            for r in response.context["adding"]["results"]
+        }
         assert results[colleague.contributor_id] is True
 
     def test_someone_already_listed_cannot_be_added_again(
@@ -779,7 +786,9 @@ class TestEditRoles:
         assert stored(record) == before
 
     def test_no_role_is_allowed(self, record, manager, colleague):
-        colleague.roles.add(*Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0]))
+        colleague.roles.add(
+            *Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0])
+        )
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -852,9 +861,7 @@ class TestRemoveContributor:
         assert Contribution.objects.filter(pk=colleague.pk).exists()
 
     def test_confirming_removes_the_contributor(self, record, manager, colleague):
-        response = browser_as(manager).post(
-            page_of(record, "remove", pk=colleague.pk)
-        )
+        response = browser_as(manager).post(page_of(record, "remove", pk=colleague.pk))
 
         assert response["Location"] == tab(record)
         assert not Contribution.objects.filter(pk=colleague.pk).exists()
@@ -1068,9 +1075,7 @@ class TestLastManagerPages:
         contribution = record.contributors.get(contributor=manager)
         before = stored(record)
 
-        response = browser_as(asker).post(
-            page_of(record, "remove", pk=contribution.pk)
-        )
+        response = browser_as(asker).post(page_of(record, "remove", pk=contribution.pk))
 
         assert response.status_code == 422
         assert response.context["refused"] is True
@@ -2478,10 +2483,14 @@ class TestPortalRoles:
     def test_a_data_curator_views_and_changes_a_private_record_they_are_not_on(
         self, private_record, team, curator
     ):
-        assert browser_as(curator).get(private_record.get_absolute_url()).status_code == 200
+        assert (
+            browser_as(curator).get(private_record.get_absolute_url()).status_code
+            == 200
+        )
         if changing_page(private_record):
             assert (
-                browser_as(curator).get(changing_page(private_record)).status_code == 200
+                browser_as(curator).get(changing_page(private_record)).status_code
+                == 200
             )
         assert browser_as(curator).get(tab(private_record)).status_code == 200
         for url in tab_pages(private_record, team.colleague)[1:]:
@@ -2522,7 +2531,8 @@ class TestPortalRoles:
         assert private_record.contributors.filter(contributor=newcomer).exists()
         assert not private_record.contributors.filter(contributor=curator).exists()
         assert all(
-            curator.pk not in credited_names(c) for c in private_record.contributors.all()
+            curator.pk not in credited_names(c)
+            for c in private_record.contributors.all()
         )
 
     def test_a_data_curator_raises_a_contributor_on_a_record_nobody_counts_on(

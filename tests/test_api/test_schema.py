@@ -269,7 +269,14 @@ def every_description(node):
 @pytest.mark.django_db
 class TestTypesInTheDocumentation:
     #: The headings of the first schema, which the interactive page reads.
-    HEADINGS = ("Projects", "Datasets", "Contributors", "Samples", "Measurements")
+    HEADINGS = (
+        "Projects",
+        "Datasets",
+        "People",
+        "Organizations",
+        "Samples",
+        "Measurements",
+    )
 
     @pytest.fixture
     def tags(self, schema):
@@ -299,21 +306,23 @@ class TestTypesInTheDocumentation:
         basename = TestSchemaMatchesRoutes.basename(model)
         return schema["paths"][reverse(f"api:{basename}-list")]["get"]
 
-    def test_projects_datasets_and_contributors_are_described_with_their_viewsets_words(
+    def test_projects_datasets_people_and_organizations_are_described_with_their_viewsets_words(
         self, tags
     ):
         import inspect
 
         from fairdm.api.viewsets import (
-            ContributorViewSet,
             DatasetViewSet,
+            OrganizationViewSet,
+            PersonViewSet,
             ProjectViewSet,
         )
 
         for name, viewset in (
             ("Projects", ProjectViewSet),
             ("Datasets", DatasetViewSet),
-            ("Contributors", ContributorViewSet),
+            ("People", PersonViewSet),
+            ("Organizations", OrganizationViewSet),
         ):
             assert tags[name]["description"] == inspect.getdoc(viewset)
 
