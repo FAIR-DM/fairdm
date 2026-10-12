@@ -1397,6 +1397,78 @@ class TestPeopleList:
 
         assert person.uuid in listed()
 
+    @pytest.mark.parametrize(
+        "account",
+        [
+            {"is_superuser": True, "is_staff": True},
+            {"email": "AnonymousUser"},
+        ],
+        ids=["superuser", "anonymous"],
+    )
+    def test_an_account_the_portal_leaves_out_is_absent_and_answered_404_by_address(
+        self, api_client, listed, account
+    ):
+        visible = PersonFactory()
+        hidden = PersonFactory(**account)
+
+        entries = listed()
+
+        assert visible.uuid in entries
+        assert hidden.uuid not in entries
+        response = api_client.get(
+            reverse("api:person-detail", kwargs={"uuid": hidden.uuid})
+        )
+        assert response.status_code == 404
+
+    def test_the_list_is_paged(self, api_client):
+        PersonFactory.create_batch(3)
+
+        first = api_client.get(reverse("api:person-list"), {"page_size": 2}).json()
+        second = api_client.get(
+            reverse("api:person-list"), {"page_size": 2, "page": 2}
+        ).json()
+
+        assert first["count"] == 3
+        assert len(first["results"]) == 2
+        assert first["next"] is not None
+        assert len(second["results"]) == 1
+        assert second["next"] is None
+
+    @pytest.mark.parametrize("direction", ["", "-"])
+    def test_the_list_sorts_by_name_in_either_direction(self, api_client, direction):
+        for name in ("Charlie Chan", "Alpha Adams", "Bravo Brown"):
+            PersonFactory(name=name)
+
+        response = api_client.get(
+            reverse("api:person-list"), {"ordering": f"{direction}name"}
+        )
+
+        assert response.status_code == 200
+        names = [row["name"] for row in response.json()["results"]]
+        assert names == sorted(names, reverse=direction == "-")
+        assert len(names) == 3
+
+    def test_the_list_narrows_by_the_moment_a_person_was_changed(self, api_client):
+        from datetime import UTC, datetime
+
+        old = PersonFactory()
+        recent = PersonFactory()
+        Person.objects.filter(pk=old.pk).update(
+            modified=datetime(2024, 1, 15, 12, tzinfo=UTC)
+        )
+        Person.objects.filter(pk=recent.pk).update(
+            modified=datetime(2026, 1, 15, 12, tzinfo=UTC)
+        )
+
+        response = api_client.get(
+            reverse("api:person-list"), {"modified_after": "2025-01-01T00:00:00Z"}
+        )
+
+        assert response.status_code == 200
+        found = {row["uuid"] for row in response.json()["results"]}
+        assert recent.uuid in found
+        assert old.uuid not in found
+
 
 @pytest.mark.django_db
 class TestOrganizationsList:
