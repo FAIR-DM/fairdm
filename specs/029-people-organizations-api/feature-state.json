@@ -3,7 +3,7 @@
   "feature": "029-people-organizations-api",
   "branch": "029-people-organizations-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-12T11:35:50Z",
       "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-12T14:49:31Z",
+      "note": "PR #471 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -55,8 +60,8 @@
       "at": "2026-10-12T10:02:20Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-12T14:49:18Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -84,8 +89,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-12T12:47:14Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-12T14:49:18Z",
       "self_resolved": []
     }
   },
@@ -568,7 +573,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 36.7,
+      "used": 44.35,
       "max": 120
     },
     "design_review_cycles": {
