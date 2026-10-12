@@ -4,7 +4,12 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from fairdm.api.filters import ChangedSinceFilterSet
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.measurement.models import Measurement
+from fairdm.core.project.models import Project
+from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -823,3 +828,26 @@ class TestContributorRecords:
         assert {credited.uuid, other.uuid} <= {
             row["uuid"] for row in response.json()["results"]
         }
+
+
+@pytest.mark.django_db
+class TestChangedSinceFilterSet:
+    @pytest.mark.parametrize(
+        ("model", "index"),
+        [
+            (Project, "project_modified_idx"),
+            (Dataset, "dataset_modified_idx"),
+            (Sample, "sample_modified_idx"),
+            (Measurement, "measurement_modified_idx"),
+        ],
+        ids=lambda value: getattr(value, "__name__", None),
+    )
+    @pytest.mark.parametrize("parameter", ["modified_after", "modified_before"])
+    def test_the_query_reads_the_index_on_modified(self, model, index, parameter):
+        filtered = ChangedSinceFilterSet(
+            {parameter: "2026-01-01T00:00:00Z"}, queryset=model.objects.all()
+        )
+
+        plan = filtered.qs.explain()
+
+        assert index in plan
