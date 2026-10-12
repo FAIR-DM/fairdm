@@ -23,6 +23,12 @@ never reaches the registry from their own browser.
 Each request is allowed five seconds. A request that fails, times out, or is answered with anything
 but a success counts as the registry being unavailable.
 
+The portal keeps what a registry answers for five minutes, in its default cache. Repeating a
+search, or opening a record that was just searched for, within that time sends no second request.
+A change made at the registry can therefore take up to five minutes to show in the lookup. An
+unavailable registry is never kept, so the next search asks again. The period is fixed and has no
+setting.
+
 The lookup is limited to ten matches for each search, and the page says when a registry holds more.
 The registries limit how often one address may ask, so a portal that many managers use at once
 may see a search refused for a moment. The page treats that like any other unavailable registry.
@@ -41,7 +47,7 @@ two hosts above can be reached over HTTPS.
 ## What is made
 
 Adding a match from a registry makes a profile with the name and the identifier from the record
-the portal fetches at that moment. A person made this way is active, has no email address, an
+the portal fetches at that moment, or fetched within the last five minutes. A person made this way is active, has no email address, an
 unusable password and no account, which the account states in
 [Managing Contributors](managing_contributors.md) call a ghost. Anyone who then signs in with that
 ORCID iD claims the profile.

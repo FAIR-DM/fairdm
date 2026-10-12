@@ -17,8 +17,10 @@ class SampleFilterMixin(django_filters.FilterSet):
     ``model``, or the metaclass would generate a full, unused Sample filter set whenever this
     class or a subclass is defined. ``Meta.fields`` is a list a subclass's own ``Meta`` can extend.
 
-    The dataset choices come from ``Dataset.all_objects``. The default manager is privacy-first
-    and would reject every private dataset, which is every dataset until someone publishes it.
+    The dataset choices are the public datasets and the private ones the requesting
+    user may view. ``Dataset.all_objects`` is never offered unconditionally, as it
+    would list every private dataset. A filter set built without a request offers the
+    public datasets only.
 
     Args:
         *args: Positional arguments passed to ``FilterSet``.
@@ -62,10 +64,15 @@ class SampleFilterMixin(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        from fairdm.contrib.contributors.choices import ContributionLevel
         from fairdm.core.models import Dataset
 
         if "dataset" in self.filters:
-            self.filters["dataset"].queryset = Dataset.all_objects.all()
+            user = getattr(self.request, "user", None)
+            self.filters["dataset"].queryset = (
+                Dataset.objects.all()
+                | Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
+            )
 
     class Meta:
         fields = ["status", "dataset", "polymorphic_ctype"]

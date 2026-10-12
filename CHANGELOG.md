@@ -142,6 +142,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rule.** A view listed in `extra_views` is decided by its own `check` and `permission` only, so a
   restricted plugin leaves its additional views open until each states the rule itself. The guide,
   `can_open` and `Plugin.plugin_class` now say so. No behaviour changed.
+- **The sample filter no longer names private datasets a reader may not see.**
+  `SampleFilterMixin` offered every dataset in the portal as a `dataset` choice. It now offers the
+  public datasets and the private ones the requesting user may view, and a private dataset's key
+  is refused as an invalid choice for anyone else. A filter set built without a request offers
+  the public datasets only, so pass `request=request` when you build one yourself. See
+  [Sample mixins](docs/portal-development/forms-and-filters/sample-mixins.md).
+- **The add-person page accepts only people.** A POST naming an organization, or the placeholder
+  account that stands for visitors, could list it on a record as a person. The page for adding a
+  person now answers 404 for anything but a person, the page for adding an organization for
+  anything but an organization, and `Crediting.add` refuses the placeholder account with the
+  code `anonymous`.
+- **A credit written through a base-class sample or measurement is found again.**
+  `Crediting`, `Contribution.add_to()`, `Contributor.add_to()` and `add_contributor()` stored the
+  credit against the base type when handed a record from `non_polymorphic()`, where nothing reads
+  it. They now store it against the record's real type.
+- **ORCID and ROR answers are kept for five minutes.** Repeating a search or opening a record
+  just searched for sends no second request to the registry. The period is fixed. See
+  [Looking up contributors](docs/portal-administration/looking-up-contributors.md).
 - **A person's card and list row no longer name an organization from a pending or ended primary
   affiliation.** `Person.primary_affiliation()` and `Person.primary_organization` now give `None`
   unless the primary affiliation is verified (member or above) and has no end date, the rule the
