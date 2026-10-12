@@ -3,7 +3,7 @@
   "feature": "029-people-organizations-api",
   "branch": "029-people-organizations-api",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-10-12T11:14:37Z",
       "note": "converged and green; one reviewer with the security lens, since the feature decides what the API says about people"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-12T11:35:50Z",
+      "note": "review closed with no open finding at medium or above; walkthrough laid out; pull request ready for review"
     }
   ],
   "gates": {
@@ -77,6 +82,11 @@
         "low TEST-002 remedied and verified by mutation (T025)",
         "low SEC-001 open: modified is sortable and filterable on the people list; put to the maintainer at the merge gate"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-12T11:35:29Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -549,6 +559,6 @@
   },
   "pr": {
     "number": 471,
-    "draft": true
+    "draft": false
   }
 }
