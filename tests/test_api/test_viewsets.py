@@ -1880,6 +1880,58 @@ class TestOrganizationsList:
             assert response.status_code == 200
             assert all(name not in row for row in response.json()["results"])
 
+    def test_the_list_is_paged(self, api_client):
+        OrganizationFactory.create_batch(3)
+
+        first = api_client.get(
+            reverse("api:organization-list"), {"page_size": 2}
+        ).json()
+        second = api_client.get(
+            reverse("api:organization-list"), {"page_size": 2, "page": 2}
+        ).json()
+
+        assert first["count"] == 3
+        assert len(first["results"]) == 2
+        assert first["next"] is not None
+        assert len(second["results"]) == 1
+        assert second["next"] is None
+
+    @pytest.mark.parametrize("direction", ["", "-"])
+    def test_the_list_sorts_by_name_in_either_direction(self, api_client, direction):
+        for name in ("Charlie Institute", "Alpha Institute", "Bravo Institute"):
+            OrganizationFactory(name=name)
+
+        response = api_client.get(
+            reverse("api:organization-list"), {"ordering": f"{direction}name"}
+        )
+
+        assert response.status_code == 200
+        names = [row["name"] for row in response.json()["results"]]
+        assert names == sorted(names, reverse=direction == "-")
+        assert len(names) == 3
+
+    def test_the_list_narrows_by_the_moment_an_organization_was_changed(
+        self, api_client
+    ):
+        old = OrganizationFactory()
+        recent = OrganizationFactory()
+        Organization.objects.filter(pk=old.pk).update(
+            modified=datetime(2024, 1, 15, 12, tzinfo=UTC)
+        )
+        Organization.objects.filter(pk=recent.pk).update(
+            modified=datetime(2026, 1, 15, 12, tzinfo=UTC)
+        )
+
+        response = api_client.get(
+            reverse("api:organization-list"),
+            {"modified_after": "2025-01-01T00:00:00Z"},
+        )
+
+        assert response.status_code == 200
+        found = {row["uuid"] for row in response.json()["results"]}
+        assert recent.uuid in found
+        assert old.uuid not in found
+
 
 def routable_models():
     """Every model with a list and record route: the core kinds and the registered types."""
