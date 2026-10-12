@@ -1933,6 +1933,285 @@ class TestOrganizationsList:
         assert old.uuid not in found
 
 
+ORGANIZATION_KEYS = ORGANIZATION_LIST_KEYS | {
+    "alternative_names",
+    "profile",
+    "city",
+    "links",
+    "image",
+    "parent",
+    "sub_organizations",
+    "members",
+}
+
+
+@pytest.mark.django_db
+class TestOrganization:
+    @pytest.fixture
+    def organization(self):
+        return OrganizationFactory(
+            name="Institute of Marine Science",
+            profile="Studies the sea.",
+            alternative_names=["IMS", "Marine Science Institute"],
+            city="Hobart",
+            country="AU",
+            links=["https://example.org/ims", "javascript:alert(1)"],
+        )
+
+    @staticmethod
+    def record(client, organization):
+        response = client.get(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        )
+        assert response.status_code == 200, response.content
+        data: dict = response.json()
+        return data
+
+    @staticmethod
+    def keys_of(value):
+        """Return every key that appears anywhere in a response."""
+        if isinstance(value, dict):
+            for key, inner in value.items():
+                yield key
+                yield from TestOrganization.keys_of(inner)
+        elif isinstance(value, list):
+            for inner in value:
+                yield from TestOrganization.keys_of(inner)
+
+    @staticmethod
+    def join(organization, **kwargs):
+        """Affiliate a new person with an organization, giving the person."""
+        from fairdm.factories import AffiliationFactory
+
+        return AffiliationFactory(organization=organization, **kwargs).person
+
+    def test_an_organization_carries_the_list_keys_and_what_only_a_record_carries(
+        self, api_client, organization
+    ):
+        data = self.record(api_client, organization)
+
+        assert set(data) == ORGANIZATION_KEYS
+
+    def test_an_organization_carries_everything_its_list_entry_does(
+        self, api_client, organization
+    ):
+        from fairdm.factories import ContributorIdentifierFactory
+
+        ContributorIdentifierFactory(
+            related=organization, type="ROR", value="03yrm5c26"
+        )
+        entry = next(
+            row
+            for row in api_client.get(reverse("api:organization-list")).json()[
+                "results"
+            ]
+            if row["uuid"] == organization.uuid
+        )
+
+        data = self.record(api_client, organization)
+
+        assert {key: data[key] for key in ORGANIZATION_LIST_KEYS} == entry
+
+    def test_an_organization_carries_the_profile_the_other_names_and_the_city(
+        self, api_client, organization
+    ):
+        data = self.record(api_client, organization)
+
+        assert data["profile"] == "Studies the sea."
+        assert data["alternative_names"] == ["IMS", "Marine Science Institute"]
+        assert data["city"] == "Hobart"
+
+    def test_links_are_the_web_addresses_the_page_draws(self, api_client, organization):
+        assert self.record(api_client, organization)["links"] == [
+            "https://example.org/ims"
+        ]
+
+    def test_an_organization_with_no_links_or_other_names_returns_empty_lists(
+        self, api_client
+    ):
+        data = self.record(
+            api_client, OrganizationFactory(links=[], alternative_names=[])
+        )
+
+        assert data["links"] == []
+        assert data["alternative_names"] == []
+
+    def test_an_organization_with_no_image_has_a_null_image(
+        self, api_client, organization
+    ):
+        assert self.record(api_client, organization)["image"] is None
+
+    def test_the_parent_is_named_by_identifier_address_and_name(self, api_client):
+        university = OrganizationFactory(name="University of Tasmania")
+        department = OrganizationFactory(parent=university)
+
+        data = self.record(api_client, department)
+
+        assert data["parent"] == {
+            "uuid": university.uuid,
+            "url": data["parent"]["url"],
+            "name": "University of Tasmania",
+        }
+        assert data["parent"]["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": university.uuid})
+        )
+
+    def test_an_organization_with_no_parent_has_a_null_parent(
+        self, api_client, organization
+    ):
+        assert self.record(api_client, organization)["parent"] is None
+
+    def test_sub_organizations_are_named_by_identifier_address_and_name_by_name(
+        self, api_client, organization
+    ):
+        zoology = OrganizationFactory(name="Zoology", parent=organization)
+        acoustics = OrganizationFactory(name="Acoustics", parent=organization)
+        OrganizationFactory(name="Elsewhere", parent=OrganizationFactory())
+
+        entries = self.record(api_client, organization)["sub_organizations"]
+
+        assert [entry["name"] for entry in entries] == ["Acoustics", "Zoology"]
+        assert [entry["uuid"] for entry in entries] == [acoustics.uuid, zoology.uuid]
+        assert entries[0]["url"].endswith(
+            reverse("api:organization-detail", kwargs={"uuid": acoustics.uuid})
+        )
+        assert all(set(entry) == {"uuid", "url", "name"} for entry in entries)
+
+    def test_an_organization_with_no_sub_organizations_or_members_has_empty_lists(
+        self, api_client, organization
+    ):
+        data = self.record(api_client, organization)
+
+        assert data["sub_organizations"] == []
+        assert data["members"] == []
+
+    def test_a_member_names_the_person_and_gives_the_kind_of_affiliation(
+        self, api_client, organization
+    ):
+        from fairdm.contrib.contributors.models import Affiliation
+
+        person = self.join(organization, type=Affiliation.MembershipType.ADMIN)
+
+        (entry,) = self.record(api_client, organization)["members"]
+
+        assert set(entry) == {"person", "type"}
+        assert entry["person"] == {
+            "uuid": person.uuid,
+            "url": entry["person"]["url"],
+            "name": person.name,
+        }
+        assert entry["person"]["url"].endswith(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        )
+        assert entry["type"] == "admin"
+
+    @pytest.mark.parametrize(
+        ("level", "name"),
+        [(1, "member"), (2, "admin"), (3, "owner")],
+    )
+    def test_the_kind_of_a_member_is_the_lower_case_name_of_their_level(
+        self, api_client, organization, level, name
+    ):
+        self.join(organization, type=level)
+
+        (entry,) = self.record(api_client, organization)["members"]
+
+        assert entry["type"] == name
+
+    def test_the_people_who_run_the_organization_come_first_then_by_name(
+        self, api_client, organization
+    ):
+        from fairdm.contrib.contributors.models import Affiliation
+
+        MemberType = Affiliation.MembershipType
+        for name, level in (
+            ("Zoe Member", MemberType.MEMBER),
+            ("Abe Member", MemberType.MEMBER),
+            ("Yan Admin", MemberType.ADMIN),
+            ("Mia Owner", MemberType.OWNER),
+            ("Bea Admin", MemberType.ADMIN),
+        ):
+            self.join(organization, type=level, person__name=name)
+
+        entries = self.record(api_client, organization)["members"]
+
+        assert [(entry["person"]["name"], entry["type"]) for entry in entries] == [
+            ("Mia Owner", "owner"),
+            ("Bea Admin", "admin"),
+            ("Yan Admin", "admin"),
+            ("Abe Member", "member"),
+            ("Zoe Member", "member"),
+        ]
+
+    def test_a_pending_member_is_absent(self, api_client, organization):
+        from fairdm.contrib.contributors.models import Affiliation
+
+        verified = self.join(organization)
+        pending = self.join(organization, type=Affiliation.MembershipType.PENDING)
+
+        shown = {
+            entry["person"]["uuid"]
+            for entry in self.record(api_client, organization)["members"]
+        }
+
+        assert shown == {verified.uuid}
+        assert pending.uuid not in shown
+
+    def test_a_member_whose_affiliation_has_ended_is_absent(
+        self, api_client, organization
+    ):
+        current = self.join(organization)
+        former = self.join(organization, start_date="2015", end_date="2018")
+
+        shown = {
+            entry["person"]["uuid"]
+            for entry in self.record(api_client, organization)["members"]
+        }
+
+        assert shown == {current.uuid}
+        assert former.uuid not in shown
+
+    @pytest.mark.parametrize(
+        "account",
+        [
+            {"is_superuser": True, "is_staff": True},
+            {"email": "AnonymousUser"},
+        ],
+        ids=["superuser", "anonymous"],
+    )
+    def test_a_member_the_people_list_leaves_out_is_absent(
+        self, api_client, organization, account
+    ):
+        visible = self.join(organization)
+        hidden = self.join(
+            organization, **{f"person__{field}": v for field, v in account.items()}
+        )
+
+        shown = {
+            entry["person"]["uuid"]
+            for entry in self.record(api_client, organization)["members"]
+        }
+
+        assert shown == {visible.uuid}
+
+    def test_no_response_about_an_organization_has_a_key_for_account_state(
+        self, api_client, organization
+    ):
+        person = self.join(organization, person__email="private.address@example.org")
+        OrganizationFactory(parent=organization)
+        responses = [
+            api_client.get(reverse("api:organization-list")),
+            api_client.get(
+                reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+            ),
+        ]
+
+        for response in responses:
+            assert response.status_code == 200
+            assert set(self.keys_of(response.json())).isdisjoint(ACCOUNT_STATE_KEYS)
+            assert person.email not in response.content.decode()
+
+
 def routable_models():
     """Every model with a list and record route: the core kinds and the registered types."""
     from fairdm.contrib.contributors.models import Organization, Person
