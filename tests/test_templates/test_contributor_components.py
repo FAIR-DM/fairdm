@@ -14,6 +14,7 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
 )
+from fairdm.contrib.contributors.models import Affiliation
 
 
 @pytest.fixture
@@ -304,3 +305,21 @@ class TestCreditedFromNone:
 
         hrefs = [a["href"] for a in soup(html).find_all("a")]
         assert primary.organization.get_absolute_url() in hrefs
+
+    @pytest.mark.parametrize(
+        "unverified_or_ended",
+        [{"type": Affiliation.MembershipType.PENDING}, {"end_date": "2023"}],
+        ids=["pending", "ended"],
+    )
+    def test_a_pending_or_ended_primary_affiliation_names_no_organization(
+        self, render_with, soup, component, unverified_or_ended
+    ):
+        person = PersonFactory()
+        primary = AffiliationFactory(
+            person=person, is_primary=True, **unverified_or_ended
+        )
+
+        html = render_with(f'<{component} :contributor="person" />', person=person)
+
+        hrefs = [a["href"] for a in soup(html).find_all("a")]
+        assert primary.organization.get_absolute_url() not in hrefs

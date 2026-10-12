@@ -588,11 +588,11 @@ def get_person_profile(person_pk):
     cache_key = f"person_profile_{person_pk}"
     profile = cache.get(cache_key)
     if profile is None:
-        person = Person.objects.select_related('primary_affiliation__organization').get(pk=person_pk)
+        person = Person.objects.prefetch_related('affiliations__organization').get(pk=person_pk)
         profile = {
             "name": person.name,
             "email": person.email,
-            "affiliation": person.primary_affiliation().organization.name if person.primary_affiliation() else None,
+            "affiliation": person.primary_organization.name if person.primary_organization else None,
         }
         cache.set(cache_key, profile, timeout=3600)  # 1 hour
     return profile

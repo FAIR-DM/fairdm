@@ -153,7 +153,7 @@ display_name = person.get_full_name_display(name_format="family_given")
 # "family_initial" ("Doe, J."), "initials_family" ("J. Doe")
 
 # Affiliations
-primary_aff = person.primary_affiliation()  # Returns Affiliation or None
+primary_aff = person.primary_affiliation()  # The verified, current primary Affiliation, or None
 primary_org = person.primary_organization  # That affiliation's Organization, or None
 current_affs = person.current_affiliations()  # QuerySet of active affiliations
 
@@ -171,6 +171,10 @@ collaborators = person.get_collaborators(limit=10)
 # (fairdm.core.vocabularies.FairDMRoles), e.g. "Creator" or "DataCollector"
 person.add_to(my_project, roles=["Creator", "DataCollector"])
 ```
+
+`primary_affiliation()` and `primary_organization` give `None` while the primary affiliation is
+still pending, and once it has an end date, so a card, a list row and an exported citation name an
+organization only when the person's own page does.
 
 `primary_affiliation()`, `primary_organization`, `portal_roles`, `orcid_is_authenticated` and
 `get_default_identifier()` read from prefetched relations when there are any. A page listing many
