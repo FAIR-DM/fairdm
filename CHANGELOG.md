@@ -305,7 +305,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **django-mvp's minimum is 0.28.1.** That release leaves the heading and divider out of a row set
   that is all a page holds, which the key dates and identifiers pages rely on. The `.editing-rows`
   wrapper in `editing/rows.html` and the stylesheet rule that hid the divider are gone, so a
-  portal that overrides that template has no wrapper to keep.
+  portal that overrides that template has no wrapper to keep. The release also redraws table
+  pages as one surface, moves a row's heading closer to its fields and makes the browser toolbar
+  colour follow the theme. See django-mvp's notes for
+  [0.28.1](https://github.com/django-mvp/django-mvp/releases/tag/v0.28.1).
 - **django-mvp moves to 0.28 and django-mvp-accounts to 0.2.** django-mvp now takes its basic
   components from daisy-cotton and puts the ones it keeps under an `mvp.` prefix. FairDM's own
   settings install `daisy_cotton`, so a portal that writes no templates of its own has nothing
