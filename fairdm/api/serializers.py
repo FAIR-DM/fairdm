@@ -985,7 +985,7 @@ class OrganizationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = (
+        fields: tuple[str, ...] = (
             "url",
             "html_url",
             "uuid",
