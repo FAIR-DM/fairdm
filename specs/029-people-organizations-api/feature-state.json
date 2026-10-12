@@ -238,6 +238,25 @@
               "docs/adr/0027-records-refer-to-each-other-by-short-identifier.md:8"
             ]
           }
+        },
+        {
+          "id": "T026",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_api/test_viewsets.py::TestCredit",
+              "tests/test_api/test_schema.py::TestCreditComponent",
+              "tests/test_api/test_filters.py::TestOrganizationFilters"
+            ],
+            "commands": [
+              "uv run pytest -q tests/test_api"
+            ],
+            "code": [
+              "fairdm/api/serializers.py:538",
+              "fairdm/api/filters.py:378"
+            ]
+          }
         }
       ]
     },
