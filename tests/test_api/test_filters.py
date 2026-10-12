@@ -611,3 +611,213 @@ class TestOrganizationFilters:
 
         assert by_parent_and_country == {australian.uuid}
         assert by_country_and_identifier == set()
+
+
+@pytest.mark.django_db
+class TestContributorRecords:
+    ROUTES = {"projects": "api:project-list", "datasets": "api:dataset-list"}
+
+    @staticmethod
+    def found(client, route, contributor):
+        """Return the identifiers and the count of a list narrowed to a contributor."""
+        response = client.get(reverse(route), {"contributor": contributor})
+        assert response.status_code == 200, response.content
+        body = response.json()
+        return {row["uuid"] for row in body["results"]}, body["count"]
+
+    @staticmethod
+    def credit(record, contributor, level=ContributionLevel.VIEW):
+        return ContributionFactory(
+            content_object=record, contributor=contributor, level=level
+        )
+
+    @staticmethod
+    def public_project():
+        return ProjectFactory(visibility=Visibility.PUBLIC)
+
+    @staticmethod
+    def public_dataset(project=None):
+        return DatasetFactory(
+            project=project or ProjectFactory(visibility=Visibility.PUBLIC),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+
+    @pytest.mark.parametrize("kind", ["person", "organization"])
+    def test_the_project_list_returns_exactly_the_public_projects_credited(self, kind):
+        from fairdm.factories import OrganizationFactory
+
+        contributor = PersonFactory() if kind == "person" else OrganizationFactory()
+        first = self.public_project()
+        second = self.public_project()
+        self.credit(first, contributor)
+        self.credit(second, contributor)
+        uncredited = self.public_project()
+        self.credit(uncredited, PersonFactory())
+
+        found, count = self.found(
+            APIClient(), self.ROUTES["projects"], contributor.uuid
+        )
+
+        assert found == {first.uuid, second.uuid}
+        assert count == 2
+        assert uncredited.uuid not in found
+
+    @pytest.mark.parametrize("kind", ["person", "organization"])
+    def test_the_dataset_list_returns_exactly_the_public_datasets_credited(self, kind):
+        from fairdm.factories import OrganizationFactory
+
+        contributor = PersonFactory() if kind == "person" else OrganizationFactory()
+        first = self.public_dataset()
+        second = self.public_dataset()
+        self.credit(first, contributor)
+        self.credit(second, contributor)
+        uncredited = self.public_dataset()
+        self.credit(uncredited, PersonFactory())
+
+        found, count = self.found(
+            APIClient(), self.ROUTES["datasets"], contributor.uuid
+        )
+
+        assert found == {first.uuid, second.uuid}
+        assert count == 2
+        assert uncredited.uuid not in found
+
+    @pytest.fixture(params=["visitor", "person", "team member"])
+    def caller(self, request, member_at, signed_in):
+        """Return a function giving the client of a caller, and the records it may see."""
+
+        def caller(person, private_records):
+            if request.param == "visitor":
+                return APIClient(), False
+            if request.param == "person":
+                return signed_in(person), True
+            member = None
+            for record in private_records:
+                member = member_at(record, ContributionLevel.VIEW, person=member)
+            return signed_in(member), True
+
+        return caller
+
+    @pytest.mark.parametrize("route", sorted(ROUTES))
+    def test_a_private_record_is_never_returned_or_counted_whoever_asks(
+        self, route, caller
+    ):
+        person = PersonFactory(is_active=True, is_claimed=True)
+        private_project = ProjectFactory(visibility=Visibility.PRIVATE)
+        private_dataset = DatasetFactory(
+            project=self.public_project(), visibility=Visibility.PRIVATE
+        )
+        inside_private_project = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+        public_project = self.public_project()
+        public_dataset = self.public_dataset()
+        private = {
+            "projects": [private_project],
+            "datasets": [private_dataset, inside_private_project],
+        }[route]
+        kept = {"projects": public_project, "datasets": public_dataset}[route]
+        for record in [
+            private_project,
+            private_dataset,
+            inside_private_project,
+            public_project,
+            public_dataset,
+        ]:
+            self.credit(record, person)
+        client, sees_private = caller(
+            person, [private_project, private_dataset, inside_private_project]
+        )
+        plain = client.get(reverse(self.ROUTES[route])).json()["results"]
+
+        found, count = self.found(client, self.ROUTES[route], person.uuid)
+
+        if sees_private:
+            assert {record.uuid for record in private} <= {row["uuid"] for row in plain}
+        assert found == {kept.uuid}
+        assert count == 1
+
+    def test_the_plain_list_shows_a_team_member_the_private_records_the_filter_leaves_out(
+        self, member_at, signed_in
+    ):
+        person = PersonFactory()
+        private_dataset = DatasetFactory(
+            project=self.public_project(), visibility=Visibility.PRIVATE
+        )
+        self.credit(private_dataset, person)
+        client = signed_in(member_at(private_dataset, ContributionLevel.VIEW))
+
+        plain = client.get(reverse("api:dataset-list")).json()["results"]
+        found, count = self.found(client, self.ROUTES["datasets"], person.uuid)
+
+        assert private_dataset.uuid in {row["uuid"] for row in plain}
+        assert found == set()
+        assert count == 0
+
+    def test_a_public_project_an_organization_owns_and_is_not_credited_on_is_not_returned(
+        self,
+    ):
+        from fairdm.factories import OrganizationFactory
+
+        organization = OrganizationFactory()
+        credited = self.public_project()
+        self.credit(credited, organization)
+        owned = ProjectFactory(visibility=Visibility.PUBLIC, owner=organization)
+        in_owned = self.public_dataset(project=owned)
+
+        projects, _count = self.found(
+            APIClient(), self.ROUTES["projects"], organization.uuid
+        )
+        datasets, _count = self.found(
+            APIClient(), self.ROUTES["datasets"], organization.uuid
+        )
+
+        assert projects == {credited.uuid}
+        assert owned.uuid not in projects
+        assert datasets == set()
+        assert in_owned.uuid not in datasets
+
+    @pytest.fixture(params=["unknown", "superuser", "anonymous account", "number"])
+    def unmatched(self, request):
+        """Return a value that names no contributor the lists answer for."""
+        if request.param == "unknown":
+            self.credit(self.public_project(), PersonFactory())
+            self.credit(self.public_dataset(), PersonFactory())
+            return "u" * 23
+        if request.param == "number":
+            person = PersonFactory()
+            self.credit(self.public_project(), person)
+            self.credit(self.public_dataset(), person)
+            return person.pk
+        hidden = (
+            PersonFactory(is_active=True, is_superuser=True)
+            if request.param == "superuser"
+            else PersonFactory(email="AnonymousUser")
+        )
+        self.credit(self.public_project(), hidden)
+        self.credit(self.public_dataset(), hidden)
+        return hidden.uuid
+
+    @pytest.mark.parametrize("route", sorted(ROUTES))
+    def test_an_identifier_that_names_nobody_gives_an_empty_list(
+        self, route, unmatched
+    ):
+        found, count = self.found(APIClient(), self.ROUTES[route], unmatched)
+
+        assert found == set()
+        assert count == 0
+
+    def test_without_the_filter_the_list_is_not_narrowed(self):
+        person = PersonFactory()
+        credited = self.public_project()
+        self.credit(credited, person)
+        other = self.public_project()
+
+        response = APIClient().get(reverse(self.ROUTES["projects"]))
+
+        assert {credited.uuid, other.uuid} <= {
+            row["uuid"] for row in response.json()["results"]
+        }
