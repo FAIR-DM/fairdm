@@ -1,9 +1,12 @@
 """Look people up in ORCID and organizations up in ROR, and make profiles from what is found."""
 
+import hashlib
 import re
 
 import requests
+from django.core.cache import cache
 from django.db import transaction
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django_countries import countries
 
@@ -23,6 +26,9 @@ RESULTS_SHOWN = 10
 TIMEOUT = 5
 """The seconds a registry has to answer."""
 
+KEPT = 300
+"""The seconds an answer is kept, so that a repeated lookup asks the registry once."""
+
 JSON = {"Accept": "application/json"}
 
 
@@ -35,7 +41,12 @@ class RegistryUnavailable(Exception):
 
 
 def ask(address, parse, *, params=None, headers=None, missing_ok=False):
-    """Request an address from a registry and read its answer.
+    """Request an address from a registry and read its answer, unless it is already kept.
+
+    What a registry answers is kept for ``KEPT`` seconds in the default cache, under the
+    address, the parameters and the active language, since an answer is read into text in
+    that language. "There is no such record" is an answer and is kept. A failure is not, so
+    the next request asks again.
 
     Args:
         address: The address, which no search term is ever part of.
@@ -51,6 +62,11 @@ def ask(address, parse, *, params=None, headers=None, missing_ok=False):
         RegistryUnavailable: The request failed, the answer was not a 200, or ``parse`` could not
             read it.
     """
+    asked = repr((address, sorted((params or {}).items()), get_language()))
+    key = "fairdm:registry:" + hashlib.sha256(asked.encode()).hexdigest()
+    kept = cache.get(key)
+    if kept is not None:
+        return kept["answer"]
     try:
         response = requests.get(
             address, params=params, headers=headers, timeout=TIMEOUT
@@ -58,15 +74,18 @@ def ask(address, parse, *, params=None, headers=None, missing_ok=False):
     except requests.RequestException as error:
         raise RegistryUnavailable(f"{address} could not be reached") from error
     if missing_ok and response.status_code == 404:
-        return None
-    if response.status_code != 200:
+        answer = None
+    elif response.status_code != 200:
         raise RegistryUnavailable(f"{address} answered {response.status_code}")
-    try:
-        return parse(response.json())
-    except (ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
-        raise RegistryUnavailable(
-            f"{address} answered in an unexpected form"
-        ) from error
+    else:
+        try:
+            answer = parse(response.json())
+        except (ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
+            raise RegistryUnavailable(
+                f"{address} answered in an unexpected form"
+            ) from error
+    cache.set(key, {"answer": answer}, KEPT)
+    return answer
 
 
 class Orcid:

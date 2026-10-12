@@ -8,6 +8,7 @@ import copy
 
 import pytest
 import requests
+from django.core.cache import cache
 
 from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import (
@@ -617,3 +618,72 @@ class TestProfileFromRegistry:
         organization = Ror().profile(ror_record)
 
         assert organization.pk != namesake.pk
+
+
+LOOKUPS = {
+    "orcid-search": (ORCID_SEARCH, "orcid-search", lambda: Orcid().search("Carberry")),
+    "orcid-fetch": (
+        orcid_record_address(JOSIAH),
+        "orcid-record",
+        lambda: Orcid().fetch(JOSIAH),
+    ),
+    "ror-search": (ROR_SEARCH, "ror-search", lambda: Ror().search("geoscience")),
+    "ror-fetch": (ror_record_address(GFZ), "ror-record", lambda: Ror().fetch(GFZ)),
+}
+
+
+class TestAnswersAreKept:
+    @pytest.fixture(autouse=True)
+    def keeping_cache(self, settings):
+        """Give the run a cache that keeps what it is given, emptied afterwards."""
+        settings.CACHES = {
+            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+        }
+        yield
+        cache.clear()
+
+    @pytest.fixture(params=sorted(LOOKUPS))
+    def lookup(self, request, registry_network, recorded):
+        """Each search and fetch in turn, with the registry ready to answer it."""
+        address, recording, look_up = LOOKUPS[request.param]
+        registry_network.answer(address, recorded(recording))
+        return look_up
+
+    def test_a_repeated_lookup_asks_the_registry_once(self, registry_network, lookup):
+        first = lookup()
+
+        again = lookup()
+
+        assert len(registry_network.calls) == 1
+        assert again == first
+
+    def test_another_term_asks_the_registry_again(self, registry_network, recorded):
+        registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+
+        Orcid().search("Carberry")
+        Orcid().search("Carberry J")
+
+        assert len(registry_network.calls) == 2
+
+    def test_a_record_the_registry_does_not_hold_is_asked_for_once(
+        self, registry_network
+    ):
+        registry_network.answer(orcid_record_address(JOSIAH), {}, status=404)
+
+        Orcid().fetch(JOSIAH)
+
+        assert Orcid().fetch(JOSIAH) is None
+        assert len(registry_network.calls) == 1
+
+    def test_a_registry_that_could_not_be_reached_is_asked_again(
+        self, registry_network, recorded
+    ):
+        registry_network.fail(ORCID_SEARCH, requests.Timeout("slow"))
+        with pytest.raises(RegistryUnavailable):
+            Orcid().search("Carberry")
+        registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+
+        found = Orcid().search("Carberry")
+
+        assert found["results"]
+        assert len(registry_network.calls) == 2
