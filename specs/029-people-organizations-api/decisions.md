@@ -191,3 +191,25 @@ generated schema. An unknown type is therefore answered 400, which the specifica
 describe and no test pins. A lower-case country code finds nothing.
 *Revisit if:* callers send country codes in lower case.
 **ADR:** none, local to this feature.
+
+## D18. Implementer US4: the contributor filter and the two addresses
+
+**`contributor` is a `CharFilter` with a method, and the lookup is two queries.** The identifier
+is looked up among `Person.objects.real()` and then `Organization.objects`, and a miss returns
+`queryset.none()`, so an unknown identifier, a superuser's, the anonymous account's and a database
+number all answer 200 with an empty list. A `ModelChoiceFilter` would have answered 400.
+*Revisit if:* a caller needs to tell "no such contributor" from "no records".
+
+**The narrowing is by primary key through `projects.get_visible()` or `datasets.get_visible()`,
+never `get_public_projects()`.** `Organization` overrides the latter to add the projects it owns,
+which the specification does not call credit. `FairDMVisibilityFilter` still runs first, so the
+result is the public credited records for every caller, including a member of a private record's
+team.
+*Revisit if:* the specification widens the list to what the caller may see.
+
+**The two addresses come from one mixin, `ContributorRecordsMixin`, not from each serializer.**
+`PersonSerializer` and `OrganizationSerializer` have different list bases and need identical
+fields, so the two method fields and the helper that builds the address are written once. The
+mixin is a `Serializer`, so the declared fields are collected.
+*Revisit if:* a third serializer needs the addresses with different routes.
+**ADR:** none, local to this feature.

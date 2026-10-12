@@ -137,3 +137,31 @@ Did: added TestOrganizationComponents to tests/test_api/test_schema.py (list com
 Verified: `uv run pytest -q -n0 tests/test_api/test_schema.py::TestOrganizationComponents` 5 passed. Probed by returning the list serializer for every action and dropping the filter set: 3 failed; restored.
 Next: the full verify, then the report.
 Watch: the user guide page is outside the paths the brief names; the protocol asks for every page the story changed the truth of.
+
+## 2026-10-12T11:05:23Z · Implementer US4 · T020
+
+Did: tests/test_api/test_filters.py, TestContributorRecords: the project list and the dataset list narrowed to a person and to an organization return exactly the public records credited; a private project, a private dataset and a public dataset in a private project are never returned or counted for a visitor, for the person themself and for a member of the private record's team (each with a check that the plain list shows the caller the private records); a public project an organization owns and is not credited on is not returned; an unknown identifier, a superuser's, the anonymous account's and a database number give an empty list with status 200; the unfiltered list is not narrowed. A second commit credits an organization with no level, as a credit to one is stored.
+Verified: red before T022 (20 failed, 1 passed): every narrowing test fails on the unfiltered list. After T022, uv run pytest -q -n0 tests/test_api/test_filters.py::TestContributorRecords -> 21 passed. Probes: reading get_public_projects()/get_public_datasets() instead fails the owned-project test; dropping get_visible() fails 5.
+Next: T021.
+Watch: none.
+
+## 2026-10-12T11:05:23Z · Implementer US4 · T021
+
+Did: tests/test_api/test_viewsets.py, TestContributorRecordAddresses: for a person and an organization, the projects and datasets addresses are absolute with the contributor as a query, requesting each returns the narrowed list, a list entry carries neither, and a private record the caller may see is credited on its own page and left out of the person's datasets list. Edits to earlier stories' tests, key sets only: PERSON_KEYS and ORGANIZATION_KEYS in tests/test_api/test_viewsets.py, and RECORD_ONLY_KEYS of the person and organization classes in tests/test_api/test_schema.py, each gaining projects and datasets.
+Verified: red before T022: KeyError 'projects' and 'datasets' in the address tests and the four key-set assertions fail on the two extra keys; the list-entry test passes already. After T022 all pass.
+Next: T022.
+Watch: none.
+
+## 2026-10-12T11:05:23Z · Implementer US4 · T022
+
+Did: fairdm/api/filters.py: ContributorRecordsFilterSet with the one contributor filter. fairdm/api/viewsets.py: it is the filterset_class of ProjectViewSet and DatasetViewSet. fairdm/api/serializers.py: ContributorRecordsMixin with the projects and datasets address fields, used by PersonSerializer and OrganizationSerializer and added to their Meta.fields. decisions.md D18.
+Verified: uv run pre-commit run --files fairdm/api/filters.py fairdm/api/serializers.py fairdm/api/viewsets.py -> ruff, ruff format, mypy and deptry passed. uv run pytest -q -n auto --dist loadscope tests/test_api -> 1306 passed, including TestQueryCount and TestCreditQueries unchanged.
+Next: T023.
+Watch: none.
+
+## 2026-10-12T11:05:23Z · Implementer US4 · T023
+
+Did: docs/portal-development/restful-api.md: the projects and datasets rows in the single person and single organization tables, the counts of fields a list entry leaves out, a subsection on the contributor filter with an example for a person and one for an organization, that it holds public records only whoever asks, ContributorRecordsFilterSet and ContributorRecordsMixin in the class table. docs/user-guide/reading-records-with-a-script.md: a worked step from a person to their datasets.
+Verified: read against the branch; the addresses and the empty-list behaviour are the ones the tests in T020 and T021 pin.
+Next: the full verify, then the report.
+Watch: the same user guide page still says the portal root lists "projects, datasets and contributors" under "Find out what a portal offers"; that is story 1's wording and was left as it is.
