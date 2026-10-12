@@ -914,6 +914,9 @@ class PersonSerializer(PersonListSerializer):
     person is returned.
     """
 
+    alternative_names = serializers.ListField(
+        child=serializers.CharField(), read_only=True
+    )
     image = serializers.ImageField(read_only=True, allow_null=True)
     links = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
