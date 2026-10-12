@@ -582,7 +582,9 @@ Every list, of projects, datasets, people, organizations and each sample and mea
 with the record's `modified` time: `modified_after` keeps the records last changed at or after
 the moment and `modified_before` those changed at or before it. A date alone means the start of
 that day, and a time without an offset is read in the portal's time zone. A value that cannot be
-read as a moment is answered `400`, naming the parameter.
+read as a moment is answered `400`, naming the parameter. The `modified` column has a database
+index on every one of these record types, which the two filters and `?ordering=modified` can
+use.
 
 ```http
 GET /api/v1/datasets/?modified_after=2026-10-01T08:00:00Z

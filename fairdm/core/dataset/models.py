@@ -341,6 +341,7 @@ class Dataset(BaseModel):
         verbose_name_plural = _("datasets")
         default_related_name = "datasets"
         ordering = ["-modified"]
+        indexes = [models.Index(fields=["modified"], name="dataset_modified_idx")]
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import data into dataset"),

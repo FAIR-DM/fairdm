@@ -196,6 +196,7 @@ class Project(BaseModel):
         verbose_name_plural = _("projects")
         default_related_name = "projects"
         ordering = ["-modified"]
+        indexes = [models.Index(fields=["modified"], name="project_modified_idx")]
         permissions = [
             *CORE_PERMISSIONS,
             ("change_project_metadata", _("Can edit project metadata")),

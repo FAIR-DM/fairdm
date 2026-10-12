@@ -277,6 +277,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Projects, datasets, samples and measurements have a database index on `modified`.** The API's
+  `modified_after` and `modified_before` filters, and ordering a list by `modified`, can use it
+  where they scanned the whole table before. Contributors already had the index. Each of
+  the four apps gains one migration that creates it, so run `migrate` when upgrading (#466).
 - **The REST API is complete, and a portal with API clients or serializers of its own has changes
   to make.** See [The REST API](docs/portal-development/restful-api.md) and
   [Limits on the API](docs/portal-administration/api-limits.md). What to change:
