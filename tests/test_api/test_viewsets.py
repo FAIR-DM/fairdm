@@ -1497,6 +1497,8 @@ PERSON_KEYS = PERSON_LIST_KEYS | {
     "languages",
     "image",
     "affiliations",
+    "projects",
+    "datasets",
 }
 
 
@@ -1942,6 +1944,8 @@ ORGANIZATION_KEYS = ORGANIZATION_LIST_KEYS | {
     "parent",
     "sub_organizations",
     "members",
+    "projects",
+    "datasets",
 }
 
 
@@ -2242,6 +2246,103 @@ class TestOrganizationQueries:
 
         assert (members_few, members_many) == (2, 30)
         assert queries_many == queries_few
+
+
+@pytest.mark.django_db
+class TestContributorRecordAddresses:
+    @pytest.fixture(params=["person", "organization"])
+    def contributor(self, request):
+        """A person, and then an organization, each credited on a public project and dataset."""
+        from fairdm.factories import ContributionFactory
+
+        contributor = (
+            PersonFactory() if request.param == "person" else OrganizationFactory()
+        )
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        for record in (project, dataset):
+            ContributionFactory(
+                content_object=record,
+                contributor=contributor,
+                level=None if contributor.is_organization else ContributionLevel.VIEW,
+            )
+        contributor.credited = {"projects": project, "datasets": dataset}
+        return contributor
+
+    @staticmethod
+    def record(client, contributor):
+        route = "person" if isinstance(contributor, Person) else "organization"
+        response = client.get(
+            reverse(f"api:{route}-detail", kwargs={"uuid": contributor.uuid})
+        )
+        assert response.status_code == 200, response.content
+        data: dict = response.json()
+        return data
+
+    @pytest.mark.parametrize("kind", ["projects", "datasets"])
+    def test_a_record_gives_the_absolute_address_of_the_narrowed_list(
+        self, api_client, contributor, kind
+    ):
+        from urllib.parse import parse_qs, urlparse
+
+        address = urlparse(self.record(api_client, contributor)[kind])
+
+        assert address.scheme == "http"
+        assert address.netloc == "testserver"
+        assert address.path == reverse(f"api:{kind[:-1]}-list")
+        assert parse_qs(address.query) == {"contributor": [contributor.uuid]}
+
+    @pytest.mark.parametrize("kind", ["projects", "datasets"])
+    def test_requesting_the_address_returns_the_records_credited(
+        self, api_client, contributor, kind
+    ):
+        address = self.record(api_client, contributor)[kind]
+        other = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = api_client.get(address)
+
+        assert response.status_code == 200
+        assert {row["uuid"] for row in response.json()["results"]} == {
+            contributor.credited[kind].uuid
+        }
+        assert other.uuid not in {row["uuid"] for row in response.json()["results"]}
+
+    def test_a_list_entry_carries_neither_address(self, api_client, contributor):
+        route = "person" if isinstance(contributor, Person) else "organization"
+
+        response = api_client.get(reverse(f"api:{route}-list"))
+
+        [entry] = [
+            row for row in response.json()["results"] if row["uuid"] == contributor.uuid
+        ]
+        assert {"projects", "datasets"}.isdisjoint(entry)
+
+    def test_a_private_record_is_credited_on_its_own_page_and_left_out_of_the_lists(
+        self, member_at, signed_in
+    ):
+        from fairdm.factories import ContributionFactory
+
+        person = PersonFactory()
+        dataset = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+            visibility=Visibility.PRIVATE,
+        )
+        ContributionFactory(
+            content_object=dataset, contributor=person, level=ContributionLevel.VIEW
+        )
+        client = signed_in(member_at(dataset, ContributionLevel.VIEW))
+
+        shown = client.get(reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid}))
+        listed = client.get(self.record(client, person)["datasets"])
+
+        assert shown.status_code == 200
+        assert person.uuid in {
+            credit["uuid"] for credit in shown.json()["contributors"]
+        }
+        assert listed.status_code == 200
+        assert listed.json()["results"] == []
 
 
 def routable_models():

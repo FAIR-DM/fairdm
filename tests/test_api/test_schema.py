@@ -523,6 +523,8 @@ class TestPeopleComponents:
         "languages",
         "image",
         "affiliations",
+        "projects",
+        "datasets",
     }
 
     @staticmethod
@@ -598,6 +600,8 @@ class TestOrganizationComponents:
         "parent",
         "sub_organizations",
         "members",
+        "projects",
+        "datasets",
     }
     FILTERS = {"type", "country", "parent", "top_level", "identifier"}
 
