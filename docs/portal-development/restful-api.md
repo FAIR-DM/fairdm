@@ -309,13 +309,91 @@ A list entry holds what identifies a person:
 | `primary_organization` | `{"uuid", "url", "name"}` for the organization of their primary affiliation, or `null` |
 
 `primary_organization` is `null` when the primary affiliation has not been verified or has ended.
-The entry carries no biography, links or languages, and no email address, credential, flag or
-sign-in date. `added` and `modified` are not returned, but a list can be ordered by either and
-narrowed with `modified_after` and `modified_before`. `/api/v1/people/{uuid}/` returns the same
-fields for one person. People are read-only.
+`added` and `modified` are not returned, but a list can be ordered by either and narrowed with
+`modified_after` and `modified_before`. People are read-only.
 
-`fairdm.api.viewsets.PersonViewSet` serves the list and the record, and
-`fairdm.api.serializers.PersonListSerializer` shapes the entry.
+### A single person
+
+`/api/v1/people/{uuid}/` returns every field of a list entry and adds what the person's own page
+shows:
+
+| Field | Holds |
+|-------|-------|
+| `alternative_names` | Other names the person is known by, as a list of strings |
+| `profile` | The biography as the person wrote it |
+| `links` | The web addresses on the page, as a list of strings. An address that is not `http` or `https` is left out |
+| `languages` | The names of their languages in the active language, as a list of strings |
+| `image` | The address of their picture, or `null` |
+| `affiliations` | Every verified affiliation, the current ones first and the past ones after them |
+
+An entry of `affiliations` holds:
+
+| Field | Holds |
+|-------|-------|
+| `organization` | `{"uuid", "url", "name"}` for the organization |
+| `type` | `member`, `admin` or `owner` |
+| `start`, `end` | When the affiliation began and ended, as a year, a month or a day as it was recorded, or `null` |
+| `is_primary` | Whether it is the person's primary affiliation |
+
+Among the current affiliations the primary one comes first and the rest follow by the name of the
+organization. The past ones come with the most recently ended first. An affiliation that has not
+been verified is never in the response.
+
+A list entry leaves all six of these fields out, so a page of people stays small. Request the
+person to read them.
+
+```json
+{
+  "uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3",
+  "name": "Ada Lovelace",
+  "primary_organization": {"uuid": "oT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+  "affiliations": [
+    {
+      "organization": {"uuid": "oT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+      "type": "member",
+      "start": "2019",
+      "end": null,
+      "is_primary": true
+    }
+  ]
+}
+```
+
+The example leaves out the other fields and the `url` of each organization.
+
+### Filtering people
+
+The people list takes two filters, besides `modified_after`, `modified_before` and `ordering`.
+
+`organization` takes the short identifier of an organization and keeps the people with a verified
+affiliation to it that has not ended. A person whose affiliation is pending, or whose affiliation
+has ended, is not returned. A database number, or an identifier that names no organization, is
+answered `400`.
+
+```http
+GET /api/v1/people/?organization=oT5mYh1uPq9AaWz6GfCx2Ke
+```
+
+`identifier` takes an identifier a person holds and returns the person who holds it. Give the value,
+such as `0000-0002-1825-0097`, or the address it resolves to, such as
+`https://orcid.org/0000-0002-1825-0097`. The address of any scheme the portal knows is accepted
+with `http` or `https` and with or without a trailing slash. An identifier nobody holds, and one
+held by an account the list leaves out, gives an empty list and not an error.
+
+```http
+GET /api/v1/people/?identifier=https://orcid.org/0000-0002-1825-0097
+```
+
+### What a person's record never carries
+
+No response about a person has an email address, a credential, a flag about their account, a portal
+role, a sign-in date or a preference.
+
+`fairdm.api.viewsets.PersonViewSet` serves the list and the record. It uses
+`fairdm.api.serializers.PersonListSerializer` for the list and
+`fairdm.api.serializers.PersonSerializer` for one person, and takes its two filters from
+`fairdm.api.filters.PersonFilterSet`, whose `identifier` is a
+`fairdm.api.filters.IdentifierFilter`.
 
 ## Organizations
 
@@ -686,10 +764,14 @@ can build on any of them.
 | `NameIdentifierSerializer`, `CreditAffiliationSerializer` | An identifier on a credit and the organization recorded on it, as DataCite gives a name identifier and an affiliation |
 | `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
 | `PersonListSerializer`, `OrganizationListSerializer` | A person and an organization as an entry of their list shows them |
+| `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image` and `affiliations` |
+| `AffiliationSerializer` | One verified affiliation of a person, as `{"organization", "type", "start", "end", "is_primary"}` |
 | `OrganizationReferenceSerializer` | An organization as `{"uuid", "url", "name"}` |
 | `ContributorIdentifierSerializer` | An identifier of a person or organization as `{"type", "value", "link"}` |
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
+| `PersonFilterSet` | The people list's `organization` and `identifier` filters |
+| `IdentifierFilter` | A filter on `identifiers__value` that accepts a value or the address of a known scheme, and ignores the spaces an identifier may be written with |
 
 `fairdm.api.viewsets.sortable_fields(model, serializer_class)` returns the names a list can be
 sorted on: the stored, non-relational fields the serializer returns. Set `ordering_fields` on a

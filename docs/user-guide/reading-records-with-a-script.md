@@ -151,6 +151,12 @@ carries the name, the identifiers and the address in the API and on the portal, 
 entry adds their given and family name and the organization they mainly belong to. It never
 carries an email address or anything about an account.
 
+Request one person at `/api/v1/people/{uuid}/` for their biography, other names, links, languages,
+picture and every verified affiliation with its dates. To list the members of one organization,
+send `?organization=<short identifier>`. To look a person up by an identifier, send
+`?identifier=` with the value or its address, such as `0000-0002-1825-0097` or
+`https://orcid.org/0000-0002-1825-0097`.
+
 A record you read carries its credits in full. Each credit has the name of the person or
 organization, whether it is a person or an organization, their given and family name, their
 identifiers such as an ORCID iD with the scheme each belongs to, the organization the work was

@@ -502,3 +502,77 @@ class TestCreditComponent:
         }
 
         assert len(components) == 1
+
+
+@pytest.mark.django_db
+class TestPeopleComponents:
+    LIST_KEYS = {
+        "url",
+        "html_url",
+        "uuid",
+        "name",
+        "given_name",
+        "family_name",
+        "identifiers",
+        "primary_organization",
+    }
+    RECORD_ONLY_KEYS = {
+        "alternative_names",
+        "profile",
+        "links",
+        "languages",
+        "image",
+        "affiliations",
+    }
+
+    @staticmethod
+    def component(schema, reference):
+        return schema["components"]["schemas"][reference["$ref"].rsplit("/", 1)[-1]]
+
+    @staticmethod
+    def response_of(schema, path):
+        operation = schema["paths"][path]["get"]
+        return operation["responses"]["200"]["content"]["application/json"]["schema"]
+
+    def test_the_list_describes_an_entry_with_the_list_fields_only(self, schema):
+        page = self.component(
+            schema, self.response_of(schema, reverse("api:person-list"))
+        )
+
+        entry = self.component(schema, page["properties"]["results"]["items"])
+
+        assert set(entry["properties"]) == self.LIST_KEYS
+
+    def test_a_record_describes_the_list_fields_and_its_own(self, schema):
+        record = self.component(schema, self.response_of(schema, detail_path("person")))
+
+        assert set(record["properties"]) == self.LIST_KEYS | self.RECORD_ONLY_KEYS
+
+    def test_an_affiliation_lists_exactly_the_keys_it_returns(self, schema):
+        record = self.component(schema, self.response_of(schema, detail_path("person")))
+
+        affiliation = self.component(
+            schema, record["properties"]["affiliations"]["items"]
+        )
+
+        assert set(affiliation["properties"]) == {
+            "organization",
+            "type",
+            "start",
+            "end",
+            "is_primary",
+        }
+
+    def test_the_list_offers_the_organization_and_identifier_filters(self, schema):
+        operation = schema["paths"][reverse("api:person-list")]["get"]
+
+        offered = {parameter["name"] for parameter in operation["parameters"]}
+
+        assert {"organization", "identifier"} <= offered
+
+    def test_a_record_offers_no_filter(self, schema):
+        operation = schema["paths"][detail_path("person")]["get"]
+
+        offered = {parameter["name"] for parameter in operation.get("parameters", [])}
+
+        assert offered.isdisjoint({"organization", "identifier"})
