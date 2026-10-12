@@ -594,6 +594,10 @@ class TestPersonOverview:
         person = credited_world.person
         address = reverse("api:person-detail", kwargs={"uuid": person.uuid})
 
+        _, page = get_page(person.get_absolute_url())
+
+        assert page.select_one(f"a[href='{address}']") is not None
+
 
 def _members(page):
     """The places of the members card, as the person each links to or None for a count."""
@@ -702,11 +706,6 @@ def owner_world(db):
         members_project=members_project,
         members_dataset=members_dataset,
     )
-
-
-        _, page = get_page(person.get_absolute_url())
-
-        assert page.select_one(f"a[href='{address}']") is not None
 
 
 @pytest.mark.django_db
@@ -1135,7 +1134,13 @@ class TestOrganizationOverview:
         self, get_page, owner_world
     ):
         organization = owner_world.organization
-        address = reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        address = reverse(
+            "api:organization-detail", kwargs={"uuid": organization.uuid}
+        )
+
+        _, page = get_page(organization.get_absolute_url())
+
+        assert page.select_one(f"a[href='{address}']") is not None
 
 
 def _checklist(page):
@@ -1158,13 +1163,6 @@ def incomplete_person(db):
     return PersonFactory(
         is_active=True, is_claimed=True, password="x", profile="A biography.", links=[]
     )
-
-
-        _, page = get_page(organization.get_absolute_url())
-
-        assert page.select_one(f"a[href='{address}']") is not None
-
-    # Scenario 1
 
 
 @pytest.mark.django_db
