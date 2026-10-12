@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.translation import gettext as _
+from guardian.conf import settings as guardian_settings
 from research_vocabs.models import Concept
 
 from ..access import RecordAccess
@@ -23,10 +24,14 @@ class Crediting:
     test can assert on it.
 
     Args:
-        record: A project, dataset, sample or measurement, of any registered type.
+        record: A project, dataset, sample or measurement, of any registered type. A sample
+            or measurement held as its base class is changed as its real type, which is where
+            its contributors and their levels are read.
     """
 
     def __init__(self, record):
+        if hasattr(record, "get_real_instance"):
+            record = record.get_real_instance()
         self.record = record
 
     @contextmanager
@@ -129,7 +134,8 @@ class Crediting:
 
         Raises:
             ValidationError: With code ``superuser`` when they are a superuser, who cannot be
-                credited, or ``duplicate`` when the contributor is already listed.
+                credited, ``anonymous`` when they are the placeholder account that stands
+                for every visitor, or ``duplicate`` when the contributor is already listed.
         """
         contributor = contributor.get_real_instance()
         is_person = isinstance(contributor, Person)
@@ -138,6 +144,12 @@ class Crediting:
                 _("%(name)s is a superuser, and a superuser cannot be a contributor.")
                 % {"name": contributor},
                 code="superuser",
+            )
+        placeholder = guardian_settings.ANONYMOUS_USER_NAME
+        if is_person and placeholder and contributor.get_username() == placeholder:
+            raise ValidationError(
+                _("The account that stands for visitors cannot be a contributor."),
+                code="anonymous",
             )
         with self.locked():
             if self.record.contributors.filter(contributor=contributor).exists():

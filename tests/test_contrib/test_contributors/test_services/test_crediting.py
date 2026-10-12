@@ -6,6 +6,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+from guardian.utils import get_anonymous_user
 from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.access import RecordAccess
@@ -1037,3 +1038,80 @@ class TestRecordLock:
         ]
         assert locks
         assert "visibility" not in locks[0]
+
+
+@pytest.mark.django_db
+class TestAddRefusesThePlaceholderAccount:
+    def test_the_anonymous_placeholder_is_refused_with_a_validation_error(
+        self, record_chain
+    ):
+        placeholder = get_anonymous_user()
+
+        with pytest.raises(ValidationError) as refused:
+            Crediting(record_chain.dataset).add(placeholder)
+
+        assert refused.value.code == "anonymous"
+        assert not record_chain.dataset.contributors.exists()
+
+
+@pytest.mark.django_db
+class TestCreditThroughABaseClassInstance:
+    """A sample or measurement held as its base class is credited under its real type."""
+
+    @pytest.fixture(params=["sample", "measurement"])
+    def real(self, request, record_chain):
+        return getattr(record_chain, request.param)
+
+    @pytest.fixture
+    def base(self, real):
+        return real.type_of.objects.non_polymorphic().get(pk=real.pk)
+
+    def test_the_crediting_service_grants_the_level_on_the_real_record(
+        self, real, base, somebody
+    ):
+        Crediting(base).add(somebody)
+
+        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
+        assert real.contributors.filter(contributor=somebody).exists()
+
+    def test_the_crediting_service_refuses_a_duplicate_of_a_real_type_credit(
+        self, real, base, somebody, grant
+    ):
+        grant(real, somebody, ContributionLevel.EDIT)
+
+        with pytest.raises(ValidationError) as refused:
+            Crediting(base).add(somebody)
+
+        assert refused.value.code == "duplicate"
+
+    def test_add_contributor_grants_the_level_on_the_real_record(
+        self, real, base, somebody
+    ):
+        base.add_contributor(somebody)
+
+        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
+
+    def test_contribution_add_to_grants_the_level_on_the_real_record(
+        self, real, base, somebody
+    ):
+        Contribution.add_to(somebody, base)
+
+        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
+
+    def test_contributor_add_to_grants_the_level_on_the_real_record(
+        self, real, base, somebody
+    ):
+        somebody.add_to(base)
+
+        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
+
+    def test_crediting_again_through_the_base_class_keeps_one_credit(
+        self, real, base, somebody
+    ):
+        real.add_contributor(somebody)
+
+        base.add_contributor(somebody)
+        Contribution.add_to(somebody, base)
+        somebody.add_to(base)
+
+        assert Contribution.objects.filter(contributor=somebody).count() == 1

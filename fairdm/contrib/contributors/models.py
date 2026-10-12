@@ -676,22 +676,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         Returns:
             The contribution, created if it did not exist.
         """
-        if roles is None:
-            roles = []
-        contribution, _ = Contribution.objects.get_or_create(
-            contributor=self,
-            content_type=ContentType.objects.get_for_model(obj),
-            object_id=obj.id,
-            defaults={"level": Contribution.starting_level(self)},
-        )
-        if roles:
-            from research_vocabs.models import Concept
-
-            roles_qs = Concept.objects.filter(
-                vocabulary__name="fairdm-roles", name__in=roles
-            )
-            contribution.roles.add(*roles_qs)
-        return contribution
+        return Contribution.add_to(self, obj, roles)
 
 
 class Person(AbstractUser, Contributor):
@@ -1891,7 +1876,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
     def add_to(cls, contributor, obj, roles=None, affiliation=None):
         """Credit a contributor on an object, adding roles to any already recorded.
 
-        A person credited for the first time starts at the view level.
+        A person credited for the first time starts at the view level. A sample or measurement
+        held as its base class is credited under its real type, which is where its
+        contributors and their levels are read.
 
         Args:
             contributor: The person or organisation to credit.
@@ -1902,10 +1889,13 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         Returns:
             The contribution, created if it did not exist.
         """
+        from .access import RecordAccess
+
+        content_type_id, object_id = RecordAccess.key(obj)
         contribution, _created = cls.objects.get_or_create(
             contributor=contributor,
-            content_type=ContentType.objects.get_for_model(obj),
-            object_id=obj.pk,
+            content_type_id=content_type_id,
+            object_id=object_id,
             defaults={
                 "level": cls.starting_level(contributor),
                 **({"affiliation": affiliation} if affiliation else {}),

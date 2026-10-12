@@ -14,7 +14,6 @@ from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
-from research_vocabs.models import Concept
 from research_vocabs.vocabularies import VocabularyBuilder
 from taggit.managers import TaggableManager
 
@@ -115,17 +114,7 @@ class BaseModel(models.Model):
         """
         from fairdm.contrib.contributors.models import Contribution
 
-        contribution, _created = self.contributors.get_or_create(
-            contributor=contributor,
-            defaults={"level": Contribution.starting_level(contributor)},
-        )
-        if with_roles:
-            contribution.roles.add(
-                *Concept.objects.filter(
-                    vocabulary__name="fairdm-roles", name__in=with_roles
-                )
-            )
-        return contribution
+        return Contribution.add_to(contributor, self, with_roles)
 
     def is_contributor(self, user):
         """Return whether the user is credited as a contributor.
