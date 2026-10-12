@@ -239,7 +239,9 @@ class TestFetchOrcid:
         body = recorded("orcid-record")
         for group in body["activities-summary"]["employments"]["affiliation-group"]:
             for summary in group["summaries"]:
-                summary["employment-summary"]["end-date"] = {"year": {"value": "1990"}}
+                summary["employment-summary"]["end-date"] = {
+                    "year": {"value": "1990"}
+                }
         registry_network.answer(orcid_record_address(JOSIAH), body)
 
         record = Orcid().fetch(JOSIAH)
@@ -353,9 +355,7 @@ class TestSearchRor:
 
         found = Ror().search(term)
 
-        assert [call.url for call in registry_network.calls] == [
-            ror_record_address(GFZ)
-        ]
+        assert [call.url for call in registry_network.calls] == [ror_record_address(GFZ)]
         assert [r["id"] for r in found["results"]] == [f"https://ror.org/{GFZ}"]
         assert found["more"] is False
 
@@ -565,10 +565,7 @@ class TestProfileFromRegistry:
     ):
         held = PersonFactory(name="J. Carberry")
         ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
-        people, identifiers = (
-            Person.objects.count(),
-            ContributorIdentifier.objects.count(),
-        )
+        people, identifiers = Person.objects.count(), ContributorIdentifier.objects.count()
 
         person = Orcid().profile(orcid_record)
 

@@ -366,7 +366,9 @@ class TestDataCuratorPortalPages:
         assert curator.has_perm("dataset.change_dataset", dataset)
 
         client.force_login(curator)
-        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
+        response = client.get(
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
+        )
         assert response.status_code == 200
 
     def test_can_view_and_change_the_datasets_sample(self, client):

@@ -457,9 +457,7 @@ class TestOverviewCardsAlwaysShown:
         self, client, released
     ):
         hidden = _dataset(published=False)
-        sample = RockSampleFactory(
-            dataset=hidden, location=PointFactory(x="12.5", y="41.5")
-        )
+        sample = RockSampleFactory(dataset=hidden, location=PointFactory(x="12.5", y="41.5"))
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         response = _page(client, measurement)

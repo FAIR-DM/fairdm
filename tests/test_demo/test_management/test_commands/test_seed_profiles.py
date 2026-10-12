@@ -70,7 +70,8 @@ class TestSeedProfilesStates:
         complete = [
             p
             for p in seeded
-            if p.orcid_is_authenticated and all(p.get_profile_completeness().values())
+            if p.orcid_is_authenticated
+            and all(p.get_profile_completeness().values())
         ]
 
         assert complete
@@ -116,9 +117,7 @@ class TestSeedProfilesStates:
 
 @pytest.mark.django_db
 class TestSeedProfilesOrganizationStates:
-    def test_an_organization_with_everything_recorded_exists(
-        self, seeded_organizations
-    ):
+    def test_an_organization_with_everything_recorded_exists(self, seeded_organizations):
         complete = [
             o
             for o in seeded_organizations
@@ -221,9 +220,7 @@ def _affiliation(organization, email):
 
 @pytest.mark.django_db
 class TestSeedProfilesKeepersOfTheOwnedOrganization:
-    def test_an_administrator_is_a_current_administrator_of_it(
-        self, owned_organization
-    ):
+    def test_an_administrator_is_a_current_administrator_of_it(self, owned_organization):
         affiliation = _affiliation(owned_organization, ADMIN_USER)
 
         assert affiliation.type == Affiliation.MembershipType.ADMIN
@@ -366,7 +363,8 @@ class TestSeedProfilesCreditsFromTheOrganization:
         person = next(
             person
             for person in seeded
-            if person.primary_organization is not None and person.contributions.exists()
+            if person.primary_organization is not None
+            and person.contributions.exists()
         )
 
         contribution = person.contributions.first()

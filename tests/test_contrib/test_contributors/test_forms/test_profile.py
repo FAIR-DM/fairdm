@@ -19,11 +19,7 @@ from fairdm.factories import OrganizationFactory, PersonFactory
 
 class TestLinesField:
     def test_each_line_is_one_entry(self):
-        assert LinesField().clean("first\nsecond\nthird") == [
-            "first",
-            "second",
-            "third",
-        ]
+        assert LinesField().clean("first\nsecond\nthird") == ["first", "second", "third"]
 
     def test_blank_lines_are_dropped(self):
         assert LinesField().clean("first\n\n   \nsecond\n") == ["first", "second"]
@@ -147,12 +143,7 @@ class TestPersonProfileForm:
 
     @pytest.mark.parametrize(
         "link",
-        [
-            "example.org/ada",
-            "ftp://example.org/ada",
-            "javascript:alert(1)",
-            "not a link",
-        ],
+        ["example.org/ada", "ftp://example.org/ada", "javascript:alert(1)", "not a link"],
     )
     def test_a_link_that_is_not_an_http_or_https_address_is_refused_on_the_links_field(
         self, person, profile_data, link
@@ -207,9 +198,7 @@ class TestPersonProfileForm:
         form = PersonProfileForm(profile_data, instance=person)
 
         assert form["profile"].value() == "Mathematician and writer."
-        assert (
-            form["links"].value() == "https://example.org/ada\nhttp://example.org/notes"
-        )
+        assert form["links"].value() == "https://example.org/ada\nhttp://example.org/notes"
 
     def test_a_cleared_photo_is_removed(self, profile_data):
         person = PersonFactory(with_image=True)
@@ -485,9 +474,7 @@ class TestOrganizationProfileForm:
 
 
 @pytest.fixture(params=["person", "organization"])
-def stored_record_failing_validation(
-    request, db, profile_data, organization_profile_data
-):
+def stored_record_failing_validation(request, db, profile_data, organization_profile_data):
     """A record whose stored identifier fails the model's validation, and the form for it.
 
     The identifier is not a field of either form, so the failure is one the form lacks a field
@@ -641,3 +628,4 @@ class TestFormsWithADroppedField:
         organization.refresh_from_db()
         assert organization.name == "Potsdam Research Institute"
         assert organization.parent == parent
+

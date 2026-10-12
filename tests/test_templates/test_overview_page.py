@@ -218,3 +218,4 @@ class TestChartLibrary:
 
         assert "/own/echarts.js" in html
         assert "echarts@" not in html
+

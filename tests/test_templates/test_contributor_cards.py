@@ -20,11 +20,7 @@ ALL_URL = "/all/"
 
 
 def _records(shown, more=0, total=None):
-    return {
-        "shown": shown,
-        "more": more,
-        "total": len(shown) + more if total is None else total,
-    }
+    return {"shown": shown, "more": more, "total": len(shown) + more if total is None else total}
 
 
 @pytest.fixture
@@ -77,9 +73,9 @@ class TestRecordsCard:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         shown = [{"record": dataset, "owned": False}]
 
-        card = soup(self._render(request_, _records(shown), kind="dataset")).select_one(
-            "[data-card]"
-        )
+        card = soup(
+            self._render(request_, _records(shown), kind="dataset")
+        ).select_one("[data-card]")
 
         assert card["data-card"] == "datasets"
         assert card.select_one("ul a")["href"] == dataset.get_absolute_url()
@@ -180,10 +176,7 @@ class TestLinksCard:
 
         anchors = card.select("ul a")
         assert [a["href"] for a in anchors] == [link["url"] for link in self.LINKS]
-        assert [a.get_text(strip=True) for a in anchors] == [
-            "github.com",
-            "example.org",
-        ]
+        assert [a.get_text(strip=True) for a in anchors] == ["github.com", "example.org"]
 
     def test_an_outside_link_does_not_hand_over_the_opener_or_the_ranking(
         self, request_, soup
@@ -208,14 +201,10 @@ class TestLinksCard:
 class TestAffiliationsCard:
     def _render(self, request_, current=(), past=()):
         affiliations = {"current": list(current), "past": list(past)}
-        return render_component(
-            request_, "card.affiliations", affiliations=affiliations
-        )
+        return render_component(request_, "card.affiliations", affiliations=affiliations)
 
     def test_each_affiliation_links_to_its_organization(self, request_, soup):
-        current = AffiliationFactory(
-            organization=OrganizationFactory(), is_primary=True
-        )
+        current = AffiliationFactory(organization=OrganizationFactory(), is_primary=True)
         past = AffiliationFactory(
             organization=OrganizationFactory(), start_date="2010", end_date="2014"
         )
@@ -240,9 +229,7 @@ class TestAffiliationsCard:
 
         lists = card.select("ul")
         assert len(lists) == 2
-        assert (
-            lists[0].select_one("a")["href"] == current.organization.get_absolute_url()
-        )
+        assert lists[0].select_one("a")["href"] == current.organization.get_absolute_url()
         assert lists[1].select_one("a")["href"] == past.organization.get_absolute_url()
 
     def test_the_period_is_shown_as_precisely_as_it_was_recorded(self, request_, soup):

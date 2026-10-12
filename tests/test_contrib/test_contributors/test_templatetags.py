@@ -117,12 +117,8 @@ class TestHasRoleFilter:
 
 @pytest.mark.django_db
 class TestAsContributor:
-    def test_a_contribution_gives_its_contributor_as_its_concrete_type(
-        self, contribution
-    ):
-        assert (
-            as_contributor(contribution) == contribution.contributor.get_real_instance()
-        )
+    def test_a_contribution_gives_its_contributor_as_its_concrete_type(self, contribution):
+        assert as_contributor(contribution) == contribution.contributor.get_real_instance()
         assert type(as_contributor(contribution)).__name__ == "Person"
 
     def test_a_contributor_is_returned_as_it_is(self):
@@ -150,16 +146,12 @@ class TestAsContributors:
 @pytest.mark.django_db
 class TestContributorName:
     def test_the_preferred_name_by_default(self):
-        person = PersonFactory(
-            first_name="Ada", last_name="Lovelace", name="Countess Lovelace"
-        )
+        person = PersonFactory(first_name="Ada", last_name="Lovelace", name="Countess Lovelace")
 
         assert contributor_name(person) == "Countess Lovelace"
 
     def test_a_citation_format_uses_the_given_and_family_names(self):
-        person = PersonFactory(
-            first_name="Ada", last_name="Lovelace", name="Countess Lovelace"
-        )
+        person = PersonFactory(first_name="Ada", last_name="Lovelace", name="Countess Lovelace")
 
         assert contributor_name(person, "family_given") == "Lovelace, Ada"
 

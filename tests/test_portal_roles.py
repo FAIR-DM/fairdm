@@ -418,7 +418,9 @@ class TestIsHeldBy:
             is_active=True, is_staff=True, is_superuser=True, password="x"
         )
 
-        assert PortalRoles.is_held_by(superuser, PortalRoles.COMMUNITY_MANAGER) is False
+        assert (
+            PortalRoles.is_held_by(superuser, PortalRoles.COMMUNITY_MANAGER) is False
+        )
 
     def test_the_answer_is_for_the_role_asked_about(self, holder):
         for role in PortalRoles.ROLES:
@@ -435,8 +437,7 @@ class TestIsHeldBy:
 
         assert administrator.has_perm("contributors.change_person")
         assert (
-            PortalRoles.is_held_by(administrator, PortalRoles.COMMUNITY_MANAGER)
-            is False
+            PortalRoles.is_held_by(administrator, PortalRoles.COMMUNITY_MANAGER) is False
         )
 
 
@@ -515,7 +516,8 @@ PERMISSIONS_ON_MAIN = {
         "contributors.view_contribution",
         "contributors.change_contribution",
     ),
-    "Developer": (),
+    "Developer": (
+    ),
 }
 
 

@@ -588,7 +588,6 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
         request = _request_for(AnonymousUser())
         assert can_open(_ChildStatingNone, request, None) is True
 
-
 @pytest.mark.django_db
 class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
     def test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record(
@@ -644,7 +643,6 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
         delete_url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         assertNotContains(response, f'href="{delete_url}"')
 
-
 @pytest.mark.django_db
 class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
     def test_a_user_who_may_only_view_sees_no_update_or_descriptions_link(self, client):
@@ -665,7 +663,6 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
         )
         assertNotContains(response, f'href="{update_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
-
 
 @pytest.mark.django_db
 class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
@@ -692,7 +689,9 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
 
-        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
+        response = client.get(
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
+        )
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -714,7 +713,9 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
 
-        response = client.get(reverse("dataset:delete", kwargs={"uuid": dataset.uuid}))
+        response = client.get(
+            reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
+        )
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -731,7 +732,9 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
         )
         client.force_login(user)
 
-        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
+        response = client.get(
+            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
+        )
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
@@ -750,7 +753,6 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
-
 
 @pytest.mark.django_db
 class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
@@ -1182,7 +1184,9 @@ class TestOverviewTimeline:
         assert when in response.page.select_one(".alert").get_text()
         assert self._steps(response.page)[-1] == when
 
-    def test_a_collection_period_is_shown_as_precisely_as_it_was_recorded(self, client):
+    def test_a_collection_period_is_shown_as_precisely_as_it_was_recorded(
+        self, client
+    ):
         year_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         month_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         DatasetDateFactory(

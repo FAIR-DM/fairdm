@@ -154,9 +154,7 @@ class TestIdentifiersCard:
         self, render_card, soup
     ):
         page = soup(
-            render_card(
-                "identifiers", identifiers=[], portal_id="PORTALONE", local_id=""
-            )
+            render_card("identifiers", identifiers=[], portal_id="PORTALONE", local_id="")
         )
 
         assert "PORTALONE" in page.get_text()
@@ -243,7 +241,7 @@ class TestCitationCard:
 
     def test_a_note_is_shown_under_the_citation(self, child_template, render_template):
         name = child_template(
-            """<c-card.citation title="Citation" text="CITE-TEXT">NOTE-MARKER</c-card.citation>"""
+            '''<c-card.citation title="Citation" text="CITE-TEXT">NOTE-MARKER</c-card.citation>'''
         )
 
         assert "NOTE-MARKER" in render_template(name)
@@ -319,7 +317,7 @@ class TestDescriptionsCard:
         self, child_template, render_template
     ):
         name = child_template(
-            """<c-card.descriptions :descriptions="descriptions" group="g">FIRST-RUN-MARKER</c-card.descriptions>"""
+            '''<c-card.descriptions :descriptions="descriptions" group="g">FIRST-RUN-MARKER</c-card.descriptions>'''
         )
 
         assert "FIRST-RUN-MARKER" in render_template(name, {"descriptions": []})
@@ -330,11 +328,7 @@ class TestTimelineCard:
     def test_each_step_is_listed_in_the_order_given(self, render_card, soup):
         steps = [
             {"label": "FIRST", "date": PartialDate("2020"), "day": None},
-            {
-                "label": "SECOND",
-                "date": PartialDate("2021-05-06"),
-                "day": date(2021, 5, 6),
-            },
+            {"label": "SECOND", "date": PartialDate("2021-05-06"), "day": date(2021, 5, 6)},
         ]
 
         page = soup(render_card("timeline", title="History", steps=steps, empty=""))
@@ -492,10 +486,7 @@ class TestPlaceholderCard:
     def test_it_carries_the_title_and_the_message_it_was_given(self, render_card, soup):
         page = soup(
             render_card(
-                "placeholder",
-                title="TITLE-MARKER",
-                icon="map",
-                message="MESSAGE-MARKER",
+                "placeholder", title="TITLE-MARKER", icon="map", message="MESSAGE-MARKER"
             )
         )
 
@@ -503,7 +494,9 @@ class TestPlaceholderCard:
         assert "MESSAGE-MARKER" in page.get_text()
 
     def test_it_offers_nothing_to_press(self, render_card, soup):
-        page = soup(render_card("placeholder", title="T", icon="map", message="M"))
+        page = soup(
+            render_card("placeholder", title="T", icon="map", message="M")
+        )
 
         assert page.find("button") is None
         assert page.find("a") is None

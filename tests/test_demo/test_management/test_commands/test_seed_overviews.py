@@ -184,7 +184,9 @@ class TestSeedOverviewsTeams:
         client.login(email=ACCOUNTS["staff"], password=DEV_ACCOUNT_PASSWORD)
         sparse = Project.objects.get(name=SPARSE)
 
-        response = client.get(reverse("project:overview", kwargs={"uuid": sparse.uuid}))
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": sparse.uuid})
+        )
 
         assert response.status_code == 200
         assert response.context["readiness"]["total"] > 0
@@ -203,7 +205,9 @@ class TestSeedOverviewsTeams:
         client.login(email=ACCOUNTS["regular"], password=DEV_ACCOUNT_PASSWORD)
         empty = Project.objects.get(name=EMPTY)
 
-        response = client.get(reverse("project:overview", kwargs={"uuid": empty.uuid}))
+        response = client.get(
+            reverse("project:overview", kwargs={"uuid": empty.uuid})
+        )
 
         assert response.status_code == 404
 

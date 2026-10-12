@@ -1690,9 +1690,7 @@ class TestDefaultIdentifierReadsAPrefetch:
 @pytest.mark.django_db
 class TestInitials:
     def test_a_person_uses_their_given_and_family_names(self):
-        person = PersonFactory(
-            first_name="ada", last_name="lovelace", name="The Countess"
-        )
+        person = PersonFactory(first_name="ada", last_name="lovelace", name="The Countess")
 
         assert person.get_initials() == "AL"
 
@@ -1816,9 +1814,7 @@ class TestOrcidIsAuthenticated:
         from allauth.socialaccount.models import SocialAccount
 
         person = PersonFactory()
-        SocialAccount.objects.create(
-            user=person, provider="orcid", uid="0000-0001-0000-0001"
-        )
+        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001-0000-0001")
 
         assert person.orcid_is_authenticated is True
 
@@ -1880,7 +1876,9 @@ class TestGetVisibleContributions:
             world.person.get_visible_contributions(AnonymousUser())
         )
 
-    def test_a_member_of_a_private_project_does_not_get_it_listed(self, credited_world):
+    def test_a_member_of_a_private_project_does_not_get_it_listed(
+        self, credited_world
+    ):
         world = credited_world
         member = PersonFactory(is_active=True)
         ContributionFactory(
@@ -1950,7 +1948,9 @@ class TestGetVisibleContributions:
 
         kinds = {
             contribution.kind
-            for contribution in world.person.get_visible_contributions(AnonymousUser())
+            for contribution in world.person.get_visible_contributions(
+                AnonymousUser()
+            )
         }
 
         assert kinds == {"project", "dataset", "sample", "measurement"}
@@ -2020,9 +2020,7 @@ class TestVisibleCollaborators:
         world = credited_world
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        collaborators = list(
-            world.person.get_collaborators(contributions=contributions)
-        )
+        collaborators = list(world.person.get_collaborators(contributions=contributions))
 
         assert world.private_mate not in collaborators
         assert world.private_dataset_mate not in collaborators
@@ -2031,9 +2029,7 @@ class TestVisibleCollaborators:
         world = credited_world
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        collaborators = list(
-            world.person.get_collaborators(contributions=contributions)
-        )
+        collaborators = list(world.person.get_collaborators(contributions=contributions))
 
         assert collaborators == [world.open_mate, world.sample_mate]
         assert collaborators[0].collaboration_count == 2
@@ -2078,16 +2074,10 @@ class TestPersonAffiliationHistory:
     def test_the_primary_affiliation_leads_and_the_rest_follow_by_name(self, db):
         person = PersonFactory()
         primary = AffiliationFactory(
-            person=person,
-            organization=OrganizationFactory(name="Zeta"),
-            is_primary=True,
+            person=person, organization=OrganizationFactory(name="Zeta"), is_primary=True
         )
-        beta = AffiliationFactory(
-            person=person, organization=OrganizationFactory(name="Beta")
-        )
-        alpha = AffiliationFactory(
-            person=person, organization=OrganizationFactory(name="Alpha")
-        )
+        beta = AffiliationFactory(person=person, organization=OrganizationFactory(name="Beta"))
+        alpha = AffiliationFactory(person=person, organization=OrganizationFactory(name="Alpha"))
 
         history = person.get_affiliation_history()
 
@@ -2145,7 +2135,9 @@ class TestAffiliationDisplay:
             ("2020-03-14", date_format(date(2020, 3, 14), "SHORT_DATE_FORMAT")),
         ],
     )
-    def test_a_date_is_shown_as_precisely_as_it_was_recorded(self, recorded, expected):
+    def test_a_date_is_shown_as_precisely_as_it_was_recorded(
+        self, recorded, expected
+    ):
         affiliation = AffiliationFactory(start_date=recorded, end_date=recorded)
 
         affiliation.refresh_from_db()
@@ -2210,9 +2202,7 @@ class TestPublicSchemaOrg:
 @pytest.mark.django_db
 class TestContributorLinks:
     def test_each_link_is_named_by_its_site(self):
-        person = PersonFactory(
-            links=["https://www.github.com/someone", "https://x.test/a"]
-        )
+        person = PersonFactory(links=["https://www.github.com/someone", "https://x.test/a"])
 
         assert person.get_links_display() == [
             {"url": "https://www.github.com/someone", "host": "github.com"},
@@ -2334,7 +2324,9 @@ class TestOrganizationIsManagedBy:
         "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
     )
     def test_an_ended_affiliation_does_not_count(self, type):
-        affiliation = AffiliationFactory(type=type, start_date="2010", end_date="2014")
+        affiliation = AffiliationFactory(
+            type=type, start_date="2010", end_date="2014"
+        )
 
         assert affiliation.organization.is_managed_by(affiliation.person) is False
 
@@ -2592,9 +2584,7 @@ class TestOrganizationRecordCompleteness:
 
 @pytest.mark.django_db
 class TestPersonLocationDisplay:
-    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(
-        self,
-    ):
+    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(self):
         person = PersonFactory()
         organization = OrganizationFactory(city="Potsdam", country="DE")
         AffiliationFactory(person=person, organization=organization, is_primary=True)
@@ -2711,7 +2701,9 @@ class TestPersonIsEditableBy:
 
         assert person.is_editable_by(holder) is False
 
-    def test_a_community_manager_may_edit_an_unclaimed_person(self, community_manager):
+    def test_a_community_manager_may_edit_an_unclaimed_person(
+        self, community_manager
+    ):
         person = PersonFactory(is_active=True, is_claimed=False)
 
         assert person.is_editable_by(community_manager) is True
@@ -2770,7 +2762,6 @@ class TestPersonIsEditableBy:
         person = PersonFactory(is_active=True, is_claimed=False)
 
         assert person.is_editable_by(curator) is False
-
 
 @pytest.mark.django_db
 class TestOrganizationRorIdentifier:
@@ -2902,9 +2893,7 @@ class TestOrganizationIsEditableBy:
 
     def _joined(self, organization, type, **kwargs):
         person = PersonFactory(is_active=True, password="x")
-        AffiliationFactory(
-            person=person, organization=organization, type=type, **kwargs
-        )
+        AffiliationFactory(person=person, organization=organization, type=type, **kwargs)
         return person
 
     @pytest.mark.parametrize(

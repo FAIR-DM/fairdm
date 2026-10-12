@@ -312,7 +312,9 @@ def hrefs(element):
 class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
-    def test_the_page_sits_beneath_the_records_address(self, make_case, kind, page):
+    def test_the_page_sits_beneath_the_records_address(
+        self, make_case, kind, page
+    ):
         case = make_case(kind)
 
         assert case.url(page) == f"{case.root_url}{page}/"
@@ -349,17 +351,13 @@ class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_delete_page_is_not_a_tab(self, kind):
         model = CORE_MODELS[kind]
-        reverse(
-            f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"}
-        )
+        reverse(f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
         plugins.registry.get_urls_for_model(model)
         menu = plugins.registry.get_plugin_menu_for_model(model)
 
         assert f"{kind}:delete" not in [item.view_name for item in menu.children]
 
-    @pytest.mark.parametrize(
-        "name", ["project:overview-delete", "dataset:overview-delete"]
-    )
+    @pytest.mark.parametrize("name", ["project:overview-delete", "dataset:overview-delete"])
     def test_the_delete_pages_they_replace_are_gone(self, name):
         with pytest.raises(NoReverseMatch):
             reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
@@ -458,6 +456,7 @@ class TestAccess:
         case.record.refresh_from_db()
         assert case.record.name != "Changed"
         assert not DESCRIPTION_MODELS[kind].objects.filter(related=case.record).exists()
+
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_manage_opens_the_delete_page(
@@ -622,9 +621,7 @@ class TestManageMenu:
 
         response = browser_as(manager).get(case.own_url)
 
-        contributors = reverse(
-            "project:contribution-list", kwargs={"uuid": case.record.uuid}
-        )
+        contributors = reverse("project:contribution-list", kwargs={"uuid": case.record.uuid})
         assert contributors not in hrefs(manage_menu(response))
 
     def test_the_sample_keywords_page_stays_in_the_menu(self, make_case, person_at):
@@ -787,6 +784,7 @@ class TestEditDetails:
         response = browser_as(person).get(case.url("edit"))
 
         assert ("visibility" in response.context["form"].fields) is offered
+
 
     @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_a_manager_cannot_move_a_sample_or_a_measurement(
@@ -1505,6 +1503,7 @@ class TestOverviewPrompts:
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert case.url("keywords") in addresses
 
+
     @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_the_readiness_items_for_dates_and_identifiers_carry_their_pages(
         self, make_case, person_at, kind
@@ -1570,11 +1569,7 @@ class TestDeleteRecord:
         self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
-        held = (
-            Case("dataset", dataset_of(case))
-            if kind in {"sample", "measurement"}
-            else case
-        )
+        held = Case("dataset", dataset_of(case)) if kind in {"sample", "measurement"} else case
         manager = person_at(held, ContributionLevel.MANAGE)
         client = browser_as(manager)
         landing = landing_for(case)
@@ -1658,7 +1653,9 @@ class TestDeleteRecord:
         assert row in listed
 
     @pytest.mark.parametrize("kind", ["sample", "measurement"])
-    def test_the_page_does_not_list_the_record_itself(self, make_case, person_at, kind):
+    def test_the_page_does_not_list_the_record_itself(
+        self, make_case, person_at, kind
+    ):
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 
