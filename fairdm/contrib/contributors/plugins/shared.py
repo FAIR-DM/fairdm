@@ -638,15 +638,18 @@ class ContributionAdd(ContributionPage):
         return self.render_to_response(self.get_context_data(**kwargs), status=422)
 
     def add_from_portal(self):
-        """Add a contributor who is already in the portal."""
+        """Add a contributor who is already in the portal.
+
+        The page for people answers 404 for anything that is not a person, and the
+        page for organizations for anything that is not an organization.
+        """
         pk = self.request.POST.get("contributor", "")
         contributor = get_object_or_404(
-            Contributor, pk=pk if pk.isdigit() else 0
-        ).get_real_instance()
+            Person if self.is_person else Organization, pk=pk if pk.isdigit() else 0
+        )
         choice = None
         if self.is_person:
-            person = contributor if isinstance(contributor, Person) else None
-            choice = AffiliationChoice(self.request.POST, person=person)
+            choice = AffiliationChoice(self.request.POST, person=contributor)
             if not choice.is_valid():
                 return self.refuse(
                     choice=choice, errors={"affiliation": choice.problem}

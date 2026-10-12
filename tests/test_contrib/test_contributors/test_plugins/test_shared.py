@@ -16,6 +16,7 @@ from django.contrib.messages import ERROR, get_messages
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.management import call_command
 from django.test import Client
+from guardian.utils import get_anonymous_user
 from research_vocabs.models import Concept
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -736,6 +737,45 @@ class TestAddFromPortal:
         assert response.status_code < 500
         assert stored(record) == before
         assert ERROR in {m.level for m in get_messages(response.wsgi_request)}
+
+    def test_the_anonymous_placeholder_is_refused_and_nothing_is_listed(
+        self, record, manager
+    ):
+        before = stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "portal", "contributor": get_anonymous_user().pk},
+        )
+
+        assert response.status_code < 500
+        assert stored(record) == before
+        assert ERROR in {m.level for m in get_messages(response.wsgi_request)}
+
+    def test_the_add_person_page_refuses_an_organization(self, record, manager):
+        organization = OrganizationFactory()
+        before = stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-person"),
+            {"via": "portal", "contributor": organization.pk},
+        )
+
+        assert response.status_code == 404
+        assert stored(record) == before
+
+    def test_the_add_organization_page_refuses_a_person(
+        self, record, manager, newcomer
+    ):
+        before = stored(record)
+
+        response = browser_as(manager).post(
+            page_of(record, "add-organization"),
+            {"via": "portal", "contributor": newcomer.pk},
+        )
+
+        assert response.status_code == 404
+        assert stored(record) == before
 
 
 @pytest.mark.django_db
