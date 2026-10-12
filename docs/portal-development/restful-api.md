@@ -325,6 +325,8 @@ shows:
 | `languages` | The names of their languages in the active language, as a list of strings |
 | `image` | The address of their picture, or `null` |
 | `affiliations` | Every verified affiliation, the current ones first and the past ones after them |
+| `projects` | The address of the project list narrowed to this person, which holds the public projects they are credited on |
+| `datasets` | The address of the dataset list narrowed to this person, which holds the public datasets they are credited on |
 
 An entry of `affiliations` holds:
 
@@ -339,7 +341,7 @@ Among the current affiliations the primary one comes first and the rest follow b
 organization. The past ones come with the most recently ended first. An affiliation that has not
 been verified is never in the response.
 
-A list entry leaves all six of these fields out, so a page of people stays small. Request the
+A list entry leaves all eight of these fields out, so a page of people stays small. Request the
 person to read them.
 
 ```json
@@ -427,6 +429,8 @@ organization's own page shows:
 | `parent` | `{"uuid", "url", "name"}` for the organization it is part of, or `null` for one that is part of no other |
 | `sub_organizations` | `{"uuid", "url", "name"}` for each organization that is part of it, by name |
 | `members` | The people who belong to it now, with the kind of affiliation each holds |
+| `projects` | The address of the project list narrowed to this organization, which holds the public projects it is credited on |
+| `datasets` | The address of the dataset list narrowed to this organization, which holds the public datasets it is credited on |
 
 An entry of `members` holds:
 
@@ -440,7 +444,7 @@ the organization come first, owners and then administrators, and each group is i
 A pending member, a former member, a superuser and the anonymous account are not listed. The number
 of database queries behind a record does not depend on how many members it has.
 
-A list entry leaves all eight of these fields out, so a page of organizations stays small.
+A list entry leaves all ten of these fields out, so a page of organizations stays small.
 Request the organization to read them.
 
 ```json
@@ -538,6 +542,39 @@ a filter on a relation, such as a project or a contributor, takes the related re
 identifier here and refuses a database number. A filter on a relation whose model has no short
 identifier, such as a content type, is not offered by the API. The portal's pages keep their own
 filters unchanged.
+
+### Records a contributor is credited on
+
+The project list and the dataset list take `?contributor=` with the short identifier of a person or
+an organization. The list then holds the records that contributor is credited on, and no others. A
+project an organization owns but is not credited on is not in its list.
+
+```http
+GET /api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3
+GET /api/v1/projects/?contributor=oT5mYh1uPq9AaWz6GfCx2Ke
+```
+
+The first request lists the datasets a person is credited on, and the second the projects an
+organization is credited on.
+
+The answer holds public records only, whoever asks. A private project, a private dataset and a
+public dataset inside a private project are never returned or counted, even for a person with access
+to them. Those records stay in the unfiltered list for that person, and the credit still shows on
+the record's own page.
+
+An identifier that names nobody, the identifier of a superuser or of the anonymous account, and a
+database number all give an empty list with status `200`, not an error. The filter combines with
+`ordering`, `modified_after` and `modified_before`.
+
+A single person and a single organization give both addresses, as `projects` and `datasets`, so a
+script can follow them without building the request itself. Each is absolute when the request is,
+and the path alone otherwise.
+
+`fairdm.api.filters.ContributorRecordsFilterSet` declares the filter and is the `filterset_class` of
+`fairdm.api.viewsets.ProjectViewSet` and `fairdm.api.viewsets.DatasetViewSet`. One class serves
+both lists and reads whether to narrow projects or datasets from the list's model.
+`fairdm.api.serializers.ContributorRecordsMixin` adds the two addresses to `PersonSerializer` and
+`OrganizationSerializer`.
 
 ### Reading only what changed
 
@@ -860,9 +897,10 @@ can build on any of them.
 | `NameIdentifierSerializer`, `CreditAffiliationSerializer` | An identifier on a credit and the organization recorded on it, as DataCite gives a name identifier and an affiliation |
 | `LicenseSerializer` | The licence of a dataset as `{"name", "url"}` |
 | `PersonListSerializer`, `OrganizationListSerializer` | A person and an organization as an entry of their list shows them |
-| `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image` and `affiliations` |
+| `PersonSerializer` | A single person: the list fields with `alternative_names`, `profile`, `links`, `languages`, `image`, `affiliations`, `projects` and `datasets` |
 | `AffiliationSerializer` | One verified affiliation of a person, as `{"organization", "type", "start", "end", "is_primary"}` |
-| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent`, `sub_organizations` and `members` |
+| `OrganizationSerializer` | A single organization: the list fields with `alternative_names`, `profile`, `city`, `links`, `image`, `parent`, `sub_organizations`, `members`, `projects` and `datasets` |
+| `ContributorRecordsMixin` | Adds the `projects` and `datasets` addresses to `PersonSerializer` and `OrganizationSerializer` |
 | `MemberSerializer` | One current member of an organization, as `{"person", "type"}` |
 | `AffiliationTypeField` | The kind of an affiliation as `member`, `admin` or `owner` |
 | `OrganizationReferenceSerializer`, `PersonReferenceSerializer` | An organization and a person as `{"uuid", "url", "name"}` |
@@ -870,6 +908,7 @@ can build on any of them.
 | `FairDMFilterBackend` | Adds the `dataset` and `sample` filters to a generated list |
 | `DatasetFilterSet`, `SampleFilterSet` | The two filters, matching on short identifiers over the records the caller may see |
 | `PersonFilterSet` | The people list's `organization` and `identifier` filters |
+| `ContributorRecordsFilterSet` | The project list's and the dataset list's `contributor` filter, which keeps the public records a person or an organization is credited on |
 | `OrganizationFilterSet` | The organizations list's `type`, `country`, `parent`, `top_level` and `identifier` filters |
 | `IdentifierFilter` | A filter on `identifiers__value` that accepts a value or the address of a known scheme, and ignores the spaces an identifier may be written with |
 

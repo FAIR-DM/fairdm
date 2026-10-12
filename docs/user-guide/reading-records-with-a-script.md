@@ -169,6 +169,36 @@ identifiers such as an ORCID iD with the scheme each belongs to, the organizatio
 credited from, and the roles they held. You can write a citation or a metadata record from the one
 response that returned the record.
 
+### From a person to their datasets
+
+A single person and a single organization each give the address of their datasets and of their
+projects:
+
+```bash
+curl https://portal.example.org/api/v1/people/pXq7Lw0eR2sNn4KcJ8VdZb3/
+```
+
+```json
+{
+  "uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3",
+  "name": "Ada Lovelace",
+  "projects": "https://portal.example.org/api/v1/projects/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3",
+  "datasets": "https://portal.example.org/api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3"
+}
+```
+
+The example leaves out the other fields. Request the address in `datasets` to list the datasets
+they are credited on, each one whole, as in any dataset list:
+
+```bash
+curl "https://portal.example.org/api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3"
+```
+
+The list holds public datasets only, for every caller, so it matches what the person's own page
+shows. A person credited on no public dataset, and an identifier that names nobody, both give an
+empty list. The same `contributor` filter on the projects list gives their projects, and it works
+the same for an organization.
+
 ## Records you may not see
 
 A private record is in no list you receive, and asking for it directly is answered `404`, exactly as
