@@ -150,7 +150,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **A location's page renders.** `/location/<longitude>/<latitude>/` answered with a server
   error, because it asked for a card template per sample type and a page layout that were never
   in the repository. It now lists the samples taken at the location as the new `c-sample.card`
-  component, one card for every sample type, and shows only the samples the viewer may see. See
+  component, one card for every sample type, and shows only the samples the viewer may see. An
+  address that names no location answers "not found". See
   [Overview pages](docs/portal-development/overview-pages.md).
 - **Selecting two keywords narrows the project list to the projects that carry both.** The
   keyword filters of `ProjectFilter` kept a project that carried either keyword, so each

@@ -75,6 +75,16 @@ class TestPointDetailView:
 
         assert response.status_code == 200
 
+    def test_an_address_with_no_location_is_not_found(self, client):
+        response = client.get("/location/1.5/2.5/")
+
+        assert response.status_code == 404
+
+    def test_an_address_that_is_not_a_coordinate_pair_is_not_found(self, client):
+        response = client.get("/location/here/there/")
+
+        assert response.status_code == 404
+
     def test_the_query_count_does_not_grow_with_the_samples(
         self, client, point, released
     ):

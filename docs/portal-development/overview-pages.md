@@ -311,7 +311,8 @@ Limit them to what the viewer may see first, with `Sample.objects.visible_to(req
 
 A location's own page, at `/location/<longitude>/<latitude>/`, draws this card for each sample
 taken there that the viewer may see. A sample in a dataset the viewer may not read is left out,
-and a location with nothing to show them says so.
+and a location with nothing to show them says so. An address that names no location answers
+"not found".
 
 ## The measurement page
 
