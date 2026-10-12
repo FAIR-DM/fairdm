@@ -2662,19 +2662,37 @@ class TestReferencesFollowTheLists:
 
         assert response.status_code == 404
 
-    def test_a_credit_to_that_contributor_reads_null(self, api_client, unlisted):
-        from fairdm.factories import ContributionFactory
+    def test_a_credit_to_that_contributor_names_them_and_gives_no_address(
+        self, api_client, unlisted
+    ):
+        from fairdm.factories import ContributorIdentifierFactory
 
+        ContributorIdentifierFactory(
+            related=unlisted, type="ORCID", value="0000-0003-1415-9269"
+        )
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        ContributionFactory(content_object=dataset, contributor=unlisted)
+        credit = add_credit(dataset, unlisted, roles=2)
 
         response = api_client.get(
             reverse("api:dataset-detail", kwargs={"uuid": dataset.uuid})
         )
 
         assert response.status_code == 200
-        referred = [row["contributor"] for row in response.json()["contributors"]]
-        assert referred == [None]
+        [returned] = response.json()["contributors"]
+        assert returned["uuid"] is None
+        assert returned["url"] is None
+        assert returned["name"]
+        assert returned["name_identifiers"] == [
+            {
+                "name_identifier": "https://orcid.org/0000-0003-1415-9269",
+                "name_identifier_scheme": "ORCID",
+                "scheme_uri": "https://orcid.org/",
+            }
+        ]
+        assert {role["name"] for role in returned["roles"]} == {
+            role.name for role in credit.roles.all()
+        }
+        assert len(returned["roles"]) == 2
 
     def test_a_credit_to_a_listed_contributor_is_a_reference(self, api_client):
         from fairdm.factories import ContributionFactory, PersonFactory
