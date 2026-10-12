@@ -19,6 +19,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import (
     ForeignKey,
     ManyToManyField,
+    Prefetch,
     ProtectedError,
     RestrictedError,
 )
@@ -34,6 +35,7 @@ from fairdm.api.filters import (
     DatasetFilterSet,
     FairDMFilterBackend,
     FairDMVisibilityFilter,
+    OrganizationFilterSet,
     PersonFilterSet,
     SampleFilterSet,
 )
@@ -41,13 +43,14 @@ from fairdm.api.schema import CORE_HEADINGS, TypeDescription
 from fairdm.api.serializers import (
     DatasetSerializer,
     OrganizationListSerializer,
+    OrganizationSerializer,
     PersonListSerializer,
     PersonSerializer,
     ProjectSerializer,
     _validate_measurement_serializer,
     _validate_sample_serializer,
 )
-from fairdm.contrib.contributors.models import Organization, Person
+from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import PublicDatasetsProtect
 
@@ -215,13 +218,33 @@ class OrganizationViewSet(ReadOnlyModelViewSet):
 
     lookup_field = "uuid"
     permission_classes = (AllowAny,)
-    serializer_class = OrganizationListSerializer
+    serializer_class = OrganizationSerializer
+    filterset_class = OrganizationFilterSet
     ordering_fields = ("name", "added", "modified", "uuid")
 
+    def get_serializer_class(self):
+        """Serve a list entry for the list, and the whole organization for one record."""
+        if self.action == "list":
+            return OrganizationListSerializer
+        return OrganizationSerializer
+
     def get_queryset(self):
-        """Return all organizations, with their identifiers loaded."""
-        return Organization.objects.prefetch_related("identifiers").order_by(
+        """Return all organizations, with what the serializer reads.
+
+        A single record also loads its parent, its sub-organizations and its current verified
+        affiliations with their people, which the list does not show.
+        """
+        queryset = Organization.objects.prefetch_related("identifiers").order_by(
             "name", "pk"
+        )
+        if self.action == "list":
+            return queryset
+        members = Affiliation.objects.current().filter(
+            type__gte=Affiliation.MembershipType.MEMBER
+        )
+        return queryset.select_related("parent").prefetch_related(
+            "sub_organizations",
+            Prefetch("affiliations", queryset=members.select_related("person")),
         )
 
 

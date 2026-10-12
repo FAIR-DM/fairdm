@@ -167,3 +167,27 @@ holding both forms would be listed twice without it.
 return. They sit in new tests of the new class, so no pre-existing test changed in this story.
 *Revisit if:* the moved test should carry them as well.
 **ADR:** none, local to this feature.
+
+## D17. Implementer US3: members, the affiliation type and the organization filters
+
+**The serializer decides who is a member, and the viewset's prefetch only bounds what is
+loaded.** `OrganizationSerializer.get_members()` keeps affiliations of at least the member level
+with no end date whose person is not a superuser or the anonymous account, whatever was
+prefetched. The single-record queryset prefetches only the current verified affiliations with
+their people, so the query count is constant, and a serializer used on a queryset with no prefetch
+still leaves a pending or ended member out. The hidden accounts come from
+`RecordReferenceField.hidden_contributor_pks()`, one query per request.
+*Revisit if:* a second consumer of the serializer needs the members loaded another way.
+
+**The kind of an affiliation is one field class, `AffiliationTypeField`.** A person's affiliation
+and an organization's member give it the same wording, so the method that wrote it moved out of
+`AffiliationSerializer` into a field both use. The values a person's affiliation returns are
+unchanged.
+*Revisit if:* an affiliation level other than member, admin or owner is exposed.
+
+**`sub_organizations` follow the model's default order, by name; `type` is a choice filter and
+`country` an exact match on the two-letter code.** The type filter documents its values in the
+generated schema. An unknown type is therefore answered 400, which the specification does not
+describe and no test pins. A lower-case country code finds nothing.
+*Revisit if:* callers send country codes in lower case.
+**ADR:** none, local to this feature.

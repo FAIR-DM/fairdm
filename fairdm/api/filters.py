@@ -17,7 +17,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.contributors.access import RecordAccess
-from fairdm.contrib.contributors.choices import ContributionLevel, IdentifierLookup
+from fairdm.contrib.contributors.choices import (
+    ContributionLevel,
+    IdentifierLookup,
+    OrganizationType,
+)
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.core.models import Dataset, Sample
 from fairdm.core.utils import get_objects_for_user
@@ -351,6 +355,58 @@ class PersonFilterSet(django_filters.FilterSet):
             affiliations__type__gte=Affiliation.MembershipType.MEMBER,
             affiliations__end_date__isnull=True,
         )
+
+
+class OrganizationFilterSet(django_filters.FilterSet):
+    """Narrows the organizations list by type, country, parent or identifier.
+
+    ``type`` is the stored code and ``country`` the two-letter code. ``parent`` is the short
+    identifier of an organization, and a database number is refused. ``top_level`` true keeps the
+    organizations that are part of no other, and false those that are part of one.
+    """
+
+    type = django_filters.ChoiceFilter(
+        choices=OrganizationType.choices,
+        help_text=_("Only organizations of this type, given as the stored code."),
+    )
+    country = django_filters.CharFilter(
+        help_text=_(
+            "Only organizations in this country, given as its two-letter code."
+        ),
+    )
+    parent = django_filters.ModelChoiceFilter(
+        to_field_name="uuid",
+        queryset=Organization.objects.all(),
+        help_text=_("Only organizations that are part of this organization."),
+    )
+    top_level = django_filters.BooleanFilter(
+        method="narrow_to_top_level",
+        help_text=_(
+            "True for organizations that are part of no other, false for those that are."
+        ),
+    )
+    identifier = IdentifierFilter(
+        help_text=_(
+            "Only the organization holding this identifier, given as the value or as its address."
+        ),
+    )
+
+    class Meta:
+        model = Organization
+        fields: list[str] = []
+
+    def narrow_to_top_level(self, queryset, name, value):
+        """Keep the organizations with no parent, or those with one.
+
+        Args:
+            queryset: The organizations to narrow.
+            name: The name of the filter.
+            value: True for organizations with no parent, false for those with one.
+
+        Returns:
+            The narrowed organizations.
+        """
+        return queryset.filter(parent__isnull=value)
 
 
 class FairDMFilterBackend(DjangoFilterBackend):

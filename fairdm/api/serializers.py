@@ -877,6 +877,31 @@ class PersonListSerializer(serializers.ModelSerializer):
         return reference
 
 
+@extend_schema_field({"type": "string", "enum": ["member", "admin", "owner"]})
+class AffiliationTypeField(serializers.Field):
+    """The level of an affiliation, given as the lower-case name of its membership type."""
+
+    def __init__(self, **kwargs):
+        """Read the affiliation's ``type`` and never write it.
+
+        Args:
+            **kwargs: Passed to ``Field``.
+        """
+        kwargs["read_only"] = True
+        super().__init__(**kwargs)
+
+    def to_representation(self, value) -> str:
+        """Give the name of the level.
+
+        Args:
+            value: The stored membership type.
+
+        Returns:
+            ``member``, ``admin`` or ``owner``.
+        """
+        return str(Affiliation.MembershipType(value).name.lower())
+
+
 class AffiliationSerializer(serializers.Serializer):
     """A verified affiliation of a person: the organization, the kind, and the dates.
 
@@ -885,17 +910,10 @@ class AffiliationSerializer(serializers.Serializer):
     """
 
     organization = OrganizationReferenceSerializer(read_only=True)
-    type = serializers.SerializerMethodField()
+    type = AffiliationTypeField()
     start = serializers.SerializerMethodField()
     end = serializers.SerializerMethodField()
     is_primary = serializers.BooleanField(read_only=True)
-
-    @extend_schema_field(
-        {"type": "string", "enum": ["member", "admin", "owner"]},
-    )
-    def get_type(self, affiliation) -> str:
-        """Give the lower-case name of the affiliation's level."""
-        return str(Affiliation.MembershipType(affiliation.type).name.lower())
 
     def get_start(self, affiliation) -> str | None:
         """Give when the affiliation began, or nothing when it is not recorded."""
@@ -982,6 +1000,77 @@ class OrganizationListSerializer(serializers.ModelSerializer):
         """Give the two-letter code of the country, or nothing when none is set."""
         code: str | None = getattr(organization.country, "code", None) or None
         return code
+
+
+class PersonReferenceSerializer(serializers.Serializer):
+    """A person named by their short identifier, their address in the API and their name."""
+
+    uuid = serializers.CharField(read_only=True)
+    url = RecordURLField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
+class MemberSerializer(serializers.Serializer):
+    """A person who belongs to an organization, and the kind of affiliation they hold."""
+
+    person = PersonReferenceSerializer(read_only=True)
+    type = AffiliationTypeField()
+
+
+class OrganizationSerializer(OrganizationListSerializer):
+    """A single organization, as far as its public profile page shows.
+
+    It carries every field of a list entry together with the organization's other names,
+    profile, city, links, image, the organization it is part of, the organizations that are
+    part of it, and its current members.
+    """
+
+    alternative_names = serializers.ListField(
+        child=serializers.CharField(), read_only=True
+    )
+    image = serializers.ImageField(read_only=True, allow_null=True)
+    links = serializers.SerializerMethodField()
+    parent = OrganizationReferenceSerializer(read_only=True, allow_null=True)
+    sub_organizations = OrganizationReferenceSerializer(many=True, read_only=True)
+    members = serializers.SerializerMethodField()
+
+    class Meta(OrganizationListSerializer.Meta):
+        fields = (
+            *OrganizationListSerializer.Meta.fields,
+            "alternative_names",
+            "profile",
+            "city",
+            "links",
+            "image",
+            "parent",
+            "sub_organizations",
+            "members",
+        )
+        read_only_fields = fields
+
+    def get_links(self, organization) -> list[str]:
+        """List the web addresses the profile page draws."""
+        return [entry["url"] for entry in organization.get_links_display()]
+
+    @extend_schema_field(MemberSerializer(many=True))
+    def get_members(self, organization) -> list[dict]:
+        """List the verified members whose affiliation has not ended.
+
+        The people who run the organization come first, each group by name. A superuser and the
+        anonymous account are left out, as the people list leaves them out.
+        """
+        hidden = RecordReferenceField.hidden_contributor_pks(self.context)
+        current = [
+            affiliation
+            for affiliation in organization.affiliations.all()
+            if affiliation.type >= Affiliation.MembershipType.MEMBER
+            and affiliation.end_date is None
+            and affiliation.person_id not in hidden
+        ]
+        current.sort(key=lambda a: (-a.type, a.person.name or ""))
+        serializer = MemberSerializer(current, many=True, context=self.context)
+        members: list[dict] = list(serializer.data)
+        return members
 
 
 def _validate_sample_serializer(cls: type) -> None:
