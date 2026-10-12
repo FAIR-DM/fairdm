@@ -753,16 +753,34 @@ class TestCredit:
     def test_an_affiliation_with_two_identifiers_gives_its_ror_id(
         self, api_client, url_of, record_of, author
     ):
-        from fairdm.factories import ContributorIdentifierFactory
+        from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
 
-        person, institute = author
+        person, _ = author
+        institute = OrganizationFactory(name="Difference Works")
         ContributorIdentifierFactory(related=institute, type="Wikidata", value="Q1")
+        ContributorIdentifierFactory(related=institute, type="ROR", value="04aj4c181")
         record = record_of("dataset")
         add_credit(record, person, institute)
 
+        affiliation = self.credits_of(api_client, url_of, record)[0]["affiliation"][0]
+
+        assert affiliation["affiliation_identifier_scheme"] == "ROR"
+        assert affiliation["affiliation_identifier"] == "https://ror.org/04aj4c181"
+
+    def test_a_person_with_one_name_has_null_for_the_names_they_lack(
+        self, api_client, url_of, record_of
+    ):
+        from fairdm.factories import PersonFactory
+
+        person = PersonFactory(first_name="", last_name="", name="Mononym")
+        record = record_of("dataset")
+        add_credit(record, person, None)
+
         credit = self.credits_of(api_client, url_of, record)[0]
 
-        assert credit["affiliation"][0]["affiliation_identifier_scheme"] == "ROR"
+        assert credit["name"] == "Mononym"
+        assert credit["given_name"] is None
+        assert credit["family_name"] is None
 
     def test_an_affiliation_with_no_identifier_gives_null_for_the_three_keys(
         self, api_client, url_of, record_of
@@ -1448,6 +1466,15 @@ class TestPeopleList:
         assert names == sorted(names, reverse=direction == "-")
         assert len(names) == 3
 
+    def test_the_list_is_in_name_order_when_no_order_is_asked_for(self, api_client):
+        for name in ("Charlie Chan", "Alpha Adams", "Bravo Brown"):
+            PersonFactory(name=name)
+
+        response = api_client.get(reverse("api:person-list"))
+
+        names = [row["name"] for row in response.json()["results"]]
+        assert names == ["Alpha Adams", "Bravo Brown", "Charlie Chan"]
+
     def test_the_list_narrows_by_the_moment_a_person_was_changed(self, api_client):
         from datetime import UTC, datetime
 
@@ -1911,6 +1938,15 @@ class TestOrganizationsList:
         names = [row["name"] for row in response.json()["results"]]
         assert names == sorted(names, reverse=direction == "-")
         assert len(names) == 3
+
+    def test_the_list_is_in_name_order_when_no_order_is_asked_for(self, api_client):
+        for name in ("Charlie Institute", "Alpha Institute", "Bravo Institute"):
+            OrganizationFactory(name=name)
+
+        response = api_client.get(reverse("api:organization-list"))
+
+        names = [row["name"] for row in response.json()["results"]]
+        assert names == ["Alpha Institute", "Bravo Institute", "Charlie Institute"]
 
     def test_the_list_narrows_by_the_moment_an_organization_was_changed(
         self, api_client

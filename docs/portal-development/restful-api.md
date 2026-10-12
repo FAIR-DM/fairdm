@@ -127,7 +127,7 @@ Each field corresponds to a DataCite property as follows.
 |--------------|-------------------|
 | `name` | `creatorName` or `contributorName`. A person is written "Family, Given", or the one name they have, and an organization by its name |
 | `name_type` | `nameType`, either `Personal` or `Organizational` |
-| `given_name`, `family_name` | `givenName` and `familyName`. Both are `null` for an organization |
+| `given_name`, `family_name` | `givenName` and `familyName`. Both are `null` for an organization, and each is `null` for a person who has not recorded it |
 | `name_identifiers[].name_identifier` | `nameIdentifier`. The address the identifier resolves to, or its value where the scheme has no resolver |
 | `name_identifiers[].name_identifier_scheme` | `nameIdentifierScheme`, such as `ORCID` |
 | `name_identifiers[].scheme_uri` | `schemeURI`. `null` where the scheme has no resolver address |
@@ -346,12 +346,12 @@ person to read them.
 
 ```json
 {
-  "uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3",
+  "uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3",
   "name": "Ada Lovelace",
-  "primary_organization": {"uuid": "oT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+  "primary_organization": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
   "affiliations": [
     {
-      "organization": {"uuid": "oT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
+      "organization": {"uuid": "cT5mYh1uPq9AaWz6GfCx2Ke", "name": "Analytical Institute"},
       "type": "member",
       "start": "2019",
       "end": null,
@@ -373,7 +373,7 @@ has ended, is not returned. A database number, or an identifier that names no or
 answered `400`.
 
 ```http
-GET /api/v1/people/?organization=oT5mYh1uPq9AaWz6GfCx2Ke
+GET /api/v1/people/?organization=cT5mYh1uPq9AaWz6GfCx2Ke
 ```
 
 `identifier` takes an identifier a person holds and returns the person who holds it. Give the value,
@@ -449,15 +449,15 @@ Request the organization to read them.
 
 ```json
 {
-  "uuid": "oT5mYh1uPq9AaWz6GfCx2Ke",
+  "uuid": "cT5mYh1uPq9AaWz6GfCx2Ke",
   "name": "Analytical Institute",
   "city": "Hobart",
-  "parent": {"uuid": "oB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
+  "parent": {"uuid": "cB8nWq3sLd6RtYj1HxVm4Pa", "name": "University of Tasmania"},
   "sub_organizations": [
     {"uuid": "oK2cFv9zXe5MgUa7NwTb3Dh", "name": "Difference Engine Group"}
   ],
   "members": [
-    {"person": {"uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3", "name": "Ada Lovelace"}, "type": "owner"}
+    {"person": {"uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3", "name": "Ada Lovelace"}, "type": "owner"}
   ]
 }
 ```
@@ -470,7 +470,7 @@ The organizations list takes five filters, besides `modified_after`, `modified_b
 `ordering`. They combine, and an organization must match every one that is sent.
 
 `type` takes the stored code of an organization type, such as `education`, `company` or
-`government`.
+`government`. A value that is not one of the stored codes is refused with a `400`.
 
 ```http
 GET /api/v1/organizations/?type=education
@@ -487,7 +487,7 @@ it, for example the departments of one university. A database number, or an iden
 no organization, is answered `400`.
 
 ```http
-GET /api/v1/organizations/?parent=oB8nWq3sLd6RtYj1HxVm4Pa
+GET /api/v1/organizations/?parent=cB8nWq3sLd6RtYj1HxVm4Pa
 ```
 
 `top_level` takes `true` to keep the organizations that are part of no other and `false` to keep
@@ -550,8 +550,8 @@ an organization. The list then holds the records that contributor is credited on
 project an organization owns but is not credited on is not in its list.
 
 ```http
-GET /api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3
-GET /api/v1/projects/?contributor=oT5mYh1uPq9AaWz6GfCx2Ke
+GET /api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3
+GET /api/v1/projects/?contributor=cT5mYh1uPq9AaWz6GfCx2Ke
 ```
 
 The first request lists the datasets a person is credited on, and the second the projects an

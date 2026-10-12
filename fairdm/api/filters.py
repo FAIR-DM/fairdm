@@ -77,8 +77,9 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     Both sets are combined in one query to avoid N+1 queries.
 
-    For models with no known visibility mechanism (such as Contributor), the
-    filter returns the full queryset, making all records publicly accessible.
+    For models with no known visibility mechanism (such as Organization), the
+    filter returns the full queryset, making all records publicly accessible. The people
+    list leaves accounts out in its own queryset.
     Override ``filter_queryset()`` in a viewset subclass for stricter filtering.
 
     This replaces ``ObjectPermissionsFilter`` from ``djangorestframework-guardian``,

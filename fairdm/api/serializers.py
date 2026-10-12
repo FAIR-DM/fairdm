@@ -589,13 +589,17 @@ class ContributionSerializer(serializers.Serializer):
         return "Organizational" if self.is_organization(credit) else "Personal"
 
     def get_given_name(self, credit) -> str | None:
-        """Give a person's given name, and nothing for an organization."""
-        name: str | None = None if self.is_organization(credit) else credit.given_name
+        """Give a person's given name, and nothing for an organization or where unset."""
+        if self.is_organization(credit):
+            return None
+        name: str | None = credit.given_name or None
         return name
 
     def get_family_name(self, credit) -> str | None:
-        """Give a person's family name, and nothing for an organization."""
-        name: str | None = None if self.is_organization(credit) else credit.family_name
+        """Give a person's family name, and nothing for an organization or where unset."""
+        if self.is_organization(credit):
+            return None
+        name: str | None = credit.family_name or None
         return name
 
     @extend_schema_field(CreditAffiliationSerializer(many=True))

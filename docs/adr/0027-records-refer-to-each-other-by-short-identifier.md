@@ -6,8 +6,9 @@
 
 In the REST API a record names another by its short identifier (`uuid`) and its address, as
 `{"uuid": "...", "url": "..."}`. A dataset names its project this way, a sample its dataset, a
-measurement its sample and dataset, a project its owner, and a credit its contributor and
-affiliation. No response contains an `id` or a `pk`, no relation is returned as an integer, and no
+measurement its sample and dataset, and a project its owner. A credit on a record is not a
+reference: it carries the contributor's name and identifiers as well, and is described in
+[ADR 0030](0030-a-credit-carries-what-datacite-asks-of-a-creator.md). No response contains an `id` or a `pk`, no relation is returned as an integer, and no
 request is accepted that names a record by one. A bare identifier, or that object, is accepted
 where a request names a record. A database number is refused like any other identifier that names
 no record.

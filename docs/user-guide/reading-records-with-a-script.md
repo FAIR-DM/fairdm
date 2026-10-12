@@ -175,15 +175,15 @@ A single person and a single organization each give the address of their dataset
 projects:
 
 ```bash
-curl https://portal.example.org/api/v1/people/pXq7Lw0eR2sNn4KcJ8VdZb3/
+curl https://portal.example.org/api/v1/people/cXq7Lw0eR2sNn4KcJ8VdZb3/
 ```
 
 ```json
 {
-  "uuid": "pXq7Lw0eR2sNn4KcJ8VdZb3",
+  "uuid": "cXq7Lw0eR2sNn4KcJ8VdZb3",
   "name": "Ada Lovelace",
-  "projects": "https://portal.example.org/api/v1/projects/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3",
-  "datasets": "https://portal.example.org/api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3"
+  "projects": "https://portal.example.org/api/v1/projects/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3",
+  "datasets": "https://portal.example.org/api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3"
 }
 ```
 
@@ -191,7 +191,7 @@ The example leaves out the other fields. Request the address in `datasets` to li
 they are credited on, each one whole, as in any dataset list:
 
 ```bash
-curl "https://portal.example.org/api/v1/datasets/?contributor=pXq7Lw0eR2sNn4KcJ8VdZb3"
+curl "https://portal.example.org/api/v1/datasets/?contributor=cXq7Lw0eR2sNn4KcJ8VdZb3"
 ```
 
 The list holds public datasets only, for every caller, so it matches what the person's own page
