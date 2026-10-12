@@ -520,7 +520,9 @@ Manager, Developer and Portal Administrator accounts.
 **Adding a contributor**
 
 - **FR-010**: Adding a person and adding an organization MUST be separate pages, each reached from
-  its own list on the tab.
+  its own list on the tab. The page for a person MUST add only a person and the page for an
+  organization only an organization, whatever the request names, and the account that stands
+  for visitors MUST never be added.
 - **FR-011**: The page for adding a person MUST offer three ways: a person already in the portal, a
   person looked up in ORCID, and a person entered by hand. The page for adding an organization MUST
   offer an organization already in the portal, one looked up in ROR, and one entered by hand.

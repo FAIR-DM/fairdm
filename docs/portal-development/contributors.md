@@ -650,6 +650,11 @@ An organization starts with no level. Crediting a person who is already credited
 leaves their level as it is. `Contribution.starting_level(contributor)` returns the level a first
 credit starts at.
 
+A sample or measurement can be held as its base class, for example through
+`Sample.objects.non_polymorphic()` or `fairdm.core.utils.get_non_polymorphic_instance()`. A credit
+written through such an instance, by any of the three entry points or by `Crediting`, is stored
+against the record's real type, which is where its contributors and their levels are read.
+
 A permission stored with django-guardian for a project, dataset, sample or measurement grants
 nothing. See [Levels](#levels).
 
@@ -853,6 +858,7 @@ crediting.remove(contribution)                   # and the level goes with it
 |---|---|---|
 | `add` | the contributor is already listed | `duplicate` |
 | `add` | the contributor is a superuser, who cannot be credited | `superuser` |
+| `add` | the contributor is the placeholder account that stands for every visitor | `anonymous` |
 | `update` | a role is not in the group the record's type offers | `role_not_offered` |
 | `update` | the level is below what the person holds from a record above | `below_inherited` |
 | `update` | the change would leave the record with nobody who counts as able to manage it | `last_manager` |
