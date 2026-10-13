@@ -1,0 +1,34 @@
+{% extends "mvp_accounts/entrance/layout.html" %}
+{% load static %}
+
+{% comment %}
+  The layout of every page a visitor sees before signing in: the form in one half of the window
+  and the portal's name and description in the other. Below the lg breakpoint the form has the page.
+
+  A portal changes the pane by adding `cotton/entrance/aside.html` to its own templates, and the
+  whole layout by adding a file of this name.
+{% endcomment %}
+
+{% block styles %}
+  {{ block.super }}
+  {# The layout's own utilities, all prefixed `dce:`, which django-mvp's build has no way to know about. #}
+  <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/fairdm.css' %}" />
+{% endblock styles %}
+
+{% block layout %}
+  {% firstof identity.dataset.description config.portal_description as portal_description %}
+  <c-sign-in.split surface="dce:bg-base-200 dce:text-base-content">
+    <c-slot name="background">
+      <c-background.aurora />
+      <c-background.grid />
+    </c-slot>
+    <c-slot name="aside">
+      <c-entrance.aside :name="page_config.brand.text"
+                        :description="portal_description"
+                        :authority="identity.authority.name"
+                        :authority_url="identity.authority.url" />
+    </c-slot>
+    {{ block.super }}
+  </c-sign-in.split>
+{% endblock layout %}

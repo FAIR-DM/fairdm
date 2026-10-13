@@ -85,6 +85,7 @@ listing-a-registered-type
 
 component_library/index
 home_page
+entrance_pages
 overview-pages
 ```
 

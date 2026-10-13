@@ -298,6 +298,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The sign-in, sign-up and other entrance pages are laid out in two halves.** The form takes one
+  half of the window. The other names the portal, gives its description and says who runs it, on
+  a background in the theme's colours. Below 1024 pixels the form has the page. These pages drew
+  one centred card before. A portal replaces the pane with a `cotton/entrance/aside.html` of its
+  own, and the whole layout with `mvp_accounts/entrance/base.html`. See
+  [Entrance pages](docs/portal-development/entrance_pages.md).
 - **The django-mvp packages move to their latest releases.** django-mvp 0.28.2, django-mvp-forms
   0.4.0, django-mvp-accounts 0.3.0, django-mvp-charts 0.3.0 and daisy-cotton-ext 0.5.0. Nothing in
   FairDM's own code or templates needed changing. What a portal will notice:
