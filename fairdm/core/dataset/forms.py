@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
+from literature.models import LiteratureItem
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
@@ -79,9 +80,8 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
         ),
     )
 
-    # The queryset is set in __init__ to avoid AppRegistryNotReady.
-    reference: forms.ModelChoiceField = forms.ModelChoiceField(
-        queryset=None,
+    reference = forms.ModelChoiceField(
+        queryset=LiteratureItem.objects.all(),
         label=_("Data Publication"),
         help_text=_(
             "Link to the primary data publication (paper, report, or other literature) "
@@ -138,26 +138,6 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
                 )
             else:
                 project_field.queryset = Project.objects.none()
-
-        # The literature app is optional.
-        reference_field = self.fields.get("reference")
-        if reference_field:
-            try:
-                from literature.models import LiteratureItem
-
-                reference_field.queryset = LiteratureItem.objects.all()
-            except (ImportError, LookupError):
-                from django.apps import apps
-
-                try:
-                    LiteratureItem = apps.get_model("literature", "LiteratureItem")
-                    reference_field.queryset = LiteratureItem.objects.all()
-                except LookupError:
-                    del self.fields["reference"]
-                    if hasattr(self.Meta, "fields") and "reference" in self.Meta.fields:
-                        self.Meta.fields = [
-                            f for f in self.Meta.fields if f != "reference"
-                        ]
 
 
 class DatasetCreateForm(DatasetForm):

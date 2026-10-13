@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.shortcuts import redirect, render
 from django.urls import path
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.portal_roles import PortalRoles
 

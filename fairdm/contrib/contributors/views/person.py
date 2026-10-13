@@ -2,7 +2,7 @@
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.views import FairDMCreateView, FairDMListView
 

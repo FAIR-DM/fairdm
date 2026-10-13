@@ -684,7 +684,9 @@ def _overview_url(project):
 def _page(client, project, language=None):
     """Open the project's page and return the response with its parsed HTML."""
     headers = {"Accept-Language": language} if language else {}
-    response = client.get(_overview_url(project), headers=headers)
+    # The locale middleware leaves the request's language active on the thread.
+    with translation.override(language):
+        response = client.get(_overview_url(project), headers=headers)
     assert response.status_code == 200
     response.page = BeautifulSoup(response.content, "html.parser")
     return response

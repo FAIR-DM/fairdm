@@ -45,7 +45,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         @plugins.register(Sample)
         class SampleOverview(OverviewPlugin):
             menu = {"label": "Overview", "icon": "eye", "order": 0}
-            template_name = "samples/plugins/overview.html"
+            template_name = "samples/sample_overview.html"
 
             def get_context_data(self, **kwargs):
                 context = super().get_context_data(**kwargs)

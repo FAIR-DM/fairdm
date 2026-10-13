@@ -51,6 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Five templates nothing rendered.** `dataset/dataset_create.html` was empty and no view named
+  it. `dataset/plugins/overview.html`, `project/plugins/overview.html`,
+  `sample/plugins/overview.html` and `measurement/plugins/overview.html` extended a
+  `plugins/overview.html` that does not exist, so none of them could be rendered. The overview
+  pages are drawn by `dataset/dataset_detail.html`, `project/project_detail.html`,
+  `sample/sample_overview.html` and `measurement/measurement_overview.html`.
 - **The landing page no longer extends `mvp/landing.html`.** A portal that filled its `page.hero`
   or `page.content` blocks in a `fairdm/landing.html` of its own moves that content into the
   `landing.<name>` blocks. `FAIRDM_LANDING_PAGE_HERO` in `fairdm.views.generic` is gone, replaced
@@ -138,6 +144,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Labels, help text and page titles follow the language of the request.** The project and
+  dataset list and create pages, the project form, the contributor forms and pages, the admin
+  site titles, and the field names of locations, tags and the `added` and `modified` columns
+  translated their text once, when the module was imported, so it stayed in whichever language
+  was active at that moment. They now use `gettext_lazy`, as the rest of the package does.
 - **Wikidata and Crossref Funder ID identifiers link to their resolver, and a type with no
   resolver gives no address.** The resolver table was keyed by display names (`Wikidata`,
   `Crossref Funder ID`) while identifiers store `WIKIDATA` and `CROSSREF_FUNDER_ID`, so the
