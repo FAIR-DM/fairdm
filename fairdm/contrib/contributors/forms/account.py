@@ -5,7 +5,7 @@ from allauth.account.utils import filter_users_by_email
 from allauth.socialaccount import forms as social_forms
 from crispy_forms.helper import FormHelper
 from django import forms
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 class LoginForm(account_forms.LoginForm):

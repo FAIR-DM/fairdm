@@ -11,7 +11,7 @@ from auto_prefetch import (
 from auto_prefetch import Model as PrefetchModel
 from django.db import models
 from django.db.models import __all__ as django_models_all
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django_lifecycle import LifecycleModelMixin
 from polymorphic import managers
 from polymorphic.base import PolymorphicModelBase

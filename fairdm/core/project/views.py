@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.templatetags.static import static
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.views import FairDMCreateView, FairDMListView

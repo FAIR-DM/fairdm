@@ -1,6 +1,6 @@
 """Views for listing and creating organisations."""
 
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.views import FairDMCreateView, FairDMListView
 

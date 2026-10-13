@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import reverse
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from fairdm.core.models import Measurement
 from fairdm.db import models

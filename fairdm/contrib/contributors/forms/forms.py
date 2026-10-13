@@ -3,7 +3,7 @@
 from dal import autocomplete
 from django import forms
 from django.forms.models import BaseInlineFormSet
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from ..models import Affiliation, ContributorIdentifier, Organization, Person
 

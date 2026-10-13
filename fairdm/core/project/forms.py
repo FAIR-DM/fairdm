@@ -3,7 +3,7 @@
 from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper, Layout
 from django import forms
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.models import Organization
