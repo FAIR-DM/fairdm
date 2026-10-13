@@ -61,6 +61,10 @@ ORBIT_CONFIG = {
     "AUTH_CHECK": "fairdm.conf.orbit.dashboard_access",
 }
 
+# Addresses a person who has not agreed to a required document can still reach. Without this
+# one, an administrator acting as such a person could not go back to their own account.
+MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS = ["/hijack/"]
+
 EASY_ICONS = {
     "default": {
         "renderer": "easy_icons.renderers.ProviderRenderer",

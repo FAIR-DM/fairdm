@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "daisy_cotton",
     "daisy_cotton_ext",
     "mvp_charts",
+    "mvp_compliance",
     "polymorphic",
     "parler",
     "allauth",
@@ -116,6 +117,9 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Reads request.user, so it follows the middleware that sets it. It stops nobody until a
+    # portal publishes a document that has to be agreed to.
+    "mvp_compliance.middleware.AgreementMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",

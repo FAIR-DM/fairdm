@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the start. New row sets `SampleDateInline`, `SampleIdentifierInline`, `MeasurementDateInline`
   and `MeasurementIdentifierInline` are in `fairdm.core.related_records`. See
   [Record editing pages](docs/portal-development/record-editing-pages.md).
+- **Legal documents, and a record of who agreed to them.** FairDM now installs
+  [django-mvp-compliance](https://github.com/django-mvp/django-mvp-compliance) 0.2. A portal's
+  privacy policy, terms and impressum are written in the admin under **Compliance**, published as
+  pages under `/legal/`, and a signed-in person sees what they agreed to under **Agreements** in
+  the account area. A signed-in person who has not agreed to a required document is sent to
+  `/legal/agree/` before they go on. FairDM ships no documents, so nothing changes for anybody
+  until a portal publishes one. Run `migrate` when upgrading, which creates the package's tables.
+  A portal that already serves pages of its own under `/legal/` has to move them or leave the
+  package's addresses out. See [Legal documents](docs/portal-development/legal-documents.md)
+  (#463).
 
 ### Removed
 
@@ -288,6 +298,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The django-mvp packages move to their latest releases.** django-mvp 0.28.2, django-mvp-forms
+  0.4.0, django-mvp-accounts 0.3.0, django-mvp-charts 0.3.0 and daisy-cotton-ext 0.5.0. Nothing in
+  FairDM's own code or templates needed changing. What a portal will notice:
+  - The sign-in and sign-up pages are arranged differently, and show the portal's logo above the
+    card. The passkey, emailed-code and ORCID buttons sit together, apart from the form, and the
+    link to the other page is at the foot of the card. A portal that replaced
+    `allauth/layouts/entrance.html` to change the frame around these pages moves that to
+    `mvp_accounts/entrance/base.html`. See django-mvp-accounts'
+    [0.3.0](https://github.com/django-mvp/django-mvp-accounts/releases/tag/v0.3.0).
+  - Long help text and long checkbox labels on a form wrap on a narrow screen, where they used to
+    push the form wider than the screen.
+  - A form alert's dismiss button sits at the end of the alert. A portal that replaced
+    `daisyui/layout/alert.html` adds `ms-auto` to the button in its own copy.
+  - Search, telephone and colour inputs are drawn as daisyUI inputs. A portal that wrote the
+    `input` class on one of those widgets by hand can remove it. See django-mvp-forms'
+    [0.3.0](https://github.com/django-mvp/django-mvp-forms/releases/tag/v0.3.0) and
+    [0.4.0](https://github.com/django-mvp/django-mvp-forms/releases/tag/v0.4.0) for the new
+    widgets those releases add.
 - **Projects, datasets, samples and measurements have a database index on `modified`.** The API's
   `modified_after` and `modified_before` filters, and ordering a list by `modified`, can use it
   where they scanned the whole table before. Contributors already had the index. Each of
