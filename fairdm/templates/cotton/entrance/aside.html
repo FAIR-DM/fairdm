@@ -1,0 +1,25 @@
+{# @description What the entrance pages say beside the form: which portal this is, what it holds and who runs it. Decoration only, so nothing here is needed to sign in. #}
+{# @prop name:text | description:"The portal's name." #}
+{# @prop description:text | description:"What the portal says about itself." #}
+{# @prop authority:text | description:"Who runs the portal." #}
+{# @prop authority_url:text | description:"Where the authority can be read about." #}
+{% load i18n %}
+<c-vars name description authority authority_url />
+<div class="dce:flex dce:max-w-xl dce:flex-col dce:gap-4">
+  <p class="dce:text-sm dce:font-semibold dce:tracking-widest dce:text-base-content/80 dce:uppercase">
+    {% translate "Research data portal" %}
+  </p>
+  {# A paragraph, not a heading: the form's heading is the page's only one. #}
+  <p class="dce:text-4xl dce:font-bold dce:tracking-tight dce:text-balance dce:xl:text-5xl">{{ name }}</p>
+  {% if description %}<p class="dce:text-lg dce:text-base-content/80 dce:text-pretty">{{ description }}</p>{% endif %}
+  {% if authority %}
+    <p class="dce:mt-4 dce:text-sm dce:text-base-content/80">
+      {% translate "Run by" %}
+      {% if authority_url %}
+        <a class="link" href="{{ authority_url }}">{{ authority }}</a>
+      {% else %}
+        {{ authority }}
+      {% endif %}
+    </p>
+  {% endif %}
+</div>
