@@ -605,7 +605,7 @@ The rest of what a profile reads from a contributor:
 | `Person.member_since` | When the account was created, or `None` for a profile nobody has claimed. |
 | `Person.get_affiliation_history()` | `current` (verified affiliations that have not ended, the primary one first and the rest by organization name) and `past` (most recently ended first). Pending affiliations are left out. |
 | `Affiliation.start_display`, `Affiliation.end_display` | The date as precisely as it was recorded: a day, a month and year, or a year. An empty string when not recorded. |
-| `ContributorIdentifier.resolver_url` | The address the identifier resolves to, or `None` for a type with no resolver. |
+| `ContributorIdentifier.resolver_url` | The address the identifier resolves to, or `None` for a type with no resolver. ORCID, ROR, ISNI, Wikidata and Crossref Funder ID identifiers have one. A ResearcherID has none. |
 
 ```python
 history = person.get_affiliation_history()

@@ -294,6 +294,26 @@ dataset is shown only when the viewer may see that dataset. One they may not see
 never named, linked or mapped: the related samples card says how many belong to datasets that are
 not published yet, and the measurement list leaves them out of its count.
 
+### The sample card and the location page
+
+A sample of any type is drawn in a listing as one card, the component `c-sample.card`. The card
+is one link to the sample and shows its image or an icon, its type, its name, the dataset it
+belongs to, its portal identifier and its local ID.
+
+```django
+{% for sample in samples %}
+  <c-sample.card :object="sample" />
+{% endfor %}
+```
+
+Load the samples with `select_related("dataset")`, or every card costs a query for its dataset.
+Limit them to what the viewer may see first, with `Sample.objects.visible_to(request.user)`.
+
+A location's own page, at `/location/<longitude>/<latitude>/`, draws this card for each sample
+taken there that the viewer may see. A sample in a dataset the viewer may not read is left out,
+and a location with nothing to show them says so. An address that names no location answers
+"not found".
+
 ## The measurement page
 
 A reuser opens a measurement to judge whether its value is comparable with theirs, so the page

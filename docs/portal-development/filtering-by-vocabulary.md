@@ -39,6 +39,23 @@ Not the vocabulary's slug — `ProjectFilter.__init__` (`fairdm/core/project/fil
 `vocab_class.__name__` for the field name, and the vocabulary's registered `name` (its `_meta.name`)
 only to scope the queryset to that vocabulary's concepts.
 
+## Selecting more than one keyword
+
+Selecting two keywords in a filter keeps the projects that carry both, so each further keyword
+narrows the list. The same holds across filters: a keyword chosen in one vocabulary's filter and
+another chosen in a second vocabulary's filter keep the projects that carry both.
+
+```python
+from fairdm.core.project.filters import ProjectFilter
+from fairdm.core.project.models import Project
+
+filterset = ProjectFilter(
+    data={"keywords_FairDMRoles": [first.pk, second.pk]},
+    queryset=Project.objects.all(),
+)
+filterset.qs  # the visible projects that carry both keywords
+```
+
 ## No configured vocabularies
 
 If `FAIRDM_PROJECT["keywords"]` is empty or unset, `ProjectFilter` falls back to one generic

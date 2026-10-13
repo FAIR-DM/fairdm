@@ -1,7 +1,16 @@
-{% load  fairdm %}
-
-<c-layouts.plugin>
-  {% for sample in object.samples.all %}
-    {% include sample.get_template_name with obj=sample %}
-  {% endfor %}
-</c-layouts.plugin>
+{% extends "detail_view.html" %}
+{% load i18n %}
+{% comment %}
+  A location's own page: the samples taken there that the viewer may see, each as the shared
+  sample card. `samples` comes from the view, already limited to what the viewer may see.
+{% endcomment %}
+{% block page.content %}
+  {% if samples %}
+    <div class="flex flex-col gap-4">
+      {% for sample in samples %}<c-sample.card :object="sample" />{% endfor %}
+    </div>
+  {% else %}
+    <c-mvp.placeholder.card icon="sample"
+                            message="{% translate 'No samples at this location are available to you.' %}" />
+  {% endif %}
+{% endblock page.content %}
