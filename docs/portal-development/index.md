@@ -95,6 +95,7 @@ overview-pages
 create_a_plugin
 record-editing-pages
 rich-text
+legal-documents
 quality_control
 portal_roles
 development_accounts
