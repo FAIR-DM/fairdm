@@ -286,3 +286,19 @@ person selected a column that does not exist and all twenty-one cases failed. Th
 in that column, so a migration run in order behaves as it did.
 
 **Revisit if:** the test is rewritten to build its database at the historical state.
+
+## D20. The measurement page reads one named tuple, and an own location needs no query
+
+**Decision:** `Measurement.effective_location_for(user)` returns an `EffectiveLocation` named tuple
+of point, elevation, uncertainty and source, which is the four-part tuple of the plan with names.
+It answers from the instance when the measurement has a location of its own, and otherwise reads
+the `with_effective_location` annotation for its own row. The overview template drops the
+`own_location` context value, which only the prototype had, and branches on
+`effective_location.source`. The card's markup and copy are as approved.
+
+**Why:** The sample's visibility rule lives in the annotation alone, so the page cannot disagree
+with a lookup. A measurement with its own location never needs the sample, so that case costs no
+query. Names read better in the template than positions.
+
+**Revisit if:** a location has a third source, or a measurement's own location becomes hidden from
+some viewers, which would put the own branch behind the annotation too.

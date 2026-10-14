@@ -297,18 +297,61 @@
       "tasks": [
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_measurement/test_forms.py::TestRegisteredMeasurementTypeLocationInput",
+              "tests/test_core/test_measurement/test_forms.py::TestMeasurementEditPageLocation",
+              "tests/test_core/test_measurement/test_plugins.py::TestOverviewLocation",
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementEffectiveLocation"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_measurement"
+            ],
+            "code": [
+              "fairdm/core/measurement/forms.py:19",
+              "fairdm/core/measurement/plugins.py:109"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_measurement/test_managers.py::TestWithEffectiveLocation",
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementEffectiveLocation",
+              "tests/test_core/test_measurement/test_plugins.py::TestOverviewLocation"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_measurement",
+              "uv run pytest -q -n auto --dist loadscope tests/test_demo tests/test_registry tests/test_api"
+            ],
+            "code": [
+              "fairdm/core/measurement/managers.py:39",
+              "fairdm/core/measurement/models.py:191",
+              "fairdm/core/measurement/templates/measurement/measurement_overview.html:150",
+              "demo/config.py:409",
+              "demo/seed/measurements.py:95"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "documentation example run against the branch in a throwaway test (not committed)"
+            ],
+            "code": [
+              "docs/portal-development/locations.md:74",
+              "docs/portal-development/overview-pages.md:354",
+              "specs/018-overview-pages/spec.md:102"
+            ]
+          }
         }
       ]
     },

@@ -75,3 +75,24 @@ Did: docs/portal-development/locations.md (fields, input, notations, reference s
 Verified: parse_coordinate and LocationField examples run and print the values the page gives.
 Next: full verify and the report.
 Watch: CONTEXT.md gains Spatial coverage in the story that adds it.
+
+## 2026-10-14T23:00:48Z · Implementer US3 · T011
+
+Did: wrote the failing tests first for a measurement's location: the registered-type form input (listed vs not listed), the edit page saving a typed location, refusing a bad one, clearing it, leaving the sample alone, the overview page for own / sample / hidden-sample / team-member viewers, effective_location_for and the with_effective_location annotation. Watched 16 of 19 fail for the missing mechanism (3 negative-case tests passed on the red tree by design). Then put MeasurementFormMixin on LocationFormMixin and listed location in the demo XRF registration.
+Verified: uv run pytest -q -n0 tests/test_core/test_measurement/test_forms.py, 27 passed; pre-commit hooks passed.
+Next: T012, the effective location and the page drawn from it.
+Watch: no pre-existing test needed a change; the measurement page tests that assert the location card from the sample alone still pass untouched.
+
+## 2026-10-14T23:00:49Z · Implementer US3 · T012
+
+Did: MeasurementQuerySet.with_effective_location(user) annotates effective_location with a Case over own location, then the sample's when the sample is in Sample.objects.visible_to(user). Measurement.effective_location_for(user) returns an EffectiveLocation named tuple (point, elevation, uncertainty, source) and reads that annotation for the sample branch, so the visibility rule is written once. The overview plugin passes effective_location, and the template picks its card from it, with the approved markup and copy. The demo seed gives the fully described XRF measurement its own location (49.09495, 8.43180, 112 m, 25 m).
+Verified: uv run pytest -q -n0 tests/test_core/test_measurement, 302 passed. uv run pytest -q -n auto --dist loadscope tests/test_demo tests/test_registry tests/test_api, 1643 passed. pre-commit hooks passed.
+Next: T013 docs.
+Watch: the template's own_location context value is replaced by effective_location (nothing else read it). makemigrations --check shows only a third-party orbit migration, unrelated to this story.
+
+## 2026-10-14T23:00:49Z · Implementer US3 · T013
+
+Did: added "A measurement's own location and its effective location" to docs/portal-development/locations.md, extended the measurement overview section and context list in overview-pages.md, edited FS-018's spec where it said a measurement shows only its sample's location, and added a changelog entry.
+Verified: ran the page's effective-location example against the branch in a throwaway test (passed, not committed).
+Next: full verify, then the completion report.
+Watch: none.
