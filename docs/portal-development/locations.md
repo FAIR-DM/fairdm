@@ -151,8 +151,8 @@ for sample in Sample.objects.visible_to(request.user).nearest(karlsruhe)[:10]:
     sample.distance.km
 ```
 
-Organizations have the same three lookups on `Organization.objects`. A person has no location, so
-none of them applies.
+Organizations have the same three lookups on `Organization.objects`, whose queryset is
+`OrganizationQuerySet`. A person has no location, so none of them applies.
 
 ### Measurements
 
@@ -222,8 +222,8 @@ spatial_coverage(
 )
 ```
 
-`Dataset.bbox` is gone. Use `spatial_coverage()`, which has `west` and `east` where `bbox` had
-`min_x` and `max_x`.
+A dataset no longer has a bounding-box property. Use `spatial_coverage()`, whose `west` and `east`
+stand where the property's `min_x` and `max_x` did.
 
 ## In the collection tables
 
@@ -340,5 +340,5 @@ locations are not carried across. A portal that holds locations has to write the
 - `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` are gone.
 - A contributor's `location` is gone. An organization has a point of its own.
 - The page at `/location/<lon>/<lat>/` is gone, and so is the link to it in the collection tables.
-- `Dataset.bbox` is gone. `Dataset.spatial_coverage()` returns a `Coverage` with `west`, `south`,
-  `east` and `north`.
+- A dataset's bounding-box property is gone. `Dataset.spatial_coverage()` returns a `Coverage` with
+  `west`, `south`, `east` and `north`.
