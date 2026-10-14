@@ -1,13 +1,21 @@
 """Tests for the location lookups in ``fairdm.contrib.location.managers``."""
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 
-from demo.factories import RockSampleFactory
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, OrganizationFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
+)
 from fairdm.utils.choices import Visibility
 
 
@@ -188,3 +196,149 @@ class TestOrganizationLookups:
         assert found[:2] == [organizations["rome"], organizations["berlin"]]
         assert round(found[0].distance.km) == 11
         assert found[2] == organizations["nowhere"]
+
+
+@pytest.mark.django_db
+class TestMeasurementLookups:
+    """AS 2.5, 2.6 and 2.8: a measurement is found by its own location, else its sample's for a viewer who may open the sample."""
+
+    ROME = (12.5, 41.9)
+    BERLIN = (13.4, 52.5)
+    AROUND_ROME = (10, 40, 15, 45)
+    AROUND_BERLIN = (12, 51, 15, 54)
+
+    @pytest.fixture
+    def sample(self, released):
+        return RockSampleFactory(dataset=released, location=at(*self.ROME))
+
+    def test_a_measurements_own_location_wins_over_its_samples(self, released, sample):
+        own = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=at(*self.BERLIN)
+        )
+
+        assert own in Measurement.objects.inside(self.AROUND_BERLIN)
+        assert own not in Measurement.objects.inside(self.AROUND_ROME)
+
+    def test_a_measurement_with_no_location_is_found_by_its_samples(
+        self, released, sample
+    ):
+        inherited = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert inherited in Measurement.objects.inside(self.AROUND_ROME)
+        assert inherited not in Measurement.objects.inside(self.AROUND_BERLIN)
+
+    def test_a_measurement_with_nothing_located_is_never_inside(self, released):
+        bare = ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=released), dataset=released
+        )
+
+        assert bare not in Measurement.objects.inside((-180, -90, 180, 90))
+
+    def test_an_area_returns_each_measurement_once(self, released, sample):
+        ExampleMeasurementFactory(sample=sample, dataset=released)
+        ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=at(*self.ROME)
+        )
+
+        found = Measurement.objects.inside(self.AROUND_ROME)
+
+        assert found.count() == 2
+
+    def test_the_samples_location_is_not_used_for_a_viewer_who_may_not_open_it(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(dataset=hidden, location=at(*self.ROME))
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        stranger = PersonFactory(is_active=True)
+
+        for viewer in (None, AnonymousUser(), stranger):
+            assert measurement not in Measurement.objects.inside(
+                self.AROUND_ROME, user=viewer
+            )
+
+    def test_the_samples_location_is_used_for_a_viewer_who_may_open_it(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(dataset=hidden, location=at(*self.ROME))
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=hidden, contributor=member, level=ContributionLevel.VIEW
+        )
+
+        found = Measurement.objects.inside(self.AROUND_ROME, user=member)
+
+        assert measurement in found
+
+    def test_a_hidden_sample_never_hides_a_measurements_own_location(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(dataset=hidden, location=at(*self.ROME))
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=at(*self.BERLIN)
+        )
+
+        assert measurement in Measurement.objects.inside(self.AROUND_BERLIN)
+
+    def test_within_distance_reads_the_effective_location(self, released, sample):
+        own = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=at(12.5, 42.9)
+        )
+        inherited = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        found = Measurement.objects.within_distance(at(*self.ROME), D(km=10))
+
+        assert set(found) == {inherited}
+        assert own not in found
+
+    def test_within_distance_withholds_a_hidden_samples_location(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(dataset=hidden, location=at(*self.ROME))
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        found = Measurement.objects.within_distance(at(*self.ROME), 1_000, user=None)
+
+        assert measurement not in found
+
+    def test_nearest_orders_by_the_effective_location_and_carries_the_distance(
+        self, released, sample
+    ):
+        inherited = ExampleMeasurementFactory(sample=sample, dataset=released)
+        own = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=at(12.5, 42.9)
+        )
+        bare = ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=released), dataset=released
+        )
+
+        found = list(Measurement.objects.nearest(at(*self.ROME)))
+
+        assert found == [inherited, own, bare]
+        assert round(found[1].distance.km) == 111
+        assert found[2].distance is None
+
+    def test_nearest_withholds_a_hidden_samples_location(self, released, hidden):
+        sample = RockSampleFactory(dataset=hidden, location=at(*self.ROME))
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        found = list(Measurement.objects.nearest(at(*self.ROME), user=None))
+
+        assert found == [measurement]
+        assert found[0].distance is None
+
+    def test_the_lookups_combine_with_visible_to(self, released, hidden):
+        visible = ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=released),
+            dataset=released,
+            location=at(*self.ROME),
+        )
+        ExampleMeasurementFactory(
+            sample=RockSampleFactory(dataset=hidden),
+            dataset=hidden,
+            location=at(*self.ROME),
+        )
+
+        found = Measurement.objects.visible_to(None).inside(self.AROUND_ROME)
+
+        assert set(found) == {visible}
