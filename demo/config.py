@@ -406,6 +406,7 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
         keywords=["XRF", "elemental analysis", "spectroscopy", "geochemistry"],
     )
     fields = [
+        "location",
         "element",
         "concentration_ppm",
         "detection_limit_ppm",

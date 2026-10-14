@@ -9,18 +9,20 @@ from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.location.forms import LocationFormMixin
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
 from .models import Measurement
 
 
-class MeasurementFormMixin(ManagerOnlyFieldsMixin):
-    """Mixin giving measurement model forms Select2 widgets for dataset and sample.
+class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
+    """Mixin giving measurement model forms Select2 widgets for dataset and sample, and the location input.
 
     Use it with the ``ModelForm`` of a concrete measurement type. The dataset choices are limited
     to the datasets the requesting user may edit. For a measurement that already exists the
-    dataset is offered only to someone who can manage the measurement. See docs/portal-development/measurements.md.
+    dataset is offered only to someone who can manage the measurement. The location input is
+    there only when the type's fields list ``location``. See docs/portal-development/measurements.md.
 
     Args:
         *args: Positional arguments passed to ``ModelForm``.
@@ -78,6 +80,12 @@ class MeasurementFormMixin(ManagerOnlyFieldsMixin):
                     "data-placeholder": _("Select a sample..."),
                     "data-depends-on": "dataset",
                 },
+            )
+
+        if "location" in self.fields:
+            self.fields["location"].help_text = _(
+                "Only where the measurement was made somewhere other than where its sample was "
+                "taken. Left empty, the measurement is where its sample is."
             )
 
         self.helper = FormHelper()
