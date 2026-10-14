@@ -381,21 +381,32 @@ class Dataset(BaseModel):
         measurement_pks = self.measurements.values("pk")
         return sample_pks.union(measurement_pks).exists()
 
-    @cached_property
-    def bbox(self):
-        """Return the bounding box of the dataset's samples' locations.
+    def spatial_coverage(self, user=None):
+        """Return the smallest box holding the locations of the dataset's records the viewer may see.
+
+        Samples count by their own location and measurements by their effective location for the
+        viewer, so a measurement placed only by a sample the viewer may not open adds nothing.
+
+        Args:
+            user: The viewer, or ``None`` for a visitor who is not signed in.
 
         Returns:
-            A dict with ``min_x``, ``max_x``, ``min_y`` and ``max_y`` in degrees, or None when
-            no sample has a location.
+            A ``Coverage`` in WGS 84 degrees, with ``west`` greater than ``east`` when it crosses
+            the 180th meridian, or ``None`` when nothing the viewer may see is located.
         """
-        from django.contrib.gis.db.models import Extent
+        from fairdm.contrib.location.coverage import spatial_coverage
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
 
-        extent = self.samples.aggregate(extent=Extent("location"))["extent"]
-        if extent is None:
-            return None
-        min_x, min_y, max_x, max_y = extent
-        return {"min_x": min_x, "max_x": max_x, "min_y": min_y, "max_y": max_y}
+        samples = Sample.objects.filter(dataset=self).visible_to(user)
+        measurements = (
+            Measurement.objects.filter(dataset=self)
+            .visible_to(user)
+            .with_effective_location(user)
+        )
+        return spatial_coverage(
+            (samples, "location"), (measurements, "effective_location")
+        )
 
 
 class DatasetDescription(AbstractDescription):

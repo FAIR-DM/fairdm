@@ -187,6 +187,44 @@ class Project(BaseModel):
         """
         return self.STATUS_BADGE_VARIANTS.get(self.status, "neutral")
 
+    def spatial_coverage(self, user=None):
+        """Return the smallest box holding the locations of the project's datasets the viewer may open.
+
+        The datasets are the public ones and those the viewer holds a level on. Within them, the
+        records counted are the ones the viewer may see, as :meth:`Dataset.spatial_coverage`
+        counts them.
+
+        Args:
+            user: The viewer, or ``None`` for a visitor who is not signed in.
+
+        Returns:
+            A ``Coverage`` in WGS 84 degrees, with ``west`` greater than ``east`` when it crosses
+            the 180th meridian, or ``None`` when nothing the viewer may see is located.
+        """
+        from fairdm.contrib.contributors.choices import ContributionLevel
+        from fairdm.contrib.location.coverage import spatial_coverage
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        openable = Q(visibility=Visibility.PUBLIC)
+        if user is not None and user.is_authenticated:
+            held = Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
+            openable |= Q(pk__in=held.values("pk"))
+        datasets = Dataset.all_objects.filter(project=self).filter(openable)
+
+        samples = Sample.objects.filter(dataset__in=datasets.values("pk")).visible_to(
+            user
+        )
+        measurements = (
+            Measurement.objects.filter(dataset__in=datasets.values("pk"))
+            .visible_to(user)
+            .with_effective_location(user)
+        )
+        return spatial_coverage(
+            (samples, "location"), (measurements, "effective_location")
+        )
+
     def get_absolute_url(self):
         """Return the URL of the project's registered overview page."""
         return reverse("project:overview", kwargs={"uuid": self.uuid})

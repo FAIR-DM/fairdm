@@ -3,11 +3,15 @@
 import time
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.location.coverage import Coverage
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
 from fairdm.core.project.models import (
@@ -1270,3 +1274,108 @@ class TestProjectIsActive:
         project = ProjectFactory(status=status)
 
         assert project.is_active is False
+
+
+@pytest.mark.django_db
+class TestProjectSpatialCoverage:
+    """AS 2.11 and FR-023: the box holds the locations of the datasets the viewer may open."""
+
+    @staticmethod
+    def at(longitude, latitude):
+        return Point(longitude, latitude, srid=4326)
+
+    def test_it_holds_the_locations_of_every_dataset_in_the_project(self):
+        project = ProjectFactory()
+        first = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        second = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=first, location=self.at(10.0, 10.0))
+        sample = RockSampleFactory(dataset=second, location=self.at(30.0, -5.0))
+        ExampleMeasurementFactory(
+            sample=sample, dataset=second, location=self.at(-20.0, 40.0)
+        )
+
+        found = project.spatial_coverage()
+
+        assert found == Coverage(west=-20.0, south=-5.0, east=30.0, north=40.0)
+
+    def test_it_is_none_when_nothing_is_located(self):
+        project = ProjectFactory()
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset)
+
+        assert project.spatial_coverage() is None
+
+    def test_another_projects_datasets_are_not_counted(self):
+        project = ProjectFactory()
+        RockSampleFactory(
+            dataset=DatasetFactory(
+                project=ProjectFactory(), visibility=Visibility.PUBLIC, published=True
+            ),
+            location=self.at(10.0, 10.0),
+        )
+
+        assert project.spatial_coverage() is None
+
+    def test_a_dataset_the_viewer_may_not_open_is_not_counted(self):
+        project = ProjectFactory()
+        open_dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        private = DatasetFactory(
+            project=project, visibility=Visibility.PRIVATE, published=True
+        )
+        RockSampleFactory(dataset=open_dataset, location=self.at(10.0, 10.0))
+        RockSampleFactory(dataset=private, location=self.at(50.0, 50.0))
+        stranger = PersonFactory(is_active=True)
+
+        for viewer in (None, AnonymousUser(), stranger):
+            assert project.spatial_coverage(viewer) == Coverage(10.0, 10.0, 10.0, 10.0)
+
+    def test_a_member_of_a_private_dataset_counts_it(self):
+        project = ProjectFactory()
+        private = DatasetFactory(
+            project=project, visibility=Visibility.PRIVATE, published=False
+        )
+        RockSampleFactory(dataset=private, location=self.at(50.0, 50.0))
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=private, contributor=member, level=ContributionLevel.VIEW
+        )
+
+        assert project.spatial_coverage(member) == Coverage(50.0, 50.0, 50.0, 50.0)
+        assert project.spatial_coverage() is None
+
+    def test_a_measurement_placed_only_by_a_hidden_sample_adds_nothing(self):
+        project = ProjectFactory()
+        hidden = DatasetFactory(
+            project=project, visibility=Visibility.PRIVATE, published=False
+        )
+        released = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        sample = RockSampleFactory(dataset=hidden, location=self.at(10.0, 10.0))
+        ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert project.spatial_coverage() is None
+
+    def test_locations_either_side_of_the_180th_meridian_make_a_narrow_box(self):
+        project = ProjectFactory()
+        east = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        west = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=east, location=self.at(176.0, 0.0))
+        RockSampleFactory(dataset=west, location=self.at(-176.0, 0.0))
+
+        found = project.spatial_coverage()
+
+        assert found.west > found.east
+        assert (found.east - found.west) % 360 < 10
