@@ -132,3 +132,10 @@ Did: fairdm/contrib/location/coverage.py (Coverage, spatial_coverage over Extent
 Verified: uv run pytest -q -n0 tests/test_contrib/test_location tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py green; pre-commit clean; no remaining reader of bbox (grep over py, html, xml, md). makemigrations --check names only the third-party orbit app, as on the base.
 Next: T019.
 Watch: publishing/datacite44.xml cannot be rendered in this environment at all (the {% load partials %} library is not found); nothing tests it, and it is not caused by this story. Not verified by a render.
+
+## 2026-10-14T23:26:42Z · Implementer US2 · T019
+
+Did: MeasurementTable latitude and longitude read the annotated effective_location; DataTableView annotates measurement querysets with with_effective_location(request.user). The sample table's non-orderable latitude and longitude, the missing location link column and the table factory's GeometryField exclusion were already in place from US1; this task adds the tests for them. New tests: TestLocationColumns in test_tables.py (sample coordinates, no location column, unlocated sample, own location wins, sample's location for a viewer who may open it and withheld otherwise, sorting by another column, coordinate columns not orderable) and a geometry-field case in TestTableFactory.
+Verified: red first for the two measurement cases (the table showed the sample's point whatever the viewer); uv run pytest -q -n0 tests/test_contrib/test_collections tests/test_registry -> 341 passed; probed the factory test by removing the GeometryField exclusion, which turned it red. pre-commit clean. No pre-existing collection-table test needed changing: none asserted the location columns' accessor, ordering or the sample-location reading.
+Next: T020 docs.
+Watch: the listing's viewer rule uses visible_to, so a published but private dataset's sample does not place a measurement for a visitor, as in the lookups.

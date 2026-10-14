@@ -338,8 +338,21 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestLocationColumns",
+              "tests/test_registry/test_factories.py::TestTableFactory"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_collections tests/test_registry"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:158",
+              "fairdm/contrib/collections/views.py:42"
+            ]
+          }
         },
         {
           "id": "T020",
