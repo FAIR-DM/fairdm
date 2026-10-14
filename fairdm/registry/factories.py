@@ -7,6 +7,7 @@ resource), choosing widgets, columns and filters from the model's field types.
 from typing import Any, cast
 
 from django.contrib import admin
+from django.contrib.gis.db.models import GeometryField
 from django.db import models
 from django.forms import ModelForm, modelform_factory
 from django_filters import FilterSet
@@ -223,6 +224,9 @@ class TableFactory(ComponentFactory):
                 field = self.model._meta.get_field(field_name)
 
                 if isinstance(field, models.TextField):
+                    continue
+                # The base tables carry latitude and longitude, and a point has no sort order.
+                if isinstance(field, GeometryField):
                     continue
                 if (
                     isinstance(field, models.CharField)

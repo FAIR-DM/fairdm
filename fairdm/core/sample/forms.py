@@ -11,6 +11,7 @@ from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.location.forms import LocationFormMixin
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 
@@ -19,8 +20,8 @@ from .models import Sample
 logger = logging.getLogger(__name__)
 
 
-class SampleFormMixin(ManagerOnlyFieldsMixin):
-    """Mixin giving sample model forms Select2 widgets for dataset and location.
+class SampleFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
+    """Mixin giving sample model forms a Select2 widget for the dataset and the location input.
 
     Use it with the ``ModelForm`` of a concrete sample type. The dataset choices are the datasets
     the requesting user may edit. For a sample that already exists the dataset is offered only to
@@ -87,12 +88,6 @@ class SampleFormMixin(ManagerOnlyFieldsMixin):
         if "status" in self.fields:
             self.fields["status"].widget = forms.Select(attrs={"class": "form-select"})
             self.fields["status"].initial = "unknown"
-
-        if "location" in self.fields:
-            self.fields["location"].widget = ModelSelect2Widget(
-                search_fields=["name__icontains"],
-                attrs={"data-placeholder": _("Select a location...")},
-            )
 
         self.helper = FormHelper()
         self.helper.form_tag = False
