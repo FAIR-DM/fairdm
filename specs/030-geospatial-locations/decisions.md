@@ -171,3 +171,41 @@ The box is what the export already writes. The dataset metadata template also re
 the dataset model has never had, and that reference goes.
 
 *Revisit if:* a repository the portals publish to indexes `geoLocationPolygon`.
+
+## D11. Coordinates are read by `lat-lon-parser`
+
+The maintainer asked for the available packages to be surveyed. `lat-lon-parser`, NOAA's public
+domain parser with no dependencies, reads every notation the spec asks for. It does not check
+ranges, which axis a hemisphere letter belongs to, or a trailing `s` after seconds, which it reads
+as south, so the field adds those checks. The comparison is in research.md.
+
+*Revisit if:* the package stops being maintained, or a notation the spec needs is not read.
+**ADR:** none — a dependency choice local to one field, recorded in research.md
+
+## D12. The fields are `location`, `location_elevation` and `location_uncertainty`
+
+A sample type is a subclass of `Sample` in its own table, and cannot declare a field with a name
+`Sample` already uses. Portals give their own sample types an `elevation` or a `depth`. Prefixing
+the two new values with `location_` keeps them out of the way, and reads as part of the location.
+
+*Revisit if:* never; renaming a field later breaks every portal that reads it.
+**ADR:** none — a naming choice the model docstring and the locations page state
+
+## D13. A geometry column, measured as geography for distance
+
+A geography column bows a box's edges along great circles, so "inside this box" would not follow
+the parallels a researcher means. A geometry column in WGS 84 keeps the box's edges straight in
+latitude and longitude, and the distance lookups cast to geography, which measures on the
+spheroid. An expression index on the cast keeps them indexed.
+
+*Revisit if:* lines and areas come into the core, where geography's edges might be wanted.
+**ADR:** none — follows from D1 and is stated on the locations page
+
+## D14. The API returns locations and does not take them
+
+The record serializers accept writes, but the spec asks only that a location be read (FR-029).
+The location fields are read-only in the API, so a create or a change through the API leaves a
+location as it was.
+
+*Revisit if:* a portal needs to write locations through the API.
+**ADR:** none — the API page documents the field as read-only
