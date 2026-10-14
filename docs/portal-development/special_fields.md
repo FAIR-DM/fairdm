@@ -115,6 +115,10 @@ class AdvancedSampleConfig(fairdm.SampleConfig):
     filter_fields = ["sample_type", "collection_date"]
 ```
 
+`location` is a field every sample already has: the point where it was taken, with
+`location_elevation` and `location_uncertainty` beside it. It is not one of the special fields
+this page covers, so a sample type does not declare it. See [Locations](locations.md).
+
 The registration system automatically:
 - Generates appropriate form widgets for special fields
 - Creates filters that understand field semantics
