@@ -92,3 +92,11 @@ Taste calls made for the first round. Sam's eye rules on each.
   location" for its sample's.**
 - **On the organization form the input is labelled "Coordinates"**, under the existing Location
   heading beside city and country, to avoid two headings that say Location.
+
+## Review
+
+Approved by the maintainer on 2026-10-14 after the first round, with no changes.
+
+- He asked why the water sample's form has no location input. The reason is that its
+  registration does not list the location, and a sample type's generated screens show only the
+  fields its registration lists. He was content with that rule, so it stands as FR-009 says.
