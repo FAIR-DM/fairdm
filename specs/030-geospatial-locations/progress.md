@@ -139,3 +139,10 @@ Did: MeasurementTable latitude and longitude read the annotated effective_locati
 Verified: red first for the two measurement cases (the table showed the sample's point whatever the viewer); uv run pytest -q -n0 tests/test_contrib/test_collections tests/test_registry -> 341 passed; probed the factory test by removing the GeometryField exclusion, which turned it red. pre-commit clean. No pre-existing collection-table test needed changing: none asserted the location columns' accessor, ordering or the sample-location reading.
 Next: T020 docs.
 Watch: the listing's viewer rule uses visible_to, so a published but private dataset's sample does not place a measurement for a visitor, as in the lookups.
+
+## 2026-10-14T23:27:48Z · Implementer US2 · T020
+
+Did: docs/portal-development/locations.md gains "Finding records by where they are" (inside, within_distance, nearest, the measurement versions with the viewer, why they use an index), "Spatial coverage" (Dataset and Project, the 180th meridian, spatial_coverage over your own querysets, bbox gone) and "In the collection tables"; the upgrade list names Dataset.bbox. CONTEXT.md defines Spatial coverage. CHANGELOG.md gets the added entries and the removal of Dataset.bbox (outside the T020 wording, but the spec asks for every breaking change there).
+Verified: every example on the page was run once against the branch in a scratch test (not committed) and returned as described; the one comment example on the 180th meridian is illustrative. Docs build not run (no docs step in the narrow scope; the full verify has it).
+Next: full verify once, report.
+Watch: nothing else under docs/ described bbox or the collection tables' location columns.

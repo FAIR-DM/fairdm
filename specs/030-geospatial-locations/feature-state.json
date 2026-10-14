@@ -356,8 +356,17 @@
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "docs examples run against the branch in a scratch test: inside box and polygon, within_distance in D and metres, nearest[:10] with distance.km, measurement lookups with user, Dataset and Project spatial_coverage, spatial_coverage over samples and organizations"
+            ],
+            "code": [
+              "docs/portal-development/locations.md:80",
+              "CONTEXT.md:70"
+            ]
+          }
         }
       ]
     },
