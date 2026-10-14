@@ -375,6 +375,7 @@ class OrganizationProfileForm(ProfileForm):
             "parent",
             "city",
             "country",
+            "location",
             "profile",
             "website",
             "links",
@@ -395,7 +396,7 @@ class OrganizationProfileForm(ProfileForm):
 
     sections = (
         (None, ["image", "name", "alternative_names", ("type", "parent")]),
-        (_("Location"), [("city", "country")]),
+        (_("Location"), [("city", "country"), "location"]),
         (_("About"), ["profile"]),
         (_("Online"), ["website", "links"]),
     )
@@ -407,6 +408,25 @@ class OrganizationProfileForm(ProfileForm):
             self.initial["website"] = stored[0] if stored else ""
             stored = stored[1:]
         self.initial["links"] = stored
+        if "location" in self.fields:
+            # Sketch for FS-030: the point is typed as a latitude and a longitude in WGS 84.
+            from fairdm.contrib.location.forms import LocationField, location_from_point
+
+            self.fields["location"] = LocationField(
+                full=False,
+                label=_("Coordinates"),
+                help_text=_(
+                    "Where the organization is based. Organizations added from ROR get "
+                    "the coordinates ROR publishes."
+                ),
+            )
+            self.initial["location"] = location_from_point(self.instance.location)
+
+    def clean_location(self):
+        """Give the model the shared point for the typed coordinates. Sketch."""
+        from fairdm.contrib.location.forms import point_for
+
+        return point_for(self.cleaned_data.get("location"))
 
     def clean(self):
         """Store the website first among the links, and no link twice."""

@@ -94,6 +94,15 @@ class MeasurementSeed(BaseCommand):
             detection_limit_ppm=Decimal("12.00"),
             instrument_model="Bruker S8 Tiger",
             measurement_conditions="Rh tube, 50 kV, 50 mA, vacuum, LiF200 crystal.",
+            # Sketch for FS-030: a location of its own, where the bead was run, kept in options.
+            options={
+                "location": {
+                    "lat": 49.09495,
+                    "lon": 8.43180,
+                    "elevation": 112,
+                    "uncertainty": 25,
+                }
+            },
         )
         for type_, value in [("Setup", "2025-06-10"), ("TearDown", "2025-06-11")]:
             MeasurementDate.objects.create(

@@ -110,7 +110,7 @@
 
 {% block overview.record_facts %}
 {% block overview.location %}
-  <c-card.location :location="location" empty="{% translate 'No location has been recorded for this sample.' %}" />
+  <c-card.location :location="location" :elevation="location_extra.elevation" :uncertainty="location_extra.uncertainty" empty="{% translate 'No location has been recorded for this sample.' %}" />
 {% endblock overview.location %}
 
 {% block overview.samples %}

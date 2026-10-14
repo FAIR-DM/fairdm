@@ -1,0 +1,103 @@
+{% load i18n %}
+{% comment %}
+  The location input. Sketch for FS-030: the build replaces it.
+  widget.parts holds the subwidgets by name: srid, first, second, elevation, uncertainty.
+  `first` is the latitude (or northing), `second` the longitude (or easting).
+{% endcomment %}
+{% with parts=widget.parts %}
+<script>
+  window.fairdmLocationInput = window.fairdmLocationInput || function (srid) {
+    // Codes typed as degrees. Anything else is read as a projected system in metres.
+    const geographic = ["4326", "4258", "4269", "4267", "4283", "4167", "4230", "4277", "4314", "4612", "6668"];
+    const pattern = /^\s*([NSEW])?\s*([-+]?\d+(?:[.,]\d+)?)\s*(?:°|d|deg)?\s*(?:(\d+(?:[.,]\d+)?)\s*['′]?\s*)?(?:(\d+(?:[.,]\d+)?)\s*(?:["″]|'')?\s*)?([NSEW])?\s*$/i;
+    return {
+      srid: String(srid || "4326"),
+      first: "",
+      second: "",
+      get geo() { return geographic.includes(this.srid.replace(/\D/g, "") || "4326"); },
+      read(text, axis) {
+        if (!text || !this.geo) return "";
+        const m = pattern.exec(text);
+        if (!m) return "{{ _('Not a coordinate the portal can read')|escapejs }}";
+        const n = (s) => parseFloat((s || "0").replace(",", "."));
+        let v = Math.abs(n(m[2])) + n(m[3]) / 60 + n(m[4]) / 3600;
+        const h = (m[1] || m[5] || "").toUpperCase();
+        if (n(m[2]) < 0 || h === "S" || h === "W") v = -v;
+        const limit = axis === "lat" ? 90 : 180;
+        if (Math.abs(v) > limit) return axis === "lat" ? "{{ _('A latitude lies between −90 and 90')|escapejs }}" : "{{ _('A longitude lies between −180 and 180')|escapejs }}";
+        const letter = axis === "lat" ? (v < 0 ? "S" : "N") : (v < 0 ? "W" : "E");
+        return "{{ _('Reads as')|escapejs }} " + Math.abs(v).toFixed(5) + "° " + letter;
+      },
+    };
+  };
+</script>
+<div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4"
+     x-data="fairdmLocationInput('{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}')"
+     x-init="first = $refs.first.value; second = $refs.second.value">
+
+  {% if widget.full %}
+    <div class="fieldset p-0">
+      <label class="fieldset-legend pt-0" for="{{ parts.srid.attrs.id }}">{% translate "Reference system" %}</label>
+      <div class="join w-full max-w-sm">
+        <span class="join-item flex items-center rounded-l-field border border-base-300 bg-base-200 px-3 text-sm text-base-content/70">EPSG</span>
+        <input type="text" name="{{ parts.srid.name }}" id="{{ parts.srid.attrs.id }}" value="{{ parts.srid.value|default:'4326' }}"
+               class="input join-item w-full" list="location-systems" inputmode="numeric" autocomplete="off"
+               x-model="srid" aria-describedby="{{ parts.srid.attrs.id }}_hint">
+      </div>
+      <datalist id="location-systems">
+        {% for code, label in widget.systems %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      </datalist>
+      <p class="label text-wrap" id="{{ parts.srid.attrs.id }}_hint">{% translate "The system your coordinates are written in. 4326 is WGS 84, what a GPS receiver records. The portal stores every location in WGS 84." %}</p>
+    </div>
+  {% endif %}
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="fieldset p-0">
+      <label class="fieldset-legend pt-0" for="{{ parts.first.attrs.id }}">
+        <span x-text="geo ? '{{ _('Latitude')|escapejs }}' : '{{ _('Northing')|escapejs }}'">{% translate "Latitude" %}</span>
+      </label>
+      <input type="text" name="{{ parts.first.name }}" id="{{ parts.first.attrs.id }}" value="{{ parts.first.value|default:'' }}"
+             class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="first" x-model="first"
+             aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format {{ parts.first.attrs.id }}_reads">
+      <p class="label text-wrap" id="{{ parts.first.attrs.id }}_reads" aria-live="polite" x-text="read(first, 'lat')"></p>
+    </div>
+    <div class="fieldset p-0">
+      <label class="fieldset-legend pt-0" for="{{ parts.second.attrs.id }}">
+        <span x-text="geo ? '{{ _('Longitude')|escapejs }}' : '{{ _('Easting')|escapejs }}'">{% translate "Longitude" %}</span>
+      </label>
+      <input type="text" name="{{ parts.second.name }}" id="{{ parts.second.attrs.id }}" value="{{ parts.second.value|default:'' }}"
+             class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="second" x-model="second"
+             aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format {{ parts.second.attrs.id }}_reads">
+      <p class="label text-wrap" id="{{ parts.second.attrs.id }}_reads" aria-live="polite" x-text="read(second, 'lon')"></p>
+    </div>
+  </div>
+  <p class="text-sm text-base-content/70 -mt-2" id="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
+    <span x-show="geo">{% translate "Decimal degrees, degrees and minutes, or degrees, minutes and seconds, with or without N, S, E or W: 48.9353, 48 56.118 N or 48°56′07″N." %}</span>
+    <span x-show="!geo" x-cloak>{% translate "Metres, as the reference system gives them: 5420115 and 413500." %}</span>
+  </p>
+
+  {% if widget.full %}
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="fieldset p-0">
+        <label class="fieldset-legend pt-0" for="{{ parts.elevation.attrs.id }}">{% translate "Elevation" %}</label>
+        <label class="input w-full">
+          <input type="number" step="any" name="{{ parts.elevation.name }}" id="{{ parts.elevation.attrs.id }}"
+                 value="{{ parts.elevation.value|default_if_none:'' }}" aria-describedby="{{ parts.elevation.attrs.id }}_hint">
+          <span class="label">m</span>
+        </label>
+        <p class="label text-wrap" id="{{ parts.elevation.attrs.id }}_hint">{% translate "Above sea level. Below it, a negative number, as on the seafloor." %}</p>
+      </div>
+      <div class="fieldset p-0">
+        <label class="fieldset-legend pt-0" for="{{ parts.uncertainty.attrs.id }}">{% translate "Uncertainty" %}</label>
+        <label class="input w-full">
+          <span class="label">±</span>
+          <input type="number" step="any" min="0" name="{{ parts.uncertainty.name }}" id="{{ parts.uncertainty.attrs.id }}"
+                 value="{{ parts.uncertainty.value|default_if_none:'' }}" aria-describedby="{{ parts.uncertainty.attrs.id }}_hint">
+          <span class="label">m</span>
+        </label>
+        <p class="label text-wrap" id="{{ parts.uncertainty.attrs.id }}_hint">{% translate "How far from the point the true place may lie." %}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endwith %}

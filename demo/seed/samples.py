@@ -149,6 +149,9 @@ class SampleSeed(BaseCommand):
             location=Point.objects.get_or_create(
                 x=7.8656, y=48.9353, defaults={"crs": "EPSG:4326"}
             )[0],
+            # Sketch for FS-030: elevation and uncertainty, kept in options until the model
+            # has fields for them.
+            options={"location": {"elevation": 155, "uncertainty": 10}},
         )
         SampleIdentifier.objects.create(
             related=core, type="IGSN", value="10.60510/FDM.GPK2C143512"

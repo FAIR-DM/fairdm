@@ -5,24 +5,28 @@
   once in `extra_js` when it has a location to show.
 
   Attributes:
-    location – a location Point (x = longitude, y = latitude, crs), or nothing
+    location    – a location with x (longitude) and y (latitude) in WGS 84, or nothing
+    elevation   – metres above sea level, or nothing
+    uncertainty – metres, or nothing
     title    – the card's title (default "Location")
     label    – the map's accessible name (default: where the sample was taken)
     empty    – what to say when there is no location; with none given, the card isn't shown
     class    – extra classes on the card
 {% endcomment %}
-<c-vars location title label empty class />
+<c-vars location elevation uncertainty title label empty class />
 {% if location or empty %}
   <c-mvp.card title="{{ title|default:_('Location') }}" class="bg-base-100 {{ class }}" data-card="location" only>
     {% if location %}
       <div class="overview-map bg-base-200" role="img"
            aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"
            data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
-      <dl class="grid grid-cols-2 gap-3 text-sm">
-        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude (x)" %}</dt><dd class="font-mono">{{ location.x }}</dd></div>
-        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude (y)" %}</dt><dd class="font-mono">{{ location.y }}</dd></div>
-        {% if location.crs %}<div class="col-span-2"><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Reference system" %}</dt><dd class="font-mono">{{ location.crs }}</dd></div>{% endif %}
+      <dl class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Latitude" %}</dt><dd class="font-mono">{{ location.y|floatformat:5 }}</dd></div>
+        <div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Longitude" %}</dt><dd class="font-mono">{{ location.x|floatformat:5 }}</dd></div>
+        {% if elevation is not None and elevation != "" %}<div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Elevation" %}</dt><dd class="font-mono">{{ elevation|floatformat:"-1" }} m</dd></div>{% endif %}
+        {% if uncertainty is not None and uncertainty != "" %}<div><dt class="text-xs uppercase font-semibold text-base-content/60">{% translate "Uncertainty" %}</dt><dd class="font-mono">± {{ uncertainty|floatformat:"-1" }} m</dd></div>{% endif %}
       </dl>
+      <p class="text-xs text-base-content/60">{% translate "Decimal degrees, WGS 84" %}</p>
     {% else %}
       <p class="text-sm text-base-content/70">{{ empty }}</p>
     {% endif %}

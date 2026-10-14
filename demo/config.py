@@ -233,6 +233,7 @@ class RockSampleConfig(BaseSampleConfiguration):
         "name",
         "rock_type",
         "collection_date",
+        "location",
         "weight_grams",
         "hardness_mohs",
         "mineral_content",

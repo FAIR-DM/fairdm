@@ -89,13 +89,42 @@ class SampleFormMixin(ManagerOnlyFieldsMixin):
             self.fields["status"].initial = "unknown"
 
         if "location" in self.fields:
-            self.fields["location"].widget = ModelSelect2Widget(
-                search_fields=["name__icontains"],
-                attrs={"data-placeholder": _("Select a location...")},
+            # Sketch for FS-030: the location is typed, not picked from a list.
+            from fairdm.contrib.location.forms import LocationField, location_from_point
+
+            field = LocationField(
+                label=_("Location"),
+                help_text=_(
+                    "Where the sample was taken. Leave it empty if nobody recorded it."
+                ),
             )
+            self.initial["location"] = location_from_point(
+                getattr(self.instance, "location", None),
+                getattr(self.instance, "options", None),
+            )
+            self.fields["location"] = field
 
         self.helper = FormHelper()
         self.helper.form_tag = False
+
+    def clean_location(self):
+        """Keep the typed location for save, and give the model the shared point for it. Sketch."""
+        from fairdm.contrib.location.forms import point_for
+
+        self.typed_location = self.cleaned_data.get("location")
+        return point_for(self.typed_location)
+
+    def save(self, commit=True):
+        """Store elevation and uncertainty where the sketch can keep them: the record's options."""
+        if hasattr(self, "typed_location"):
+            options = dict(self.instance.options or {})
+            location = self.typed_location or {}
+            options["location"] = {
+                "elevation": location.get("elevation"),
+                "uncertainty": location.get("uncertainty"),
+            }
+            self.instance.options = options
+        return super().save(commit)
 
 
 class SampleForm(SampleFormMixin, forms.ModelForm):

@@ -99,6 +99,8 @@ class Overview(TypedOverviewPlugin):
                 "measurements": measurements,
                 "relations": relations,
                 "location": sample.location,
+                # Sketch for FS-030: elevation and uncertainty kept in the record's options.
+                "location_extra": (sample.options or {}).get("location", {}),
                 "project": project,
                 "counts": {
                     "measurements": measurements["total"],
