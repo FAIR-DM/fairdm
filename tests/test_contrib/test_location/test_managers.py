@@ -1,13 +1,17 @@
 """Tests for the location lookups in ``fairdm.contrib.location.managers``."""
 
+import re
+
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
+from django.db import connection
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Organization
+from fairdm.contrib.contributors.models import Contributor, Organization
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
@@ -342,3 +346,91 @@ class TestMeasurementLookups:
         found = Measurement.objects.visible_to(None).inside(self.AROUND_ROME)
 
         assert set(found) == {visible}
+
+
+@pytest.mark.django_db
+class TestQueryPlan:
+    """SC-005 and FR-020: the area and distance lookups read a spatial index, not the whole table."""
+
+    COUNT = 2000
+    AREA = (0, 0, 10, 10)
+    CENTRE = at(5.0, 5.0)
+
+    @staticmethod
+    def place(i):
+        """A grid of 2,000 places across the globe, 50 columns by 40 rows."""
+        return at(-180 + (i % 50) * 7.1, -70 + (i // 50) * 3.5)
+
+    @pytest.fixture
+    def portal(self, released):
+        samples = Sample.objects.bulk_create(
+            [
+                Sample(dataset=released, name=f"s{i}", location=self.place(i))
+                for i in range(self.COUNT)
+            ]
+        )
+        Measurement.objects.bulk_create(
+            [
+                Measurement(
+                    dataset=released,
+                    sample=sample,
+                    name=f"m{i}",
+                    location=self.place(i + 7) if i % 2 else None,
+                )
+                for i, sample in enumerate(samples)
+            ]
+        )
+        contributors = Contributor.objects.bulk_create(
+            [
+                Contributor(
+                    name=f"o{i}",
+                    polymorphic_ctype=ContentType.objects.get_for_model(Organization),
+                )
+                for i in range(self.COUNT)
+            ]
+        )
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                f"INSERT INTO {Organization._meta.db_table} "
+                "(contributor_ptr_id, location) VALUES (%s, ST_GeomFromEWKT(%s))",
+                [
+                    (contributor.pk, self.place(i).ewkt)
+                    for i, contributor in enumerate(contributors)
+                ],
+            )
+            for model in (Sample, Measurement, Organization, Contributor):
+                cursor.execute(f"ANALYZE {model._meta.db_table}")
+
+    def reads_a_spatial_index(self, queryset, model):
+        plan = queryset.explain()
+        table = model._meta.db_table
+        assert re.search(rf"Index Scan (?:using|on) \S*location\S*(?: on {table})?\s", plan), plan
+        assert f"Seq Scan on {table} " not in plan, plan
+
+    def test_samples_inside_an_area(self, portal):
+        self.reads_a_spatial_index(Sample.objects.inside(self.AREA), Sample)
+
+    def test_samples_within_a_distance(self, portal):
+        self.reads_a_spatial_index(
+            Sample.objects.within_distance(self.CENTRE, D(km=500)), Sample
+        )
+
+    def test_organizations_inside_an_area(self, portal):
+        self.reads_a_spatial_index(Organization.objects.inside(self.AREA), Organization)
+
+    def test_organizations_within_a_distance(self, portal):
+        self.reads_a_spatial_index(
+            Organization.objects.within_distance(self.CENTRE, D(km=500)), Organization
+        )
+
+    def test_measurements_inside_an_area(self, portal):
+        queryset = Measurement.objects.inside(self.AREA)
+
+        self.reads_a_spatial_index(queryset, Measurement)
+        self.reads_a_spatial_index(queryset, Sample)
+
+    def test_measurements_within_a_distance(self, portal):
+        queryset = Measurement.objects.within_distance(self.CENTRE, D(km=500))
+
+        self.reads_a_spatial_index(queryset, Measurement)
+        self.reads_a_spatial_index(queryset, Sample)
