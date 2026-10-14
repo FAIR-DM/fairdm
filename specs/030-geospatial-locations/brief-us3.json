@@ -51,17 +51,17 @@
   ],
   "environment": "uv-managed; `uv sync` after adding lat-lon-parser. GDAL/GEOS/PROJ come from a micromamba env: before ANY python/pytest/manage.py command run `. /tmp/fs494/scripts/env.sh` (sets LD_LIBRARY_PATH, PROJ_DATA, GDAL_LIBRARY_PATH, GEOS_LIBRARY_PATH, DJANGO_ENV=development). PostGIS runs in Docker on localhost:5432 (postgres/postgres), already up; stack.development.env points at it. Narrow tests: `uv run pytest -q -n0 <path>::<Class>` (add --create-db once after a model change). Migrations: `uv run python manage.py makemigrations <app> --settings=config.settings`. Lint gate: `uv run pre-commit run --files <changed files>` (stage new files first). Full verify, once, at the end: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main`. The full suite takes about 6 minutes here. A dev server is running from this worktree on port 8000 and will autoreload; ignore it. Git identity is bound to the repo's bot. Commit normally, never push.",
   "verified_base": {
-   "commit": "PLACEHOLDER",
-   "verified_at": "PLACEHOLDER",
+   "commit": "a62b85e4",
+   "verified_at": "2026-10-14T22:51:16Z",
    "steps": [
+    "conformance",
+    "docs",
     "lint",
     "typecheck",
     "test",
-    "build",
-    "conformance",
-    "docs"
+    "build"
    ],
-   "note": "PLACEHOLDER"
+   "note": "US1 accepted. Full verify green on 71cdaf6f, then only spec-directory commits: about 6,850 tests on PostGIS, about 4 to 6 minutes."
   },
   "acceptance": [
    {
