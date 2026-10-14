@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -14,6 +14,16 @@
       "state": "PLAN",
       "at": "2026-10-14T21:48:29Z",
       "note": "sketch approved; research and plan written"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-14T21:48:56Z",
+      "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-14T22:01:15Z",
+      "note": "plan gate open; design review approved"
     }
   ],
   "gates": {
@@ -34,12 +44,22 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-14T22:01:13Z"
     },
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-14T22:00:52Z",
+      "self_resolved": [
+        "11 findings: 0 critical, 0 high, 8 medium, 3 low; verdict approve",
+        "ten applied as plan and task edits (decisions D15)",
+        "SPEC-002 not applied: removed route gets no test; SC-007 read as excluding the changelog",
+        "ARCH-005 nearest-first ordering carried as a US2 watch item"
+      ]
     }
   },
   "stories": [
@@ -283,7 +303,7 @@
       "max": 120
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     }
   },

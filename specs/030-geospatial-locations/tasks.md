@@ -48,7 +48,9 @@ prototype's `options` handling and the demo seeds that use it go.
   location to `Organization.location` and point `RORTransform.import_location`, `as_geojson` and
   the ROR export at it (plan D2), because `Point` cannot be dropped while a contributor refers to
   it. Write the migrations: sample and measurement fields, the contributor and organization change,
-  then `fairdm_location` `0002` deleting `Point`. Squashed later at convergence.
+  then `fairdm_location` `0002` deleting `Point`. Each foreign key that becomes a point is a
+  `RemoveField` then an `AddField`, never an `AlterField`. The geography indexes are listed in each
+  model's own `Meta.indexes` (plan D1). Squashed later at convergence.
 - [ ] T007 [US1] `parse_coordinate`, `Location`, `LocationField`, `LocationWidget`,
   `LocationFormMixin` and the widget template (plan D3). Wire `SampleFormMixin`. The template is the
   approved one, reading its systems from a `json_script` element.
@@ -56,9 +58,12 @@ prototype's `options` handling and the demo seeds that use it go.
   plugin, address declaration, admin, `utils.py`, the old form and widgets, the location templates,
   the three settings, `PointFactory`, and `tests/test_contrib/test_location/test_views.py`. Change
   every other reference listed by `git grep -n -E "Point\b|PointFactory|fairdm_location\.Point|location\.latitude|location\.longitude|FAIRDM_(CRS|X_COORD|Y_COORD)"`
-  across `fairdm/`, `demo/` and `tests/` to the new fields, keeping what each test asserts.
+  across `fairdm/`, `demo/` and `tests/` to the new fields, keeping what each test asserts. Also
+  `select_related("location")` in `fairdm/core/sample/managers.py`,
+  `select_related("sample__location")` in `fairdm/contrib/collections/views.py`, and the location
+  in `autocomplete_fields` in `fairdm/core/sample/admin.py`, none of which the grep finds.
 - [ ] T009 [US1] `c-card.location` with `elevation` and `uncertainty`, and the sample overview
-  passing them (plan D7). Admin classes on `GISModelAdmin`.
+  passing them (plan D7).
 - [ ] T010 [US1] Docs: `docs/portal-development/locations.md` with the fields and the input,
   linked from the table of contents. `CONTEXT.md` Location and Reference system. Changelog entries
   for the new fields and every removal. FS-005 edited where it describes a sample's location.
@@ -88,7 +93,7 @@ prototype's `options` handling and the demo seeds that use it go.
   when the measurement has none (AS 2.5) only for a viewer who may open the sample (AS 2.8, SC-004).
 - [ ] T016 [US2] Same file, `TestQueryPlan`: with 2,000 located samples and `ANALYZE` run, the plan
   of `inside` and of `within_distance` uses an index scan, not a sequential scan of the sample table
-  (SC-005, FR-020).
+  (SC-005, FR-020). The same for organizations, and for each branch of the measurement `inside`.
 - [ ] T017 [US2] `tests/test_contrib/test_location/test_coverage.py` and
   `tests/test_core/test_dataset/test_models.py`, `tests/test_core/test_project/test_models.py`: a
   dataset's coverage holds every location and is `None` with none (AS 2.9). Locations within 5° of
@@ -102,7 +107,8 @@ prototype's `options` handling and the demo seeds that use it go.
 - [ ] T019 [US2] The collection tables: `MeasurementTable` on the effective location, the
   collections view annotating it, the table factory leaving out geometry fields. Tests in
   `tests/test_contrib/test_collections/test_tables.py`: latitude under Latitude, longitude under
-  Longitude, no location link column, a measurement row showing its effective location. Change the
+  Longitude, no location link column, a measurement row showing its effective location, and
+  sorting the table by another column still answering. Change the
   existing tests that expect the location column, keeping what else they assert.
 - [ ] T020 [US2] Docs: the lookups and the spatial coverage on the locations page, with examples
   that run. `CONTEXT.md` Spatial coverage.
@@ -121,7 +127,8 @@ prototype's `options` handling and the demo seeds that use it go.
   point, longitude first, with the elevation third where there is one and `location_uncertainty`
   beside it (AS 4.1 to 4.3). A sample with none and a measurement with no location of its own
   return `null` (AS 4.4, 4.5). An organization returns its point (AS 4.6). A person returns no
-  location (AS 4.7). The schema describes the field as a GeoJSON point. Change the existing
+  location (AS 4.7). The schema describes the field as a GeoJSON point. A create or partial change
+  that sends a location or an uncertainty leaves the stored location as it was. Change the existing
   `located sample` case to pass a point.
 - [ ] T024 [US4] `GeoJSONPointField` and the serializer fields (plan D9).
 - [ ] T025 [US4] Docs: the API shape on the locations page and the API page. FS-011 edited.
@@ -129,7 +136,7 @@ prototype's `options` handling and the demo seeds that use it go.
 ## Phase 6: US-5, a researcher imports and exports locations with their samples (P2)
 
 - [ ] T026 [US5] `tests/test_contrib/test_import_export/test_resources.py`: export writes the four
-  columns, empty for a record with none (AS 5.1). Export then import into an empty dataset gives the
+  columns, `latitude`, `longitude`, `location_elevation` and `location_uncertainty`, empty for a record with none (AS 5.1). Export then import into an empty dataset gives the
   same locations (AS 5.2). Degrees and minutes and DMS import as decimal degrees (AS 5.3). A bad row
   is reported with the value and not saved (AS 5.4). A measurement row carries only its own location
   (AS 5.5).
@@ -143,7 +150,7 @@ prototype's `options` handling and the demo seeds that use it go.
   saves a point typed in any notation (AS 6.2) and moving one organization leaves another at the
   same coordinates unchanged (AS 6.3). A person is placed at their primary affiliation's point
   (AS 6.4). The overview shows the map when the organization has a point.
-- [ ] T030 [US6] The organization profile form's point-only input and the overview's map
-  condition (plan D3, D7). The field and the ROR transform came with US1.
+- [ ] T030 [US6] The point-only input on the organization profile form and on both forms in
+  `forms/organization.py`, and the overview's map condition (plan D3, D7). The field and the ROR transform came with US1.
 - [ ] T031 [US6] Docs: the organization's point on the locations page and the contributors page.
   FS-019 edited.

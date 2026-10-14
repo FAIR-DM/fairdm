@@ -46,9 +46,17 @@ uncertainty is null or at least 0, and the elevation and uncertainty are null wh
 is. It also declares a `GistIndex` on `Cast("location", PointField(geography=True))`, which the
 distance lookups use (research, "Geometry, not geography").
 
-`Sample` and `Measurement` inherit it, and each one's `Meta` inherits `LocatedRecord.Meta` as well as
-its own base, because Django passes on only the first abstract parent's `Meta`. The names do not
-clash with a portal's own sample fields (research, "Names that do not clash").
+`Sample` and `Measurement` inherit it. Both already declare `indexes` in their own `Meta`, which
+replaces an inherited list rather than adding to it, so each `Meta` lists the geography index
+itself, next to its `modified` index, under a name of 30 characters or fewer
+(`sample_location_geog_idx`, `measurement_location_geog_idx`). The constraints are declared on
+`LocatedRecord.Meta` with `%(app_label)s_%(class)s_` names and each `Meta` inherits it. The names
+do not clash with a portal's own sample fields (research, "Names that do not clash").
+
+The sample's `location` changes from a foreign key to a point under the same name. The
+autodetector would write that as an `AlterField`, which PostgreSQL cannot do from an integer to a
+geometry, so the migration is written as `RemoveField` then `AddField`, and the same for the
+contributor's.
 
 `fairdm.contrib.location` keeps its app label, `fairdm_location`, so its migrations run in order.
 Its migration `0002` deletes `Point` and depends on the sample and contributor migrations that
@@ -57,7 +65,8 @@ remove the foreign keys to it.
 ### D2. A point on each organization, none on a person
 
 `Contributor.location` is removed. `Organization.location` is a `PointField(srid=4326,
-null=True, blank=True)`. `RORTransform.import_location` sets it to `Point(lng, lat)` and stops
+null=True, blank=True)`, with a geography index of its own in `Organization.Meta`, since the
+distance lookups of D4 run on organizations too (FR-020). `RORTransform.import_location` sets it to `Point(lng, lat)` and stops
 creating shared rows. `Person.as_geojson()`, `Organization.as_geojson()` and the
 `Organization.lat`/`lon` properties read the point's `y` and `x`. The ROR export address in
 `transforms.py` reads the same.
@@ -92,7 +101,9 @@ In `fairdm/contrib/location/forms.py`:
 `SampleFormMixin` and `MeasurementFormMixin` use `LocationFormMixin`. A sample or measurement type
 shows the input only when its registration lists `location` (FR-009). The measurement field's help
 text is the prototype's. `OrganizationProfileForm` lists `location` in its "Location" section
-under the label "Coordinates", with a `full=False` field, as approved.
+under the label "Coordinates", with a `full=False` field, as approved. The two forms in
+`forms/organization.py`, `OrganizationCreateForm` and the older profile form, list `location` too
+and get the same `full=False` field (FR-010), rather than GeoDjango's default map widget.
 
 The old `PointForm`, `LatitudeWidget`, `LongitudeWidget` and `normalize_coordinate` are deleted.
 
@@ -116,15 +127,17 @@ existing chainable methods.
 `MeasurementQuerySet` mixes in its own version of the three lookups. Each takes the viewer,
 `user=None` meaning a visitor who is not signed in:
 
-- `inside(area, user=None)` is `Q(location__coveredby=area) | Q(location__isnull=True,
-  sample__location__coveredby=area, sample__in=Sample.objects.visible_to(user))`, so each branch
-  uses its own spatial index.
+- `inside(area, user=None)` is the union of two subqueries, `pk__in` the measurements whose own
+  location is covered by the area, and `pk__in` those with none whose sample, visible to the
+  viewer, is covered by it. Each subquery runs on one table, so each uses its own spatial index.
+  An `OR` across the join would use neither.
 - `with_effective_location(user=None)` annotates `effective_location` with `Case`: the
   measurement's own location, else its sample's when the sample is visible to the viewer, else
   null. `within_distance` and `nearest` work on that annotation. Collection tables use it too.
 
 `Measurement.effective_location_for(user)` returns `(point, elevation, uncertainty, "own" |
-"sample")` or `None`, for the measurement page, using the same visibility rule (FR-014).
+"sample")` or `None`, for the measurement page. It reads the `with_effective_location` annotation
+for its own row, so the visibility rule is written once (FR-014).
 
 ### D6. Spatial coverage
 
@@ -135,8 +148,10 @@ boxes, and keeps the narrower of the two in longitude, converting longitudes abo
 the range. A crossing box has `west > east` (FR-022, DataCite's convention). It returns `None`
 when there is nothing located.
 
-- `Dataset.spatial_coverage(user=None)`: the dataset's samples visible to the viewer and the
-  effective locations of its measurements for the viewer (FR-023).
+- `Dataset.spatial_coverage(user=None)`: the dataset's samples narrowed by
+  `visible_to(user)`, and its measurements narrowed by `visible_to(user)` with their effective
+  locations for the viewer (FR-023). A person holding a level on one record counts that record and
+  nothing else in the dataset.
 - `Project.spatial_coverage(user=None)`: the same over the datasets the viewer may open.
 
 `Dataset.bbox` and `fairdm/contrib/location/utils.py` are deleted. `DataCite` metadata reads
@@ -151,7 +166,8 @@ template loses the `centroid` it never had.
   `effective_location_for(request.user)` and titles the card "Measurement location" or "Sample
   location" by its kind, as approved. The organization overview's `has_map` reads
   `organization.location is not None`.
-- `SampleTable` reads `location.y` for Latitude and `location.x` for Longitude.
+- `SampleTable` reads `location.y` for Latitude and `location.x` for Longitude. The two columns
+  are not orderable, because `location__y` is not a lookup on a geometry field.
   `MeasurementTable` reads the annotated `effective_location`, and the collections view annotates
   measurement querysets with `with_effective_location(request.user)`. The location link column and
   `render_location` are gone.
@@ -159,9 +175,10 @@ template loses the `centroid` it never had.
   latitude and longitude.
 - The location page, its URLs, plugin, address declaration, view, template and admin are deleted.
   `/location/<lon>/<lat>/` answers "not found" because nothing routes it.
-- `SampleAdmin` and `MeasurementAdmin` show the three fields. The admin classes for samples,
-  measurements and organizations inherit GeoDjango's `GISModelAdmin`, so the point is drawn on a
-  map there without further configuration.
+- `SampleAdmin` and `MeasurementAdmin` show the three fields. The location leaves
+  `autocomplete_fields`. Querysets that `select_related` the old foreign key
+  (`SampleQuerySet.with_related()`, the measurement collection view) stop naming it, since the
+  location is now a column on the row.
 
 ### D8. Settings and factories
 
@@ -177,12 +194,16 @@ returns `{"type": "Point", "coordinates": [lon, lat]}` with the elevation append
 one, or `None`. It is annotated for drf-spectacular as a GeoJSON point. `BaseSampleSerializer` and
 `BaseMeasurementSerializer` add `location` and `location_uncertainty` to `common_fields`.
 `OrganizationListSerializer` adds `location` without elevation. A measurement returns its own
-location only (decisions D4). Writes stay as they are: the location is read-only (research).
+location only (decisions D4). The location is read-only: `location`, `location_elevation` and
+`location_uncertainty` are all in `read_only_fields`, so a write through the API leaves them as
+they were and never reaches the database constraint (decisions D14).
 
 ### D10. Tabular import and export
 
 Where a sample or measurement resource's fields include `location`, the resource factory expands
-it into four columns, `latitude`, `longitude`, `elevation` and `uncertainty`. Each is an
+it into four columns, `latitude`, `longitude`, `location_elevation` and
+`location_uncertainty`. The last two carry the model fields' names, so they do not collide with an
+`elevation` column a sample type declares of its own. Each is an
 import-export `Field` with a widget in `fairdm/contrib/location/resources.py`. Export writes the
 record's own values in WGS 84 decimal degrees. Import reads the two coordinates with
 `parse_coordinate` and sets the three model fields, and a refused value is reported as that row's

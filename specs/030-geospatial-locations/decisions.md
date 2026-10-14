@@ -209,3 +209,26 @@ location as it was.
 
 *Revisit if:* a portal needs to write locations through the API.
 **ADR:** none — the API page documents the field as read-only
+
+## D15. Design review findings, as applied
+
+The plan was reviewed before any code was written: no critical or high findings, eight medium and
+three low. Applied as plan and task edits: the API's location fields all read-only (SEC-001), the
+coverage narrowing measurements by `visible_to` (SEC-002), the latitude and longitude columns not
+sortable (ARCH-001), the geography indexes listed in each model's own `Meta` (ARCH-002), the three
+references the removal grep misses (ARCH-003), an organization geography index and its query-plan
+test (ARCH-004), the measurement area lookup as two subqueries (ARCH-005), the import columns
+named after the model fields (SPEC-001), both organization forms given the point input (SPEC-003),
+one written visibility rule for the effective location (ARCH-006), the admin left on the plain
+`ModelAdmin` (ARCH-007), and the foreign keys replaced by `RemoveField` and `AddField` (ARCH-008).
+
+Not applied: a test that `/location/<lon>/<lat>/` answers "not found" (SPEC-002). A removed route
+gets no test of its own, in line with the project's testing standard. SC-007 is read as excluding
+the changelog, which names the removed settings so a portal knows to stop setting them.
+
+Nearest-first ordering stays on `Distance`, which PostgreSQL sorts after filtering. Changing it to
+the `<->` operator is a watch item for US2, taken only if the query plan in T016 shows a sequential
+scan for the lookups SC-005 names.
+
+*Revisit if:* the merge-gate review finds one of these did not hold.
+**ADR:** none — review record, local to this feature
