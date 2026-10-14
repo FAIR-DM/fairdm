@@ -96,3 +96,17 @@ Did: added "A measurement's own location and its effective location" to docs/por
 Verified: ran the page's effective-location example against the branch in a throwaway test (passed, not committed).
 Next: full verify, then the completion report.
 Watch: none.
+
+## 2026-10-14T23:16:00Z · Implementer US2 · T014
+
+Did: tests/test_contrib/test_location/test_managers.py for samples and organizations (inside with box and polygon, edge included; within_distance in metres and D(km=) at the equator and 70N; nearest carries distance and puts unlocated last; each combined with visible_to in both orders). Added fairdm/contrib/location/managers.py (Spatial helpers, LocatedQuerySet), mixed into SampleQuerySet and a new OrganizationQuerySet, Organization.objects built from it.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py -> 16 passed; red first (no attribute 'inside'); pre-commit clean on the changed files.
+Next: T015 measurement versions with user=None and the effective location.
+Watch: the geography cast in the lookups must stay equal to geography_index's expression; T016 checks the plan.
+
+## 2026-10-14T23:17:23Z · Implementer US2 · T015
+
+Did: TestMeasurementLookups in test_managers.py (own location wins, sample's location for a viewer who may open the sample, withheld otherwise, within_distance, nearest, combined with visible_to). MeasurementQuerySet.inside and within_distance take user=None and are the union of two pk__in subqueries; nearest orders on the annotated effective location.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py -> 28 passed; red first (no attribute inside); pre-commit clean.
+Next: T016 query plans.
+Watch: the union is on pk; T016 reads the plan of the whole lookup, so a seq scan of measurement in the outer filter would show there.
