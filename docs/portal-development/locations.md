@@ -101,6 +101,37 @@ The input refuses, and saves nothing, when:
 - an elevation or an uncertainty is given with no coordinates,
 - the uncertainty is negative.
 
+## Giving a model of your own the three fields
+
+`Sample` and `Measurement` inherit `LocatedRecord`, an abstract model that holds the three fields.
+A portal model that is neither can inherit it as well. List the two check constraints and the
+geography index in the model's own `Meta`, because a `Meta` that sets `indexes` replaces an
+inherited list, and a subclass without a `Meta` would copy constraints onto a table that has none
+of the columns:
+
+```python
+from django.db import models
+
+from fairdm.contrib.location.models import (
+    LocatedRecord,
+    geography_index,
+    location_constraints,
+)
+
+
+class Station(LocatedRecord):
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        constraints = location_constraints()
+        indexes = [geography_index("station_location_geog_idx")]
+```
+
+`location_constraints()` returns the two checks that keep an elevation or an uncertainty from
+standing without a point and an uncertainty from being negative. `geography_index(name)` returns
+the index distance lookups use, which casts the point to a geography. The name is 30 characters
+or fewer.
+
 ## Reading coordinates in your own code
 
 `parse_coordinate` reads one coordinate for one axis, and raises a `ValidationError` with a code of
@@ -129,6 +160,11 @@ location.uncertainty  # 5.0
 
 The list is the input's parts in order: reference system, first coordinate, second coordinate,
 elevation, uncertainty.
+
+`LocationWidget` is the input a `LocationField` draws, with `full=False` for the point-only
+variant. It suggests the codes in `SUGGESTED_SYSTEMS` and reads from the server which of them are
+typed as degrees, so the page's script and the server agree. Its template is
+`location/widgets/location.html`.
 
 ## Upgrading
 

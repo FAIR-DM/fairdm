@@ -24,7 +24,7 @@ from fairdm.core.sample.models import Sample
 from django.db import models
 
 class WaterSample(Sample):
-    location = models.CharField(max_length=200)
+    site_name = models.CharField(max_length=200)
     ph_level = models.FloatField()
     temperature = models.FloatField()
     collected_at = models.DateTimeField()
@@ -45,6 +45,10 @@ class WaterSampleConfig(ModelConfiguration):
     # Simple approach - use same fields for all components
     fields = ["name", "location", "ph_level", "collected_at"]
 ```
+
+`location` is the point every sample carries. Listing it gives the type's form the location input
+and leaves it out of the generated table, whose latitude and longitude columns are always there.
+See [Locations](locations.md).
 
 That's it! FairDM will automatically generate forms, tables, filters, and API endpoints for your WaterSample model.
 
@@ -558,7 +562,7 @@ class WaterSample(Sample):
     """A sample of water collected for analysis."""
 
     # Standard Django fields
-    location = models.CharField(max_length=200, help_text="Collection location")
+    site_name = models.CharField(max_length=200, help_text="Name of the sampling site")
     ph_level = models.FloatField(help_text="pH level of the sample")
     temperature = models.FloatField(help_text="Temperature in Celsius")
     collected_at = models.DateTimeField(help_text="When the sample was collected")
