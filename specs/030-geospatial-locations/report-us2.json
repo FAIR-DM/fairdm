@@ -1,0 +1,182 @@
+{
+ "story": "US2",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-10-12/7c41e9a6",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T014",
+   "status": "done",
+   "commits": [
+    "5c85526c"
+   ],
+   "evidence": {
+    "tests_added": [
+     "tests/test_contrib/test_location/test_managers.py::TestSampleInside",
+     "tests/test_contrib/test_location/test_managers.py::TestSampleWithinDistance",
+     "tests/test_contrib/test_location/test_managers.py::TestSampleNearest",
+     "tests/test_contrib/test_location/test_managers.py::TestSampleLookupsWithVisibility",
+     "tests/test_contrib/test_location/test_managers.py::TestOrganizationLookups"
+    ],
+    "criteria": [
+     "SC-003"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T015",
+   "status": "done",
+   "commits": [
+    "692e44f2"
+   ],
+   "evidence": {
+    "tests_added": [
+     "tests/test_contrib/test_location/test_managers.py::TestMeasurementLookups"
+    ],
+    "criteria": [
+     "SC-003",
+     "SC-004"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T016",
+   "status": "done",
+   "commits": [
+    "a563c107"
+   ],
+   "evidence": {
+    "tests_added": [
+     "tests/test_contrib/test_location/test_managers.py::TestQueryPlan"
+    ],
+    "criteria": [
+     "SC-005"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T017",
+   "status": "done",
+   "commits": [
+    "e1425862"
+   ],
+   "evidence": {
+    "tests_added": [
+     "tests/test_contrib/test_location/test_coverage.py::TestSpatialCoverage",
+     "tests/test_core/test_dataset/test_models.py::TestDatasetSpatialCoverage",
+     "tests/test_core/test_project/test_models.py::TestProjectSpatialCoverage"
+    ],
+    "criteria": [
+     "SC-004",
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_location/test_coverage.py tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T018",
+   "status": "done",
+   "commits": [
+    "5c85526c",
+    "692e44f2",
+    "e1425862"
+   ],
+   "evidence": {
+    "tests_added": [],
+    "criteria": [
+     "SC-003",
+     "SC-005",
+     "SC-006"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_location tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T019",
+   "status": "done",
+   "commits": [
+    "97005919"
+   ],
+   "evidence": {
+    "tests_added": [
+     "tests/test_contrib/test_collections/test_tables.py::TestLocationColumns",
+     "tests/test_registry/test_factories.py::TestTableFactory::test_a_geometry_field_is_left_out_of_the_generated_table"
+    ],
+    "criteria": [
+     "SC-004"
+    ],
+    "commands": [
+     "uv run pytest -q -n0 tests/test_contrib/test_collections tests/test_registry"
+    ],
+    "exit_code": 0
+   }
+  },
+  {
+   "id": "T020",
+   "status": "done",
+   "commits": [
+    "61e3e2f1",
+    "35ae80ff"
+   ],
+   "evidence": {
+    "tests_added": [],
+    "criteria": [],
+    "commands": [
+     "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main --steps docs,conformance,lint"
+    ],
+    "exit_code": 0
+   }
+  }
+ ],
+ "deviations": [
+  {
+   "what": "The measurement lookups are a SQL UNION of two pk subqueries, and the geometry helpers are static methods of a Spatial class in managers.py, not public methods of each queryset.",
+   "why": "An OR of two pk__in conditions scans the measurement table; the helpers are needed by the measurement queryset, whose lookup signatures differ.",
+   "decision_ref": "decisions.md#d21-measurement-lookups-are-two-pk__in-subqueries-joined-by-a-sql-union"
+  },
+  {
+   "what": "Project.spatial_coverage counts public datasets and those the viewer holds a level on.",
+   "why": "Plan D6 says 'datasets the viewer may open' without a rule; this is the one the dataset overview uses for its siblings.",
+   "decision_ref": "decisions.md#d22-a-projects-coverage-counts-public-datasets-and-those-the-viewer-holds-a-level-on"
+  },
+  {
+   "what": "CHANGELOG.md got added entries and the Dataset.bbox removal, outside T020's wording.",
+   "why": "The spec asks for every breaking change in the changelog and the docs check names removed symbols.",
+   "decision_ref": "decisions.md#d23-the-geometry-helpers-sit-on-one-class-and-the-datacite-template-reads-the-coverage"
+  }
+ ],
+ "concerns": [
+  "fairdm/core/dataset/templates/publishing/datacite44.xml cannot be rendered in this environment: `{% load partials %}` raises KeyError for the library on the unmodified template too, and no test renders it. My edit (box read from dataset.spatial_coverage, centroid block left for US7) was not verified by a render.",
+  "`manage.py makemigrations --check` lists a pending migration for the third-party `orbit` app (orbit 0008_alter_orbitentry_type); no fairdm app has one. Not touched.",
+  "TestQueryPlan loads 6,000 rows and takes about 25 seconds; it reads the plans the natural planner picks, with ANALYZE on the sample, measurement, organization and contributor tables. A planner change on a new PostgreSQL major could flip it, which is the signal it exists to give.",
+  "The collection listing uses visible_to for a measurement's effective location, so a published but private dataset's sample places no measurement for a visitor. This is D3, but it differs from what the listing's own published() scoping shows for the sample itself."
+ ],
+ "blocked": []
+}
