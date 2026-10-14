@@ -31,6 +31,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MeasurementQuerySet.with_effective_location(user)` give that location, and the page's context
   carries it as `effective_location`. See [Locations](docs/portal-development/locations.md).
 
+- **Find samples, measurements and organizations by where they are.** `inside(area)` takes a
+  polygon or a `(west, south, east, north)` tuple and counts a point on the edge as inside.
+  `within_distance(point, distance)` takes a `D` or metres and measures on the ground, and
+  `nearest(point)` orders nearest first and carries `distance`. Each reads a spatial index and
+  combines with `visible_to()`. A measurement's lookups take the viewer and find it by its own
+  location, else its sample's for a viewer who may open the sample. See
+  [Locations](docs/portal-development/locations.md).
+
+- **The spatial coverage of a dataset and of a project.** `Dataset.spatial_coverage(user=None)` and
+  `Project.spatial_coverage(user=None)` return the smallest box holding the locations the viewer
+  may open, measurements included, or `None` when nothing is located. Locations on both sides of
+  the 180th meridian give a narrow box with its western bound east of its eastern one. The
+  collection tables' Latitude and Longitude for a measurement are its effective location for the
+  viewer. See [Locations](docs/portal-development/locations.md).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
@@ -91,6 +106,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   settings `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD`. Code that reads
   `location.latitude` or `location.longitude` reads `location.y` and `location.x`, and a filter on
   `location__x`, `location__y` or `location__crs` has to change.
+- **`Dataset.bbox`.** It was a dict of `min_x`, `max_x`, `min_y` and `max_y` over the samples'
+  points. Use `Dataset.spatial_coverage(user)`, which returns a box with `west`, `south`, `east`
+  and `north`, counts measurements too and leaves out what the viewer may not open. The DataCite
+  metadata reads it for a visitor.
 - **A person's `location`.** A contributor's `location` is gone. An organization has a point of
   its own, and where a person is placed on a map the point is their primary affiliation's
   organization's. A portal's profile form that listed `location` for a person has to drop it.

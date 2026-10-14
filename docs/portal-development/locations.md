@@ -116,6 +116,124 @@ for measurement in Measurement.objects.with_effective_location(request.user):
     measurement.effective_location
 ```
 
+## Finding records by where they are
+
+Samples and organizations carry three lookups on their queryset. Each returns a queryset, so it
+combines with any other filter, `visible_to()` included, in either order.
+
+`inside(area)` takes a GEOS polygon, or a `(west, south, east, north)` tuple in degrees. A point on
+the edge counts as inside, and a record with no location is never inside:
+
+```python
+from django.contrib.gis.geos import Point, Polygon
+
+Sample.objects.inside((8.0, 47.0, 9.0, 48.0))
+Sample.objects.inside(Polygon(((0, 40), (20, 40), (10, 60), (0, 40)), srid=4326))
+```
+
+`within_distance(point, distance)` takes a point and a distance, as a `D` or as a number of
+metres. The distance is measured on the ground, so a kilometre is a kilometre near the equator and
+near a pole:
+
+```python
+from django.contrib.gis.measure import D
+
+karlsruhe = Point(8.4037, 49.0069, srid=4326)
+Sample.objects.within_distance(karlsruhe, D(km=5))
+Sample.objects.within_distance(karlsruhe, 5_000)
+```
+
+`nearest(point)` orders by distance from a point, nearest first, and gives each record a
+`distance`, a `D`. Records with no location come last and carry `None`:
+
+```python
+for sample in Sample.objects.visible_to(request.user).nearest(karlsruhe)[:10]:
+    sample.distance.km
+```
+
+Organizations have the same three lookups on `Organization.objects`. A person has no location, so
+none of them applies.
+
+### Measurements
+
+A measurement is found by its effective location, so its lookups take the viewer as well:
+`inside(area, user=None)`, `within_distance(point, distance, user=None)` and
+`nearest(point, user=None)`. `user=None` is a visitor who is not signed in.
+
+```python
+Measurement.objects.inside((8.0, 47.0, 9.0, 48.0), user=request.user)
+Measurement.objects.nearest(karlsruhe, user=request.user)
+```
+
+A measurement with a location of its own is found by that one. A measurement with none is found by
+its sample's location, but only for a viewer who may open the sample. For anyone else it has no
+location and no area contains it, so a lookup never gives away where an unpublished sample was
+taken.
+
+### Why the lookups are fast
+
+`inside` and `within_distance` read a spatial index, not the whole table. The distance lookups cast
+the point to a geography, and the index they use is built on that same cast, which is what
+`geography_index` returns. A measurement's `inside` and `within_distance` are two subqueries, one
+on the measurement table and one on the sample table, each using its own index. A model of your own
+that mixes in `LocatedQuerySet` from `fairdm.contrib.location.managers` and lists the index in its
+`Meta` gets the same.
+
+## Spatial coverage
+
+A dataset's spatial coverage is the smallest box that holds the locations of its samples and its
+measurements. Ask for it with `spatial_coverage`, which takes the viewer, or `None` for a visitor:
+
+```python
+coverage = dataset.spatial_coverage(request.user)
+if coverage is not None:
+    coverage.west, coverage.south, coverage.east, coverage.north
+```
+
+It returns a `Coverage` named tuple of `west`, `south`, `east` and `north` in WGS 84 degrees, or
+`None` when nothing the viewer may see has a location. Only what the viewer may open counts,
+measurements included: a measurement placed only by a sample the viewer may not open adds nothing,
+and a person who holds a level on one sample counts that sample and no other.
+
+Locations on both sides of the 180th meridian give a narrow box, not one that spans the globe.
+Such a box has `west` greater than `east`, which is how DataCite writes it:
+
+```python
+# Samples at 176 and -176 degrees longitude
+coverage.west, coverage.east  # (176.0, -176.0)
+```
+
+A project's coverage is the same over the datasets the viewer may open: the public ones and those
+the viewer holds a level on.
+
+```python
+project.spatial_coverage(request.user)
+```
+
+For records of your own, `spatial_coverage` in `fairdm.contrib.location.coverage` takes any number
+of `(queryset, field)` pairs and merges them into one box:
+
+```python
+from fairdm.contrib.location.coverage import spatial_coverage
+
+spatial_coverage(
+    (Sample.objects.filter(dataset=dataset), "location"),
+    (Organization.objects.all(), "location"),
+)
+```
+
+`Dataset.bbox` is gone. Use `spatial_coverage()`, which has `west` and `east` where `bbox` had
+`min_x` and `max_x`.
+
+## In the collection tables
+
+The listing of a sample or measurement type has a Latitude and a Longitude column, and no location
+column. A sample's columns read its own point. A measurement's read its effective location for the
+viewer, so a visitor sees a measurement placed by its sample only where the visitor may open the
+sample. Neither column sorts, since a point has no order. A registered type's `table_fields` may
+list `location`: the generated table leaves any geometry field out, because the two columns are
+always there.
+
 ## What the input reads
 
 The input takes a reference system, two coordinates, an elevation and an uncertainty. The
@@ -222,3 +340,5 @@ locations are not carried across. A portal that holds locations has to write the
 - `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` are gone.
 - A contributor's `location` is gone. An organization has a point of its own.
 - The page at `/location/<lon>/<lat>/` is gone, and so is the link to it in the collection tables.
+- `Dataset.bbox` is gone. `Dataset.spatial_coverage()` returns a `Coverage` with `west`, `south`,
+  `east` and `north`.

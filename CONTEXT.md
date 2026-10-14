@@ -65,6 +65,18 @@ was typed in.
 
 Read by `LocationField` in `fairdm/contrib/location/forms.py`.
 
+### Spatial coverage
+
+The smallest box, in WGS 84 degrees, that holds the locations of a dataset's or a project's samples
+and measurements the viewer may open. A box across the 180th meridian has its western bound east of
+its eastern one, as DataCite writes it. It is `None` when nothing is located. A measurement counts
+at its effective location, so one placed only by a sample the viewer may not open adds nothing.
+
+Avoid "bounding box" for the stored value of a dataset: nothing stores it, and it differs by viewer.
+
+Implemented by `spatial_coverage` in `fairdm/contrib/location/coverage.py`, and offered as
+`Dataset.spatial_coverage(user)` and `Project.spatial_coverage(user)`.
+
 ### Contributor, Person, Organization
 
 `Contributor` is the polymorphic base for everyone credited on FairDM content, with two concrete
