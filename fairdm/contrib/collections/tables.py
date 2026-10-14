@@ -157,11 +157,13 @@ class MeasurementTable(BaseTable):
 
     name = tables.Column(linkify=True, verbose_name=_("Name"))
     sample = tables.Column()
+    # The queryset carries `effective_location` from `with_effective_location(user)`: the
+    # measurement's own point, else its sample's for a viewer who may open the sample.
     latitude = tables.Column(
-        accessor="sample.location.y", verbose_name=_("Latitude"), orderable=False
+        accessor="effective_location.y", verbose_name=_("Latitude"), orderable=False
     )
     longitude = tables.Column(
-        accessor="sample.location.x", verbose_name=_("Longitude"), orderable=False
+        accessor="effective_location.x", verbose_name=_("Longitude"), orderable=False
     )
 
     class Meta:
