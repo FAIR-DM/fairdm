@@ -118,3 +118,17 @@ Verified: uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py
 Plans (natural planner, no enable_seqscan tweak): samples inside = Bitmap Index Scan on the location GiST index; samples within_distance = Bitmap Index Scan on sample_location_geog_idx; organizations inside = Bitmap Index Scan on the location GiST index then contributor pkey; organizations within_distance = organization_location_geog_idx; measurements inside = Bitmap Index Scan on the measurement location index for the own branch, and for the inherited branch the sample location index then measurement_sample_id index; within_distance the same with measurement_location_geog_idx and sample_location_geog_idx.
 Next: T017 coverage.
 Watch: the D15 watch item does not trigger, since no sequential scan appeared; nearest stays ordered by Distance.
+
+## 2026-10-14T23:24:43Z · Implementer US2 · T017
+
+Did: test_coverage.py (Coverage and spatial_coverage: box, none, single point, 180th meridian narrow box with west > east, plain box kept when not crossing, several querysets merged), TestDatasetSpatialCoverage in test_core/test_dataset/test_models.py (visibility, hidden-sample measurement, person holding one sample), TestProjectSpatialCoverage in test_core/test_project/test_models.py. Replaced test_dataset_bbox_property with a check that bbox is gone.
+Verified: red first (no module coverage); then uv run pytest -q -n0 tests/test_contrib/test_location/test_coverage.py tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py -> 284 passed. First run of two crossing-box tests failed on my own arithmetic (175 to -175 is exactly 10 degrees); the tests now use 176 and -176, the code was not changed.
+Next: T018 is built with this task; T019 tables.
+Watch: the existing bbox test was replaced, as the brief allows.
+
+## 2026-10-14T23:24:43Z · Implementer US2 · T018
+
+Did: fairdm/contrib/location/coverage.py (Coverage, spatial_coverage over Extent and Extent of ST_ShiftLongitude, narrower kept, longitudes above 180 brought back), Dataset.spatial_coverage(user=None), Project.spatial_coverage(user=None); Dataset.bbox removed; datacite44.xml reads dataset.spatial_coverage for the box (centroid block left for US7). LocatedQuerySet, the measurement lookups and the geography index were done under T014 to T016 and US1. fairdm/contrib/location/utils.py no longer exists in the tree (removed in US1).
+Verified: uv run pytest -q -n0 tests/test_contrib/test_location tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py green; pre-commit clean; no remaining reader of bbox (grep over py, html, xml, md). makemigrations --check names only the third-party orbit app, as on the base.
+Next: T019.
+Watch: publishing/datacite44.xml cannot be rendered in this environment at all (the {% load partials %} library is not found); nothing tests it, and it is not caused by this story. Not verified by a render.

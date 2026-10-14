@@ -302,3 +302,43 @@ query. Names read better in the template than positions.
 
 **Revisit if:** a location has a third source, or a measurement's own location becomes hidden from
 some viewers, which would put the own branch behind the annotation too.
+
+## D21. Measurement lookups are two `pk__in` subqueries joined by a SQL `UNION`
+
+**Decision:** `MeasurementQuerySet.inside` and `within_distance` filter `pk__in` over the `UNION` of
+the pks of the measurements whose own location matches and the pks of the measurements with none
+whose sample, visible to the viewer, matches. They are not an `OR` of two `pk__in` conditions.
+
+**Why:** `pk IN (a) OR pk IN (b)` makes the planner scan the measurement table with two hashed
+subplans, which reads no spatial index. The `UNION` form lets each branch use its own index
+(`measurement_location_*` and `sample_location_*`), and the plans in `TestQueryPlan` show it.
+
+**Revisit if:** a viewer's `visible_to()` subquery makes a plan slow enough on a large portal that
+the sample branch should be narrowed by dataset first.
+
+## D22. A project's coverage counts public datasets and those the viewer holds a level on
+
+**Decision:** `Project.spatial_coverage(user)` takes the project's datasets that are public, plus
+those the viewer holds at least the view level on (including a portal-wide view right), then
+narrows their samples and measurements by `visible_to(user)` as `Dataset.spatial_coverage` does.
+
+**Why:** It is the rule the dataset overview already uses for the siblings it counts, so the box
+never covers a dataset the viewer could not open. A person who holds a level on one sample of a
+private dataset still counts that sample on the dataset's own coverage but not on the project's,
+because they may not open the dataset.
+
+**Revisit if:** #510 changes what a project's visibility hides, since this builds on `visible_to`
+as it is.
+
+## D23. The geometry helpers sit on one class, and the DataCite template reads the coverage
+
+**Decision:** The lookups' input readers and the geography cast are static methods of `Spatial` in
+`fairdm/contrib/location/managers.py`, so they are not public methods of every queryset that mixes
+the lookups in. `datacite44.xml` reads `dataset.spatial_coverage` (no viewer) for the box and leaves
+its `centroid` block for the DataCite story.
+
+**Why:** The measurement queryset needs the same readers but not the mixin's methods, whose
+signatures differ by the viewer. The template change is the least that removes the last reader of
+`Dataset.bbox`.
+
+**Revisit if:** a third queryset needs them, which would still be this class.

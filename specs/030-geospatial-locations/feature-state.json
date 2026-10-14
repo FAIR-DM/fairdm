@@ -300,13 +300,41 @@
         },
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_coverage.py::TestSpatialCoverage",
+              "tests/test_core/test_dataset/test_models.py::TestDatasetSpatialCoverage",
+              "tests/test_core/test_project/test_models.py::TestProjectSpatialCoverage"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_coverage.py tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py"
+            ],
+            "code": [
+              "tests/test_contrib/test_location/test_coverage.py:20"
+            ]
+          }
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_managers.py",
+              "tests/test_contrib/test_location/test_coverage.py"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location tests/test_core/test_dataset/test_models.py tests/test_core/test_project/test_models.py"
+            ],
+            "code": [
+              "fairdm/contrib/location/managers.py:75",
+              "fairdm/contrib/location/coverage.py:30",
+              "fairdm/core/dataset/models.py:384",
+              "fairdm/core/project/models.py:100"
+            ]
+          }
         },
         {
           "id": "T019",
