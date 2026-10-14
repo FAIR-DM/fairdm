@@ -151,7 +151,7 @@
                        title="{% translate 'Measurement location' %}"
                        label="{% blocktranslate with x=own_location.x y=own_location.y %}Map of where the measurement was made, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}" />
     {% elif sample_visible %}
-      <c-card.location :location="sample.location" :elevation="sample.options.location.elevation" :uncertainty="sample.options.location.uncertainty" title="{% translate 'Sample location' %}" empty="{% translate 'No location has been recorded for the sample.' %}" />
+      <c-card.location :location="sample.location" :elevation="sample.location_elevation" :uncertainty="sample.location_uncertainty" title="{% translate 'Sample location' %}" empty="{% translate 'No location has been recorded for the sample.' %}" />
     {% else %}
       <c-card.location title="{% translate 'Sample location' %}" empty="{% translate 'The sample belongs to a dataset that has not been published, so its location is not shown.' %}" />
     {% endif %}

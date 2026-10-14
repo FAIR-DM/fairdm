@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.db import models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -26,7 +27,6 @@ from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
     PersonFactory,
-    PointFactory,
     SampleRelationFactory,
 )
 from fairdm.registry import registry
@@ -367,18 +367,50 @@ class TestOverviewLocation:
     def test_a_sample_with_a_location_shows_a_map_and_lists_the_coordinates(
         self, client, released
     ):
-        point = PointFactory(x="12.345678", y="45.678901")
+        point = GEOSPoint(12.345678, 45.678901, srid=4326)
         sample = RockSampleFactory(dataset=released, location=point)
 
         response = _page(client, sample)
 
-        sample.location.refresh_from_db()
+        sample.refresh_from_db()
         marker = response.page.select_one(".overview-map")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
         assert len(response.page.select("dd.font-mono")) >= 2
+
+    def test_latitude_and_longitude_are_given_to_five_places_with_elevation_and_uncertainty(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released,
+            location=GEOSPoint(12.345678, 45.678901, srid=4326),
+            location_elevation=112.0,
+            location_uncertainty=5.0,
+        )
+
+        response = _page(client, sample)
+
+        shown = [
+            dd.get_text(strip=True)
+            for dd in response.page.select('[data-card="location"] dd')
+        ]
+        assert shown[:2] == ["45.67890", "12.34568"]
+        assert len(shown) == 4
+        assert "112" in shown[2]
+        assert "5" in shown[3]
+
+    def test_elevation_and_uncertainty_are_left_out_where_they_are_not_recorded(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.345678, 45.678901, srid=4326)
+        )
+
+        response = _page(client, sample)
+
+        assert len(response.page.select('[data-card="location"] dd')) == 2
 
     def test_a_sample_without_one_draws_no_map(self, client, rock):
         response = _page(client, rock)
