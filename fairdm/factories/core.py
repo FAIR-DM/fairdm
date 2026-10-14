@@ -89,6 +89,7 @@ For more details, see:
 """
 
 import factory
+from django.conf import settings
 from factory.declarations import LazyAttribute, SubFactory
 from factory.django import DjangoModelFactory
 from factory.faker import Faker
@@ -352,14 +353,15 @@ class DatasetFactory(DjangoModelFactory):
 
     @LazyAttribute
     def license(self):
-        """Use the first existing license, creating "CC BY 4.0" when there is none."""
+        """Use the portal's default licence, creating it when it does not exist yet.
+
+        Never the first licence by name: where "CC0 1.0" sorts against "CC BY 4.0" depends on
+        the database's collation.
+        """
         from licensing.models import License
 
-        existing_license = License.objects.first()
-        if existing_license:
-            return existing_license
-
-        license_obj, _ = License.objects.get_or_create(name="CC BY 4.0")
+        name = getattr(settings, "FAIRDM_DEFAULT_LICENSE", "CC BY 4.0")
+        license_obj, _ = License.objects.get_or_create(name=name)
         return license_obj
 
     @factory.post_generation
@@ -683,5 +685,7 @@ class PointFactory(DjangoModelFactory):
         model = "fairdm_location.Point"
         django_get_or_create = ("x", "y")
 
-    x = Faker("pydecimal", left_digits=2, right_digits=6, positive=True)
-    y = Faker("pydecimal", left_digits=2, right_digits=6, positive=True)
+    # Five decimal places, as the fields store: a sixth is rounded away on save, and the
+    # instance would then name an address no stored point has.
+    x = Faker("pydecimal", left_digits=2, right_digits=5, positive=True)
+    y = Faker("pydecimal", left_digits=2, right_digits=5, positive=True)

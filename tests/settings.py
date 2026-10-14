@@ -26,8 +26,8 @@ from config.settings import *
 # a model under an uninstalled label breaks admin and URL resolution.
 INSTALLED_APPS = [*INSTALLED_APPS, "tests.registry_models"]
 
-# Inherits the PostGIS config from base settings. Tests run against a real PostGIS instance
-# (.devcontainer/docker-compose.yml locally, .github/workflows/ci.yml in CI).
+# Inherits the PostGIS database from the base settings, configured by POSTGRES_* or DATABASE_URL:
+# the `postgres` service of docker-compose.yml locally, the workflow's service container in CI.
 
 
 class DisableMigrations:

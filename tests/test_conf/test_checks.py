@@ -66,7 +66,22 @@ class TestDatabaseChecks:
             "default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}
         }
     )
-    def test_check_database_production_ready_postgresql(self):
+    def test_check_database_production_ready_postgresql_without_postgis(self):
+        from fairdm.conf.checks import check_database_production_ready
+
+        errors = check_database_production_ready(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E101"]
+
+    @override_settings(
+        DATABASES={
+            "default": {
+                "ENGINE": "django.contrib.gis.db.backends.postgis",
+                "NAME": "test",
+            }
+        }
+    )
+    def test_check_database_production_ready_postgis(self):
         from fairdm.conf.checks import check_database_production_ready
 
         errors = check_database_production_ready(app_configs=None)
@@ -526,7 +541,7 @@ class TestCheckCommandIntegration:
     @override_settings(
         SECRET_KEY="a" * 50,
         DATABASES={
-            "default": {"ENGINE": "django.db.backends.postgresql", "NAME": "test"}
+            "default": {"ENGINE": "django.contrib.gis.db.backends.postgis", "NAME": "test"}
         },
         CACHES={
             "default": {

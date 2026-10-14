@@ -1,86 +1,55 @@
-version: '3.7'
+# The development stack. `docker compose up` starts PostGIS, Redis, the development server on
+# http://localhost:8000 and a Celery worker, with the source mounted so edits reload. To run
+# Django on the host instead, start the databases alone with `docker compose up postgres redis`;
+# stack.development.env points the host at them.
 name: fairdm
 
-volumes:
-  postgres: {}
-  letsencrypt:
-  media: {}
-
 services:
-  fairdm:
-    build:
-      context: .
-      dockerfile: ./compose/fairdm/Dockerfile
-    image: ssjenny90/fairdm:latest
-  fairdm-postgis:
-    build:
-      context: .
-      dockerfile: ./compose/postgres/Dockerfile
-    image: fairdm/postgis
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fairdm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
   django: &django
     build:
       context: .
-      dockerfile: ./compose/django/Dockerfile
-    # image: fairdm_local
+      dockerfile: compose/django/Dockerfile
     depends_on:
-      - fairdm
-      - postgres
-      - redis
-      # - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DJANGO_ENV: development
+      DJANGO_SETTINGS_MODULE: config.settings
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
     volumes:
-      - ./:/app:z
-    env_file: stack.env
+      - ./:/app
     ports:
-      - 8000:8000
-      - 5678:5678
-    command: start-django
-  postgres:
-    image: fairdm/postgis
-    depends_on:
-      - fairdm-postgis
-    volumes:
-      - postgres:/var/lib/postgresql/data
-    env_file: stack.env
-  redis:
-    image: redis:6
+      - "8000:8000"
+    command: sh -c "uv run python manage.py migrate && uv run python manage.py runserver 0.0.0.0:8000"
 
   celeryworker:
     <<: *django
-    # depends_on:
-      # - django
     ports: []
-    command: start-celeryworker
-  # celerybeat:
-  #   <<: *django
-  #   ports: []
-  #   command: start-celerybeat
+    command: uv run celery --app fairdm.conf.celery worker --loglevel INFO
 
-  # flower:
-  #   <<: *django
-  #   ports:
-  #     - "5555:5555"
-  #   command: start-flower
-
-  minio:
-    image: quay.io/minio/minio:latest
-    volumes:
-      - media:/minio
-    env_file: stack.env
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    command: server /minio
-
-  # node:
-  #   build:
-  #     context: .
-  #     dockerfile: ./compose/node/Dockerfile
-  #   image: fairdm_node
-  #   depends_on:
-  #     - django
-  #   volumes:
-  #     - ./:/app:z
-  #     - /app/node_modules
-  #   command: npm run dev
-  #   ports:
-  #     - '3000:3000'
+volumes:
+  postgres: {}

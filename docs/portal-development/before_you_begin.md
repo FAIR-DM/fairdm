@@ -65,6 +65,6 @@ We highly recommend [Visual Studio Code](https://code.visualstudio.com/) as your
 
 ### 🐳 Docker
 
-Docker is not required to test and develop your FairDM on your local machine. However, when the time comes to deploy your portal to a production setting, it is handy to have Docker installed locally in order to test your deployment settings before pushing it to the cloud.
+A FairDM portal runs on PostgreSQL with the PostGIS extension, in development as well as in production, and Django needs the GDAL, GEOS and PROJ libraries to use it. Docker is the simplest way to have both: the official `postgis/postgis` image gives you the database, and an image with GDAL installed gives you the libraries without installing anything on your own machine. That matters most on Windows, where GDAL is hard to install natively. Docker is also how you test your deployment settings before pushing them to a server.
 
 Visit the official site to install it for your platform: https://www.docker.com/products/docker-desktop

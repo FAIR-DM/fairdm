@@ -11,7 +11,7 @@ against — runs a fixed, production-critical subset of checks and refuses to st
 fails. Every failure is reported together, in one error, rather than stopping at the first
 (FR-013, SC-003):
 
-- a production-grade database is configured (`fairdm.E100`, `E101`, `E102`)
+- a PostgreSQL database with PostGIS is configured (`fairdm.E100`, `E101`, `E102`)
 - a shared cache backend is configured (`fairdm.E200`)
 - `SECRET_KEY` is set and not an insecure or published value (`fairdm.E001`)
 - `ALLOWED_HOSTS` is non-empty and not wildcarded (`fairdm.E003`, `E004`)
@@ -70,10 +70,14 @@ actually started, while a CI run catches a misconfiguration before anything ship
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 ```
 
-#### E101: SQLite Not Recommended for Production
+#### E101: The Database Is Not PostgreSQL with PostGIS
 
-**Error:** Using SQLite in production environment.
-**Fix:** Switch to PostgreSQL by setting `DATABASE_URL`.
+**Error:** `DATABASES['default']` uses an engine other than GeoDjango's PostGIS backend, such as
+SQLite or plain PostgreSQL. FairDM stores locations as geospatial data and runs on PostGIS only.
+**Fix:** Leave `DATABASES` to FairDM and set `DATABASE_URL`, which FairDM always opens with the
+PostGIS backend. A portal that sets `DATABASES` itself sets `ENGINE` to
+`django.contrib.gis.db.backends.postgis`. The database needs the PostGIS extension, and the server
+needs the GDAL, GEOS and PROJ libraries.
 
 ```bash
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname

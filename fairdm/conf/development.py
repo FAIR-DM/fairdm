@@ -4,7 +4,6 @@ Applied after the settings modules load when ``DJANGO_ENV=development``.
 """
 
 env = globals()["env"]
-BASE_DIR = globals()["BASE_DIR"]
 
 INSTALLED_APPS = globals().get("INSTALLED_APPS", [])
 MIDDLEWARE = globals().get("MIDDLEWARE", [])
@@ -30,13 +29,6 @@ SECRET_KEY = env(
 # A development server is reached by whatever name the machine has on the local network.
 # Never in the production baseline, where an unset domain resolves to [].
 ALLOWED_HOSTS = ["*"]
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
 
 # `env()` defaults REDIS_URL to "", so test for a value. The baseline already reads the broker
 # and the caches from it when it is set.

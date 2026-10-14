@@ -10,7 +10,7 @@ class TestDatabase:
 
         module = settings_module()
 
-        assert module.DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
+        assert module.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.postgis"
         assert module.DATABASES["default"]["NAME"] == "mydatabase"
         assert module.DATABASES["default"]["HOST"] == "dbhost"
         assert module.DATABASES["default"]["PORT"] == 5433
@@ -27,7 +27,7 @@ class TestDatabase:
 
         module = settings_module()
 
-        assert module.DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
+        assert module.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.postgis"
         assert module.DATABASES["default"]["NAME"] == "mydatabase"
         assert module.DATABASES["default"]["HOST"] == "dbhost"
         assert module.DATABASES["default"]["PORT"] == 5433
@@ -40,7 +40,7 @@ class TestDatabase:
 
         module = settings_module()
 
-        assert module.DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
+        assert module.DATABASES["default"]["ENGINE"] == "django.contrib.gis.db.backends.postgis"
 
     def test_reading_unconfigured_database_never_raises(
         self, isolated_env, settings_module
