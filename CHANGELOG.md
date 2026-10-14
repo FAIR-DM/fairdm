@@ -143,10 +143,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `overview.*` blocks. A portal that subclassed the view or extended the template overrides the
   matching block or plugin method instead, as described in
   [Overview pages](docs/portal-development/overview-pages.md).
-- **The `gis` extra and the GeoDjango code in `fairdm.contrib.location` are gone.** FairDM does not
-  support geospatial operations, because GDAL is a system library every portal would have to
-  carry. `pip install fairdm[gis]` no longer names an extra, and `djangorestframework-gis` is no
-  longer a dependency of any kind. Removed with it: the modules `fairdm.contrib.location.api`,
+- **The `gis` extra and the GeoDjango code in `fairdm.contrib.location` are gone.**
+  `pip install fairdm[gis]` no longer names an extra, and `djangorestframework-gis` is no longer a
+  dependency of any kind. GeoDjango itself is now always installed, as described under Changed. Removed with it: the modules `fairdm.contrib.location.api`,
   `.serializers`, `.gis_utils`, `.managers` and `.db`, none of which could be imported on a default
   install, and `fairdm.contrib.location.utils.get_sites_within`, which queried a field `Point` does
   not have. Locations are still stored as x and y coordinates, and a dataset's bounding box is
@@ -307,6 +306,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **FairDM runs on PostgreSQL with the PostGIS extension, and installs GeoDjango.** The database
+  engine is `django.contrib.gis.db.backends.postgis` in every environment, whatever scheme
+  `DATABASE_URL` uses, and `django.contrib.gis` is an installed app. There is no setting to run on
+  plain PostgreSQL. A portal's database needs the PostGIS extension, and its server or image needs
+  the GDAL, GEOS and PROJ libraries. The `development` module no longer uses SQLite: development
+  reads `DATABASE_URL` or the `POSTGRES_*` variables like every other environment. `fairdm.E101`
+  now refuses any engine other than PostGIS, where it refused SQLite before. `docker-compose.yml`
+  starts PostGIS, Redis, a Celery worker and the development server, and the test suite runs
+  against PostGIS locally and in CI. See
+  [Technology stack](docs/overview/tech_stack.md) and
+  [Configuration checks](docs/portal-administration/configuration-checks.md).
 - **The sign-in, sign-up and other entrance pages are laid out in two halves.** The form takes one
   half of the window. The other names the portal, gives its description and says who runs it, on
   a background in the theme's colours. Below 1024 pixels the form has the page. These pages drew

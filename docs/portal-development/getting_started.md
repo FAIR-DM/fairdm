@@ -35,6 +35,9 @@ poetry install
 
 ### Set Up the Database
 
+The portal needs PostgreSQL with the PostGIS extension. From the repository, `docker compose up
+postgres redis` starts both, and `stack.development.env` points the portal at them. Then:
+
 ```bash
 poetry run python manage.py migrate
 poetry run python manage.py loaddata fairdm/fixtures/demo.json.bz2

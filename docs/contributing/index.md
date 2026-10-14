@@ -34,7 +34,6 @@ Before getting started, please review the [FairDM Constitution](https://github.c
 :maxdepth: 1
 
 before_you_start
-dev-containers
 core_data_model
 registry-system
 base-views

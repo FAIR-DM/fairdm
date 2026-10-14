@@ -11,7 +11,7 @@ Samples are physical or digital objects that form the core of your research data
 - **Polymorphic Inheritance**: All Sample subclasses are stored in a single table with automatic type detection
 - **Rich Metadata**: Built-in support for descriptions, dates, identifiers, and contributors
 - **Relationships**: Track provenance between samples
-- **Location Support**: Optional spatial data integration
+- **Location Support**: Each sample can record the place it was collected
 - **Registry Integration**: Automatic form, filter, and admin generation
 
 ```{note}

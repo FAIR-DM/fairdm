@@ -1,6 +1,7 @@
-"""Database settings: PostgreSQL-shaped DATABASES from ``DATABASE_URL`` or ``POSTGRES_*``.
+"""Database settings: a PostGIS DATABASES from ``DATABASE_URL`` or ``POSTGRES_*``.
 
-Owns DATABASES, never SQLite, so the baseline stays production-grade. A portal supplies
+Owns DATABASES, never SQLite, so the baseline stays production-grade. The engine is always
+GeoDjango's PostGIS backend, whatever scheme ``DATABASE_URL`` names. A portal supplies
 either form and any connection tuning beyond ``CONN_MAX_AGE``. Supplying neither resolves to
 a present but unusable configuration rather than raising on read;
 ``fairdm.conf.checks.check_database_configured`` and ``check_database_usable`` refuse it in
@@ -22,7 +23,10 @@ _postgres_url_from_parts = (
 )
 
 DATABASES = {
-    "default": env.db(default=_postgres_url_from_parts),
+    "default": env.db(
+        default=_postgres_url_from_parts,
+        engine="django.contrib.gis.db.backends.postgis",
+    ),
 }
 
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
@@ -37,3 +41,7 @@ DBBACKUP_MEDIA_FILENAME_TEMPLATE = (
 )
 
 DBBACKUP_CLEANUP_KEEP = 10
+
+# GeoDjango finds GDAL and GEOS on the system library path. None keeps that search.
+GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH") or None
+GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH") or None

@@ -23,6 +23,10 @@ class DeployTags(Tags):
     production_critical = "production_critical"
 
 
+#: GeoDjango's PostGIS backend, the only database engine FairDM runs on.
+POSTGIS_ENGINE = "django.contrib.gis.db.backends.postgis"
+
+
 @register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_configured(app_configs, **kwargs):
     """Report fairdm.E100 when DATABASES['default'] is not configured."""
@@ -44,16 +48,17 @@ def check_database_configured(app_configs, **kwargs):
 
 @register(Tags.database, DeployTags.deploy, DeployTags.production_critical, deploy=True)
 def check_database_production_ready(app_configs, **kwargs):
-    """Report fairdm.E101 when production uses SQLite instead of PostgreSQL."""
+    """Report fairdm.E101 when the database is not PostgreSQL with PostGIS."""
     errors = []
     databases = getattr(settings, "DATABASES", {})
     default_db = databases.get("default", {})
 
-    if default_db.get("ENGINE") == "django.db.backends.sqlite3":
+    if default_db and default_db.get("ENGINE") != POSTGIS_ENGINE:
         errors.append(
             Error(
-                "SQLite is not recommended for production.",
-                hint="Set DATABASE_URL to a PostgreSQL connection string.",
+                "FairDM needs PostgreSQL with the PostGIS extension.",
+                hint=f"Set DATABASES['default']['ENGINE'] to '{POSTGIS_ENGINE}', or leave "
+                "DATABASES to FairDM and set DATABASE_URL.",
                 id="fairdm.E101",
             )
         )

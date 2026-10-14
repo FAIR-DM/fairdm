@@ -3,8 +3,10 @@
 import os
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
+import psycopg2
 import pytest
 from django.apps import apps as global_apps
 from django.conf import settings
@@ -27,7 +29,39 @@ def first_party_app_labels():
     }
 
 
-def run_migrate(tmp_path, *arguments):
+def connect(database):
+    """Open an autocommit connection to ``database`` on the suite's PostGIS server."""
+    server = settings.DATABASES["default"]
+    connection = psycopg2.connect(
+        dbname=database,
+        user=server["USER"],
+        password=server["PASSWORD"],
+        host=server["HOST"],
+        port=server["PORT"],
+    )
+    connection.autocommit = True
+    return connection
+
+
+@pytest.fixture
+def empty_databases():
+    """Create two empty databases for ``tests.migration_settings``, and drop them after."""
+    names = {
+        "FAIRDM_MIGRATION_TEST_DATABASE": f"fairdm_migrate_{uuid.uuid4().hex}",
+        "FAIRDM_MIGRATION_CHECK_DATABASE": f"fairdm_migrate_{uuid.uuid4().hex}",
+    }
+    server = connect("postgres")
+    with server.cursor() as cursor:
+        for name in names.values():
+            cursor.execute(f'CREATE DATABASE "{name}"')
+    yield names
+    with server.cursor() as cursor:
+        for name in names.values():
+            cursor.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+    server.close()
+
+
+def run_migrate(databases, *arguments):
     """Run ``manage.py migrate`` in a subprocess against ``tests.migration_settings``."""
     return subprocess.run(
         [
@@ -42,7 +76,7 @@ def run_migrate(tmp_path, *arguments):
         env={
             **os.environ,
             "DJANGO_ENV": "development",
-            "FAIRDM_MIGRATION_TEST_DIR": str(tmp_path),
+            **databases,
         },
         capture_output=True,
         text=True,
@@ -70,9 +104,9 @@ class TestMigrations:
         )
 
     @pytest.mark.slow
-    def test_migrations_apply_to_an_empty_database(self, tmp_path):
+    def test_migrations_apply_to_an_empty_database(self, empty_databases):
         # A migration that cannot run on the schema its predecessors left breaks every fresh install (#252).
-        result = run_migrate(tmp_path)
+        result = run_migrate(empty_databases)
 
         assert result.returncode == 0, (
             "`manage.py migrate` failed against an empty database:\n"
@@ -80,19 +114,24 @@ class TestMigrations:
         )
 
     @pytest.mark.slow
-    def test_migrations_read_the_database_they_are_migrating(self, tmp_path):
+    def test_migrations_read_the_database_they_are_migrating(self, empty_databases):
         # RunPython gets the alias as schema_editor.connection; a query on `default` reads the wrong schema.
-        first = run_migrate(tmp_path)
+        first = run_migrate(empty_databases)
         assert first.returncode == 0, f"{first.stdout}\n{first.stderr}"
 
-        second = run_migrate(tmp_path, "--database=migration_check")
+        second = run_migrate(empty_databases, "--database=migration_check")
 
         assert second.returncode == 0, (
             "`manage.py migrate --database=migration_check` failed while `default` "
             "was already migrated, which means a migration read the wrong "
             f"database:\n{second.stdout}\n{second.stderr}"
         )
-        assert (tmp_path / "migrated.sqlite3").exists(), (
-            "migrate reported success but produced no database:\n"
+        checked = connect(empty_databases["FAIRDM_MIGRATION_CHECK_DATABASE"])
+        with checked.cursor() as cursor:
+            cursor.execute("SELECT to_regclass('django_migrations')")
+            (migrations_table,) = cursor.fetchone()
+        checked.close()
+        assert migrations_table, (
+            "migrate reported success but left no schema in migration_check:\n"
             f"{second.stdout}\n{second.stderr}"
         )

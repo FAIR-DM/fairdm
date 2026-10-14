@@ -9,8 +9,8 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, Q
-from django.db.models.functions import Lower
+from django.db.models import BigIntegerField, Count, Q
+from django.db.models.functions import Cast, Lower
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
@@ -342,9 +342,10 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
                 base_model,
             )
         ]
+        # object_id is text, so it is cast to compare with an integer primary key.
         return self.contributions.filter(
             content_type_id__in=matching_type_ids
-        ).values_list("object_id", flat=True)
+        ).values_list(Cast("object_id", BigIntegerField()), flat=True)
 
     @property
     def projects(self):
