@@ -284,8 +284,19 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_managers.py::TestQueryPlan"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py"
+            ],
+            "code": [
+              "tests/test_contrib/test_location/test_managers.py:350"
+            ]
+          }
         },
         {
           "id": "T017",

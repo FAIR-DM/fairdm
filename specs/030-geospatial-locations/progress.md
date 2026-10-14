@@ -110,3 +110,11 @@ Did: TestMeasurementLookups in test_managers.py (own location wins, sample's loc
 Verified: uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py -> 28 passed; red first (no attribute inside); pre-commit clean.
 Next: T016 query plans.
 Watch: the union is on pk; T016 reads the plan of the whole lookup, so a seq scan of measurement in the outer filter would show there.
+
+## 2026-10-14T23:21:34Z · Implementer US2 · T016
+
+Did: TestQueryPlan loads 2,000 samples, 2,000 measurements (half with their own location), 2,000 organizations, runs ANALYZE on them and the contributor table, and asserts the plan of inside and within_distance names a spatial index on the table and has no sequential scan of it. Measurements: the plan holds both branches, so the sample table is checked as well.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py -> 34 passed. First version asserted a bare "Index Scan", which a primary-key scan satisfied for organizations (contributor table not analysed); tightened to require an index named for the location column. Probed: changing the cast in Spatial.geography to dim=3 turns the three within-distance plan tests red (sequential scan), so the cast must match the index expression.
+Plans (natural planner, no enable_seqscan tweak): samples inside = Bitmap Index Scan on the location GiST index; samples within_distance = Bitmap Index Scan on sample_location_geog_idx; organizations inside = Bitmap Index Scan on the location GiST index then contributor pkey; organizations within_distance = organization_location_geog_idx; measurements inside = Bitmap Index Scan on the measurement location index for the own branch, and for the inherited branch the sample location index then measurement_sample_id index; within_distance the same with measurement_location_geog_idx and sample_location_geog_idx.
+Next: T017 coverage.
+Watch: the D15 watch item does not trigger, since no sequential scan appeared; nearest stays ordered by Distance.
