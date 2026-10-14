@@ -77,62 +77,168 @@
           "attempts": 2,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinate",
-              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinateLatitude",
-              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinateLongitude"
+              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinate"
             ],
             "commands": [
               "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py"
             ],
             "code": [
-              "fairdm/contrib/location/forms.py:27"
+              "fairdm/contrib/location/forms.py:31"
             ]
           }
         },
         {
           "id": "T002",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationField",
+              "tests/test_contrib/test_location/test_forms.py::TestLocationFieldPointOnly",
+              "tests/test_contrib/test_location/test_forms.py::TestLocationWidget"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:208"
+            ]
+          }
         },
         {
           "id": "T003",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_sample/test_models.py::TestSampleLocation",
+              "tests/test_core/test_measurement/test_models.py::TestMeasurementLocation"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 --create-db tests/test_core/test_sample/test_models.py::TestSampleLocation tests/test_core/test_measurement/test_models.py::TestMeasurementLocation"
+            ],
+            "code": [
+              "fairdm/contrib/location/models.py:12",
+              "fairdm/core/sample/models.py:58"
+            ]
+          }
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_sample/test_forms.py::TestSampleEditPageLocation",
+              "tests/test_core/test_sample/test_forms.py::TestRegisteredSampleTypeLocationInput",
+              "tests/test_core/test_sample/test_forms.py::TestSampleFormMixinWidgets"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_sample/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:346",
+              "fairdm/core/sample/forms.py:23"
+            ]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_sample/test_plugins.py::TestOverviewLocation",
+              "tests/test_templates/test_cards.py::TestLocationCard"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_sample/test_plugins.py::TestOverviewLocation tests/test_templates/test_cards.py::TestLocationCard"
+            ],
+            "code": [
+              "fairdm/core/sample/templates/sample/sample_overview.html:113"
+            ]
+          }
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py",
+              "tests/test_contrib/test_contributors/test_migrations.py"
+            ],
+            "commands": [
+              "uv run python manage.py makemigrations --check --dry-run --settings=config.settings"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/models.py:1337",
+              "fairdm/contrib/location/migrations/0002_delete_point.py:1"
+            ]
+          }
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationWidgetRendering"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:131"
+            ]
+          }
         },
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py",
+              "tests/test_contrib/test_contributors/test_plugins/test_update.py"
+            ],
+            "commands": [
+              "uv run pytest -q -n auto --dist loadscope"
+            ],
+            "code": [
+              "fairdm/contrib/collections/tables.py:140"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_templates/test_cards.py::TestLocationCard",
+              "tests/test_core/test_sample/test_plugins.py::TestOverviewLocation"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_templates/test_cards.py::TestLocationCard"
+            ],
+            "code": [
+              "fairdm/templates/cotton/card/location.html:16"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run python (documentation examples run on the branch)"
+            ],
+            "code": [
+              "docs/portal-development/locations.md:1"
+            ]
+          }
         }
       ]
     },
