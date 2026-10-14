@@ -156,8 +156,8 @@ Moving the database to PostGIS, replacing the development SQLite database, makin
 `docker-compose.yml` work, running the test suite on PostGIS, and correcting the documents that
 describe a setup that does not exist, gives no developer or user a new way to do anything. It is
 tracked in #500, which lands first. It can be merged and proven on its own, before any location code
-exists, and the suite passing on PostGIS is the proof. CI needs the shared test workflow to start a
-PostGIS service, which is django-mvp/shared#80.
+exists, and the suite passing on PostGIS is the proof. The shared test workflow starts no database
+service, so FairDM gets a test workflow of its own.
 
 ## D10. DataCite gets a box, and a box may cross the 180th meridian
 
