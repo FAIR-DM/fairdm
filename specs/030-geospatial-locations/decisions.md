@@ -1,0 +1,173 @@
+# Decisions: capture, store and query locations as geospatial data
+
+Questions the specification settled, with the reasoning that is too long for the specification
+itself. Each says what would reopen it.
+
+## D1. A location is a value on each record, not a shared model
+
+The maintainer asked for the two designs to be weighed and agreed with the outcome. The comparison
+is recorded in full because #496 and #497 build on it.
+
+**A shared location model.** One row per distinct place, which every sample and measurement at that
+place points to.
+
+| For | Against |
+|---|---|
+| "Every sample at this place" is a join on one id | Records share a row only when their numbers match exactly. Coordinates converted from a UTM zone or a national grid differ in the last digits of the float, so one site becomes two rows. Elevation and uncertainty are part of the match, so a 10 m and a 15 m uncertainty at one site also split it. Sharing means "the same numbers", not "the same site". |
+| #496 tags one row per place | #496 tags organizations too, and they hold a point of their own. It needs per-record tagging whatever this feature does. |
+| Each pair of coordinates is stored once | The saving is a few bytes per record |
+| | The location page was the only thing that read the sharing, and it goes (D7). |
+| | Every generated form, filter, import column, export column and API field needs custom code to turn the foreign key into coordinates and back. A field on the model gets all of them from the registry (G2). |
+| | A row could never be edited, only replaced by a get-or-create on the new coordinates. Anyone editing one in place, through the admin or a shell, moves every record that shares it. |
+| | Rows left with no record after a move, a unique constraint on floating-point geometry, a join on every list, and a get-or-create on every imported row |
+
+**Location fields on the Sample and Measurement base models.**
+
+| For | Against |
+|---|---|
+| A geometry field on the model is how GeoDjango is documented and how an experienced Django developer expects a location to be held. Editing a sample's location edits it. | The point, elevation and uncertainty fields are declared on two base models rather than one |
+| Generated forms, filters, admin, API and import and export see an ordinary field | Nothing holds a name or other details for a place, unless a portal models one |
+| No joins, no get-or-create, no orphaned rows, no uniqueness on floats | |
+| Organizations hold a point field too, so all three record types share one input, one API format and one set of lookups | |
+| "Samples at the same site" is a within-distance lookup, which matches what a site is better than exact equality does | |
+| IGSN sample metadata and Darwin Core both put the coordinates on the sample or occurrence itself | |
+
+**The maintainer's arguments for a shared model, and the answers.**
+
+1. *One query on the location table gives the map layer of the whole portal, and each point opens a
+   card that fetches everything at it.* A location table cannot feed a map by itself, because a point
+   exists only because a record sits there, and that record may be private. The layer has to join to
+   the samples and measurements the viewer may open either way. With fields it is still one query:
+   `Sample` is a polymorphic base model, so every sample type's point is in its one base table, and
+   the layer is the visible samples grouped by point with a count on each. Measurements add a second
+   query in both designs. At a size where that matters, the map is served as vector tiles built by
+   PostGIS from the table, which also works the same either way. The card at a point is one indexed
+   query in both: the rows pointing at a location, or the visible records within a small distance of
+   the point. The second also gathers a site whose coordinates arrived in two systems.
+2. *Counting the records at a location is easy.* The count comes from the same grouping as the map
+   layer. It is one query either way, and it has to respect visibility either way.
+3. *Tagging happens once against a single row, not fifty times.* It writes fewer rows, but it is not
+   less work. Tagging is one spatial join in a single SQL statement either way, and loading a new set
+   of areas is one statement either way. Most of the fifty records are measurements, which hold no
+   location of their own unless they were made elsewhere (D3), so they take their sample's tags and
+   store nothing. #496 has to tag organizations per record regardless, so a location model would give
+   it two mechanisms. And #496 may work tags out when they are read rather than storing them, in
+   which case nothing is written in either design.
+
+**Where sharing does belong.** A place that is a thing in its own right, with a name, a description,
+a history and an identifier of its own, such as a borehole, a station or an outcrop. Research data
+already models that as a parent sample with the samples taken from it as its children, and IGSN
+registers it that way. A portal that needs sites declares that sample type. A shared row of bare
+coordinates gives the grouping without anything that makes a site a site.
+
+*Revisit if:* a portal needs places with properties of their own that a parent sample cannot carry.
+
+## D2. Organizations hold a plain point, and people hold none
+
+The maintainer drew the line: the full location, with its reference systems, elevation and
+uncertainty, is for samples and measurements. An organization gets a plain point. The location field
+sits on the contributor base model today, so a person has one too, though nothing sets it. A person's
+place on a map is already taken from their primary affiliation's organization, and an individual's
+own coordinates would be personal data with no use in research metadata. The field moves to the
+organization.
+
+An organization's point is entered in the same notations as a sample's coordinates, so there is one
+way to type a latitude, but only in WGS 84. Every organization's point comes from ROR or from someone
+reading a map, and neither uses a projected system.
+
+*Revisit if:* a portal needs to place a person somewhere other than where they work.
+
+## D3. A measurement falls back to its sample's location, but only for a viewer who may open the sample
+
+A measurement is usually made where its sample was taken, so asking for a location on every
+measurement would ask for the same coordinates again and again. Its own location is optional, and
+anything that asks where a measurement is gets its own location first and its sample's otherwise.
+
+A measurement can belong to a different dataset from its sample, so it can be public while its
+sample is private. Falling back without a check would let a visitor read the private sample's
+location from the public measurement, or work it out from which area lookups return the
+measurement. So the fallback applies only for a viewer who may open the sample. The measurement page
+already follows this rule: it says the sample belongs to a dataset the visitor cannot see, and shows
+no map.
+
+*Revisit if:* a measurement's location needs to be set to its sample's, rather than inherited from
+it, so that later edits to the sample do not move it.
+
+## D4. The API returns what a record holds, and no fallback
+
+The API returns the location stored on the record. A measurement with no location of its own
+returns none, and its sample's location is read from the sample, which the measurement links to. A
+fallback in the API would make a measurement's location change when its sample's does, with nothing
+in the measurement's response to say so, and would need the visibility rule of D3 in every
+serializer. A harvester that wants the effective location follows the link, as it does for
+everything else about the sample.
+
+Locations are GeoJSON geometries (RFC 7946): WGS 84, longitude first, elevation as an optional third
+coordinate. The uncertainty is not part of GeoJSON, so it sits beside the geometry as a number of
+metres. Darwin Core calls the same value `coordinateUncertaintyInMeters`.
+
+*Revisit if:* callers routinely request every measurement's sample only to read its location.
+
+## D5. A location is a point
+
+A survey line, a cruise track or a mapped area needs a line or polygon geometry, and boreholes need
+a depth interval. The maintainer agreed to keep the core to a point. A borehole is a point at its
+collar, and a sample type that needs a depth interval, or a line, declares fields of its own.
+
+*Revisit if:* several portals declare the same line or area field on their own sample types.
+
+## D6. Coordinates are stored in WGS 84, entered in any EPSG system, and shown to five places
+
+A researcher's notebook may give coordinates in a UTM zone or a national grid, so the form accepts
+any reference system with an EPSG code and converts on the way in. Storing one system means every
+lookup, API response and export agrees without converting again, and WGS 84 is what GeoJSON,
+DataCite and IGSN use. The coordinates as typed are not kept beside the converted point. That was
+offered and left out.
+
+The point is kept as converted, without rounding. It is shown to five decimal places of a degree,
+about a metre at the equator, which is finer than any field position the portals hold. How good a
+location is, is recorded in its uncertainty, not in how many decimals it carries, so no precision is
+recorded per location and the three precision settings go.
+
+Elevation is metres above mean sea level as the researcher gives it, negative below. Projected and
+geographic systems used for typing coordinates are two-dimensional, so converting the coordinates
+never changes the elevation.
+
+*Revisit if:* a portal needs the coordinates exactly as recorded for provenance.
+
+## D7. A location has no page of its own
+
+`/location/<lon>/<lat>/` listed the samples sharing one `Point` row. With no shared row there is
+nothing for it to be the page of, and "what else is near here" is a question for a map (#497) or a
+within-distance lookup. The page, its address, its plugin and the collection tables' link to it go.
+
+*Revisit if:* #497 needs an address for the records near a point.
+
+## D8. Existing locations are not carried across the upgrade
+
+The maintainer said no portal holds location data yet. The migration that replaces `Point` with the
+new fields need not copy coordinates across.
+
+*Revisit if:* a portal with location data upgrades before this lands.
+
+## D9. The move to PostGIS is its own issue
+
+Moving the database to PostGIS, replacing the development SQLite database, making
+`docker-compose.yml` work, running the test suite on PostGIS, and correcting the documents that
+describe a setup that does not exist, gives no developer or user a new way to do anything. It is
+tracked in #500, which lands first. It can be merged and proven on its own, before any location code
+exists, and the suite passing on PostGIS is the proof. CI needs the shared test workflow to start a
+PostGIS service, which is django-mvp/shared#80.
+
+## D10. DataCite gets a box, and a box may cross the 180th meridian
+
+DataCite's `geoLocationBox` is a western and an eastern bound, each anywhere from -180 to 180, and
+the schema does not require the western one to be the smaller. A box across the 180th meridian is
+written with its western bound east of its eastern one, as ISO 19115 bounding boxes are. A box taken
+from the minimum and maximum longitude turns a Pacific cruise into one that covers the globe, so
+spatial coverage chooses the narrower of the two boxes that hold the locations. A polygon would
+describe a dataset more closely, and is left until a repository the portals publish to needs one.
+The box is what the export already writes. The dataset metadata template also refers to a centroid
+the dataset model has never had, and that reference goes.
+
+*Revisit if:* a repository the portals publish to indexes `geoLocationPolygon`.
