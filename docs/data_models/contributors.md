@@ -23,7 +23,6 @@ Every field below is declared once on `Contributor` and shared by both concrete 
 | `image` | `ThumbnailerImageField` | A profile image. Optional. |
 | `links` | `JSONField` | Related online resources. Optional. |
 | `lang` | `JSONField` | Language preferences, each an ISO 639-1 code. Refused if any code isn't. |
-| `location` | `ForeignKey` to `fairdm.contrib.location.Point` | The contributor's geographic location. Optional. |
 | `config` | `JSONField` | General-purpose configuration data. This specification does not define its contents. |
 | `added` | `DateTimeField` | Set once, on creation. |
 | `modified` | `DateTimeField` | Moves on every save. |
@@ -115,6 +114,7 @@ body, company or similar. In addition to the fields every `Contributor` carries,
 | `parent` | `ForeignKey` to `Organization` | The organisation this one is a part of, such as a department's university. Optional. |
 | `city` | `CharField` | The city the organisation is based in. Optional, indexed. |
 | `country` | `CountryField` | The country the organisation is based in. Optional, indexed. |
+| `location` | `PointField`, SRID 4326 | Where the organisation is, as a point in WGS 84 with no elevation or uncertainty. Optional. A person has no location of their own. See [Locations](../portal-development/locations.md). |
 
 ROR itself permits an organisation several types at once. This model deliberately narrows that
 to a single selection — a portal displaying and filtering by institution kind wants one answer.

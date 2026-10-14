@@ -232,3 +232,57 @@ scan for the lookups SC-005 names.
 
 *Revisit if:* the merge-gate review finds one of these did not hold.
 **ADR:** none — review record, local to this feature
+
+## D16. The location constraints are listed in each concrete model's own Meta
+
+**Decision:** `LocatedRecord.Meta` declares only `abstract = True`. `Sample.Meta` and
+`Measurement.Meta` each set `constraints = location_constraints()`, next to their own indexes.
+
+**Why:** A sample type that declares no `Meta` of its own, such as the demo's `CustomParentSample`
+and `ExampleMeasurement`, inherits the abstract parent's `Meta`. Constraints declared there landed
+on the child's table, which has none of the three columns, and `makemigrations` proposed a check
+constraint that cannot be created. Declared on the two concrete models they exist once, on the
+table that holds the columns.
+
+**Revisit if:** a third concrete model gains the three fields.
+
+## D17. `Dataset.bbox` reads the samples' points until the spatial coverage replaces it
+
+**Decision:** `Dataset.bbox` aggregates `Extent("location")` over the dataset's samples and returns
+the four bounds, or None. `fairdm/contrib/location/utils.py` is deleted as planned.
+
+**Why:** The DataCite template and an existing test read `dataset.bbox`, and its helper read the
+removed `Point` rows. The spatial coverage of plan D6 is a later story.
+
+**Revisit if:** the spatial coverage story lands, which deletes `bbox`.
+
+## D18. Existing tests whose subject the story removes
+
+**Decision:** Tests that only asserted the removed location page or its link column are deleted,
+and tests that built a `Point` row were changed to pass a GEOS point. Three kinds were changed
+beyond that:
+
+- `TestARecordWithoutAUuid` and `TestMenusExistForAnyRecord` used the location page as the one
+  record with no uuid. Both are deleted. Nothing else in the codebase calls
+  `declare_addressing`, so the machinery now has no test and no caller.
+- The profile-form tests added a person's `location`, which a person no longer has. They add
+  `config`, a `Person` field the shipped form leaves out, and the guide's example does the same.
+- `test_generated_form_carries_the_specimen_types_own_fields` expects `location` among the rock
+  sample form's fields, because the demo registration lists it.
+
+**Why:** Each assertion was kept or, where its subject is gone, removed with it.
+
+**Revisit if:** the plugin system gains another record without a uuid, which would take the
+addressing test back.
+
+## D19. Migration 0023 does not read the contributor's location column
+
+**Decision:** The data step in `0023_levels_from_stored_permissions` loads people with
+`defer("location")`.
+
+**Why:** Its test runs the historical models of the state before it against a database built from
+the current models. Once a later migration drops `contributors_contributor.location_id`, loading a
+person selected a column that does not exist and all twenty-one cases failed. The step uses nothing
+in that column, so a migration run in order behaves as it did.
+
+**Revisit if:** the test is rewritten to build its database at the historical state.

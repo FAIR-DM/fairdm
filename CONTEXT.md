@@ -45,6 +45,26 @@ than that sample does, which is what makes multi-team workflows possible.
 
 Implemented by `Measurement` in `fairdm/core/measurement/models.py`.
 
+### Location
+
+Where a sample or a measurement is on the Earth: a point in WGS 84, an optional elevation in metres
+above mean sea level and an optional uncertainty in metres. It is three fields on the one record
+that holds it (`location`, `location_elevation` and `location_uncertainty`) and is never shared
+between records. An organization holds a plain point and a person holds none.
+
+Avoid "Point" for a model: there is no `Point` model, and a point is the value of the `location`
+field. Avoid "coordinates" for the stored value, which is always WGS 84 whatever was typed.
+
+Implemented by `LocatedRecord` in `fairdm/contrib/location/models.py`.
+
+### Reference system
+
+The system a researcher types coordinates in, identified by its EPSG code. WGS 84 (EPSG 4326) is
+the default. Only the converted WGS 84 point is kept, so a record does not remember which system it
+was typed in.
+
+Read by `LocationField` in `fairdm/contrib/location/forms.py`.
+
 ### Contributor, Person, Organization
 
 `Contributor` is the polymorphic base for everyone credited on FairDM content, with two concrete

@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A location on every sample and measurement, typed in any notation and reference system.**
+  A sample and a measurement have `location` (a point in WGS 84), `location_elevation` (metres
+  above mean sea level) and `location_uncertainty` (metres), all optional and all their own: two
+  samples at the same coordinates share nothing. The database refuses an elevation or an
+  uncertainty without a point, and a negative uncertainty. A sample type shows the location input
+  in its form when its registration lists `location` in its fields. The input reads decimal
+  degrees, degrees and decimal minutes, and degrees, minutes and seconds, with or without a
+  hemisphere letter, and any EPSG reference system by its code, and stores the converted WGS 84
+  point. `fairdm.contrib.location.forms` has `parse_coordinate`, `LocationField`,
+  `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
+  with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
+  and `uncertainty`. An organization has a `location` point of its own. A portal needs the
+  `lat-lon-parser` package, which FairDM now depends on. Run `migrate` when upgrading. See
+  [Locations](docs/portal-development/locations.md).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
@@ -61,6 +76,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The `Point` model and everything around it.** A sample's `location` is no longer a foreign key
+  to a row that samples share, and existing locations are not carried across the upgrade. Removed
+  with it: the page at `/location/<lon>/<lat>/` and the link to it in the sample and measurement
+  collection tables, `PointForm`, `LatitudeWidget`, `LongitudeWidget`, `normalize_coordinate`,
+  `serialize_dataset_samples`, `locations_for_dataset`, `bbox_for_dataset`, `PointFactory`, and the
+  settings `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD`. Code that reads
+  `location.latitude` or `location.longitude` reads `location.y` and `location.x`, and a filter on
+  `location__x`, `location__y` or `location__crs` has to change.
+- **A person's `location`.** A contributor's `location` is gone. An organization has a point of
+  its own, and where a person is placed on a map the point is their primary affiliation's
+  organization's. A portal's profile form that listed `location` for a person has to drop it.
 - **Five templates nothing rendered.** `dataset/dataset_create.html` was empty and no view named
   it. `dataset/plugins/overview.html`, `project/plugins/overview.html`,
   `sample/plugins/overview.html` and `measurement/plugins/overview.html` extended a

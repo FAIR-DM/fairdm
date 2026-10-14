@@ -1215,7 +1215,7 @@ FAIRDM_PROFILE_FORMS = {
 }
 ```
 
-This form adds the person's location, which the shipped form leaves out. It is a field of
+This form adds the person's `config` field, which the shipped form leaves out. It is a field of
 `Person`, so the model form saves it with no further code:
 
 ```python
@@ -1225,7 +1225,7 @@ from fairdm.contrib.contributors.forms.profile import PersonProfileForm as BaseP
 
 class PersonProfileForm(BasePersonProfileForm):
     class Meta(BasePersonProfileForm.Meta):
-        fields = [*BasePersonProfileForm.Meta.fields, "location"]
+        fields = [*BasePersonProfileForm.Meta.fields, "config"]
 ```
 
 The page then shows the extra input after the last section and stores what is chosen. To drop a field, leave it out
