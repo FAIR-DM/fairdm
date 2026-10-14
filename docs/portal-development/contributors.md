@@ -1333,6 +1333,22 @@ org, created = RORTransform.update_or_create("https://ror.org/04aj4c181")
 # Organization.from_ror() wraps this for the common case (see "ROR Integration" above)
 ```
 
+`RORTransform` reads records in version 2 of ROR's schema, the format
+`https://api.ror.org/v2/organizations/<id>` answers in. Two of its methods are useful on their
+own:
+
+```python
+transform = RORTransform()
+data = RORTransform.fetch_from_api("04z8jg394")
+
+# The name ROR displays for the organization: "GFZ Helmholtz Centre for Geosciences"
+name = transform.display_name(data)
+
+# Set city, country and location from the record's first location, without saving
+transform.import_location(data, org)
+org.save()
+```
+
 ## Important Recommendations
 
 ### Separate Superuser and Person Accounts

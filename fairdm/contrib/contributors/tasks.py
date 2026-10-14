@@ -125,11 +125,13 @@ def _sync_ror(identifier, contributor):
     Raises:
         requests.RequestException: The API request failed, so Celery retries it.
     """
+    from .utils.transforms import RORTransform
+
     ror_id = identifier.value
     if "ror.org/" in ror_id:
         ror_id = ror_id.split("ror.org/")[-1]
 
-    url = f"https://api.ror.org/organizations/{ror_id}"
+    url = f"https://api.ror.org/v2/organizations/{ror_id}"
 
     try:
         response = requests.get(url, timeout=10)
@@ -141,16 +143,15 @@ def _sync_ror(identifier, contributor):
         response.raise_for_status()
         data = response.json()
 
+        contributor = contributor.get_real_instance()
         contributor.synced_data = data
         contributor.last_synced = timezone.now().date()
 
-        if data.get("addresses"):
-            address = data["addresses"][0]
-            if hasattr(contributor, "city") and address.get("city"):
-                contributor.city = address["city"]
+        transform = RORTransform()
+        transform.import_location(data, contributor)
 
-        if data.get("name") and not contributor.name:
-            contributor.name = data["name"]
+        if not contributor.name:
+            contributor.name = transform.display_name(data)
 
         contributor.save()
         logger.info(f"Successfully synced ROR {ror_id}")

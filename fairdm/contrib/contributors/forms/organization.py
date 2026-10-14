@@ -89,7 +89,7 @@ class OrganizationCreateForm(ModelForm):
         """Create the organisation from ROR, or save the entered details."""
         if self.action == "from_ror":  # noqa: SIM102
             if ror_id := self.cleaned_data.get("from_ror"):
-                self.instance, _created = Organization.from_ror(ror_id, commit=commit)
+                self.instance = Organization.from_ror(ror_id, commit=commit)
                 return self.instance
         return super().save(commit)
 

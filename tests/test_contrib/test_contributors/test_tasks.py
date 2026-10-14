@@ -67,56 +67,68 @@ class TestORCIDSyncTask:
 
 @pytest.mark.django_db
 class TestRORSyncTask:
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_ror_sync_task_success(self, mock_get, organization, ror_identifier):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "name": "Test Research Institute",
-            "addresses": [
-                {
-                    "city": "Berlin",
-                    "country_geonames_id": 2921044,
-                }
-            ],
-            "links": ["https://example.org"],
-        }
-        mock_get.return_value = mock_response
-
-        result = sync_contributor_identifier(ror_identifier.pk)
-
-        mock_get.assert_called_once()
-        assert "ror.org" in mock_get.call_args[0][0]
-
-        ror_identifier.refresh_from_db()
-        assert ror_identifier.related.synced_data is not None
-        assert result is True
-
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_ror_sync_task_updates_organization_location(
-        self, mock_get, organization, ror_identifier
+    def test_ror_sync_task_success(
+        self, registry_network, recorded, organization, ror_identifier
     ):
         from fairdm.contrib.contributors.tasks import sync_contributor_identifier
 
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "name": "Updated Institute",
-            "addresses": [
-                {
-                    "city": "Munich",
-                    "country_geonames_id": 2921044,
-                }
-            ],
-        }
-        mock_get.return_value = mock_response
+        address = "https://api.ror.org/v2/organizations/02nr0ka47"
+        registry_network.answer(address, recorded("ror-record"))
+
+        result = sync_contributor_identifier(ror_identifier.pk)
+
+        assert result is True
+        assert [call.url for call in registry_network.calls] == [address]
+        organization.refresh_from_db()
+        assert organization.synced_data == recorded("ror-record")
+
+    def test_ror_sync_task_updates_organization_location(
+        self, registry_network, recorded, organization, ror_identifier
+    ):
+        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
+
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
+        )
 
         sync_contributor_identifier(ror_identifier.pk)
 
         organization.refresh_from_db()
-        assert organization.synced_data is not None
+        assert organization.city == "Potsdam"
+        assert organization.country.code == "DE"
+        assert float(organization.location.latitude) == pytest.approx(52.39886)
+        assert float(organization.location.longitude) == pytest.approx(13.06566)
+
+    def test_ror_sync_task_keeps_the_portal_name(
+        self, registry_network, recorded, organization, ror_identifier
+    ):
+        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
+
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
+        )
+
+        sync_contributor_identifier(ror_identifier.pk)
+
+        organization.refresh_from_db()
+        assert organization.name == "Test University"
+
+
+    def test_ror_sync_task_names_an_organization_that_has_no_name(
+        self, registry_network, recorded, organization, ror_identifier
+    ):
+        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
+
+        organization.name = ""
+        organization.save()
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
+        )
+
+        sync_contributor_identifier(ror_identifier.pk)
+
+        organization.refresh_from_db()
+        assert organization.name == "GFZ Helmholtz Centre for Geosciences"
 
 
 @pytest.mark.django_db

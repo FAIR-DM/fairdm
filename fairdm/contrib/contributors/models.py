@@ -1424,7 +1424,7 @@ class Organization(Contributor):
 
         Args:
             ror: The ROR identifier, such as ``https://ror.org/04aj4c181``.
-            commit: Whether to save the instance.
+            commit: Whether to schedule the full sync. The organisation is saved either way.
 
         Returns:
             The created or updated organisation.
@@ -1434,9 +1434,9 @@ class Organization(Contributor):
         from .tasks import sync_contributor_identifier
         from .utils.transforms import RORTransform
 
-        org = RORTransform.update_or_create(ror, commit)
+        org, _created = RORTransform.update_or_create(ror)
 
-        if commit and org and org.pk:
+        if commit:
             ror_identifier = org.identifiers.filter(type="ROR").first()
             if ror_identifier:
                 transaction.on_commit(
