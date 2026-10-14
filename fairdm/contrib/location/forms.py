@@ -11,8 +11,6 @@ from django.contrib.gis.gdal import GDALException, SpatialReference
 from django.utils.translation import gettext_lazy as _
 from lat_lon_parser import parse
 
-from .models import Point
-
 AXIS_LIMITS = {"lat": 90, "lon": 180}
 AXIS_HEMISPHERES = {"lat": "ns", "lon": "ew"}
 HEMISPHERE_WORD = r"north|south|east|west|[nsew]"
@@ -25,6 +23,9 @@ DEGREE_LETTER = re.compile(r"(?<=\d)\s*(?:deg|d)(?![a-z])", re.IGNORECASE)
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 EPSG_CODE = re.compile(r"(?:epsg:)?(\d{1,8})", re.IGNORECASE)
 WGS84 = 4326
+
+#: EPSG codes the input suggests. Any other code can be typed.
+SUGGESTED_SYSTEMS = (4326, 4258, 25832, 25833, 32632, 32633, 31467, 27700, 2193)
 
 
 def parse_coordinate(text, axis):
@@ -175,6 +176,34 @@ class LocationWidget(forms.MultiWidget):
             values["second"] = format(Decimal(repr(float(point.x))), "f")
         return [values[name] for name in self.parts]
 
+    def get_systems(self):
+        """Describe the suggested reference systems, as the script and the suggestions read them.
+
+        Returns:
+            A list of dicts with each system's ``code``, ``name`` and whether it is
+            ``geographic`` (typed as degrees) rather than projected (typed in metres).
+        """
+        systems = []
+        for code in SUGGESTED_SYSTEMS:
+            system = SpatialReference(code)
+            systems.append(
+                {"code": code, "name": system.name, "geographic": system.geographic}
+            )
+        return systems
+
+    def get_context(self, name, value, attrs):
+        """Add what the template reads: ``full``, ``parts`` by name and ``systems``."""
+        # A Location is a tuple, which MultiWidget would take for the inputs' own values.
+        if isinstance(value, Location):
+            value = self.decompress(value)
+        context = super().get_context(name, value, attrs)
+        widget = context["widget"]
+        widget["full"] = self.full
+        widget["parts"] = dict(zip(self.parts, widget["subwidgets"], strict=True))
+        widget["systems"] = self.get_systems()
+        widget["systems_id"] = f"{widget['attrs'].get('id') or name}_systems"
+        return context
+
 
 class LocationField(forms.MultiValueField):
     """Read a location typed in any supported notation and reference system, as WGS 84.
@@ -314,47 +343,50 @@ class LocationField(forms.MultiValueField):
         return point
 
 
-class PointForm(forms.ModelForm):
-    """Form for a location's coordinates."""
+class LocationFormMixin:
+    """Give a ``ModelForm`` of a ``LocatedRecord`` the location input.
 
-    class Meta:
-        model = Point
-        fields = ["x", "y"]
+    When ``location`` is among the form's fields, it becomes a full ``LocationField`` that
+    starts from the instance's point, elevation and uncertainty. On clean the point goes to
+    ``location`` and the elevation and uncertainty to the instance, so that model validation
+    sees the three together.
 
-
-class LatitudeWidget(forms.TextInput):
-    """Text input that masks a latitude as up to 2 digits and a set number of decimals.
-
-    Args:
-        attrs: Extra HTML attributes, which override the mask.
-        precision: Number of decimal places the mask allows.
+    Example:
+        ```python
+        class RockSampleForm(LocationFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "location"]
+        ```
     """
 
-    def __init__(self, attrs=None, precision=5):
-        self.precision = precision
-        x_precision = "9" * self.precision
-        default_attrs = {
-            "x-mask:dynamic": f"$input.startsWith('-') ? '-99.{x_precision}' : '99.{x_precision}'"
-        }
-        if attrs:
-            default_attrs.update(attrs)
-        super().__init__(default_attrs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "location" not in self.fields:
+            return
+        current = self.fields["location"]
+        self.fields["location"] = LocationField(
+            label=current.label, help_text=current.help_text
+        )
+        instance = self.instance
+        stored = getattr(instance, "location", None)
+        self.initial["location"] = (
+            Location(
+                stored,
+                instance.location_elevation,
+                instance.location_uncertainty,
+            )
+            if stored is not None
+            else None
+        )
 
-
-class LongitudeWidget(forms.TextInput):
-    """Text input that masks a longitude as up to 3 digits and a set number of decimals.
-
-    Args:
-        attrs: Extra HTML attributes, which override the mask.
-        precision: Number of decimal places the mask allows.
-    """
-
-    def __init__(self, attrs=None, precision=5):
-        self.precision = precision
-        x_precision = "9" * self.precision
-        default_attrs = {
-            "x-mask:dynamic": f"$input.startsWith('-') ? '-999.{x_precision}' : '999.{x_precision}'"
-        }
-        if attrs:
-            default_attrs.update(attrs)
-        super().__init__(default_attrs)
+    def clean(self):
+        """Move the cleaned location's elevation and uncertainty onto the instance."""
+        cleaned_data = super().clean()
+        if "location" not in self.fields or "location" in self.errors:
+            return cleaned_data
+        location = cleaned_data.get("location")
+        cleaned_data["location"] = location.point if location else None
+        self.instance.location_elevation = location.elevation if location else None
+        self.instance.location_uncertainty = location.uncertainty if location else None
+        return cleaned_data

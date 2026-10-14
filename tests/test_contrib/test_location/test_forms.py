@@ -1,11 +1,15 @@
 """Tests for the location input in ``fairdm.contrib.location.forms``."""
 
+import json
+
 import pytest
+from bs4 import BeautifulSoup
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
 from fairdm.contrib.location.forms import (
+    SUGGESTED_SYSTEMS,
     Location,
     LocationField,
     LocationWidget,
@@ -295,3 +299,60 @@ class TestLocationWidget:
 
     def test_nothing_stored_decompresses_to_empty_parts(self):
         assert LocationWidget().decompress(None) == [4326, None, None, None, None]
+
+
+def rendered(widget, value=None):
+    """Render a widget the way a form does and parse the result."""
+    html = widget.render("location", value, attrs={"id": "id_location"})
+    return BeautifulSoup(html, "html.parser")
+
+
+class TestLocationWidgetRendering:
+    def test_each_part_is_an_input_named_after_the_field(self):
+        page = rendered(LocationWidget())
+
+        names = {control["name"] for control in page.select("input[name]")}
+        assert names == {
+            "location_srid",
+            "location_first",
+            "location_second",
+            "location_elevation",
+            "location_uncertainty",
+        }
+
+    def test_the_point_only_input_has_two_coordinates_and_nothing_else(self):
+        page = rendered(LocationWidget(full=False))
+
+        names = {control["name"] for control in page.select("input[name]")}
+        assert names == {"location_first", "location_second"}
+
+    def test_a_stored_location_fills_the_inputs(self):
+        location = Location(Point(8.4115, 49.0094, srid=4326), 112.0, 5.0)
+
+        page = rendered(LocationWidget(), location)
+
+        values = {c["name"]: c["value"] for c in page.select("input[name]")}
+        assert values == {
+            "location_srid": "4326",
+            "location_first": "49.0094",
+            "location_second": "8.4115",
+            "location_elevation": "112.0",
+            "location_uncertainty": "5.0",
+        }
+
+    def test_the_suggested_systems_come_from_the_server_with_their_kind(self):
+        page = rendered(LocationWidget())
+
+        systems = json.loads(page.select_one("script[type='application/json']").string)
+        assert [s["code"] for s in systems] == list(SUGGESTED_SYSTEMS)
+        by_code = {s["code"]: s for s in systems}
+        assert by_code[4326]["geographic"] is True
+        assert by_code[25832]["geographic"] is False
+        assert by_code[25832]["name"] == SpatialReference(25832).name
+
+    def test_every_suggested_system_is_offered_in_the_list_the_input_points_at(self):
+        page = rendered(LocationWidget())
+
+        listed = page.select_one("input[name='location_srid']")["list"]
+        options = [o["value"] for o in page.select(f"datalist#{listed} option")]
+        assert options == [str(code) for code in SUGGESTED_SYSTEMS]

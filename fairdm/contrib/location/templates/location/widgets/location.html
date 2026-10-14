@@ -1,14 +1,18 @@
 {% load i18n %}
 {% comment %}
-  The location input. Sketch for FS-030: the build replaces it.
+  The location input.
   widget.parts holds the subwidgets by name: srid, first, second, elevation, uncertainty.
   `first` is the latitude (or northing), `second` the longitude (or easting).
+  widget.systems lists the suggested reference systems (code, name, geographic), and the
+  script reads which of them are typed as degrees from the same list.
 {% endcomment %}
 {% with parts=widget.parts %}
+{{ widget.systems|json_script:widget.systems_id }}
 <script>
-  window.fairdmLocationInput = window.fairdmLocationInput || function (srid) {
+  window.fairdmLocationInput = window.fairdmLocationInput || function (srid, systemsId) {
     // Codes typed as degrees. Anything else is read as a projected system in metres.
-    const geographic = ["4326", "4258", "4269", "4267", "4283", "4167", "4230", "4277", "4314", "4612", "6668"];
+    const systems = JSON.parse(document.getElementById(systemsId).textContent);
+    const geographic = systems.filter((system) => system.geographic).map((system) => String(system.code));
     const pattern = /^\s*([NSEW])?\s*([-+]?\d+(?:[.,]\d+)?)\s*(?:°|d|deg)?\s*(?:(\d+(?:[.,]\d+)?)\s*['′]?\s*)?(?:(\d+(?:[.,]\d+)?)\s*(?:["″]|'')?\s*)?([NSEW])?\s*$/i;
     return {
       srid: String(srid || "4326"),
@@ -32,7 +36,7 @@
   };
 </script>
 <div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4"
-     x-data="fairdmLocationInput('{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}')"
+     x-data="fairdmLocationInput('{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}', '{{ widget.systems_id }}')"
      x-init="first = $refs.first.value; second = $refs.second.value">
 
   {% if widget.full %}
@@ -41,11 +45,11 @@
       <div class="join w-full max-w-sm">
         <span class="join-item flex items-center rounded-l-field border border-base-300 bg-base-200 px-3 text-sm text-base-content/70">EPSG</span>
         <input type="text" name="{{ parts.srid.name }}" id="{{ parts.srid.attrs.id }}" value="{{ parts.srid.value|default:'4326' }}"
-               class="input join-item w-full" list="location-systems" inputmode="numeric" autocomplete="off"
+               class="input join-item w-full" list="{{ widget.systems_id }}_list" inputmode="numeric" autocomplete="off"
                x-model="srid" aria-describedby="{{ parts.srid.attrs.id }}_hint">
       </div>
-      <datalist id="location-systems">
-        {% for code, label in widget.systems %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+      <datalist id="{{ widget.systems_id }}_list">
+        {% for system in widget.systems %}<option value="{{ system.code }}">{{ system.name }}</option>{% endfor %}
       </datalist>
       <p class="label text-wrap" id="{{ parts.srid.attrs.id }}_hint">{% translate "The system your coordinates are written in. 4326 is WGS 84, what a GPS receiver records. The portal stores every location in WGS 84." %}</p>
     </div>
