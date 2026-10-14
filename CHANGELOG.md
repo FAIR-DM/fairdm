@@ -154,6 +154,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Organizations made or synced from ROR get their name, city, country and location.** ROR
+  now answers in version 2 of its schema, and `RORTransform` and the background sync still read
+  version 1. Creating an organization from a ROR ID raised `decimal.InvalidOperation` for every
+  ID, and the sync saved no place at all. Both now request `https://api.ror.org/v2/` and read
+  the display name, the aliases and acronyms, the links and the first location from the
+  version 2 record. The sync also writes to the organization itself, where before its city
+  never reached the saved organization. `Organization.from_ror()` returns the organization, as
+  documented, where it raised `AttributeError` on the pair `RORTransform.update_or_create()`
+  returns.
 - **Labels, help text and page titles follow the language of the request.** The project and
   dataset list and create pages, the project form, the contributor forms and pages, the admin
   site titles, and the field names of locations, tags and the `added` and `modified` columns

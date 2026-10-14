@@ -424,11 +424,15 @@ def grant():
 
 
 class FakeResponse:
-    """The part of ``requests.Response`` the registries read."""
+    """The part of ``requests.Response`` the registries and the sync tasks read."""
 
     def __init__(self, status_code, body):
         self.status_code = status_code
         self.body = body
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code} answered")
 
     def json(self):
         if isinstance(self.body, Exception):

@@ -141,26 +141,47 @@ class TestRORRoundTrip:
         assert "name" in ror_data
         assert ror_data["name"] == organization.name
 
-    def test_ror_import_organization(self):
-        transform = RORTransform()
-        ror_api_data = {
-            "name": "Test University",
-            "id": "https://ror.org/02nr0ka47",
-            "addresses": [
-                {
-                    "city": "Boston",
-                    "lat": 42.3601,
-                    "lng": -71.0589,
-                }
-            ],
-            "country": {"country_code": "US"},
-        }
+    def test_ror_import_organization(self, recorded):
+        org = RORTransform().import_data(recorded("ror-record"))
 
-        org = transform.import_data(ror_api_data)
-
-        assert org.name == "Test University"
         assert isinstance(org, Organization)
-        assert org.city == "Boston"
+        assert org.name == "GFZ Helmholtz Centre for Geosciences"
+        assert org.city == "Potsdam"
+        assert org.country.code == "DE"
+        assert float(org.location.latitude) == pytest.approx(52.39886)
+        assert float(org.location.longitude) == pytest.approx(13.06566)
+        assert org.identifiers.get(type="ROR").value == "04z8jg394"
+
+    def test_ror_import_reads_other_names_and_links(self, recorded):
+        org = RORTransform().import_data(recorded("ror-record"), save=False)
+
+        assert org.alternative_names == [
+            "Helmholtz Centre Potsdam - GFZ German Research Centre for Geosciences",
+            "Helmholtz-Zentrum Potsdam - Deutsches GeoForschungsZentrum GFZ",
+            "GFZ",
+        ]
+        assert org.links == [
+            "https://www.gfz.de",
+            "https://en.wikipedia.org/wiki/GFZ_Helmholtz_Centre_for_Geosciences",
+        ]
+
+    def test_ror_import_without_a_location_leaves_it_empty(self, recorded):
+        body = recorded("ror-record")
+        body["locations"] = []
+
+        org = RORTransform().import_data(body, save=False)
+
+        assert not org.city
+        assert not org.country
+        assert org.location is None
+
+    def test_ror_fetch_asks_for_the_version_2_record(self, registry_network, recorded):
+        address = "https://api.ror.org/v2/organizations/04z8jg394"
+        registry_network.answer(address, recorded("ror-record"))
+
+        RORTransform.fetch_from_api("https://ror.org/04z8jg394")
+
+        assert [call.url for call in registry_network.calls] == [address]
 
 
 @pytest.mark.django_db

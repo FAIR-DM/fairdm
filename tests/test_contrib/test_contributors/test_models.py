@@ -587,6 +587,24 @@ class TestOrganizationLocation:
         assert Organization._meta.get_field("country").db_index is True
 
 
+@pytest.mark.django_db
+class TestOrganizationFromRor:
+    def test_creates_the_organization_from_its_ror_record(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
+        )
+
+        organization = Organization.from_ror("https://ror.org/04z8jg394")
+
+        organization.refresh_from_db()
+        assert organization.name == "GFZ Helmholtz Centre for Geosciences"
+        assert organization.city == "Potsdam"
+        assert organization.country.code == "DE"
+        assert organization.identifiers.get(type="ROR").value == "04z8jg394"
+
+
 class TestOwnershipTransfer:
     @pytest.mark.django_db
     def test_transfer_demotes_incumbent_and_promotes_successor(

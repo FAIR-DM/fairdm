@@ -655,8 +655,9 @@ class ORCIDTransform(BaseTransform):
 class RORTransform(BaseTransform):
     """Bidirectional transformation for ROR (Research Organization Registry) API data.
 
-    Converts between Organization objects and ROR API response format.
-    See: https://ror.readme.io/docs/data-structure
+    Converts between Organization objects and ROR API response format. Records are read in
+    version 2 of ROR's schema.
+    See: https://ror.readme.io/v2/docs/data-structure
     """
 
     @staticmethod
@@ -695,7 +696,7 @@ class RORTransform(BaseTransform):
         import requests
 
         clean_id = RORTransform.clean_ror_id(ror_id)
-        ror_api = f"https://api.ror.org/organizations/{clean_id}"
+        ror_api = f"https://api.ror.org/v2/organizations/{clean_id}"
 
         try:
             response = requests.get(ror_api, timeout=30)
@@ -795,30 +796,17 @@ class RORTransform(BaseTransform):
 
         org = instance or Organization()
         org.synced_data = data
-        org.name = self.dictget(data, ["name"])
+        org.name = self.display_name(data)
+        names = self.dictget(data, ["names"], [])
+        org.alternative_names = [
+            n["value"]
+            for kind in ("alias", "acronym")
+            for n in names
+            if kind in n["types"]
+        ]
+        self.import_location(data, org)
 
-        org.alternative_names = self.dictget(data, ["aliases"], []) + self.dictget(
-            data, ["acronyms"], []
-        )
-
-        org.city = self.dictget(data, ["addresses", 0, "city"])
-        org.country = self.dictget(data, ["country", "country_code"])
-
-        lat = self.dictget(data, ["addresses", 0, "lat"])
-        lon = self.dictget(data, ["addresses", 0, "lng"])
-        if lat is not None and lon is not None:
-            from fairdm.contrib.location.models import Point
-
-            point, _created = Point.objects.get_or_create(
-                x=decimal.Decimal(str(lon)),
-                y=decimal.Decimal(str(lat)),
-            )
-            org.location = point
-
-        links = self.dictget(data, ["links"], [])
-        if wiki_url := self.dictget(data, ["wikipedia_url"]):
-            links.append(wiki_url)
-        if links:
+        if links := [link["value"] for link in self.dictget(data, ["links"], [])]:
             org.links = links
 
         if save:
@@ -831,6 +819,41 @@ class RORTransform(BaseTransform):
                 )
 
         return org
+
+    def display_name(self, data: dict) -> str:
+        """Return the name ROR displays for the organization in a ROR record.
+
+        Args:
+            data: ROR API response data
+
+        Returns:
+            str: The display name, or an empty string when the record has none
+        """
+        names = self.dictget(data, ["names"], [])
+        return next((n["value"] for n in names if "ror_display" in n["types"]), "")
+
+    def import_location(self, data: dict, org: Organization) -> None:
+        """Set the organization's city, country and location from a ROR record.
+
+        Nothing is changed when the record names no place.
+
+        Args:
+            data: ROR API response data
+            org: The Organization to update; it is not saved
+        """
+        place = self.dictget(data, ["locations", 0, "geonames_details"], {})
+        if not place:
+            return
+        org.city = place.get("name") or ""
+        org.country = place.get("country_code") or ""
+        lat, lng = place.get("lat"), place.get("lng")
+        if lat is not None and lng is not None:
+            from fairdm.contrib.location.models import Point
+
+            org.location, _created = Point.objects.get_or_create(
+                x=decimal.Decimal(str(lng)),
+                y=decimal.Decimal(str(lat)),
+            )
 
     @classmethod
     def update_or_create(
