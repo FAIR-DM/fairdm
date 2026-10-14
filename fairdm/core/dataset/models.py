@@ -383,14 +383,19 @@ class Dataset(BaseModel):
 
     @cached_property
     def bbox(self):
-        """Return the bounding box of the dataset's locations.
+        """Return the bounding box of the dataset's samples' locations.
 
         Returns:
-            The bounding box computed by ``bbox_for_dataset``.
+            A dict with ``min_x``, ``max_x``, ``min_y`` and ``max_y`` in degrees, or None when
+            no sample has a location.
         """
-        from fairdm.contrib.location.utils import bbox_for_dataset
+        from django.contrib.gis.db.models import Extent
 
-        return bbox_for_dataset(self)
+        extent = self.samples.aggregate(extent=Extent("location"))["extent"]
+        if extent is None:
+            return None
+        min_x, min_y, max_x, max_y = extent
+        return {"min_x": min_x, "max_x": max_x, "min_y": min_y, "max_y": max_y}
 
 
 class DatasetDescription(AbstractDescription):

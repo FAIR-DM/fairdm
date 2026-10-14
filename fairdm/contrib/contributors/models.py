@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.db.models import PointField
 from django.db.models import BigIntegerField, Count, Q
 from django.db.models.functions import Cast, Lower
 from django.templatetags.static import static
@@ -27,6 +28,7 @@ from ordered_model.models import OrderedModel
 from research_vocabs.fields import ConceptManyToManyField
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.contrib.location.models import geography_index
 from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.overview import format_partial_date
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
@@ -79,7 +81,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         lang: ISO 639-1 language codes.
         last_synced: When the contributor was last synced with an external provider.
         synced_data: Raw data from the external provider.
-        location: Geographic location.
         config: General-purpose configuration data.
         added: When the record was created.
         modified: When the record was last modified.
@@ -169,16 +170,6 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         null=True,
         blank=True,
         default=dict,
-    )
-
-    location = models.ForeignKey(
-        "fairdm_location.Point",
-        verbose_name=_("location"),
-        help_text=_("The geographic location of the contributor."),
-        on_delete=models.SET_NULL,
-        related_name="contributors",
-        null=True,
-        blank=True,
     )
 
     config = models.JSONField(
@@ -1082,14 +1073,14 @@ class Person(AbstractUser, Contributor):
             The feature as a JSON string, or None when there is no located affiliation.
         """
         aff = self.primary_affiliation()
-        if aff and aff.organization.location:
+        if aff and aff.organization.location is not None:
             org = aff.organization
             return json.dumps(
                 {
                     "type": "Feature",
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [org.location.longitude, org.location.latitude],
+                        "coordinates": [org.location.x, org.location.y],
                     },
                     "properties": {
                         "name": self.name,
@@ -1286,6 +1277,7 @@ class Organization(Contributor):
         parent: The organisation this one is part of.
         city: The city where the organisation is based.
         country: The country where the organisation is based.
+        location: The point where the organisation is, in WGS 84.
     """
 
     DEFAULT_IDENTIFIER = "ROR"
@@ -1342,20 +1334,29 @@ class Organization(Contributor):
         db_index=True,
     )
 
+    location = PointField(
+        srid=4326,
+        verbose_name=_("location"),
+        help_text=_("Where the organization is, as a point in WGS 84."),
+        null=True,
+        blank=True,
+    )
+
     @property
     def lat(self):
         """The location's latitude, or None without a location."""
-        return self.location.latitude if self.location else None
+        return self.location.y if self.location is not None else None
 
     @property
     def lon(self):
         """The location's longitude, or None without a location."""
-        return self.location.longitude if self.location else None
+        return self.location.x if self.location is not None else None
 
     class Meta:
         verbose_name = _("organization")
         verbose_name_plural = _("organizations")
         default_related_name = "organizations"
+        indexes = [geography_index("organization_location_geog_idx")]
 
     def __str__(self):
         """Return the organisation's name."""
@@ -1679,14 +1680,14 @@ class Organization(Contributor):
         Returns:
             The feature as a JSON string, or None when there is no location.
         """
-        if not self.location:
+        if self.location is None:
             return None
         return json.dumps(
             {
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [self.location.longitude, self.location.latitude],
+                    "coordinates": [self.location.x, self.location.y],
                 },
                 "properties": {
                     "name": self.name,
