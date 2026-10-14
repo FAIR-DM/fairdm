@@ -206,11 +206,9 @@ export DJANGO_SECRET_KEY="$(python -c 'from django.core.management.utils import 
 export DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 ```
 
-Or rely on the development fallback:
-
-```bash
-export DJANGO_ENV=development  # falls back to SQLite
-```
+The database is PostgreSQL with the PostGIS extension in every environment, development
+included. `DATABASE_URL` may use the `postgresql://` scheme: FairDM opens it with GeoDjango's
+PostGIS backend whatever the scheme says.
 
 ### Signing in returns "429 Too Many Requests"
 
@@ -270,8 +268,9 @@ fairdm.setup()
 export DJANGO_ENV=development
 ```
 
-This needs no database server and no Redis. The `development` module uses SQLite, and with
-`REDIS_URL` unset it holds every cache in memory and runs Celery tasks in-process.
+This needs a PostgreSQL database with PostGIS, set through `DATABASE_URL` or the `POSTGRES_*`
+variables, and no Redis. With `REDIS_URL` unset, the `development` module holds every cache in
+memory and runs Celery tasks in-process.
 
 ### Production Setup
 

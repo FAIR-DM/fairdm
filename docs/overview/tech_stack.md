@@ -6,9 +6,12 @@ FairDM is built on a reliable and widely adopted open-source infrastructure desi
 
 At the heart of FairDM is Django, a mature Python web framework renowned for its scalability, security, and clean design. Django powers the entire application, managing both backend logic and rendering user-facing pages. Its general popularity ensures that developers and researchers find it approachable and well-documented.
 
-## PostgreSQL Database with Optional PostGIS Extension
+## PostgreSQL with PostGIS
 
-FairDM uses PostgreSQL as its primary relational database system. PostgreSQL is an industry-leading open-source database known for its robustness, advanced querying capabilities, and strong community support. To support research projects involving geospatial data, FairDM optionally includes the PostGIS extension, which adds powerful geographic object support. This enables efficient storage and querying of sample location data or other spatial metadata.
+FairDM stores everything in PostgreSQL with the PostGIS extension, which adds geographic types,
+spatial indexes and spatial queries. PostGIS is required: every portal runs on it, and FairDM uses
+GeoDjango, Django's geographic framework, to store and query locations. GeoDjango needs the GDAL,
+GEOS and PROJ libraries on the server or in the image the portal runs from.
 
 ## Redis In-Memory Data Store
 

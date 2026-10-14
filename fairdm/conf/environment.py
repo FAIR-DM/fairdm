@@ -31,6 +31,9 @@ env = Env(
     POSTGRES_USER=(str, "postgres"),
     POSTGRES_HOST=(str, "postgres"),
     POSTGRES_PORT=(int, 5432),
+    # Only where GDAL or GEOS is not on the system library path, as on some macOS and Windows setups.
+    GDAL_LIBRARY_PATH=(str, ""),
+    GEOS_LIBRARY_PATH=(str, ""),
     EMAIL_HOST=(str, ""),
     EMAIL_HOST_USER=(str, ""),
     EMAIL_HOST_PASSWORD=(str, ""),

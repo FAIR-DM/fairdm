@@ -6,7 +6,9 @@ What gets a test, how tests are written and structured, and the coverage floors 
 ## Requirements
 
 The suite runs against PostgreSQL with PostGIS, configured from the same `POSTGRES_*` variables as
-a development portal (`stack.development.env`). The dev container's `postgres` service provides one.
+a development portal (`stack.development.env`), and needs the GDAL, GEOS and PROJ libraries that
+GeoDjango loads. `docker compose up postgres redis` starts the database it expects. In CI the
+`Test suite` workflow starts a PostGIS service container and installs the libraries itself.
 Install the development dependencies with:
 
 ```bash
@@ -35,7 +37,8 @@ The suite builds its database straight from the models (`--no-migrations`) and k
 runs (`--reuse-db`). After changing a model, add `--create-db` once to rebuild it.
 
 `tests/test_smoke.py` is the exception: it runs the real migrations, so a model change without a
-migration fails there.
+migration fails there. It creates two empty databases on the same server for this and drops them
+afterwards, so the database user needs the right to create databases.
 
 ## Coverage
 

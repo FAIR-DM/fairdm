@@ -37,14 +37,17 @@ Before setting up the development environment, ensure you have the following ins
    - Check version: `git --version`
    - Download from [git-scm.com](https://git-scm.com/)
 
-4. **PostgreSQL** (for production-like development)
-   - Check version: `psql --version`
-   - Download from [postgresql.org](https://www.postgresql.org/download/)
-   - **Alternative**: Use Docker to run PostgreSQL in a container
-
-5. **Docker** (optional but recommended)
-   - Useful for running services (PostgreSQL, Redis) without local installation
+4. **Docker**
+   - FairDM runs on PostgreSQL with the PostGIS extension, and `docker-compose.yml` starts one
+     for you, along with Redis
    - Download from [docker.com](https://www.docker.com/products/docker-desktop/)
+
+5. **GDAL, GEOS and PROJ**, only if you run Django on your own machine rather than in Docker
+   - GeoDjango loads these system libraries. The development image already has them
+   - Debian and Ubuntu: `sudo apt install gdal-bin`. macOS: `brew install gdal`
+   - On Windows, run Django in Docker instead
+   - If Django cannot find them, set `GDAL_LIBRARY_PATH` and `GEOS_LIBRARY_PATH` to the full
+     paths of the libraries
 
 6. **A code editor**
    - **Recommended**: [Visual Studio Code](https://code.visualstudio.com/) with Python and Django extensions
@@ -57,7 +60,11 @@ Before setting up the development environment, ensure you have the following ins
 ## Setting Up Your Development Environment
 
 ```{tip}
-**Recommended: Use Dev Containers.** The fastest way to get a fully working development environment is with VS Code Dev Containers. See [Dev Container Setup](dev-containers.md) — it requires only Docker and VS Code, and gives you PostGIS, Redis, and Celery out of the box. The rest of this page describes manual setup for contributors who prefer not to use containers.
+**The quickest start is Docker.** After cloning, `docker compose up` builds the development
+image and starts PostGIS, Redis, a Celery worker and the development server on
+<http://localhost:8000>, with your checkout mounted so edits reload. It needs nothing installed
+but Docker, on Windows the same as anywhere else. The rest of this page describes running Django
+on your own machine against the same databases.
 ```
 
 Follow these steps to set up a local FairDM development environment:
@@ -99,30 +106,18 @@ Follow these steps to set up a local FairDM development environment:
 
    All subsequent commands in this guide assume you have activated the virtual environment. If you don't activate it, prefix commands with `uv run` (e.g., `uv run pytest`).
 
-### 3. Set Up the Database
+### 3. Start the Database
 
-FairDM uses PostgreSQL in production, but SQLite is fine for local development.
+FairDM needs PostgreSQL with the PostGIS extension, in development as in production. SQLite has no
+spatial support and is not an option. Start PostGIS and Redis from `docker-compose.yml`:
 
-#### Option A: Use SQLite (Quick Start)
+```bash
+docker compose up postgres redis
+```
 
-SQLite requires no setup. Django will create `db.sqlite3` automatically when you run migrations.
-
-#### Option B: Use PostgreSQL (Recommended for Production-Like Testing)
-
-1. **Start PostgreSQL** (locally or via Docker):
-
-   ```bash
-   # Using Docker
-   docker run --name fairdm-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=fairdm -p 5432:5432 -d postgres:15
-   ```
-
-2. **Configure database connection**:
-
-   Create a `.env` file in the project root:
-
-   ```env
-   DATABASE_URL=postgres://postgres:postgres@localhost:5432/fairdm
-   ```
+`stack.development.env` already points a development portal at them, on `localhost:5432` and
+`localhost:6379`. To use a PostGIS server of your own instead, set `DATABASE_URL` or the
+`POSTGRES_*` variables in your environment, which take precedence over the file.
 
 ### 4. Run Database Migrations
 

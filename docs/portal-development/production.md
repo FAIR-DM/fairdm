@@ -9,7 +9,9 @@ includes the following services:
   - The main application that serves the web pages and API endpoints. It is built from the Dockerfile located
         at ./compose/production/django.
 - PostgreSQL database:
-  - The database that stores all the data for the application.
+  - The database that stores all the data for the application. It needs the PostGIS extension,
+        as the official `postgis/postgis` image provides. The Django image needs the GDAL, GEOS and
+        PROJ libraries, for example from Debian's `gdal-bin` package.
 - Redis:
   - The in-memory data structure store that is used as both a message broker for Celery workers and a cache for
         the Django application.
@@ -38,7 +40,7 @@ python manage.py check --deploy
 
 This command validates production-readiness for:
 
-- Database configuration (PostgreSQL required)
+- Database configuration (PostgreSQL with PostGIS required)
 - Cache backend (Redis/Memcached required)
 - SECRET_KEY security
 - ALLOWED_HOSTS configuration
