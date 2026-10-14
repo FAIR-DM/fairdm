@@ -8,7 +8,7 @@ from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, PointFactory
+from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -60,33 +60,10 @@ class TestFalseyHeadersRenderEmpty:
         assert header == ""
         assert "False" not in response.content.decode()
 
-    def test_the_sample_tables_location_columns_header_is_empty_not_the_word_false(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        header = str(response.context["table"].columns["location"].header)
-        assert header == ""
-
-    def test_the_measurement_tables_location_columns_header_is_empty_not_the_word_false(
-        self, client, published_dataset
-    ):
-        sample = RockSampleFactory(dataset=published_dataset)
-        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
-        slug = registry.get_for_model(ExampleMeasurement).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        header = str(response.context["table"].columns["location"].header)
-        assert header == ""
-
 
 @pytest.mark.django_db
 class TestSampleListingLeadsWithIconColumns:
-    def test_the_first_two_visible_columns_are_dataset_then_location(
+    def test_the_first_visible_column_is_the_dataset(
         self, client, published_dataset
     ):
         RockSampleFactory(dataset=published_dataset)
@@ -95,7 +72,7 @@ class TestSampleListingLeadsWithIconColumns:
         response = client.get(reverse(f"{slug}-list"))
 
         names = [c.name for c in response.context["table"].columns]
-        assert names[:2] == ["dataset", "location"]
+        assert names[0] == "dataset"
 
     def test_measurement_listing_column_order_is_unchanged(
         self, client, published_dataset
@@ -108,35 +85,6 @@ class TestSampleListingLeadsWithIconColumns:
 
         names = [c.name for c in response.context["table"].columns]
         assert names[:2] != ["dataset", "location"]
-
-
-@pytest.mark.django_db
-class TestLocationColumnRendering:
-    def test_a_sample_with_no_location_renders_no_location_icon(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset, location=None)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        table = response.context["table"]
-        row = next(iter(table.rows))
-        cell = row.get_cell("location")
-        assert cell == ""
-
-    def test_a_sample_with_a_location_renders_an_icon_linking_to_it(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset, location=PointFactory())
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        table = response.context["table"]
-        row = next(iter(table.rows))
-        cell = row.get_cell("location")
-        assert row.record.location.get_absolute_url() in cell
 
 
 @pytest.mark.django_db

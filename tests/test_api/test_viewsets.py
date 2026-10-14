@@ -347,10 +347,13 @@ def build_record(kind, make_record, add_metadata):
     elif kind == "sample":
         record = make_record(RockSample, dataset)
     elif kind == "located sample":
-        from demo.models import CustomSample
-        from fairdm.factories import PointFactory
+        from django.contrib.gis.geos import Point as GEOSPoint
 
-        record = make_record(CustomSample, dataset, location=PointFactory())
+        from demo.models import CustomSample
+
+        record = make_record(
+            CustomSample, dataset, location=GEOSPoint(8.4115, 49.0094, srid=4326)
+        )
     else:
         record = make_record(ExampleMeasurement, dataset)
     return add_metadata(record)

@@ -228,11 +228,9 @@ improve performance. Use these patterns in your views and APIs:
    class RockSampleQuerySet(QuerySet):
        '''Custom QuerySet with optimization methods.'''
 
-       def with_location_data(self):
-           '''Prefetch location and related geographic data.'''
-           return self.select_related("location").prefetch_related(
-               "location__coordinates", "location__region"
-           )
+       def with_dataset(self):
+           '''Load each sample's dataset with the sample.'''
+           return self.select_related("dataset")
 
        def with_measurements(self):
            '''Prefetch all related measurements.'''

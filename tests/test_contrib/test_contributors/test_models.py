@@ -88,9 +88,9 @@ class TestContributorProfileFields:
 
     @pytest.mark.django_db
     def test_optional_profile_fields_round_trip(self):
-        from fairdm.factories import PointFactory
+        from django.contrib.gis.geos import Point as GEOSPoint
 
-        location = PointFactory()
+        location = GEOSPoint(13.06566, 52.39886, srid=4326)
         organization = OrganizationFactory(
             alternative_names=["Also Known As Inc."],
             profile="A description of the organization.",

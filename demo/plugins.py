@@ -99,8 +99,8 @@ class LocationDetailsPlugin(Plugin):
         if self.object.location:
             context["location"] = self.object.location
             context["coordinates"] = {
-                "lat": self.object.location.latitude,
-                "lon": self.object.location.longitude,
+                "lat": self.object.location.y,
+                "lon": self.object.location.x,
             }
 
         return context

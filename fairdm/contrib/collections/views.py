@@ -40,7 +40,7 @@ class DataTableView(FairDMTableView):
         """Limit to published records with related objects loaded, chaining from the parent queryset."""
         queryset = super().get_queryset().published().with_related()
         if self.model in registry.measurements:
-            queryset = queryset.select_related("sample__dataset", "sample__location")
+            queryset = queryset.select_related("sample__dataset")
         return queryset
 
     def get_context_data(self, **kwargs):

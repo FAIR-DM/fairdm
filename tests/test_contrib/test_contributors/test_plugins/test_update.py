@@ -33,18 +33,17 @@ from fairdm.factories import (
     AffiliationFactory,
     OrganizationFactory,
     PersonFactory,
-    PointFactory,
     ProjectFactory,
 )
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 
-class LocatedPersonForm(PersonProfileForm):
+class ExtendedPersonForm(PersonProfileForm):
     """The portal form the contributors guide shows, named in ``FAIRDM_PROFILE_FORMS`` below."""
 
     class Meta(PersonProfileForm.Meta):
-        fields = [*PersonProfileForm.Meta.fields, "location"]
+        fields = [*PersonProfileForm.Meta.fields, "config"]
 
 
 class PortalOrganizationForm(OrganizationProfileForm):
@@ -367,41 +366,39 @@ class TestProfileFormsSetting:
         self, signed_in, keeper, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.LocatedPersonForm",
+            "person": f"{__name__}.ExtendedPersonForm",
         }
 
         response = signed_in(keeper).get(_update_url(keeper))
 
-        assert type(response.context["form"]) is LocatedPersonForm
+        assert type(response.context["form"]) is ExtendedPersonForm
 
     def test_a_field_the_portals_form_adds_is_drawn_on_the_page(
         self, signed_in, keeper, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.LocatedPersonForm",
+            "person": f"{__name__}.ExtendedPersonForm",
         }
 
         response = signed_in(keeper).get(_update_url(keeper))
 
         form = _page(response).select_one(f"form[action='{_update_url(keeper)}']")
         drawn = {control["name"] for control in form.select("[name]")}
-        assert set(LocatedPersonForm.Meta.fields) <= drawn
+        assert set(ExtendedPersonForm.Meta.fields) <= drawn
 
     def test_a_field_the_portals_form_adds_is_saved_with_the_rest(
         self, signed_in, keeper, profile_data, settings
     ):
         settings.FAIRDM_PROFILE_FORMS = {
-            "person": f"{__name__}.LocatedPersonForm",
+            "person": f"{__name__}.ExtendedPersonForm",
         }
 
-        point = PointFactory()
-
         signed_in(keeper).post(
-            _update_url(keeper), {**profile_data, "location": point.pk}
+            _update_url(keeper), {**profile_data, "config": '{"theme": "dark"}'}
         )
 
         keeper.refresh_from_db()
-        assert keeper.location == point
+        assert keeper.config == {"theme": "dark"}
         assert keeper.name == "Dr. Ada Lovelace"
 
     def test_the_shipped_setting_names_the_shipped_person_form(self, settings):
@@ -801,7 +798,7 @@ class TestOrganizationUpdate:
         stored = Organization.objects.get(pk=organization.pk)
         assert stored.name == organization_profile_data["name"]
         assert stored.synced_data == synced_before
-        assert stored.location_id is None
+        assert stored.location is None
         assert stored.uuid == organization.uuid
         assert not stored.identifiers.exists()
         assert set(stored.affiliations.values_list("pk", flat=True)) == members_before

@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.db import models
 from django.template.loader import select_template
 from django.test.utils import isolate_apps
@@ -23,7 +24,6 @@ from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
     PersonFactory,
-    PointFactory,
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -202,7 +202,7 @@ class TestOverviewSample:
         sample = RockSampleFactory(
             dataset=_dataset(published=False),
             name="Hidden-3318 core",
-            location=PointFactory(x="12.345678", y="45.678901"),
+            location=GEOSPoint(12.345678, 45.678901, srid=4326),
         )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
         return sample, _page(client, measurement)
@@ -255,13 +255,14 @@ class TestOverviewSample:
 
     def test_a_sample_with_a_location_shows_a_map(self, client, released):
         sample = RockSampleFactory(
-            dataset=released, location=PointFactory(x="12.345678", y="45.678901")
+            dataset=released,
+            location=GEOSPoint(12.345678, 45.678901, srid=4326),
         )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         response = _page(client, measurement)
 
-        sample.location.refresh_from_db()
+        sample.refresh_from_db()
         marker = response.page.select_one(".overview-map")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
@@ -457,7 +458,9 @@ class TestOverviewCardsAlwaysShown:
         self, client, released
     ):
         hidden = _dataset(published=False)
-        sample = RockSampleFactory(dataset=hidden, location=PointFactory(x="12.5", y="41.5"))
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         response = _page(client, measurement)

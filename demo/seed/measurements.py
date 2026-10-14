@@ -16,7 +16,7 @@ Safe to run twice: it removes what it created before creating it again.
 
 from decimal import Decimal
 
-from django.apps import apps
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -74,14 +74,11 @@ class MeasurementSeed(BaseCommand):
         )
         grant_team_rights(users["staff.user"], project, cores, lab, pending)
 
-        Point = apps.get_model("fairdm_location", "Point")
         sample = RockSampleFactory(
             dataset=cores,
             name="GPK-2 core, 3512 m",
             local_id="GPK2-C14-3512",
-            location=Point.objects.get_or_create(
-                x=7.8656, y=48.9353, defaults={"crs": "EPSG:4326"}
-            )[0],
+            location=Point(7.8656, 48.9353, srid=4326),
         )
 
         full = XRFMeasurementFactory(

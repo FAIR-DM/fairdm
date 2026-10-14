@@ -96,8 +96,8 @@ class TestRORSyncTask:
         organization.refresh_from_db()
         assert organization.city == "Potsdam"
         assert organization.country.code == "DE"
-        assert float(organization.location.latitude) == pytest.approx(52.39886)
-        assert float(organization.location.longitude) == pytest.approx(13.06566)
+        assert organization.location.y == pytest.approx(52.39886)
+        assert organization.location.x == pytest.approx(13.06566)
 
     def test_ror_sync_task_keeps_the_portal_name(
         self, registry_network, recorded, organization, ror_identifier

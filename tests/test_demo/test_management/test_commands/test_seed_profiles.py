@@ -122,7 +122,7 @@ class TestSeedProfilesOrganizationStates:
             o
             for o in seeded_organizations
             if all(o.get_record_completeness().values())
-            and o.location_id
+            and o.location is not None
             and o.parent_id
             and o.sub_organizations.exists()
             and o.get_current_memberships()
@@ -150,7 +150,7 @@ class TestSeedProfilesOrganizationStates:
             o
             for o in seeded_organizations
             if not any(o.get_record_completeness().values())
-            and not o.location_id
+            and o.location is None
             and not o.parent_id
             and not o.sub_organizations.exists()
             and not o.affiliations.exists()

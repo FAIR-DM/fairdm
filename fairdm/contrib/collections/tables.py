@@ -72,12 +72,6 @@ class BaseTable(tables.Table):
             )
         return icon("dataset")
 
-    def render_location(self, value):
-        """Link the location icon to the location's own page."""
-        return format_html(
-            '<a href="{}">{}</a>', value.get_absolute_url(), icon("location")
-        )
-
     def value_dataset(self, value):
         """Export the dataset's UUID."""
         return value.uuid
@@ -141,17 +135,19 @@ class SampleTable(BaseTable):
     """Listing table for samples."""
 
     name = tables.Column(linkify=True)
-    latitude = tables.Column(accessor="location.x", verbose_name=_("Latitude"))
-    longitude = tables.Column(accessor="location.y", verbose_name=_("Longitude"))
-    location = tables.Column(
-        accessor="location", verbose_name="", orderable=False, default=""
+    # A geometry field has no `location__y` lookup to order by.
+    latitude = tables.Column(
+        accessor="location.y", verbose_name=_("Latitude"), orderable=False
+    )
+    longitude = tables.Column(
+        accessor="location.x", verbose_name=_("Longitude"), orderable=False
     )
 
     class Meta:
         attrs = {
             "class": "table table-striped table-hover overflow-auto align-middle mb-0"
         }
-        sequence = ("dataset", "location", "...")
+        sequence = ("dataset", "...")
         # `added` is not unique, so paging needs `id` as a tie-break. `id` is always a column.
         order_by = ("added", "id")
 
@@ -161,10 +157,11 @@ class MeasurementTable(BaseTable):
 
     name = tables.Column(linkify=True, verbose_name=_("Name"))
     sample = tables.Column()
-    latitude = tables.Column(accessor="sample.location.x", verbose_name=_("Latitude"))
-    longitude = tables.Column(accessor="sample.location.y", verbose_name=_("Longitude"))
-    location = tables.Column(
-        accessor="sample.location", verbose_name="", orderable=False, default=""
+    latitude = tables.Column(
+        accessor="sample.location.y", verbose_name=_("Latitude"), orderable=False
+    )
+    longitude = tables.Column(
+        accessor="sample.location.x", verbose_name=_("Longitude"), orderable=False
     )
 
     class Meta:
