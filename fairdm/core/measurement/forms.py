@@ -80,33 +80,8 @@ class MeasurementFormMixin(ManagerOnlyFieldsMixin):
                 },
             )
 
-        # Sketch for FS-030: a measurement's own location, kept in its options until the model
-        # has fields for it. Offered on every measurement form for now.
-        from fairdm.contrib.location.forms import LocationField
-
-        self.fields["location"] = LocationField(
-            label=_("Location"),
-            help_text=_(
-                "Only where the measurement was made somewhere other than where its sample was "
-                "taken. Left empty, the measurement is where its sample is."
-            ),
-        )
-        self.initial["location"] = (getattr(self.instance, "options", None) or {}).get(
-            "location"
-        )
-
         self.helper = FormHelper()
         self.helper.form_tag = False
-
-    def save(self, commit=True):
-        """Keep the measurement's own location in its options. Sketch."""
-        options = dict(self.instance.options or {})
-        if self.cleaned_data.get("location"):
-            options["location"] = self.cleaned_data["location"]
-        else:
-            options.pop("location", None)
-        self.instance.options = options
-        return super().save(commit)
 
 
 class MeasurementForm(MeasurementFormMixin, forms.ModelForm):

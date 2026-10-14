@@ -224,9 +224,6 @@ class TableFactory(ComponentFactory):
 
                 if isinstance(field, models.TextField):
                     continue
-                # Sketch for FS-030: a sample table already shows latitude and longitude.
-                if field_name == "location":
-                    continue
                 if (
                     isinstance(field, models.CharField)
                     and getattr(field, "max_length", 0) > 200

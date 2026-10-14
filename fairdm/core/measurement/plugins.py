@@ -67,19 +67,6 @@ class Overview(TypedOverviewPlugin):
                     crumb["text"] = str(measurement.uuid)
         return trail
 
-    @staticmethod
-    def get_own_location(measurement):
-        """The measurement's own location, shaped like a point for the location card. Sketch."""
-        own = (measurement.options or {}).get("location")
-        if not own:
-            return None
-        return {
-            "x": own["lon"],
-            "y": own["lat"],
-            "elevation": own.get("elevation"),
-            "uncertainty": own.get("uncertainty"),
-        }
-
     def get_context_data(self, **kwargs):
         """Add the measurement and everything the overview page draws."""
         from fairdm.core.project.plugins import project_is_visible
@@ -119,8 +106,6 @@ class Overview(TypedOverviewPlugin):
                 "sample_type": sentence_case(type(sample)._meta.verbose_name),
                 "sample_status": self.get_sample_status(),
                 "sample_visible": sample_visible,
-                # Sketch for FS-030: the measurement's own location, from its options.
-                "own_location": self.get_own_location(measurement),
                 "other_dataset": sample.dataset_id != measurement.dataset_id,
                 "siblings": self.get_siblings(),
                 "project": project,
