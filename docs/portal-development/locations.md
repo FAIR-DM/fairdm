@@ -51,8 +51,9 @@ class RockSampleConfig(ModelConfiguration):
     fields = ["name", "rock_type", "location"]
 ```
 
-A hand-written form uses `SampleFormMixin`, which carries the input, or `LocationFormMixin` on its
-own for any `ModelForm` whose model has the three fields:
+A hand-written sample form uses `SampleFormMixin`, which carries the input, and a measurement form
+uses `MeasurementFormMixin`. Either is `LocationFormMixin` plus the dataset and sample choices, and
+`LocationFormMixin` on its own does the same for any `ModelForm` whose model has the three fields:
 
 ```python
 from django import forms
@@ -69,6 +70,51 @@ class RockSampleForm(LocationFormMixin, forms.ModelForm):
 When `location` is among the fields, the form replaces it with a `LocationField`, starts it from
 the instance's point, elevation and uncertainty, and on clean puts the elevation and uncertainty
 on the instance. Clearing the coordinates clears all three.
+
+## A measurement's own location and its effective location
+
+A measurement is usually made where its sample was taken, so most measurements record no location
+of their own. A measurement type lists `location` in its registration to offer the input, for the
+reading taken in the field at a site some distance from the core it belongs to:
+
+```python
+@fairdm.register
+class XRFMeasurementConfig(BaseMeasurementConfiguration):
+    model = XRFMeasurement
+    fields = ["location", "element", "concentration_ppm"]
+```
+
+The measurement's own location is a value on the measurement and nothing more. Changing its
+sample's location leaves it where it was, and the reverse.
+
+A measurement's *effective location* is its own where it has one, and its sample's otherwise. The
+sample's counts only for a viewer who may open the sample, which is the rule
+`Sample.objects.visible_to(user)` applies. For anyone else a measurement with no location of its own
+has none, so a published measurement never gives away where an unpublished sample was taken.
+
+Ask for it on one measurement with `effective_location_for`, which takes the viewer, or `None` for a
+visitor who is not signed in:
+
+```python
+found = measurement.effective_location_for(request.user)
+if found is not None:
+    found.point.y  # latitude
+    found.point.x  # longitude
+    found.elevation, found.uncertainty
+    found.source  # "own" or "sample"
+```
+
+It returns an `EffectiveLocation` named tuple of the point, the elevation, the uncertainty and
+`source`, which says whose location it is, or `None`. The measurement's page uses it to title the
+card as the measurement's own location or its sample's.
+
+For a queryset, `with_effective_location` annotates each measurement with `effective_location`, a
+WGS 84 point or `None`, by the same rule and in the same query:
+
+```python
+for measurement in Measurement.objects.with_effective_location(request.user):
+    measurement.effective_location
+```
 
 ## What the input reads
 

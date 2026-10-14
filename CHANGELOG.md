@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lat-lon-parser` package, which FairDM now depends on. Run `migrate` when upgrading. See
   [Locations](docs/portal-development/locations.md).
 
+- **A measurement can record where it was made.** A measurement type shows the location input in
+  its form when its registration lists `location`, and the measurement's page maps its own location
+  and says it is the measurement's. A measurement with none of its own is where its sample is, but
+  only for a viewer who may open the sample. `Measurement.effective_location_for(user)` and
+  `MeasurementQuerySet.with_effective_location(user)` give that location, and the page's context
+  carries it as `effective_location`. See [Locations](docs/portal-development/locations.md).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
