@@ -4,8 +4,9 @@ overview page.
 Development only. Creates the standard sign-in accounts, one project, three datasets and a rock
 sample, then:
 
-- an XRF measurement with its setup, conditions and take-down recorded, a DOI and three people
-  credited — XRF has its own overview template, so this shows the extended page;
+- an XRF measurement with its setup, conditions and take-down recorded, a DOI, three people
+  credited and a location of its own, made at another place than its sample was taken — XRF has
+  its own overview template, so this shows the extended page;
 - an ICP-MS measurement made on the same sample but recorded in a partner laboratory's dataset —
   a type with no template of its own, so this shows the generic page alone;
 - a bare XRF measurement below its detection limit, with nothing else recorded;
@@ -91,6 +92,9 @@ class MeasurementSeed(BaseCommand):
             detection_limit_ppm=Decimal("12.00"),
             instrument_model="Bruker S8 Tiger",
             measurement_conditions="Rh tube, 50 kV, 50 mA, vacuum, LiF200 crystal.",
+            location=Point(8.43180, 49.09495, srid=4326),
+            location_elevation=112,
+            location_uncertainty=25,
         )
         for type_, value in [("Setup", "2025-06-10"), ("TearDown", "2025-06-11")]:
             MeasurementDate.objects.create(

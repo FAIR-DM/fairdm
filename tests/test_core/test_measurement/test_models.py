@@ -5,6 +5,8 @@ from types import SimpleNamespace
 
 import pint
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models import RestrictedError
@@ -16,6 +18,7 @@ from demo.factories import (
     ICP_MS_MeasurementFactory,
     RockSampleFactory,
 )
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import (
     MeasurementDate,
@@ -24,6 +27,7 @@ from fairdm.core.measurement.models import (
 )
 from fairdm.core.models import Measurement, Sample
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     MeasurementDateFactory,
     MeasurementDescriptionFactory,
@@ -1446,3 +1450,108 @@ class TestMoveKeepsManager:
         )
 
         measurement.clean()
+
+
+@pytest.mark.django_db
+class TestMeasurementEffectiveLocation:
+    """FR-013 and FR-014: own location first, the sample's only for a viewer who may open it."""
+
+    @pytest.fixture
+    def released(self):
+        return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+    @pytest.fixture
+    def hidden(self):
+        return DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+
+    def test_the_own_location_wins_with_its_elevation_and_uncertainty(self, released):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(
+            sample=sample,
+            dataset=released,
+            location=GEOSPoint(8.4318, 49.09495, srid=4326),
+            location_elevation=112.0,
+            location_uncertainty=25.0,
+        )
+
+        point, elevation, uncertainty, source = measurement.effective_location_for(None)
+
+        assert (point.x, point.y) == (8.4318, 49.09495)
+        assert (elevation, uncertainty, source) == (112.0, 25.0, "own")
+
+    def test_the_sample_is_used_when_the_measurement_has_none(self, released):
+        sample = RockSampleFactory(
+            dataset=released,
+            location=GEOSPoint(12.5, 41.5, srid=4326),
+            location_elevation=40.0,
+            location_uncertainty=3.0,
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        point, elevation, uncertainty, source = measurement.effective_location_for(None)
+
+        assert (point.x, point.y) == (12.5, 41.5)
+        assert (elevation, uncertainty, source) == (40.0, 3.0, "sample")
+
+    def test_neither_having_a_location_gives_none(self, released):
+        sample = RockSampleFactory(dataset=released)
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert measurement.effective_location_for(None) is None
+
+    def test_a_visitor_gets_none_for_a_sample_they_may_not_open(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert measurement.effective_location_for(None) is None
+        assert measurement.effective_location_for(AnonymousUser()) is None
+
+    def test_a_person_who_may_open_the_sample_gets_its_location(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=hidden, contributor=member, level=ContributionLevel.VIEW
+        )
+
+        found = measurement.effective_location_for(member)
+
+        assert found.source == "sample"
+        assert (found.point.x, found.point.y) == (12.5, 41.5)
+
+    def test_a_person_with_no_level_on_the_sample_gets_none(self, released, hidden):
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert measurement.effective_location_for(PersonFactory(is_active=True)) is None
+
+    def test_changing_the_samples_location_leaves_the_measurements_own(
+        self, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(
+            sample=sample,
+            dataset=released,
+            location=GEOSPoint(8.4318, 49.09495, srid=4326),
+        )
+
+        sample.location = GEOSPoint(1.0, 2.0, srid=4326)
+        sample.save()
+
+        stored = Measurement.objects.get(pk=measurement.pk)
+        assert (stored.location.x, stored.location.y) == (8.4318, 49.09495)
+        assert stored.effective_location_for(None).source == "own"

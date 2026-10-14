@@ -2,6 +2,7 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -273,3 +274,85 @@ class TestVisibleTo:
 
     def test_no_user_at_all_is_treated_as_a_visitor(self, measurements):
         assert set(Measurement.objects.visible_to(None)) == {measurements["released"]}
+
+
+@pytest.mark.django_db
+class TestWithEffectiveLocation:
+    """FR-013 and FR-014 on a queryset: own location, else the sample's for a viewer who may open it."""
+
+    @pytest.fixture
+    def released(self):
+        return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+    @pytest.fixture
+    def hidden(self):
+        return DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+
+    def located(self, queryset, user=None):
+        found = queryset.with_effective_location(user)
+        return {m.pk: m.effective_location for m in found}
+
+    def test_a_measurement_is_given_its_own_location_before_its_samples(
+        self, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        own = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=GEOSPoint(1.0, 2.0, srid=4326)
+        )
+        inherited = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        found = self.located(Measurement.objects.all())
+
+        assert (found[own.pk].x, found[own.pk].y) == (1.0, 2.0)
+        assert (found[inherited.pk].x, found[inherited.pk].y) == (12.5, 41.5)
+
+    def test_a_measurement_with_nothing_located_is_given_none(self, released):
+        sample = RockSampleFactory(dataset=released)
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert self.located(Measurement.objects.all())[measurement.pk] is None
+
+    def test_the_samples_location_is_withheld_from_a_viewer_who_may_not_open_it(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        stranger = PersonFactory(is_active=True)
+
+        for viewer in (None, AnonymousUser(), stranger):
+            assert self.located(Measurement.objects.all(), viewer)[measurement.pk] is None
+
+    def test_the_samples_location_is_given_to_a_viewer_who_may_open_it(
+        self, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=hidden, contributor=member, level=ContributionLevel.VIEW
+        )
+
+        found = self.located(Measurement.objects.all(), member)
+
+        assert (found[measurement.pk].x, found[measurement.pk].y) == (12.5, 41.5)
+
+    def test_the_number_of_queries_does_not_grow_with_the_rows(self, released):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+        ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        with CaptureQueriesContext(connection) as one:
+            list(Measurement.objects.with_effective_location(None))
+        for _ in range(3):
+            ExampleMeasurementFactory(sample=sample, dataset=released)
+        with CaptureQueriesContext(connection) as several:
+            list(Measurement.objects.with_effective_location(None))
+
+        assert len(several.captured_queries) == len(one.captured_queries)

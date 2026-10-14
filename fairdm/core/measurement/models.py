@@ -1,6 +1,9 @@
 """Models for measurements and their related descriptions, dates and identifiers."""
 
+from typing import NamedTuple
+
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.gis import geos
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
@@ -27,6 +30,22 @@ from ..vocabularies import (
     FairDMRoles,
 )
 from .managers import MeasurementQuerySet
+
+
+class EffectiveLocation(NamedTuple):
+    """Where a measurement is for a viewer, and whose location that is.
+
+    Attributes:
+        point: The point, in SRID 4326.
+        elevation: Metres above mean sea level, or None.
+        uncertainty: Metres, or None.
+        source: ``"own"`` for the measurement's own location, ``"sample"`` for its sample's.
+    """
+
+    point: geos.Point
+    elevation: float | None
+    uncertainty: float | None
+    source: str
 
 
 class Measurement(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
@@ -168,6 +187,40 @@ class Measurement(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
             The formatted value.
         """
         return str(self.get_value())
+
+    def effective_location_for(self, user=None):
+        """Return where the measurement is for a viewer: its own location, else its sample's.
+
+        The sample's is used only where the viewer may open the sample, by the same rule as
+        ``MeasurementQuerySet.with_effective_location``.
+
+        Args:
+            user: The viewer, or ``None`` for a visitor who is not signed in.
+
+        Returns:
+            An ``EffectiveLocation`` naming the point, its elevation and uncertainty and whose
+            location it is, or ``None`` when the viewer has none to be shown.
+        """
+        if self.location is not None:
+            return EffectiveLocation(
+                self.location,
+                self.location_elevation,
+                self.location_uncertainty,
+                "own",
+            )
+        row = (
+            Measurement.objects.filter(pk=self.pk)
+            .with_effective_location(user)
+            .values_list(
+                "effective_location",
+                "sample__location_elevation",
+                "sample__location_uncertainty",
+            )
+            .first()
+        )
+        if row is None or row[0] is None:
+            return None
+        return EffectiveLocation(*row, "sample")
 
     def get_absolute_url(self):
         """Return the URL of the measurement's own detail page."""

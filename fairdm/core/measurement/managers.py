@@ -1,5 +1,7 @@
 """QuerySet for measurements, with helpers that load related records in a bounded number of queries."""
 
+from django.contrib.gis.db.models import PointField
+from django.db.models import Case, F, When
 from polymorphic.managers import PolymorphicQuerySet
 
 from fairdm.core.managers import RecordVisibilityMixin
@@ -32,6 +34,39 @@ class MeasurementQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
             "contributors",
             "contributors__contributor",
             "contributors__roles",
+        )
+
+    def with_effective_location(self, user=None):
+        """Annotate ``effective_location``: the measurement's own location, else its sample's.
+
+        The sample's location is used only where the viewer may open the sample, so a
+        measurement in a published dataset never gives away where an unpublished sample was taken.
+
+        Args:
+            user: The viewer, or ``None`` for a visitor who is not signed in.
+
+        Returns:
+            The queryset, each measurement carrying ``effective_location`` as a WGS 84 point or
+            ``None``.
+
+        Example:
+            ```python
+            for measurement in Measurement.objects.with_effective_location(
+                request.user
+            ):
+                print(measurement.effective_location)
+            ```
+        """
+        from fairdm.core.sample.models import Sample
+
+        visible_samples = Sample.objects.visible_to(user).values("pk")
+        return self.annotate(
+            effective_location=Case(
+                When(location__isnull=False, then=F("location")),
+                When(sample__in=visible_samples, then=F("sample__location")),
+                default=None,
+                output_field=PointField(srid=4326),
+            )
         )
 
     def with_metadata(self):
