@@ -5,6 +5,11 @@ from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.contrib.location.models import (
+    LocatedRecord,
+    geography_index,
+    location_constraints,
+)
 from fairdm.db import models
 
 from ..abstract import (
@@ -24,7 +29,7 @@ from ..vocabularies import (
 from .managers import MeasurementQuerySet
 
 
-class Measurement(BasePolymorphicModel):
+class Measurement(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
     """A record of a specific observation or calculation made on a sample.
 
     A polymorphic model: domain-specific measurement types inherit from this base. Subclasses
@@ -41,6 +46,9 @@ class Measurement(BasePolymorphicModel):
         contributors: Generic relation to contributor records.
         sample: The sample on which the measurement was made.
         local_id: The creator's own identifier for the measurement within its dataset.
+        location: The point where the measurement was made, in WGS 84.
+        location_elevation: Metres above mean sea level.
+        location_uncertainty: Metres within which the true place lies.
     """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Measurement")
@@ -91,7 +99,11 @@ class Measurement(BasePolymorphicModel):
         verbose_name_plural = _("measurements")
         ordering = ["-modified"]
         default_related_name = "measurements"
-        indexes = [models.Index(fields=["modified"], name="measurement_modified_idx")]
+        indexes = [
+            models.Index(fields=["modified"], name="measurement_modified_idx"),
+            geography_index("measurement_location_geog_idx"),
+        ]
+        constraints = location_constraints()
         permissions = [
             *CORE_PERMISSIONS,
         ]

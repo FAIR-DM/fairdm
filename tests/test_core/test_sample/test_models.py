@@ -470,18 +470,130 @@ class TestSampleDatasetRelation:
 
 
 @pytest.mark.django_db
-class TestSampleLocationRelation:
-    def test_deleting_a_referenced_location_is_refused(self, dataset):
-        from django.db.models.deletion import ProtectedError
+class TestSampleLocation:
+    def test_the_database_refuses_an_elevation_without_a_location(self, dataset):
+        from django.db import IntegrityError, transaction
 
         from demo.factories import RockSampleFactory
-        from fairdm.factories import PointFactory
 
-        location = PointFactory()
-        RockSampleFactory(dataset=dataset, location=location)
+        with pytest.raises(IntegrityError), transaction.atomic():
+            RockSampleFactory(dataset=dataset, location=None, location_elevation=12.0)
 
-        with pytest.raises(ProtectedError):
-            location.delete()
+    def test_the_database_refuses_an_uncertainty_without_a_location(self, dataset):
+        from django.db import IntegrityError, transaction
+
+        from demo.factories import RockSampleFactory
+
+        with pytest.raises(IntegrityError), transaction.atomic():
+            RockSampleFactory(dataset=dataset, location=None, location_uncertainty=2.0)
+
+    def test_the_database_refuses_a_negative_uncertainty(self, dataset):
+        from django.contrib.gis.geos import Point as GEOSPoint
+        from django.db import IntegrityError, transaction
+
+        from demo.factories import RockSampleFactory
+
+        with pytest.raises(IntegrityError), transaction.atomic():
+            RockSampleFactory(
+                dataset=dataset,
+                location=GEOSPoint(8.4115, 49.0094, srid=4326),
+                location_uncertainty=-1.0,
+            )
+
+    def test_the_database_accepts_a_location_with_elevation_and_uncertainty(
+        self, dataset
+    ):
+        from django.contrib.gis.geos import Point as GEOSPoint
+
+        from demo.factories import RockSampleFactory
+
+        sample = RockSampleFactory(
+            dataset=dataset,
+            location=GEOSPoint(8.4115, 49.0094, srid=4326),
+            location_elevation=-12.5,
+            location_uncertainty=0,
+        )
+
+        stored = Sample.objects.get(pk=sample.pk)
+        assert (stored.location.x, stored.location.y) == (8.4115, 49.0094)
+        assert (stored.location_elevation, stored.location_uncertainty) == (-12.5, 0)
+
+    def test_two_samples_at_the_same_coordinates_change_independently(self, dataset):
+        from django.contrib.gis.geos import Point as GEOSPoint
+
+        from demo.factories import RockSampleFactory
+
+        place = GEOSPoint(8.4115, 49.0094, srid=4326)
+        moved = RockSampleFactory(dataset=dataset, location=place.clone())
+        kept = RockSampleFactory(dataset=dataset, location=place.clone())
+
+        moved.location = GEOSPoint(13.0657, 52.3989, srid=4326)
+        moved.location_elevation = 40.0
+        moved.save()
+
+        kept.refresh_from_db()
+        assert (kept.location.x, kept.location.y) == (8.4115, 49.0094)
+        assert kept.location_elevation is None
+
+    def test_deleting_a_sample_leaves_another_at_the_same_coordinates_alone(
+        self, dataset
+    ):
+        from django.contrib.gis.geos import Point as GEOSPoint
+
+        from demo.factories import RockSampleFactory
+
+        place = GEOSPoint(8.4115, 49.0094, srid=4326)
+        gone = RockSampleFactory(dataset=dataset, location=place.clone())
+        kept = RockSampleFactory(dataset=dataset, location=place.clone())
+
+        gone.delete()
+
+        kept.refresh_from_db()
+        assert (kept.location.x, kept.location.y) == (8.4115, 49.0094)
+
+    def test_clearing_the_location_in_the_form_clears_elevation_and_uncertainty(
+        self, dataset
+    ):
+        from django import forms
+        from django.contrib.gis.geos import Point as GEOSPoint
+        from django.test import RequestFactory
+
+        from demo.factories import RockSampleFactory
+        from demo.models import RockSample
+        from fairdm.core.sample.forms import SampleFormMixin
+        from fairdm.factories import PersonFactory
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset", "status", "location"]
+
+        sample = RockSampleFactory(
+            dataset=dataset,
+            location=GEOSPoint(8.4115, 49.0094, srid=4326),
+            location_elevation=112.0,
+            location_uncertainty=5.0,
+        )
+        data = {
+            "name": sample.name,
+            "dataset": dataset.pk,
+            "status": "unknown",
+            "location_srid": "4326",
+            "location_first": "",
+            "location_second": "",
+            "location_elevation": "",
+            "location_uncertainty": "",
+        }
+        request = RequestFactory().get("/")
+        request.user = PersonFactory(is_active=True)
+
+        form = RockSampleForm(data, instance=sample, request=request)
+        assert form.is_valid(), form.errors
+        form.save()
+
+        stored = RockSample.objects.get(pk=sample.pk)
+        assert stored.location is None
+        assert (stored.location_elevation, stored.location_uncertainty) == (None, None)
 
 
 @pytest.mark.django_db

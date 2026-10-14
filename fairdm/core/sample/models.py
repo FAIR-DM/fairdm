@@ -13,6 +13,11 @@ from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
+from fairdm.contrib.location.models import (
+    LocatedRecord,
+    geography_index,
+    location_constraints,
+)
 from fairdm.db import models
 
 from ..abstract import (
@@ -50,7 +55,7 @@ IGSN_DOI_PATTERN = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
 IGSN_LEGACY_HANDLE_PATTERN = re.compile(r"^10273/\S+$", re.IGNORECASE)
 
 
-class Sample(BasePolymorphicModel):
+class Sample(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
     """A physical or digital object that is part of a dataset.
 
     A polymorphic model: domain-specific sample types inherit from this base. The base ``Sample``
@@ -64,7 +69,9 @@ class Sample(BasePolymorphicModel):
         uuid: Unique short identifier with an ``s`` prefix.
         local_id: The creator's own identifier for the sample within its dataset.
         status: The sample's custody status, such as available or destroyed.
-        location: The sample's location.
+        location: The point where the sample was taken, in WGS 84.
+        location_elevation: Metres above mean sea level.
+        location_uncertainty: Metres within which the true place lies.
         contributors: Generic relation to contributor records.
         related: Samples related through ``SampleRelation``.
         objects: The manager, with the ``SampleQuerySet`` helpers.
@@ -108,15 +115,6 @@ class Sample(BasePolymorphicModel):
         default="unknown",
     )
 
-    location = models.ForeignKey(
-        "fairdm_location.Point",
-        verbose_name=_("location"),
-        help_text=_("The location of the sample."),
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-    )
-
     contributors = GenericRelation("contributors.Contribution")
 
     related = models.ManyToManyField(
@@ -134,7 +132,11 @@ class Sample(BasePolymorphicModel):
         verbose_name_plural = _("samples")
         ordering = ["added"]
         default_related_name = "samples"
-        indexes = [models.Index(fields=["modified"], name="sample_modified_idx")]
+        indexes = [
+            models.Index(fields=["modified"], name="sample_modified_idx"),
+            geography_index("sample_location_geog_idx"),
+        ]
+        constraints = location_constraints()
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import sample data"),

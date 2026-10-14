@@ -121,6 +121,56 @@ class TestMeasurementFieldMetadata:
 
 
 @pytest.mark.django_db
+class TestMeasurementLocation:
+    def test_a_measurement_may_have_no_location(self, sample):
+        measurement = ExampleMeasurementFactory(sample=sample)
+
+        measurement.full_clean()
+
+        assert measurement.location is None
+
+    def test_a_location_with_elevation_and_uncertainty_is_stored(self, sample):
+        from django.contrib.gis.geos import Point as GEOSPoint
+
+        measurement = ExampleMeasurementFactory(
+            sample=sample,
+            location=GEOSPoint(8.4115, 49.0094, srid=4326),
+            location_elevation=112.0,
+            location_uncertainty=5.0,
+        )
+
+        stored = Measurement.objects.get(pk=measurement.pk)
+        assert (stored.location.x, stored.location.y) == (8.4115, 49.0094)
+        assert (stored.location_elevation, stored.location_uncertainty) == (112.0, 5.0)
+
+    @pytest.mark.parametrize(
+        "extra",
+        [
+            {"location_elevation": 1.0},
+            {"location_uncertainty": 1.0},
+        ],
+    )
+    def test_the_database_refuses_elevation_or_uncertainty_without_a_location(
+        self, sample, extra
+    ):
+        from django.db import IntegrityError, transaction
+
+        with pytest.raises(IntegrityError), transaction.atomic():
+            ExampleMeasurementFactory(sample=sample, location=None, **extra)
+
+    def test_the_database_refuses_a_negative_uncertainty(self, sample):
+        from django.contrib.gis.geos import Point as GEOSPoint
+        from django.db import IntegrityError, transaction
+
+        with pytest.raises(IntegrityError), transaction.atomic():
+            ExampleMeasurementFactory(
+                sample=sample,
+                location=GEOSPoint(8.4115, 49.0094, srid=4326),
+                location_uncertainty=-1.0,
+            )
+
+
+@pytest.mark.django_db
 class TestMeasurementLocalId:
     def test_local_id_has_no_uniqueness_constraint(self):
         field = Measurement._meta.get_field("local_id")
