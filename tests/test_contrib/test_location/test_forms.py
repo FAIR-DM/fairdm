@@ -1,9 +1,16 @@
 """Tests for the location input in ``fairdm.contrib.location.forms``."""
 
 import pytest
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
-from fairdm.contrib.location.forms import parse_coordinate
+from fairdm.contrib.location.forms import (
+    Location,
+    LocationField,
+    LocationWidget,
+    parse_coordinate,
+)
 
 # One place, 48 degrees 56 minutes 7 seconds north, written every way the input accepts.
 LATITUDE_FORMS = [
@@ -130,3 +137,161 @@ class TestParseCoordinate:
             parse_coordinate("somewhere", "lat")
 
         assert "somewhere" in str(caught.value.messages[0])
+
+
+KARLSRUHE = Point(8.4115, 49.0094, srid=4326)
+
+
+def projected(point, code):
+    """Return the (northing, easting) of a WGS 84 point in another system, as GDAL gives them."""
+    transform = CoordTransform(SpatialReference(4326), SpatialReference(code))
+    converted = point.transform(transform, clone=True)
+    return converted.y, converted.x
+
+
+def clean(field, *parts):
+    """Clean one submission, given as the field's values in input order."""
+    return field.clean(list(parts))
+
+
+def refusal(field, *parts):
+    """Return the code of the error a submission is refused with."""
+    with pytest.raises(ValidationError) as caught:
+        clean(field, *parts)
+    return caught.value.code
+
+
+class TestLocationField:
+    def test_decimal_degrees_in_wgs84_clean_to_that_point(self):
+        field = LocationField()
+
+        location = clean(field, "4326", "49.0094", "8.4115", "", "")
+
+        assert isinstance(location, Location)
+        assert location.point.srid == 4326
+        assert (location.point.x, location.point.y) == (8.4115, 49.0094)
+
+    def test_a_missing_reference_system_is_wgs84(self):
+        location = clean(LocationField(), "", "49.0094", "8.4115", "", "")
+
+        assert (location.point.srid, location.point.x) == (4326, 8.4115)
+
+    def test_latitude_and_longitude_are_each_read_in_their_own_notation(self):
+        location = clean(LocationField(), "4326", "49 0 33.84 N", "8 24.69", "", "")
+
+        assert location.point.y == pytest.approx(49.0094, abs=1e-5)
+        assert location.point.x == pytest.approx(8.4115, abs=1e-5)
+
+    @pytest.mark.parametrize("code", [25832, 25833, 32632, 31467])
+    def test_projected_coordinates_convert_to_the_point_gdal_gives(self, code):
+        northing, easting = projected(KARLSRUHE, code)
+
+        location = clean(LocationField(), str(code), str(northing), str(easting), "", "")
+
+        assert location.point.srid == 4326
+        assert location.point.distance(KARLSRUHE) == pytest.approx(0, abs=1e-5)
+
+    def test_a_geographic_system_other_than_wgs84_is_read_as_degrees(self):
+        location = clean(LocationField(), "4258", "49 0 33.84", "8 24.69", "", "")
+
+        assert location.point.srid == 4326
+        assert location.point.y == pytest.approx(49.0094, abs=1e-4)
+
+    def test_elevation_and_uncertainty_are_kept_as_given(self):
+        location = clean(LocationField(), "25832", *map(str, projected(KARLSRUHE, 25832)), "-12.5", "3")
+
+        assert (location.elevation, location.uncertainty) == (-12.5, 3.0)
+
+    def test_elevation_and_uncertainty_may_be_left_out(self):
+        location = clean(LocationField(), "4326", "49.0094", "8.4115", "", "")
+
+        assert (location.elevation, location.uncertainty) == (None, None)
+
+    @pytest.mark.parametrize("code", ["99999", "0", "abc", "4326.5", "-4326"])
+    def test_an_unknown_reference_system_is_refused(self, code):
+        assert refusal(LocationField(), code, "49.0094", "8.4115", "", "") == "unknown_system"
+
+    @pytest.mark.parametrize(
+        "parts",
+        [("49.0094", ""), ("", "8.4115")],
+    )
+    def test_one_coordinate_without_the_other_is_refused(self, parts):
+        assert refusal(LocationField(), "4326", *parts, "", "") == "incomplete"
+
+    @pytest.mark.parametrize("parts", [("5", ""), ("", "2"), ("5", "2")])
+    def test_elevation_or_uncertainty_without_coordinates_is_refused(self, parts):
+        assert refusal(LocationField(), "4326", "", "", *parts) == "no_point"
+
+    def test_a_negative_uncertainty_is_refused(self):
+        assert refusal(LocationField(), "4326", "49.0094", "8.4115", "", "-1") == "negative_uncertainty"
+
+    def test_an_uncertainty_of_zero_is_accepted(self):
+        location = clean(LocationField(), "4326", "49.0094", "8.4115", "", "0")
+
+        assert location.uncertainty == 0
+
+    def test_a_projected_point_outside_the_systems_area_is_refused(self):
+        assert refusal(LocationField(), "25832", "6000000", "30000000", "", "") == "out_of_range"
+
+    def test_projected_coordinates_must_be_numbers(self):
+        assert refusal(LocationField(), "25832", "north", "east", "", "") == "invalid"
+
+    def test_a_latitude_beyond_ninety_is_refused_with_the_coordinate_error(self):
+        assert refusal(LocationField(), "4326", "91", "8.4115", "", "") == "out_of_range"
+
+    def test_a_hemisphere_of_the_other_axis_is_refused(self):
+        assert refusal(LocationField(), "4326", "49.0094 E", "8.4115", "", "") == "wrong_axis"
+
+    def test_an_empty_submission_cleans_to_none(self):
+        assert clean(LocationField(), "4326", "", "", "", "") is None
+
+    def test_an_empty_submission_without_a_system_cleans_to_none(self):
+        assert clean(LocationField(), "", "", "", "", "") is None
+
+    def test_a_required_field_refuses_an_empty_submission(self):
+        assert refusal(LocationField(required=True), "", "", "", "", "") == "required"
+
+
+class TestLocationFieldPointOnly:
+    def test_two_coordinates_clean_to_a_wgs84_point(self):
+        location = clean(LocationField(full=False), "49.0094", "8.4115")
+
+        assert location.point.srid == 4326
+        assert (location.point.x, location.point.y) == (8.4115, 49.0094)
+        assert (location.elevation, location.uncertainty) == (None, None)
+
+    def test_it_asks_for_no_reference_system_elevation_or_uncertainty(self):
+        field = LocationField(full=False)
+
+        assert len(field.fields) == 2
+        assert len(field.widget.widgets) == 2
+
+    def test_empty_cleans_to_none(self):
+        assert clean(LocationField(full=False), "", "") is None
+
+    def test_one_coordinate_without_the_other_is_refused(self):
+        assert refusal(LocationField(full=False), "49.0094", "") == "incomplete"
+
+
+class TestLocationWidget:
+    def test_a_stored_location_decompresses_to_decimal_degrees_in_wgs84(self):
+        widget = LocationWidget()
+        location = Location(Point(8.4115, 49.0094, srid=4326), 112.0, 5.0)
+
+        assert widget.decompress(location) == [4326, "49.0094", "8.4115", 112.0, 5.0]
+
+    def test_a_stored_point_alone_decompresses_for_the_point_only_input(self):
+        widget = LocationWidget(full=False)
+
+        assert widget.decompress(Point(8.4115, 49.0094, srid=4326)) == ["49.0094", "8.4115"]
+
+    def test_decompressing_a_value_and_cleaning_it_again_gives_the_same_point(self):
+        point = Point(8.411500000123, 49.009400000456, srid=4326)
+        field = LocationField()
+
+        again = field.clean(field.widget.decompress(Location(point, None, None)))
+
+        assert (again.point.x, again.point.y) == (point.x, point.y)
+
+    def test_nothing_stored_decompresses_to_empty_parts(self):
+        assert LocationWidget().decompress(None) == [4326, None, None, None, None]

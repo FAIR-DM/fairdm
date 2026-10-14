@@ -73,8 +73,21 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinate",
+              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinateLatitude",
+              "tests/test_contrib/test_location/test_forms.py::TestParseCoordinateLongitude"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:27"
+            ]
+          }
         },
         {
           "id": "T002",
