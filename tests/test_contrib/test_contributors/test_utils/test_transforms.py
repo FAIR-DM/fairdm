@@ -175,6 +175,28 @@ class TestRORRoundTrip:
         assert not org.country
         assert org.location is None
 
+    def test_ror_import_keeps_links_the_record_does_not_give(self, recorded):
+        body = recorded("ror-record")
+        body["links"] = []
+        org = Organization(links=["https://example.org"])
+
+        RORTransform().import_data(body, instance=org, save=False)
+
+        assert org.links == ["https://example.org"]
+
+    def test_ror_import_of_a_place_without_coordinates_sets_no_location(
+        self, recorded
+    ):
+        body = recorded("ror-record")
+        place = body["locations"][0]["geonames_details"]
+        place["lat"] = place["lng"] = None
+
+        org = RORTransform().import_data(body, save=False)
+
+        assert org.city == "Potsdam"
+        assert org.country.code == "DE"
+        assert org.location is None
+
     def test_ror_fetch_asks_for_the_version_2_record(self, registry_network, recorded):
         address = "https://api.ror.org/v2/organizations/04z8jg394"
         registry_network.answer(address, recorded("ror-record"))

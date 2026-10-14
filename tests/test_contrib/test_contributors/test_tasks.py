@@ -114,6 +114,23 @@ class TestRORSyncTask:
         assert organization.name == "Test University"
 
 
+    def test_ror_sync_task_names_an_organization_that_has_no_name(
+        self, registry_network, recorded, organization, ror_identifier
+    ):
+        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
+
+        organization.name = ""
+        organization.save()
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
+        )
+
+        sync_contributor_identifier(ror_identifier.pk)
+
+        organization.refresh_from_db()
+        assert organization.name == "GFZ Helmholtz Centre for Geosciences"
+
+
 @pytest.mark.django_db
 class TestPeriodicRefresh:
     @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")

@@ -2,6 +2,8 @@
 
 from datetime import date
 
+from unittest.mock import patch
+
 import pytest
 from django.apps import apps
 from django.contrib.auth import authenticate, get_user_model
@@ -603,6 +605,36 @@ class TestOrganizationFromRor:
         assert organization.city == "Potsdam"
         assert organization.country.code == "DE"
         assert organization.identifiers.get(type="ROR").value == "04z8jg394"
+
+    def test_schedules_a_full_sync_after_commit(
+        self, registry_network, recorded, django_capture_on_commit_callbacks
+    ):
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
+        )
+
+        with patch(
+            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+        ) as delay:
+            with django_capture_on_commit_callbacks(execute=True):
+                organization = Organization.from_ror("04z8jg394")
+
+        delay.assert_called_once_with(organization.identifiers.get(type="ROR").pk)
+
+    def test_without_commit_schedules_no_sync(
+        self, registry_network, recorded, django_capture_on_commit_callbacks
+    ):
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
+        )
+
+        with patch(
+            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+        ) as delay:
+            with django_capture_on_commit_callbacks(execute=True):
+                Organization.from_ror("04z8jg394", commit=False)
+
+        delay.assert_not_called()
 
 
 class TestOwnershipTransfer:
