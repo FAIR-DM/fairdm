@@ -34,14 +34,19 @@ from fairdm.core.overview import format_partial_date
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
-from fairdm.db.models import PolymorphicModel
+from fairdm.db.models import PolymorphicModel, PrefetchPolymorphicManager
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
 from .choices import AccountState, ContributionLevel, OrganizationType
-from .managers import AffiliationManager, ContributionManager, UserManager
+from .managers import (
+    AffiliationManager,
+    ContributionManager,
+    OrganizationQuerySet,
+    UserManager,
+)
 from .profiles import language_names, link_host
 from .validators import validate_iso_639_1_language_codes
 
@@ -1282,6 +1287,8 @@ class Organization(Contributor):
 
     DEFAULT_IDENTIFIER = "ROR"
     is_organization = True
+
+    objects = PrefetchPolymorphicManager.from_queryset(OrganizationQuerySet)()  # type: ignore[assignment,misc]
 
     type = models.CharField(
         max_length=32,

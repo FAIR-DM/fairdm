@@ -2,11 +2,15 @@
 
 from polymorphic.managers import PolymorphicQuerySet
 
+from fairdm.contrib.location.managers import LocatedQuerySet
 from fairdm.core.managers import RecordVisibilityMixin
 
 
-class SampleQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
-    """QuerySet for samples, whose methods chain with the standard queryset operations."""
+class SampleQuerySet(LocatedQuerySet, RecordVisibilityMixin, PolymorphicQuerySet):
+    """QuerySet for samples, whose methods chain with the standard queryset operations.
+
+    ``inside()``, ``within_distance()`` and ``nearest()`` find samples by their location.
+    """
 
     def with_related(self):
         """Load each sample's dataset and project, and prefetch its contributors and roles.
