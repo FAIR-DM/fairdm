@@ -659,8 +659,20 @@
         },
         {
           "id": "T036",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_import_export/test_resources.py::TestImport::test_an_elevation_or_uncertainty_that_is_not_finite_is_reported_and_not_saved"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_import_export/test_resources.py tests/test_core/test_sample/test_plugins.py tests/test_core/test_measurement/test_plugins.py (120 passed)",
+              "mutation: replace the math.isfinite check in MeasureWidget.clean with 'if False:' and rerun TestImport: all five new cases fail (5 failed, 17 passed)"
+            ],
+            "code": [
+              "fairdm/contrib/location/resources.py:38"
+            ]
+          }
         }
       ]
     },

@@ -238,3 +238,10 @@ Did: the widget passes the reference system to the script as data-srid and reads
 Verified: pytest -n0 TestLocationWidgetRendering plus the sample form module, 52 passed. Putting the value back in the string, or marking the attribute safe, turns the new test red.
 Next: T036.
 Watch: the $el.dataset read in x-data was not exercised in a browser; no test here runs the script.
+
+## 2026-10-15T07:56:53Z · Implementer FIX-1 · T036
+
+Did: MeasureWidget.clean refuses nan, inf and -inf, so the elevation and uncertainty columns report the row instead of storing it.
+Verified: pytest -n0 test_resources.py plus the sample and measurement plugin modules, 120 passed. With the isfinite check replaced by False, all five new cases (nan, inf, -inf elevation; nan, inf uncertainty) fail because the row imports.
+Next: T037.
+Watch: none.
