@@ -334,8 +334,9 @@ class TestLocationColumns:
 
     @pytest.mark.parametrize("model", [RockSample, ExampleMeasurement])
     def test_sorting_by_another_column_still_answers(self, client, released, model):
+        # Plain names, so the database's collation and Python's sort agree on the order.
         sample = RockSampleFactory(
-            dataset=released, location=Point(12.5, 41.9, srid=4326)
+            name="Beta", dataset=released, location=Point(12.5, 41.9, srid=4326)
         )
         if model is RockSample:
             RockSampleFactory(name="Alpha", dataset=released)
