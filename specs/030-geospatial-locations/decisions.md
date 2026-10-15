@@ -420,3 +420,15 @@ reads it.
 
 *Revisit if:* never; #511 owns it.
 **ADR:** none — a scope change recorded in the spec's boundary and in #511
+
+## D28. The import path caps a coordinate cell where the row is read, not in the coordinate widget
+
+**Decision:** The 64-character cap on an imported coordinate sits in `LocatedResourceMixin.set_location`,
+before the cell reaches `LocationField.compress`. `CoordinateWidget.clean` is left as it was.
+
+**Why:** The coordinate fields have no model attribute, so import-export never calls the widget's
+`clean` on import. A cap there was never reached: a 65-character latitude cell imported with it in
+place. `set_location` is where the cells go to the parser.
+
+**Revisit if:** the coordinate fields gain an attribute and import starts cleaning through the widget.
+**ADR:** none — a placement detail of FIX-1

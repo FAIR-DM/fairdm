@@ -1,10 +1,15 @@
 """The location as four columns in tabular import and export."""
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
 from import_export.fields import Field
 from import_export.widgets import FloatWidget
 
-from fairdm.contrib.location.forms import LocationField, parse_coordinate
+from fairdm.contrib.location.forms import (
+    MAX_TYPED_LENGTH,
+    LocationField,
+    parse_coordinate,
+)
 
 
 class MeasureWidget(FloatWidget):
@@ -178,14 +183,20 @@ class LocatedResourceMixin:
             row: The row.
 
         Raises:
-            ValidationError: The coordinates cannot be read, are out of range or incomplete, or
-                an elevation or uncertainty has no coordinates or is negative.
+            ValidationError: The coordinates are too long, cannot be read, are out of range or
+                incomplete, or an elevation or uncertainty has no coordinates or is negative.
         """
         point = instance.location
         current = {"latitude": point.y, "longitude": point.x} if point else {}
         coordinates = [
             row.get(name, current.get(name)) for name in ("latitude", "longitude")
         ]
+        if any(len(str(value).strip()) > MAX_TYPED_LENGTH for value in coordinates):
+            raise ValidationError(
+                _("A coordinate is at most %(limit)s characters long."),
+                code="max_length",
+                params={"limit": MAX_TYPED_LENGTH},
+            )
         location = LocationField().compress(
             [
                 None,

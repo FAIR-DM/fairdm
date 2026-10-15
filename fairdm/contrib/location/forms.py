@@ -23,6 +23,8 @@ DEGREE_LETTER = re.compile(r"(?<=\d)\s*(?:deg|d)(?![a-z])", re.IGNORECASE)
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 EPSG_CODE = re.compile(r"(?:epsg:)?(\d{1,8})", re.IGNORECASE)
 WGS84 = 4326
+#: The longest text a coordinate or reference system input takes. Longer text only slows the parser.
+MAX_TYPED_LENGTH = 64
 #: The largest northing or easting taken in metres. No projected system produces more.
 MAX_PROJECTED_METRES = 1e9
 
@@ -221,10 +223,11 @@ class LocationField(forms.MultiValueField):
 
     def __init__(self, full=True, **kwargs):
         self.full = full
-        fields = [forms.CharField(required=False), forms.CharField(required=False)]
+        typed = {"required": False, "max_length": MAX_TYPED_LENGTH}
+        fields = [forms.CharField(**typed), forms.CharField(**typed)]
         if full:
             fields = [
-                forms.CharField(required=False),
+                forms.CharField(**typed),
                 *fields,
                 forms.FloatField(required=False),
                 forms.FloatField(required=False),

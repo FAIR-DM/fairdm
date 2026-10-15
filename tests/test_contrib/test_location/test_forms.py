@@ -258,6 +258,16 @@ class TestLocationField:
     def test_a_hemisphere_of_the_other_axis_is_refused(self):
         assert refusal(LocationField(), "4326", "49.0094 E", "8.4115", "", "") == "wrong_axis"
 
+    @pytest.mark.parametrize("position", [0, 1, 2])
+    def test_an_input_of_more_than_64_characters_is_refused(self, position):
+        parts = ["4326", "49.0094", "8.4115", "", ""]
+        parts[position] = "4326".rjust(65, "0") if position == 0 else "49.".ljust(65, "0")
+
+        with pytest.raises(ValidationError) as caught:
+            clean(LocationField(), *parts)
+
+        assert "max_length" in [error.code for error in caught.value.error_list]
+
     def test_an_empty_submission_cleans_to_none(self):
         assert clean(LocationField(), "4326", "", "", "", "") is None
 

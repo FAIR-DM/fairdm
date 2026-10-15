@@ -242,6 +242,19 @@ class TestImport:
             assert value in " ".join(invalid.error.messages)
         assert not RockSample.objects.filter(dataset=dataset, name="bad").exists()
 
+    @pytest.mark.parametrize("column", ["latitude", "longitude"])
+    def test_a_coordinate_cell_of_more_than_64_characters_is_reported_and_not_saved(
+        self, dataset, column
+    ):
+        cells = {"latitude": "49.0", "longitude": "8.4", column: "8.".ljust(65, "0")}
+
+        result = self.load(
+            sample_resource(dataset), self.row(dataset, name="long", **cells)
+        )
+
+        assert result.has_validation_errors()
+        assert not RockSample.objects.filter(dataset=dataset, name="long").exists()
+
     def test_a_file_without_the_columns_leaves_the_location_as_it_was(self, dataset):
         sample = RockSampleFactory(dataset=dataset, location=at(8.0, 49.0))
         row = {"id": sample.pk, "dataset": dataset.pk, "name": "renamed"}
