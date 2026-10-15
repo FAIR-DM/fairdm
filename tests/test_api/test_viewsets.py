@@ -1257,6 +1257,7 @@ ORGANIZATION_LIST_KEYS = {
     "name",
     "type",
     "country",
+    "location",
     "identifiers",
 }
 
@@ -4117,3 +4118,210 @@ class TestChangedSince:
 
         offered = {parameter["name"] for parameter in parameters}
         assert {"modified_after", "modified_before"} <= offered
+
+
+@pytest.mark.django_db
+class TestLocation:
+    POINT = (8.4115, 49.0094)
+
+    @staticmethod
+    def point(longitude=8.4115, latitude=49.0094):
+        from django.contrib.gis.geos import Point as GEOSPoint
+
+        return GEOSPoint(longitude, latitude, srid=4326)
+
+    @pytest.fixture
+    def dataset(self):
+        return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+    def test_a_sample_returns_a_geojson_point_with_longitude_first(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(RockSample, dataset, location=self.point())
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert data["location"] == {"type": "Point", "coordinates": list(self.POINT)}
+
+    def test_the_elevation_is_the_third_coordinate(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(
+            RockSample, dataset, location=self.point(), location_elevation=-312.5
+        )
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert data["location"]["coordinates"] == [*self.POINT, -312.5]
+
+    def test_the_uncertainty_sits_beside_the_point_in_metres(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(
+            RockSample, dataset, location=self.point(), location_uncertainty=25.0
+        )
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert data["location_uncertainty"] == 25.0
+        assert "uncertainty" not in data["location"]
+
+    def test_a_sample_with_no_location_returns_none(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(RockSample, dataset, location=None)
+
+        data = api_client.get(url_of(sample)).json()
+
+        assert data["location"] is None
+        assert data["location_uncertainty"] is None
+
+    def test_a_list_returns_each_samples_own_location(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import RockSample
+
+        located = make_record(RockSample, dataset, location=self.point())
+        bare = make_record(RockSample, dataset, location=None)
+
+        results = api_client.get(url_of(RockSample, "list")).json()["results"]
+
+        by_uuid = {row["uuid"]: row["location"] for row in results}
+        assert by_uuid[located.uuid]["coordinates"] == list(self.POINT)
+        assert by_uuid[bare.uuid] is None
+
+    def test_a_measurement_returns_its_own_location(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.models import XRFMeasurement
+
+        measurement = make_record(
+            XRFMeasurement,
+            dataset,
+            location=self.point(),
+            location_uncertainty=5.0,
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert data["location"] == {"type": "Point", "coordinates": list(self.POINT)}
+        assert data["location_uncertainty"] == 5.0
+
+    def test_a_measurement_with_none_of_its_own_does_not_return_its_samples(
+        self, api_client, url_of, make_record, dataset
+    ):
+        from demo.factories import RockSampleFactory
+        from demo.models import XRFMeasurement
+
+        sample = RockSampleFactory(dataset=dataset, location=self.point())
+        measurement = make_record(
+            XRFMeasurement, dataset, sample=sample, location=None
+        )
+
+        data = api_client.get(url_of(measurement)).json()
+
+        assert data["location"] is None
+        assert data["location_uncertainty"] is None
+
+    def test_an_organization_returns_its_point_without_an_elevation(
+        self, api_client
+    ):
+        organization = OrganizationFactory(location=self.point())
+
+        listed = api_client.get(reverse("api:organization-list")).json()["results"]
+        record = api_client.get(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        ).json()
+
+        entry = next(row for row in listed if row["uuid"] == organization.uuid)
+        expected = {"type": "Point", "coordinates": list(self.POINT)}
+        assert entry["location"] == expected
+        assert record["location"] == expected
+        assert "location_elevation" not in record
+
+    def test_an_organization_with_no_point_returns_none(self, api_client):
+        organization = OrganizationFactory(location=None)
+
+        record = api_client.get(
+            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
+        ).json()
+
+        assert record["location"] is None
+
+    def test_a_person_carries_no_location(self, api_client):
+        person = PersonFactory(is_active=True, is_claimed=True)
+
+        listed = api_client.get(reverse("api:person-list")).json()["results"]
+        record = api_client.get(
+            reverse("api:person-detail", kwargs={"uuid": person.uuid})
+        ).json()
+
+        assert all("location" not in row for row in listed)
+        assert "location" not in record
+
+    @pytest.mark.parametrize("by", ["patch", "put"])
+    def test_a_change_sending_location_fields_leaves_them_as_they_were(
+        self, url_of, make_record, member_at, signed_in, dataset, by
+    ):
+        from demo.models import RockSample
+
+        sample = make_record(
+            RockSample,
+            dataset,
+            location=self.point(),
+            location_elevation=10.0,
+            location_uncertainty=2.0,
+        )
+        client = signed_in(member_at(sample, ContributionLevel.EDIT))
+        sent = {
+            "name": "Renamed",
+            "location": {"type": "Point", "coordinates": [1.0, 2.0, 3.0]},
+            "location_elevation": 99.0,
+            "location_uncertainty": 7.0,
+        }
+        if by == "put":
+            sent = {**client.get(url_of(sample)).json(), **sent}
+
+        response = getattr(client, by)(url_of(sample), sent, format="json")
+
+        assert response.status_code == 200, response.content
+        sample.refresh_from_db()
+        assert sample.name == "Renamed"
+        assert (sample.location.x, sample.location.y) == self.POINT
+        assert sample.location_elevation == 10.0
+        assert sample.location_uncertainty == 2.0
+
+    def test_a_create_sending_location_fields_stores_none_and_is_not_refused(
+        self, url_of, member_at, signed_in, body_for
+    ):
+        from demo.models import RockSample
+
+        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        client = signed_in(member_at(dataset, ContributionLevel.EDIT))
+        body, _stored = body_for(RockSample)
+
+        response = client.post(
+            url_of(RockSample, "list"),
+            {
+                **body,
+                "dataset": dataset.uuid,
+                "location": {"type": "Point", "coordinates": [1.0, 2.0]},
+                "location_elevation": 99.0,
+                "location_uncertainty": 7.0,
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201, response.content
+        sample = RockSample.objects.get(uuid=response.json()["uuid"])
+        assert sample.location is None
+        assert sample.location_elevation is None
+        assert sample.location_uncertainty is None
