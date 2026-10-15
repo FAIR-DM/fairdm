@@ -194,3 +194,9 @@ test first, and the test is seen to go red under the mutation named.
   notations. The spec, the locations page, the changelog, `CONTEXT.md` and the decisions follow.
   Reference systems are #512 and other notations #513.
 
+- [ ] T042 [US1] The maintainer asked at the merge gate to remove `LocatedRecord` and to stop treating
+  the location code as an app. The three fields are declared directly on `Sample` and `Measurement`.
+  The location code (form field and widget, form mixin, queryset lookups, coverage, import columns,
+  widget template) moves to `fairdm/utils/location/`. `fairdm.contrib.location` keeps only its app
+  config and its two migrations, so databases that already applied them, and the historical sample
+  and contributor migrations that depend on them, still migrate.

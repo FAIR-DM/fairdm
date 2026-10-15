@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -49,6 +49,11 @@
       "state": "PR_READY",
       "at": "2026-10-15T10:02:46Z",
       "note": "merge-gate change T041 verified"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-15T10:24:09Z",
+      "note": "merge gate: remove LocatedRecord, move location code out of contrib"
     }
   ],
   "gates": {
@@ -393,6 +398,11 @@
               "fairdm/contrib/location/forms.py:1"
             ]
           }
+        },
+        {
+          "id": "T042",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
