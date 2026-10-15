@@ -5,7 +5,7 @@ import json
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import GEOSGeometry, Point
 from django.core.exceptions import ValidationError
 
 from fairdm.contrib.location.forms import (
@@ -239,6 +239,18 @@ class TestLocationField:
 
     def test_projected_coordinates_must_be_numbers(self):
         assert refusal(LocationField(), "25832", "north", "east", "", "") == "invalid"
+
+    def test_a_projected_point_that_converts_beyond_wgs84_is_refused(self):
+        # EPSG:4087 accepts this northing and converts it to a latitude of about 179.7.
+        assert refusal(LocationField(), "4087", "20000000", "0", "", "") == "out_of_range"
+
+    def test_a_projected_magnitude_no_system_produces_is_refused_before_conversion(self, monkeypatch):
+        def fail(*args, **kwargs):
+            pytest.fail("the point reached PROJ")
+
+        monkeypatch.setattr(GEOSGeometry, "transform", fail)
+
+        assert refusal(LocationField(), "3857", "0", "1e30", "", "") == "out_of_range"
 
     def test_a_latitude_beyond_ninety_is_refused_with_the_coordinate_error(self):
         assert refusal(LocationField(), "4326", "91", "8.4115", "", "") == "out_of_range"

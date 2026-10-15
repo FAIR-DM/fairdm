@@ -23,6 +23,8 @@ DEGREE_LETTER = re.compile(r"(?<=\d)\s*(?:deg|d)(?![a-z])", re.IGNORECASE)
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 EPSG_CODE = re.compile(r"(?:epsg:)?(\d{1,8})", re.IGNORECASE)
 WGS84 = 4326
+#: The largest northing or easting taken in metres. No projected system produces more.
+MAX_PROJECTED_METRES = 1e9
 
 #: EPSG codes the input suggests. Any other code can be typed.
 SUGGESTED_SYSTEMS = (4326, 4258, 25832, 25833, 32632, 32633, 31467, 27700, 2193)
@@ -304,6 +306,14 @@ class LocationField(forms.MultiValueField):
                 params={"value": code},
             )
         srid = int(found[1])
+        outside_area = forms.ValidationError(
+            _(
+                "These coordinates lie outside the area EPSG:%(code)s covers, so "
+                "they cannot be converted to WGS 84."
+            ),
+            code="out_of_range",
+            params={"code": srid},
+        )
 
         if system.geographic:
             point = geos.Point(
@@ -326,20 +336,18 @@ class LocationField(forms.MultiValueField):
                     ),
                     code="invalid",
                 )
+            # PROJ does not return for some projections given a magnitude like 1e18.
+            if max(abs(northing), abs(easting)) > MAX_PROJECTED_METRES:
+                raise outside_area
             point = geos.Point(easting, northing, srid=srid)
 
         if srid != WGS84:
             try:
                 point.transform(WGS84)
             except GDALException as error:
-                raise forms.ValidationError(
-                    _(
-                        "These coordinates lie outside the area EPSG:%(code)s covers, so "
-                        "they cannot be converted to WGS 84."
-                    ),
-                    code="out_of_range",
-                    params={"code": srid},
-                ) from error
+                raise outside_area from error
+            if abs(point.y) > AXIS_LIMITS["lat"] or abs(point.x) > AXIS_LIMITS["lon"]:
+                raise outside_area
         return point
 
 
