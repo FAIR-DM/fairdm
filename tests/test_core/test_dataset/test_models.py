@@ -1766,6 +1766,16 @@ class TestDatasetSpatialCoverage:
 
         assert dataset.spatial_coverage() == Coverage(10.0, 10.0, 10.0, 10.0)
 
+    def test_a_measurement_placed_by_a_sample_in_another_dataset_widens_the_box(
+        self, dataset
+    ):
+        RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        distant = RockSampleFactory(dataset=elsewhere, location=self.at(50.0, 40.0))
+        ExampleMeasurementFactory(sample=distant, dataset=dataset)
+
+        assert dataset.spatial_coverage() == Coverage(10.0, 10.0, 50.0, 40.0)
+
     def test_it_is_none_when_nothing_is_located(self, dataset):
         RockSampleFactory(dataset=dataset)
 

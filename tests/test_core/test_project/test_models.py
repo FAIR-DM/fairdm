@@ -1302,6 +1302,20 @@ class TestProjectSpatialCoverage:
 
         assert found == Coverage(west=-20.0, south=-5.0, east=30.0, north=40.0)
 
+    def test_a_measurement_placed_by_a_sample_in_another_project_widens_the_box(self):
+        project = ProjectFactory()
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        elsewhere = DatasetFactory(
+            project=ProjectFactory(), visibility=Visibility.PUBLIC, published=True
+        )
+        distant = RockSampleFactory(dataset=elsewhere, location=self.at(50.0, 40.0))
+        ExampleMeasurementFactory(sample=distant, dataset=dataset)
+
+        assert project.spatial_coverage() == Coverage(10.0, 10.0, 50.0, 40.0)
+
     def test_it_is_none_when_nothing_is_located(self):
         project = ProjectFactory()
         dataset = DatasetFactory(
