@@ -53,6 +53,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `null`, and a measurement returns only its own location, never its sample's. The three location
   fields are read-only. See [A record's location](docs/portal-development/restful-api.md#a-records-location).
 
+- **A location is four columns in tabular import and export.** Where a sample or measurement
+  type's `fields` or `resource_fields` list `location`, its resource has `latitude`, `longitude`,
+  `location_elevation` and `location_uncertainty` in place of one. Export writes the record's own
+  values in WGS 84 decimal degrees, and a measurement never writes its sample's location. Import
+  reads the coordinates in any notation the location input accepts and reports a row it refuses,
+  with the value that is wrong, instead of saving it. See
+  [Locations](docs/portal-development/locations.md#in-import-and-export).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages

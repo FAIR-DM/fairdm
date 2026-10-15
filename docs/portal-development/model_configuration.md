@@ -48,7 +48,8 @@ class WaterSampleConfig(ModelConfiguration):
 
 `location` is the point every sample carries. Listing it gives the type's form the location input
 and leaves it out of the generated table, whose latitude and longitude columns are always there.
-See [Locations](locations.md).
+In the import and export file it becomes four columns, `latitude`, `longitude`,
+`location_elevation` and `location_uncertainty`. See [Locations](locations.md).
 
 That's it! FairDM will automatically generate forms, tables, filters, and API endpoints for your WaterSample model.
 

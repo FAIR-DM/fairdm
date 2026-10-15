@@ -259,6 +259,51 @@ sample. Neither column sorts, since a point has no order. A registered type's `t
 list `location`: the generated table leaves any geometry field out, because the two columns are
 always there.
 
+## In import and export
+
+A registered type whose `fields`, or whose `resource_fields`, list `location` gets four columns in
+its import and export file, in place of one:
+
+| Column | Holds |
+|---|---|
+| `latitude` | Degrees north, or south when negative |
+| `longitude` | Degrees east, or west when negative |
+| `location_elevation` | Metres above mean sea level |
+| `location_uncertainty` | Metres, zero or more |
+
+The last two carry the model fields' names, so they cannot collide with an `elevation` column a
+type declares of its own. A location is never exported or imported as a table of its own.
+
+An export writes each record's own values, as WGS 84 decimal degrees, and leaves the four cells
+empty for a record that has none. A measurement never writes its sample's location, so one with no
+location of its own has four empty cells even when its sample is placed.
+
+```csv
+id,name,latitude,longitude,location_elevation,location_uncertainty
+31,RS-14,49.0094,8.4115,112.5,25.0
+32,RS-15,,,,
+```
+
+An import reads `latitude` and `longitude` in any notation the location input reads, one
+notation per cell, so `49.0094`, `49 0.564 N` and `49°0'33.84"N` give the same point. The cells are
+always WGS 84: the file has no reference-system column, so convert projected coordinates first.
+Elevation and uncertainty are plain numbers.
+
+A row the input would refuse is reported with the value that is wrong and the input's own message,
+and is not saved. The rest of the file is read as usual. A row is refused when:
+
+- a coordinate cannot be read, or lies outside its range,
+- one coordinate is given without the other,
+- an elevation or an uncertainty is given with no coordinates,
+- the uncertainty is negative.
+
+A file that has none of the four columns leaves every record's location as it was, and a file with
+only some of them changes only those. An empty cell clears the value.
+
+A resource that derives from `fairdm.contrib.import_export.resources.BaseFairDMResource` gets the
+same columns where its fields list `location`. A `ModelResource` of your own gets them by
+inheriting `fairdm.contrib.location.resources.LocatedResourceMixin` ahead of `ModelResource`.
+
 ## What the input reads
 
 The input takes a reference system, two coordinates, an elevation and an uncertainty. The
