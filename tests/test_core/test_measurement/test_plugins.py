@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.db import models
 from django.template.loader import select_template
 from django.test.utils import isolate_apps
@@ -23,7 +24,6 @@ from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
     PersonFactory,
-    PointFactory,
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -202,7 +202,7 @@ class TestOverviewSample:
         sample = RockSampleFactory(
             dataset=_dataset(published=False),
             name="Hidden-3318 core",
-            location=PointFactory(x="12.345678", y="45.678901"),
+            location=GEOSPoint(12.345678, 45.678901, srid=4326),
         )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
         return sample, _page(client, measurement)
@@ -255,13 +255,14 @@ class TestOverviewSample:
 
     def test_a_sample_with_a_location_shows_a_map(self, client, released):
         sample = RockSampleFactory(
-            dataset=released, location=PointFactory(x="12.345678", y="45.678901")
+            dataset=released,
+            location=GEOSPoint(12.345678, 45.678901, srid=4326),
         )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         response = _page(client, measurement)
 
-        sample.location.refresh_from_db()
+        sample.refresh_from_db()
         marker = response.page.select_one(".overview-map")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
@@ -457,7 +458,9 @@ class TestOverviewCardsAlwaysShown:
         self, client, released
     ):
         hidden = _dataset(published=False)
-        sample = RockSampleFactory(dataset=hidden, location=PointFactory(x="12.5", y="41.5"))
+        sample = RockSampleFactory(
+            dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         response = _page(client, measurement)
@@ -495,3 +498,97 @@ class TestOverviewUnnamedMeasurement:
         assert crumbs is not None
         assert crumbs.get_text(" ", strip=True).endswith(str(unnamed.uuid))
         assert "None" not in crumbs.get_text()
+
+
+@pytest.mark.django_db
+class TestOverviewLocation:
+    """US-3 scenarios 2 to 4, FR-013, FR-014 and FR-025."""
+
+    def _measurement(self, released, *, own=None, sample_location=None, hidden=False):
+        sample = RockSampleFactory(
+            dataset=_dataset(published=False) if hidden else released,
+            location=sample_location,
+            location_elevation=40.0 if sample_location else None,
+        )
+        return XRFMeasurementFactory(
+            dataset=released,
+            sample=sample,
+            location=own,
+            location_elevation=112.0 if own else None,
+            location_uncertainty=25.0 if own else None,
+        )
+
+    def test_a_measurement_with_a_location_of_its_own_shows_it_as_its_own(
+        self, client, released
+    ):
+        measurement = self._measurement(
+            released,
+            own=GEOSPoint(8.43180, 49.09495, srid=4326),
+            sample_location=GEOSPoint(12.5, 41.5, srid=4326),
+        )
+
+        response = _page(client, measurement)
+
+        marker = response.page.select_one(".overview-map")
+        assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
+        shown = response.context["effective_location"]
+        assert shown.source == "own"
+        assert (shown.elevation, shown.uncertainty) == (112.0, 25.0)
+
+    def test_a_measurement_with_none_of_its_own_shows_the_sample_as_the_samples(
+        self, client, released
+    ):
+        measurement = self._measurement(
+            released, sample_location=GEOSPoint(12.5, 41.5, srid=4326)
+        )
+
+        response = _page(client, measurement)
+
+        marker = response.page.select_one(".overview-map")
+        assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
+        shown = response.context["effective_location"]
+        assert shown.source == "sample"
+        assert shown.elevation == 40.0
+
+    def test_a_sample_the_viewer_may_not_open_gives_no_location(
+        self, client, released
+    ):
+        measurement = self._measurement(
+            released, sample_location=GEOSPoint(12.5, 41.5, srid=4326), hidden=True
+        )
+
+        response = _page(client, measurement)
+
+        assert response.context["effective_location"] is None
+        assert response.page.select_one(".overview-map") is None
+        assertNotContains(response, "12.5")
+
+    def test_the_own_location_is_shown_even_when_the_sample_is_hidden(
+        self, client, released
+    ):
+        measurement = self._measurement(
+            released,
+            own=GEOSPoint(8.43180, 49.09495, srid=4326),
+            sample_location=GEOSPoint(12.5, 41.5, srid=4326),
+            hidden=True,
+        )
+
+        response = _page(client, measurement)
+
+        marker = response.page.select_one(".overview-map")
+        assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
+        assertNotContains(response, "12.5")
+
+    def test_a_person_who_may_open_the_hidden_sample_sees_its_location(
+        self, client, released
+    ):
+        measurement = self._measurement(
+            released, sample_location=GEOSPoint(12.5, 41.5, srid=4326), hidden=True
+        )
+        client.force_login(_team_member(measurement.sample.dataset))
+
+        response = _page(client, measurement)
+
+        assert response.context["effective_location"].source == "sample"
+        marker = response.page.select_one(".overview-map")
+        assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")

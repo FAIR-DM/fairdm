@@ -52,8 +52,10 @@ between the earlier specification and the code, what was decided about it and wh
   feature turns them on and makes the API accept their tokens.
 - **A record's page showing its API address** is #432.
 - **Import and export of tabular data** is R21. **Dataset versions in the API** is R23.
-- **GeoJSON endpoints for locations** are not part of this feature. The location module's own were
-  never loaded and were removed with the rest of its GeoDjango code in #196.
+- **Endpoints that serve locations alone**, such as a GeoJSON feature collection of a type's
+  samples, are not part of this feature. The location module's own were never loaded and were
+  removed with the rest of its GeoDjango code in #196. A sample's, measurement's and
+  organization's location is returned as a GeoJSON point on its own record (FS-030).
 
 ## Clarifications
 

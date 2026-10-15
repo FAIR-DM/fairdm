@@ -37,10 +37,16 @@ class DataTableView(FairDMTableView):
         )
 
     def get_queryset(self):
-        """Limit to published records with related objects loaded, chaining from the parent queryset."""
+        """Limit to published records with related objects loaded, chaining from the parent queryset.
+
+        Measurements carry ``effective_location`` for the viewer, which the table's latitude and
+        longitude read.
+        """
         queryset = super().get_queryset().published().with_related()
         if self.model in registry.measurements:
-            queryset = queryset.select_related("sample__dataset", "sample__location")
+            queryset = queryset.select_related(
+                "sample__dataset"
+            ).with_effective_location(self.request.user)
         return queryset
 
     def get_context_data(self, **kwargs):

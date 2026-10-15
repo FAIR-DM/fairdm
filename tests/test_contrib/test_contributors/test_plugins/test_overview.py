@@ -12,6 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 from django.contrib.auth.models import Group
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.urls import NoReverseMatch, reverse
 
 from fairdm import plugins
@@ -28,7 +29,6 @@ from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
-    PointFactory,
     ProjectFactory,
 )
 from fairdm.utils.choices import Visibility
@@ -899,7 +899,9 @@ class TestOrganizationOverview:
 
     # Scenario 9
     def test_an_organization_with_a_location_shows_a_map(self, get_page, db):
-        organization = OrganizationFactory(location=PointFactory())
+        organization = OrganizationFactory(
+            location=GEOSPoint(13.06566, 52.39886, srid=4326)
+        )
 
         _, page = get_page(organization.get_absolute_url())
 

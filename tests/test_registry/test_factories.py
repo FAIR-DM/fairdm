@@ -358,6 +358,18 @@ class TestTableFactory:
         assert "description" not in table_class.base_columns
         assert {"name", "status"} <= set(table_class.base_columns)
 
+    def test_a_geometry_field_is_left_out_of_the_generated_table(self):
+        # The base table carries latitude and longitude, and a point has no sort order.
+        factory = TableFactory(ConcreteSample, fields=["name", "location", "rock_type"])
+
+        table_class = factory.generate()
+
+        assert "location" in factory.get_fields()
+        assert "location" not in table_class.base_columns
+        assert {"name", "rock_type", "latitude", "longitude"} <= set(
+            table_class.base_columns
+        )
+
     def test_table_with_parent_fields(self):
         parent_fields = ["name", "status"]
         factory = TableFactory(SampleModel, fields=parent_fields)

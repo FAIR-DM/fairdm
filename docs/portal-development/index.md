@@ -73,6 +73,7 @@ controlled_vocabularies
 model_configuration
 models/custom-samples
 measurements
+locations
 forms-and-filters/sample-mixins
 contributors
 using_the_registry

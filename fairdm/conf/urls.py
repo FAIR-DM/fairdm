@@ -21,7 +21,6 @@ urlpatterns = [
     path("", include("fairdm.contrib.collections.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
     path("", include("fairdm.contrib.import_export.urls")),
-    path("", include("fairdm.contrib.location.urls")),
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     path("account/tokens/", include("mvp_accounts.tokens.urls")),
     path("account-center/", include("mvp.urls")),

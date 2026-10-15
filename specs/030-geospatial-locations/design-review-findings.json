@@ -1,0 +1,145 @@
+{
+  "stage": "design",
+  "lens": "architecture",
+  "verdict": "approve",
+  "risk": "medium",
+  "scope": "Design review of FS-030 plan.md, tasks.md, research.md and decisions.md against the approved spec.md, sketch.md, CONSTITUTION.md and CONTEXT.md, with targeted reads of fairdm/core/{sample,measurement,dataset}/{models,managers,admin,plugins,forms}.py, fairdm/core/managers.py, fairdm/core/abstract.py, fairdm/api/serializers.py, fairdm/registry/factories.py, fairdm/contrib/collections/{tables,views}.py, fairdm/contrib/contributors/{models,forms/*,utils/transforms,admin}.py, fairdm/contrib/import_export/{resources,views,utils}.py and the installed django, django-tables2 and rest_framework packages in .venv. All three lenses ran; finding ids carry the lens (SPEC = spec-compliance, SEC = security, ARCH = architecture) because the schema allows one lens per file. Counts: FR against tasks 36 of 36; SC against tasks 7 of 7; acceptance scenarios against a planned test 48 of 48 (gaps in SPEC-002); routes the feature adds or changes with their visibility rule 5 of 5 (measurement page, collection tables, API sample/measurement/organization, DataCite metadata, tabular export; the location page route is removed); new code against the tree (research 'What already exists') 13 of 13, with two pieces the list omits (the LocatedRecord abstract model and the Organization queryset/manager). Not verified: lat-lon-parser behaviour (not installed in the venv; research cites a 2026-10-14 trial) and every PostGIS query-plan claim (no database run in this review; there is no shell). Verified against installed code: Django gis `coveredby` and `dwithin` lookups and the geography distance handling (gis/db/backends/postgis/operations.py:268-303), GistIndex accepting expressions, Index.max_name_length = 30 (db/models/indexes.py:17) and models.E034 (db/models/base.py:2175), DRF's ModelField fallback for a geometry field (rest_framework/serializers.py:947), django-tables2 ordering by the column accessor (columns/base.py:562-573, data.py:213).",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-10-13/1bb3e641",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The API leaves location_uncertainty writable, so a write without a location is an unhandled IntegrityError, and the plan contradicts its own decision D14 that the location fields are read-only.",
+      "evidence": "plan.md D9 adds `location` and `location_uncertainty` to common_fields. fairdm/registry/factories.py:882-905 builds the generated serializer's Meta from base.Meta plus those names, and fairdm/api/serializers.py:768-781 and :812-824 set no read_only_fields, so DRF's ModelSerializer builds an ordinary writable FloatField for location_uncertainty. decisions.md D14 (lines 204-211) says the location fields are read-only and that a create or change leaves a location as it was. The CheckConstraint in plan D1 (uncertainty null whenever the location is null, and at least 0) is not mirrored by DRF, so ModelSerializer.create/update reaches the database.",
+      "reproduction": "PATCH or POST a sample with {\"location_uncertainty\": 5} on a sample that has no location, or {\"location_uncertainty\": -1}: the CHECK constraint raises IntegrityError and the client gets a 500. With a location present the same PATCH silently changes the uncertainty, which D14 says must not happen.",
+      "suggested_fix": "plan.md D9: state that `location_uncertainty` is listed in `read_only_fields` on the Meta of BaseSampleSerializer and BaseMeasurementSerializer (generated serializers inherit base.Meta). Add one case to T023: a PATCH carrying location_uncertainty leaves the stored value unchanged."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "medium",
+      "confidence": "likely",
+      "claim": "D6 narrows a dataset's samples by visibility for the viewer but does not say the dataset's measurements are narrowed the same way, so FR-023 can be met for samples and missed for a viewer who holds a level on one record only.",
+      "evidence": "plan.md D6 (lines 138-140): 'the dataset's samples visible to the viewer and the effective locations of its measurements for the viewer'. RecordVisibilityMixin.visible_to (fairdm/core/managers.py:137-162) admits a record on a level held on that one record, so someone listed only on one sample of a private dataset sees that sample and not its siblings. A measurement queryset that is only annotated with the effective location, and not passed through visible_to(user), counts every measurement's own location in that dataset. spec.md FR-023 and SC-004 require only records the viewer may open to count.",
+      "reproduction": "Private dataset with samples S1, S2 and measurement M (own location, on S2). User holds a level on S1 only. Dataset.spatial_coverage(user) is expected to cover S1 alone; with measurements not narrowed it also covers M's own location.",
+      "suggested_fix": "plan.md D6: say that both the samples and the measurements are taken through visible_to(user) before the extents are read, and that the sample fallback uses Sample.objects.visible_to(user). T017 already asserts the behaviour; make its fixture a user holding a level on one sample only."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The Latitude and Longitude table columns sort by a lookup that does not exist on a geometry field, so clicking either header raises a FieldError.",
+      "evidence": "plan.md D7 keeps `SampleTable.latitude = Column(accessor=\"location.y\")` and reads `effective_location` for measurements; fairdm/contrib/collections/tables.py:138-139 and :155-156 declare those columns orderable (the default). django-tables2 orders by the accessor with the dot replaced by '__' (django_tables2/columns/base.py:562-573, data.py:213-214), giving order_by('location__y'). The only transforms GeoDjango registers on a spatial field are isempty and isvalid (django/contrib/gis/db/models/functions.py:424-433), so 'y' and 'x' are not lookups. Today this works because location is a foreign key to Point with x and y columns.",
+      "reproduction": "Open a sample collection table and click the Latitude header: ?sort=latitude resolves to .order_by('location__y') and raises FieldError (Unsupported lookup 'y' for PointField).",
+      "suggested_fix": "plan.md D7 / tasks.md T019: declare the four coordinate columns (latitude and longitude on SampleTable and MeasurementTable) with orderable=False, and add one T019 case that requests the table sorted by latitude and gets a 200."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "D1 inherits LocatedRecord.Meta but Sample.Meta and Measurement.Meta both assign their own `indexes`, which replaces the inherited list and drops the geography index; the index also needs a class-templated name of at most 30 characters.",
+      "evidence": "fairdm/core/sample/models.py:137 and fairdm/core/measurement/models.py:94 each set `indexes = [models.Index(fields=[\"modified\"], ...)]`. A Meta subclass attribute replaces the parent's, it does not merge. plan.md D1 (lines 44-51) says only that each Meta inherits LocatedRecord.Meta. Django limits an index name to 30 characters (django/db/models/indexes.py:17, system check models.E034 at db/models/base.py:2175) and requires a name for an expression index (indexes.py:48); a fixed name in an abstract Meta is created twice on Sample and Measurement. The `%(app_label)s_%(class)s_` prefix D1 uses for the constraints gives 'measurement_measurement' (23 characters) before any suffix.",
+      "reproduction": "Build Sample.Meta(LocatedRecord.Meta) with its own `indexes = [sample_modified_idx]`: makemigrations produces no geography index, and T016's within_distance plan assertion then sees a sequential scan.",
+      "suggested_fix": "plan.md D1: write each Meta's list as `indexes = [*LocatedRecord.Meta.indexes, <its own>]`, and name the expression index `%(class)s_location_geog` (25 characters for measurement), without the app label."
+    },
+    {
+      "id": "ARCH-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "T008's grep finds `Point` and its settings but not the places that name `location` as a relation, so SampleQuerySet.with_related, the collections view and the sample admin break at runtime or at startup.",
+      "evidence": "tasks.md T008 greps `Point\\b|PointFactory|fairdm_location\\.Point|location\\.latitude|location\\.longitude|FAIRDM_...`. None of these match: fairdm/core/sample/managers.py:22-26 `select_related(\"dataset\", \"dataset__project\", \"location\")` (a FieldError on a non-relational field for every with_related() call); fairdm/contrib/collections/views.py:43 `select_related(\"sample__dataset\", \"sample__location\")`; fairdm/core/sample/admin.py:131 `autocomplete_fields = [\"dataset\", \"location\"]` (admin.E038 at startup, which is a check error that stops the server). plan.md D7 mentions the admin only as 'show the three fields'.",
+      "suggested_fix": "tasks.md T008: add to the list of references to change `SampleQuerySet.with_related` (drop \"location\" from select_related), `collections/views.py:43` (drop \"sample__location\"; the Case on the sample is fetched in the annotation) and `SampleChildAdmin.autocomplete_fields` (drop \"location\", add the two new fields to base_fieldsets)."
+    },
+    {
+      "id": "ARCH-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "Organization gets within_distance and nearest (D4) but not the geography cast index, so FR-020 is unmet for them, and T016 would not notice because it plans samples only.",
+      "evidence": "plan.md D1 declares the GistIndex on `LocatedRecord.Meta` only; D2 gives Organization a bare PointField, not a LocatedRecord, and D4 mixes LocatedQuerySet into an OrganizationQuerySet. A geography-cast expression is not served by the geometry GiST index on `location`. spec.md FR-020 says every lookup uses a spatial index; tasks.md T016 (lines 89-91) checks 'inside' and 'within_distance' on 2,000 samples. AS 2.3 and 2.7 promise distance and area lookups on organizations.",
+      "suggested_fix": "plan.md D2: add the same expression GistIndex (same expression as D1, name <= 30 characters, e.g. `organization_location_geog`) to Organization.Meta.indexes. tasks.md T016: assert an index scan for within_distance on organizations as it does on samples."
+    },
+    {
+      "id": "ARCH-005",
+      "severity": "medium",
+      "confidence": "likely",
+      "claim": "D5's measurement `inside` is a single OR over a join, which PostgreSQL cannot answer from either spatial index, and nearest-first ordering by ST_Distance cannot use the GiST index; the plan states the first works ('each branch uses its own spatial index') and never plans a check.",
+      "evidence": "plan.md D5 (lines 119-120): `Q(location__coveredby=area) | Q(location__isnull=True, sample__location__coveredby=area, sample__in=...)`. The two branches test columns of two different tables (measurement and sample) joined by sample_id, so a bitmap OR of two index scans on one table is not available and the predicate is a join filter. D4: `nearest` annotates distance and orders by it; ST_Distance in ORDER BY does not use a GiST index (KNN needs the `<->` operator in ORDER BY). T016 covers samples only (tasks.md 89-91); FR-020 and SC-005 cover every lookup.",
+      "suggested_fix": "plan.md D5: build each branch as its own subquery, `Q(pk__in=Measurement.objects.filter(location__coveredby=area).values('pk')) | Q(pk__in=<own-less measurements whose sample is in Sample.objects.visible_to(user).filter(location__coveredby=area)>)`, so each subquery can use its own index. plan.md D4: order `nearest` by the `<->` operator on the geography cast (keep the `distance` annotation for display). tasks.md T016: add the measurement `inside` and a `nearest(...)[:10]` plan to the same test. If EXPLAIN shows a branch still scans sequentially at 2,000 rows, say so in decisions.md rather than leave FR-020 claimed."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "medium",
+      "confidence": "likely",
+      "claim": "D10 names the import and export columns elevation, latitude, longitude and uncertainty, the very unprefixed names D12 and research say collide with the fields portals already declare on their sample types.",
+      "evidence": "research.md lines 85-91 ('Portals already declare `elevation` and `depth` on their own sample types ... the Global Heat Flow Database portal's sites carry an elevation') is why the model fields are `location_elevation` and `location_uncertainty`. plan.md D10 (lines 182-190) expands `location` into columns `latitude`, `longitude`, `elevation` and `uncertainty`; ModelResource keys its fields by name, so a type listing both `elevation` and `location` has two columns named `elevation` in one resource. spec.md FR-031 lists 'latitude, longitude, elevation and uncertainty columns' without fixing the header text.",
+      "suggested_fix": "plan.md D10: name the four columns after the model fields, `location_latitude`, `location_longitude`, `location_elevation`, `location_uncertainty` (which also matches the API's `location_uncertainty`), and update T026/T028 and the locations page to match. If the maintainer reads FR-031 as literal header names, that is a delta brief to the spec, not a plan edit."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "FR-028's address and SC-007 each lack a task that would fail if the behaviour regressed, and SC-007 as written cannot be satisfied while FR-036 requires documents to name the removed names.",
+      "evidence": "spec.md FR-028 / edge case: `/location/<lon>/<lat>/` answers 'not found'; tasks.md T008 deletes test_views.py and the route and plans no test of the address (plan D7 says it 404s 'because nothing routes it'). spec.md SC-007: no module, setting, document or template refers to Point, FAIRDM_CRS, FAIRDM_X_COORD or FAIRDM_Y_COORD. tasks.md T008's grep runs over fairdm/, demo/ and tests/ only, once; docs/, CONTEXT.md, specs/ and README are not covered. spec.md FR-036 and its 'Breaking changes' section require the changelog and upgrade notes to name `Point.x`, `FAIRDM_CRS` and the others, which SC-007 forbids.",
+      "suggested_fix": "tasks.md T008: add one test that GET /location/1.0/2.0/ returns 404 (FR-028). Replace the one-off grep with a final done-check run over fairdm/ demo/ tests/ docs/ CONTEXT.md README.md specs/ that allows the names only in CHANGELOG.md and the upgrade notes page; record that allowance in the plan so SC-007 is satisfiable. If the maintainer wants SC-007 reworded to carve out the upgrade notes, that is a spec edit."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "FR-010 says an organization's point is entered in the notations of FR-006, but the plan names one organization form and a second form that lists `location` would show GeoDjango's default map widget.",
+      "evidence": "plan.md D3 names `OrganizationProfileForm` only. fairdm/contrib/contributors/forms/organization.py:47-49 (`OrganizationCreateForm`, imported by views/organization.py:8) lists \"location\" in Meta.fields, and the plain ModelForm builds a GeoDjango form field for a PointField, not the notation input. A second class of the same name at forms/organization.py:97-115 also lists \"location\" and appears unused (the registered form is forms/profile.py:295, wired in conf/settings/auth.py:92).",
+      "suggested_fix": "plan.md D3 / tasks.md T030: use the full=False LocationField in OrganizationCreateForm as well (one mixin, two forms), and delete forms/organization.py's unused OrganizationProfileForm after confirming nothing imports it (git grep before removing)."
+    },
+    {
+      "id": "ARCH-006",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "D5 writes the visibility rule twice, as a queryset Case and as a Python method, which is the pair that drifts and where SC-004 would break.",
+      "evidence": "plan.md D5 (lines 122-127): `with_effective_location(user)` annotates with Case, and `Measurement.effective_location_for(user)` 'using the same visibility rule' is a separate implementation returning `(point, elevation, uncertainty, \"own\" | \"sample\")`. research.md (lines 105-109) argues the rule must be the same everywhere.",
+      "suggested_fix": "plan.md D5: implement effective_location_for as a one-row call of the queryset (`Measurement.objects.filter(pk=self.pk).with_effective_location(user)`), with the Case annotating a second value for 'own' or 'sample'. One implementation of the rule remains."
+    },
+    {
+      "id": "ARCH-007",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "Making the admin classes inherit GISModelAdmin has no requirement behind it in spec.md, so the task can be dropped.",
+      "evidence": "plan.md D7 (lines 162-164) and tasks.md T009 ('Admin classes on GISModelAdmin'). No FR or acceptance scenario mentions the admin. SampleChildAdmin (fairdm/core/sample/admin.py:112) is a PolymorphicChildModelAdmin and the registry generates its admin classes from it, so the change is a polymorphic multi-inheritance mix with no stated test. The default admin form already renders a PointField with GeoDjango's own widget.",
+      "suggested_fix": "plan.md D7 / tasks.md T009: drop the GISModelAdmin change. Keep only what keeps the admin working (the autocomplete_fields and base_fieldsets edits in ARCH-003)."
+    },
+    {
+      "id": "ARCH-008",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "Migration of Sample.location from a ForeignKey to a PointField of the same name will be autodetected as AlterField, which PostgreSQL cannot do (integer to geometry).",
+      "evidence": "plan.md D1 and tasks.md T006: 'Write the migrations: sample and measurement fields'. fairdm/core/sample/models.py:111-118 has `location` as a ForeignKey to fairdm_location.Point; the new field has the same name. Django's autodetector emits AlterField when neither side is many-to-many. The schema editor would rename location_id and run ALTER COLUMN ... TYPE geometry USING the integer column, which PostgreSQL rejects even on an empty table.",
+      "suggested_fix": "tasks.md T006: write the sample migration by hand as RemoveField then AddField (no data is carried, per D8), and keep the fairdm_location 0002 DeleteModel after it as planned."
+    }
+  ],
+  "notes": [
+    "plan.md D1: `Sample` and `Measurement` must list LocatedRecord after BasePolymorphicModel in their bases; fairdm/core/abstract.py:247 records that PolymorphicModel first is load-bearing.",
+    "research.md line 33 refers to `Measurement.located_for()`; plan.md D5 and tasks.md T012 call it `effective_location_for`. One name.",
+    "plan.md D6: the DataCite template should read `{% with coverage=dataset.spatial_coverage %}` once; the old `bbox` was a cached_property and the method runs two aggregates per queryset on every access.",
+    "plan.md D4: `inside((west, south, east, north))` with west > east (the form `Coverage` returns, per FR-022) builds an inverted box and silently matches nothing. State what it does, or document that a crossing area is passed as a polygon.",
+    "plan.md D6: choosing the narrower of the 0-cut and 180-cut boxes gives the smallest box only when the largest longitude gap contains the prime or the 180th meridian (e.g. points at 20, 100, 170, -170, -100, -40 give 300 degrees, not the minimal 280). FR-022 and SC-006 are met; FR-021's 'smallest' is met only in that sense. Say so on the locations page.",
+    "tasks.md T002: add the assertion that an elevation passed with EPSG 25832 coordinates is stored unchanged (FR-003) and that the stored point is not rounded (FR-002).",
+    "plan.md Technical context: Article II asks for the new dependency's justification in the plan's Complexity Tracking; it lives in research.md and decisions D11. Add one sentence to the plan.",
+    "Existing behaviour the feature inherits, not a finding against this plan: RecordVisibilityMixin.visible_to (fairdm/core/managers.py:154) ignores the project's visibility, while DatasetQuerySet.get_visible (fairdm/core/dataset/models.py:129-140) and CONTEXT.md 'Visibility' say a private project hides everything beneath it. Every new lookup, the coverage and the DataCite box rest on visible_to, so a sample in a public dataset under a private project counts as openable. Worth raising separately with the maintainer.",
+    "plan.md D6 / spec.md FR-034: DataCite coverage 'as seen by a visitor' is empty for any dataset that is not yet public and published, so a researcher downloading the metadata of a draft dataset gets no geoLocation. This is what FR-034 says; flagging it so US7's AS 7.1 fixture is a published dataset."
+  ]
+}

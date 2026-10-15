@@ -1,0 +1,104 @@
+{
+ "story": "US3",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 504,
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-10-12/7c41e9a6"
+  }
+ ],
+ "tasks": [
+  "T011",
+  "T012",
+  "T013"
+ ],
+ "context": {
+  "why": "Second story of FS-030. US1 is accepted on this branch: Sample and Measurement both inherit LocatedRecord (location PointField 4326, location_elevation, location_uncertainty); fairdm/contrib/location/forms.py has parse_coordinate, Location, LocationField, LocationWidget and LocationFormMixin, wired into SampleFormMixin so a sample type gets the input only when its registration lists 'location'. Point is gone. This story gives a measurement the same input (MeasurementFormMixin on LocationFormMixin, shown only when the measurement type's registration lists location, FR-009), adds the effective location (plan D5: MeasurementQuerySet.with_effective_location(user=None) annotating effective_location via Case: own location, else the sample's when the sample is in Sample.objects.visible_to(user), else null; Measurement.effective_location_for(user) returning point, elevation, uncertainty and 'own'|'sample', or None, reading that annotation for its own row so the visibility rule is written once), and makes the measurement overview use it. The approved template block overview.location in fairdm/core/measurement/templates/measurement/measurement_overview.html already expects an `own_location` context value and titles the card 'Measurement location' for the measurement's own and 'Sample location' for the sample's; adapt the plugin context so the approved screen is produced from effective_location_for(request.user) \u2014 keep the markup and copy as approved. The demo's XRF measurement registration (demo/config.py XRFMeasurementConfig.fields) lists location, and the demo seed (demo/seed/measurements.py) gives the fully described XRF measurement its own location (lat 49.09495, lon 8.43180, elevation 112, uncertainty 25) as the approved prototype did.",
+  "spec_sections": [
+   "User Story 3",
+   "Clarifications (measurement fallback, API none)",
+   "FR-009",
+   "FR-013",
+   "FR-014",
+   "FR-025",
+   "SC-002",
+   "SC-004"
+  ],
+  "plan_sections": [
+   "D3 (LocationFormMixin)",
+   "D5",
+   "D7 (measurement overview)",
+   "D11",
+   "D12"
+  ],
+  "prior_decisions": [
+   "D1: a location is a value on each record, never a shared row. No Location model, no get_or_create.",
+   "D2: Organization holds a plain point, a Person holds none. Contributor.location is removed.",
+   "D8: no data migration \u2014 existing Point data is not carried across.",
+   "D12: field names are location, location_elevation, location_uncertainty.",
+   "FR-009: a sample type shows the location input only when its registration's fields list location. The demo's RockSample registration is to list location (as the approved prototype did); WaterSample does not.",
+   "D3 (decisions): a measurement falls back to its sample's location only for a viewer who may open the sample (Sample.objects.visible_to(user)); for anyone else a measurement with no location of its own has none.",
+   "D16: location constraints are listed in each concrete model's own Meta (location_constraints()), not on LocatedRecord.Meta.",
+   "Do not build the lookups (inside, within_distance, nearest), the spatial coverage, tables, API or import/export: later stories."
+  ],
+  "environment": "uv-managed; `uv sync` after adding lat-lon-parser. GDAL/GEOS/PROJ come from a micromamba env: before ANY python/pytest/manage.py command run `. /tmp/fs494/scripts/env.sh` (sets LD_LIBRARY_PATH, PROJ_DATA, GDAL_LIBRARY_PATH, GEOS_LIBRARY_PATH, DJANGO_ENV=development). PostGIS runs in Docker on localhost:5432 (postgres/postgres), already up; stack.development.env points at it. Narrow tests: `uv run pytest -q -n0 <path>::<Class>` (add --create-db once after a model change). Migrations: `uv run python manage.py makemigrations <app> --settings=config.settings`. Lint gate: `uv run pre-commit run --files <changed files>` (stage new files first). Full verify, once, at the end: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main`. The full suite takes about 6 minutes here. A dev server is running from this worktree on port 8000 and will autoreload; ignore it. Git identity is bound to the repo's bot. Commit normally, never push.",
+  "verified_base": {
+   "commit": "a62b85e4",
+   "verified_at": "2026-10-14T22:51:16Z",
+   "steps": [
+    "conformance",
+    "docs",
+    "lint",
+    "typecheck",
+    "test",
+    "build"
+   ],
+   "note": "US1 accepted. Full verify green on 71cdaf6f, then only spec-directory commits: about 6,850 tests on PostGIS, about 4 to 6 minutes."
+  },
+  "acceptance": [
+   {
+    "task": "T011",
+    "given_when_then": "Given a measurement type listing location, its edit form has the location input and saves a typed location like a sample's; a type not listing it has none. Given a measurement with its own location, its page shows that location as the measurement's. Given none of its own and a sample the viewer may open, the page shows the sample's location as the sample's. Given a sample the viewer may not open, the page shows no location. Changing the sample's location leaves the measurement's own unchanged."
+   },
+   {
+    "task": "T012",
+    "given_when_then": "MeasurementFormMixin uses LocationFormMixin; with_effective_location and effective_location_for exist as plan D5 and share one visibility rule; the measurement overview is driven by effective_location_for(request.user) with the approved markup; the demo XRF registration lists location and its seed has its own location."
+   },
+   {
+    "task": "T013",
+    "given_when_then": "docs/portal-development/locations.md describes a measurement's own location and its effective location with examples that run; FS-018's spec text matches."
+   }
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 180
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/030-geospatial-locations/tasks.md (Phase 2 only).",
+  "Read the plan.md sections named in context.plan_sections and the spec sections in context.spec_sections. Read the repo's docs/contributing/standards/testing.md before writing a test.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/030-geospatial-locations/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Record each finished task with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge ledger-task --repo FAIR-DM/fairdm --feature 030-geospatial-locations --path /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --stage S4 --done T0nn ...` and each progress entry with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge progress --feature 030-geospatial-locations --who 'Implementer US3' --task T0nn`, exactly as your protocol gives them.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations/specs/030-geospatial-locations/report-us3.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except tests in tests/test_core/test_measurement/ that assert the measurement page's location card from the sample alone and must now account for the measurement's own location (keep what they assert; name each change in progress.md).",
+  "Never touch files outside this story's scope. Do not start on another story's tasks.",
+  "Never edit feature-state.json by hand; use kit/forge ledger-task for your own tasks only.",
+  "Never push, merge, open or comment on anything on GitHub. You hold no tokens and must not obtain one.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never test wording or appearance (testing standard section 1).",
+  "No new dependencies, no new settings, no compatibility aliases, no leading-underscore names. Reusable template pieces are Cotton components."
+ ]
+}

@@ -104,7 +104,7 @@ Start simple, add complexity as needed. There are three tiers, in increasing ord
 ```python
 # Tier 1: a field list, shared or per component
 fields = ["name", "location", "temperature"]
-table_fields = ["name", "location"]
+table_fields = ["name", "location"]  # location is left out: the table has latitude and longitude
 
 # Tier 2: your own class for one component; the other five stay generated
 table_class = MyCustomTable

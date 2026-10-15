@@ -5,10 +5,13 @@ from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
 from fairdm.core.models import Sample
+from fairdm.utils.location.resources import LocatedResourceMixin
 
 
-class BaseFairDMResource(ModelResource):
+class BaseFairDMResource(LocatedResourceMixin, ModelResource):
     """Shared base class for Sample and Measurement resources.
+
+    A ``location`` among the fields is written and read as the four location columns.
 
     Args:
         dataset: The dataset that imported rows are attributed to.

@@ -233,6 +233,7 @@ class RockSampleConfig(BaseSampleConfiguration):
         "name",
         "rock_type",
         "collection_date",
+        "location",
         "weight_grams",
         "hardness_mohs",
         "mineral_content",
@@ -405,6 +406,7 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
         keywords=["XRF", "elemental analysis", "spectroscopy", "geochemistry"],
     )
     fields = [
+        "location",
         "element",
         "concentration_ppm",
         "detection_limit_ppm",

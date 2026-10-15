@@ -100,8 +100,9 @@ page. This specification describes the design that review settled on.
   tabs per type. Related samples go in the side column as one list, each entry saying how that
   sample relates to this one (parent sample or subsample).
 - Q: Does a sample's location get a map? → A: Yes, an interactive map in the side column with the
-  point marked and the coordinates listed with it. A measurement shows its sample's location on the
-  same kind of map, when the sample has one and the viewer may see the sample.
+  point marked and the coordinates listed with it. A measurement shows its own location on the
+  same kind of map, or its sample's when it has none of its own, the sample has one and the viewer
+  may see the sample.
 - Q: Where does a measurement's "About this type" content go? → A: Into a dialog that opens from the
   type badge in the header, and the card is gone. A sample's type badge works the same way, since
   both read the same registry description. A type the registry does not describe has a plain badge.
@@ -284,9 +285,10 @@ result, and the type badge opens what the registry says about this kind of measu
 protocol it follows. They see how this one was made: set up, measured and taken down, by whom. They
 see the sample it was made on, laid out like a small version of the sample's own header, even when
 the sample sits in another team's dataset, and the other measurements on the same sample. When the
-sample has a location, the side column maps it. A citation is offered, and where the measurement has
-no DOI of its own the page suggests citing its dataset. The page sits in the same tabbed detail view
-as the other three records. A portal that defines an XRF measurement type shows its element and
+measurement has a location of its own, or none and its sample has one the viewer may see, the side
+column maps it. A citation is offered, and where the measurement has no DOI of its own the page
+suggests citing its dataset. The page sits in the same tabbed detail view as the other three
+records. A portal that defines an XRF measurement type shows its element and
 concentration in place of a single value by providing one template.
 
 **Why this priority**: Measurements are the other record type portals extend. The page depends on
@@ -309,9 +311,10 @@ member of its dataset's team, including the one recorded in a different dataset 
 5. **Given** a measurement whose sample's dataset is not published, **When** a visitor opens it,
    **Then** the sample is described as an unpublished sample and is neither named nor linked, and
    no map of its location is shown.
-6. **Given** a measurement whose sample has a location and may be seen, **When** it is opened,
-   **Then** a map shows the sample's location. **Given** a sample with no location, **Then** no map
-   is shown.
+6. **Given** a measurement with a location of its own, **When** it is opened, **Then** a map shows
+   the measurement's location, whatever the state of its sample. **Given** a measurement with none
+   of its own whose sample has a location and may be seen, **Then** a map shows the sample's
+   location. **Given** no location of its own and a sample with none, **Then** no map is shown.
 7. **Given** a measurement type that declares a value, **When** the page is shown, **Then** the
    result is shown with its uncertainty where there is one. **Given** a type that declares no value,
    **Then** the result area is left for the type to fill.
@@ -503,8 +506,8 @@ member of its dataset's team, including the one recorded in a different dataset 
   and take-down.
 - **FR-046**: Its side column MUST carry a Details card holding its project, dataset, licence, and
   when it was added and last updated. People, Identifiers and the citation (suggesting the dataset
-  instead when the measurement has no DOI) follow, then its sample's location on a map where the
-  sample has one and may be seen.
+  instead when the measurement has no DOI) follow, then its own location on a map, or its sample's
+  where the measurement has none and the sample has one and may be seen.
 - **FR-047**: Its breadcrumbs MUST lead from the list of measurements to the measurement, the same
   way a sample's do. A measurement with no name MUST be called by its portal ID in the breadcrumbs
   and the heading.

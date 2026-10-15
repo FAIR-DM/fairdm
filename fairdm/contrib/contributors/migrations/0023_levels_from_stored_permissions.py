@@ -83,11 +83,12 @@ def convert_stored_permissions(apps, schema_editor):
         for person_id in members[row.group_id]:
             note(person_id, kind_of[row.content_type_id], row.object_pk, level)
 
+    # The location column is not read: a later migration drops it, and this step uses nothing in it.
     people = {
         person.pk: person
-        for person in Person.objects.filter(
-            pk__in={person_id for person_id, _kind, _pk in best}
-        ).exclude(email=ANONYMOUS)
+        for person in Person.objects.defer("location")
+        .filter(pk__in={person_id for person_id, _kind, _pk in best})
+        .exclude(email=ANONYMOUS)
     }
 
     own_type = {}

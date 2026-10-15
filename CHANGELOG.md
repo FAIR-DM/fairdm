@@ -9,6 +9,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A location on every sample and measurement, typed as decimal degrees in WGS 84.**
+  A sample and a measurement have `location` (a point in WGS 84), `location_elevation` (metres
+  above mean sea level) and `location_uncertainty` (metres), all optional and all their own: two
+  samples at the same coordinates share nothing. The database refuses an elevation or an
+  uncertainty without a point, and a negative uncertainty. A sample type shows the location input
+  in its form when its registration lists `location` in its fields. The input takes
+  latitude and longitude as signed decimal degrees, from -90 to 90 and from -180 to 180. Every
+  coordinate is entered in WGS 84, with no reference-system input and no degrees, minutes and
+  seconds, so a researcher whose notebook uses another system or notation converts it first;
+  other systems are tracked in #512 and other notations in #513. `fairdm.utils.location.forms`
+  has `LocationField`, `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
+  with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
+  and `uncertainty`. An organization has a `location` point of its own. Run `migrate` when upgrading. See
+  [Locations](docs/portal-development/locations.md).
+
+- **A measurement can record where it was made.** A measurement type shows the location input in
+  its form when its registration lists `location`, and the measurement's page maps its own location
+  and says it is the measurement's. A measurement with none of its own is where its sample is, but
+  only for a viewer who may open the sample. `Measurement.effective_location_for(user)` and
+  `MeasurementQuerySet.with_effective_location(user)` give that location, and the page's context
+  carries it as `effective_location`. See [Locations](docs/portal-development/locations.md).
+
+- **Find samples, measurements and organizations by where they are.** `inside(area)` takes a
+  polygon or a `(west, south, east, north)` tuple and counts a point on the edge as inside.
+  `within_distance(point, distance)` takes a `D` or metres and measures on the ground, and
+  `nearest(point)` orders nearest first and carries `distance`. Each reads a spatial index and
+  combines with `visible_to()`. A measurement's lookups take the viewer and find it by its own
+  location, else its sample's for a viewer who may open the sample. See
+  [Locations](docs/portal-development/locations.md).
+
+- **The spatial coverage of a dataset and of a project.** `Dataset.spatial_coverage(user=None)` and
+  `Project.spatial_coverage(user=None)` return the smallest box holding the locations the viewer
+  may open, measurements included, or `None` when nothing is located. Locations on both sides of
+  the 180th meridian give a narrow box with its western bound east of its eastern one. The
+  collection tables' Latitude and Longitude for a measurement are its effective location for the
+  viewer. See [Locations](docs/portal-development/locations.md).
+
+- **The API returns a record's location as a GeoJSON point.** A sample and a measurement return
+  `location`, a `Point` in WGS 84 with longitude first and the elevation as a third coordinate
+  where one is recorded, and `location_uncertainty` in metres beside it. An organization returns
+  `location` without an elevation, and a person returns none. A record with no location returns
+  `null`, and a measurement returns only its own location, never its sample's. The three location
+  fields are read-only. See [A record's location](docs/portal-development/restful-api.md#a-records-location).
+
+- **A location is four columns in tabular import and export.** Where a sample or measurement
+  type's `fields` or `resource_fields` list `location`, its resource has `latitude`, `longitude`,
+  `location_elevation` and `location_uncertainty` in place of one. Export writes the record's own
+  values in WGS 84 decimal degrees, and a measurement never writes its sample's location. Import
+  reads the coordinates as decimal degrees, with the location input's ranges, and reports a row it
+  refuses instead of saving it. See
+  [Locations](docs/portal-development/locations.md#in-import-and-export).
+
+- **An organization's point is typed on its forms.** The organization's profile page, the form
+  that adds an organization and the older profile form take a latitude and a longitude as decimal
+  degrees in WGS 84, in place of the map input. An organization
+  added from ROR still takes the coordinates ROR publishes, and a person placed on a map is placed
+  at their primary affiliation's organization's point. See
+  [Locations](docs/portal-development/locations.md#placing-an-organization).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
@@ -61,6 +120,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The `Point` model and everything around it.** A sample's `location` is no longer a foreign key
+  to a row that samples share, and existing locations are not carried across the upgrade. Removed
+  with it: the page at `/location/<lon>/<lat>/` and the link to it in the sample and measurement
+  collection tables, `PointForm`, `LatitudeWidget`, `LongitudeWidget`, `normalize_coordinate`,
+  `serialize_dataset_samples`, `locations_for_dataset`, `bbox_for_dataset`, `PointFactory`, and the
+  settings `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD`. Code that reads
+  `location.latitude` or `location.longitude` reads `location.y` and `location.x`, and a filter on
+  `location__x`, `location__y` or `location__crs` has to change.
+- **`Dataset.bbox`.** It was a dict of `min_x`, `max_x`, `min_y` and `max_y` over the samples'
+  points. Use `Dataset.spatial_coverage(user)`, which returns a box with `west`, `south`, `east`
+  and `north`, counts measurements too and leaves out what the viewer may not open. The DataCite
+  metadata reads it for a visitor.
+- **A person's `location`.** A contributor's `location` is gone. An organization has a point of
+  its own, and where a person is placed on a map the point is their primary affiliation's
+  organization's. A portal's profile form that listed `location` for a person has to drop it.
 - **Five templates nothing rendered.** `dataset/dataset_create.html` was empty and no view named
   it. `dataset/plugins/overview.html`, `project/plugins/overview.html`,
   `sample/plugins/overview.html` and `measurement/plugins/overview.html` extended a

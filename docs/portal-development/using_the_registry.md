@@ -98,14 +98,21 @@ def create_measurement_reports():
 
 ```python
 # Filter models by specific criteria
-def get_models_with_geo_fields():
-    """Find all registered models that have geographic fields."""
+def get_models_with_own_geo_fields():
+    """Find registered models that define geographic fields of their own.
+
+    Every sample and measurement type already has `location`, so that field is not counted.
+    """
+    from django.contrib.gis.db.models import GeometryField
+
     geo_models = []
 
     for model_class in registry.models:
-        # Check if model has geographic fields
         for field in model_class._meta.get_fields():
-            if field.name in ['latitude', 'longitude', 'location', 'coordinates']:
+            if field.name in ['latitude', 'longitude', 'coordinates']:
+                geo_models.append(model_class)
+                break
+            if isinstance(field, GeometryField) and field.name != 'location':
                 geo_models.append(model_class)
                 break
 

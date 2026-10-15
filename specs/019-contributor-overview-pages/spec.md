@@ -175,8 +175,8 @@ and the one with nothing recorded, each as a visitor and signed in.
 8. **Given** an organization with no parent, **When** its page is opened, **Then** the hierarchy
    starts at this organization. **Given** one with neither a parent nor sub-organizations, **Then**
    the card says none is recorded.
-9. **Given** an organization with a recorded location, **When** its page is opened, **Then** a map
-   shows where it is based. **Given** one without, **Then** no map is shown.
+9. **Given** an organization with a point, **When** its page is opened, **Then** a map shows where
+   it is based. **Given** one without, **Then** no map is shown.
 10. **Given** a signed-in person who is not a member, **When** they open the page, **Then** asking
     to join is shown as not available yet. **Given** a visitor who is not signed in, or a current
     member, **Then** it is not shown at all.
@@ -385,7 +385,8 @@ they do not.
 - **Person**: someone credited on portal records, who may also hold the portal account. The page
   reads their name, photo, biography, languages, links, identifiers, account state and portal roles.
 - **Organization**: an institution credited on records or named as an affiliation. The page reads
-  its name, logo, type, description, city and country, location, parent, links and identifiers.
+  its name, logo, type, description, city and country, the point where it is based, parent, links
+  and identifiers.
 - **Affiliation**: a person's membership of an organization, with its kind (pending, member,
   administrator, owner), whether it is the person's primary one, and when it started and ended.
 - **Contribution**: a contributor's credit on one project, dataset, sample or measurement, with the
@@ -424,7 +425,7 @@ they do not.
   other than the email address is public. A policy that lets a person hide parts of their profile
   is a separate feature and will narrow what these pages show when it arrives.
 - A person has no location of their own. The location in a person's header is their primary
-  organization's.
+  organization's, and a person placed on a map is placed at that organization's point.
 - "In progress" is the only project status that counts as active when ordering the projects card.
   Datasets have no such state and are ordered by when they were last updated.
 - The management actions and the join request stay unavailable until the features that build them

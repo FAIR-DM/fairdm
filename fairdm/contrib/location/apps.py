@@ -1,4 +1,4 @@
-"""App configuration for locations."""
+"""Holds only the migrations kept for databases that already applied them."""
 
 from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _

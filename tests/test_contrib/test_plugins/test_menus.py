@@ -151,16 +151,6 @@ class TestVisibilityMatchesReachability:
 
 
 @pytest.mark.django_db
-class TestMenusExistForAnyRecord:
-    def test_a_record_with_no_hand_written_menu_still_gets_one(self):
-        from fairdm.contrib.location.models import Point
-
-        menu = plugins.registry.get_plugin_menu_for_model(Point)
-        assert menu is not None
-        assert plugins.registry.get_urls_for_model(Point)
-
-
-@pytest.mark.django_db
 class TestNavigationRenders:
     def test_every_visible_entry_points_somewhere(self, client):
         sample = RockSampleFactory(

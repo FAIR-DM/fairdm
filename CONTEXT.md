@@ -45,6 +45,32 @@ than that sample does, which is what makes multi-team workflows possible.
 
 Implemented by `Measurement` in `fairdm/core/measurement/models.py`.
 
+### Location
+
+Where a sample or a measurement is on the Earth: a point in WGS 84, an optional elevation in metres
+above mean sea level and an optional uncertainty in metres. It is three fields on the one record
+that holds it (`location`, `location_elevation` and `location_uncertainty`) and is never shared
+between records. An organization holds a plain point and a person holds none.
+
+Avoid "Point" for a model: there is no `Point` model, and a point is the value of the `location`
+field. Avoid "coordinates" for the stored value, which is always WGS 84, as it was typed.
+
+Declared on `Sample` and `Measurement` in `fairdm/core/sample/models.py` and
+`fairdm/core/measurement/models.py`, with the input, lookups and import columns in
+`fairdm/utils/location/`.
+
+### Spatial coverage
+
+The smallest box, in WGS 84 degrees, that holds the locations of a dataset's or a project's samples
+and measurements the viewer may open. A box across the 180th meridian has its western bound east of
+its eastern one, as DataCite writes it. It is `None` when nothing is located. A measurement counts
+at its effective location, so one placed only by a sample the viewer may not open adds nothing.
+
+Avoid "bounding box" for the stored value of a dataset: nothing stores it, and it differs by viewer.
+
+Implemented by `spatial_coverage` in `fairdm/utils/location/coverage.py`, and offered as
+`Dataset.spatial_coverage(user)` and `Project.spatial_coverage(user)`.
+
 ### Contributor, Person, Organization
 
 `Contributor` is the polymorphic base for everyone credited on FairDM content, with two concrete

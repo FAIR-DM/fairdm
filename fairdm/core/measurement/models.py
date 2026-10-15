@@ -1,11 +1,16 @@
 """Models for measurements and their related descriptions, dates and identifiers."""
 
+from typing import NamedTuple
+
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.gis import geos
+from django.contrib.gis.db.models import PointField
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
+from fairdm.utils.location.db import geography_index, location_constraints
 
 from ..abstract import (
     AbstractDate,
@@ -22,6 +27,22 @@ from ..vocabularies import (
     FairDMRoles,
 )
 from .managers import MeasurementQuerySet
+
+
+class EffectiveLocation(NamedTuple):
+    """Where a measurement is for a viewer, and whose location that is.
+
+    Attributes:
+        point: The point, in SRID 4326.
+        elevation: Metres above mean sea level, or None.
+        uncertainty: Metres, or None.
+        source: ``"own"`` for the measurement's own location, ``"sample"`` for its sample's.
+    """
+
+    point: geos.Point
+    elevation: float | None
+    uncertainty: float | None
+    source: str
 
 
 class Measurement(BasePolymorphicModel):
@@ -41,6 +62,9 @@ class Measurement(BasePolymorphicModel):
         contributors: Generic relation to contributor records.
         sample: The sample on which the measurement was made.
         local_id: The creator's own identifier for the measurement within its dataset.
+        location: The point where the measurement was made, in WGS 84.
+        location_elevation: Metres above mean sea level.
+        location_uncertainty: Metres within which the true place lies.
     """
 
     CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Measurement")
@@ -86,12 +110,41 @@ class Measurement(BasePolymorphicModel):
         db_index=True,
     )
 
+    location = PointField(
+        srid=4326,
+        verbose_name=_("location"),
+        help_text=_("Where the record is, as a point in WGS 84."),
+        null=True,
+        blank=True,
+    )
+    location_elevation = models.FloatField(
+        verbose_name=_("elevation"),
+        help_text=_(
+            "Metres above mean sea level, and a negative number below it. Needs a location."
+        ),
+        null=True,
+        blank=True,
+    )
+    location_uncertainty = models.FloatField(
+        verbose_name=_("uncertainty"),
+        help_text=_(
+            "The distance in metres from the location within which the true place lies. "
+            "Needs a location."
+        ),
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         verbose_name = _("measurement")
         verbose_name_plural = _("measurements")
         ordering = ["-modified"]
         default_related_name = "measurements"
-        indexes = [models.Index(fields=["modified"], name="measurement_modified_idx")]
+        indexes = [
+            models.Index(fields=["modified"], name="measurement_modified_idx"),
+            geography_index("measurement_location_geog_idx"),
+        ]
+        constraints = location_constraints()
         permissions = [
             *CORE_PERMISSIONS,
         ]
@@ -156,6 +209,40 @@ class Measurement(BasePolymorphicModel):
             The formatted value.
         """
         return str(self.get_value())
+
+    def effective_location_for(self, user=None):
+        """Return where the measurement is for a viewer: its own location, else its sample's.
+
+        The sample's is used only where the viewer may open the sample, by the same rule as
+        ``MeasurementQuerySet.with_effective_location``.
+
+        Args:
+            user: The viewer, or ``None`` for a visitor who is not signed in.
+
+        Returns:
+            An ``EffectiveLocation`` naming the point, its elevation and uncertainty and whose
+            location it is, or ``None`` when the viewer has none to be shown.
+        """
+        if self.location is not None:
+            return EffectiveLocation(
+                self.location,
+                self.location_elevation,
+                self.location_uncertainty,
+                "own",
+            )
+        row = (
+            Measurement.objects.filter(pk=self.pk)
+            .with_effective_location(user)
+            .values_list(
+                "effective_location",
+                "sample__location_elevation",
+                "sample__location_uncertainty",
+            )
+            .first()
+        )
+        if row is None or row[0] is None:
+            return None
+        return EffectiveLocation(*row, "sample")
 
     def get_absolute_url(self):
         """Return the URL of the measurement's own detail page."""

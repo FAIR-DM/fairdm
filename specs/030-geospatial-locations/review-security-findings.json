@@ -1,0 +1,60 @@
+{
+  "lens": "security",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "feature branch 030-geospatial-locations vs origin/main (diff excluding specs/): trust boundaries of the location input, tabular import/export, measurement effective location, lookups, spatial coverage, collection tables, API serializers, widget template, DB constraints and the lat-lon-parser dependency",
+  "skills_loaded": [
+    {
+      "name": "craft-security",
+      "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "A typed projected coordinate of 1e18 or more in EPSG:3857 pins a worker at 100% CPU inside PROJ with no way to interrupt it. read_point checks only that northing+easting is finite, then hands the value straight to GDAL's transform.",
+      "evidence": "fairdm/contrib/location/forms.py:316-333 (read_point): `float(v.replace(',', '.'))` then only `math.isfinite(northing + easting)` before `point.transform(WGS84)`. The reference system is any EPSG code the user types (forms.py:222-228, 288-293). Probe against the branch: LocationField().read_point('3857', '0', '1e15') returns in 0.04 s; ('3857','1e18','1e18'), ('3857','0','1e30'), ('3857','1e22','1e22') and ('3857','1e30','1e30') were still running when `timeout 15` / `timeout 25` killed them (rc=124, CPU pinned). The loop is in C, so Python's signal.alarm could not interrupt it either. Time grows with the magnitude of the easting. EPSG:32632 and 3035 reject the same magnitude immediately as out_of_range, so it is projection-specific (longitude wrap), which is exactly why the cap has to be on the typed value, not on the CRS.",
+      "reproduction": "In a sample or measurement form with the full location input: Reference system 3857, Northing 0, Easting 1e30. Submit. The request never returns until the server's worker timeout kills the process. Repeating it takes every worker out. Needs only a signed-in user who may add or edit a sample or measurement.",
+      "suggested_fix": "In read_point's projected branch, refuse a magnitude no real projected system produces before building the point, e.g. `if max(abs(northing), abs(easting)) > 1e9: raise ValidationError(<existing 'invalid' message>, code='invalid')`. 1e15 converts in 0.04 s, so any cap of 1e9 or below keeps the conversion instant. Add a test that submits ('3857', '0', '1e30') and asserts a ValidationError; with the cap dropped the test hangs, so run it under a pytest timeout so the mutation fails rather than stalls."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "parse_coordinate backtracks quadratically on whitespace inside a coordinate cell, and neither the form fields nor the import path bound the cell's length.",
+      "evidence": "fairdm/contrib/location/forms.py:18-20 TRAILING_HEMISPHERE = `\\s*(?<![a-z])(north|...|[nsew])\\s*$`, applied with .search() at forms.py:78-82 to the whole typed text; the fields are `forms.CharField(required=False)` with no max_length (forms.py:222-228) and import cells reach it the same way (resources.py:189-196, CoordinateWidget.clean). Timing of the compiled pattern on '1' + ' '*n + 'x1': n=2000 -> 0.17 s, 4000 -> 0.50 s, 8000 -> 1.8 s, 16000 -> 7.9 s (4x per doubling). The Django default body limit (2.5 MB) allows n of about 1e6.",
+      "reproduction": "Type '1' + 32000 spaces + 'x1' into the latitude input, or put it in a latitude cell of an imported file. One request occupies a worker for tens of seconds; 64 KB takes minutes.",
+      "suggested_fix": "Put `max_length` on the coordinate and reference-system CharFields (64 is generous for any notation the parser accepts) and, for the import path, reject a cell longer than that in CoordinateWidget.clean before calling parse_coordinate. A length cap removes the quadratic term without touching the regexes."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The widget template writes the typed reference system into an Alpine `x-data` expression inside a JS string literal, and HTML attribute escaping does not protect a JS string context: a re-rendered invalid form executes the typed text as JavaScript.",
+      "evidence": "fairdm/contrib/location/templates/location/widgets/location.html:39: `x-data=\"fairdmLocationInput('{{ parts.srid.value|default:'4326' }}', ...)\"`. Rendering a LocationField bound to srid `4326');alert(document.domain);('` gives `x-data=\"fairdmLocationInput('4326&#x27;);alert(document.domain);(&#x27;', 'id_location_systems')\"`; the browser decodes `&#x27;` back to `'` before Alpine evaluates the expression, so `alert(document.domain)` runs. The form is invalid (unknown_system), which is the case that re-renders the posted value.",
+      "reproduction": "Submit the sample form with reference system `4326');alert(document.domain);('`. The error page that comes back runs the alert. It is self-XSS only: the value arrives through the user's own CSRF-protected POST, nothing stores it, and no other user sees it, hence low.",
+      "suggested_fix": "Do not interpolate user text into the expression. Pass the value through a data attribute that Alpine reads (`data-srid=\"{{ ... }}\"` and `x-data=\"fairdmLocationInput($el.dataset.srid, ...)\"`) or build the component with `{{ value|json_script }}`; either keeps escaping in the HTML attribute context where autoescape is correct."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "lat-lon-parser is pinned to an exact version in the published package's runtime dependencies, which every consumer's resolver must then satisfy.",
+      "evidence": "pyproject.toml:118 `\"lat-lon-parser==1.3.1\"`, while every other entry in the list uses a compatible range (`pillow (>=11.0,<13.0)`, `markdown >=3.10.3,<4.0.0`). uv.lock carries the sdist and wheel hashes, so reproducibility is already served by the lock. I read the package's single parser module: pure Python, no I/O, no eval, no network, linear `re.findall` only; it is a sound dependency to add (the quadratic behaviour in SEC-002 is in this repo's own patterns, not in the package).",
+      "suggested_fix": "Declare a range such as `lat-lon-parser (>=1.3.1,<2.0)` like the neighbouring dependencies and leave exactness to uv.lock."
+    }
+  ],
+  "notes": [
+    "Visibility paths checked and found sound for the question asked (project-level visibility is #510 and not re-reported): MeasurementQuerySet.with_effective_location, effective_location_for, inside, within_distance and nearest take the sample's point only through Sample.objects.visible_to(user); the inherited subqueries repeat the same gate; the measurement's own point is its own record's. Dataset.spatial_coverage and Project.spatial_coverage count only visible_to samples and measurements; the DataCite template calls spatial_coverage with no user, so the box is the visitor's view. MeasurementTable reads `effective_location` from with_effective_location(request.user), and the API measurement serializer carries only the measurement's own `location`. The sample lookups (inside/within_distance/nearest) are not wired to any filter or endpoint, so they cannot be used as an oracle today; a future filter must chain visible_to() first.",
+    "Writes: GeoJSONPointField sets read_only=True and source='*'; Meta.read_only_fields lists location, location_elevation and location_uncertainty, inherited by registry-built typed serializers through `meta_bases = (base.Meta,)`. DB check constraints (uncertainty >= 0; elevation/uncertainty need a point) are present in migrations 0012 and 0015 and verified by reading; neither constrains the point's range.",
+    "The branch removes the Point detail page and its UpdateView plugin (fairdm/contrib/location/plugins.py, views.py, urls.py), a page that served any location by id with no permission check, and drops the person's own location column, so a person's home location is no longer stored. Both reduce surface.",
+    "Unvalidated points reach the database from two writers besides the form: RORTransform.import_location (transforms.py:852, `Point(float(lng), float(lat), srid=4326)` from the ROR response) and the admin's default OpenLayers point widget. PostGIS coerces out-of-range coordinates into range on the geography cast (checked: POINT(0 95) -> POINT(0 85), no error), so the consequence is a misplaced point, not a failing query; no finding.",
+    "parse_coordinate's wrong-axis check looks only at Latin n/s/e/w, while lat_lon_parser.parse also maps Cyrillic с/ю/в/з to n/s/e/w (read in parser.py), so a latitude typed with a trailing Cyrillic 'в' (east) or a longitude with 'с' (north) is accepted instead of refused. A correctness nit, not a boundary.",
+    "The admin's location field uses Django's default OpenLayers widget, which loads its script from a CDN without SRI; framework behaviour on staff-only pages and no CSP is configured, so noted for awareness only.",
+    "Method: probes run under /tmp/fs030sec only; nothing committed or edited in the checkout. Tests were not re-run by this lens."
+  ]
+}

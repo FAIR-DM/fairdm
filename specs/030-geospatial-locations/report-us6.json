@@ -1,0 +1,80 @@
+{
+  "story": "US6",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-10-12/7c41e9a6",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T029",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_models.py::TestPersonPlacedOnAMap",
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestOrganizationProfileFormLocation"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_contrib/test_contributors/test_models.py::TestPersonPlacedOnAMap",
+          "uv run pytest -q -n0 tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py tests/test_contrib/test_contributors/test_plugins/test_overview.py"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["4b192a4f"]
+    },
+    {
+      "id": "T030",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestOrganizationProfileFormLocation",
+          "tests/test_contrib/test_contributors/test_forms/test_organization.py::TestOrganizationCreateForm",
+          "tests/test_contrib/test_contributors/test_forms/test_organization.py::TestOrganizationProfileForm"
+        ],
+        "criteria": [],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py tests/test_contrib/test_contributors/test_plugins/test_overview.py",
+          "uv run pre-commit run --files fairdm/contrib/contributors/forms/organization.py fairdm/contrib/contributors/forms/profile.py tests/test_contrib/test_contributors/test_forms/test_organization.py tests/test_contrib/test_contributors/test_forms/test_profile.py tests/test_contrib/test_contributors/test_models.py tests/test_contrib/test_contributors/test_plugins/test_update.py"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["aee68683"]
+    },
+    {
+      "id": "T031",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pre-commit run --files CHANGELOG.md docs/portal-development/locations.md docs/portal-development/contributors.md specs/019-contributor-overview-pages/spec.md specs/030-geospatial-locations/decisions.md",
+          "forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["0140240f"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The three organization forms each declare LocationField(full=False) and a clean_location, with no shared mixin and without LocationFormMixin.",
+      "why": "An organization has no elevation or uncertainty, so the mixin's second job does not apply, and the brief asks for the point-only field used directly with no second mechanism.",
+      "decision_ref": "decisions.md#d26-each-organization-form-declares-the-point-only-field-and-keeps-its-point"
+    }
+  ],
+  "concerns": [
+    "Pre-existing tests changed, as the brief allows: test_profile.py TestOrganizationProfileForm (field set gains location) and test_update.py TestOrganizationUpdate (the page's control names gain location_first and location_second). Nothing else was edited.",
+    "AS 6.1 (ROR coordinates become the point) and the overview map condition were already satisfied and tested by earlier work (test_transforms.py TestRORRoundTrip, test_overview.py scenario 9), so this story added no new ROR or overview test. AS 6.4 had no test; TestPersonPlacedOnAMap is new and was probed by forcing as_geojson to return None, which made two of its three tests fail.",
+    "The widget names its inputs location_first and location_second (dict-keyed MultiWidget), not location_0 and location_1.",
+    "The ledger code references recorded for T030 name lines 277 of forms/profile.py and 63 of forms/organization.py, which are near but not exactly the declared field lines (345 and 48, 127). ledger-task cannot be re-run for the same task without duplicating the row, so they were left."
+  ],
+  "blocked": []
+}

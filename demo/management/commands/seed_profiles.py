@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from allauth.socialaccount.models import SocialAccount
 from django.apps import apps
 from django.contrib.auth.models import Group
+from django.contrib.gis.geos import Point
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -35,7 +36,6 @@ from fairdm.contrib.contributors.models import (
     Person,
 )
 from fairdm.contrib.contributors.services.crediting import Crediting
-from fairdm.contrib.location.models import Point
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
@@ -233,7 +233,7 @@ class Command(BaseCommand):
         ]
         kit.lang = ["de", "en"]
         kit.profile = KIT_PROFILE
-        kit.location, _ = Point.objects.get_or_create(x=8.4115, y=49.0094)
+        kit.location = Point(8.4115, 49.0094, srid=4326)
         kit.synced_data = {"id": "https://ror.org/04t3en479", "name": kit.name}
         kit.image.save("kit.png", ContentFile(logo("wide", 1)), save=False)
         kit.save()

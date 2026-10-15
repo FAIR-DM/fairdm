@@ -65,7 +65,9 @@ The `Sample` base class provides these required fields:
 - `status`: Custody status, drawn from a fixed vocabulary — `available`, `in_use`, `stored`,
   `destroyed`, `unknown`. Defaults to `unknown` when nothing is set, and can move to any other
   status from any status, including back out of `destroyed`
-- `location`: Where the sample was taken, as a point with x and y coordinates
+- `location`, `location_elevation` and `location_uncertainty`: Where the sample was taken, as a
+  point in WGS 84, its elevation above mean sea level and its uncertainty, both in metres. See
+  [Locations](../locations.md)
 
 ## Advanced Field Types
 
@@ -292,7 +294,7 @@ non_rocks = Sample.objects.not_instance_of(RockSample)
 Use provided QuerySet methods to optimize database queries:
 
 ```python
-# Prefetch dataset, location and contributors
+# Load dataset and project, and prefetch contributors
 samples = Sample.objects.with_related()
 
 # Prefetch descriptions, dates and identifiers

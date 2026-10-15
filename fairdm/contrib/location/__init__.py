@@ -1,1 +1,1 @@
-"""Locations for samples, stored as coordinate pairs."""
+"""Holds only the migrations kept for databases that already applied them."""

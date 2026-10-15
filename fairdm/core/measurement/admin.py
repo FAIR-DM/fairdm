@@ -116,6 +116,9 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
                     "sample",
                     "dataset",
                     "image",
+                    "location",
+                    "location_elevation",
+                    "location_uncertainty",
                 ]
             },
         ),

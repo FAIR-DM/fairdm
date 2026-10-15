@@ -148,8 +148,8 @@ class TestRORRoundTrip:
         assert org.name == "GFZ Helmholtz Centre for Geosciences"
         assert org.city == "Potsdam"
         assert org.country.code == "DE"
-        assert float(org.location.latitude) == pytest.approx(52.39886)
-        assert float(org.location.longitude) == pytest.approx(13.06566)
+        assert org.location.y == pytest.approx(52.39886)
+        assert org.location.x == pytest.approx(13.06566)
         assert org.identifiers.get(type="ROR").value == "04z8jg394"
 
     def test_ror_import_reads_other_names_and_links(self, recorded):

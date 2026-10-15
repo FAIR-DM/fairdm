@@ -1,0 +1,64 @@
+{
+  "story": "US3",
+  "skills_loaded": [
+    {"name": "craft-tdd", "receipt": "craft-tdd/2026-09-28/b19e4d07", "loaded_via": "path-read"},
+    {"name": "craft-increments", "receipt": "craft-increments/2026-10-12/7c41e9a6", "loaded_via": "path-read"}
+  ],
+  "tasks": [
+    {
+      "id": "T011",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_measurement/test_forms.py::TestRegisteredMeasurementTypeLocationInput",
+          "tests/test_core/test_measurement/test_forms.py::TestMeasurementEditPageLocation",
+          "tests/test_core/test_measurement/test_plugins.py::TestOverviewLocation",
+          "tests/test_core/test_measurement/test_models.py::TestMeasurementEffectiveLocation"
+        ],
+        "criteria": ["SC-002", "SC-004"],
+        "commands": ["uv run pytest -q -n0 tests/test_core/test_measurement"],
+        "exit_code": 0
+      },
+      "commits": ["333aa232", "8547bfd2"]
+    },
+    {
+      "id": "T012",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_core/test_measurement/test_managers.py::TestWithEffectiveLocation"
+        ],
+        "criteria": ["SC-004"],
+        "commands": [
+          "uv run pytest -q -n0 tests/test_core/test_measurement",
+          "uv run pytest -q -n auto --dist loadscope tests/test_demo tests/test_registry tests/test_api"
+        ],
+        "exit_code": 0
+      },
+      "commits": ["8547bfd2"]
+    },
+    {
+      "id": "T013",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": ["the documented effective-location example run against the branch in a throwaway test, not committed"],
+        "exit_code": 0
+      },
+      "commits": ["99970d08"]
+    }
+  ],
+  "deviations": [
+    {
+      "what": "The measurement page's context value own_location is replaced by effective_location, and the template branches on its source. The card's markup and copy are unchanged.",
+      "why": "The brief asked for the page to be driven by effective_location_for(request.user); own_location existed only in the prototype and nothing else read it.",
+      "decision_ref": "decisions.md#d20-the-measurement-page-reads-one-named-tuple-and-an-own-location-needs-no-query"
+    }
+  ],
+  "concerns": [
+    "makemigrations --check reports a pending migration for the third-party orbit package (orbit 0008_alter_orbitentry_type). It is a third-party package this story does not touch; no migration of this repository is pending.",
+    "demo/seed/measurements.py has no test that the fully described XRF measurement carries its own location; tests/test_demo/test_management/test_commands/test_seed_overviews.py counts records only. Left as is, since the seed is demo data."
+  ],
+  "blocked": []
+}

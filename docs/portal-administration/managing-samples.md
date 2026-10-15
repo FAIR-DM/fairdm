@@ -438,8 +438,9 @@ To import samples:
 The import system validates:
 
 - Required fields are present
-- Foreign key references exist (dataset, location)
+- Foreign key references exist (dataset)
 - Field values are valid (status choices, etc.)
+- Latitude and longitude, when present, are readable and within range, and come as a pair
 - No duplicate identifiers
 
 **If errors occur**:

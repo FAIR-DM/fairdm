@@ -353,8 +353,8 @@ registered sample type.
 ### User Story 10 - The sample record itself (Priority: P2)
 
 A sample carries a generated identifier that names it inside the portal, a name, an optional
-laboratory identifier of the researcher's own devising, an optional image, an optional collection
-location, keywords and free tags. It belongs to exactly one dataset and does not outlive it.
+laboratory identifier of the researcher's own devising, an optional image, an optional location of
+its own (a point, an elevation and an uncertainty), keywords and free tags. It belongs to exactly one dataset and does not outlive it.
 Contributions are recorded against it under roles that mean something to the systems it is submitted
 to. Everything it presents to a person is translatable, and loading a sample with all its related
 records costs a number of queries that does not grow with how many there are.
@@ -375,8 +375,8 @@ needed to load a list of samples with all their related records.
    identifier, **Then** both are accepted, because that identifier is the researcher's own and means
    nothing outside their dataset.
 3. **Given** a sample, **When** its dataset is deleted, **Then** the sample is deleted with it.
-4. **Given** a sample with a collection location, **When** that location is deleted, **Then** the
-   deletion is refused while the sample refers to it.
+4. **Given** a sample with a location, **When** another sample at the same coordinates is deleted,
+   **Then** the first sample's location is unchanged, because no location is shared.
 5. **Given** a contribution recorded against a sample with roles, **When** the contribution is read,
    **Then** its contributor and each of its roles read back.
 6. **Given** many samples each carrying descriptions, dates, identifiers and contributions, **When**
@@ -397,7 +397,7 @@ needed to load a list of samples with all their related records.
 - Two samples may carry the same name. Nothing distinguishes them but their generated identifiers.
 - A sample with no location is a normal state; not every specimen has a collection point, and a
   digital specimen has none at all.
-- Deleting a dataset deletes its samples. Deleting a location a sample refers to is refused.
+- Deleting a dataset deletes its samples, and each sample's location with it.
 - A sample with no measurements is a normal state, not an incomplete record.
 - A status may move in any direction, including out of destroyed — a specimen recorded as destroyed
   in error must be correctable.
@@ -412,12 +412,14 @@ needed to load a list of samples with all their related records.
 - **FR-001**: Each sample MUST carry a unique, short, human-readable identifier generated on
   creation, prefixed so that it is recognisable as a sample, and not editable afterwards.
 - **FR-002**: A sample MUST carry a name. A sample MAY carry a laboratory identifier of the
-  researcher's own devising, an image, and a collection location.
+  researcher's own devising, an image, and a location of its own: a point, an elevation and an
+  uncertainty.
 - **FR-003**: A laboratory identifier MUST NOT be required to be unique. Two samples in different
   datasets carrying the same one MUST both be valid.
 - **FR-004**: A sample MUST belong to exactly one dataset, and MUST be deleted when that dataset is
   deleted.
-- **FR-005**: Deleting a location a sample refers to MUST be refused while any sample refers to it.
+- **FR-005**: A sample's location MUST belong to that sample alone. Changing or deleting one
+  sample's location MUST NOT change another's.
 - **FR-006**: A sample MUST support categorisation both by terms drawn from a controlled vocabulary
   and by free-form tags, and the two MUST remain distinguishable.
 - **FR-007**: A sample MUST record when it was created and when it was last changed.
@@ -534,7 +536,7 @@ needed to load a list of samples with all their related records.
 ### Presentation and performance
 
 - **FR-044**: The sample record MUST offer a queryset that loads samples together with their
-  dataset, location, descriptions, dates, identifiers, contributions and keywords in a number of
+  dataset, descriptions, dates, identifiers, contributions and keywords in a number of
   queries that does not grow with the number of samples or of related records.
 - **FR-045**: Queryset methods MUST be chainable with one another and with ordinary query
   operations.
@@ -548,7 +550,7 @@ needed to load a list of samples with all their related records.
 
 - **Sample** — a physical or digital specimen belonging to one dataset. The polymorphic base every
   portal-defined specimen type inherits from. Carries its generated identifier, name, laboratory
-  identifier, image, status, location, keywords, tags and timestamps. Related to descriptions,
+  identifier, image, status, location, elevation, uncertainty, keywords, tags and timestamps. Related to descriptions,
   dates, identifiers, contributions, measurements and other samples.
 - **Sample description** — a typed block of prose about the specimen, drawn from the sample
   description vocabulary.
@@ -611,8 +613,8 @@ needed to load a list of samples with all their related records.
   configuration, and this work uses it rather than replacing it.
 - The dataset record specified by `004-core-datasets` supplies the container a sample belongs to and
   the rights its access derives from; its own model is not changed here.
-- The location model supplies the collection point a sample refers to; its own model is not changed
-  here, and geographic querying is not part of this work.
+- A sample's location is three fields on the sample itself, specified by
+  `030-geospatial-locations`. Geographic querying is specified there too.
 - The pages through which a researcher creates, lists and edits a sample are specified by the CRUD
   specification for samples, roadmap item R16. Where a field specified here needs a form control on
   a page, that document decides whether it gets one.
@@ -627,8 +629,8 @@ needed to load a list of samples with all their related records.
   the same defect as the derivation it enforces.
 - A material field and a vocabulary of materials spanning every science (D-012).
 - Relationship types beyond one sample having come from another (D-004).
-- Geographic querying — bounding box, radius, coordinate reference systems — and any change to the
-  location model.
+- Geographic querying, coordinate reference systems and the location input —
+  `030-geospatial-locations`.
 - Registering a sample with an external identifier authority. Identifiers are stored, not minted.
 - Import and export of sample data beyond what the administrative interface offers.
 - The REST API's representation of a sample — `011-restful-api`.

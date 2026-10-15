@@ -6,14 +6,13 @@ assistive technology. Wording is never asserted.
 """
 
 from datetime import date
-from decimal import Decimal
-
 import pytest
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.utils import translation
 from django.utils.formats import date_format
 from partial_date import PartialDate
 
-from fairdm.factories import OrganizationFactory, PersonFactory, PointFactory
+from fairdm.factories import OrganizationFactory, PersonFactory
 
 
 def _card_titles(soup):
@@ -396,7 +395,7 @@ class TestTimelineCard:
 @pytest.mark.django_db
 class TestLocationCard:
     def test_the_coordinates_are_in_the_page_as_text(self, render_card, soup):
-        point = PointFactory(x=Decimal("8.541"), y=Decimal("47.376"))
+        point = GEOSPoint(8.541, 47.376, srid=4326)
 
         page = soup(render_card("location", location=point))
 
@@ -407,7 +406,7 @@ class TestLocationCard:
     def test_the_map_is_named_with_the_coordinates_and_carries_them_for_the_script(
         self, render_card, soup
     ):
-        point = PointFactory(x=Decimal("8.541"), y=Decimal("47.376"))
+        point = GEOSPoint(8.541, 47.376, srid=4326)
 
         page = soup(render_card("location", location=point))
 
@@ -417,6 +416,34 @@ class TestLocationCard:
         assert "47.376" in surface["aria-label"]
         assert surface["data-lon"] == "8.541"
         assert surface["data-lat"] == "47.376"
+
+    def test_elevation_and_uncertainty_are_listed_where_given(self, render_card, soup):
+        point = GEOSPoint(8.541, 47.376, srid=4326)
+
+        page = soup(
+            render_card("location", location=point, elevation=112.0, uncertainty=5.0)
+        )
+
+        values = [dd.get_text(strip=True) for dd in page.select("dd")]
+        assert len(values) == 4
+        assert "112" in values[2]
+        assert "5" in values[3]
+
+    def test_elevation_and_uncertainty_are_left_out_where_not_given(
+        self, render_card, soup
+    ):
+        point = GEOSPoint(8.541, 47.376, srid=4326)
+
+        page = soup(render_card("location", location=point))
+
+        assert len(page.select("dd")) == 2
+
+    def test_a_zero_elevation_is_listed(self, render_card, soup):
+        point = GEOSPoint(8.541, 47.376, srid=4326)
+
+        page = soup(render_card("location", location=point, elevation=0))
+
+        assert len(page.select("dd")) == 3
 
     def test_with_no_location_the_card_is_left_out(self, render_card):
         assert render_card("location", location=None).strip() == ""

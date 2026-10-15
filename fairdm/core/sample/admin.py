@@ -128,7 +128,7 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
     list_filter = [("dataset", SampleDatasetListFilter), "status", "added"]
     search_fields = ["name", "local_id", "uuid"]
     readonly_fields = ["uuid", "added", "modified"]
-    autocomplete_fields = ["dataset", "location"]
+    autocomplete_fields = ["dataset"]
 
     inlines = [
         SampleDescriptionInline,
@@ -158,6 +158,8 @@ class SampleChildAdmin(PolymorphicChildModelAdmin):
                     "local_id",
                     "status",
                     "location",
+                    "location_elevation",
+                    "location_uncertainty",
                 ]
             },
         ),
