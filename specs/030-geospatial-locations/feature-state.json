@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-10-15T07:28:08Z",
       "note": "converged; verify green; ADRs 0032, 0033"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-15T08:24:00Z",
+      "note": "review fixes verified; verify green"
     }
   ],
   "gates": {
@@ -70,6 +75,22 @@
         "SPEC-002 not applied: removed route gets no test; SC-007 read as excluding the changelog",
         "ARCH-005 nearest-first ordering carried as a US2 watch item"
       ]
+    },
+    "review": {
+      "approved_by": "code-reviewer",
+      "at": "2026-10-15T08:23:59Z",
+      "self_resolved": [
+        "two reviewers (correctness+docs, security); 19 findings: 3 high, 7 medium, 9 low; both request changes",
+        "all three highs fixed with mutation-checked tests (T032, T036)",
+        "fixed: SEC-002, COR-003, COR-004, TST-001, DOC-001, DOC-002, SEC-003, SEC-004/DEP-001, COR-006, COR-007 (T033-T039)",
+        "open, put to the maintainer at the merge gate: TST-002 declare_addressing has no caller; TST-004, COR-005 lows",
+        "T040: a sorting test failed once on a Faker name ordered differently by the en_US collation; fixed directly"
+      ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-15T08:25:37Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -513,8 +534,19 @@
         },
         {
           "id": "T040",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_collections/test_tables.py::TestLocationColumns::test_sorting_by_another_column_still_answers"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_collections/test_tables.py::TestLocationColumns (13 passed; failed once under the full verify on a Faker name the en_US collation orders differently from Python)"
+            ],
+            "code": [
+              "tests/test_contrib/test_collections/test_tables.py:338"
+            ]
+          }
         }
       ]
     },
