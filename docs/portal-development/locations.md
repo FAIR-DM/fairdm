@@ -155,10 +155,12 @@ for measurement in Measurement.objects.with_effective_location(request.user):
 ## Finding records by where they are
 
 Samples and organizations carry three lookups on their queryset. Each returns a queryset, so it
-combines with any other filter, `visible_to()` included, in either order.
+combines with any other filter, `visible_to()` included, in either order. A measurement's lookups
+are the exception, described under [Measurements](#measurements).
 
 `inside(area)` takes a GEOS polygon, or a `(west, south, east, north)` tuple in degrees. A point on
-the edge counts as inside, and a record with no location is never inside:
+the edge counts as inside, and a record with no location is never inside. A tuple whose west is
+greater than its east is a box across the 180th meridian, as `spatial_coverage` returns it:
 
 ```python
 from django.contrib.gis.geos import Point, Polygon
@@ -205,6 +207,14 @@ A measurement with a location of its own is found by that one. A measurement wit
 its sample's location, but only for a viewer who may open the sample. For anyone else it has no
 location and no area contains it, so a lookup never gives away where an unpublished sample was
 taken.
+
+`visible_to()` does not tell the lookup who is asking, so pass the viewer to both. Without `user=`
+the lookup answers for a visitor, and a measurement placed only by a sample the member may open is
+left out:
+
+```python
+Measurement.objects.visible_to(request.user).inside(area, user=request.user)
+```
 
 ### Why the lookups are fast
 
@@ -334,7 +344,11 @@ and is not saved. The rest of the file is read as usual. A row is refused when:
 - the uncertainty is negative.
 
 A file that has none of the four columns leaves every record's location as it was, and a file with
-only some of them changes only those. An empty cell clears the value.
+only some of them changes only those. An empty cell clears the value. Clearing a point also clears
+the elevation and uncertainty, so a file that empties `latitude` and `longitude` for a record that
+holds an elevation or an uncertainty has to carry those two columns as well, with empty cells.
+A file with only the two coordinate columns is refused for that row, since an elevation or an
+uncertainty cannot be left without a point.
 
 A resource that derives from `fairdm.contrib.import_export.resources.BaseFairDMResource` gets the
 same columns where its fields list `location`. A `ModelResource` of your own gets them by
