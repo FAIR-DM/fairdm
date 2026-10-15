@@ -217,3 +217,10 @@ Did: read_point refuses a northing or easting above 1e9 before the point is buil
 Verified: pytest -n0 TestLocationField 31 passed. Each check removed in turn: the magnitude test and the range test each go red alone (1 failed, 30 passed).
 Next: T033.
 Watch: the 1e30 test patches GEOSGeometry.transform to fail, so the mutation fails fast instead of hanging in PROJ.
+
+## 2026-10-15T07:52:19Z · Implementer FIX-1 · T033
+
+Did: LocationField takes at most 64 characters in the reference system and each coordinate input. Import refuses a latitude or longitude cell over 64 characters in set_location, before the parser reads it.
+Verified: pytest -n0 TestLocationField + TestImport 51 passed. Removing the field max_length turns three form cases red; removing the set_location check turns both import cases red.
+Next: T034.
+Watch: the brief put the import cap in CoordinateWidget.clean, but import never calls it (the coordinate fields have no attribute); a 65-character cell imported with the cap there. Placed in set_location instead, see decisions.md D28.

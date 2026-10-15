@@ -272,8 +272,23 @@
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationField::test_an_input_of_more_than_64_characters_is_refused",
+              "tests/test_contrib/test_import_export/test_resources.py::TestImport::test_a_coordinate_cell_of_more_than_64_characters_is_reported_and_not_saved"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py::TestLocationField tests/test_contrib/test_import_export/test_resources.py::TestImport (51 passed)",
+              "mutation: drop max_length from the three CharFields in LocationField and rerun: test_an_input_of_more_than_64_characters_is_refused[0,1,2] fail (3 failed, 48 passed)",
+              "mutation: replace the length check in set_location with 'if False:' and rerun: test_a_coordinate_cell_of_more_than_64_characters_is_reported_and_not_saved[latitude,longitude] fail (2 failed, 49 passed)"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:226",
+              "fairdm/contrib/location/resources.py:194"
+            ]
+          }
         },
         {
           "id": "T034",
