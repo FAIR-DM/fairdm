@@ -9,15 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **A location on every sample and measurement, typed in any notation and reference system.**
+- **A location on every sample and measurement, typed in any notation, in WGS 84.**
   A sample and a measurement have `location` (a point in WGS 84), `location_elevation` (metres
   above mean sea level) and `location_uncertainty` (metres), all optional and all their own: two
   samples at the same coordinates share nothing. The database refuses an elevation or an
   uncertainty without a point, and a negative uncertainty. A sample type shows the location input
   in its form when its registration lists `location` in its fields. The input reads decimal
   degrees, degrees and decimal minutes, and degrees, minutes and seconds, with or without a
-  hemisphere letter, and any EPSG reference system by its code, and stores the converted WGS 84
-  point. `fairdm.contrib.location.forms` has `parse_coordinate`, `LocationField`,
+  hemisphere letter. Every coordinate is entered in WGS 84, with no reference-system input, so a
+  researcher whose notebook uses another system converts it first; accepting other systems is
+  tracked in #512. `fairdm.contrib.location.forms` has `parse_coordinate`, `LocationField`,
   `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
   with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
   and `uncertainty`. An organization has a `location` point of its own. A portal needs the

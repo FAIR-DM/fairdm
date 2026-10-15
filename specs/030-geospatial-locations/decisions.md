@@ -121,22 +121,20 @@ collar, and a sample type that needs a depth interval, or a line, declares field
 *Revisit if:* several portals declare the same line or area field on their own sample types.
 **ADR:** none — the spec's boundary states it
 
-## D6. Coordinates are stored in WGS 84, entered in any EPSG system, and shown to five places
+## D6. Coordinates are stored in WGS 84, entered in WGS 84, and shown to five places
 
-A researcher's notebook may give coordinates in a UTM zone or a national grid, so the form accepts
-any reference system with an EPSG code and converts on the way in. Storing one system means every
-lookup, API response and export agrees without converting again, and WGS 84 is what GeoJSON,
-DataCite and IGSN use. The coordinates as typed are not kept beside the converted point. That was
-offered and left out.
+Storing one system means every lookup, API response and export agrees without converting again,
+and WGS 84 is what GeoJSON, DataCite and IGSN use. The form first accepted any reference system
+with an EPSG code and converted on the way in, for a notebook that gives a UTM zone or a national
+grid. The maintainer withdrew that after the walkthrough (D29): every coordinate is entered in
+WGS 84. The coordinates as typed are the stored point, and nothing is kept beside it.
 
-The point is kept as converted, without rounding. It is shown to five decimal places of a degree,
+The point is kept as typed, without rounding. It is shown to five decimal places of a degree,
 about a metre at the equator, which is finer than any field position the portals hold. How good a
 location is, is recorded in its uncertainty, not in how many decimals it carries, so no precision is
 recorded per location and the three precision settings go.
 
-Elevation is metres above mean sea level as the researcher gives it, negative below. Projected and
-geographic systems used for typing coordinates are two-dimensional, so converting the coordinates
-never changes the elevation.
+Elevation is metres above mean sea level as the researcher gives it, negative below.
 
 *Revisit if:* a portal needs the coordinates exactly as recorded for provenance.
 **ADR:** none — the locations page states what is stored and how it is shown
@@ -432,3 +430,20 @@ place. `set_location` is where the cells go to the parser.
 
 **Revisit if:** the coordinate fields gain an attribute and import starts cleaning through the widget.
 **ADR:** none — a placement detail of FIX-1
+
+## D29. Coordinates are entered in WGS 84 only
+
+**Decision:** The location input takes a latitude and a longitude in WGS 84, in any of the three
+notations, plus an elevation and an uncertainty on the full input. It has no reference-system box,
+no suggestions, no Northing and Easting labels and no conversion. Accepting other systems is #512.
+
+**Why:** The maintainer, after the walkthrough: all coordinate input must be declared in WGS 84, and
+for now the onus is on the person entering data to convert if necessary. A reference-system box asks
+a researcher to know an EPSG code, and a wrong code converts to a plausible wrong place. Tabular
+import already took WGS 84 only, so the form and the import now agree. What went: the projected
+branch of the reading, the magnitude and converted-range checks that only guarded conversion, the
+suggested systems, and the script's label switching. What stayed: the notation parser, the range and
+hemisphere checks, the 64-character cap, the elevation and uncertainty rules and the "Reads as" hint.
+
+**Revisit if:** #512 is taken up.
+**ADR:** none, #512 decides whether input in other systems returns

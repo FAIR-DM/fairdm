@@ -14,9 +14,9 @@ shared.
 
 ## Why
 
-Records shared a `Point` row only when their numbers matched exactly. Coordinates converted from a
-projected system differ in the last digits, and an elevation or uncertainty would have split one
-site into several rows. The sharing meant "the same numbers", not "the same site", and correcting
+Records shared a `Point` row only when their numbers matched exactly. Coordinates typed to a
+different number of places differ in the last digits, and an elevation or uncertainty would have
+split one site into several rows. The sharing meant "the same numbers", not "the same site", and correcting
 one sample's coordinates in place would have moved every record that shared them.
 
 A field on the model is how GeoDjango expects a location to be held. The registry builds forms,

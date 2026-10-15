@@ -14,7 +14,7 @@ filtered from the portal.
 R26, a research group can deploy the shipped stack.
 
 **Input**: #494. Portals capture, store and query locations as real geospatial data. A researcher
-records where a sample was taken in the notation and reference system they wrote it down in. Portal
+records where a sample was taken in the notation they wrote it down in, as WGS 84. Portal
 code asks which records lie inside an area or near a point without loading every location into
 Python. Machines read a record's location from the API.
 
@@ -23,8 +23,7 @@ Python. Machines read a record's location from the API.
 `fairdm.contrib.location` holds one model, `Point`, with `x` and `y` as five-place decimal columns
 and a `crs` string that is only a label. Every sample and contributor at the same coordinates
 shares one `Point` row, and each pair has a page at `/location/<lon>/<lat>/`. The sample form picks
-an existing `Point` through a search box. Nothing converts coordinates from one reference system to
-another. The only spatial calculation is a dataset's bounding box, taken from the minimum and
+an existing `Point` through a search box. The only spatial calculation is a dataset's bounding box, taken from the minimum and
 maximum of the two columns.
 
 After this feature:
@@ -33,7 +32,7 @@ After this feature:
   elevation and an optional uncertainty. Changing one record's location never changes another's.
 - An organization has a point of its own. A person has none.
 - Coordinates are entered in decimal degrees, degrees and minutes, or degrees, minutes and seconds,
-  in WGS 84 or any reference system with an EPSG code, and are stored in WGS 84.
+  in WGS 84, and are stored in WGS 84. Another reference system is converted by the person typing.
 - Portal code can ask the database which samples, measurements or organizations lie inside an
   area, lie within a distance of a point, or are nearest a point.
 - `Point`, its page, and the `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` settings are gone.
@@ -51,6 +50,8 @@ After this feature:
 - **Showing a sensitive location less precisely** to the public is not part of this feature.
 - **Keeping coordinates exactly as they were typed**, beside the stored WGS 84 point, is not part of
   this feature.
+- **Typing coordinates in another reference system**, by its EPSG code, with the portal converting
+  them to WGS 84, is #512. Until then a coordinate is entered in WGS 84.
 - **Filtering API lists by area or distance** is not part of this feature.
 - **A dataset's DataCite metadata describing its spatial coverage** is #511. The DataCite export
   cannot be produced today, so it is delivered with that issue. The spatial coverage it needs is
@@ -80,13 +81,16 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 - Q: What does the API return for a measurement with no location of its own? → A: No location. The
   API returns what the record holds, and the sample's location is on the sample.
 - Q: What does elevation measure? → A: Metres above mean sea level, negative below it, as given.
-  It is never converted when the coordinates are.
 - Q: What does uncertainty measure? → A: The distance in metres from the point within which the
   true location lies. It is never negative.
 - Q: Does an organization's point carry elevation and uncertainty? → A: No. It is a plain point.
   Its coordinates are entered in the same notations as a sample's, in WGS 84 only.
+- Q: May a researcher type coordinates in a projected system or another reference system? → A: No.
+  Every coordinate is entered in WGS 84, and a researcher whose notebook uses another system
+  converts it first. The maintainer asked for this after the walkthrough, and accepting other
+  systems is #512.
 - Q: How precisely is a location shown? → A: To five decimal places of a degree, about one metre.
-  It is stored as converted, without rounding.
+  It is stored as typed, without rounding.
 - Q: Are existing locations carried across the upgrade? → A: They need not be. No portal holds
   location data yet.
 
@@ -96,15 +100,14 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 
 A researcher opens a sample's form and types the coordinates from their field notebook. They may
 type them as decimal degrees, as degrees and decimal minutes, or as degrees, minutes and seconds,
-with or without N, S, E and W. Where the notebook uses a projected system, such as a UTM zone or a
-national grid, they choose it and type the easting and northing. They may add an elevation and an
-uncertainty. The portal checks what they typed, converts it to WGS 84, and stores it on that sample
+with or without N, S, E and W, in WGS 84, as a GPS receiver records it. Where the notebook uses a
+projected system, such as a UTM zone or a national grid, they convert it to WGS 84 first. They may
+add an elevation and an uncertainty. The portal checks what they typed and stores it on that sample
 alone. The sample's page shows where it was taken.
 
 **Why this priority**: Recording a location is what every other part of this feature reads.
 
-**Independent Test**: Create a sample with coordinates in each notation and in a projected system,
-then open its page and read the stored point back.
+**Independent Test**: Create a sample with coordinates in each notation, then open its page and read the stored point back.
 
 **Acceptance Scenarios**:
 
@@ -113,12 +116,11 @@ then open its page and read the stored point back.
 2. **Given** a sample form, **When** the researcher enters the same place in degrees and decimal
    minutes, or in degrees, minutes and seconds, with or without hemisphere letters, **Then** the
    sample is saved with the same point as from decimal degrees.
-3. **Given** a sample form, **When** the researcher chooses a reference system by its EPSG code and
-   enters coordinates in it, **Then** the sample is saved with those coordinates converted to
-   WGS 84.
+3. **Given** a sample form, **When** it is opened, **Then** it asks for a latitude and a longitude
+   in WGS 84 and offers no choice of reference system.
 4. **Given** a sample form, **When** the researcher enters an elevation or an uncertainty, **Then**
    the sample is saved with each one given, and without the one not given.
-5. **Given** coordinates outside the range their reference system allows, a latitude beyond 90
+5. **Given** coordinates outside the range of WGS 84, a latitude beyond 90
    degrees, a notation the portal cannot read or a negative uncertainty, **When** the form is
    submitted, **Then** it is refused, says which value is wrong, and nothing is saved.
 6. **Given** an elevation or an uncertainty with no coordinates, **When** the form is submitted,
@@ -195,7 +197,7 @@ location, then open each page and run a lookup over both.
 **Acceptance Scenarios**:
 
 1. **Given** a measurement form, **When** the researcher enters a location, **Then** the
-   measurement is saved with it, checked and converted as a sample's is.
+   measurement is saved with it, checked as a sample's is.
 2. **Given** a measurement with a location of its own, **When** its page is opened, **Then** the
    page shows the measurement's location.
 3. **Given** a measurement with no location of its own whose sample has one and may be opened by the
@@ -298,7 +300,8 @@ read the points back.
 - A point exactly on an area's edge counts as inside it.
 - A distance lookup measures along the Earth's surface, not in degrees, so a lookup at high latitude
   is as accurate as one at the equator.
-- Coordinates in a projected system that convert to a point outside WGS 84's range are refused.
+- Projected coordinates, such as an easting and a northing in metres, are not a latitude and a
+  longitude in range, and are refused as out of range or unreadable.
 - A latitude and a longitude given in different notations in the same form are each read in their
   own notation.
 - A sample type whose registered fields leave out the location gets no location input in its forms
@@ -317,18 +320,19 @@ read the points back.
 - **FR-001**: Every sample and every measurement MUST have a location of its own, made of an
   optional point, an optional elevation and an optional uncertainty. No location is shared between
   records.
-- **FR-002**: A point MUST be stored in WGS 84 as longitude and latitude, as converted, without
+- **FR-002**: A point MUST be stored in WGS 84 as longitude and latitude, as typed, without
   rounding.
 - **FR-003**: An elevation MUST be stored in metres above mean sea level, negative below it, and
-  MUST NOT be changed when coordinates are converted.
+  MUST NOT be changed.
 - **FR-004**: An uncertainty MUST be stored as a distance in metres, zero or more.
 - **FR-005**: An elevation or an uncertainty MUST NOT be stored without a point.
 - **FR-006**: The location input MUST accept coordinates in decimal degrees, in degrees and decimal
   minutes, and in degrees, minutes and seconds, each with or without hemisphere letters.
-- **FR-007**: The location input MUST accept coordinates in WGS 84 by default, and in any reference
-  system with an EPSG code the researcher chooses, and MUST convert them to WGS 84 before saving.
-- **FR-008**: Coordinates that cannot be read, or that lie outside the range of their reference
-  system or of WGS 84 once converted, MUST be refused with a message naming the value, and nothing
+- **FR-007**: The location input MUST take every coordinate as a latitude and a longitude in
+  WGS 84, and MUST NOT offer a choice of reference system. Converting from another system is
+  the researcher's to do first (#512).
+- **FR-008**: Coordinates that cannot be read, or that lie outside the range of WGS 84, MUST be
+  refused with a message naming the value, and nothing
   MUST be saved.
 - **FR-009**: A sample or measurement type MUST get the location input in its generated forms, and
   location columns in its import and export, when its registration lists the location among its
@@ -401,7 +405,7 @@ read the points back.
 - **FR-035**: The `Point` model, its form, its latitude and longitude input masks,
   `normalize_coordinate`, `serialize_dataset_samples`, and the `FAIRDM_CRS`, `FAIRDM_X_COORD` and
   `FAIRDM_Y_COORD` settings MUST be removed.
-- **FR-036**: The documentation MUST describe a location, the notations and reference systems it is
+- **FR-036**: The documentation MUST describe a location, the notations and WGS 84 it is
   entered in, the lookups and spatial coverage, and the breaking changes a portal meets when it
   upgrades.
 
@@ -411,8 +415,6 @@ read the points back.
   elevation in metres and an optional uncertainty in metres. It belongs to the one record that holds
   it and is never shared.
 - **Organization point**: where an organization is. A WGS 84 point and nothing more.
-- **Reference system**: the system coordinates are typed in, identified by its EPSG code. Only the
-  converted WGS 84 point is kept.
 - **Spatial coverage**: the smallest area holding the locations of a dataset's or a project's
   records, as seen by a given viewer.
 
@@ -420,8 +422,8 @@ read the points back.
 
 ### Measurable Outcomes
 
-- **SC-001**: The same place typed in each of the three notations, and in a projected reference
-  system, is stored as points that agree to within one metre.
+- **SC-001**: The same place typed in each of the three notations is stored as points that agree
+  to within one metre.
 - **SC-002**: Changing one record's location changes no other record, in every case the acceptance
   scenarios cover.
 - **SC-003**: Every area, distance and nearest-first lookup returns the same records as the same

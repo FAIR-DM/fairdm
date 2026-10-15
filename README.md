@@ -173,7 +173,7 @@ class RockSampleConfig(BaseSampleConfiguration):
 ```
 
 Listing `location` gives the type's form the location input, which reads decimal degrees,
-degrees and minutes, or degrees, minutes and seconds, in WGS 84 or any EPSG reference system.
+degrees and minutes, or degrees, minutes and seconds, in WGS 84.
 
 `BaseSampleConfiguration` is the recommended base for a specimen type's registry configuration —
 it declares the shared `fields` list every generated component falls back to, so you only state it

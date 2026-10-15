@@ -76,10 +76,10 @@ Taste calls made for the first round. Sam's eye rules on each.
   stays free and the parser does the work. *(Convention: a number input cannot hold a degree
   sign.)*
 - **Latitude before longitude**, in ISO 6709 order, in the form and on the card. The first box
-  stays first when a projected system turns it into Northing. *(Order: convention. Keeping the
-  boxes in place: taste.)*
-- **The reference system is a short text box with suggestions**, prefixed "EPSG", defaulting to
-  4326, rather than a select of a few systems with an "other" option. Any code can be typed.
+  stays first. *(Order: convention.)*
+- **There is no reference-system box.** The sketch had a short text box prefixed "EPSG", defaulting
+  to 4326. The maintainer removed it after the walkthrough: every coordinate is entered in WGS 84,
+  and the boxes are always Latitude and Longitude. Other systems are #512.
 - **A "Reads as 48.93530° N" line under each coordinate**, so a researcher sees how the portal
   read what they typed before saving.
 - **Elevation and uncertainty sit side by side below the coordinates**, with "m" and "± … m" in

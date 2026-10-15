@@ -100,8 +100,7 @@ Here's a typical example for a water sample:
 - Use the date picker or enter the date in YYYY-MM-DD format
 
 **Collection Location** (required):  
-- **Reference system**: `4326` (WGS 84, what a GPS receiver records)
-- **Latitude**: `45.5231`
+- **Latitude**: `45.5231` (WGS 84, what a GPS receiver records)
 - **Longitude**: `-122.6765`
 - **Elevation** and **Uncertainty** (optional): in metres
 - **Site Name**: `Site B - Main Channel`

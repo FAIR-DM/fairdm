@@ -8,8 +8,8 @@
 ## Summary
 
 Replace the shared `Point` table with three fields on every sample and every measurement, and a
-point on every organization. Coordinates are typed in any of three notations and any EPSG system
-through one form input, and stored in WGS 84. Samples, measurements and organizations gain area,
+point on every organization. Coordinates are typed in WGS 84, in any of three notations,
+through one form input, and stored as typed. Samples, measurements and organizations gain area,
 distance and nearest-first lookups, datasets and projects gain a spatial coverage, and the API,
 tabular import and export and the DataCite metadata carry the new location. The prototype's screens
 are kept. Everything behind them is rebuilt test first.
@@ -79,19 +79,15 @@ In `fairdm/contrib/location/forms.py`:
   read, a hemisphere letter or word that belongs to the other axis, a value out of range for the
   axis, and minutes written with the letter `m` (research). Messages name the value and say what
   is accepted.
-- `LocationField(MultiValueField)`, with `full=True` for reference system, two coordinates,
-  elevation and uncertainty, and `full=False` for two coordinates in WGS 84. It cleans to `None`,
-  or to a `Location(point, elevation, uncertainty)` named tuple whose point is in SRID 4326. A
-  geographic system is read with `parse_coordinate`. A projected one reads two numbers as northing
-  and easting. Anything else is converted with `GEOSGeometry.transform()`. An unknown code, a
-  result outside WGS 84's range, one coordinate without the other, and an elevation or
-  uncertainty without coordinates are refused (FR-005, FR-008).
+- `LocationField(MultiValueField)`, with `full=True` for two coordinates, elevation and
+  uncertainty, and `full=False` for two coordinates. It cleans to `None`,
+  or to a `Location(point, elevation, uncertainty)` named tuple whose point is in SRID 4326. Both
+  coordinates are read with `parse_coordinate` and nothing is converted: a reference system is not
+  an input (#512). A value outside WGS 84's range, one coordinate without the other, and an
+  elevation or uncertainty without coordinates are refused (FR-005, FR-008).
 - `LocationWidget(MultiWidget)` with the prototype's template, moved to
   `fairdm/contrib/location/templates/location/widgets/location.html` as it was approved.
-  `decompress()` takes a `Location`. The suggested systems are a module constant of codes, each
-  given its name and kind (`SpatialReference(code).name`, `.geographic`) when the widget renders.
-  The script reads that list from a `json_script` element instead of its own copy. A code outside
-  the list is labelled Northing and Easting until the form is saved, and the server decides.
+  `decompress()` takes a `Location`. The boxes are always Latitude and Longitude.
 - `LocationFormMixin` for a `ModelForm` whose model is a `LocatedRecord`. When `location` is in
   the form's fields, it replaces it with a full `LocationField`, starts it from the instance's
   three fields, and in `clean()` sets `location_elevation` and `location_uncertainty` on the

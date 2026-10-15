@@ -11,7 +11,7 @@ correcting one never moves the other.
 | `location_uncertainty` | `FloatField` | Metres from the point within which the true place lies, zero or more |
 
 All three are optional. The database refuses an elevation or an uncertainty on a record that has no
-point, and refuses a negative uncertainty. The point is stored as it was converted, without
+point, and refuses a negative uncertainty. The point is stored as it was typed, without
 rounding. Pages show it to five decimal places, about one metre.
 
 An organization holds a plain `location` point, with no elevation and no uncertainty. A person has
@@ -74,7 +74,7 @@ on the instance. Clearing the coordinates clears all three.
 ## Placing an organization
 
 An organization's form asks for **Coordinates**: a latitude and a longitude in WGS 84, with no
-reference system, elevation or uncertainty. The notations are the ones the sample input reads (see
+elevation or uncertainty. The notations are the ones the sample input reads (see
 [What the input reads](#what-the-input-reads)). Leaving both empty gives the organization no point.
 One coordinate without the other is refused.
 
@@ -332,7 +332,8 @@ id,name,latitude,longitude,location_elevation,location_uncertainty
 
 An import reads `latitude` and `longitude` in any notation the location input reads, one
 notation per cell, so `49.0094`, `49 0.564 N` and `49°0'33.84"N` give the same point. The cells are
-always WGS 84: the file has no reference-system column, so convert projected coordinates first.
+always WGS 84, as the input's are: the file has no reference-system column, so convert projected
+coordinates first.
 Elevation and uncertainty are plain numbers.
 
 A row the input would refuse is reported with the value that is wrong and the input's own message,
@@ -366,9 +367,10 @@ that declares its columns by hand can use directly:
 
 ## What the input reads
 
-The input takes a reference system, two coordinates, an elevation and an uncertainty. The
-reference system is an EPSG code and defaults to 4326, WGS 84. The coordinates are read in
-the system's own notation:
+The input takes a latitude and a longitude, an elevation and an uncertainty. Every coordinate is
+entered in WGS 84, the system a GPS receiver records, and there is no reference-system input. A
+researcher whose coordinates are in a projected system, such as a UTM zone, converts them first
+(other systems are #512). The coordinates are read in any of these notations:
 
 | Typed | Read as |
 |---|---|
@@ -381,16 +383,10 @@ A hemisphere letter or word can stand in front or behind. Latitude and longitude
 their own notation, so they need not match. Minutes written with the letter `m` are refused,
 because a trailing `s` after seconds would then read as south.
 
-A projected system, such as ETRS89 / UTM zone 32N (EPSG 25832), takes a northing in the first box
-and an easting in the second, in metres. Whatever was typed is converted to WGS 84 before it is
-saved. Elevation is never converted.
-
 The input refuses, and saves nothing, when:
 
 - a coordinate cannot be read, or lies outside its range: latitude beyond 90, longitude beyond 180,
 - a hemisphere belongs to the other axis, as in a latitude ending in `E`,
-- the EPSG code is unknown,
-- the coordinates lie outside the area the system covers,
 - one coordinate is given without the other,
 - an elevation or an uncertainty is given with no coordinates,
 - the uncertainty is negative.
@@ -438,7 +434,7 @@ parse_coordinate("49 0.564 N", "lat")  # 49.0094
 parse_coordinate("8 24 41.4 E", "lon")  # 8.4115
 ```
 
-`LocationField` is a `MultiValueField`. `full=False` asks for a latitude and a longitude in WGS 84
+`LocationField` is a `MultiValueField`. `full=False` asks for a latitude and a longitude
 only, as an organization's point does. It cleans to `None` when everything is empty, and otherwise
 to a `Location` named tuple whose point is in SRID 4326:
 
@@ -446,19 +442,16 @@ to a `Location` named tuple whose point is in SRID 4326:
 from fairdm.contrib.location.forms import LocationField
 
 field = LocationField()
-location = field.clean(["25832", "5428667", "456964", "112", "5"])
+location = field.clean(["49 0.564 N", "8 24.69 E", "112", "5"])
 location.point.srid  # 4326
 location.elevation  # 112.0
 location.uncertainty  # 5.0
 ```
 
-The list is the input's parts in order: reference system, first coordinate, second coordinate,
-elevation, uncertainty.
+The list is the input's parts in order: latitude, longitude, elevation, uncertainty.
 
 `LocationWidget` is the input a `LocationField` draws, with `full=False` for the point-only
-variant. It suggests the codes in `SUGGESTED_SYSTEMS` and reads from the server which of them are
-typed as degrees, so the page's script and the server agree. Its template is
-`location/widgets/location.html`.
+variant. Its template is `location/widgets/location.html`.
 
 ## Upgrading
 
