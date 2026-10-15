@@ -3,7 +3,7 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
-## 030 - A location is a value on each record
+## 030 - Upgrading to a location held on each record
 
 A sample's `location` used to be a link to a `Point` record that samples at the same coordinates
 shared. A sample and a measurement now each hold their own `location` (a WGS 84 point),
