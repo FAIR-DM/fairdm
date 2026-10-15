@@ -966,6 +966,8 @@ class ResourceFactory(ComponentFactory):
         """
         from import_export import resources
 
+        from fairdm.contrib.location.resources import LocatedResourceMixin
+
         fields = self.get_fields()
 
         meta_attrs = {
@@ -980,12 +982,12 @@ class ResourceFactory(ComponentFactory):
         fk_widgets = self._get_fk_widgets()
         resource_attrs.update(fk_widgets)
 
+        bases: tuple[type, ...] = (resources.ModelResource,)
+        if "location" in fields:
+            bases = (LocatedResourceMixin, *bases)
+
         resource_class_name = f"{self.model.__name__}Resource"
-        resource_class = type(
-            resource_class_name,
-            (resources.ModelResource,),
-            resource_attrs,
-        )
+        resource_class = type(resource_class_name, bases, resource_attrs)
 
         return resource_class
 
