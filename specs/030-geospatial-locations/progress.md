@@ -245,3 +245,10 @@ Did: MeasureWidget.clean refuses nan, inf and -inf, so the elevation and uncerta
 Verified: pytest -n0 test_resources.py plus the sample and measurement plugin modules, 120 passed. With the isfinite check replaced by False, all five new cases (nan, inf, -inf elevation; nan, inf uncertainty) fail because the row imports.
 Next: T037.
 Watch: none.
+
+## 2026-10-15T07:58:39Z · Implementer FIX-1 · T037
+
+Did: Spatial.polygon reads a (west, south, east, north) tuple with west greater than east as the union of (west..180) and (-180..east), the shape spatial_coverage returns across the 180th meridian.
+Verified: pytest -n0 test_managers.py and test_coverage.py, 46 passed. With the west > east branch replaced by False the new test fails: the sample at longitude 0 comes back and the two at 178 and -178 do not.
+Next: T038.
+Watch: Measurement.inside shares Spatial.polygon, so it reads the same tuple the same way.

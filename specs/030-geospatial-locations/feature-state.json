@@ -463,8 +463,20 @@
         },
         {
           "id": "T037",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_managers.py::TestSampleInside::test_a_box_that_crosses_the_180th_meridian_returns_the_samples_in_it"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_managers.py tests/test_contrib/test_location/test_coverage.py (46 passed)",
+              "mutation: replace 'if west > east:' in Spatial.polygon with 'if False:' and rerun TestSampleInside: the new test fails (1 failed, 4 passed), returning the sample at longitude 0 and missing the two across the meridian"
+            ],
+            "code": [
+              "fairdm/contrib/location/managers.py:36"
+            ]
+          }
         },
         {
           "id": "T038",
