@@ -255,6 +255,43 @@ class TestImport:
         assert sample.location.x == pytest.approx(8.0)
         assert sample.location.y == pytest.approx(49.0)
 
+    def test_empty_cells_clear_the_location(self, dataset):
+        sample = RockSampleFactory(
+            dataset=dataset,
+            location=at(8.0, 49.0),
+            location_elevation=10.0,
+            location_uncertainty=2.0,
+        )
+        row = self.row(dataset, id=sample.pk, name=sample.name)
+        row["rock_type"] = sample.rock_type
+
+        result = self.load(sample_resource(dataset), row)
+
+        assert not result.has_validation_errors()
+        sample.refresh_from_db()
+        assert sample.location is None
+        assert sample.location_elevation is None
+        assert sample.location_uncertainty is None
+
+    def test_a_file_with_only_the_elevation_column_leaves_the_point(self, dataset):
+        sample = RockSampleFactory(dataset=dataset, location=at(8.0, 49.0))
+        row = {
+            "id": sample.pk,
+            "dataset": dataset.pk,
+            "name": sample.name,
+            "rock_type": sample.rock_type,
+            "collection_date": "2026-01-02",
+            "location_elevation": "250",
+        }
+
+        result = self.load(sample_resource(dataset), row)
+
+        assert not result.has_validation_errors()
+        sample.refresh_from_db()
+        assert sample.location.x == pytest.approx(8.0)
+        assert sample.location.y == pytest.approx(49.0)
+        assert sample.location_elevation == pytest.approx(250.0)
+
     def test_a_measurement_row_sets_the_measurements_own_location(self, dataset):
         sample = RockSampleFactory(dataset=dataset, location=at(8.0, 49.0))
         row = {
