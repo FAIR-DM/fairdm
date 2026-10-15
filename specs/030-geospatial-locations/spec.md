@@ -14,7 +14,7 @@ filtered from the portal.
 R26, a research group can deploy the shipped stack.
 
 **Input**: #494. Portals capture, store and query locations as real geospatial data. A researcher
-records where a sample was taken in the notation they wrote it down in, as WGS 84. Portal
+records where a sample was taken as decimal degrees in WGS 84. Portal
 code asks which records lie inside an area or near a point without loading every location into
 Python. Machines read a record's location from the API.
 
@@ -31,8 +31,8 @@ After this feature:
 - Every sample and every measurement has a location of its own: a point on the Earth, an optional
   elevation and an optional uncertainty. Changing one record's location never changes another's.
 - An organization has a point of its own. A person has none.
-- Coordinates are entered in decimal degrees, degrees and minutes, or degrees, minutes and seconds,
-  in WGS 84, and are stored in WGS 84. Another reference system is converted by the person typing.
+- Coordinates are entered as signed decimal degrees in WGS 84, and are stored in WGS 84. Another
+  reference system or another notation is converted by the person typing.
 - Portal code can ask the database which samples, measurements or organizations lie inside an
   area, lie within a distance of a point, or are nearest a point.
 - `Point`, its page, and the `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` settings are gone.
@@ -52,6 +52,8 @@ After this feature:
   this feature.
 - **Typing coordinates in another reference system**, by its EPSG code, with the portal converting
   them to WGS 84, is #512. Until then a coordinate is entered in WGS 84.
+- **Typing coordinates as degrees and minutes, or degrees, minutes and seconds**, with or without
+  hemisphere letters, is #513. Until then a coordinate is a signed decimal number of degrees.
 - **Filtering API lists by area or distance** is not part of this feature.
 - **A dataset's DataCite metadata describing its spatial coverage** is #511. The DataCite export
   cannot be produced today, so it is delivered with that issue. The spatial coverage it needs is
@@ -84,11 +86,14 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 - Q: What does uncertainty measure? → A: The distance in metres from the point within which the
   true location lies. It is never negative.
 - Q: Does an organization's point carry elevation and uncertainty? → A: No. It is a plain point.
-  Its coordinates are entered in the same notations as a sample's, in WGS 84 only.
+  Its coordinates are entered as decimal degrees, as a sample's are, in WGS 84 only.
 - Q: May a researcher type coordinates in a projected system or another reference system? → A: No.
   Every coordinate is entered in WGS 84, and a researcher whose notebook uses another system
   converts it first. The maintainer asked for this after the walkthrough, and accepting other
   systems is #512.
+- Q: May a researcher type degrees and minutes, degrees, minutes and seconds, or hemisphere
+  letters? → A: No. A coordinate is a signed decimal number of degrees, south and west negative.
+  The maintainer asked for decimal degrees only for now, and the other notations are #513.
 - Q: How precisely is a location shown? → A: To five decimal places of a degree, about one metre.
   It is stored as typed, without rounding.
 - Q: Are existing locations carried across the upgrade? → A: They need not be. No portal holds
@@ -99,29 +104,28 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 ### User Story 1 - A researcher records where a sample was taken (Priority: P1)
 
 A researcher opens a sample's form and types the coordinates from their field notebook. They may
-type them as decimal degrees, as degrees and decimal minutes, or as degrees, minutes and seconds,
-with or without N, S, E and W, in WGS 84, as a GPS receiver records it. Where the notebook uses a
-projected system, such as a UTM zone or a national grid, they convert it to WGS 84 first. They may
+type them as signed decimal degrees in WGS 84, as a GPS receiver records them, with south and west
+negative. Where the notebook uses a projected system, such as a UTM zone or a national grid, or
+degrees, minutes and seconds, they convert it first. They may
 add an elevation and an uncertainty. The portal checks what they typed and stores it on that sample
 alone. The sample's page shows where it was taken.
 
 **Why this priority**: Recording a location is what every other part of this feature reads.
 
-**Independent Test**: Create a sample with coordinates in each notation, then open its page and read the stored point back.
+**Independent Test**: Create a sample with coordinates in decimal degrees, then open its page and read the stored point back.
 
 **Acceptance Scenarios**:
 
 1. **Given** a sample form, **When** the researcher enters a latitude and longitude in decimal
    degrees, **Then** the sample is saved with that point in WGS 84.
-2. **Given** a sample form, **When** the researcher enters the same place in degrees and decimal
-   minutes, or in degrees, minutes and seconds, with or without hemisphere letters, **Then** the
-   sample is saved with the same point as from decimal degrees.
+2. **Given** a sample form, **When** the researcher enters a negative latitude or longitude,
+   **Then** the sample is saved with a point south or west of the origin.
 3. **Given** a sample form, **When** it is opened, **Then** it asks for a latitude and a longitude
    in WGS 84 and offers no choice of reference system.
 4. **Given** a sample form, **When** the researcher enters an elevation or an uncertainty, **Then**
    the sample is saved with each one given, and without the one not given.
-5. **Given** coordinates outside the range of WGS 84, a latitude beyond 90
-   degrees, a notation the portal cannot read or a negative uncertainty, **When** the form is
+5. **Given** coordinates outside the range of WGS 84, a latitude beyond 90 degrees or a longitude
+   beyond 180, text that is not a decimal number, or a negative uncertainty, **When** the form is
    submitted, **Then** it is refused, says which value is wrong, and nothing is saved.
 6. **Given** an elevation or an uncertainty with no coordinates, **When** the form is submitted,
    **Then** it is refused and nothing is saved.
@@ -245,8 +249,8 @@ a point, and read each location back.
 
 A researcher exports a dataset's samples or measurements, and the file has the location in columns
 of each row: latitude and longitude in WGS 84 decimal degrees, elevation and uncertainty. They edit
-the file or prepare a new one, and import it. Coordinates in the file may be in any of the notations
-the form accepts. A location is never exported or imported as a table of its own.
+the file or prepare a new one, and import it. Coordinates in the file are decimal degrees, as the
+form takes them. A location is never exported or imported as a table of its own.
 
 **Why this priority**: A research group's existing data arrives as spreadsheets (G11), and a
 location that cannot go in with its row has to be entered again by hand.
@@ -260,9 +264,7 @@ dataset, and compare the locations.
    latitude, longitude, elevation and uncertainty, and a row without a location carries none.
 2. **Given** an exported file, **When** it is imported into a dataset, **Then** each record has the
    location it was exported with.
-3. **Given** a file whose coordinates are in degrees and minutes or in degrees, minutes and seconds,
-   **When** it is imported, **Then** each record has the same point as from decimal degrees.
-4. **Given** a file with a row whose coordinates cannot be read or are out of range, **When** it is
+3. **Given** a file with a row whose coordinates are not decimal numbers or are out of range, **When** it is
    imported, **Then** that row is reported with the value that is wrong, and is not saved.
 5. **Given** measurements with and without locations of their own, **When** they are exported,
    **Then** a row carries only the measurement's own location.
@@ -286,8 +288,8 @@ read the points back.
 
 1. **Given** a ROR record with coordinates, **When** an organization is created or updated from it,
    **Then** the organization has that point.
-2. **Given** an organization form, **When** the maintainer enters a latitude and longitude in any
-   notation a sample's form accepts, **Then** the organization is saved with that point.
+2. **Given** an organization form, **When** the maintainer enters a latitude and longitude in
+   decimal degrees, **Then** the organization is saved with that point.
 3. **Given** two organizations at the same coordinates, **When** one is moved, **Then** the other is
    unchanged.
 4. **Given** a person whose primary affiliation is to an organization with a point, **When** the
@@ -301,9 +303,8 @@ read the points back.
 - A distance lookup measures along the Earth's surface, not in degrees, so a lookup at high latitude
   is as accurate as one at the equator.
 - Projected coordinates, such as an easting and a northing in metres, are not a latitude and a
-  longitude in range, and are refused as out of range or unreadable.
-- A latitude and a longitude given in different notations in the same form are each read in their
-  own notation.
+  longitude in range, and are refused as out of range.
+- Degrees, minutes and seconds, and hemisphere letters, are not decimal numbers and are refused.
 - A sample type whose registered fields leave out the location gets no location input in its forms
   and no location columns in its import and export. The sample still has a location, empty.
 - A dataset with a single located record, or with every location at one place, has a spatial
@@ -326,14 +327,15 @@ read the points back.
   MUST NOT be changed.
 - **FR-004**: An uncertainty MUST be stored as a distance in metres, zero or more.
 - **FR-005**: An elevation or an uncertainty MUST NOT be stored without a point.
-- **FR-006**: The location input MUST accept coordinates in decimal degrees, in degrees and decimal
-  minutes, and in degrees, minutes and seconds, each with or without hemisphere letters.
+- **FR-006**: The location input MUST take a latitude and a longitude as signed decimal degrees,
+  and MUST NOT accept degrees and minutes, degrees, minutes and seconds, or hemisphere letters
+  (#513).
 - **FR-007**: The location input MUST take every coordinate as a latitude and a longitude in
   WGS 84, and MUST NOT offer a choice of reference system. Converting from another system is
   the researcher's to do first (#512).
-- **FR-008**: Coordinates that cannot be read, or that lie outside the range of WGS 84, MUST be
-  refused with a message naming the value, and nothing
-  MUST be saved.
+- **FR-008**: A latitude outside -90 to 90, a longitude outside -180 to 180, text that is not a
+  number, and one coordinate without the other MUST be refused with a message, and nothing MUST be
+  saved.
 - **FR-009**: A sample or measurement type MUST get the location input in its generated forms, and
   location columns in its import and export, when its registration lists the location among its
   fields, and MUST NOT when it does not.
@@ -341,7 +343,7 @@ read the points back.
 **Organizations and people**
 
 - **FR-010**: An organization MUST have an optional point of its own, in WGS 84, with no elevation
-  and no uncertainty, entered in the notations of FR-006.
+  and no uncertainty, entered as FR-006 says.
 - **FR-011**: An organization created or updated from ROR MUST take its point from the coordinates
   in the ROR record.
 - **FR-012**: A person MUST NOT have a location of their own. A person placed on a map MUST be placed
@@ -395,8 +397,8 @@ read the points back.
 - **FR-030**: The API MUST return an empty location for a record with no location of its own.
 - **FR-031**: Tabular export of samples and measurements MUST write each record's own location as
   latitude, longitude, elevation and uncertainty columns of its row, in WGS 84 decimal degrees.
-- **FR-032**: Tabular import of samples and measurements MUST read those columns, accept the
-  notations of FR-006 in them, and report a row whose location is refused under FR-008 without
+- **FR-032**: Tabular import of samples and measurements MUST read those columns, read
+  them as FR-006 says, and report a row whose location is refused under FR-008 without
   saving it.
 - **FR-033**: A location MUST NOT be exported or imported as a table of its own.
 
@@ -405,13 +407,13 @@ read the points back.
 - **FR-035**: The `Point` model, its form, its latitude and longitude input masks,
   `normalize_coordinate`, `serialize_dataset_samples`, and the `FAIRDM_CRS`, `FAIRDM_X_COORD` and
   `FAIRDM_Y_COORD` settings MUST be removed.
-- **FR-036**: The documentation MUST describe a location, the notations and WGS 84 it is
+- **FR-036**: The documentation MUST describe a location, the decimal degrees in WGS 84 it is
   entered in, the lookups and spatial coverage, and the breaking changes a portal meets when it
   upgrades.
 
 ### Key Entities
 
-- **Location**: where a sample or a measurement is on the Earth. A WGS 84 point with an optional
+- **Location**: where a sample or a measurement is on the Earth. A WGS 84 point, entered as signed decimal degrees, with an optional
   elevation in metres and an optional uncertainty in metres. It belongs to the one record that holds
   it and is never shared.
 - **Organization point**: where an organization is. A WGS 84 point and nothing more.
@@ -422,8 +424,8 @@ read the points back.
 
 ### Measurable Outcomes
 
-- **SC-001**: The same place typed in each of the three notations is stored as points that agree
-  to within one metre.
+- **SC-001**: A place typed as signed decimal degrees is stored as a point that agrees with the
+  typed value to within one metre, for every hemisphere.
 - **SC-002**: Changing one record's location changes no other record, in every case the acceptance
   scenarios cover.
 - **SC-003**: Every area, distance and nearest-first lookup returns the same records as the same

@@ -482,21 +482,12 @@ def edit_page(client, sample):
 
 @pytest.mark.django_db
 class TestSampleEditPageLocation:
-    @pytest.mark.parametrize(
-        ("first", "second"),
-        [
-            ("49.0094", "8.4115"),
-            ("49 0.564 N", "8 24.69 E"),
-            ("49°0'33.84\"N", "8°24'41.4\"E"),
-            ("N 49 0 33.84", "E 8 24 41.4"),
-        ],
-    )
-    def test_a_location_in_any_notation_is_saved_as_the_wgs84_point(
-        self, sample_editor, first, second
+    def test_a_location_in_decimal_degrees_is_saved_as_the_wgs84_point(
+        self, sample_editor
     ):
         sample, client, _ = sample_editor
         url, payload = edit_page(client, sample)
-        payload.update(location_first=first, location_second=second)
+        payload.update(location_first="49.0094", location_second="8.4115")
 
         response = client.post(url, payload)
 
@@ -542,9 +533,8 @@ class TestSampleEditPageLocation:
         [
             {"location_first": "91", "location_second": "8.4115"},
             {"location_first": "49.0094", "location_second": "181"},
-            {"location_first": "49.0094 E", "location_second": "8.4115"},
+            {"location_first": "49 0 33.84 N", "location_second": "8.4115"},
             {"location_first": "somewhere", "location_second": "8.4115"},
-            {"location_first": "49 0m 33 N", "location_second": "8.4115"},
             {"location_first": "49.0094", "location_second": ""},
             {"location_first": "", "location_second": "", "location_elevation": "5"},
             {"location_first": "", "location_second": "", "location_uncertainty": "5"},

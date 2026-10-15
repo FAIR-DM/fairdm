@@ -1,112 +1,21 @@
 """Forms and widgets for entering locations."""
 
-import re
 from decimal import Decimal
 from typing import NamedTuple
 
 from django import forms
 from django.contrib.gis import geos
 from django.utils.translation import gettext_lazy as _
-from lat_lon_parser import parse
-
-AXIS_LIMITS = {"lat": 90, "lon": 180}
-AXIS_HEMISPHERES = {"lat": "ns", "lon": "ew"}
-HEMISPHERE_WORD = r"north|south|east|west|[nsew]"
-LEADING_HEMISPHERE = re.compile(rf"^\s*({HEMISPHERE_WORD})(?![a-z])\s*", re.IGNORECASE)
-TRAILING_HEMISPHERE = re.compile(
-    rf"\s*(?<![a-z])({HEMISPHERE_WORD})\s*$", re.IGNORECASE
-)
-MINUTES_LETTER = re.compile(r"(?<=\d)\s*m(?![a-z])", re.IGNORECASE)
-DEGREE_LETTER = re.compile(r"(?<=\d)\s*(?:deg|d)(?![a-z])", re.IGNORECASE)
-NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
-#: The longest text a coordinate input takes. Longer text only slows the parser.
-MAX_TYPED_LENGTH = 64
 
 
-def parse_coordinate(text, axis):
-    """Read one geographic coordinate typed in decimal degrees, degrees and minutes, or DMS.
+def latitude_field():
+    """A latitude in signed decimal degrees, from -90 to 90."""
+    return forms.FloatField(required=False, min_value=-90, max_value=90)
 
-    The reading is ``lat_lon_parser.parse``. On top of it this refuses a value outside the
-    axis's range, a hemisphere that belongs to the other axis, minutes written with the letter
-    ``m`` (the package would read the ``s`` after seconds as south), and text with more than
-    degrees, minutes and seconds in it.
 
-    Args:
-        text: What was typed, such as ``48.9353``, ``48 56.118 N`` or ``48°56'07"N``.
-        axis: ``"lat"`` or ``"lon"``, which sets the range and the hemisphere letters allowed.
-
-    Returns:
-        The coordinate in signed decimal degrees.
-
-    Raises:
-        ValidationError: The text cannot be read, names the other axis's hemisphere, writes
-            minutes with ``m``, or lies outside the axis's range. The code is ``invalid``,
-            ``wrong_axis``, ``minutes_letter`` or ``out_of_range``.
-    """
-    text = (text or "").strip()
-    params = {
-        "value": text,
-        "axis": _("latitude") if axis == "lat" else _("longitude"),
-        "limit": AXIS_LIMITS[axis],
-    }
-    invalid = forms.ValidationError(
-        _(
-            "“%(value)s” is not a %(axis)s the portal can read. Write degrees, minutes and "
-            "seconds, degrees and decimal minutes, or decimal degrees, such as 48.9353, "
-            "48 56.118 N or 48 56 7 N."
-        ),
-        code="invalid",
-        params=params,
-    )
-    if MINUTES_LETTER.search(text):
-        raise forms.ValidationError(
-            _(
-                "“%(value)s” writes minutes with the letter m. Leave the letter out: "
-                "48 56 7 N."
-            ),
-            code="minutes_letter",
-            params=params,
-        )
-
-    body = text
-    hemispheres = []
-    for pattern in (LEADING_HEMISPHERE, TRAILING_HEMISPHERE):
-        found = pattern.search(body)
-        if found:
-            hemispheres.append(found[1].lower()[0])
-            body = body[: found.start()] + body[found.end() :]
-    if len(hemispheres) > 1:
-        raise invalid
-    if hemispheres and hemispheres[0] not in AXIS_HEMISPHERES[axis]:
-        raise forms.ValidationError(
-            _(
-                "“%(value)s” ends in the hemisphere of the other axis. A %(axis)s "
-                "takes %(letters)s."
-            ),
-            code="wrong_axis",
-            params={**params, "letters": AXIS_HEMISPHERES[axis].upper()},
-        )
-
-    words = DEGREE_LETTER.sub(" ", body)
-    numbers = NUMBER.findall(words)
-    if not 1 <= len(numbers) <= 3 or re.search(r"[a-z]", words, re.IGNORECASE):
-        raise invalid
-    out_of_range = forms.ValidationError(
-        _("“%(value)s” is outside the %(axis)s range of -%(limit)s to %(limit)s."),
-        code="out_of_range",
-        params=params,
-    )
-    # The package refuses whole degrees beyond 180 itself, which would read as unreadable text.
-    if float(numbers[0].replace(",", ".")) > AXIS_LIMITS[axis]:
-        raise out_of_range
-    try:
-        value = parse(text)
-    except ValueError as error:
-        raise invalid from error
-
-    if abs(value) > AXIS_LIMITS[axis]:
-        raise out_of_range
-    return value
+def longitude_field():
+    """A longitude in signed decimal degrees, from -180 to 180."""
+    return forms.FloatField(required=False, min_value=-180, max_value=180)
 
 
 class Location(NamedTuple):
@@ -140,8 +49,12 @@ class LocationWidget(forms.MultiWidget):
         self.full = full
         self.parts = self.full_parts if full else self.point_parts
         inputs = {
-            "first": forms.TextInput(),
-            "second": forms.TextInput(),
+            "first": forms.NumberInput(
+                attrs={"step": "any", "min": "-90", "max": "90"}
+            ),
+            "second": forms.NumberInput(
+                attrs={"step": "any", "min": "-180", "max": "180"}
+            ),
             "elevation": forms.NumberInput(attrs={"step": "any"}),
             "uncertainty": forms.NumberInput(attrs={"step": "any", "min": "0"}),
         }
@@ -182,7 +95,7 @@ class LocationWidget(forms.MultiWidget):
 
 
 class LocationField(forms.MultiValueField):
-    """Read a latitude and a longitude typed in WGS 84, in any supported notation.
+    """Read a latitude and a longitude in signed decimal degrees, WGS 84.
 
     Cleans to ``None`` when every input is empty, or to a ``Location`` whose point is in
     SRID 4326.
@@ -195,13 +108,12 @@ class LocationField(forms.MultiValueField):
 
     def __init__(self, full=True, **kwargs):
         self.full = full
-        typed = {"required": False, "max_length": MAX_TYPED_LENGTH}
-        fields = [forms.CharField(**typed), forms.CharField(**typed)]
+        fields = [latitude_field(), longitude_field()]
         if full:
             fields = [
                 *fields,
                 forms.FloatField(required=False),
-                forms.FloatField(required=False),
+                forms.FloatField(required=False, min_value=0),
             ]
         kwargs.setdefault("required", False)
         super().__init__(
@@ -221,32 +133,25 @@ class LocationField(forms.MultiValueField):
             A ``Location``, or None.
 
         Raises:
-            ValidationError: The coordinates are incomplete, unreadable or out of range, or an
-                elevation or uncertainty has no coordinates or a negative uncertainty.
+            ValidationError: Only one coordinate is given, or an elevation or uncertainty has
+                no coordinates.
         """
         if not data_list:
             return None
         first, second, elevation, uncertainty = [*data_list, None, None][:4]
 
-        if not first and not second:
+        if first is None and second is None:
             if elevation is not None or uncertainty is not None:
                 raise forms.ValidationError(
                     _("Enter the coordinates the elevation and uncertainty belong to."),
                     code="no_point",
                 )
             return None
-        if not first or not second:
+        if first is None or second is None:
             raise forms.ValidationError(
                 _("Enter both coordinates, or neither."), code="incomplete"
             )
-        if uncertainty is not None and uncertainty < 0:
-            raise forms.ValidationError(
-                _("The uncertainty is a distance, so it cannot be negative."),
-                code="negative_uncertainty",
-            )
-        point = geos.Point(
-            parse_coordinate(second, "lon"), parse_coordinate(first, "lat"), srid=4326
-        )
+        point = geos.Point(second, first, srid=4326)
         return Location(point, elevation, uncertainty)
 
 

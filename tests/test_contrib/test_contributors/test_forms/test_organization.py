@@ -46,8 +46,8 @@ class TestOrganizationCreateForm:
                 "action": "from_form",
                 "name": "Potsdam Research Institute",
                 "country": "DE",
-                "location_first": "52 23.932 N",
-                "location_second": "13 3.94 E",
+                "location_first": "52.39886",
+                "location_second": "13.06566",
             }
         )
         assert form.is_valid(), form.errors

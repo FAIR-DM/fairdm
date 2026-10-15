@@ -72,16 +72,19 @@ them is replaced when the feature is built, test first.
 
 Taste calls made for the first round. Sam's eye rules on each.
 
-- **One box per coordinate, typed as text.** A number input would refuse °, ′ and ″. Typing
-  stays free and the parser does the work. *(Convention: a number input cannot hold a degree
-  sign.)*
+- **One number box per coordinate.** The sketch took text so that °, ′ and ″ could be typed. The
+  maintainer asked for decimal degrees only, so each box is a number input with a range of -90 to
+  90 or -180 to 180. Other notations are #513. *(Convention: a number input holds a signed
+  decimal.)*
 - **Latitude before longitude**, in ISO 6709 order, in the form and on the card. The first box
   stays first. *(Order: convention.)*
 - **There is no reference-system box.** The sketch had a short text box prefixed "EPSG", defaulting
   to 4326. The maintainer removed it after the walkthrough: every coordinate is entered in WGS 84,
   and the boxes are always Latitude and Longitude. Other systems are #512.
-- **A "Reads as 48.93530° N" line under each coordinate**, so a researcher sees how the portal
-  read what they typed before saving.
+- **No "Reads as" line under each coordinate.** The sketch showed how the portal read a typed
+  notation. With decimal degrees only there is nothing to read back, and the maintainer removed it
+  with the notations. A line under the two boxes says "Decimal degrees in WGS 84" and that south
+  and west are negative.
 - **Elevation and uncertainty sit side by side below the coordinates**, with "m" and "± … m" in
   the boxes, so the unit is never typed or guessed.
 - **The location fields are grouped in one bordered panel** inside the form's own Location

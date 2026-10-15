@@ -470,8 +470,8 @@ class TestMeasurementEditPageLocation:
         measurement, client, _ = measurement_editor
         url, payload = measurement_edit_page(client, measurement)
         payload.update(
-            location_first="49 0.564 N",
-            location_second="8 24.69 E",
+            location_first="49.0094",
+            location_second="8.4115",
             location_elevation="112",
             location_uncertainty="25",
         )

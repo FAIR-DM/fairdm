@@ -13,10 +13,10 @@ packages already provide before any new code was planned.
 |---|---|---|
 | Store a point, index it, query it | GeoDjango's `PointField`, PostGIS GiST indexes, the `coveredby`, `dwithin` and `distance` lookups, `Distance` and `Extent` | Use GeoDjango. Nothing to add |
 | Convert from any EPSG system to WGS 84 | GeoDjango's `GEOSGeometry.transform()` over GDAL and PROJ, installed since #500 | Not used: coordinates are entered in WGS 84 only (D29, #512) |
-| Read coordinates typed in three notations | [`lat-lon-parser`](https://pypi.org/project/lat-lon-parser/) 1.3.1, NOAA's Emergency Response Division, CC0, no dependencies, released 2024-11. Reads decimal degrees, degrees and decimal minutes, and degrees, minutes and seconds, with symbols, letters or spaces, with hemisphere letters or words in front or behind. Returns a signed float | **Adopt.** It does not check ranges or which axis a hemisphere letter belongs to (`parse("95")` is 95.0, and `12.5 W` is accepted as a latitude), so the field adds those two checks. A letter `s` after the seconds is read as south (`48d 56m 7s` gives -48.935), so the field refuses minutes written with the letter `m` (the only notation in which a trailing `s` can mean seconds), asking for ′ and ″ or spaces instead. Tried against 1.3.1 on 2026-10-14. `LatLon23` was the alternative: GPL, and it does not parse an unknown notation |
+| Read coordinates typed in three notations | [`lat-lon-parser`](https://pypi.org/project/lat-lon-parser/) 1.3.1 was surveyed and first adopted; `LatLon23` was the alternative (GPL) | Not used: coordinates are entered as signed decimal degrees (D29, #513), which Django's `FloatField` reads with `MinValueValidator` and `MaxValueValidator` |
 | A form input for a location | Django's GIS form widgets (`OSMWidget`, `OpenLayersWidget`) draw a map to click on and take no typed coordinates. `django-map-widgets` is the same idea with Google or Mapbox | Not adopted. The approved screen is typed coordinates, so the input is a `MultiValueField` and `MultiWidget` of our own, which is how Django composes one |
 | GeoJSON in the API | [`djangorestframework-gis`](https://pypi.org/project/djangorestframework-gis/) 1.3.0 (2026-09, BSD, needs DRF below 3.19, which fairdm's 3.18.1 meets) gives a `GeometryField`. The elevation is a separate column, so the third coordinate has to be composed whichever field is used | Not adopted. One read-only field that writes `{"type": "Point", "coordinates": [...]}` from three model values is a few lines over `GEOSGeometry.coords`, and a dependency for it was removed in #196 |
-| Location columns in tabular import and export | `django-import-export` 4.4.1 has no geometry widget | One `Widget` per column, reusing the form's parsing |
+| Location columns in tabular import and export | `django-import-export` 4.4.1 has no geometry widget | One `Widget` per column, with the coordinates read by the form's own field |
 | Spatial coverage across the 180th meridian | PostGIS `ST_Extent` takes the minimum and maximum longitude. `ST_ShiftLongitude` moves western longitudes past 180 | Two `Extent` aggregates, one on the shifted points, and the narrower box kept. No package does this |
 
 ## What the prototype asks for
@@ -26,8 +26,8 @@ Every line under *What the screens need from the code* and *What the sketch fake
 
 | Prototype line | Met by |
 |---|---|
-| An input reading three notations in WGS 84 | `LocationField` (plan D3) on `lat-lon-parser` and GeoDjango |
-| Latitude and Longitude, or Northing and Easting | The widget is given each suggested system's kind from `SpatialReference(srid).geographic`, and an unsuggested code is checked on the server when the form is saved (plan D3) |
+| An input reading decimal degrees in WGS 84 | `LocationField` (plan D3) on Django's number fields and GeoDjango |
+| Latitude and Longitude | The boxes are always Latitude and Longitude, in WGS 84 (D29) |
 | The stored location back in decimal degrees | The widget's `decompress` reads the three model fields |
 | Elevation and uncertainty on the sample page | Two fields on the record (plan D1) |
 | The measurement's own location, and its sample's for a viewer who may open the sample | `Measurement.located_for()` (plan D5) |
@@ -38,7 +38,7 @@ Every line under *What the screens need from the code* and *What the sketch fake
 | Faked: the shared `Point` table | Removed (plan D1, D8) |
 | Faked: the measurement input on every measurement form | Shown only when the registration lists `location`, as for samples (FR-009) |
 | Faked: the hard-coded list of geographic codes in the script | Gone with the reference-system box (D29) |
-| Faked: a second parser in the browser | Kept as a hint only. The server's reading is the one that is stored |
+| Faked: a second parser in the browser | Not needed: the boxes are number inputs and the browser's own range check applies. The server's check is the one that decides |
 | Faked: the table factory dropping `location` by name | Dropped by field type, any `GeometryField` |
 | Faked: the location page still served | Removed (FR-028) |
 
@@ -56,8 +56,7 @@ One line for each piece of new code, with where the search stopped.
   location, filtered by the existing `Sample.objects.visible_to()`.
 - **Spatial coverage** — GeoDjango `Extent`, plus `Func(function="ST_ShiftLongitude")`. New code
   only for choosing the narrower box.
-- **Coordinate parsing** — the `lat-lon-parser` package, plus a range and hemisphere check of our
-  own.
+- **Coordinate parsing** — Django's `FloatField` with range validators; nothing of our own.
 - **Conversion between reference systems** — not needed; coordinates are entered in WGS 84 (D29).
 - **The location input** — Django `MultiValueField` and `MultiWidget`. New code: the field, the
   widget and its template.

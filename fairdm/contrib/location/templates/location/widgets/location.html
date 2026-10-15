@@ -1,58 +1,30 @@
 {% load i18n %}
 {% comment %}
-  The location input: a latitude and a longitude in WGS 84, and with widget.full an elevation and
+  The location input: a latitude and a longitude in decimal degrees, WGS 84, and with widget.full an elevation and
   an uncertainty. widget.parts holds the subwidgets by name: first, second, elevation, uncertainty.
   `first` is the latitude, `second` the longitude.
 {% endcomment %}
 {% with parts=widget.parts %}
-<script>
-  window.fairdmLocationInput = window.fairdmLocationInput || function () {
-    const pattern = /^\s*([NSEW])?\s*([-+]?\d+(?:[.,]\d+)?)\s*(?:°|d|deg)?\s*(?:(\d+(?:[.,]\d+)?)\s*['′]?\s*)?(?:(\d+(?:[.,]\d+)?)\s*(?:["″]|'')?\s*)?([NSEW])?\s*$/i;
-    return {
-      first: "",
-      second: "",
-      read(text, axis) {
-        if (!text) return "";
-        const m = pattern.exec(text);
-        if (!m) return "{{ _('Not a coordinate the portal can read')|escapejs }}";
-        const n = (s) => parseFloat((s || "0").replace(",", "."));
-        let v = Math.abs(n(m[2])) + n(m[3]) / 60 + n(m[4]) / 3600;
-        const h = (m[1] || m[5] || "").toUpperCase();
-        if (n(m[2]) < 0 || h === "S" || h === "W") v = -v;
-        const limit = axis === "lat" ? 90 : 180;
-        if (Math.abs(v) > limit) return axis === "lat" ? "{{ _('A latitude lies between −90 and 90')|escapejs }}" : "{{ _('A longitude lies between −180 and 180')|escapejs }}";
-        const letter = axis === "lat" ? (v < 0 ? "S" : "N") : (v < 0 ? "W" : "E");
-        return "{{ _('Reads as')|escapejs }} " + Math.abs(v).toFixed(5) + "° " + letter;
-      },
-    };
-  };
-</script>
-<div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4"
-     x-data="fairdmLocationInput()"
-     x-init="first = $refs.first.value; second = $refs.second.value">
+<div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4">
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="fieldset p-0">
       <label class="fieldset-legend pt-0" for="{{ parts.first.attrs.id }}">
         {% translate "Latitude" %}
       </label>
-      <input type="text" name="{{ parts.first.name }}" id="{{ parts.first.attrs.id }}" value="{{ parts.first.value|default:'' }}"
-             class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="first" x-model="first"
-             aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format {{ parts.first.attrs.id }}_reads">
-      <p class="label text-wrap" id="{{ parts.first.attrs.id }}_reads" aria-live="polite" x-text="read(first, 'lat')"></p>
+      <input type="number" step="any" min="-90" max="90" inputmode="decimal" name="{{ parts.first.name }}" id="{{ parts.first.attrs.id }}" value="{{ parts.first.value|default_if_none:'' }}"
+             class="input w-full font-mono" aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
     </div>
     <div class="fieldset p-0">
       <label class="fieldset-legend pt-0" for="{{ parts.second.attrs.id }}">
         {% translate "Longitude" %}
       </label>
-      <input type="text" name="{{ parts.second.name }}" id="{{ parts.second.attrs.id }}" value="{{ parts.second.value|default:'' }}"
-             class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="second" x-model="second"
-             aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format {{ parts.second.attrs.id }}_reads">
-      <p class="label text-wrap" id="{{ parts.second.attrs.id }}_reads" aria-live="polite" x-text="read(second, 'lon')"></p>
+      <input type="number" step="any" min="-180" max="180" inputmode="decimal" name="{{ parts.second.name }}" id="{{ parts.second.attrs.id }}" value="{{ parts.second.value|default_if_none:'' }}"
+             class="input w-full font-mono" aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
     </div>
   </div>
   <p class="text-sm text-base-content/70 -mt-2" id="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
-    {% translate "In WGS 84, as a GPS receiver records it. Decimal degrees, degrees and minutes, or degrees, minutes and seconds, with or without N, S, E or W: 48.9353, 48 56.118 N or 48°56′07″N." %}
+    {% translate "Decimal degrees in WGS 84, as a GPS receiver records them. South and west are negative: 48.9353, -8.4115." %}
   </p>
 
   {% if widget.full %}

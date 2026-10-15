@@ -1162,8 +1162,8 @@ for an error on a field the form lacks, and the editing page answers with a serv
 
 - `image`, `name` and `alternative_names` behave as on the person form.
 - `type` and `country` are choices, and a value outside their lists is refused.
-- `location` is a latitude and a longitude in WGS 84, typed in any notation a sample's location
-  input reads, and shown under the city and country. It is stored as the organization's `location`
+- `location` is a latitude and a longitude as signed decimal degrees in WGS 84, as a sample's
+  location input reads them, and shown under the city and country. It is stored as the organization's `location`
   point. Leaving both empty removes the point. See [Locations](locations.md#placing-an-organization).
 - `parent` is a search over every organization, the same picker the affiliation form uses.
 - `website` and `links` are two fields over the one stored list `Organization.links`. The website

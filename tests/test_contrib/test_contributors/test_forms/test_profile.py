@@ -647,12 +647,10 @@ class TestOrganizationProfileFormLocation:
         ("latitude", "longitude"),
         [
             ("52.39886", "13.06566"),
-            ("52.39886 N", "13.06566 E"),
-            ("52 23.932 N", "13 3.94 E"),
-            ("52°23'55.9\"N", "13°3'56.4\"E"),
+            ("-52.39886", "-13.06566"),
         ],
     )
-    def test_a_point_typed_in_any_notation_is_saved(
+    def test_a_point_typed_in_decimal_degrees_is_saved(
         self, organization, organization_profile_data, latitude, longitude
     ):
         form = OrganizationProfileForm(
@@ -669,8 +667,8 @@ class TestOrganizationProfileFormLocation:
 
         organization.refresh_from_db()
         assert organization.location.srid == 4326
-        assert organization.location.y == pytest.approx(52.39886, abs=1e-4)
-        assert organization.location.x == pytest.approx(13.06566, abs=1e-4)
+        assert organization.location.y == pytest.approx(float(latitude), abs=1e-4)
+        assert organization.location.x == pytest.approx(float(longitude), abs=1e-4)
 
     def test_moving_one_organization_leaves_another_at_the_same_coordinates(
         self, organization_profile_data
@@ -716,8 +714,9 @@ class TestOrganizationProfileFormLocation:
         ("latitude", "longitude", "code"),
         [
             ("52.39886", "", "incomplete"),
-            ("91", "13.06566", "out_of_range"),
+            ("91", "13.06566", "max_value"),
             ("not a latitude", "13.06566", "invalid"),
+            ("52 23.932 N", "13.06566", "invalid"),
         ],
     )
     def test_coordinates_that_cannot_be_read_are_refused_and_nothing_is_stored(

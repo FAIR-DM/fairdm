@@ -184,12 +184,13 @@ test first, and the test is seen to go red under the mutation named.
 
 ## Phase 9: merge-gate change
 
-- [ ] T041 [US1] The maintainer asked at the merge gate for every coordinate to be entered as decimal degrees in WGS 84
-  only. The location input loses its reference system: no EPSG box, no suggestions, no Northing and
-  Easting labels, no conversion between systems. Latitude and longitude are still typed in any of
-  the three notations, with elevation and uncertainty as before. Remove the code and tests that only
-  served other systems (the projected branch of `read_point`, the magnitude and converted-range
-  checks that guarded it, `SUGGESTED_SYSTEMS`, `get_systems`, the systems JSON and the script's
-  label switching). Keep the latitude and longitude range checks and the 64-character cap. The spec,
-  the locations page, the changelog, `CONTEXT.md` and the decisions follow. Reference systems are
-  #512.
+- [ ] T041 [US1] The maintainer asked at the merge gate for every coordinate to be entered as signed decimal degrees in
+  WGS 84 only. The location input loses its reference system and its notations: no EPSG box, no
+  suggestions, no Northing and Easting labels, no conversion, no degrees and minutes, no degrees,
+  minutes and seconds, no hemisphere letters, no "Reads as" hint and no `lat-lon-parser`
+  dependency. Latitude (-90 to 90) and longitude (-180 to 180) are number fields with range
+  validators; elevation and uncertainty are as before, and tabular import reads the same two
+  numbers with the same ranges. Remove the code and tests that only served other systems or
+  notations. The spec, the locations page, the changelog, `CONTEXT.md` and the decisions follow.
+  Reference systems are #512 and other notations #513.
+

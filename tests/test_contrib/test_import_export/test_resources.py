@@ -131,7 +131,7 @@ class TestExport:
 
 @pytest.mark.django_db
 class TestImport:
-    """AS 5.2 to 5.4: import reads the columns in any notation and refuses what it cannot read."""
+    """AS 5.2 to 5.4: import reads the columns as decimal degrees and refuses what it cannot read."""
 
     def row(self, dataset, **cells):
         return {
@@ -187,47 +187,23 @@ class TestImport:
         assert unplaced.location_uncertainty is None
 
     @pytest.mark.parametrize(
-        ("latitude", "longitude"),
+        "cells",
         [
-            ("48.93528", "8.4115"),
-            ("48 56.117", "8 24.69"),
-            ("48°56'7\"N", "8°24'41.4\"E"),
-            ("N 48 56 7", "E 8 24 41.4"),
-        ],
-    )
-    def test_every_notation_imports_as_the_same_decimal_degrees(
-        self, dataset, latitude, longitude
-    ):
-        result = self.load(
-            sample_resource(dataset),
-            self.row(dataset, latitude=latitude, longitude=longitude),
-        )
-
-        assert not result.has_validation_errors()
-        sample = RockSample.objects.get(dataset=dataset)
-        assert sample.location.y == pytest.approx(48.93528, abs=1e-4)
-        assert sample.location.x == pytest.approx(8.4115, abs=1e-4)
-
-    @pytest.mark.parametrize(
-        ("cells", "value"),
-        [
-            ({"latitude": "north of here", "longitude": "8.4"}, "north of here"),
-            ({"latitude": "91", "longitude": "8.4"}, "91"),
-            ({"latitude": "49.0", "longitude": "181"}, "181"),
-            ({"latitude": "49.0", "longitude": ""}, None),
-            ({"location_elevation": "112", "latitude": "", "longitude": ""}, None),
-            (
-                {
-                    "latitude": "49.0",
-                    "longitude": "8.4",
-                    "location_uncertainty": "-3",
-                },
-                None,
-            ),
+            {"latitude": "north of here", "longitude": "8.4"},
+            {"latitude": "48 56 7 N", "longitude": "8.4"},
+            {"latitude": "91", "longitude": "8.4"},
+            {"latitude": "49.0", "longitude": "181"},
+            {"latitude": "49.0", "longitude": ""},
+            {"location_elevation": "112", "latitude": "", "longitude": ""},
+            {
+                "latitude": "49.0",
+                "longitude": "8.4",
+                "location_uncertainty": "-3",
+            },
         ],
     )
     def test_a_row_that_cannot_be_read_is_reported_and_not_saved(
-        self, dataset, cells, value
+        self, dataset, cells
     ):
         result = self.load(
             sample_resource(dataset),
@@ -238,8 +214,6 @@ class TestImport:
         assert result.has_validation_errors()
         (invalid,) = result.invalid_rows
         assert invalid.number == 2
-        if value is not None:
-            assert value in " ".join(invalid.error.messages)
         assert not RockSample.objects.filter(dataset=dataset, name="bad").exists()
 
     @pytest.mark.parametrize(
@@ -266,19 +240,6 @@ class TestImport:
         assert invalid.number == 2
         assert RockSample.objects.filter(dataset=dataset, name="good").exists()
         assert not RockSample.objects.filter(dataset=dataset, name="bad").exists()
-
-    @pytest.mark.parametrize("column", ["latitude", "longitude"])
-    def test_a_coordinate_cell_of_more_than_64_characters_is_reported_and_not_saved(
-        self, dataset, column
-    ):
-        cells = {"latitude": "49.0", "longitude": "8.4", column: "8.".ljust(65, "0")}
-
-        result = self.load(
-            sample_resource(dataset), self.row(dataset, name="long", **cells)
-        )
-
-        assert result.has_validation_errors()
-        assert not RockSample.objects.filter(dataset=dataset, name="long").exists()
 
     def test_a_file_without_the_columns_leaves_the_location_as_it_was(self, dataset):
         sample = RockSampleFactory(dataset=dataset, location=at(8.0, 49.0))

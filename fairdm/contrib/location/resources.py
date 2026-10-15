@@ -7,11 +7,7 @@ from django.utils.translation import gettext as _
 from import_export.fields import Field
 from import_export.widgets import FloatWidget
 
-from fairdm.contrib.location.forms import (
-    MAX_TYPED_LENGTH,
-    LocationField,
-    parse_coordinate,
-)
+from fairdm.contrib.location.forms import LocationField
 
 
 class MeasureWidget(FloatWidget):
@@ -47,41 +43,8 @@ class MeasureWidget(FloatWidget):
         return "" if value is None else value
 
 
-class CoordinateWidget(MeasureWidget):
-    """Read a latitude or a longitude typed in any notation the location input accepts.
-
-    Args:
-        axis: ``"lat"`` or ``"lon"``.
-    """
-
-    def __init__(self, axis):
-        self.axis = axis
-        super().__init__()
-
-    def clean(self, value, row=None, **kwargs):
-        """Read one cell as signed decimal degrees.
-
-        Args:
-            value: The cell.
-            row: The row the cell is in.
-            **kwargs: Passed through by import-export.
-
-        Returns:
-            The coordinate in decimal degrees, or None for an empty cell.
-
-        Raises:
-            ValueError: The cell cannot be read as this axis, with the input's message.
-        """
-        if value is None or str(value).strip() == "":
-            return None
-        try:
-            return parse_coordinate(str(value), self.axis)
-        except ValidationError as error:
-            raise ValueError(" ".join(error.messages)) from error
-
-
 class CoordinateField(Field):
-    """The latitude or the longitude of a record's point.
+    """The latitude or the longitude of a record's point, as a number.
 
     Args:
         axis: ``"lat"`` or ``"lon"``.
@@ -89,7 +52,7 @@ class CoordinateField(Field):
 
     def __init__(self, axis):
         name = "latitude" if axis == "lat" else "longitude"
-        super().__init__(column_name=name, widget=CoordinateWidget(axis))
+        super().__init__(column_name=name, widget=MeasureWidget())
         self.axis = axis
 
     def get_value(self, instance):
@@ -201,29 +164,25 @@ class LocatedResourceMixin:
     def set_location(self, instance, row):
         """Set the record's point from the row's coordinates, by the input's rules.
 
+        The cells are read as numbers by the same field the location input uses.
+
         Args:
             instance: The record being imported, whose elevation and uncertainty are already
                 set from their columns.
             row: The row.
 
         Raises:
-            ValidationError: The coordinates are too long, cannot be read, are out of range or
-                incomplete, or an elevation or uncertainty has no coordinates or is negative.
+            ValidationError: A coordinate is not a number, is out of range or is given without the other,
+                or an elevation or uncertainty has no coordinates or the uncertainty is negative.
         """
         point = instance.location
         current = {"latitude": point.y, "longitude": point.x} if point else {}
         coordinates = [
             row.get(name, current.get(name)) for name in ("latitude", "longitude")
         ]
-        if any(len(str(value).strip()) > MAX_TYPED_LENGTH for value in coordinates):
-            raise ValidationError(
-                _("A coordinate is at most %(limit)s characters long."),
-                code="max_length",
-                params={"limit": MAX_TYPED_LENGTH},
-            )
-        location = LocationField().compress(
+        location = LocationField().clean(
             [
-                *(str(value) if value is not None else "" for value in coordinates),
+                *coordinates,
                 instance.location_elevation,
                 instance.location_uncertainty,
             ]

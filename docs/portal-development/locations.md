@@ -74,7 +74,7 @@ on the instance. Clearing the coordinates clears all three.
 ## Placing an organization
 
 An organization's form asks for **Coordinates**: a latitude and a longitude in WGS 84, with no
-elevation or uncertainty. The notations are the ones the sample input reads (see
+elevation or uncertainty. Both are signed decimal degrees, as the sample input reads them (see
 [What the input reads](#what-the-input-reads)). Leaving both empty gives the organization no point.
 One coordinate without the other is refused.
 
@@ -330,16 +330,14 @@ id,name,latitude,longitude,location_elevation,location_uncertainty
 32,RS-15,,,,
 ```
 
-An import reads `latitude` and `longitude` in any notation the location input reads, one
-notation per cell, so `49.0094`, `49 0.564 N` and `49°0'33.84"N` give the same point. The cells are
-always WGS 84, as the input's are: the file has no reference-system column, so convert projected
-coordinates first.
-Elevation and uncertainty are plain numbers.
+An import reads `latitude` and `longitude` as signed decimal degrees, such as `49.0094` or
+`-8.4115`, with the same ranges as the location input. The cells are always WGS 84, as the input's
+are: the file has no reference-system column, so convert projected coordinates first, and write
+degrees, minutes and seconds as decimal degrees. Elevation and uncertainty are plain numbers.
 
-A row the input would refuse is reported with the value that is wrong and the input's own message,
-and is not saved. The rest of the file is read as usual. A row is refused when:
+A row the input would refuse is reported with the input's own message and is not saved. The rest of the file is read as usual. A row is refused when:
 
-- a coordinate cannot be read, or lies outside its range,
+- a coordinate is not a number, or lies outside its range,
 - one coordinate is given without the other,
 - an elevation or an uncertainty is given with no coordinates,
 - the uncertainty is negative.
@@ -362,31 +360,20 @@ that declares its columns by hand can use directly:
 |---|---|
 | `location_fields()` | The four import-export fields, keyed by column name, in column order |
 | `CoordinateField` | The `latitude` or `longitude` field: `CoordinateField("lat")` or `CoordinateField("lon")` |
-| `CoordinateWidget` | Reads one coordinate with `parse_coordinate`, and refuses it with the input's message |
 | `MeasureWidget` | Reads a number cell, and writes the number itself, or an empty cell for none |
 
 ## What the input reads
 
 The input takes a latitude and a longitude, an elevation and an uncertainty. Every coordinate is
-entered in WGS 84, the system a GPS receiver records, and there is no reference-system input. A
-researcher whose coordinates are in a projected system, such as a UTM zone, converts them first
-(other systems are #512). The coordinates are read in any of these notations:
-
-| Typed | Read as |
-|---|---|
-| `49.0094` | decimal degrees |
-| `49 0.564 N` | degrees and decimal minutes |
-| `49°0'33.84"N`, `N 49 0 33.84` | degrees, minutes and seconds |
-| `49.0094 South`, `S49.0094`, `-49.0094` | the southern hemisphere |
-
-A hemisphere letter or word can stand in front or behind. Latitude and longitude are each read in
-their own notation, so they need not match. Minutes written with the letter `m` are refused,
-because a trailing `s` after seconds would then read as south.
+entered as a signed decimal number of degrees in WGS 84, the system a GPS receiver records. South
+and west are negative: `49.0094` and `-8.4115`. There is no reference-system input and there are no
+degrees, minutes and seconds, no minutes and no hemisphere letters. A researcher whose coordinates
+are in a projected system, such as a UTM zone, or in another notation converts them first (other
+systems are #512, other notations #513).
 
 The input refuses, and saves nothing, when:
 
-- a coordinate cannot be read, or lies outside its range: latitude beyond 90, longitude beyond 180,
-- a hemisphere belongs to the other axis, as in a latitude ending in `E`,
+- a coordinate is not a number, or lies outside its range: latitude beyond 90, longitude beyond 180,
 - one coordinate is given without the other,
 - an elevation or an uncertainty is given with no coordinates,
 - the uncertainty is negative.
@@ -423,16 +410,6 @@ the index distance lookups use, which casts the point to a geography. The name i
 or fewer.
 
 ## Reading coordinates in your own code
-
-`parse_coordinate` reads one coordinate for one axis, and raises a `ValidationError` with a code of
-`invalid`, `out_of_range`, `wrong_axis` or `minutes_letter`:
-
-```python
-from fairdm.contrib.location.forms import parse_coordinate
-
-parse_coordinate("49 0.564 N", "lat")  # 49.0094
-parse_coordinate("8 24 41.4 E", "lon")  # 8.4115
-```
 
 `LocationField` is a `MultiValueField`. `full=False` asks for a latitude and a longitude
 only, as an organization's point does. It cleans to `None` when everything is empty, and otherwise

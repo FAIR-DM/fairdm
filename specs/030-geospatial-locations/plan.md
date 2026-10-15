@@ -8,7 +8,7 @@
 ## Summary
 
 Replace the shared `Point` table with three fields on every sample and every measurement, and a
-point on every organization. Coordinates are typed in WGS 84, in any of three notations,
+point on every organization. Coordinates are typed as signed decimal degrees in WGS 84,
 through one form input, and stored as typed. Samples, measurements and organizations gain area,
 distance and nearest-first lookups, datasets and projects gain a spatial coverage, and the API,
 tabular import and export and the DataCite metadata carry the new location. The prototype's screens
@@ -18,7 +18,7 @@ are kept. Everything behind them is rebuilt test first.
 
 - Python 3.13, Django 5.2, GeoDjango on PostGIS 3.5 (since #500), django-polymorphic, DRF,
   drf-spectacular, django-import-export 4.4, crispy-forms with django-mvp's daisyUI templates
-- New dependency: `lat-lon-parser` 1.3.1 (research, "Survey the available packages")
+- No new dependency (research, "Survey the available packages")
 - Tests: pytest on PostGIS, `tests/` mirrors `fairdm/`
 - No data migration: no portal holds location data (decisions D8)
 
@@ -75,16 +75,13 @@ creating shared rows. `Person.as_geojson()`, `Organization.as_geojson()` and the
 
 In `fairdm/contrib/location/forms.py`:
 
-- `parse_coordinate(text, axis)` wraps `lat_lon_parser.parse`. It refuses text the package cannot
-  read, a hemisphere letter or word that belongs to the other axis, a value out of range for the
-  axis, and minutes written with the letter `m` (research). Messages name the value and say what
-  is accepted.
 - `LocationField(MultiValueField)`, with `full=True` for two coordinates, elevation and
   uncertainty, and `full=False` for two coordinates. It cleans to `None`,
-  or to a `Location(point, elevation, uncertainty)` named tuple whose point is in SRID 4326. Both
-  coordinates are read with `parse_coordinate` and nothing is converted: a reference system is not
-  an input (#512). A value outside WGS 84's range, one coordinate without the other, and an
-  elevation or uncertainty without coordinates are refused (FR-005, FR-008).
+  or to a `Location(point, elevation, uncertainty)` named tuple whose point is in SRID 4326. The
+  latitude and longitude are `FloatField`s with minimum and maximum validators, -90 to 90 and -180
+  to 180, and nothing is converted: a reference system is not an input (#512) and neither is a
+  notation other than decimal degrees (#513). A value outside the range, one coordinate without
+  the other, and an elevation or uncertainty without coordinates are refused (FR-005, FR-008).
 - `LocationWidget(MultiWidget)` with the prototype's template, moved to
   `fairdm/contrib/location/templates/location/widgets/location.html` as it was approved.
   `decompress()` takes a `Location`. The boxes are always Latitude and Longitude.
@@ -202,14 +199,14 @@ it into four columns, `latitude`, `longitude`, `location_elevation` and
 `elevation` column a sample type declares of its own. Each is an
 import-export `Field` with a widget in `fairdm/contrib/location/resources.py`. Export writes the
 record's own values in WGS 84 decimal degrees. Import reads the two coordinates with
-`parse_coordinate` and sets the three model fields, and a refused value is reported as that row's
+`LocationField` and sets the three model fields, and a refused value is reported as that row's
 error with the message the form gives. No resource exports a location as a table of its own
 (FR-033).
 
 ### D11. Documentation and records
 
 - A new page, `docs/portal-development/locations.md`, describing the three fields, the input and
-  the notations it reads, the lookups with examples, the effective location, the spatial coverage,
+  the decimal degrees it reads, the lookups with examples, the effective location, the spatial coverage,
   the API shape and the import columns. It is linked from the portal development table of
   contents. Each story extends the page for its own surface.
 - `CONTEXT.md` gains Location, Reference system and Spatial coverage. FS-005, FS-011, FS-018 and

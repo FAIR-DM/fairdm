@@ -9,20 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **A location on every sample and measurement, typed in any notation, in WGS 84.**
+- **A location on every sample and measurement, typed as decimal degrees in WGS 84.**
   A sample and a measurement have `location` (a point in WGS 84), `location_elevation` (metres
   above mean sea level) and `location_uncertainty` (metres), all optional and all their own: two
   samples at the same coordinates share nothing. The database refuses an elevation or an
   uncertainty without a point, and a negative uncertainty. A sample type shows the location input
-  in its form when its registration lists `location` in its fields. The input reads decimal
-  degrees, degrees and decimal minutes, and degrees, minutes and seconds, with or without a
-  hemisphere letter. Every coordinate is entered in WGS 84, with no reference-system input, so a
-  researcher whose notebook uses another system converts it first; accepting other systems is
-  tracked in #512. `fairdm.contrib.location.forms` has `parse_coordinate`, `LocationField`,
-  `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
+  in its form when its registration lists `location` in its fields. The input takes
+  latitude and longitude as signed decimal degrees, from -90 to 90 and from -180 to 180. Every
+  coordinate is entered in WGS 84, with no reference-system input and no degrees, minutes and
+  seconds, so a researcher whose notebook uses another system or notation converts it first;
+  other systems are tracked in #512 and other notations in #513. `fairdm.contrib.location.forms`
+  has `LocationField`, `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
   with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
-  and `uncertainty`. An organization has a `location` point of its own. A portal needs the
-  `lat-lon-parser` package, which FairDM now depends on. Run `migrate` when upgrading. See
+  and `uncertainty`. An organization has a `location` point of its own. Run `migrate` when upgrading. See
   [Locations](docs/portal-development/locations.md).
 
 - **A measurement can record where it was made.** A measurement type shows the location input in
@@ -58,13 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   type's `fields` or `resource_fields` list `location`, its resource has `latitude`, `longitude`,
   `location_elevation` and `location_uncertainty` in place of one. Export writes the record's own
   values in WGS 84 decimal degrees, and a measurement never writes its sample's location. Import
-  reads the coordinates in any notation the location input accepts and reports a row it refuses,
-  with the value that is wrong, instead of saving it. See
+  reads the coordinates as decimal degrees, with the location input's ranges, and reports a row it
+  refuses instead of saving it. See
   [Locations](docs/portal-development/locations.md#in-import-and-export).
 
 - **An organization's point is typed on its forms.** The organization's profile page, the form
-  that adds an organization and the older profile form take a latitude and a longitude in WGS 84,
-  in the notations a sample's location input reads, in place of the map input. An organization
+  that adds an organization and the older profile form take a latitude and a longitude as decimal
+  degrees in WGS 84, in place of the map input. An organization
   added from ROR still takes the coordinates ROR publishes, and a person placed on a map is placed
   at their primary affiliation's organization's point. See
   [Locations](docs/portal-development/locations.md#placing-an-organization).

@@ -72,8 +72,8 @@ place on a map is already taken from their primary affiliation's organization, a
 own coordinates would be personal data with no use in research metadata. The field moves to the
 organization.
 
-An organization's point is entered in the same notations as a sample's coordinates, so there is one
-way to type a latitude, but only in WGS 84. Every organization's point comes from ROR or from someone
+An organization's point is entered as decimal degrees, as a sample's coordinates are, so there is
+one way to type a latitude, in WGS 84 only. Every organization's point comes from ROR or from someone
 reading a map, and neither uses a projected system.
 
 *Revisit if:* a portal needs to place a person somewhere other than where they work.
@@ -126,8 +126,8 @@ collar, and a sample type that needs a depth interval, or a line, declares field
 Storing one system means every lookup, API response and export agrees without converting again,
 and WGS 84 is what GeoJSON, DataCite and IGSN use. The form first accepted any reference system
 with an EPSG code and converted on the way in, for a notebook that gives a UTM zone or a national
-grid. The maintainer withdrew that after the walkthrough (D29): every coordinate is entered in
-WGS 84. The coordinates as typed are the stored point, and nothing is kept beside it.
+grid. The maintainer withdrew that after the walkthrough, and later the notations too (D29): every
+coordinate is entered as decimal degrees in WGS 84. The coordinates as typed are the stored point, and nothing is kept beside it.
 
 The point is kept as typed, without rounding. It is shown to five decimal places of a degree,
 about a metre at the equator, which is finer than any field position the portals hold. How good a
@@ -180,14 +180,14 @@ the dataset model has never had, and that reference goes.
 *Revisit if:* a repository the portals publish to indexes `geoLocationPolygon`.
 **ADR:** none — moved to #511 with the DataCite story
 
-## D11. Coordinates are read by `lat-lon-parser`
+## D11. Coordinates are read by Django's number fields
 
-The maintainer asked for the available packages to be surveyed. `lat-lon-parser`, NOAA's public
-domain parser with no dependencies, reads every notation the spec asks for. It does not check
-ranges, which axis a hemisphere letter belongs to, or a trailing `s` after seconds, which it reads
-as south, so the field adds those checks. The comparison is in research.md.
+The maintainer asked for the available packages to be surveyed, and `lat-lon-parser` was adopted to
+read three notations. After the walkthrough he asked for decimal degrees only (D29), so a
+latitude and a longitude are plain `FloatField`s with range validators and the package is gone.
+The comparison is in research.md.
 
-*Revisit if:* the package stops being maintained, or a notation the spec needs is not read.
+*Revisit if:* #513 brings other notations back, which is when a parser is worth a dependency.
 **ADR:** none — a dependency choice local to one field, recorded in research.md
 
 ## D12. The fields are `location`, `location_elevation` and `location_uncertainty`
@@ -419,31 +419,34 @@ reads it.
 *Revisit if:* never; #511 owns it.
 **ADR:** none — a scope change recorded in the spec's boundary and in #511
 
-## D28. The import path caps a coordinate cell where the row is read, not in the coordinate widget
+## D28. The import path reads coordinate cells where the row is read, not in the coordinate widget
 
-**Decision:** The 64-character cap on an imported coordinate sits in `LocatedResourceMixin.set_location`,
-before the cell reaches `LocationField.compress`. `CoordinateWidget.clean` is left as it was.
+**Decision:** `LocatedResourceMixin.set_location` passes the row's latitude and longitude cells,
+with the record's elevation and uncertainty, to `LocationField.clean`. The coordinate columns carry
+a number widget but are not read through it.
 
-**Why:** The coordinate fields have no model attribute, so import-export never calls the widget's
-`clean` on import. A cap there was never reached: a 65-character latitude cell imported with it in
-place. `set_location` is where the cells go to the parser.
+**Why:** The coordinate fields have no model attribute, so import-export never calls their widget's
+`clean` on import. `set_location` is where the cells are read, and the form's own field there gives
+the form's ranges and messages.
 
 **Revisit if:** the coordinate fields gain an attribute and import starts cleaning through the widget.
 **ADR:** none — a placement detail of FIX-1
 
-## D29. Coordinates are entered in WGS 84 only
+## D29. Coordinates are entered as decimal degrees in WGS 84
 
-**Decision:** The location input takes a latitude and a longitude in WGS 84, in any of the three
-notations, plus an elevation and an uncertainty on the full input. It has no reference-system box,
-no suggestions, no Northing and Easting labels and no conversion. Accepting other systems is #512.
+**Decision:** The location input takes a latitude and a longitude as signed decimal degrees in
+WGS 84, from -90 to 90 and from -180 to 180, plus an elevation and an uncertainty on the full
+input. They are ordinary number fields with range validators. There is no reference-system box, no
+conversion, no degrees-and-minutes or degrees-minutes-seconds notation, no hemisphere letters, no
+"Reads as" hint and no `lat-lon-parser` dependency. Other systems are #512, other notations #513.
 
-**Why:** The maintainer, after the walkthrough: all coordinate input must be declared in WGS 84, and
-for now the onus is on the person entering data to convert if necessary. A reference-system box asks
-a researcher to know an EPSG code, and a wrong code converts to a plausible wrong place. Tabular
-import already took WGS 84 only, so the form and the import now agree. What went: the projected
-branch of the reading, the magnitude and converted-range checks that only guarded conversion, the
-suggested systems, and the script's label switching. What stayed: the notation parser, the range and
-hemisphere checks, the 64-character cap, the elevation and uncertainty rules and the "Reads as" hint.
+**Why:** The maintainer, after the walkthrough: all coordinate input must be declared in WGS 84,
+and for now decimal degrees only, with the onus on the person entering data to convert. A
+reference-system box asks a researcher to know an EPSG code, and a wrong code converts to a
+plausible wrong place. A number input also needs no parser of ours, no parsing script in the
+browser and no length cap. Tabular import reads the same two numbers with the same ranges. What
+stayed: the elevation and uncertainty rules, both coordinates together, the approved layout and
+escaping of what is typed.
 
-**Revisit if:** #512 is taken up.
-**ADR:** none, #512 decides whether input in other systems returns
+**Revisit if:** #512 or #513 is taken up.
+**ADR:** none, #512 and #513 decide whether other systems and notations return
