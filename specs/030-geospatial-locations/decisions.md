@@ -342,3 +342,16 @@ signatures differ by the viewer. The template change is the least that removes t
 `Dataset.bbox`.
 
 **Revisit if:** a third queryset needs them, which would still be this class.
+
+## D24. One GeoJSON field reads the elevation from the record, and the API gains no elevation field
+
+**Decision:** `GeoJSONPointField` reads the whole record and appends `location_elevation` as the
+third coordinate when the record has the attribute and it is set. `location_elevation` is not a
+field of its own in the API's responses. It is in `read_only_fields` so a type whose registration
+lists it still cannot be written through it.
+
+**Why:** A GeoJSON position carries its elevation, so a second field would say the same thing
+twice. An organization has no such attribute, so the same field gives it a two-coordinate point
+without a separate class.
+
+**Revisit if:** a portal needs to write locations through the API (D14).

@@ -146,3 +146,25 @@ Did: docs/portal-development/locations.md gains "Finding records by where they a
 Verified: every example on the page was run once against the branch in a scratch test (not committed) and returned as described; the one comment example on the 180th meridian is illustrative. Docs build not run (no docs step in the narrow scope; the full verify has it).
 Next: full verify once, report.
 Watch: nothing else under docs/ described bbox or the collection tables' location columns.
+
+## 2026-10-15T00:48:40Z · Implementer US4 · T023
+
+Did: TestLocation in tests/test_api/test_viewsets.py (point longitude first, elevation third, uncertainty beside it, none, list rows, measurement own location, measurement does not return its sample's, organization point in list and record, organization with none, person carries no location, patch and put leave the three fields, create with them stores none and is not refused) and TestLocationComponents in tests/test_api/test_schema.py (GeoJSON point shape, read-only, uncertainty a read-only number, organization list and record).
+Verified: red first, 20 failed and 4 passed for the right reasons (string point, missing keys, SpatialProxy TypeError on write). Probed: deleting read_only_fields turns the patch, put and create tests red.
+Pre-existing tests changed, as the brief allows: ORGANIZATION_LIST_KEYS in test_viewsets.py and TestOrganizationComponents.LIST_KEYS in test_schema.py gain "location"; test_meta_fields_exact in test_serializers.py for the sample and the measurement serializer gains "location" and "location_uncertainty". The "located sample" case already passed a GEOS point from US1, so it needed no change.
+Next: T024 is built with this task.
+Watch: nothing.
+
+## 2026-10-15T00:48:40Z · Implementer US4 · T024
+
+Did: GeoJSONPointField in fairdm/api/serializers.py (read-only, reads the record, annotated for drf-spectacular as a nullable GeoJSON point). BaseSampleSerializer and BaseMeasurementSerializer carry location and location_uncertainty in common_fields and Meta.fields, with location, location_elevation and location_uncertainty in read_only_fields; OrganizationListSerializer carries location after country. Registered types pick the fields up through common_fields, so no registry change.
+Verified: uv run pytest -q -n auto --dist loadscope tests/test_api -> 1327 passed, including the query-count tests with a located sample; pre-commit (ruff, mypy, deptry) clean.
+Next: T025 docs.
+Watch: the "could not resolve model field Sample.location" spectacular warning at schema build came from the registration's location field before this change and is gone for the three types now that the field is declared.
+
+## 2026-10-15T00:48:40Z · Implementer US4 · T025
+
+Did: restful-api.md gains the location in the sample and measurement rows, the sample example, the organization list table and a "A record's location" section (shape, elevation, uncertainty, measurement own location only, read-only), and the read-only column of the writable table. locations.md gains "In the API". CHANGELOG.md gets the added entry. specs/011-restful-api/spec.md no longer says GeoJSON is not part of the API for a record's location. decisions.md D24.
+Verified: the shapes on both pages are the ones TestLocation asserts; pre-commit clean. Docs build not run in the narrow scope; the full verify has it.
+Next: full verify once, report.
+Watch: the user-guide page reading-records-with-a-script.md does not mention location and was left alone.
