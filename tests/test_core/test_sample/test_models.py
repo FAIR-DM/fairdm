@@ -578,7 +578,6 @@ class TestSampleLocation:
             "name": sample.name,
             "dataset": dataset.pk,
             "status": "unknown",
-            "location_srid": "4326",
             "location_first": "",
             "location_second": "",
             "location_elevation": "",

@@ -1,13 +1,11 @@
 """Forms and widgets for entering locations."""
 
-import math
 import re
 from decimal import Decimal
 from typing import NamedTuple
 
 from django import forms
 from django.contrib.gis import geos
-from django.contrib.gis.gdal import GDALException, SpatialReference
 from django.utils.translation import gettext_lazy as _
 from lat_lon_parser import parse
 
@@ -21,15 +19,8 @@ TRAILING_HEMISPHERE = re.compile(
 MINUTES_LETTER = re.compile(r"(?<=\d)\s*m(?![a-z])", re.IGNORECASE)
 DEGREE_LETTER = re.compile(r"(?<=\d)\s*(?:deg|d)(?![a-z])", re.IGNORECASE)
 NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
-EPSG_CODE = re.compile(r"(?:epsg:)?(\d{1,8})", re.IGNORECASE)
-WGS84 = 4326
-#: The longest text a coordinate or reference system input takes. Longer text only slows the parser.
+#: The longest text a coordinate input takes. Longer text only slows the parser.
 MAX_TYPED_LENGTH = 64
-#: The largest northing or easting taken in metres. No projected system produces more.
-MAX_PROJECTED_METRES = 1e9
-
-#: EPSG codes the input suggests. Any other code can be typed.
-SUGGESTED_SYSTEMS = (4326, 4258, 25832, 25833, 32632, 32633, 31467, 27700, 2193)
 
 
 def parse_coordinate(text, axis):
@@ -133,23 +124,22 @@ class Location(NamedTuple):
 
 
 class LocationWidget(forms.MultiWidget):
-    """The location input: reference system, two coordinates, elevation and uncertainty.
+    """The location input: a latitude and a longitude in WGS 84, elevation and uncertainty.
 
     Args:
-        full: Offer the reference system, elevation and uncertainty. Without it the widget asks
-            for a latitude and a longitude in WGS 84 only, as an organization's point does.
+        full: Offer the elevation and uncertainty. Without it the widget asks for a latitude
+            and a longitude only, as an organization's point does.
         attrs: HTML attributes for the widget.
     """
 
     template_name = "location/widgets/location.html"
-    full_parts = ("srid", "first", "second", "elevation", "uncertainty")
+    full_parts = ("first", "second", "elevation", "uncertainty")
     point_parts = ("first", "second")
 
     def __init__(self, full=True, attrs=None):
         self.full = full
         self.parts = self.full_parts if full else self.point_parts
         inputs = {
-            "srid": forms.TextInput(),
             "first": forms.TextInput(),
             "second": forms.TextInput(),
             "elevation": forms.NumberInput(attrs={"step": "any"}),
@@ -169,7 +159,6 @@ class LocationWidget(forms.MultiWidget):
         """
         point = getattr(value, "point", value)
         values = {
-            "srid": WGS84,
             "first": None,
             "second": None,
             "elevation": getattr(value, "elevation", None),
@@ -180,23 +169,8 @@ class LocationWidget(forms.MultiWidget):
             values["second"] = format(Decimal(repr(float(point.x))), "f")
         return [values[name] for name in self.parts]
 
-    def get_systems(self):
-        """Describe the suggested reference systems, as the script and the suggestions read them.
-
-        Returns:
-            A list of dicts with each system's ``code``, ``name`` and whether it is
-            ``geographic`` (typed as degrees) rather than projected (typed in metres).
-        """
-        systems = []
-        for code in SUGGESTED_SYSTEMS:
-            system = SpatialReference(code)
-            systems.append(
-                {"code": code, "name": system.name, "geographic": system.geographic}
-            )
-        return systems
-
     def get_context(self, name, value, attrs):
-        """Add what the template reads: ``full``, ``parts`` by name and ``systems``."""
+        """Add what the template reads: ``full`` and ``parts`` by name."""
         # A Location is a tuple, which MultiWidget would take for the inputs' own values.
         if isinstance(value, Location):
             value = self.decompress(value)
@@ -204,20 +178,18 @@ class LocationWidget(forms.MultiWidget):
         widget = context["widget"]
         widget["full"] = self.full
         widget["parts"] = dict(zip(self.parts, widget["subwidgets"], strict=True))
-        widget["systems"] = self.get_systems()
-        widget["systems_id"] = f"{widget['attrs'].get('id') or name}_systems"
         return context
 
 
 class LocationField(forms.MultiValueField):
-    """Read a location typed in any supported notation and reference system, as WGS 84.
+    """Read a latitude and a longitude typed in WGS 84, in any supported notation.
 
     Cleans to ``None`` when every input is empty, or to a ``Location`` whose point is in
     SRID 4326.
 
     Args:
-        full: Take a reference system, elevation and uncertainty besides the two coordinates.
-            Without it the field takes a latitude and a longitude in WGS 84 only.
+        full: Take an elevation and uncertainty besides the two coordinates. Without it the
+            field takes a latitude and a longitude only.
         **kwargs: Passed to ``MultiValueField``.
     """
 
@@ -227,7 +199,6 @@ class LocationField(forms.MultiValueField):
         fields = [forms.CharField(**typed), forms.CharField(**typed)]
         if full:
             fields = [
-                forms.CharField(**typed),
                 *fields,
                 forms.FloatField(required=False),
                 forms.FloatField(required=False),
@@ -250,16 +221,12 @@ class LocationField(forms.MultiValueField):
             A ``Location``, or None.
 
         Raises:
-            ValidationError: The coordinates are incomplete, unreadable or out of range, the
-                reference system is unknown, or an elevation or uncertainty has no coordinates
-                or a negative uncertainty.
+            ValidationError: The coordinates are incomplete, unreadable or out of range, or an
+                elevation or uncertainty has no coordinates or a negative uncertainty.
         """
         if not data_list:
             return None
-        if self.full:
-            code, first, second, elevation, uncertainty = data_list
-        else:
-            (first, second), code, elevation, uncertainty = data_list, None, None, None
+        first, second, elevation, uncertainty = [*data_list, None, None][:4]
 
         if not first and not second:
             if elevation is not None or uncertainty is not None:
@@ -277,81 +244,10 @@ class LocationField(forms.MultiValueField):
                 _("The uncertainty is a distance, so it cannot be negative."),
                 code="negative_uncertainty",
             )
-        return Location(self.read_point(code, first, second), elevation, uncertainty)
-
-    def read_point(self, code, first, second):
-        """Read two typed coordinates in a reference system and convert them to WGS 84.
-
-        Args:
-            code: The EPSG code as typed, or None or empty for WGS 84.
-            first: The latitude, or the northing of a projected system.
-            second: The longitude, or the easting of a projected system.
-
-        Returns:
-            A GEOS point in SRID 4326.
-
-        Raises:
-            ValidationError: The reference system is unknown, the coordinates cannot be read,
-                or the point cannot be converted to WGS 84.
-        """
-        found = EPSG_CODE.fullmatch(str(code or WGS84).strip())
-        try:
-            system = SpatialReference(int(found[1])) if found else None
-        except GDALException:
-            system = None
-        if system is None:
-            raise forms.ValidationError(
-                _(
-                    "“%(value)s” is not a reference system the portal knows. Give its EPSG "
-                    "code, such as 4326 or 25832."
-                ),
-                code="unknown_system",
-                params={"value": code},
-            )
-        srid = int(found[1])
-        outside_area = forms.ValidationError(
-            _(
-                "These coordinates lie outside the area EPSG:%(code)s covers, so "
-                "they cannot be converted to WGS 84."
-            ),
-            code="out_of_range",
-            params={"code": srid},
+        point = geos.Point(
+            parse_coordinate(second, "lon"), parse_coordinate(first, "lat"), srid=4326
         )
-
-        if system.geographic:
-            point = geos.Point(
-                parse_coordinate(second, "lon"),
-                parse_coordinate(first, "lat"),
-                srid=srid,
-            )
-        else:
-            try:
-                northing, easting = (
-                    float(v.replace(",", ".")) for v in (first, second)
-                )
-            except ValueError:
-                northing = easting = math.nan
-            if not math.isfinite(northing + easting):
-                raise forms.ValidationError(
-                    _(
-                        "Enter the northing and easting in metres, as the reference system "
-                        "gives them, such as 5428667 and 456964."
-                    ),
-                    code="invalid",
-                )
-            # PROJ does not return for some projections given a magnitude like 1e18.
-            if max(abs(northing), abs(easting)) > MAX_PROJECTED_METRES:
-                raise outside_area
-            point = geos.Point(easting, northing, srid=srid)
-
-        if srid != WGS84:
-            try:
-                point.transform(WGS84)
-            except GDALException as error:
-                raise outside_area from error
-            if abs(point.y) > AXIS_LIMITS["lat"] or abs(point.x) > AXIS_LIMITS["lon"]:
-                raise outside_area
-        return point
+        return Location(point, elevation, uncertainty)
 
 
 class LocationFormMixin:

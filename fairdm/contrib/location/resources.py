@@ -223,7 +223,6 @@ class LocatedResourceMixin:
             )
         location = LocationField().compress(
             [
-                None,
                 *(str(value) if value is not None else "" for value in coordinates),
                 instance.location_elevation,
                 instance.location_uncertainty,

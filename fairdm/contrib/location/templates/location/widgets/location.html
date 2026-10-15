@@ -1,26 +1,18 @@
 {% load i18n %}
 {% comment %}
-  The location input.
-  widget.parts holds the subwidgets by name: srid, first, second, elevation, uncertainty.
-  `first` is the latitude (or northing), `second` the longitude (or easting).
-  widget.systems lists the suggested reference systems (code, name, geographic), and the
-  script reads which of them are typed as degrees from the same list.
+  The location input: a latitude and a longitude in WGS 84, and with widget.full an elevation and
+  an uncertainty. widget.parts holds the subwidgets by name: first, second, elevation, uncertainty.
+  `first` is the latitude, `second` the longitude.
 {% endcomment %}
 {% with parts=widget.parts %}
-{{ widget.systems|json_script:widget.systems_id }}
 <script>
-  window.fairdmLocationInput = window.fairdmLocationInput || function (srid, systemsId) {
-    // Codes typed as degrees. Anything else is read as a projected system in metres.
-    const systems = JSON.parse(document.getElementById(systemsId).textContent);
-    const geographic = systems.filter((system) => system.geographic).map((system) => String(system.code));
+  window.fairdmLocationInput = window.fairdmLocationInput || function () {
     const pattern = /^\s*([NSEW])?\s*([-+]?\d+(?:[.,]\d+)?)\s*(?:°|d|deg)?\s*(?:(\d+(?:[.,]\d+)?)\s*['′]?\s*)?(?:(\d+(?:[.,]\d+)?)\s*(?:["″]|'')?\s*)?([NSEW])?\s*$/i;
     return {
-      srid: String(srid || "4326"),
       first: "",
       second: "",
-      get geo() { return geographic.includes(this.srid.replace(/\D/g, "") || "4326"); },
       read(text, axis) {
-        if (!text || !this.geo) return "";
+        if (!text) return "";
         const m = pattern.exec(text);
         if (!m) return "{{ _('Not a coordinate the portal can read')|escapejs }}";
         const n = (s) => parseFloat((s || "0").replace(",", "."));
@@ -36,30 +28,13 @@
   };
 </script>
 <div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4"
-     data-srid="{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}"
-     x-data="fairdmLocationInput($el.dataset.srid, '{{ widget.systems_id }}')"
+     x-data="fairdmLocationInput()"
      x-init="first = $refs.first.value; second = $refs.second.value">
-
-  {% if widget.full %}
-    <div class="fieldset p-0">
-      <label class="fieldset-legend pt-0" for="{{ parts.srid.attrs.id }}">{% translate "Reference system" %}</label>
-      <div class="join w-full max-w-sm">
-        <span class="join-item flex items-center rounded-l-field border border-base-300 bg-base-200 px-3 text-sm text-base-content/70">EPSG</span>
-        <input type="text" name="{{ parts.srid.name }}" id="{{ parts.srid.attrs.id }}" value="{{ parts.srid.value|default:'4326' }}"
-               class="input join-item w-full" list="{{ widget.systems_id }}_list" inputmode="numeric" autocomplete="off"
-               x-model="srid" aria-describedby="{{ parts.srid.attrs.id }}_hint">
-      </div>
-      <datalist id="{{ widget.systems_id }}_list">
-        {% for system in widget.systems %}<option value="{{ system.code }}">{{ system.name }}</option>{% endfor %}
-      </datalist>
-      <p class="label text-wrap" id="{{ parts.srid.attrs.id }}_hint">{% translate "The system your coordinates are written in. 4326 is WGS 84, what a GPS receiver records. The portal stores every location in WGS 84." %}</p>
-    </div>
-  {% endif %}
 
   <div class="grid gap-4 sm:grid-cols-2">
     <div class="fieldset p-0">
       <label class="fieldset-legend pt-0" for="{{ parts.first.attrs.id }}">
-        <span x-text="geo ? '{{ _('Latitude')|escapejs }}' : '{{ _('Northing')|escapejs }}'">{% translate "Latitude" %}</span>
+        {% translate "Latitude" %}
       </label>
       <input type="text" name="{{ parts.first.name }}" id="{{ parts.first.attrs.id }}" value="{{ parts.first.value|default:'' }}"
              class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="first" x-model="first"
@@ -68,7 +43,7 @@
     </div>
     <div class="fieldset p-0">
       <label class="fieldset-legend pt-0" for="{{ parts.second.attrs.id }}">
-        <span x-text="geo ? '{{ _('Longitude')|escapejs }}' : '{{ _('Easting')|escapejs }}'">{% translate "Longitude" %}</span>
+        {% translate "Longitude" %}
       </label>
       <input type="text" name="{{ parts.second.name }}" id="{{ parts.second.attrs.id }}" value="{{ parts.second.value|default:'' }}"
              class="input w-full font-mono" autocomplete="off" spellcheck="false" x-ref="second" x-model="second"
@@ -77,8 +52,7 @@
     </div>
   </div>
   <p class="text-sm text-base-content/70 -mt-2" id="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
-    <span x-show="geo">{% translate "Decimal degrees, degrees and minutes, or degrees, minutes and seconds, with or without N, S, E or W: 48.9353, 48 56.118 N or 48°56′07″N." %}</span>
-    <span x-show="!geo" x-cloak>{% translate "Metres, as the reference system gives them: 5420115 and 413500." %}</span>
+    {% translate "In WGS 84, as a GPS receiver records it. Decimal degrees, degrees and minutes, or degrees, minutes and seconds, with or without N, S, E or W: 48.9353, 48 56.118 N or 48°56′07″N." %}
   </p>
 
   {% if widget.full %}

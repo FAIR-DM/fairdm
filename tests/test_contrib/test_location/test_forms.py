@@ -1,11 +1,8 @@
 """Tests for the location input in ``fairdm.contrib.location.forms``."""
 
-import json
-
 import pytest
 from bs4 import BeautifulSoup
-from django.contrib.gis.gdal import CoordTransform, SpatialReference
-from django.contrib.gis.geos import GEOSGeometry, Point
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.test import RequestFactory
@@ -15,7 +12,6 @@ from demo.models import RockSample
 from fairdm.contrib.contributors.choices import ContributionLevel
 
 from fairdm.contrib.location.forms import (
-    SUGGESTED_SYSTEMS,
     Location,
     LocationField,
     LocationWidget,
@@ -152,16 +148,6 @@ class TestParseCoordinate:
         assert "somewhere" in str(caught.value.messages[0])
 
 
-KARLSRUHE = Point(8.4115, 49.0094, srid=4326)
-
-
-def projected(point, code):
-    """Return the (northing, easting) of a WGS 84 point in another system, as GDAL gives them."""
-    transform = CoordTransform(SpatialReference(4326), SpatialReference(code))
-    converted = point.transform(transform, clone=True)
-    return converted.y, converted.x
-
-
 def clean(field, *parts):
     """Clean one submission, given as the field's values in input order."""
     return field.clean(list(parts))
@@ -178,99 +164,57 @@ class TestLocationField:
     def test_decimal_degrees_in_wgs84_clean_to_that_point(self):
         field = LocationField()
 
-        location = clean(field, "4326", "49.0094", "8.4115", "", "")
+        location = clean(field, "49.0094", "8.4115", "", "")
 
         assert isinstance(location, Location)
         assert location.point.srid == 4326
         assert (location.point.x, location.point.y) == (8.4115, 49.0094)
 
-    def test_a_missing_reference_system_is_wgs84(self):
-        location = clean(LocationField(), "", "49.0094", "8.4115", "", "")
-
-        assert (location.point.srid, location.point.x) == (4326, 8.4115)
-
     def test_latitude_and_longitude_are_each_read_in_their_own_notation(self):
-        location = clean(LocationField(), "4326", "49 0 33.84 N", "8 24.69", "", "")
+        location = clean(LocationField(), "49 0 33.84 N", "8 24.69", "", "")
 
         assert location.point.y == pytest.approx(49.0094, abs=1e-5)
         assert location.point.x == pytest.approx(8.4115, abs=1e-5)
 
-    @pytest.mark.parametrize("code", [25832, 25833, 32632, 31467])
-    def test_projected_coordinates_convert_to_the_point_gdal_gives(self, code):
-        northing, easting = projected(KARLSRUHE, code)
-
-        location = clean(LocationField(), str(code), str(northing), str(easting), "", "")
-
-        assert location.point.srid == 4326
-        assert location.point.distance(KARLSRUHE) == pytest.approx(0, abs=1e-5)
-
-    def test_a_geographic_system_other_than_wgs84_is_read_as_degrees(self):
-        location = clean(LocationField(), "4258", "49 0 33.84", "8 24.69", "", "")
-
-        assert location.point.srid == 4326
-        assert location.point.y == pytest.approx(49.0094, abs=1e-4)
-
     def test_elevation_and_uncertainty_are_kept_as_given(self):
-        location = clean(LocationField(), "25832", *map(str, projected(KARLSRUHE, 25832)), "-12.5", "3")
+        location = clean(LocationField(), "49.0094", "8.4115", "-12.5", "3")
 
         assert (location.elevation, location.uncertainty) == (-12.5, 3.0)
 
     def test_elevation_and_uncertainty_may_be_left_out(self):
-        location = clean(LocationField(), "4326", "49.0094", "8.4115", "", "")
+        location = clean(LocationField(), "49.0094", "8.4115", "", "")
 
         assert (location.elevation, location.uncertainty) == (None, None)
-
-    @pytest.mark.parametrize("code", ["99999", "0", "abc", "4326.5", "-4326"])
-    def test_an_unknown_reference_system_is_refused(self, code):
-        assert refusal(LocationField(), code, "49.0094", "8.4115", "", "") == "unknown_system"
 
     @pytest.mark.parametrize(
         "parts",
         [("49.0094", ""), ("", "8.4115")],
     )
     def test_one_coordinate_without_the_other_is_refused(self, parts):
-        assert refusal(LocationField(), "4326", *parts, "", "") == "incomplete"
+        assert refusal(LocationField(), *parts, "", "") == "incomplete"
 
     @pytest.mark.parametrize("parts", [("5", ""), ("", "2"), ("5", "2")])
     def test_elevation_or_uncertainty_without_coordinates_is_refused(self, parts):
-        assert refusal(LocationField(), "4326", "", "", *parts) == "no_point"
+        assert refusal(LocationField(), "", "", *parts) == "no_point"
 
     def test_a_negative_uncertainty_is_refused(self):
-        assert refusal(LocationField(), "4326", "49.0094", "8.4115", "", "-1") == "negative_uncertainty"
+        assert refusal(LocationField(), "49.0094", "8.4115", "", "-1") == "negative_uncertainty"
 
     def test_an_uncertainty_of_zero_is_accepted(self):
-        location = clean(LocationField(), "4326", "49.0094", "8.4115", "", "0")
+        location = clean(LocationField(), "49.0094", "8.4115", "", "0")
 
         assert location.uncertainty == 0
 
-    def test_a_projected_point_outside_the_systems_area_is_refused(self):
-        assert refusal(LocationField(), "25832", "6000000", "30000000", "", "") == "out_of_range"
-
-    def test_projected_coordinates_must_be_numbers(self):
-        assert refusal(LocationField(), "25832", "north", "east", "", "") == "invalid"
-
-    def test_a_projected_point_that_converts_beyond_wgs84_is_refused(self):
-        # EPSG:4087 accepts this northing and converts it to a latitude of about 179.7.
-        assert refusal(LocationField(), "4087", "20000000", "0", "", "") == "out_of_range"
-
-    def test_a_projected_magnitude_no_system_produces_is_refused_before_conversion(self, monkeypatch):
-        def fail(*args, **kwargs):
-            pytest.fail("the point reached PROJ")
-
-        monkeypatch.setattr(GEOSGeometry, "transform", fail)
-
-        assert refusal(LocationField(), "3857", "0", "1e30", "", "") == "out_of_range"
-
     def test_a_latitude_beyond_ninety_is_refused_with_the_coordinate_error(self):
-        assert refusal(LocationField(), "4326", "91", "8.4115", "", "") == "out_of_range"
+        assert refusal(LocationField(), "91", "8.4115", "", "") == "out_of_range"
 
     def test_a_hemisphere_of_the_other_axis_is_refused(self):
-        assert refusal(LocationField(), "4326", "49.0094 E", "8.4115", "", "") == "wrong_axis"
+        assert refusal(LocationField(), "49.0094 E", "8.4115", "", "") == "wrong_axis"
 
-    @pytest.mark.parametrize("position", [0, 1, 2])
+    @pytest.mark.parametrize("position", [0, 1])
     def test_an_input_of_more_than_64_characters_is_refused(self, position):
-        parts = ["4326", "49.0094", "8.4115", "", ""]
-        parts[position] = "4326".rjust(65, "0") if position == 0 else "49.".ljust(65, "0")
+        parts = ["49.0094", "8.4115", "", ""]
+        parts[position] = "49.".ljust(65, "0")
 
         with pytest.raises(ValidationError) as caught:
             clean(LocationField(), *parts)
@@ -278,10 +222,7 @@ class TestLocationField:
         assert "max_length" in [error.code for error in caught.value.error_list]
 
     def test_an_empty_submission_cleans_to_none(self):
-        assert clean(LocationField(), "4326", "", "", "", "") is None
-
-    def test_an_empty_submission_without_a_system_cleans_to_none(self):
-        assert clean(LocationField(), "", "", "", "", "") is None
+        assert clean(LocationField(), "", "", "", "") is None
 
     def test_a_required_field_refuses_an_empty_submission(self):
         assert refusal(LocationField(required=True), "", "", "", "", "") == "required"
@@ -295,7 +236,7 @@ class TestLocationFieldPointOnly:
         assert (location.point.x, location.point.y) == (8.4115, 49.0094)
         assert (location.elevation, location.uncertainty) == (None, None)
 
-    def test_it_asks_for_no_reference_system_elevation_or_uncertainty(self):
+    def test_it_asks_for_no_elevation_or_uncertainty(self):
         field = LocationField(full=False)
 
         assert len(field.fields) == 2
@@ -313,7 +254,7 @@ class TestLocationWidget:
         widget = LocationWidget()
         location = Location(Point(8.4115, 49.0094, srid=4326), 112.0, 5.0)
 
-        assert widget.decompress(location) == [4326, "49.0094", "8.4115", 112.0, 5.0]
+        assert widget.decompress(location) == ["49.0094", "8.4115", 112.0, 5.0]
 
     def test_a_stored_point_alone_decompresses_for_the_point_only_input(self):
         widget = LocationWidget(full=False)
@@ -329,7 +270,7 @@ class TestLocationWidget:
         assert (again.point.x, again.point.y) == (point.x, point.y)
 
     def test_nothing_stored_decompresses_to_empty_parts(self):
-        assert LocationWidget().decompress(None) == [4326, None, None, None, None]
+        assert LocationWidget().decompress(None) == [None, None, None, None]
 
 
 def rendered(widget, value=None):
@@ -344,7 +285,6 @@ class TestLocationWidgetRendering:
 
         names = {control["name"] for control in page.select("input[name]")}
         assert names == {
-            "location_srid",
             "location_first",
             "location_second",
             "location_elevation",
@@ -364,42 +304,23 @@ class TestLocationWidgetRendering:
 
         values = {c["name"]: c["value"] for c in page.select("input[name]")}
         assert values == {
-            "location_srid": "4326",
             "location_first": "49.0094",
             "location_second": "8.4115",
             "location_elevation": "112.0",
             "location_uncertainty": "5.0",
         }
 
-    def test_the_suggested_systems_come_from_the_server_with_their_kind(self):
-        page = rendered(LocationWidget())
-
-        systems = json.loads(page.select_one("script[type='application/json']").string)
-        assert [s["code"] for s in systems] == list(SUGGESTED_SYSTEMS)
-        by_code = {s["code"]: s for s in systems}
-        assert by_code[4326]["geographic"] is True
-        assert by_code[25832]["geographic"] is False
-        assert by_code[25832]["name"] == SpatialReference(25832).name
-
-    def test_a_reference_system_typed_back_is_escaped_in_an_attribute_and_nowhere_else(self):
-        typed = "4326');alert(1);//<b>x</b>"
+    def test_a_typed_latitude_is_escaped_in_the_value_and_nowhere_else(self):
+        typed = "49');alert(1);//<b>x</b>"
         widget = LocationWidget()
 
-        html = widget.render("location", [typed, "49", "8", None, None], attrs={"id": "id_location"})
+        html = widget.render("location", [typed, "8", None, None], attrs={"id": "id_location"})
 
         page = BeautifulSoup(html, "html.parser")
-        root = page.select_one("[x-data]")
-        assert root["data-srid"] == typed
-        assert "alert(1)" not in root["x-data"]
+        assert page.select_one("input[name='location_first']")["value"] == typed
+        assert "alert(1)" not in page.select_one("[x-data]")["x-data"]
         assert "<b>" not in html
         assert not any("alert(1)" in (script.string or "") for script in page.select("script"))
-
-    def test_every_suggested_system_is_offered_in_the_list_the_input_points_at(self):
-        page = rendered(LocationWidget())
-
-        listed = page.select_one("input[name='location_srid']")["list"]
-        options = [o["value"] for o in page.select(f"datalist#{listed} option")]
-        assert options == [str(code) for code in SUGGESTED_SYSTEMS]
 
 
 def browser_submission(page, **typed):

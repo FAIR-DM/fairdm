@@ -3,7 +3,6 @@
 import pytest
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Point as GEOSPoint
 from django.test import Client, RequestFactory
 from django.urls import reverse
@@ -473,13 +472,6 @@ def sample_editor(db):
     return sample, client, editor
 
 
-def projected(code):
-    """Return Karlsruhe's (northing, easting) in a system, as GDAL gives them."""
-    transform = CoordTransform(SpatialReference(4326), SpatialReference(code))
-    converted = GEOSPoint(8.4115, 49.0094, srid=4326).transform(transform, clone=True)
-    return str(converted.y), str(converted.x)
-
-
 def edit_page(client, sample):
     """Open a sample's edit page and return its address and what a browser would send."""
     url = reverse("sample:edit", kwargs={"uuid": sample.uuid})
@@ -491,24 +483,20 @@ def edit_page(client, sample):
 @pytest.mark.django_db
 class TestSampleEditPageLocation:
     @pytest.mark.parametrize(
-        ("srid", "first", "second"),
+        ("first", "second"),
         [
-            ("4326", "49.0094", "8.4115"),
-            ("4326", "49 0.564 N", "8 24.69 E"),
-            ("4326", "49°0'33.84\"N", "8°24'41.4\"E"),
-            ("4326", "N 49 0 33.84", "E 8 24 41.4"),
-            ("25832", *projected(25832)),
-            ("32632", *projected(32632)),
+            ("49.0094", "8.4115"),
+            ("49 0.564 N", "8 24.69 E"),
+            ("49°0'33.84\"N", "8°24'41.4\"E"),
+            ("N 49 0 33.84", "E 8 24 41.4"),
         ],
     )
     def test_a_location_in_any_notation_is_saved_as_the_wgs84_point(
-        self, sample_editor, srid, first, second
+        self, sample_editor, first, second
     ):
         sample, client, _ = sample_editor
         url, payload = edit_page(client, sample)
-        payload.update(
-            location_srid=srid, location_first=first, location_second=second
-        )
+        payload.update(location_first=first, location_second=second)
 
         response = client.post(url, payload)
 
@@ -557,7 +545,6 @@ class TestSampleEditPageLocation:
             {"location_first": "49.0094 E", "location_second": "8.4115"},
             {"location_first": "somewhere", "location_second": "8.4115"},
             {"location_first": "49 0m 33 N", "location_second": "8.4115"},
-            {"location_srid": "99999", "location_first": "1", "location_second": "2"},
             {"location_first": "49.0094", "location_second": ""},
             {"location_first": "", "location_second": "", "location_elevation": "5"},
             {"location_first": "", "location_second": "", "location_uncertainty": "5"},
@@ -565,11 +552,6 @@ class TestSampleEditPageLocation:
                 "location_first": "49.0094",
                 "location_second": "8.4115",
                 "location_uncertainty": "-1",
-            },
-            {
-                "location_srid": "25832",
-                "location_first": "6000000",
-                "location_second": "30000000",
             },
         ],
     )
@@ -603,10 +585,9 @@ class TestSampleEditPageLocation:
         form = main_form(response)
         shown = {
             name: form.select_one(f'[name="location_{name}"]')["value"]
-            for name in ("srid", "first", "second", "elevation", "uncertainty")
+            for name in ("first", "second", "elevation", "uncertainty")
         }
         assert shown == {
-            "srid": "4326",
             "first": "49.0094",
             "second": "8.4115",
             "elevation": "112.0",
