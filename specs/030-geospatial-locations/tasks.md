@@ -184,7 +184,7 @@ test first, and the test is seen to go red under the mutation named.
 
 ## Phase 9: merge-gate change
 
-- [ ] T041 [US1] The maintainer asked at the merge gate for every coordinate to be entered in WGS 84
+- [ ] T041 [US1] The maintainer asked at the merge gate for every coordinate to be entered as decimal degrees in WGS 84
   only. The location input loses its reference system: no EPSG box, no suggestions, no Northing and
   Easting labels, no conversion between systems. Latitude and longitude are still typed in any of
   the three notations, with elevation and uncertainty as before. Remove the code and tests that only
