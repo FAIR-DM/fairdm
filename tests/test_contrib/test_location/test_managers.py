@@ -56,6 +56,15 @@ class TestSampleInside:
 
         assert set(found) == {samples["rome"], samples["edge"]}
 
+    def test_a_box_that_crosses_the_180th_meridian_returns_the_samples_in_it(self, released):
+        west = RockSampleFactory(dataset=released, location=at(178, -15))
+        east = RockSampleFactory(dataset=released, location=at(-178, -15))
+        RockSampleFactory(dataset=released, location=at(0, -15))
+
+        found = Sample.objects.inside((175, -20, -175, -10))
+
+        assert set(found) == {west, east}
+
     def test_a_polygon_returns_the_samples_inside_it_and_not_those_beyond_a_slanted_side(
         self, samples
     ):

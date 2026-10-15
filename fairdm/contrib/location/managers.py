@@ -2,7 +2,7 @@
 
 from django.contrib.gis.db.models import PointField
 from django.contrib.gis.db.models.functions import Distance
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.contrib.gis.measure import D
 from django.db.models import F
 from django.db.models.functions import Cast
@@ -21,7 +21,9 @@ class Spatial:
         """Read an area as a polygon in WGS 84.
 
         Args:
-            area: A GEOS polygon, or a ``(west, south, east, north)`` tuple in degrees.
+            area: A GEOS polygon, or a ``(west, south, east, north)`` tuple in degrees. A tuple
+                with west greater than east is a box across the 180th meridian, the shape
+                ``spatial_coverage`` returns.
 
         Returns:
             The polygon, in SRID 4326.
@@ -30,7 +32,13 @@ class Spatial:
             if area.srid is None:
                 area.srid = WGS84
             return area
-        return Polygon.from_bbox(tuple(area))
+        west, south, east, north = area
+        if west > east:
+            return MultiPolygon(
+                Polygon.from_bbox((west, south, 180, north)),
+                Polygon.from_bbox((-180, south, east, north)),
+            )
+        return Polygon.from_bbox((west, south, east, north))
 
     @staticmethod
     def point(point):
