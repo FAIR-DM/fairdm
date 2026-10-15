@@ -181,3 +181,15 @@ test first, and the test is seen to go red under the mutation named.
   describe a location as a linked record; the measurement lookups' docs say the viewer is passed
   again when combined with `visible_to`; the import docs state what empty coordinate cells do to an
   elevation and uncertainty.
+
+## Phase 9: merge-gate change
+
+- [ ] T041 [US1] The maintainer asked at the merge gate for every coordinate to be entered in WGS 84
+  only. The location input loses its reference system: no EPSG box, no suggestions, no Northing and
+  Easting labels, no conversion between systems. Latitude and longitude are still typed in any of
+  the three notations, with elevation and uncertainty as before. Remove the code and tests that only
+  served other systems (the projected branch of `read_point`, the magnitude and converted-range
+  checks that guarded it, `SUGGESTED_SYSTEMS`, `get_systems`, the systems JSON and the script's
+  label switching). Keep the latitude and longitude range checks and the 64-character cap. The spec,
+  the locations page, the changelog, `CONTEXT.md` and the decisions follow. Reference systems are
+  #512.

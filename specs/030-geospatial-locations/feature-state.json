@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "PR_READY",
       "at": "2026-10-15T08:24:00Z",
       "note": "review fixes verified; verify green"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-15T09:33:13Z",
+      "note": "merge gate: maintainer asked for WGS 84-only input; reference systems moved to #512"
     }
   ],
   "gates": {
@@ -366,6 +371,11 @@
               "docs/portal-development/locations.md:347"
             ]
           }
+        },
+        {
+          "id": "T041",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
