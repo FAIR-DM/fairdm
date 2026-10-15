@@ -181,7 +181,7 @@ Watch: the generated resource's dataset column cannot be used as generated for a
 Did: fairdm/contrib/location/resources.py with CoordinateWidget, CoordinateField, location_fields and LocatedResourceMixin. The mixin replaces location by latitude, longitude, location_elevation and location_uncertainty when the resource is built (an explicit column of the same name wins), places them in the export and import order where location stood, and on import sets the point by passing the row's coordinates, elevation and uncertainty to LocationField.compress, so the form's rules and messages apply and a refused row is a validation error. ResourceFactory puts the mixin ahead of ModelResource where fields list location. BaseFairDMResource carries it. decisions.md D25.
 Verified: uv run pytest -q -n0 tests/test_contrib/test_import_export tests/test_registry tests/test_contrib/test_location -> 434 passed; pre-commit (ruff, ruff-format, mypy, deptry) clean on the changed files. No pre-existing test changed.
 Next: T028 docs.
-Watch: elevation and uncertainty cells are read with FloatWidget, so a cell such as "12 m" is an import error row, not a validation row, and the row is not saved either way.
+Watch: elevation and uncertainty cells are read with FloatWidget, so a cell such as "12 m" is reported as an invalid row with the float conversion's own message (could not convert string to float), not the location input's wording, and the row is not saved. Probed.
 
 ## 2026-10-15T01:10:25Z · Implementer US5 · T028
 
