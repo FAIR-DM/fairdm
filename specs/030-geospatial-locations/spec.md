@@ -16,7 +16,7 @@ R26, a research group can deploy the shipped stack.
 **Input**: #494. Portals capture, store and query locations as real geospatial data. A researcher
 records where a sample was taken in the notation and reference system they wrote it down in. Portal
 code asks which records lie inside an area or near a point without loading every location into
-Python. Machines read a record's location from the API and from the dataset's DataCite metadata.
+Python. Machines read a record's location from the API.
 
 ## What exists, and what this specification changes
 
@@ -52,6 +52,9 @@ After this feature:
 - **Keeping coordinates exactly as they were typed**, beside the stored WGS 84 point, is not part of
   this feature.
 - **Filtering API lists by area or distance** is not part of this feature.
+- **A dataset's DataCite metadata describing its spatial coverage** is #511. The DataCite export
+  cannot be produced today, so it is delivered with that issue. The spatial coverage it needs is
+  part of this feature.
 - **Import and export becoming reachable and dependable** is R21. This feature makes a location go
   in and come out with the rest of a sample's or measurement's row wherever tabular import and
   export exist.
@@ -290,31 +293,6 @@ read the points back.
 
 ---
 
-### User Story 7 - A researcher downloads a dataset's DataCite metadata (Priority: P3)
-
-A researcher downloads the DataCite metadata of a dataset whose samples have locations. It describes
-the area the dataset covers, so a repository that receives it can index the dataset by place.
-
-**Why this priority**: The DataCite export already describes a bounding box. This story keeps it
-working on the new storage and fixes the cases the old one got wrong.
-
-**Independent Test**: Download the metadata of a dataset with located samples, one that crosses the
-180th meridian, and one with no locations.
-
-**Acceptance Scenarios**:
-
-1. **Given** a dataset with located samples, **When** its DataCite metadata is produced, **Then** it
-   carries a box holding every location in the dataset.
-2. **Given** a dataset whose locations cross the 180th meridian, **When** its metadata is produced,
-   **Then** the box spans the meridian, with its western edge east of its eastern edge.
-3. **Given** a dataset with no locations, **When** its metadata is produced, **Then** it carries no
-   location.
-4. **Given** a dataset with a measurement placed only by a sample in a dataset the public may not
-   open, **When** its metadata is produced, **Then** that sample's location does not count towards
-   the box.
-
----
-
 ### Edge Cases
 
 - A point exactly on an area's edge counts as inside it.
@@ -405,7 +383,7 @@ working on the new storage and fixes the cases the old one got wrong.
 - **FR-028**: A location MUST NOT have a page of its own. The address `/location/<lon>/<lat>/` and
   the collection tables' link to it MUST be removed.
 
-**API, import and export, DataCite**
+**API, import and export**
 
 - **FR-029**: The API MUST return each sample's, measurement's and organization's own location as a
   GeoJSON geometry in WGS 84, longitude first, with the elevation as a third coordinate where
@@ -417,9 +395,6 @@ working on the new storage and fixes the cases the old one got wrong.
   notations of FR-006 in them, and report a row whose location is refused under FR-008 without
   saving it.
 - **FR-033**: A location MUST NOT be exported or imported as a table of its own.
-- **FR-034**: A dataset's DataCite metadata MUST describe its spatial coverage, as seen by a visitor
-  who is not signed in, as a geolocation box, and MUST carry no geolocation when the coverage is
-  empty.
 
 **Removals and documentation**
 

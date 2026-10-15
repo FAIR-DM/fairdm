@@ -154,9 +154,9 @@ when there is nothing located.
   nothing else in the dataset.
 - `Project.spatial_coverage(user=None)`: the same over the datasets the viewer may open.
 
-`Dataset.bbox` and `fairdm/contrib/location/utils.py` are deleted. `DataCite` metadata reads
-`dataset.spatial_coverage` with no viewer, so it describes what a visitor may see (FR-034), and its
-template loses the `centroid` it never had.
+`Dataset.bbox` and `fairdm/contrib/location/utils.py` are deleted. The DataCite template's
+`geoLocationBox` reads `dataset.spatial_coverage` with no viewer. Producing that metadata, and
+testing it, is #511, because the export cannot be rendered or reached today.
 
 ### D7. Pages and tables
 
@@ -230,7 +230,7 @@ read `location.y` and `location.x`.
 ## Story order
 
 US1 first, because it carries the fields, the removal of `Point` and the input every other story
-reads. Then US3, US2 and US7, which share the effective location and the coverage. Then US4, US5 and
+reads. Then US3 and US2, which share the effective location and the coverage. Then US4, US5 and
 US6. Each story starts from the previous one's accepted commit.
 
 ## Risks

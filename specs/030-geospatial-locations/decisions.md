@@ -387,3 +387,15 @@ caller would have to inherit. The field is declared, not swapped in `__init__`, 
 subclass can replace it like any other declared field.
 
 **Revisit if:** a fourth organization form needs the same pair.
+
+## D27. The DataCite story moved out of this feature
+
+The story for a dataset's DataCite metadata (US7, #508) assumed the export worked. When the build
+reached it, the template could not be rendered (it loads a `partials` tag library that is not
+installed on Django 5.2) and no route serves it. Delivering the story meant repairing an export
+unrelated to locations, so the maintainer had it taken out. It is #511, with the four acceptance
+scenarios it carried. The spatial coverage it needs is delivered here, and the template already
+reads it.
+
+*Revisit if:* never; #511 owns it.
+**ADR:** none — a scope change recorded in the spec's boundary and in #511

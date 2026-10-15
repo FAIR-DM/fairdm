@@ -610,26 +610,6 @@
           }
         }
       ]
-    },
-    {
-      "id": "US7",
-      "priority": "P3",
-      "issue": 508,
-      "worktree": null,
-      "status": "todo",
-      "replans": 0,
-      "tasks": [
-        {
-          "id": "T021",
-          "status": "todo",
-          "attempts": 0
-        },
-        {
-          "id": "T022",
-          "status": "todo",
-          "attempts": 0
-        }
-      ]
     }
   ],
   "budgets": {

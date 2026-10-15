@@ -8,7 +8,7 @@ through the real form classes. Wording and appearance get no tests.
 
 **Format**: `[ID] [Story] Description`.
 
-**Story order**: US1, then US3, US2 and US7, then US4, US5 and US6, each from the previous story's
+**Story order**: US1, then US3 and US2, then US4, US5 and US6, each from the previous story's
 accepted commit.
 
 ## Phase 1: US-1, a researcher records where a sample was taken (P1)
@@ -112,14 +112,6 @@ prototype's `options` handling and the demo seeds that use it go.
   existing tests that expect the location column, keeping what else they assert.
 - [ ] T020 [US2] Docs: the lookups and the spatial coverage on the locations page, with examples
   that run. `CONTEXT.md` Spatial coverage.
-
-## Phase 4: US-7, a researcher downloads a dataset's DataCite metadata (P3)
-
-- [ ] T021 [US7] `tests/test_contrib/test_import_export/` (where the DataCite view is tested): the
-  metadata carries a `geoLocationBox` holding every location (AS 7.1), a crossing box with its
-  western bound east of its eastern one (AS 7.2), no `geoLocations` with no location (AS 7.3), and
-  no contribution from a location the public may not see (AS 7.4).
-- [ ] T022 [US7] The DataCite template reads `spatial_coverage`, without `centroid`.
 
 ## Phase 5: US-4, a developer's script reads a record's location from the API (P2)
 
