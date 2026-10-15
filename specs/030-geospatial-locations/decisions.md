@@ -373,3 +373,17 @@ it is reported and not saved.
 
 **Revisit if:** a resource needs a reference-system column (the import then needs the input's
 first part, which `compress` already takes).
+
+## D26. Each organization form declares the point-only field and keeps its point
+
+**Decision:** `OrganizationProfileForm` in `forms/profile.py` and the two forms in
+`forms/organization.py` each declare `location = LocationField(full=False, ...)` and a
+`clean_location` that returns the cleaned value's point. There is no shared mixin and
+`LocationFormMixin` is not used.
+
+**Why:** An organization has no elevation or uncertainty, so the mixin's second job (writing them
+to the instance) does not apply, and three one-line methods are smaller than a class a third
+caller would have to inherit. The field is declared, not swapped in `__init__`, so a portal's
+subclass can replace it like any other declared field.
+
+**Revisit if:** a fourth organization form needs the same pair.

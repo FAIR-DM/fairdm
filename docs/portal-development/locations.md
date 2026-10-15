@@ -71,6 +71,42 @@ When `location` is among the fields, the form replaces it with a `LocationField`
 the instance's point, elevation and uncertainty, and on clean puts the elevation and uncertainty
 on the instance. Clearing the coordinates clears all three.
 
+## Placing an organization
+
+An organization's form asks for **Coordinates**: a latitude and a longitude in WGS 84, with no
+reference system, elevation or uncertainty. The notations are the ones the sample input reads (see
+[What the input reads](#what-the-input-reads)). Leaving both empty gives the organization no point.
+One coordinate without the other is refused.
+
+The profile editing page (`OrganizationProfileForm`), the form that adds an organization
+(`OrganizationCreateForm`) and the older profile form in `forms/organization.py` all use this
+input. Each declares a `LocationField(full=False)` and keeps the point of its cleaned value, so a
+form of your own does the same:
+
+```python
+from fairdm.contrib.location.forms import LocationField
+
+
+class MyOrganizationForm(forms.ModelForm):
+    location = LocationField(full=False, label="Coordinates")
+
+    class Meta:
+        model = Organization
+        fields = ["name", "location"]
+
+    def clean_location(self):
+        location = self.cleaned_data["location"]
+        return location.point if location is not None else None
+```
+
+An organization created or updated from ROR takes the coordinates ROR publishes for it, and an
+organization ROR gives none for keeps the point it had. Two organizations at the same coordinates
+each hold their own point, so moving one leaves the other where it was.
+
+The organization's page shows a map when it has a point and none when it does not. A person is
+placed on a map at their primary affiliation's organization's point, and not placed when that
+organization has none.
+
 ## A measurement's own location and its effective location
 
 A measurement is usually made where its sample was taken, so most measurements record no location

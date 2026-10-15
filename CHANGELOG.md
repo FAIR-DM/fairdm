@@ -61,6 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with the value that is wrong, instead of saving it. See
   [Locations](docs/portal-development/locations.md#in-import-and-export).
 
+- **An organization's point is typed on its forms.** The organization's profile page, the form
+  that adds an organization and the older profile form take a latitude and a longitude in WGS 84,
+  in the notations a sample's location input reads, in place of the map input. An organization
+  added from ROR still takes the coordinates ROR publishes, and a person placed on a map is placed
+  at their primary affiliation's organization's point. See
+  [Locations](docs/portal-development/locations.md#placing-an-organization).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
