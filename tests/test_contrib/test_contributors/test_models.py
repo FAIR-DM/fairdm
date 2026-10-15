@@ -1,5 +1,6 @@
 """Tests for the contributor models."""
 
+import json
 from datetime import date
 
 from unittest.mock import patch
@@ -10,6 +11,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import resolve
@@ -2705,6 +2707,51 @@ class TestPersonLocationDisplay:
 
         with django_assert_num_queries(0):
             person.get_location_display()
+
+
+@pytest.mark.django_db
+class TestPersonPlacedOnAMap:
+    def test_a_person_is_placed_at_their_primary_affiliations_point(self):
+        person = PersonFactory()
+        organization = OrganizationFactory(
+            location=GEOSPoint(13.06566, 52.39886, srid=4326)
+        )
+        AffiliationFactory(person=person, organization=organization, is_primary=True)
+
+        feature = json.loads(person.as_geojson())
+
+        assert feature["geometry"]["coordinates"] == [13.06566, 52.39886]
+
+    def test_a_person_is_placed_at_the_point_of_their_primary_affiliation_only(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(
+                location=GEOSPoint(2.35, 48.85, srid=4326)
+            ),
+            is_primary=False,
+        )
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(
+                location=GEOSPoint(13.06566, 52.39886, srid=4326)
+            ),
+            is_primary=True,
+        )
+
+        feature = json.loads(person.as_geojson())
+
+        assert feature["geometry"]["coordinates"] == [13.06566, 52.39886]
+
+    def test_a_person_whose_organization_has_no_point_is_not_placed(self):
+        person = PersonFactory()
+        AffiliationFactory(
+            person=person,
+            organization=OrganizationFactory(location=None),
+            is_primary=True,
+        )
+
+        assert person.as_geojson() is None
 
 
 class TestProfileSafety:
