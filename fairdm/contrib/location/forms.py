@@ -8,16 +8,6 @@ from django.contrib.gis import geos
 from django.utils.translation import gettext_lazy as _
 
 
-def latitude_field():
-    """A latitude in signed decimal degrees, from -90 to 90."""
-    return forms.FloatField(required=False, min_value=-90, max_value=90)
-
-
-def longitude_field():
-    """A longitude in signed decimal degrees, from -180 to 180."""
-    return forms.FloatField(required=False, min_value=-180, max_value=180)
-
-
 class Location(NamedTuple):
     """What a location input cleans to: a WGS 84 point with its elevation and uncertainty.
 
@@ -108,7 +98,10 @@ class LocationField(forms.MultiValueField):
 
     def __init__(self, full=True, **kwargs):
         self.full = full
-        fields = [latitude_field(), longitude_field()]
+        fields = [
+            forms.FloatField(required=False, min_value=-90, max_value=90),
+            forms.FloatField(required=False, min_value=-180, max_value=180),
+        ]
         if full:
             fields = [
                 *fields,
