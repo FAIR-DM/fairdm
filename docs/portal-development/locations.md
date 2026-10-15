@@ -58,7 +58,7 @@ uses `MeasurementFormMixin`. Either is `LocationFormMixin` plus the dataset and 
 ```python
 from django import forms
 
-from fairdm.contrib.location.forms import LocationFormMixin
+from fairdm.utils.location.forms import LocationFormMixin
 
 
 class RockSampleForm(LocationFormMixin, forms.ModelForm):
@@ -84,7 +84,7 @@ input. Each declares a `LocationField(full=False)` and keeps the point of its cl
 form of your own does the same:
 
 ```python
-from fairdm.contrib.location.forms import LocationField
+from fairdm.utils.location.forms import LocationField
 
 
 class MyOrganizationForm(forms.ModelForm):
@@ -222,7 +222,7 @@ Measurement.objects.visible_to(request.user).inside(area, user=request.user)
 the point to a geography, and the index they use is built on that same cast, which is what
 `geography_index` returns. A measurement's `inside` and `within_distance` are two subqueries, one
 on the measurement table and one on the sample table, each using its own index. A model of your own
-that mixes in `LocatedQuerySet` from `fairdm.contrib.location.managers` and lists the index in its
+that mixes in `LocatedQuerySet` from `fairdm.utils.location.managers` and lists the index in its
 `Meta` gets the same.
 
 ## Spatial coverage
@@ -256,11 +256,11 @@ the viewer holds a level on.
 project.spatial_coverage(request.user)
 ```
 
-For records of your own, `spatial_coverage` in `fairdm.contrib.location.coverage` takes any number
+For records of your own, `spatial_coverage` in `fairdm.utils.location.coverage` takes any number
 of `(queryset, field)` pairs and merges them into one box:
 
 ```python
-from fairdm.contrib.location.coverage import spatial_coverage
+from fairdm.utils.location.coverage import spatial_coverage
 
 spatial_coverage(
     (Sample.objects.filter(dataset=dataset), "location"),
@@ -351,9 +351,9 @@ uncertainty cannot be left without a point.
 
 A resource that derives from `fairdm.contrib.import_export.resources.BaseFairDMResource` gets the
 same columns where its fields list `location`. A `ModelResource` of your own gets them by
-inheriting `fairdm.contrib.location.resources.LocatedResourceMixin` ahead of `ModelResource`.
+inheriting `fairdm.utils.location.resources.LocatedResourceMixin` ahead of `ModelResource`.
 
-The columns are built from these pieces in `fairdm.contrib.location.resources`, which a resource
+The columns are built from these pieces in `fairdm.utils.location.resources`, which a resource
 that declares its columns by hand can use directly:
 
 | Name | Is |
@@ -378,37 +378,6 @@ The input refuses, and saves nothing, when:
 - an elevation or an uncertainty is given with no coordinates,
 - the uncertainty is negative.
 
-## Giving a model of your own the three fields
-
-`Sample` and `Measurement` inherit `LocatedRecord`, an abstract model that holds the three fields.
-A portal model that is neither can inherit it as well. List the two check constraints and the
-geography index in the model's own `Meta`, because a `Meta` that sets `indexes` replaces an
-inherited list, and a subclass without a `Meta` would copy constraints onto a table that has none
-of the columns:
-
-```python
-from django.db import models
-
-from fairdm.contrib.location.models import (
-    LocatedRecord,
-    geography_index,
-    location_constraints,
-)
-
-
-class Station(LocatedRecord):
-    name = models.CharField(max_length=50)
-
-    class Meta:
-        constraints = location_constraints()
-        indexes = [geography_index("station_location_geog_idx")]
-```
-
-`location_constraints()` returns the two checks that keep an elevation or an uncertainty from
-standing without a point and an uncertainty from being negative. `geography_index(name)` returns
-the index distance lookups use, which casts the point to a geography. The name is 30 characters
-or fewer.
-
 ## Reading coordinates in your own code
 
 `LocationField` is a `MultiValueField`. `full=False` asks for a latitude and a longitude
@@ -416,7 +385,7 @@ only, as an organization's point does. It cleans to `None` when everything is em
 to a `Location` named tuple whose point is in SRID 4326:
 
 ```python
-from fairdm.contrib.location.forms import LocationField
+from fairdm.utils.location.forms import LocationField
 
 field = LocationField()
 location = field.clean(["49 0.564 N", "8 24.69 E", "112", "5"])

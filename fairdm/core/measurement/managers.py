@@ -5,8 +5,8 @@ from django.contrib.gis.db.models.functions import Distance
 from django.db.models import Case, F, When
 from polymorphic.managers import PolymorphicQuerySet
 
-from fairdm.contrib.location.managers import Spatial
 from fairdm.core.managers import RecordVisibilityMixin
+from fairdm.utils.location.managers import Spatial
 
 
 class MeasurementQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):

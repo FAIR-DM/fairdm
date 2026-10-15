@@ -1,14 +1,14 @@
-"""Tests for spatial coverage in ``fairdm.contrib.location.coverage``."""
+"""Tests for spatial coverage in ``fairdm.utils.location.coverage``."""
 
 import pytest
 from django.contrib.gis.geos import Point
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from fairdm.contrib.location.coverage import Coverage, spatial_coverage
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.coverage import Coverage, spatial_coverage
 
 
 def at(longitude, latitude):

@@ -10,7 +10,6 @@ from django.urls import reverse
 from demo.factories import RockSampleFactory, WaterSampleFactory
 from demo.models import RockSample, WaterSample
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.location.forms import LocationField
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.factories import (
     ContributionFactory,
@@ -21,6 +20,7 @@ from fairdm.factories import (
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.forms import LocationField
 from tests.test_core.test_editing import form_payload, main_form
 
 User = get_user_model()

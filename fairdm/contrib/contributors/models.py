@@ -28,7 +28,6 @@ from ordered_model.models import OrderedModel
 from research_vocabs.fields import ConceptManyToManyField
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.contrib.location.models import geography_index
 from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.overview import format_partial_date
 from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
@@ -37,6 +36,7 @@ from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel, PrefetchPolymorphicManager
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.db import geography_index
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 

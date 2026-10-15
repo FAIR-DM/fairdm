@@ -9,9 +9,9 @@ from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 
-from fairdm.contrib.location.forms import LocationField
 from fairdm.core import image_utils
 from fairdm.forms import ModelForm
+from fairdm.utils.location.forms import LocationField
 
 from ..models import Organization, Person
 from ..profiles import language_names

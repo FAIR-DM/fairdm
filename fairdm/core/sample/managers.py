@@ -2,8 +2,8 @@
 
 from polymorphic.managers import PolymorphicQuerySet
 
-from fairdm.contrib.location.managers import LocatedQuerySet
 from fairdm.core.managers import RecordVisibilityMixin
+from fairdm.utils.location.managers import LocatedQuerySet
 
 
 class SampleQuerySet(LocatedQuerySet, RecordVisibilityMixin, PolymorphicQuerySet):

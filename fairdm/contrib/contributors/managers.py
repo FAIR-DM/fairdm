@@ -5,8 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from ordered_model.models import OrderedModelManager, OrderedModelQuerySet
 
-from fairdm.contrib.location.managers import LocatedQuerySet
 from fairdm.db.models import PrefetchPolymorphicManager, PrefetchPolymorphicQuerySet
+from fairdm.utils.location.managers import LocatedQuerySet
 
 
 class OrganizationQuerySet(LocatedQuerySet, PrefetchPolymorphicQuerySet):

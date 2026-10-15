@@ -348,7 +348,7 @@ as it is.
 ## D23. The geometry helpers sit on one class, and the DataCite template reads the coverage
 
 **Decision:** The lookups' input readers and the geography cast are static methods of `Spatial` in
-`fairdm/contrib/location/managers.py`, so they are not public methods of every queryset that mixes
+`fairdm/utils/location/managers.py`, so they are not public methods of every queryset that mixes
 the lookups in. `datacite44.xml` reads `dataset.spatial_coverage` (no viewer) for the box and leaves
 its `centroid` block for the DataCite story.
 
@@ -450,3 +450,20 @@ escaping of what is typed.
 
 **Revisit if:** #512 or #513 is taken up.
 **ADR:** none, #512 and #513 decide whether other systems and notations return
+
+## D30. The location code is a utility package, and the app keeps only its migrations
+
+**Decision:** `LocatedRecord` is removed. `Sample` and `Measurement` declare `location`,
+`location_elevation` and `location_uncertainty` themselves and call `location_constraints()` and
+`geography_index()` in their own `Meta`. The form field and widget, form mixin, queryset lookups,
+coverage, import columns and widget template move to `fairdm/utils/location/` and
+`fairdm/utils/templates/location/`. `fairdm.contrib.location` stays installed with only
+`__init__.py`, `apps.py` and `migrations/`. The tests moved to `tests/test_utils/test_location/`.
+
+**Why:** The maintainer, at the merge gate: the code is utilities, not an app, and nothing but two
+models used the abstract base. The database does not change, so `makemigrations --check` shows
+nothing for sample or measurement. The app cannot go: sample migrations 0001 and 0011 and
+contributors 0008 depend on the label `fairdm_location`, and portals have applied them.
+
+**Revisit if:** the historical migrations are squashed, which would let the app go.
+**ADR:** none — a placement of code under ADR 0032, which already states the decision

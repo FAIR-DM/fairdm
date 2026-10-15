@@ -966,7 +966,7 @@ class ResourceFactory(ComponentFactory):
         """
         from import_export import resources
 
-        from fairdm.contrib.location.resources import LocatedResourceMixin
+        from fairdm.utils.location.resources import LocatedResourceMixin
 
         fields = self.get_fields()
 

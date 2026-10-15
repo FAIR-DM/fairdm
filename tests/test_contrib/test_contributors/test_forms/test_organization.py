@@ -7,8 +7,8 @@ from fairdm.contrib.contributors.forms.organization import (
     OrganizationCreateForm,
     OrganizationProfileForm,
 )
-from fairdm.contrib.location.forms import LocationField
 from fairdm.factories import OrganizationFactory
+from fairdm.utils.location.forms import LocationField
 
 
 @pytest.mark.django_db

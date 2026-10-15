@@ -202,10 +202,10 @@ class Project(BaseModel):
             the 180th meridian, or ``None`` when nothing the viewer may see is located.
         """
         from fairdm.contrib.contributors.choices import ContributionLevel
-        from fairdm.contrib.location.coverage import spatial_coverage
         from fairdm.core.dataset.models import Dataset
         from fairdm.core.measurement.models import Measurement
         from fairdm.core.sample.models import Sample
+        from fairdm.utils.location.coverage import spatial_coverage
 
         openable = Q(visibility=Visibility.PUBLIC)
         if user is not None and user.is_authenticated:

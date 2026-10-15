@@ -33,7 +33,8 @@ are kept. Everything behind them is rebuilt test first.
 
 ### D1. Three fields on each sample and measurement
 
-`fairdm/contrib/location/models.py` holds one abstract model, `LocatedRecord`, and nothing else:
+`Sample` and `Measurement` each declare these three fields, and `fairdm/utils/location/db.py` holds
+the two helpers they call in their `Meta`:
 
 | Field | Type | Notes |
 |---|---|---|
@@ -41,16 +42,13 @@ are kept. Everything behind them is rebuilt test first.
 | `location_elevation` | `FloatField(null=True, blank=True)` | Metres above mean sea level |
 | `location_uncertainty` | `FloatField(null=True, blank=True)` | Metres |
 
-Its `Meta` declares two `CheckConstraint`s, named with `%(app_label)s_%(class)s_` prefixes: the
+Each `Meta` lists two `CheckConstraint`s, named with `%(app_label)s_%(class)s_` prefixes: the
 uncertainty is null or at least 0, and the elevation and uncertainty are null whenever the location
 is. It also declares a `GistIndex` on `Cast("location", PointField(geography=True))`, which the
 distance lookups use (research, "Geometry, not geography").
 
-`Sample` and `Measurement` inherit it. Both already declare `indexes` in their own `Meta`, which
-replaces an inherited list rather than adding to it, so each `Meta` lists the geography index
-itself, next to its `modified` index, under a name of 30 characters or fewer
-(`sample_location_geog_idx`, `measurement_location_geog_idx`). The constraints are declared on
-`LocatedRecord.Meta` with `%(app_label)s_%(class)s_` names and each `Meta` inherits it. The names
+Each `Meta` lists the geography index next to its `modified` index, under a name of 30 characters or fewer
+(`sample_location_geog_idx`, `measurement_location_geog_idx`). The constraints are listed in each `Meta` with `%(app_label)s_%(class)s_` names. The names
 do not clash with a portal's own sample fields (research, "Names that do not clash").
 
 The sample's `location` changes from a foreign key to a point under the same name. The
@@ -58,7 +56,7 @@ autodetector would write that as an `AlterField`, which PostgreSQL cannot do fro
 geometry, so the migration is written as `RemoveField` then `AddField`, and the same for the
 contributor's.
 
-`fairdm.contrib.location` keeps its app label, `fairdm_location`, so its migrations run in order.
+`fairdm.contrib.location` keeps its app label, `fairdm_location`, and holds only `apps.py` and its migrations, so they run in order.
 Its migration `0002` deletes `Point` and depends on the sample and contributor migrations that
 remove the foreign keys to it.
 
@@ -73,7 +71,7 @@ creating shared rows. `Person.as_geojson()`, `Organization.as_geojson()` and the
 
 ### D3. One location input
 
-In `fairdm/contrib/location/forms.py`:
+In `fairdm/utils/location/forms.py`:
 
 - `LocationField(MultiValueField)`, with `full=True` for two coordinates, elevation and
   uncertainty, and `full=False` for two coordinates. It cleans to `None`,
@@ -83,9 +81,9 @@ In `fairdm/contrib/location/forms.py`:
   notation other than decimal degrees (#513). A value outside the range, one coordinate without
   the other, and an elevation or uncertainty without coordinates are refused (FR-005, FR-008).
 - `LocationWidget(MultiWidget)` with the prototype's template, moved to
-  `fairdm/contrib/location/templates/location/widgets/location.html` as it was approved.
+  `fairdm/utils/templates/location/widgets/location.html` as it was approved.
   `decompress()` takes a `Location`. The boxes are always Latitude and Longitude.
-- `LocationFormMixin` for a `ModelForm` whose model is a `LocatedRecord`. When `location` is in
+- `LocationFormMixin` for a `ModelForm` whose model has a `location`. When `location` is in
   the form's fields, it replaces it with a full `LocationField`, starts it from the instance's
   three fields, and in `clean()` sets `location_elevation` and `location_uncertainty` on the
   instance and the point as the cleaned `location`, so that model validation sees all three
@@ -102,7 +100,7 @@ The old `PointForm`, `LatitudeWidget`, `LongitudeWidget` and `normalize_coordina
 
 ### D4. Lookups
 
-`LocatedQuerySet` in `fairdm/contrib/location/managers.py` is a mixin with three methods. Each
+`LocatedQuerySet` in `fairdm/utils/location/managers.py` is a mixin with three methods. Each
 returns a queryset, so it combines with any other filter, `visible_to()` included:
 
 - `inside(area)`: `area` is a GEOS polygon or a `(west, south, east, north)` tuple in degrees.
@@ -134,7 +132,7 @@ for its own row, so the visibility rule is written once (FR-014).
 
 ### D6. Spatial coverage
 
-`fairdm/contrib/location/coverage.py` holds `Coverage(west, south, east, north)` and
+`fairdm/utils/location/coverage.py` holds `Coverage(west, south, east, north)` and
 `spatial_coverage(*querysets_and_fields)`. For each `(queryset, field)` pair it runs two
 aggregates, `Extent(field)` and `Extent(Func(field, function="ST_ShiftLongitude"))`, merges the
 boxes, and keeps the narrower of the two in longitude, converting longitudes above 180 back into
@@ -197,7 +195,7 @@ Where a sample or measurement resource's fields include `location`, the resource
 it into four columns, `latitude`, `longitude`, `location_elevation` and
 `location_uncertainty`. The last two carry the model fields' names, so they do not collide with an
 `elevation` column a sample type declares of its own. Each is an
-import-export `Field` with a widget in `fairdm/contrib/location/resources.py`. Export writes the
+import-export `Field` with a widget in `fairdm/utils/location/resources.py`. Export writes the
 record's own values in WGS 84 decimal degrees. Import reads the two coordinates with
 `LocationField` and sets the three model fields, and a refused value is reported as that row's
 error with the message the form gives. No resource exports a location as a table of its own

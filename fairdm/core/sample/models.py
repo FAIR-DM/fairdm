@@ -3,6 +3,7 @@
 import re
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.gis.db.models import PointField
 from django.core.exceptions import ValidationError
 from django.db import models as django_models
 from django.db.models.signals import pre_save
@@ -13,12 +14,8 @@ from polymorphic.managers import PolymorphicManager
 from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.contrib.location.models import (
-    LocatedRecord,
-    geography_index,
-    location_constraints,
-)
 from fairdm.db import models
+from fairdm.utils.location.db import geography_index, location_constraints
 
 from ..abstract import (
     AbstractDate,
@@ -55,7 +52,7 @@ IGSN_DOI_PATTERN = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
 IGSN_LEGACY_HANDLE_PATTERN = re.compile(r"^10273/\S+$", re.IGNORECASE)
 
 
-class Sample(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
+class Sample(BasePolymorphicModel):
     """A physical or digital object that is part of a dataset.
 
     A polymorphic model: domain-specific sample types inherit from this base. The base ``Sample``
@@ -113,6 +110,31 @@ class Sample(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
         help_text=_("The current custody status of the physical specimen."),
         vocabulary=FairDMSampleStatus,
         default="unknown",
+    )
+
+    location = PointField(
+        srid=4326,
+        verbose_name=_("location"),
+        help_text=_("Where the record is, as a point in WGS 84."),
+        null=True,
+        blank=True,
+    )
+    location_elevation = models.FloatField(
+        verbose_name=_("elevation"),
+        help_text=_(
+            "Metres above mean sea level, and a negative number below it. Needs a location."
+        ),
+        null=True,
+        blank=True,
+    )
+    location_uncertainty = models.FloatField(
+        verbose_name=_("uncertainty"),
+        help_text=_(
+            "The distance in metres from the location within which the true place lies. "
+            "Needs a location."
+        ),
+        null=True,
+        blank=True,
     )
 
     contributors = GenericRelation("contributors.Contribution")

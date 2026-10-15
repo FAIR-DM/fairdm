@@ -9,9 +9,9 @@ from django_select2.forms import ModelSelect2Widget
 from easy_thumbnails.widgets import ImageClearableFileInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.location.forms import LocationFormMixin
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
+from fairdm.utils.location.forms import LocationFormMixin
 
 from .models import Measurement
 

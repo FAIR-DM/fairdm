@@ -11,7 +11,6 @@ from django.urls import reverse
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.location.coverage import Coverage
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.project.forms import ProjectCreateForm, ProjectForm
 from fairdm.core.project.models import (
@@ -30,6 +29,7 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.coverage import Coverage
 
 
 @pytest.mark.django_db

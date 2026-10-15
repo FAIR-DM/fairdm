@@ -1,4 +1,4 @@
-"""Tests for the location lookups in ``fairdm.contrib.location.managers``."""
+"""Tests for the location lookups in ``fairdm.utils.location.managers``."""
 
 import re
 
@@ -56,7 +56,9 @@ class TestSampleInside:
 
         assert set(found) == {samples["rome"], samples["edge"]}
 
-    def test_a_box_that_crosses_the_180th_meridian_returns_the_samples_in_it(self, released):
+    def test_a_box_that_crosses_the_180th_meridian_returns_the_samples_in_it(
+        self, released
+    ):
         west = RockSampleFactory(dataset=released, location=at(178, -15))
         east = RockSampleFactory(dataset=released, location=at(-178, -15))
         RockSampleFactory(dataset=released, location=at(0, -15))
@@ -413,7 +415,9 @@ class TestQueryPlan:
     def reads_a_spatial_index(self, queryset, model):
         plan = queryset.explain()
         table = model._meta.db_table
-        assert re.search(rf"Index Scan (?:using|on) \S*location\S*(?: on {table})?\s", plan), plan
+        assert re.search(
+            rf"Index Scan (?:using|on) \S*location\S*(?: on {table})?\s", plan
+        ), plan
         assert f"Seq Scan on {table} " not in plan, plan
 
     def test_samples_inside_an_area(self, portal):

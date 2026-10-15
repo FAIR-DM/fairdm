@@ -6,8 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 
 from fairdm.contrib.contributors.models import Organization
-from fairdm.contrib.location.forms import LocationField
 from fairdm.forms import ModelForm
+from fairdm.utils.location.forms import LocationField
 
 from .widgets import RORWidget
 

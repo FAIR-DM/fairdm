@@ -1,4 +1,4 @@
-"""Tests for the location input in ``fairdm.contrib.location.forms``."""
+"""Tests for the location input in ``fairdm.utils.location.forms``."""
 
 import pytest
 from bs4 import BeautifulSoup
@@ -10,15 +10,15 @@ from django.test import RequestFactory
 from demo.factories import RockSampleFactory
 from demo.models import RockSample
 from fairdm.contrib.contributors.choices import ContributionLevel
-
-from fairdm.contrib.location.forms import (
+from fairdm.factories import ContributionFactory, UserFactory
+from fairdm.registry.config import ModelConfiguration
+from fairdm.utils.location.forms import (
     Location,
     LocationField,
     LocationWidget,
 )
-from fairdm.factories import ContributionFactory, UserFactory
-from fairdm.registry.config import ModelConfiguration
 from tests.test_core.test_editing import form_payload
+
 
 def clean(field, *parts):
     """Clean one submission, given as the field's values in input order."""
@@ -150,7 +150,10 @@ class TestLocationWidget:
     def test_a_stored_point_alone_decompresses_for_the_point_only_input(self):
         widget = LocationWidget(full=False)
 
-        assert widget.decompress(Point(8.4115, 49.0094, srid=4326)) == ["49.0094", "8.4115"]
+        assert widget.decompress(Point(8.4115, 49.0094, srid=4326)) == [
+            "49.0094",
+            "8.4115",
+        ]
 
     def test_decompressing_a_value_and_cleaning_it_again_gives_the_same_point(self):
         point = Point(8.411500000123, 49.009400000456, srid=4326)
@@ -205,12 +208,16 @@ class TestLocationWidgetRendering:
         typed = "49');alert(1);//<b>x</b>"
         widget = LocationWidget()
 
-        html = widget.render("location", [typed, "8", None, None], attrs={"id": "id_location"})
+        html = widget.render(
+            "location", [typed, "8", None, None], attrs={"id": "id_location"}
+        )
 
         page = BeautifulSoup(html, "html.parser")
         assert page.select_one("input[name='location_first']")["value"] == typed
         assert "<b>" not in html
-        assert not any("alert(1)" in (script.string or "") for script in page.select("script"))
+        assert not any(
+            "alert(1)" in (script.string or "") for script in page.select("script")
+        )
 
 
 def browser_submission(page, **typed):
@@ -222,7 +229,9 @@ def browser_submission(page, **typed):
     for name, value in form_payload(page).items():
         data.setlist(name, value if isinstance(value, list) else [value])
     for name, value in typed.items():
-        values = [control.get("value", "") for control in page.select(f"[name='{name}']")]
+        values = [
+            control.get("value", "") for control in page.select(f"[name='{name}']")
+        ]
         values[0] = value
         data.setlist(name, values)
     return data
@@ -236,7 +245,9 @@ class TestLocationFormMixin:
     def form_for_unlisted_fields(self):
         sample = RockSampleFactory()
         editor = UserFactory()
-        ContributionFactory(content_object=sample, contributor=editor, level=ContributionLevel.EDIT)
+        ContributionFactory(
+            content_object=sample, contributor=editor, level=ContributionLevel.EDIT
+        )
         request = RequestFactory().get("/")
         request.user = editor
         form_class = ModelConfiguration(model=RockSample).get_form_class()
@@ -245,17 +256,26 @@ class TestLocationFormMixin:
     def test_each_part_of_the_location_has_one_input(self, form_for_unlisted_fields):
         form_class, sample, request = form_for_unlisted_fields
 
-        page = BeautifulSoup(form_class(instance=sample, request=request).as_div(), "html.parser")
+        page = BeautifulSoup(
+            form_class(instance=sample, request=request).as_div(), "html.parser"
+        )
 
         names = [control["name"] for control in page.select("input[name]")]
         assert names.count("location_elevation") == 1
         assert names.count("location_uncertainty") == 1
 
-    def test_an_elevation_typed_in_the_location_input_is_saved(self, form_for_unlisted_fields):
+    def test_an_elevation_typed_in_the_location_input_is_saved(
+        self, form_for_unlisted_fields
+    ):
         form_class, sample, request = form_for_unlisted_fields
-        page = BeautifulSoup(form_class(instance=sample, request=request).as_div(), "html.parser")
+        page = BeautifulSoup(
+            form_class(instance=sample, request=request).as_div(), "html.parser"
+        )
         data = browser_submission(
-            page, location_first="49.0094", location_second="8.4115", location_elevation="112.5"
+            page,
+            location_first="49.0094",
+            location_second="8.4115",
+            location_elevation="112.5",
         )
         data["status"] = sample.status
 

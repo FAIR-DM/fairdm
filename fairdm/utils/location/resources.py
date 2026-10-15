@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from import_export.fields import Field
 from import_export.widgets import FloatWidget
 
-from fairdm.contrib.location.forms import LocationField
+from fairdm.utils.location.forms import LocationField
 
 
 class MeasureWidget(FloatWidget):
@@ -87,7 +87,7 @@ def location_fields():
 
 
 class LocatedResourceMixin:
-    """Give a resource of a ``LocatedRecord`` the four location columns.
+    """Give a resource of a model with a ``location`` the four location columns.
 
     Where ``location`` is among the resource's fields, it is replaced by ``latitude``,
     ``longitude``, ``location_elevation`` and ``location_uncertainty``. Export writes the

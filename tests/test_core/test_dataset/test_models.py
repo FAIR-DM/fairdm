@@ -17,7 +17,6 @@ from django.utils.functional import Promise
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.location.coverage import Coverage
 from fairdm.core.dataset.models import (
     DATACITE_RELATIONSHIP_TYPES,
     Dataset,
@@ -36,6 +35,7 @@ from fairdm.factories import (
 )
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.coverage import Coverage
 
 # `DatasetFactory()` defaults to PRIVATE, so tests unrelated to visibility use
 # `Dataset.all_objects`.

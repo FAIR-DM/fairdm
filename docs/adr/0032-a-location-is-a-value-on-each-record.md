@@ -12,6 +12,11 @@ of its own that several records point to.
 This replaces the `Point` model, which every sample and contributor at the same coordinates
 shared.
 
+The three fields are declared on `Sample` and `Measurement` themselves, not on a shared base
+model, and the code that reads and writes them lives in `fairdm.utils.location`. The app
+`fairdm.contrib.location` stays installed holding only the migrations of the old `Point` model,
+because the historical sample and contributor migrations depend on its app label.
+
 ## Why
 
 Records shared a `Point` row only when their numbers matched exactly. Coordinates typed to a

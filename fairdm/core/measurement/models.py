@@ -4,16 +4,13 @@ from typing import NamedTuple
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis import geos
+from django.contrib.gis.db.models import PointField
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from shortuuid.django_fields import ShortUUIDField
 
-from fairdm.contrib.location.models import (
-    LocatedRecord,
-    geography_index,
-    location_constraints,
-)
 from fairdm.db import models
+from fairdm.utils.location.db import geography_index, location_constraints
 
 from ..abstract import (
     AbstractDate,
@@ -48,7 +45,7 @@ class EffectiveLocation(NamedTuple):
     source: str
 
 
-class Measurement(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
+class Measurement(BasePolymorphicModel):
     """A record of a specific observation or calculation made on a sample.
 
     A polymorphic model: domain-specific measurement types inherit from this base. Subclasses
@@ -111,6 +108,31 @@ class Measurement(LocatedRecord, BasePolymorphicModel):  # type: ignore[misc]
         null=True,
         blank=True,
         db_index=True,
+    )
+
+    location = PointField(
+        srid=4326,
+        verbose_name=_("location"),
+        help_text=_("Where the record is, as a point in WGS 84."),
+        null=True,
+        blank=True,
+    )
+    location_elevation = models.FloatField(
+        verbose_name=_("elevation"),
+        help_text=_(
+            "Metres above mean sea level, and a negative number below it. Needs a location."
+        ),
+        null=True,
+        blank=True,
+    )
+    location_uncertainty = models.FloatField(
+        verbose_name=_("uncertainty"),
+        help_text=_(
+            "The distance in metres from the location within which the true place lies. "
+            "Needs a location."
+        ),
+        null=True,
+        blank=True,
     )
 
     class Meta:

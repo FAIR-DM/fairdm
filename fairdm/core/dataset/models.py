@@ -394,9 +394,9 @@ class Dataset(BaseModel):
             A ``Coverage`` in WGS 84 degrees, with ``west`` greater than ``east`` when it crosses
             the 180th meridian, or ``None`` when nothing the viewer may see is located.
         """
-        from fairdm.contrib.location.coverage import spatial_coverage
         from fairdm.core.measurement.models import Measurement
         from fairdm.core.sample.models import Sample
+        from fairdm.utils.location.coverage import spatial_coverage
 
         samples = Sample.objects.filter(dataset=self).visible_to(user)
         measurements = (

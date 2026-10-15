@@ -15,7 +15,6 @@ from demo.factories import (
 )
 from demo.models import ExampleMeasurement, ICP_MS_Measurement, XRFMeasurement
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.location.forms import LocationField
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
     ContributionFactory,
@@ -26,6 +25,7 @@ from fairdm.factories import (
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.forms import LocationField
 from tests.test_core.test_editing import form_payload, main_form
 
 User = get_user_model()

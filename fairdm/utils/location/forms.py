@@ -149,7 +149,7 @@ class LocationField(forms.MultiValueField):
 
 
 class LocationFormMixin:
-    """Give a ``ModelForm`` of a ``LocatedRecord`` the location input.
+    """Give a ``ModelForm`` of a model with a ``location`` the location input.
 
     When ``location`` is among the form's fields, it becomes a full ``LocationField`` that
     starts from the instance's point, elevation and uncertainty. On clean the point goes to

@@ -4,8 +4,8 @@ from import_export import fields
 from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
-from fairdm.contrib.location.resources import LocatedResourceMixin
 from fairdm.core.models import Sample
+from fairdm.utils.location.resources import LocatedResourceMixin
 
 
 class BaseFairDMResource(LocatedResourceMixin, ModelResource):

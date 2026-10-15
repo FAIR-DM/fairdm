@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   latitude and longitude as signed decimal degrees, from -90 to 90 and from -180 to 180. Every
   coordinate is entered in WGS 84, with no reference-system input and no degrees, minutes and
   seconds, so a researcher whose notebook uses another system or notation converts it first;
-  other systems are tracked in #512 and other notations in #513. `fairdm.contrib.location.forms`
+  other systems are tracked in #512 and other notations in #513. `fairdm.utils.location.forms`
   has `LocationField`, `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
   with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
   and `uncertainty`. An organization has a `location` point of its own. Run `migrate` when upgrading. See

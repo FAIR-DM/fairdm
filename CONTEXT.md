@@ -55,7 +55,9 @@ between records. An organization holds a plain point and a person holds none.
 Avoid "Point" for a model: there is no `Point` model, and a point is the value of the `location`
 field. Avoid "coordinates" for the stored value, which is always WGS 84, as it was typed.
 
-Implemented by `LocatedRecord` in `fairdm/contrib/location/models.py`.
+Declared on `Sample` and `Measurement` in `fairdm/core/sample/models.py` and
+`fairdm/core/measurement/models.py`, with the input, lookups and import columns in
+`fairdm/utils/location/`.
 
 ### Spatial coverage
 
@@ -66,7 +68,7 @@ at its effective location, so one placed only by a sample the viewer may not ope
 
 Avoid "bounding box" for the stored value of a dataset: nothing stores it, and it differs by viewer.
 
-Implemented by `spatial_coverage` in `fairdm/contrib/location/coverage.py`, and offered as
+Implemented by `spatial_coverage` in `fairdm/utils/location/coverage.py`, and offered as
 `Dataset.spatial_coverage(user)` and `Project.spatial_coverage(user)`.
 
 ### Contributor, Person, Organization
