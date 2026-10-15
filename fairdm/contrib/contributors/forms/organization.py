@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 
 from fairdm.contrib.contributors.models import Organization
+from fairdm.contrib.location.forms import LocationField
 from fairdm.forms import ModelForm
 
 from .widgets import RORWidget
@@ -23,6 +24,7 @@ class OrganizationCreateForm(ModelForm):
     Attributes:
         from_ror: The ROR record to look up.
         country: The organisation's country.
+        location: The organisation's point in WGS 84, typed as a latitude and a longitude.
     """
 
     from_ror = forms.CharField(
@@ -43,6 +45,14 @@ class OrganizationCreateForm(ModelForm):
         choices=countries,
         widget=forms.Select,
     )
+    location = LocationField(
+        full=False,
+        label=_("Coordinates"),
+        help_text=_(
+            "Where the organization is based. Organizations added from ROR get the "
+            "coordinates ROR publishes."
+        ),
+    )
 
     class Meta:
         model = Organization
@@ -55,12 +65,16 @@ class OrganizationCreateForm(ModelForm):
                 "How the organization will be displayed in the portal and publications."
             ),
             "country": _("The country where the organization is based."),
-            "location": _("Geographic location or address."),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = self.data.get("action") if self.data else None
+
+    def clean_location(self):
+        """Keep the point of the cleaned location, which the model field takes."""
+        location = self.cleaned_data["location"]
+        return location.point if location is not None else None
 
     def clean_name(self):
         """Require a name when adding manually."""
@@ -103,11 +117,20 @@ class OrganizationProfileForm(ModelForm):
 
     Attributes:
         country: The organisation's country.
+        location: The organisation's point in WGS 84, typed as a latitude and a longitude.
     """
 
     country = forms.ChoiceField(
         choices=countries,
         widget=forms.Select,
+    )
+    location = LocationField(
+        full=False,
+        label=_("Coordinates"),
+        help_text=_(
+            "Where the organization is based. Organizations added from ROR get the "
+            "coordinates ROR publishes."
+        ),
     )
 
     class Meta:
@@ -121,7 +144,6 @@ class OrganizationProfileForm(ModelForm):
             "image": _("Upload an organization logo or representative image."),
             "name": _("Official name of the organization."),
             "country": _("Country where the organization is headquartered."),
-            "location": _("Specific location or address."),
             "profile": _(
                 "Brief description of the organization's purpose and activities."
             ),
@@ -130,3 +152,8 @@ class OrganizationProfileForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_id = "organization-profile-form"
+
+    def clean_location(self):
+        """Keep the point of the cleaned location, which the model field takes."""
+        location = self.cleaned_data["location"]
+        return location.point if location is not None else None

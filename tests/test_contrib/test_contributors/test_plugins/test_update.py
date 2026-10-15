@@ -770,6 +770,8 @@ class TestOrganizationUpdate:
             "parent",
             "city",
             "country",
+            "location_first",
+            "location_second",
             "profile",
             "website",
             "links",

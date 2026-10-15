@@ -9,6 +9,7 @@ from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.widgets import ImageClearableFileInput
 
+from fairdm.contrib.location.forms import LocationField
 from fairdm.core import image_utils
 from fairdm.forms import ModelForm
 
@@ -309,6 +310,7 @@ class OrganizationProfileForm(ProfileForm):
         alternative_names: Other names, one per line.
         parent: The organization this one is part of. The organization itself and any
             organization beneath it are refused.
+        location: The organization's point in WGS 84, typed as a latitude and a longitude.
         website: The first stored link. Clearing it promotes the next link on reopening.
         links: The other web addresses, one per line.
     """
@@ -339,6 +341,14 @@ class OrganizationProfileForm(ProfileForm):
         label=_("Part of"),
         help_text=_("The organization this one belongs to, if any."),
         widget=autocomplete.ModelSelect2(url="autocomplete:organization"),
+    )
+    location = LocationField(
+        full=False,
+        label=_("Coordinates"),
+        help_text=_(
+            "Where the organization is based. Organizations added from ROR get the "
+            "coordinates ROR publishes."
+        ),
     )
     website = forms.CharField(
         required=False,
@@ -375,6 +385,7 @@ class OrganizationProfileForm(ProfileForm):
             "parent",
             "city",
             "country",
+            "location",
             "profile",
             "website",
             "links",
@@ -395,7 +406,7 @@ class OrganizationProfileForm(ProfileForm):
 
     sections = (
         (None, ["image", "name", "alternative_names", ("type", "parent")]),
-        (_("Location"), [("city", "country")]),
+        (_("Location"), [("city", "country"), "location"]),
         (_("About"), ["profile"]),
         (_("Online"), ["website", "links"]),
     )
@@ -407,6 +418,11 @@ class OrganizationProfileForm(ProfileForm):
             self.initial["website"] = stored[0] if stored else ""
             stored = stored[1:]
         self.initial["links"] = stored
+
+    def clean_location(self):
+        """Keep the point of the cleaned location, which the model field takes."""
+        location = self.cleaned_data["location"]
+        return location.point if location is not None else None
 
     def clean(self):
         """Store the website first among the links, and no link twice."""

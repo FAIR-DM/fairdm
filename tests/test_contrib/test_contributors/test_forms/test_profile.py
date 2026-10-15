@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.validators import URLValidator
 
@@ -13,6 +14,7 @@ from fairdm.contrib.contributors.forms.profile import (
     PersonProfileForm,
 )
 from fairdm.contrib.contributors.models import ContributorIdentifier
+from fairdm.contrib.location.forms import LocationField
 from fairdm.core import image_utils
 from fairdm.factories import OrganizationFactory, PersonFactory
 
@@ -227,6 +229,7 @@ class TestOrganizationProfileForm:
             "parent",
             "city",
             "country",
+            "location",
             "profile",
             "website",
             "links",
@@ -629,3 +632,130 @@ class TestFormsWithADroppedField:
         assert organization.name == "Potsdam Research Institute"
         assert organization.parent == parent
 
+
+@pytest.mark.django_db
+class TestOrganizationProfileFormLocation:
+    def test_the_location_is_a_point_only_input_in_wgs_84(self, organization):
+        form = OrganizationProfileForm(instance=organization)
+
+        field = form.fields["location"]
+        assert isinstance(field, LocationField)
+        assert field.full is False
+        assert not field.required
+
+    @pytest.mark.parametrize(
+        ("latitude", "longitude"),
+        [
+            ("52.39886", "13.06566"),
+            ("52.39886 N", "13.06566 E"),
+            ("52 23.932 N", "13 3.94 E"),
+            ("52°23'55.9\"N", "13°3'56.4\"E"),
+        ],
+    )
+    def test_a_point_typed_in_any_notation_is_saved(
+        self, organization, organization_profile_data, latitude, longitude
+    ):
+        form = OrganizationProfileForm(
+            {
+                **organization_profile_data,
+                "location_first": latitude,
+                "location_second": longitude,
+            },
+            instance=organization,
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.location.srid == 4326
+        assert organization.location.y == pytest.approx(52.39886, abs=1e-4)
+        assert organization.location.x == pytest.approx(13.06566, abs=1e-4)
+
+    def test_moving_one_organization_leaves_another_at_the_same_coordinates(
+        self, organization_profile_data
+    ):
+        here = Point(13.06566, 52.39886, srid=4326)
+        moved = OrganizationFactory(location=here)
+        stayed = OrganizationFactory(location=here)
+        form = OrganizationProfileForm(
+            {
+                **organization_profile_data,
+                "location_first": "48.9353",
+                "location_second": "8.4021",
+            },
+            instance=moved,
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        moved.refresh_from_db()
+        stayed.refresh_from_db()
+        assert moved.location.y == pytest.approx(48.9353)
+        assert stayed.location.equals(here)
+
+    def test_clearing_both_coordinates_removes_the_point(
+        self, organization_profile_data
+    ):
+        organization = OrganizationFactory(
+            location=Point(13.06566, 52.39886, srid=4326)
+        )
+        form = OrganizationProfileForm(
+            {**organization_profile_data, "location_first": "", "location_second": ""},
+            instance=organization,
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.location is None
+
+    @pytest.mark.parametrize(
+        ("latitude", "longitude", "code"),
+        [
+            ("52.39886", "", "incomplete"),
+            ("91", "13.06566", "out_of_range"),
+            ("not a latitude", "13.06566", "invalid"),
+        ],
+    )
+    def test_coordinates_that_cannot_be_read_are_refused_and_nothing_is_stored(
+        self, organization_profile_data, latitude, longitude, code
+    ):
+        organization = OrganizationFactory(location=None)
+        form = OrganizationProfileForm(
+            {
+                **organization_profile_data,
+                "location_first": latitude,
+                "location_second": longitude,
+            },
+            instance=organization,
+        )
+
+        assert not form.is_valid()
+        assert form.has_error("location", code=code)
+        organization.refresh_from_db()
+        assert organization.location is None
+
+    def test_an_unchanged_form_leaves_the_point_where_it_was(
+        self, organization_profile_data
+    ):
+        here = Point(13.06566, 52.39886, srid=4326)
+        organization = OrganizationFactory(location=here)
+        form = OrganizationProfileForm(instance=organization)
+        first, second = form.fields["location"].widget.decompress(
+            form["location"].initial
+        )
+        data = {
+            **organization_profile_data,
+            "location_first": first,
+            "location_second": second,
+        }
+
+        resubmitted = OrganizationProfileForm(data, instance=organization)
+
+        assert resubmitted.is_valid(), resubmitted.errors
+        resubmitted.save()
+        organization.refresh_from_db()
+        assert organization.location.equals(here)
