@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -54,6 +54,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-15T10:24:09Z",
       "note": "merge gate: remove LocatedRecord, move location code out of contrib"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-15T10:40:46Z",
+      "note": "merge-gate change T042, T043 verified"
     }
   ],
   "gates": {
@@ -598,8 +603,19 @@
         },
         {
           "id": "T043",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_utils/test_location/test_managers.py::TestQueryPlan"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_utils/test_location/test_managers.py::TestQueryPlan (6 passed; test_measurements_inside_an_area saw a planner-chosen seq scan on measurements once under parallel load)"
+            ],
+            "code": [
+              "tests/test_utils/test_location/test_managers.py:415"
+            ]
+          }
         }
       ]
     },
