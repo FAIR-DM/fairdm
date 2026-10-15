@@ -259,3 +259,10 @@ Did: two tests where a measurement with no location of its own is placed by a vi
 Verified: pytest -n0 TestDatasetSpatialCoverage and TestProjectSpatialCoverage, 22 passed on the unchanged code. Reading location instead of effective_location in Dataset.spatial_coverage turns the dataset test red, and the same change in Project.spatial_coverage turns the project test red; each alone.
 Next: T039.
 Watch: the brief names the dataset only; the finding says the project has the same gap, so a project test is added beside it.
+
+## 2026-10-15T08:00:40Z · Implementer FIX-1 · T039
+
+Did: a migration guide section for the location change (clashing field names on sample and measurement types, the old reads to search for, the settings and factory that are gone, export before migrating, re-enter after). data_model.md and managing-samples.md no longer describe a linked record. The measurement lookups section says to pass the viewer again beside visible_to, and the import section says what empty coordinate cells do to an elevation and uncertainty.
+Verified: pre-commit on the four pages passed. No test: documentation only.
+Next: full verify, then the completion report.
+Watch: the brief limits this task to these pages; the ADR consequence and special_fields.md that DOC-001 also named for measurement types are untouched.

@@ -330,8 +330,21 @@
         },
         {
           "id": "T039",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --files docs/more/migration-guides.md docs/overview/data_model.md docs/portal-administration/managing-samples.md docs/portal-development/locations.md (passed)",
+              "documentation only: no behaviour changed, so no test; the full verify runs the docs step"
+            ],
+            "code": [
+              "docs/more/migration-guides.md:6",
+              "docs/overview/data_model.md:77",
+              "docs/portal-administration/managing-samples.md:441",
+              "docs/portal-development/locations.md:211",
+              "docs/portal-development/locations.md:347"
+            ]
+          }
         }
       ]
     },
