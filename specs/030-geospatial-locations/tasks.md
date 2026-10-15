@@ -146,3 +146,38 @@ prototype's `options` handling and the demo seeds that use it go.
   `forms/organization.py`, and the overview's map condition (plan D3, D7). The field and the ROR transform came with US1.
 - [ ] T031 [US6] Docs: the organization's point on the locations page and the contributors page.
   FS-019 edited.
+
+## Phase 8: review fixes
+
+Each fix comes from the review of the whole feature and belongs to the story it corrects. Each is
+test first, and the test is seen to go red under the mutation named.
+
+- [ ] T032 [US1] COR-001, SEC-001: in `read_point`'s projected branch, refuse a northing or easting
+  above 1e9 in magnitude before building the point, and after converting refuse a result outside
+  latitude ±90 or longitude ±180. Tests: `("4087", "20000000", "0")` is refused, and
+  `("3857", "0", "1e30")` is refused without reaching PROJ. Red when either check is removed.
+- [ ] T033 [US1] SEC-002: `max_length=64` on the coordinate and reference-system fields of
+  `LocationField`, and the same cap in the import coordinate widget before parsing. Test: a value of
+  65 characters is refused on both paths.
+- [ ] T034 [US1] COR-003: when `LocationFormMixin` swaps in the location input, it removes
+  `location_elevation` and `location_uncertainty` from the form's fields. Test: a form built from a
+  registration with no field list has one input named `location_elevation` and saves an elevation
+  typed in the widget.
+- [ ] T035 [US1] SEC-003, SEC-004: the widget template passes the reference system to the script
+  through a data attribute, never inside a JavaScript string. `lat-lon-parser` is declared as
+  `>=1.3.1,<2.0`. Test: a re-rendered form whose reference system holds a quote and markup renders
+  it escaped in an attribute and nowhere else.
+- [ ] T036 [US5] COR-002: the import widgets for elevation and uncertainty refuse a value that is
+  not finite (`nan`, `inf`). Test: rows with each are reported and not saved, and a good row beside
+  them is.
+- [ ] T037 [US2] COR-004: `inside()` given a `(west, south, east, north)` tuple with `west > east`
+  treats it as a box across the 180th meridian, the shape `spatial_coverage` returns. Test: for
+  `(175, -20, -175, -10)` a sample at longitude 178 is inside and one at 0 is not.
+- [ ] T038 [US2] TST-001: a dataset's coverage includes the point of a measurement that has no
+  location of its own and whose visible sample sits in another dataset outside every other location.
+  Red when the coverage reads `location` instead of `effective_location`.
+- [ ] T039 [US1] DOC-001, DOC-002, COR-006, COR-007: a migration guide section for the breaking
+  changes in `docs/more/migration-guides.md`; `data_model.md` and `managing-samples.md` no longer
+  describe a location as a linked record; the measurement lookups' docs say the viewer is passed
+  again when combined with `visible_to`; the import docs state what empty coordinate cells do to an
+  elevation and uncertainty.
