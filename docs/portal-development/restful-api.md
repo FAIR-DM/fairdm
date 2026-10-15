@@ -116,6 +116,21 @@ uncertainty, and a person has no `location`.
 `location`, `location_elevation` and `location_uncertainty` are read-only. A value sent for one on
 a create or a change is ignored, and the record keeps the place it had.
 
+A serializer of your own that subclasses `BaseSampleSerializer` or `BaseMeasurementSerializer`
+inherits both fields. To give a model of your own that holds a `location` point the same shape,
+declare `fairdm.api.serializers.GeoJSONPointField` on its serializer:
+
+```python
+from fairdm.api.serializers import GeoJSONPointField
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    location = GeoJSONPointField()
+```
+
+The field is read-only and reads `location`, and `location_elevation` where the model has one,
+from the record it is given.
+
 ## A credit on a record
 
 A credit holds what a harvester needs to attribute a record without asking the API anything else.
