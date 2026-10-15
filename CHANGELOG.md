@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   collection tables' Latitude and Longitude for a measurement are its effective location for the
   viewer. See [Locations](docs/portal-development/locations.md).
 
+- **The API returns a record's location as a GeoJSON point.** A sample and a measurement return
+  `location`, a `Point` in WGS 84 with longitude first and the elevation as a third coordinate
+  where one is recorded, and `location_uncertainty` in metres beside it. An organization returns
+  `location` without an elevation, and a person returns none. A record with no location returns
+  `null`, and a measurement returns only its own location, never its sample's. The three location
+  fields are read-only. See [A record's location](docs/portal-development/restful-api.md#a-records-location).
+
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages

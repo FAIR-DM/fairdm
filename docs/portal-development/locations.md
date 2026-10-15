@@ -225,6 +225,31 @@ spatial_coverage(
 A dataset no longer has a bounding-box property. Use `spatial_coverage()`, whose `west` and `east`
 stand where the property's `min_x` and `max_x` did.
 
+## In the API
+
+A sample and a measurement return `location` and `location_uncertainty`, and an organization
+returns `location`. A person returns neither.
+
+```json
+{
+  "name": "RS-14",
+  "location": {"type": "Point", "coordinates": [8.4115, 49.0094, 112.5]},
+  "location_uncertainty": 25.0
+}
+```
+
+- `location` is a GeoJSON `Point` in WGS 84 with longitude first, and the record's elevation as the
+  third coordinate when it holds one. It is `null` for a record with no location.
+- `location_uncertainty` is in metres and sits beside the geometry, since GeoJSON has no place for
+  it. It is `null` when none is recorded.
+- A measurement returns only its own location. One with none of its own returns `null`, and the
+  sample's place is read from the sample its `sample` address points to.
+- All three fields are read-only. A request that sends one leaves the record's location as it was.
+
+The schema at `/api/v1/schema/` describes `location` as a GeoJSON point. A registered type that
+lists `location` in its fields gets the same field. See
+[A record's location](restful-api.md#a-records-location) on the API page.
+
 ## In the collection tables
 
 The listing of a sample or measurement type has a Latitude and a Longitude column, and no location
