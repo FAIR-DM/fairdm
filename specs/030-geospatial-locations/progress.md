@@ -210,3 +210,10 @@ Did: locations.md gains Placing an organization; contributors.md names location 
 Verified: each claim on the pages is one a test in the story asserts; docs build not run in the narrow scope, the full verify has it.
 Next: full verify, report.
 Watch: docs/data_models/contributors.md already described the point.
+
+## 2026-10-15T07:49:48Z · Implementer FIX-1 · T032
+
+Did: read_point refuses a northing or easting above 1e9 before the point is built, and a converted point outside latitude +-90 or longitude +-180. Both raise out_of_range.
+Verified: pytest -n0 TestLocationField 31 passed. Each check removed in turn: the magnitude test and the range test each go red alone (1 failed, 30 passed).
+Next: T033.
+Watch: the 1e30 test patches GEOSGeometry.transform to fail, so the mutation fails fast instead of hanging in PROJ.

@@ -252,8 +252,23 @@
         },
         {
           "id": "T032",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationField::test_a_projected_point_that_converts_beyond_wgs84_is_refused",
+              "tests/test_contrib/test_location/test_forms.py::TestLocationField::test_a_projected_magnitude_no_system_produces_is_refused_before_conversion"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py::TestLocationField (31 passed)",
+              "mutation: replace the MAX_PROJECTED_METRES check in read_point with 'if False:' and rerun the class: test_a_projected_magnitude_no_system_produces_is_refused_before_conversion fails (1 failed, 30 passed)",
+              "mutation: replace the post-transform latitude/longitude range check with 'if False:' and rerun the class: test_a_projected_point_that_converts_beyond_wgs84_is_refused fails (1 failed, 30 passed)"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:340",
+              "fairdm/contrib/location/forms.py:349"
+            ]
+          }
         },
         {
           "id": "T033",
